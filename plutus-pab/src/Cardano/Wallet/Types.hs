@@ -23,6 +23,7 @@ module Cardano.Wallet.Types (
      -- * wallet configuration
     , WalletConfig (..)
     , defaultWalletConfig
+    , WalletNumber (..)
 
      -- * wallet log messages
     , WalletMsg (..)
@@ -59,7 +60,7 @@ import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet (..), WalletState)
+import           Wallet.Emulator.Wallet             (Wallet, WalletNumber (..), WalletState)
 
 
 -- | Information about an emulated wallet.
@@ -104,7 +105,7 @@ newtype Port = Port Int
 data WalletConfig =
     WalletConfig
         { baseUrl :: WalletUrl
-        , wallet  :: Wallet
+        , wallet  :: WalletNumber
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -114,7 +115,7 @@ defaultWalletConfig =
   WalletConfig
     -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
     { baseUrl = WalletUrl $ BaseUrl Http "127.0.0.1" 9081 ""
-    , wallet  = Wallet 1
+    , wallet  = WalletNumber 1
     }
 
 instance Default WalletConfig where

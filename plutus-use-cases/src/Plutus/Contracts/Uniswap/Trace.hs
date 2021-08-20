@@ -27,12 +27,12 @@ import           Plutus.Contracts.Uniswap.OffChain as OffChain
 import           Plutus.Contracts.Uniswap.Types    as Types
 import           Plutus.Trace.Emulator             (EmulatorRuntimeError (GenericError), EmulatorTrace)
 import qualified Plutus.Trace.Emulator             as Emulator
-import           Wallet.Emulator.Types             (Wallet (..), walletPubKey)
+import           Wallet.Emulator                   (Wallet (..), knownWallets, walletPubKey)
 
 -- | Set up a liquidity pool and call the "add" endpoint
 uniswapTrace :: EmulatorTrace ()
 uniswapTrace = do
-    cidInit <- Emulator.activateContract (Wallet 1) setupTokens "init"
+    cidInit <- Emulator.activateContract (knownWallets !! 0) setupTokens "init"
     _ <- Emulator.waitNSlots 5
     cs <- Emulator.observableState cidInit >>= \case
                 Just (Semigroup.Last cur) -> pure (Currency.currencySymbol cur)
@@ -40,13 +40,13 @@ uniswapTrace = do
     let coins = Map.fromList [(tn, Types.mkCoin cs tn) | tn <- tokenNames]
         ada   = Types.mkCoin adaSymbol adaToken
 
-    cidStart <- Emulator.activateContract (Wallet 1) ownerEndpoint "start"
+    cidStart <- Emulator.activateContract (knownWallets !! 0) ownerEndpoint "start"
     _ <- Emulator.waitNSlots 5
     us <- Emulator.observableState cidStart >>= \case
                 Monoid.Last (Just (Right v)) -> pure v
                 _                            -> throwError $ GenericError "initialisation failed"
-    cid1 <- Emulator.activateContractWallet (Wallet 2) (awaitPromise $ userEndpoints us)
-    cid2 <- Emulator.activateContractWallet (Wallet 3) (awaitPromise $ userEndpoints us)
+    cid1 <- Emulator.activateContractWallet (knownWallets !! 1) (awaitPromise $ userEndpoints us)
+    cid2 <- Emulator.activateContractWallet (knownWallets !! 2) (awaitPromise $ userEndpoints us)
     _ <- Emulator.waitNSlots 5
 
     let cp = OffChain.CreateParams ada (coins Map.! "A") 100000 500000
@@ -80,7 +80,7 @@ setupTokens = do
     amount = 1000000
 
 wallets :: [Wallet]
-wallets = [Wallet i | i <- [1 .. 4]]
+wallets = take 4 knownWallets
 
 tokenNames :: [TokenName]
 tokenNames = ["A", "B", "C", "D"]

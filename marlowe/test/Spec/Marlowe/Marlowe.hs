@@ -89,8 +89,8 @@ tests = testGroup "Marlowe"
 
 
 alice, bob :: Wallet
-alice = Wallet 1
-bob = Wallet 2
+alice = w1
+bob = w2
 
 
 zeroCouponBondTest :: TestTree

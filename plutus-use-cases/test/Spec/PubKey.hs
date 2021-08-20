@@ -18,9 +18,6 @@ import           Plutus.Contracts.PubKey (PubKeyError, pubKeyContract)
 
 import           Test.Tasty
 
-w1 :: Wallet
-w1 = Wallet 1
-
 theContract :: Contract () EmptySchema PubKeyError ()
 theContract = do
   (txOutRef, txOutTx, pkInst) <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)

@@ -62,7 +62,7 @@ import           Wallet.Emulator.Wallet                 (Wallet (..), walletAddr
 
 -- TODO: Move these two to 'Wallet.Emulator.XXX'?
 import           Ledger.TimeSlot                        (SlotConfig)
-import           Plutus.Contract.Trace                  (InitialDistribution, defaultDist)
+import           Plutus.Contract.Trace                  (InitialDistribution, defaultDist, knownWallets)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError)
 
 {- Note [Emulator event stream]
@@ -151,7 +151,7 @@ initialDist = either id (walletFunds . map Valid) where
     walletFunds theBlock =
         let values = AM.values $ AM.fromChain [theBlock]
             getFunds wllt = fromMaybe mempty $ Map.lookup (walletAddress wllt) values
-        in Map.fromSet getFunds (Set.fromList $ Wallet <$> [1..10])
+        in Map.fromSet getFunds (Set.fromList knownWallets)
 
 instance Default EmulatorConfig where
   def = EmulatorConfig

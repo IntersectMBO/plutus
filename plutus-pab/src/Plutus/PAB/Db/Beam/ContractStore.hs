@@ -43,6 +43,7 @@ import           Plutus.PAB.Monitoring.Monitoring    (PABMultiAgentMsg)
 import           Plutus.PAB.Types                    (PABError (..))
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet              (Wallet (..))
+import qualified Wallet.Emulator.Wallet              as Wallet
 import           Wallet.Types                        (ContractInstanceId (..))
 
 -- | Convert from the internal representation of a contract into the database
@@ -56,7 +57,7 @@ mkRow ContractActivationArgs{caID, caWallet} instanceId
   = ContractInstance
       (uuidStr instanceId)
       (Text.decodeUtf8 $ B.concat $ LB.toChunks $ encode caID)
-      (Text.pack . show . getWallet $ caWallet)
+      (Wallet.toBase16 . getWalletId $ caWallet)
       Nothing -- No state, initially
       True    -- 'Active' immediately
 
@@ -80,7 +81,7 @@ mkContracts xs =
                       . encodeUtf8Builder
                       . _contractInstanceContractId
                       $ ci
-          let wallet = Wallet . read . Text.unpack . _contractInstanceWallet $ ci
+          wallet <- fmap Wallet . either (const Nothing) Just . Wallet.fromBase16 . _contractInstanceWallet $ ci
           return ( ciId
                  , ContractActivationArgs contractId wallet
                  )

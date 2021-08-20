@@ -192,8 +192,7 @@ interpretEmulatorTrace conf action =
     -- initial transaction gets validated before the wallets
     -- try to spend their funds
     let action' = Waiting.nextSlot >> action >> Waiting.nextSlot
-        defaultWallets = Wallet.Wallet <$> [1..10]
-        wallets = fromMaybe defaultWallets (preview (initialChainState . _Left . to Map.keys) conf)
+        wallets = fromMaybe Wallet.knownWallets (preview (initialChainState . _Left . to Map.keys) conf)
     in
     evalState @EmulatorThreads mempty
         $ handleDeterministicIds

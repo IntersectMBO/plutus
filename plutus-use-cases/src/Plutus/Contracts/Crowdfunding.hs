@@ -76,7 +76,7 @@ import           PlutusTx.Prelude                     hiding (Applicative (..), 
 import           Prelude                              (Semigroup (..), (<$>))
 import qualified Prelude                              as Haskell
 import           Schema                               (ToArgument, ToSchema)
-import           Wallet.Emulator                      (Wallet (..))
+import           Wallet.Emulator                      (Wallet (..), knownWallets)
 import qualified Wallet.Emulator                      as Emulator
 
 -- | A crowdfunding campaign.
@@ -195,7 +195,7 @@ theCampaign :: POSIXTime -> Campaign
 theCampaign startTime = Campaign
     { campaignDeadline = startTime + 20000
     , campaignCollectionDeadline = startTime + 30000
-    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
+    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (knownWallets !! 0)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
@@ -253,7 +253,7 @@ scheduleCollection cmp = endpoint @"schedule collection" $ \() -> do
 startCampaign :: EmulatorTrace (ContractHandle () CrowdfundingSchema ContractError)
 startCampaign = do
     startTime <- TimeSlot.scSlotZeroTime <$> getSlotConfig
-    hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding $ theCampaign startTime)
+    hdl <- Trace.activateContractWallet (knownWallets !! 0) (crowdfunding $ theCampaign startTime)
     Trace.callEndpoint @"schedule collection" hdl ()
     pure hdl
 
@@ -268,7 +268,7 @@ makeContribution w v = do
 successfulCampaign :: EmulatorTrace ()
 successfulCampaign = do
     _ <- startCampaign
-    makeContribution (Wallet 2) (Ada.lovelaceValueOf 100)
-    makeContribution (Wallet 3) (Ada.lovelaceValueOf 100)
-    makeContribution (Wallet 4) (Ada.lovelaceValueOf 25)
+    makeContribution (knownWallets !! 1) (Ada.lovelaceValueOf 100)
+    makeContribution (knownWallets !! 2) (Ada.lovelaceValueOf 100)
+    makeContribution (knownWallets !! 3) (Ada.lovelaceValueOf 25)
     void $ Trace.waitUntilSlot 21

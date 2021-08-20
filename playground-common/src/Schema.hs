@@ -64,7 +64,7 @@ import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
 import qualified PlutusTx.Ratio         as P
-import           Wallet.Emulator.Wallet (Wallet)
+import           Wallet.Emulator.Wallet (Wallet, WalletId)
 import           Wallet.Types           (ContractInstanceId)
 
 import           Text.Show.Deriving     (deriveShow1)
@@ -373,6 +373,9 @@ instance ToSchema LedgerBytes where
 instance ToSchema UUID where
     toSchema = toSchema @String
 
+instance ToSchema WalletId where
+    toSchema = toSchema @String
+
 instance ToSchema POSIXTime where
     toSchema = FormSchemaInteger
 
@@ -380,6 +383,8 @@ instance ToSchema POSIXTimeRange where
     toSchema = FormSchemaPOSIXTimeRange
 
 deriving anyclass instance ToSchema Ada
+
+deriving anyclass instance ToSchema ContractInstanceId
 
 deriving anyclass instance ToSchema CurrencySymbol
 
@@ -401,8 +406,10 @@ deriving anyclass instance ToSchema ValidatorHash
 
 deriving anyclass instance ToSchema Wallet
 
-deriving anyclass instance ToArgument Wallet
 
 deriving anyclass instance ToArgument Ada
 
-deriving anyclass instance ToSchema ContractInstanceId
+deriving anyclass instance ToArgument Wallet
+
+instance ToArgument WalletId where
+    toArgument = Fix . FormStringF . Just . show

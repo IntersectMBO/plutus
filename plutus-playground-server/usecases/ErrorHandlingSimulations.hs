@@ -10,13 +10,13 @@ import           ErrorHandling         (registeredKnownCurrencies)
 import           Playground.Types      (Simulation (Simulation), SimulatorAction, simulationActions, simulationId,
                                         simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
-import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
+import           Wallet.Emulator.Types (Wallet, knownWallet)
 
 simulations :: [Simulation]
 simulations = [throwCatch]
   where
-    wallet1 = Wallet {getWallet = 1}
-    wallet2 = Wallet {getWallet = 2}
+    wallet1 = knownWallet 1
+    wallet2 = knownWallet 2
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2]
     throwCatch =

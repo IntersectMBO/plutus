@@ -39,12 +39,6 @@ import qualified Streaming.Prelude                     as S
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM)
 
-w1, w2, w3, w4 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
-w4 = Wallet 4
-
 theContract :: POSIXTime -> Contract () CrowdfundingSchema ContractError ()
 theContract startTime = crowdfunding $ theCampaign startTime
 

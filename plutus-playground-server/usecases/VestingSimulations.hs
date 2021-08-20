@@ -10,13 +10,13 @@ import           Playground.Types      (ContractCall (AddBlocks), Simulation (Si
                                         simulationActions, simulationId, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Vesting               (registeredKnownCurrencies)
-import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
+import           Wallet.Emulator.Types (Wallet, knownWallet)
 
 simulations :: [Simulation]
 simulations = [vestRetrieve]
   where
-    wallet1 = Wallet {getWallet = 1}
-    wallet2 = Wallet {getWallet = 2}
+    wallet1 = knownWallet 1
+    wallet2 = knownWallet 2
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100_000_000 <$> [wallet1, wallet2]
     vestRetrieve =

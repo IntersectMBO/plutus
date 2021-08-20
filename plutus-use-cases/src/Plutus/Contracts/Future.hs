@@ -610,7 +610,7 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
 testAccounts :: FutureAccounts
 testAccounts =
     let con = setupTokens @() @FutureSchema @FutureError
-        fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
+        fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.knownWallets !! 0))
         getOutcome (Folds.Done a) = a
         getOutcome e              = Haskell.error $ "not finished: " <> Haskell.show e
     in
@@ -624,7 +624,7 @@ testAccounts =
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do
     _ <- Trace.waitNSlots 1
-    _ <- Trace.activateContractWallet (Wallet.Wallet 1) (void $ setupTokens @() @FutureSchema @FutureError)
+    _ <- Trace.activateContractWallet (Wallet.knownWallets !! 0) (void $ setupTokens @() @FutureSchema @FutureError)
     void $ Trace.waitNSlots 2
 
 PlutusTx.makeLift ''Future

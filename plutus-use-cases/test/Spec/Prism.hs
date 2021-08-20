@@ -38,9 +38,9 @@ import qualified Plutus.Contracts.Prism.Unlock      as C
 import qualified Plutus.Trace.Emulator              as Trace
 
 user, mirror, issuer :: Wallet
-user = Wallet 1
-mirror = Wallet 2
-issuer = Wallet 3
+user = w1
+mirror = w2
+issuer = w3
 
 kyc :: TokenName
 kyc = "KYC"
@@ -126,7 +126,7 @@ waitSlots :: Integer
 waitSlots = 10
 
 users :: [Wallet]
-users = [user, Wallet 4]
+users = [user, w4]
 
 deriving instance Eq   (ContractInstanceKey PrismModel w s e)
 deriving instance Show (ContractInstanceKey PrismModel w s e)

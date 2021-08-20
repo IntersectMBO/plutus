@@ -105,6 +105,7 @@ library
         freer-extras -any,
     build-depends:
         cardano-api -any,
+        cardano-crypto -any,
         cardano-ledger-core -any,
     build-depends:
         aeson >= 1.5.2,

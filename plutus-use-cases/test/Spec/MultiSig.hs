@@ -8,6 +8,7 @@ module Spec.MultiSig(tests, failingTrace, succeedingTrace) where
 import           Control.Monad             (void)
 import qualified Ledger
 import qualified Ledger.Ada                as Ada
+import           Ledger.Crypto             (privateKey1, privateKey2, privateKey3)
 import           Ledger.Index              (ValidationError (ScriptFailure))
 import           Ledger.Scripts            (ScriptError (EvaluationError))
 import           Plutus.Contract           (Contract, ContractError)
@@ -18,7 +19,7 @@ import qualified Plutus.Trace.Emulator     as Trace
 import qualified PlutusTx                  as PlutusTx
 import           Prelude                   hiding (not)
 import           Test.Tasty
-import           Wallet.Emulator.Wallet    (signWallets)
+import           Wallet.Emulator.Wallet    (signPrivateKeys)
 
 tests :: TestTree
 tests = testGroup "multisig"
@@ -40,7 +41,7 @@ failingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
-    Trace.setSigningProcess w1 (signWallets [w1, w2])
+    Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2])
     Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2])
     void $ Trace.waitNSlots 1
 
@@ -51,14 +52,9 @@ succeedingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
-    Trace.setSigningProcess w1 (signWallets [w1, w2, w3])
+    Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2, privateKey3])
     Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2, w3])
     void $ Trace.waitNSlots 1
-
-w1, w2, w3 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
 
 theContract :: Contract () MultiSigSchema ContractError ()
 theContract = MS.contract
@@ -66,6 +62,6 @@ theContract = MS.contract
 -- a 'MultiSig' contract that requires three out of five signatures
 multiSig :: MultiSig
 multiSig = MultiSig
-        { signatories = Ledger.pubKeyHash . walletPubKey . Wallet <$> [1..5]
+        { signatories = Ledger.pubKeyHash . walletPubKey <$> [w1, w2, w3, w4, w5]
         , minNumSignatures = 3
         }

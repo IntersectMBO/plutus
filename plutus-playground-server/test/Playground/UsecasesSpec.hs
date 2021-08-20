@@ -44,6 +44,7 @@ import           Playground.Types             (CompilationResult (CompilationRes
                                                resultRollup, simulatorWalletBalance, simulatorWalletWallet, sourceCode,
                                                walletKeys, wallets)
 import           Playground.Usecases          (crowdFunding, errorHandling, game, vesting)
+import           Plutus.Contract.Test         (w1, w2, w3, w4, w5)
 import           Schema                       (FormSchema (FormSchemaUnit, FormSchemaValue))
 import           System.Environment           (lookupEnv)
 import           Test.Tasty                   (TestTree, testGroup)
@@ -67,17 +68,6 @@ tests =
 
 maxInterpretationTime :: Minute
 maxInterpretationTime = 2
-
-w1, w2, w3, w4, w5 :: Wallet
-w1 = Wallet 1
-
-w2 = Wallet 2
-
-w3 = Wallet 3
-
-w4 = Wallet 4
-
-w5 = Wallet 5
 
 mkSimulatorWallet :: Wallet -> Value -> SimulatorWallet
 mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =

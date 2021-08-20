@@ -44,14 +44,14 @@ import qualified Wallet.Emulator.Chain             as Chain
 import qualified Wallet.Emulator.ChainIndex        as ChainIndex
 import           Wallet.Emulator.LogMessages       (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient        as NC
-import           Wallet.Emulator.Wallet            (Wallet)
+import           Wallet.Emulator.Wallet            (Wallet (..), WalletId (..))
 import qualified Wallet.Emulator.Wallet            as Wallet
 import           Wallet.Types                      (AssertionError (..))
 
 -- | Assertions which will be checked during execution of the emulator.
 data Assertion
   = IsValidated Tx -- ^ Assert that the given transaction is validated.
-  | OwnFundsEqual Wallet.Wallet Value -- ^ Assert that the funds belonging to a wallet's public-key address are equal to a value.
+  | OwnFundsEqual Wallet Value -- ^ Assert that the funds belonging to a wallet's public-key address are equal to a value.
 
 -- | An event with a timestamp measured in emulator time
 --   (currently: 'Slot')
@@ -75,9 +75,9 @@ emulatorTimeEvent t = prism' (EmulatorTimeEvent t) (\case { EmulatorTimeEvent s 
 -- | Events produced by the blockchain emulator.
 data EmulatorEvent' =
     ChainEvent Chain.ChainEvent
-    | ClientEvent Wallet.Wallet NC.NodeClientEvent
-    | WalletEvent Wallet.Wallet Wallet.WalletEvent
-    | ChainIndexEvent Wallet.Wallet ChainIndex.ChainIndexEvent
+    | ClientEvent Wallet NC.NodeClientEvent
+    | WalletEvent Wallet Wallet.WalletEvent
+    | ChainIndexEvent Wallet ChainIndex.ChainIndexEvent
     | SchedulerEvent Scheduler.SchedulerLog
     | InstanceEvent ContractInstanceLog
     | UserThreadEvent UserThreadMsg
@@ -99,16 +99,16 @@ type EmulatorEvent = EmulatorTimeEvent EmulatorEvent'
 chainEvent :: Prism' EmulatorEvent' Chain.ChainEvent
 chainEvent = prism' ChainEvent (\case { ChainEvent c -> Just c; _ -> Nothing })
 
-walletClientEvent :: Wallet.Wallet -> Prism' EmulatorEvent' NC.NodeClientEvent
+walletClientEvent :: Wallet -> Prism' EmulatorEvent' NC.NodeClientEvent
 walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
+walletEvent :: Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-walletEvent' :: Prism' EmulatorEvent' (Wallet.Wallet, Wallet.WalletEvent)
+walletEvent' :: Prism' EmulatorEvent' (Wallet, Wallet.WalletEvent)
 walletEvent' = prism' (uncurry WalletEvent) (\case { WalletEvent w c -> Just (w, c); _ -> Nothing })
 
-chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
+chainIndexEvent :: Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
 schedulerEvent :: Prism' EmulatorEvent' Scheduler.SchedulerLog
@@ -164,18 +164,18 @@ to do in the real world, and 'WalletControlAction' is for everything else.
 data MultiAgentEffect r where
     -- | A direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
+    WalletAction :: Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
 
 data MultiAgentControlEffect r where
     -- | An action affecting the emulated parts of a wallet (only available in emulator - see note [Control effects].)
-    WalletControlAction :: Wallet.Wallet -> Eff EmulatedWalletControlEffects r -> MultiAgentControlEffect r
+    WalletControlAction :: Wallet -> Eff EmulatedWalletControlEffects r -> MultiAgentControlEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentControlEffect ()
 
 -- | Run an action in the context of a wallet (ie. agent)
 walletAction
     :: (Member MultiAgentEffect effs)
-    => Wallet.Wallet
+    => Wallet
     -> Eff EmulatedWalletEffects r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
@@ -208,7 +208,7 @@ raiseWallet wllt = walletAction wllt . send
 -- | Run a control action in the context of a wallet
 walletControlAction
     :: (Member MultiAgentControlEffect effs)
-    => Wallet.Wallet
+    => Wallet
     -> Eff EmulatedWalletControlEffects r
     -> Eff effs r
 walletControlAction wallet = send . WalletControlAction wallet
@@ -217,7 +217,7 @@ assertion :: (Member MultiAgentControlEffect effs) => Assertion -> Eff effs ()
 assertion a = send (Assertion a)
 
 -- | Issue an assertion that the funds for a given wallet have the given value.
-assertOwnFundsEq :: (Member MultiAgentControlEffect effs) => Wallet.Wallet -> Value -> Eff effs ()
+assertOwnFundsEq :: (Member MultiAgentControlEffect effs) => Wallet -> Value -> Eff effs ()
 assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 
 -- | Issue an assertion that the given transaction has been validated.
@@ -227,14 +227,15 @@ assertIsValidated = assertion . IsValidated
 -- | The state of the emulator itself.
 data EmulatorState = EmulatorState {
     _chainState   :: Chain.ChainState, -- ^ Mockchain
-    _walletStates :: Map Wallet.Wallet Wallet.WalletState, -- ^ The state of each agent.
+    _walletStates :: Map Wallet Wallet.WalletState, -- ^ The state of each agent.
     _emulatorLog  :: [LogMessage EmulatorEvent] -- ^ The emulator log messages, with the newest last.
     } deriving (Show)
 
 makeLenses ''EmulatorState
 
-walletState :: Wallet.Wallet -> Lens' EmulatorState Wallet.WalletState
-walletState wallet = walletStates . at wallet . anon (Wallet.emptyWalletState wallet) (const False)
+walletState :: Wallet -> Lens' EmulatorState Wallet.WalletState
+walletState wallet@(Wallet (MockWallet privKey)) = walletStates . at wallet . anon (Wallet.emptyWalletState privKey) (const False)
+walletState (Wallet (XPubWallet _)) = error "XPub Wallets not supported in emulator"
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
@@ -245,7 +246,7 @@ chainUtxo :: Getter EmulatorState AM.AddressMap
 chainUtxo = chainState . Chain.chainNewestFirst . to AM.fromChain
 
 -- | Get a map with the total value of each wallet's "own funds".
-fundsDistribution :: EmulatorState -> Map Wallet.Wallet Value
+fundsDistribution :: EmulatorState -> Map Wallet Value
 fundsDistribution st =
     let fullState = view chainUtxo st
         wallets = st ^.. walletStates . to Map.keys . folded
@@ -377,7 +378,7 @@ assert (IsValidated txn)            = isValidated txn
 assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
 
 -- | Issue an assertion that the funds for a given wallet have the given value.
-ownFundsEqual :: (Members MultiAgentEffs effs) => Wallet.Wallet -> Value -> Eff effs ()
+ownFundsEqual :: (Members MultiAgentEffs effs) => Wallet -> Value -> Eff effs ()
 ownFundsEqual wallet value = do
     es <- get
     let total = foldMap (txOutValue . txOutTxOut) $ es ^. chainUtxo . AM.fundsAt (Wallet.walletAddress wallet)

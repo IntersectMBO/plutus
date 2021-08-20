@@ -51,7 +51,7 @@ import           Servant                                 (NoContent (NoContent),
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
-import           Wallet.Emulator.Wallet                  (Wallet (..))
+import           Wallet.Emulator.Wallet                  (Wallet (..), WalletId)
 import           Wallet.Types                            (ContractInstanceId (..))
 
 healthcheck :: forall t env. PABAction t env ()
@@ -98,7 +98,7 @@ apiHandler ::
                                           :<|> (String -> JSON.Value -> PABAction t env ())
                                           :<|> PABAction t env ()
                                           )
-              :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+              :<|> (WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
               :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
               :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 
@@ -143,7 +143,7 @@ contractInstanceState i = do
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+instancesForWallets :: forall t env. Contract.PABContract t => WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
 
 allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
@@ -168,11 +168,11 @@ walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
     (PABAction t env WalletInfo -- Create new wallet
-    :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (Integer -> PABAction t env Value)
-    :<|> (Integer -> Tx -> PABAction t env Tx))
+    :<|> (WalletId -> Tx -> PABAction t env NoContent) -- Submit txn
+    :<|> (WalletId -> PABAction t env WalletInfo)
+    :<|> (WalletId -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
+    :<|> (WalletId -> PABAction t env Value)
+    :<|> (WalletId -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
     let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
     in walletProxy createWallet
@@ -190,11 +190,11 @@ walletProxy ::
     forall t env.
     PABAction t env WalletInfo -> -- default action for creating a new wallet
     (PABAction t env WalletInfo -- Create new wallet
-    :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (Integer -> PABAction t env Value)
-    :<|> (Integer -> Tx -> PABAction t env Tx))
+    :<|> (WalletId -> Tx -> PABAction t env NoContent) -- Submit txn
+    :<|> (WalletId -> PABAction t env WalletInfo)
+    :<|> (WalletId -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
+    :<|> (WalletId -> PABAction t env Value)
+    :<|> (WalletId -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))

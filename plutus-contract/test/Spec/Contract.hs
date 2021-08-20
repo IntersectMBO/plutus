@@ -128,7 +128,7 @@ tests =
                 (waitingForSlot theContract tag 20)
                 (void $ activateContract w1 theContract tag)
 
-        , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
+        , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
           in run 3 "handle several blockchain events"
                 (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
@@ -233,12 +233,6 @@ tests =
                     Log.logInfo @String $ "Final state: " <> show _finalState
 
         ]
-
-w1 :: EM.Wallet
-w1 = EM.Wallet 1
-
-w2 :: EM.Wallet
-w2 = EM.Wallet 2
 
 checkpointContract :: Contract () Schema ContractError ()
 checkpointContract = void $ do
