@@ -344,11 +344,10 @@ fundsAtAddressCondition
 fundsAtAddressCondition condition addr = loopM go () where
     go () = do
         cur <- utxoAt addr
-        sl <- currentSlot
         let presentVal = foldMap (txOutValue . txOutTxOut) cur
         if condition presentVal
             then pure (Right cur)
-            else awaitSlot (sl + 1) >> pure (Left ())
+            else awaitUtxoProduced addr >> pure (Left ())
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
