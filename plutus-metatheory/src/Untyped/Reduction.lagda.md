@@ -28,7 +28,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Fin using ()
-open import Utils hiding (_≤L_;_:<_)
+open import Utils hiding (_≤L_;_:<_;*)
 import Data.List
 ```
 

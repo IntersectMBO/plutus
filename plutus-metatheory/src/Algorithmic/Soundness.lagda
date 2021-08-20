@@ -10,6 +10,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) hiding ([_])
 open import Data.Sum
 
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality

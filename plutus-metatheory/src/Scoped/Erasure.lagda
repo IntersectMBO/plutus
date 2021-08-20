@@ -39,6 +39,7 @@ eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b
 eraseTC unit           = unit
+eraseTC (Data d)       = Data d
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢
 

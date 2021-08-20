@@ -141,7 +141,6 @@ VERIFYSIG (just true)  = con (bool true)
 VERIFYSIG nothing      = error (con bool)
 
 open import Data.List using (List;[];_∷_)
-open import Type using (Kind)
 
 IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → ITel b (proj₂ (ISIG b)) w → ScopedTm w
 IBUILTIN addInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = con (integer (i I.+ i'))

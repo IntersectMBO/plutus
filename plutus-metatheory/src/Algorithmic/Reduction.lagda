@@ -22,7 +22,7 @@ open import Data.Nat using (zero)
 open import Data.Unit using (tt)
 import Debug.Trace as Debug
 
-
+open import Utils
 open import Type
 import Type.RenamingSubstitution as T
 open import Algorithmic.RenamingSubstitution

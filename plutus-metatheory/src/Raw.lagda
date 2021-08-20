@@ -21,13 +21,6 @@ open import Data.Bool using (Bool;false;true)
 The raw un-scope-checked and un-type-checked syntax
 
 \begin{code}
-
-data RawKind : Set where
-  *   : RawKind
-  _⇒_ : RawKind → RawKind → RawKind
-
-{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
-
 data RawTy : Set
 open import Builtin.Constant.Type ⊤ (λ _ → RawTy)
 
@@ -36,8 +29,8 @@ data RawTyCon : Set
 data RawTy where
   `   : ℕ → RawTy
   _⇒_ : RawTy → RawTy → RawTy
-  Π   : RawKind → RawTy → RawTy
-  ƛ   : RawKind → RawTy → RawTy
+  Π   : Kind → RawTy → RawTy
+  ƛ   : Kind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
   con : RawTyCon → RawTy
   μ    : RawTy → RawTy → RawTy
@@ -69,7 +62,7 @@ data RawTyCon where
 
 data RawTm : Set where
   `             : ℕ → RawTm
-  Λ             : RawKind → RawTm → RawTm
+  Λ             : Kind → RawTm → RawTm
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
@@ -130,7 +123,7 @@ decBuiltin appendString appendString = true
 decBuiltin trace trace = true
 decBuiltin _ _ = false
 
-decRKi : (K K' : RawKind) → Bool
+decRKi : (K K' : Kind) → Bool
 decRKi * * = true
 decRKi * (K' ⇒ J') = false
 decRKi (K ⇒ J) * = false

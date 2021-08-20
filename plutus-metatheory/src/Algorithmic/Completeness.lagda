@@ -1,6 +1,7 @@
 \begin{code}
 module Algorithmic.Completeness where
 
+open import Utils
 open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution

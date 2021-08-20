@@ -19,6 +19,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero;ℕ;_+_)
 open import Data.Unit using (tt)
 
+open import Utils
 open import Type
 import Type.RenamingSubstitution as T
 open import Algorithmic

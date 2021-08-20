@@ -10,6 +10,7 @@ module Type.RenamingSubstitution where
 ## Imports
 
 ```
+open import Utils
 open import Type
 open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
 open import Function using (id; _∘_)

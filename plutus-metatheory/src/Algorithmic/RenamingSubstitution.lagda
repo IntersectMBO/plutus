@@ -12,6 +12,7 @@ open import Data.Sum
 open import Data.List hiding ([_])
 open import Data.Product renaming (_,_ to _,,_)
 
+open import Utils
 open import Type
 open import Type.Equality
 import Type.RenamingSubstitution as ⋆

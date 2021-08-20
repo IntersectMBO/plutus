@@ -5,6 +5,7 @@ module Type.BetaNBE where
 ## Imports
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Type.RenamingSubstitution

@@ -7,6 +7,7 @@ module Algorithmic.Erasure.Reduction where
 \begin{code}
 open import Function
 
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Algorithmic as A
@@ -82,7 +83,7 @@ erase-arity-lem mapData refl refl = refl
 erase-arity-lem listData refl refl = refl
 erase-arity-lem iData refl refl = refl
 erase-arity-lem bData refl refl = refl
-erase-arity-lem unconstrData refl refl = refl
+erase-arity-lem unConstrData refl refl = refl
 erase-arity-lem unMapData refl refl = refl
 erase-arity-lem unListData refl refl = refl
 erase-arity-lem unIData refl refl = refl
@@ -189,9 +190,9 @@ erase-BUILTIN chooseList σ vs = refl
 erase-BUILTIN constrData σ vs = refl
 erase-BUILTIN mapData σ vs = refl
 erase-BUILTIN listData σ vs = refl
-erase-BUILTIN iData σ vs = refl
+erase-BUILTIN iData σ (tt ,, _ ,, A.V-con (integer i)) = refl
 erase-BUILTIN bData σ vs = refl
-erase-BUILTIN unconstrData σ vs = refl
+erase-BUILTIN unConstrData σ vs = refl
 erase-BUILTIN unMapData σ vs = refl
 erase-BUILTIN unListData σ vs = refl
 erase-BUILTIN unIData σ vs = refl

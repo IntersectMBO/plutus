@@ -11,6 +11,7 @@ open import Function using (_∘_)
 open import Data.Sum using (inj₁;inj₂)
 open import Data.Product renaming (_,_ to _,,_)
 
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution

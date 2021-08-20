@@ -12,6 +12,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Unit
 open import Data.Sum
 
+open import Utils
 open import Type
 open import Type.BetaNormal
 import Type.RenamingSubstitution as ⋆

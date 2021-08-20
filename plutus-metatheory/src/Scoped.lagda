@@ -264,12 +264,6 @@ Tel w n = Vec (ScopedTm w) n
 
 -- should just use ordinary kind for everything
 
-deBruijnifyK : RawKind → Kind
-deBruijnifyK * = *
-deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
-
-{-# COMPILE GHC deBruijnifyK as deBruijnifyK #-}
-
 deBruijnifyC : RawTermCon → TermCon
 deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
@@ -328,8 +322,8 @@ scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A ⇒ B)
-scopeCheckTy (Π K A) = fmap (Π (deBruijnifyK K)) (scopeCheckTy A)
-scopeCheckTy (ƛ K A) = fmap (ƛ (deBruijnifyK K)) (scopeCheckTy A)
+scopeCheckTy (Π K A) = fmap (Π K) (scopeCheckTy A)
+scopeCheckTy (ƛ K A) = fmap (ƛ K) (scopeCheckTy A)
 scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -342,7 +336,7 @@ scopeCheckTy (μ A B) = do
 
 scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either ScopeError (ScopedTm w)
 scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
-scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
+scopeCheckTm {n}{w}(Λ K t) = fmap (Λ K) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
   A ← scopeCheckTy A
   t ← scopeCheckTm t
@@ -364,15 +358,6 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
-\end{code}
-
-\begin{code}
-unDeBruijnifyK : Kind → RawKind
-unDeBruijnifyK * = *
-unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
-
-{-# COMPILE GHC unDeBruijnifyK as unDeBruijnifyK #-}
-
 \end{code}
 
 \begin{code}
@@ -409,8 +394,8 @@ extricateTyCon S.Data       = Data
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
-extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A)
-extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
+extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
+extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
@@ -418,7 +403,7 @@ extricateScopeTy missing = con bool -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)
-extricateScope (Λ K t) = Λ (unDeBruijnifyK K) (extricateScope t)
+extricateScope (Λ K t) = Λ K (extricateScope t)
 extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
 extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u

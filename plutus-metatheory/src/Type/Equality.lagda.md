@@ -16,6 +16,7 @@ infix  1 _≡β_
 ## Imports
 
 ```
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)

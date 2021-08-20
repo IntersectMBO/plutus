@@ -13,6 +13,7 @@ infix 4 _⊢Ne⋆_
 ## Imports
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn

@@ -7,6 +7,7 @@ layout: page
 ```
 module Algorithmic.CC where
 
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Algorithmic

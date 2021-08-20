@@ -3,6 +3,7 @@ module Type.BetaNBE.Soundness where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution

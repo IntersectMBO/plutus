@@ -3,6 +3,7 @@ module Type.BetaNBE.Stability where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality

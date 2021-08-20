@@ -11,6 +11,7 @@ open import Untyped.RenamingSubstitution as U
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
+open import Utils
 open import Type
 open import Type.BetaNBE.RenamingSubstitution
 open import Function hiding (_∋_)

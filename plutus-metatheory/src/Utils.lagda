@@ -6,7 +6,7 @@ open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Nat
 open import Data.Nat.Properties
-open import Relation.Binary
+open import Relation.Binary using (Decidable)
 import Data.Integer as I
 open import Data.Vec hiding (map;_>>=_;_++_)
 open import Data.List hiding (map)
@@ -181,4 +181,29 @@ data DATA : Set where
 
 {-# FOREIGN GHC import PlutusCore.Data #-}
 {-# COMPILE GHC DATA = data Data (I)   #-}
+\end{code}
+
+Kinds
+
+The kind of types is `*`. Plutus core core is based on System Fω which
+is higher order so we have `⇒` for type level functions. We also have
+a kind called `#` which is used for sized integers and bytestrings.
+
+\begin{code}
+data Kind : Set where
+  *   : Kind               -- type
+  _⇒_ : Kind → Kind → Kind -- function kind
+
+{-# FOREIGN GHC import PlutusCore                       #-}
+{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-} #-}
+{-# FOREIGN GHC type KIND = Kind ()                     #-}
+{-# FOREIGN GHC pattern Star    = Type ()               #-}
+{-# FOREIGN GHC pattern Arrow k j = KindArrow () k j    #-}
+{-# COMPILE GHC Kind = data KIND (Star | Arrow)         #-}
+\end{code}
+
+Let `I`, `J`, `K` range over kinds:
+\begin{code}
+variable
+  I J K : Kind
 \end{code}

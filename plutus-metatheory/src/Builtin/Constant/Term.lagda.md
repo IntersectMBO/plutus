@@ -1,5 +1,6 @@
 ```
 open import Builtin.Constant.Type
+open import Utils
 ```
 
 ```
@@ -15,7 +16,6 @@ open import Builtin
 open import Data.Integer
 open import Data.String
 open import Data.Bool
-open import Utils
 ```
 
 ## Term Constants

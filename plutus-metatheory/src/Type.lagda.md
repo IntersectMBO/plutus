@@ -27,27 +27,7 @@ infix  9 S
 
 ```
 open import Agda.Builtin.Nat
-```
-
-## Kinds
-
-The kind of types is `*`. Plutus core core is based on System Fω which
-is higher order so we have `⇒` for type level functions. We also have
-a kind called `#` which is used for sized integers and bytestrings.
-
-```
-data Kind : Set where
-  *   : Kind               -- type
-  _⇒_ : Kind → Kind → Kind -- function kind
-
-{-# FOREIGN GHC import Scoped #-}
-{-# COMPILE GHC Kind = data ScKind (ScKiStar | ScKiFun) #-}
-```
-
-Let `I`, `J`, `K` range over kinds:
-```
-variable
-  I J K : Kind
+open import Utils
 ```
 
 ## Type contexts
