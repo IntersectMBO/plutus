@@ -24,7 +24,7 @@ module PlutusIR.Core.Plated
     ) where
 
 import qualified PlutusCore             as PLC
-import           PlutusCore.Core.Plated (typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques, typeUniquesDeep)
+import           PlutusCore.Core.Plated (typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques, typeUniquesDeep, tyVarDeclSubkinds, varDeclSubtypes)
 import           PlutusCore.Flat        ()
 import qualified PlutusCore.Name        as PLC
 
@@ -46,11 +46,6 @@ bindingSubterms f = \case
     b@TypeBind {}     -> pure b
     d@DatatypeBind {} -> pure d
 
-{-# INLINE varDeclSubtypes #-}
--- | Get all the direct child 'Type's of the given 'VarDecl'.
-varDeclSubtypes :: Traversal' (VarDecl tyname name uni fun a) (Type tyname uni a)
-varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
-
 {-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
 datatypeSubtypes :: Traversal' (Datatype tyname name uni fun a) (Type tyname uni a)
@@ -63,11 +58,6 @@ bindingSubtypes f = \case
     TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
     TypeBind a d ty  -> TypeBind a d <$> f ty
-
-{-# INLINE tyVarDeclSubkinds #-}
--- | Get all the direct child 'Kind's of the given 'TyVarDecl'.
-tyVarDeclSubkinds :: Traversal' (TyVarDecl tyname a) (Kind a)
-tyVarDeclSubkinds f (TyVarDecl a ty k) = TyVarDecl a ty <$> f k
 
 {-# INLINE datatypeSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Datatype'.

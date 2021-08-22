@@ -183,32 +183,39 @@ reannotateBindings
     => (Unique -> ann -> ann)
     -> Term tyname name uni fun ann
     -> Term tyname name uni fun ann
-reannotateBindings f = goLet where
+reannotateBindings f = goTerm where
     -- We don't need these helper functions anywhere else, so we make them into local definitions.
     goVarDecl (VarDecl ann name ty) = VarDecl (f (name ^. theUnique) ann) name ty
     goTyVarDecl (TyVarDecl ann tyname kind) = TyVarDecl (f (tyname ^. theUnique) ann) tyname kind
     goDatatype (Datatype ann dataTyDecl paramTyDecls matchName constrDecls) =
         Datatype
+            -- We don't have any other suitable place to associate the name of the matcher with an
+            -- annotation, so we do it here. Fortunately, the matcher is the only thing that
+            -- survives erasure, so this even makes some sense.
             (f (matchName ^. theUnique) ann)
             (goTyVarDecl dataTyDecl)
             (goTyVarDecl <$> paramTyDecls)
             matchName
             (goVarDecl <$> constrDecls)
 
-    -- Note that @goBind@ and @goLet@ are mutually recursive.
-    goBind (TermBind ann str var term) = TermBind ann str (goVarDecl var) $ goLet term
+    -- Note that @goBind@ and @goTerm@ are mutually recursive.
+    goBind (TermBind ann str var term) = TermBind ann str (goVarDecl var) $ goTerm term
     goBind (TypeBind ann tyVar ty)     = TypeBind ann (goTyVarDecl tyVar) ty
     goBind (DatatypeBind ann datatype) = DatatypeBind ann $ goDatatype datatype
 
-    goLet (Let ann recy binds term) = Let ann recy (goBind <$> binds) $ goLet term
-    goLet term                      = term & termSubterms %~ goLet
+    goTerm (Let ann recy binds term) = Let ann recy (goBind <$> binds) $ goTerm term
+    goTerm term                      = term & termSubterms %~ goTerm
 
+-- Ideally we should have a separate step putting uniques into annotations, so that we can reuse it
+-- both here and for scoping analysis.
 -- See Note [Retained size analysis]
 -- | Annotate each part of every 'Binding' in a term with the size that it retains.
 annotateWithRetainedSize
     :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, ToBuiltinMeaning uni fun)
     => Term tyname name uni fun ann
     -> Term tyname name uni fun RetainedSize
+-- @reannotateBindings@ only processes annotations "associated with" a unique, so it can't change
+-- the type. Therefore we need to set all the bindings to an appropriate type beforehand.
 annotateWithRetainedSize term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
     retentionMap = termRetentionMap term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.

@@ -150,8 +150,11 @@ retainedSize =
     , "termLet"
     , "strictLet"
     , "nonstrictLet"
+    -- @Maybe@ is referenced, so it retains all of the data type.
     , "datatypeLiveType"
+    -- @Nothing@ is referenced, so it retains all of the data type.
     , "datatypeLiveConstr"
+    -- @match_Maybe@ is referenced, so it retains all of the data type.
     , "datatypeLiveDestr"
     , "datatypeDead"
     , "singleBinding"
