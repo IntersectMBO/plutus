@@ -65,7 +65,8 @@ Even the most efficient dominator tree algorithms are still not linear and our p
 huge, so before jumping into computing the dominator tree we filter the dependency graph and remove
 from it everything that does not directly retain any size, i.e. everything that is not a let-binding.
 For example, the dependency graph contains lambda-bound variables and we filter them out as they're
-irrelevant for computing dominance.
+irrelevant for computing dominance. So we're relying on the fact that nodes that don't retain any
+size are also not interesting for dominator analysis. Which might be wrong. An example is needed.
 
 [1] https://hackage.haskell.org/package/fgl-5.7.0.3/docs/Data-Graph-Inductive-Query-Dominators.html#v:dom
 -}
