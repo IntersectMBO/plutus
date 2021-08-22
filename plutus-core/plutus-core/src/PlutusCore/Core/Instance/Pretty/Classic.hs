@@ -30,7 +30,7 @@ instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) wher
             parens (vsep' (consAnnIf config ann
                 ["type"]))
         KindArrow ann k k' ->
-            parens ("fun" </> vsep' (consAnnIf config ann
+            parens ("fun" <+> vsep' (consAnnIf config ann
                 [prettyBy config k, prettyBy config k']))
 
 instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
@@ -43,19 +43,19 @@ instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
             vsep' (consAnnIf config ann
                 [prettyBy config n])
         TyFun ann t t'     ->
-            parens ("fun" </> vsep' (consAnnIf config ann
+            parens ("fun" <+> vsep' (consAnnIf config ann
                 [prettyBy config t, prettyBy config t']))
         TyIFix ann pat arg ->
-            parens ("ifix" </> vsep' (consAnnIf config ann
+            parens ("ifix" <+> vsep' (consAnnIf config ann
                 [prettyBy config pat, prettyBy config arg]))
         TyForall ann n k t ->
-            parens ("all" </> vsep' (consAnnIf config ann
+            parens ("all" <+> vsep' (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t]))
         TyBuiltin ann n    ->
-            parens ("con" </> vsep' (consAnnIf config ann
+            parens ("con" <+> vsep' (consAnnIf config ann
                 [pretty n]))
         TyLam ann n k t    ->
-            parens ("lam" </> vsep' (consAnnIf config ann
+            parens ("lam" <+> vsep' (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t]))
 
 instance
