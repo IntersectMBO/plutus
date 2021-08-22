@@ -169,6 +169,10 @@
 
 \newcommand{\emptymap}{\ensuremath{\{\}}}
 
+%% Alonzo
+\newcommand{\ExUnits}{\ensuremath{\s{ExUnits}}}
+\newcommand{\CostMod}{\ensuremath{\s{CostMod}}}
+\newcommand{\PlutusVI}{\ensuremath{\s{PlutusV1}}}
 
 %% ------------- Start of document ------------- %%
 
@@ -233,6 +237,12 @@ models and makes it easier to explain the relevant design decisions,
 and (2) it is possible that a particular blockchain might not need the
 full power of EUTXO-2 and so could use the simpler EUTXO-1 model,
 perhaps with less computational overhead.
+
+\medskip
+
+We then describe the full Cardano EUTXO model for Goguen Smart Contracts
+(\cref{sec:goguen-ledger}). Further extensions were proposed to integrate
+Plutus Core as the scripting language.
 
 \medskip
 
@@ -1071,6 +1081,122 @@ See~\cite{Plutus-book} for examples of contracts which make use of the
 features of the EUTXO-2 model.  See also
 \cref{note:minting-policies,note:eutxo-2-implications,note:eutxo-2-performance}
 for comments on some technical aspects of the model.
+
+%%\newpage
+\section{Goguen: Cardano Ledger for Smart Contracts}
+\label{sec:goguen-ledger}
+For Cardano, further extensions were proposed to integrate Plutus Core as the
+scripting language. This section captures those changes and list formal definitions
+of all concepts that DApp developers need for their work.
+
+\subsection{Phase Two Scripts}
+
+The Shelley formal specification introduced the concept of ``multi-signature'' scripts.
+\emph{Phase one scripts}, such as these, are captured entirely by the ledger rules.
+Execution costs can therefore be easily assessed \emph{before} they are processed by the implementation,
+and any fees can be calculated directly within the ledger rule implementation,
+based on e.g. the size of the transaction that includes the script.
+
+In contrast, \emph{phase-2} scripts can perform arbitrary
+(and, in principle, Turing-complete) computations.
+We require transactions that use phase-2 scripts
+to have a budget in terms of a number of abstract $\ExUnits$.
+This budget gives a quantitative bound on resource usage in terms of a number of specific metrics, including memory usage or abstract execution steps.
+The budget is then used as part of the transaction fee calculation.
+
+Every phase-2 scripting language
+converts the calculated execution cost into a number of $\ExUnits$ using a cost model,
+$\CostMod$, which depends on the language and is provided as a protocol parameter.
+This allows execution costs (and so transaction fees) to be varied without requiring a major protocol version change (``hard fork'').
+This may be used, for example, if a more efficient interpreter is produced.
+
+The approach we use to bound execution costs to a pre-determined constant is
+distinct from the usual ``gas'' model in the following notable ways:
+
+\begin{itemize}
+  \item The exact budget to run a script is expressed in terms of computational resources,
+  and included in the transaction data. This resource budget can be computed before submitting a transaction.
+  In contrast with the gas model, where the budget is expressed indirectly,
+  in terms of an upper bound on the fee the author is willing to pay for execution of the
+  contract (eg. their total available funds).
+
+  \item The exact total fee a transaction is paying is also specified in the transaction data.
+  For a transaction to be valid, this fee must cover the script-running resource budget at the current price,
+  as well as the size-based part of the required fee.
+  If the fee is not sufficient to cover the resource budget specified (eg. if the resource price increased),
+  the transaction is considered invalid and \emph{will not appear on the ledger (will not be included in a valid block)}.
+  No fees will be collected in this case.
+  This is in contrast with the gas model, where, if prices go up, a greater fee will be charged - up to
+  the maximum available funds, even if they are not sufficient to cover the cost of the execution of the contract.
+
+  \item The user specifies the UTxO entries containing funds sufficient to cover a percentage
+  (usually $100$ or more) of the total transaction fee.
+  These inputs are only collected \emph{in the case of script validation failure},
+  and are called \emph{collateral inputs}. In the case of
+  script validation success, the fee specified in the fee field of the transaction is collected,
+  but the collateral is not.
+
+  This scheme is different from the gas model in that the exact payment collected in
+  both the case of script validation success and validation failure is known ahead of time,
+  though the collected fees are different in the two cases.
+\end{itemize}
+
+Another important point to make about both phase one and two scripts on Cardano is that
+running scripts in all languages will be supported indefinitely whenever possible.
+Making it impossible to run a script in a particular scripting language
+makes UTxO entries locked by that script unspendable.
+
+We use the terms Plutus, $\PlutusVI$, and ``phase two scripting language'' in this specification
+somewhat interchangably. The reason for this is that while we intend for the infrastructure
+set up in this document to be somewhat language-agnostic (in particular,
+able to support multiple versions of Plutus), it only gives all the details for
+the first and (currenly only) phase-2 script language, $\PlutusVI$,
+the introduction of which represents the
+start of the Alonzo era.
+
+\paragraph{TODO:}
+\begin{itemize}
+
+\item The term \i{language}. Running scripts in all languages should be supported
+  indefinitely.
+
+\item New protocol parameters:
+  \begin{itemize}
+    \item \i{maxTxExUnits}.
+    \item \i{maxBlockExUnits}.
+    \item \i{maxValSize}.
+    \item \i{coinsPerUTxOWord}.
+    \item \i{collateralPercent}.
+    \item \i{maxCollInputs}.
+  \end{itemize}
+
+\item More on cost models:
+  \begin{itemize}
+    \item \i{ExUnits}.
+    \item \i{CostModel}.
+    \item \i{Prices}.
+    \item Collateral inputs.
+    \item How everything comes together.
+  \end{itemize}
+
+\item Transaction structure:
+  \begin{itemize}
+    \item Mention why is \i{txOutDatumHash} a \verb|Maybe|.
+    \item Introduce \i{ScriptPurpose}.
+    \item Introduce \i{ScriptTag}.
+    \item Introduce \i{RedeemerPtr}.
+    \item \i{redeemerHash} not in \s{InputInfo}.
+    \item \i{thisInput}, \i{mintScripts} not in \s{Context}.
+    \item \i{dcerts}, \i{wdrl}, \i{signatures}, \i{infoId} in \s{Context}.
+    \item \i{validityInterval} is not in \s{Slot} anymore, but is \s{POSIXTimeRange}.
+    \item Define \i{TxInfo} and \i{Tx}. How much should a DApp developer care for?
+  \end{itemize}
+
+\item More on minting policies.
+
+\item More on script validation.
+
+\end{itemize}
 
 \appendix
 \section{Comments}
