@@ -524,6 +524,7 @@
         "system-filepath".revision = (((hackage."system-filepath")."0.4.14").revisions).default;
         "recursion-schemes".revision = (((hackage."recursion-schemes")."5.1.3").revisions).default;
         "recursion-schemes".flags.template-haskell = true;
+        "dom-lt".revision = (((hackage."dom-lt")."0.2.2.1").revisions).default;
         "hspec-core".revision = (((hackage."hspec-core")."2.8.3").revisions).default;
         "asn1-types".revision = (((hackage."asn1-types")."0.3.4").revisions).default;
         "filepath".revision = (((hackage."filepath")."1.4.2.1").revisions).default;
@@ -1573,6 +1574,7 @@
           "strict".components.library.planned = lib.mkOverride 900 true;
           "hint".components.library.planned = lib.mkOverride 900 true;
           "temporary".components.library.planned = lib.mkOverride 900 true;
+          "dom-lt".components.library.planned = lib.mkOverride 900 true;
           "hspec-core".components.library.planned = lib.mkOverride 900 true;
           "lobemo-scribe-systemd".components.library.planned = lib.mkOverride 900 true;
           "hedgehog".components.library.planned = lib.mkOverride 900 true;
