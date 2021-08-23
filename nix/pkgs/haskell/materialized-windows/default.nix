@@ -1175,6 +1175,7 @@
           "monoidal-synchronisation".components.library.planned = lib.mkOverride 900 true;
           "dictionary-sharing".components.library.planned = lib.mkOverride 900 true;
           "cardano-prelude-test".components.library.planned = lib.mkOverride 900 true;
+          "plutus-metatheory".components.tests."test1".planned = lib.mkOverride 900 true;
           "base64-bytestring".components.library.planned = lib.mkOverride 900 true;
           "cardano-binary-test".components.library.planned = lib.mkOverride 900 true;
           "gray-code".components.library.planned = lib.mkOverride 900 true;
@@ -1371,6 +1372,7 @@
           "setenv".components.library.planned = lib.mkOverride 900 true;
           "ouroboros-consensus-cardano".components.library.planned = lib.mkOverride 900 true;
           "plutus-core".components.tests."satint-test".planned = lib.mkOverride 900 true;
+          "plutus-metatheory".components.tests."test3".planned = lib.mkOverride 900 true;
           "integer-logarithms".components.library.planned = lib.mkOverride 900 true;
           "utf8-string".components.library.planned = lib.mkOverride 900 true;
           "ansi-wl-pprint".components.library.planned = lib.mkOverride 900 true;
@@ -1548,6 +1550,7 @@
           "nonempty-vector".components.setup.planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
           "generic-lens-core".components.library.planned = lib.mkOverride 900 true;
+          "plutus-metatheory".components.tests."test2".planned = lib.mkOverride 900 true;
           "websockets".components.library.planned = lib.mkOverride 900 true;
           "plutus-core".components.benchmarks."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "x509-store".components.library.planned = lib.mkOverride 900 true;
