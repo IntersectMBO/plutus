@@ -176,11 +176,16 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
+postulate ByteString : Set
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# COMPILE GHC ByteString = type BS.ByteString #-}
+
 data DATA : Set where
   iDATA : I.ℤ → DATA
+  bDATA : ByteString → DATA
 
 {-# FOREIGN GHC import PlutusCore.Data #-}
-{-# COMPILE GHC DATA = data Data (I)   #-}
+{-# COMPILE GHC DATA = data Data (I | B)   #-}
 \end{code}
 
 Kinds
@@ -216,9 +221,6 @@ typed syntax.
 open import Data.Integer
 open import Data.String
 open import Data.Bool
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 data TermCon : Set where
   integer    : ℤ → TermCon

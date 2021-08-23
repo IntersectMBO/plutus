@@ -2,6 +2,8 @@
 {-# OPTIONS --rewriting #-}
 
 module Algorithmic.Main where
+
+open import Utils
 open import Agda.Builtin.IO
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
