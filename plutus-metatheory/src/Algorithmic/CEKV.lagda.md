@@ -482,10 +482,10 @@ bappTermLem mkNilData (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem mkNilPairData {az = az} {as} p q
   with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem mkNilPairData (start _) base | refl ,, refl = _ ,, _ ,, refl
-bappTermLem mkConsData (start _) base = _ ,, _ ,, refl
-bappTermLem mkConsData {as = as} (bubble {as = az} p) q
+bappTermLem mkCons (start _) base = _ ,, _ ,, refl
+bappTermLem mkCons {as = as} (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
-bappTermLem mkConsData (bubble (start _)) (app _ base _)
+bappTermLem mkCons (bubble (start _)) (app _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
 postulate
   bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
@@ -706,7 +706,7 @@ ival chooseUnit = V-IΠ chooseUnit (start _) base
 ival mkPairData = V-I⇒ mkPairData (start _) base
 ival mkNilData = V-I⇒ mkNilData (start _) base
 ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
-ival mkConsData = V-I⇒ mkConsData (start _) base
+ival mkCons = V-I⇒ mkCons (start _) base
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ

@@ -145,7 +145,7 @@ lemma⋆ chooseUnit = refl
 lemma⋆ mkPairData = refl
 lemma⋆ mkNilData = refl
 lemma⋆ mkNilPairData = refl
-lemma⋆ mkConsData = refl
+lemma⋆ mkCons = refl
 
 lemma : ∀ b → wtoℕTm (len (proj₁ (proj₂ (ISIG b)))) ≡ arity b
 lemma addInteger = refl
@@ -193,7 +193,7 @@ lemma chooseUnit = refl
 lemma mkPairData = refl
 lemma mkNilData = refl
 lemma mkNilPairData = refl
-lemma mkConsData = refl
+lemma mkCons = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
 ≡2≤‴ refl = ≤‴-refl

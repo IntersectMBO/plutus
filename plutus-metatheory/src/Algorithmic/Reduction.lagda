@@ -450,7 +450,7 @@ ival chooseUnit = V-IΠ chooseUnit refl refl refl (λ()) (≤Cto≤C' (skip (ski
 ival mkPairData = V-I⇒ mkPairData refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin mkPairData)
 ival mkNilData = V-I⇒ mkNilData refl refl refl (λ()) (≤Cto≤C' base) tt (ibuiltin mkNilData)
 ival mkNilPairData = V-I⇒ mkNilPairData refl refl refl (λ()) (≤Cto≤C' base) tt (ibuiltin mkNilPairData)
-ival mkConsData = V-I⇒ mkConsData refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin mkConsData)
+ival mkCons = V-I⇒ mkCons refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin mkCons)
 
 progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)

@@ -409,7 +409,7 @@ ival chooseUnit = V-F (V-builtin chooseUnit refl (skipTerm base) _ _)
 ival mkPairData = V-F (V-builtin mkPairData refl (skipTerm base) _ _)
 ival mkNilData = V-F (V-builtin mkNilData refl base _ _)
 ival mkNilPairData = V-F (V-builtin mkNilPairData refl base _ _)
-ival mkConsData = V-F (V-builtin mkConsData refl (skipTerm base) _ _)
+ival mkCons = V-F (V-builtin mkCons refl (skipTerm base) _ _)
 
 progress : (t : 0 ⊢) → Progress t
 progress (` ())

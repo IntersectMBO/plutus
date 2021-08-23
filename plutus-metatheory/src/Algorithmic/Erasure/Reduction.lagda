@@ -94,7 +94,7 @@ erase-arity-lem chooseUnit refl refl = refl
 erase-arity-lem mkPairData refl refl = refl
 erase-arity-lem mkNilData refl refl = refl
 erase-arity-lem mkNilPairData refl refl = refl
-erase-arity-lem mkConsData refl refl = refl
+erase-arity-lem mkCons refl refl = refl
 
 eraseITel : ∀ b {Φ}(Δ : Ctx Φ)(σ : SubNf Φ ∅)
           →  A.ITel b Δ σ → U.ITel b (eraseCtx Δ)
@@ -203,7 +203,7 @@ erase-BUILTIN chooseUnit σ vs = refl
 erase-BUILTIN mkPairData σ vs = refl
 erase-BUILTIN mkNilData σ vs = refl
 erase-BUILTIN mkNilPairData σ vs = refl
-erase-BUILTIN mkConsData σ vs = refl
+erase-BUILTIN mkCons σ vs = refl
   
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →
   proj₁

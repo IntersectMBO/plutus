@@ -14,6 +14,7 @@ open import Agda.Builtin.Int
 open import Utils
 
 data Builtin : Set where
+  -- Integers
   addInteger               : Builtin
   subtractInteger          : Builtin
   multiplyInteger          : Builtin
@@ -21,28 +22,40 @@ data Builtin : Set where
   quotientInteger          : Builtin
   remainderInteger         : Builtin
   modInteger               : Builtin
+  equalsInteger            : Builtin
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
-  equalsInteger            : Builtin
+  -- Bytestrings
+  appendByteString         : Builtin
+  equalsByteString         : Builtin
   lessThanByteString       : Builtin
   lessThanEqualsByteString : Builtin
+  -- Cryptography and hashes
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   verifySignature          : Builtin
-  equalsByteString         : Builtin
-  ifThenElse               : Builtin
-  appendByteString         : Builtin
+  -- String
+  appendString             : Builtin
   equalsString             : Builtin
   encodeUtf8               : Builtin
   decodeUtf8               : Builtin  
-  appendString             : Builtin
+  -- Bool
+  ifThenElse               : Builtin
+  -- Tracing
   trace                    : Builtin
+  -- Unit
+  chooseUnit               : Builtin
+  -- Pairs
   fstPair                  : Builtin
   sndPair                  : Builtin
-  nullList                 : Builtin
+  -- Lists
+  chooseList               : Builtin
+  mkCons                   : Builtin
   headList                 : Builtin
   tailList                 : Builtin
-  chooseList               : Builtin
+  nullList                 : Builtin
+  -- Data
+  chooseData               : Builtin
   constrData               : Builtin
   mapData                  : Builtin
   listData                 : Builtin
@@ -54,43 +67,44 @@ data Builtin : Set where
   unIData                  : Builtin
   unBData                  : Builtin
   equalsData               : Builtin
-  chooseData               : Builtin
-  chooseUnit               : Builtin
+  -- Misc constructors
   mkPairData               : Builtin
   mkNilData                : Builtin
   mkNilPairData            : Builtin
-  mkConsData               : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
-{-# COMPILE GHC Builtin = data DefaultFun (AddInteger
+{-# COMPILE GHC Builtin = data DefaultFun ( AddInteger
                                           | SubtractInteger
                                           | MultiplyInteger
                                           | DivideInteger
                                           | QuotientInteger
                                           | RemainderInteger
                                           | ModInteger
+                                          | EqualsInteger
                                           | LessThanInteger
                                           | LessThanEqualsInteger
-                                          | EqualsInteger
+                                          | AppendByteString
+                                          | EqualsByteString
                                           | LessThanByteString
                                           | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
                                           | VerifySignature
-                                          | EqualsByteString
-                                          | IfThenElse
-                                          | AppendByteString
+                                          | AppendString
                                           | EqualsString
                                           | EncodeUtf8
                                           | DecodeUtf8
-                                          | AppendString
+                                          | IfThenElse
+                                          | ChooseUnit
                                           | Trace
                                           | FstPair
                                           | SndPair
-                                          | NullList
+                                          | ChooseList
+                                          | MkCons
                                           | HeadList
                                           | TailList
-                                          | ChooseList
+                                          | NullList
+                                          | ChooseData
                                           | ConstrData
                                           | MapData
                                           | ListData
@@ -102,12 +116,9 @@ data Builtin : Set where
                                           | UnIData
                                           | UnBData
                                           | EqualsData
-                                          | ChooseData
-                                          | ChooseUnit
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
-                                          | MkCons
                                           ) #-}
 ```
 

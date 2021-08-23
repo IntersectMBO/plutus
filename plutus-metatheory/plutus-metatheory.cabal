@@ -193,10 +193,7 @@ library
     MAlonzo.Code.Relation.Nullary.Sum
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
-    MAlonzo.Code.Scoped.CK
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Scoped.Reduction
-    MAlonzo.Code.Scoped.RenamingSubstitution
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -386,10 +383,7 @@ library
     MAlonzo.Code.Relation.Nullary.Sum
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
-    MAlonzo.Code.Scoped.CK
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Scoped.Reduction
-    MAlonzo.Code.Scoped.RenamingSubstitution
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness

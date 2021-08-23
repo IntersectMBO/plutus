@@ -40,8 +40,8 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢Nf⋆_ #-}
 {-# INJECTIVE _⊢_ #-}
+{-# INJECTIVE _⊢Nf⋆_ #-}
 ```
 
 ## Some syntactic lemmas about injectivity
@@ -962,10 +962,10 @@ bappTermLem mkNilData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem mkNilPairData {az = az} {as} M p q
   with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem mkNilPairData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
-bappTermLem mkConsData _ (start _) base = _ ,, _ ,, refl
-bappTermLem mkConsData {as = as} _ (bubble {as = az} p) q
+bappTermLem mkCons _ (start _) base = _ ,, _ ,, refl
+bappTermLem mkCons {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
-bappTermLem mkConsData _ (bubble (start _)) (step _ base _)
+bappTermLem mkCons _ (bubble (start _)) (step _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
 bappTermLem appendByteString _ _ base = _ ,, _ ,, refl
 bappTermLem appendByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
@@ -1105,7 +1105,7 @@ bappTypeLem appendString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
 bappTypeLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem mkConsData _ (bubble {as = az} p) q
+bappTypeLem mkCons _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) _ p refl
 ... | refl ,, refl ,, ()
 bappTypeLem nullList _ (start _) base = _ ,, _ ,, refl
@@ -1203,7 +1203,7 @@ ival chooseUnit = V-I _ (start _) base
 ival mkPairData = V-I _ (start _) base
 ival mkNilData = V-I _ (start _) base
 ival mkNilPairData = V-I _ (start _) base
-ival mkConsData = V-I _ (start _) base
+ival mkCons = V-I _ (start _) base
 ival equalsInteger = V-I⇒ equalsInteger (start _) base
 ival appendByteString = V-I⇒ appendByteString (start _) base
 ival appendString = V-I⇒ appendString (start _) base
