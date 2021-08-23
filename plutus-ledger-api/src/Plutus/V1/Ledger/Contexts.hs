@@ -104,6 +104,7 @@ data ScriptPurpose
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq ScriptPurpose where
+    {-# INLINABLE (==) #-}
     Minting cs == Minting cs'           = cs == cs'
     Spending ref == Spending ref'       = ref == ref'
     Rewarding sc == Rewarding sc'       = sc == sc'
@@ -129,6 +130,7 @@ data TxInfo = TxInfo
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq TxInfo where
+    {-# INLINABLE (==) #-}
     TxInfo i o f m c w r s d tid == TxInfo i' o' f' m' c' w' r' s' d' tid' =
         i == i' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && d == d' && tid == tid'
 
@@ -151,6 +153,7 @@ data ScriptContext = ScriptContext{scriptContextTxInfo :: TxInfo, scriptContextP
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Eq ScriptContext where
+    {-# INLINABLE (==) #-}
     ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
 
 instance Pretty ScriptContext where
