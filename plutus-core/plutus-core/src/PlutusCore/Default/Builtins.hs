@@ -109,6 +109,12 @@ data DefaultFun
     | MkNilPairData
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
+{- Note [Textual representation of names of built-in functions]. The plc parser
+ parses builtin names by looking at an enumeration of all of the built-in
+ functions and checking whether the given name matches the pretty-printed name,
+ obtained using the instance below.  Thus the definitive forms of the names of
+ the built-in functions are obtained by applying the function below to the
+ constructor names above. -}
 instance Pretty DefaultFun where
     pretty fun = pretty $ case show fun of
         ""    -> ""  -- It's really weird to have a function's name displayed as an empty string,

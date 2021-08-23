@@ -25,6 +25,7 @@ module.exports = {
       red: "#e04b4c",
     },
     fontSize: {
+      xxs: "9px",
       xs: "12px",
       sm: "14px",
       base: "16px",

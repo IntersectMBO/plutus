@@ -57,7 +57,9 @@
           build-tools = [
             (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
-          buildable = true;
+          buildable = if compiler.isGhcjs && true || system.isWindows
+            then false
+            else true;
           modules = [
             "BasicPlutusTx"
             "BasicValidators"
@@ -67,9 +69,9 @@
             "HelloWorldApp"
             ];
           hsSourceDirs = [ "plutus/tutorials" ];
-          mainPath = ([
+          mainPath = (([
             "Main.hs"
-            ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
+            ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (compiler.isGhcjs && true || system.isWindows) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
           };
         };
       };

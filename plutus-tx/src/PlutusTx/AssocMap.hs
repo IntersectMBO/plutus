@@ -39,21 +39,58 @@ module PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import           Control.DeepSeq  (NFData)
-import           GHC.Generics     (Generic)
+import           Control.DeepSeq            (NFData)
+import           GHC.Generics               (Generic)
+import qualified PlutusTx.Builtins          as P
+import qualified PlutusTx.Builtins.Internal as BI
 import           PlutusTx.IsData
-import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
-import qualified PlutusTx.Prelude as P
+import           PlutusTx.Lift              (makeLift)
+import           PlutusTx.Prelude           hiding (filter, mapMaybe, null, toList)
+import qualified PlutusTx.Prelude           as P
 import           PlutusTx.These
-import qualified Prelude          as Haskell
+import qualified Prelude                    as Haskell
 
 {- HLINT ignore "Use newtype instead of data" -}
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
-    deriving newtype (Eq, Ord, ToData, FromData, UnsafeFromData, NFData)
+    deriving newtype (Eq, Ord, NFData)
+
+-- Hand-written instances to use the underlying 'Map' type in 'Data', and to be reasonably efficient.
+instance (ToData k, ToData v) => ToData (Map k v) where
+    toBuiltinData (Map es) = BI.mkMap (mapToBuiltin es)
+      where
+          {-# INLINE mapToBuiltin #-}
+          mapToBuiltin :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
+          mapToBuiltin = go
+            where
+                go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
+                go []         = BI.mkNilPairData BI.unitval
+                go ((k,v):xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
+instance (FromData k, FromData v) => FromData (Map k v) where
+    fromBuiltinData d = P.matchData' d
+        (\_ _ -> Nothing)
+        (\es -> Map <$> traverseFromBuiltin es)
+        (const Nothing)
+        (const Nothing)
+        (const Nothing)
+      where
+          {-# INLINE traverseFromBuiltin #-}
+          traverseFromBuiltin :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
+          traverseFromBuiltin = go
+            where
+                go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
+                go l = BI.chooseList l (const (pure [])) (\_ -> let tup = BI.head l in liftA2 (:) (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup)) (go (BI.tail l))) ()
+instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
+    unsafeFromBuiltinData d = let es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
+      where
+          {-# INLINE mapFromBuiltin #-}
+          mapFromBuiltin :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
+          mapFromBuiltin = go
+            where
+                go ::  BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
+                go l = BI.chooseList l (const []) (\_ -> let tup = BI.head l in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup) : go (BI.tail l)) ()
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}

@@ -111,6 +111,9 @@ data BuiltinCostModelBase f =
     , paramSha2_256                 :: f ModelOneArgument
     , paramSha3_256                 :: f ModelOneArgument
     , paramBlake2b                  :: f ModelOneArgument
+       -- ^ This should really be paramBlake2b_256, but changing it might be
+       -- problematic because then the names of the cost model parameters used
+       -- by the ledger would change as well.
     , paramVerifySignature          :: f ModelThreeArguments
     -- Strings
     , paramAppendString             :: f ModelTwoArguments

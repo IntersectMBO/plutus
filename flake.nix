@@ -20,7 +20,7 @@
       repo = "nixpkgs";
 
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      rev = "2457ddc9522b0861649ee5e952fa2e505c1743b7";
+      rev = "6525bbc06a39f26750ad8ee0d40000ddfdc24acb";
 
       ref = "nixpkgs-unstable";
 
@@ -28,7 +28,7 @@
     };
     haskell-nix = {
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      url = "github:input-output-hk/haskell.nix?rev=64c8bc4937fde531bf0c4756df44d37d9a00aa97";
+      url = "github:input-output-hk/haskell.nix?rev=7215f083b37741446aa325b20c8ba9f9f76015eb";
 
       flake = false;
     };
@@ -122,6 +122,8 @@
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
+
+          plutus-docs = topLevel.docs.site;
         };
       }));
 }

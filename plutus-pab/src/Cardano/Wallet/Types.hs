@@ -113,7 +113,7 @@ defaultWalletConfig :: WalletConfig
 defaultWalletConfig =
   WalletConfig
     -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
-    { baseUrl = WalletUrl $ BaseUrl Http "localhost" 9081 ""
+    { baseUrl = WalletUrl $ BaseUrl Http "127.0.0.1" 9081 ""
     , wallet  = Wallet 1
     }
 

@@ -93,6 +93,11 @@
         ]
       )
     )
+    (termbind
+      (nonstrict)
+      (vardecl fToDataMap [(con list) [[(con pair) (con data)] (con data)]])
+      [ (builtin mkNilPairData) (con unit ()) ]
+    )
     (datatypebind
       (datatype
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
@@ -100,59 +105,6 @@
         Tuple2_match
         (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
       )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fToDataTuple2_ctoBuiltinData
-        (all a (type) (all b (type) (fun [(lam a (type) (fun a (con data))) a] (fun [(lam a (type) (fun a (con data))) b] (fun [[Tuple2 a] b] (con data))))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            dToData
-            [(lam a (type) (fun a (con data))) a]
-            (lam
-              dToData
-              [(lam a (type) (fun a (con data))) b]
-              (lam
-                ds
-                [[Tuple2 a] b]
-                [
-                  { [ { { Tuple2_match a } b } ds ] (con data) }
-                  (lam
-                    arg
-                    a
-                    (lam
-                      arg
-                      b
-                      [
-                        [ (builtin constrData) (con integer 0) ]
-                        [
-                          [ { (builtin mkCons) (con data) } [ dToData arg ] ]
-                          [
-                            [ { (builtin mkCons) (con data) } [ dToData arg ] ]
-                            [ (builtin mkNilData) (con unit ()) ]
-                          ]
-                        ]
-                      ]
-                    )
-                  )
-                ]
-              )
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl fToDataMap [(con list) (con data)])
-      [ (builtin mkNilData) (con unit ()) ]
     )
     (let
       (rec)
@@ -185,14 +137,15 @@
                   dToData
                   [(lam a (type) (fun a (con data))) v]
                   (lam
-                    eta
+                    ds
                     [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]
                     (let
                       (rec)
                       (termbind
                         (strict)
                         (vardecl
-                          go (fun [List [[Tuple2 k] v]] [(con list) (con data)])
+                          go
+                          (fun [List [[Tuple2 k] v]] [(con list) [[(con pair) (con data)] (con data)]])
                         )
                         (lam
                           ds
@@ -202,12 +155,12 @@
                               [
                                 {
                                   [ { Nil_match [[Tuple2 k] v] } ds ]
-                                  (all dead (type) [(con list) (con data)])
+                                  (all dead (type) [(con list) [[(con pair) (con data)] (con data)]])
                                 }
                                 (abs dead (type) fToDataMap)
                               ]
                               (lam
-                                x
+                                ds
                                 [[Tuple2 k] v]
                                 (lam
                                   xs
@@ -216,25 +169,34 @@
                                     dead
                                     (type)
                                     [
-                                      [
-                                        { (builtin mkCons) (con data) }
-                                        [
+                                      {
+                                        [ { { Tuple2_match k } v } ds ]
+                                        [(con list) [[(con pair) (con data)] (con data)]]
+                                      }
+                                      (lam
+                                        k
+                                        k
+                                        (lam
+                                          v
+                                          v
                                           [
                                             [
                                               {
-                                                {
-                                                  fToDataTuple2_ctoBuiltinData k
-                                                }
-                                                v
+                                                (builtin mkCons)
+                                                [[(con pair) (con data)] (con data)]
                                               }
-                                              dToData
+                                              [
+                                                [
+                                                  (builtin mkPairData)
+                                                  [ dToData k ]
+                                                ]
+                                                [ dToData v ]
+                                              ]
                                             ]
-                                            dToData
+                                            [ go xs ]
                                           ]
-                                          x
-                                        ]
-                                      ]
-                                      [ go xs ]
+                                        )
+                                      )
                                     ]
                                   )
                                 )
@@ -244,7 +206,7 @@
                           }
                         )
                       )
-                      [ (builtin listData) [ go eta ] ]
+                      [ (builtin mapData) [ go ds ] ]
                     )
                   )
                 )

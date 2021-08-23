@@ -11,6 +11,7 @@
 
 module Plutus.PAB.Run
 ( runWith
+, runWithOpts
 ) where
 
 import qualified Cardano.BM.Backend.EKGView          as EKGView
@@ -34,7 +35,7 @@ import           Plutus.PAB.Monitoring.Util          (PrettyObject (..), convert
 import           Plutus.PAB.Run.Cli
 import           Plutus.PAB.Run.CommandParser
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes)
-import           Plutus.PAB.Types                    (PABError (MissingConfigFileOption))
+import           Plutus.PAB.Types                    (Config (..), PABError (MissingConfigFileOption))
 import           Prettyprinter                       (Pretty (pretty))
 import qualified Servant
 import           System.Exit                         (ExitCode (ExitFailure), exitSuccess, exitWith)
@@ -53,8 +54,27 @@ runWith :: forall a.
     )
     => BuiltinHandler a -- ^ Builtin contract handler. Can be created with 'Plutus.PAB.Effects.Contract.Builtin.handleBuiltin'.
     -> IO ()
-runWith userContractHandler = do
-    AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath, storageBackend } <- parseOptions
+runWith h = parseOptions >>= runWithOpts h Nothing
+
+-- | Helper function to launch a complete PAB (all the necessary services)
+-- that can be interacted over the API endpoints defined in
+-- 'PAB.Webserver.Server'.
+runWithOpts :: forall a.
+    ( Show a
+    , Ord a
+    , FromJSON a
+    , ToJSON a
+    , Pretty a
+    , Servant.MimeUnrender Servant.JSON a
+    , Typeable a
+    , HasDefinitions a
+    , HasPSTypes a
+    )
+    => BuiltinHandler a
+    -> Maybe Config -- ^ Optional config override to use in preference to the one in AppOpts
+    -> AppOpts
+    -> IO ()
+runWithOpts userContractHandler mc (AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath, storageBackend }) = do
 
     -- Parse config files and initialize logging
     logConfig <- maybe defaultConfig loadConfig logConfigPath
@@ -67,19 +87,25 @@ runWith userContractHandler = do
     -- obtain token for signaling service readiness
     serviceAvailability <- newToken
 
+    pabConfig :: Either PABError Config <- case mc of
+        Just config -> pure $ Right config
+        Nothing ->
+          case configPath of
+            Nothing -> pure $ Left MissingConfigFileOption
+            Just p  -> do Right <$> (liftIO $ decodeFileThrow p)
+
+    let mkArgs config = ConfigCommandArgs
+                { ccaTrace = convertLog PrettyObject trace
+                , ccaLoggingConfig = logConfig
+                , ccaPABConfig = config
+                , ccaAvailability = serviceAvailability
+                , ccaStorageBackend = storageBackend
+                }
+
+    let run config = runConfigCommand userContractHandler (mkArgs config) cmd
+
     -- execute parsed pab command and handle errors on faliure
-    result <- case configPath of
-        Nothing -> pure $ Left MissingConfigFileOption
-        Just p -> do
-            config <- liftIO $ decodeFileThrow p
-            let args = ConfigCommandArgs
-                        { ccaTrace = convertLog PrettyObject trace
-                        , ccaLoggingConfig = logConfig
-                        , ccaPABConfig = config
-                        , ccaAvailability = serviceAvailability
-                        , ccaStorageBackend = storageBackend
-                        }
-            Right <$> runConfigCommand userContractHandler args cmd
+    result <- sequence (run <$> pabConfig)
     either handleError (const exitSuccess) result
 
         where

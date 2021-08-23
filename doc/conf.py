@@ -32,7 +32,7 @@ if rtd_version not in ["stable", "latest"]:
 # -- Project information -----------------------------------------------------
 
 project = 'The Plutus Platform and Marlowe'
-copyright = '2020, IOHK'
+copyright = '2021, IOHK'
 author = 'IOHK'
 
 # The full version, including alpha/beta/rc tags
@@ -135,3 +135,4 @@ def setup(app):
             'enable_auto_toc_tree': False,
             }, True)
     app.add_transform(AutoStructify)
+    app.add_css_file("theme_overrides.css")

@@ -117,8 +117,8 @@ printBudgetStateBudget :: CekModel -> ExBudget -> IO ()
 printBudgetStateBudget model b =
     case model of
       Unit -> pure ()
-      _ ->  let ExCPU cpu = _exBudgetCPU b
-                ExMemory mem = _exBudgetMemory b
+      _ ->  let ExCPU cpu = exBudgetCPU b
+                ExMemory mem = exBudgetMemory b
             in do
               putStrLn $ "CPU budget:    " ++ show cpu
               putStrLn $ "Memory budget: " ++ show mem
@@ -164,7 +164,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         builtinsAndCosts = List.foldl f [] (H.toList costs)
         builtinCosts = mconcat (map snd builtinsAndCosts)
         -- ^ Total builtin evaluation time (according to the models) in picoseconds (units depend on BuiltinCostModel.costMultiplier)
-        getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
+        getCPU b = let ExCPU b' = exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
         totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
