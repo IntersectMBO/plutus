@@ -5,7 +5,8 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE NamedFieldPuns           #-}
 {-# LANGUAGE TypeApplications         #-}
--- Code temporarily copied over from cardano-api.
+-- Code temporarily copied over from cardano-api,
+-- until https://github.com/input-output-hk/cardano-node/pull/2936 or something similar gets merged.
 module Plutus.Contract.CardanoAPITemp (makeTransactionBody') where
 
 import qualified Data.Map.Strict                    as Map
