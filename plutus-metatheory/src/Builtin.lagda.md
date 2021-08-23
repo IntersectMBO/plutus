@@ -24,7 +24,6 @@ data Builtin : Set where
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
   equalsInteger            : Builtin
-  appendByteString         : Builtin
   lessThanByteString       : Builtin
   lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
@@ -32,8 +31,35 @@ data Builtin : Set where
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
+  appendByteString         : Builtin
+  equalsString             : Builtin
+  encodeUtf8               : Builtin
+  decodeUtf8               : Builtin  
   appendString             : Builtin
   trace                    : Builtin
+  fstPair                  : Builtin
+  sndPair                  : Builtin
+  nullList                 : Builtin
+  headList                 : Builtin
+  tailList                 : Builtin
+  chooseList               : Builtin
+  constrData               : Builtin
+  mapData                  : Builtin
+  listData                 : Builtin
+  iData                    : Builtin
+  bData                    : Builtin
+  unConstrData             : Builtin
+  unMapData                : Builtin
+  unListData               : Builtin
+  unIData                  : Builtin
+  unBData                  : Builtin
+  equalsData               : Builtin
+  chooseData               : Builtin
+  chooseUnit               : Builtin
+  mkPairData               : Builtin
+  mkNilData                : Builtin
+  mkNilPairData            : Builtin
+  mkConsData               : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun (AddInteger
@@ -46,7 +72,6 @@ data Builtin : Set where
                                           | LessThanInteger
                                           | LessThanEqualsInteger
                                           | EqualsInteger
-                                          | AppendByteString
                                           | LessThanByteString
                                           | LessThanEqualsByteString
                                           | Sha2_256
@@ -54,8 +79,35 @@ data Builtin : Set where
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
+                                          | AppendByteString
+                                          | EqualsString
+                                          | EncodeUtf8
+                                          | DecodeUtf8
                                           | AppendString
                                           | Trace
+                                          | FstPair
+                                          | SndPair
+                                          | NullList
+                                          | HeadList
+                                          | TailList
+                                          | ChooseList
+                                          | ConstrData
+                                          | MapData
+                                          | ListData
+                                          | IData
+                                          | BData
+                                          | UnConstrData
+                                          | UnMapData
+                                          | UnListData
+                                          | UnIData
+                                          | UnBData
+                                          | EqualsData
+                                          | ChooseData
+                                          | ChooseUnit
+                                          | MkPairData
+                                          | MkNilData
+                                          | MkNilPairData
+                                          | MkCons
                                           ) #-}
 ```
 
@@ -63,7 +115,6 @@ data Builtin : Set where
 
 ```
 postulate
-  ByteString : Set
   length     : ByteString → ℕ
 
   div            : Int → Int → Int
@@ -92,7 +143,6 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hash) #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition

@@ -2,6 +2,7 @@
 
 module Untyped where
 
+import           PlutusCore.Data
 import           PlutusCore.Default
 import           UntypedPlutusCore
 
@@ -16,19 +17,12 @@ import           Universe
 data UTerm = UVar Integer
            | ULambda UTerm
            | UApp UTerm UTerm
-           | UCon UConstant
+           | UCon (Some (ValueOf DefaultUni))
            | UError
            | UBuiltin DefaultFun
            | UDelay UTerm
            | UForce UTerm
            deriving Show
-
-data UConstant = UConInt Integer
-               | UConBS BS.ByteString
-               | UConStr T.Text
-               | UConBool Bool
-               | UConUnit
-               deriving Show
 
 unIndex :: Index -> Integer
 unIndex (Index n) = naturalToInteger n
@@ -36,30 +30,15 @@ unIndex (Index n) = naturalToInteger n
 convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
 
-convC :: Some (ValueOf DefaultUni) -> UConstant
-convC (Some (ValueOf DefaultUniInteger    i))   = UConInt i
-convC (Some (ValueOf DefaultUniByteString b))   = UConBS b
-convC (Some (ValueOf DefaultUniString       s)) = UConStr s
-convC (Some (ValueOf DefaultUniUnit       u))   = UConUnit
-convC (Some (ValueOf DefaultUniBool       b))   = UConBool b
-convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
-
 conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 conv (Var _ x)      = UVar (unIndex (ndbnIndex x) - 1)
 conv (LamAbs _ _ t) = ULambda (conv t)
 conv (Apply _ t u)  = UApp (conv t) (conv u)
 conv (Builtin _ b)  = UBuiltin b
-conv (Constant _ c) = UCon (convC c)
+conv (Constant _ c) = UCon c
 conv (Error _)      = UError
 conv (Delay _ t)    = UDelay (conv t)
 conv (Force _ t)    = UForce (conv t)
-
-uconvC :: UConstant -> Some (ValueOf DefaultUni)
-uconvC (UConInt i)  = Some (ValueOf DefaultUniInteger    i)
-uconvC (UConBS b)   = Some (ValueOf DefaultUniByteString b)
-uconvC (UConStr s)  = Some (ValueOf DefaultUniString     s)
-uconvC UConUnit     = Some (ValueOf DefaultUniUnit       ())
-uconvC (UConBool b) = Some (ValueOf DefaultUniBool       b)
 
 tmnames = ['a' .. 'z']
 
@@ -73,7 +52,7 @@ uconv i (ULambda t)  = LamAbs
   (NamedDeBruijn (T.pack [tmnames !! i]) (Index 0))
   (uconv (i+1) t)
 uconv i (UApp t u)   = Apply () (uconv i t) (uconv i u)
-uconv i (UCon u)     = Constant () (uconvC u)
+uconv i (UCon c)     = Constant () c
 uconv i UError       = Error ()
 uconv i (UBuiltin b) = Builtin () b
 uconv i (UDelay t)   = Delay () (uconv i t)

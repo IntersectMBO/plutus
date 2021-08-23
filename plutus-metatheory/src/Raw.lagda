@@ -9,8 +9,8 @@ open import Data.Integer using (ℤ)
 open import Data.Integer.Show
 open import Data.Unit using (⊤)
 
-open import Builtin.Constant.Type
 open import Builtin
+open import Utils
 
 open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
 open import Relation.Nullary.Decidable
@@ -21,55 +21,64 @@ open import Data.Bool using (Bool;false;true)
 The raw un-scope-checked and un-type-checked syntax
 
 \begin{code}
+data RawTy : Set
+open import Builtin.Constant.Type ⊤ (λ _ → RawTy)
 
-data RawKind : Set where
-  *   : RawKind
-  _⇒_ : RawKind → RawKind → RawKind
+data RawTyCon : Set
 
-
-data RawTy : Set where
+data RawTy where
   `   : ℕ → RawTy
   _⇒_ : RawTy → RawTy → RawTy
-  Π   : RawKind → RawTy → RawTy
-  ƛ   : RawKind → RawTy → RawTy
+  Π   : Kind → RawTy → RawTy
+  ƛ   : Kind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
-  con : TyCon → RawTy
+  con : RawTyCon → RawTy
   μ    : RawTy → RawTy → RawTy
 
-data RawTermCon : Set where
-  integer    : ℤ → RawTermCon
-  bytestring : ByteString → RawTermCon
-  string     : String → RawTermCon
-  bool       : Bool → RawTermCon
-  unit       : RawTermCon
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
+
+{-# FOREIGN GHC import Raw #-}
+
+data RawTyCon where
+  integer    : RawTyCon
+  bytestring : RawTyCon
+  string     : RawTyCon
+  unit       : RawTyCon
+  bool       : RawTyCon
+  list       : RawTy → RawTyCon
+  pair       : RawTy → RawTy → RawTyCon
+  Data       : RawTyCon
+
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
-  Λ             : RawKind → RawTm → RawTm
+  Λ             : Kind → RawTm → RawTm
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : RawTermCon → RawTm
+  con           : TermCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
   unwrap        : RawTm → RawTm
+
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
 
 -- α equivalence
 
 -- we don't have a decicable equality instance for bytestring, so I
 -- converted this to bool for now
 
-decRTyCon : (C C' : TyCon) → Bool
-decRTyCon integer integer = true
+decRTyCon : (C C' : RawTyCon) → Bool
+decRTyCon integer    integer    = true
 decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
 decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
 decRTyCon _          _          = false
 
-
-decTermCon : (C C' : RawTermCon) → Bool
+decTermCon : (C C' : TermCon) → Bool
 decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
 ... | yes p = true
 ... | no ¬p = false
@@ -105,7 +114,7 @@ decBuiltin appendString appendString = true
 decBuiltin trace trace = true
 decBuiltin _ _ = false
 
-decRKi : (K K' : RawKind) → Bool
+decRKi : (K K' : Kind) → Bool
 decRKi * * = true
 decRKi * (K' ⇒ J') = false
 decRKi (K ⇒ J) * = false
@@ -230,11 +239,6 @@ decRTm (unwrap t) (unwrap t') with decRTm t t'
 decRTm (unwrap t) (unwrap t') | true = true
 decRTm (unwrap t) (unwrap t') | false = false
 decRTm _ _ = false
-{-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
-{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
-{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 
 -- We have to different approaches to de Bruijn terms.
 -- one counts type and term binders separately the other counts them together

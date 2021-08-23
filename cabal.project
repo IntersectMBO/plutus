@@ -73,10 +73,6 @@ package ouroboros-consensus-cardano
 package cardano-api
   optimization: False
 
--- Turn off the tests for a while
-package plutus-metatheory
-  tests: False
-
 -- https://github.com/Quid2/flat/pull/22 fixes a potential exception
 -- when decoding invalid (e.g. malicious) text literals.
 source-repository-package

@@ -6,7 +6,7 @@ open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Nat
 open import Data.Nat.Properties
-open import Relation.Binary
+open import Relation.Binary using (Decidable)
 import Data.Integer as I
 open import Data.Vec hiding (map;_>>=_;_++_)
 open import Data.List hiding (map)
@@ -175,4 +175,65 @@ data RuntimeError : Set where
   runtimeTypeError : RuntimeError
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
+
+data DATA : Set where
+  iDATA : I.ℤ → DATA
+
+{-# FOREIGN GHC import PlutusCore.Data #-}
+{-# COMPILE GHC DATA = data Data (I)   #-}
+\end{code}
+
+Kinds
+
+The kind of types is `*`. Plutus core core is based on System Fω which
+is higher order so we have `⇒` for type level functions. We also have
+a kind called `#` which is used for sized integers and bytestrings.
+
+\begin{code}
+data Kind : Set where
+  *   : Kind               -- type
+  _⇒_ : Kind → Kind → Kind -- function kind
+
+{-# FOREIGN GHC import PlutusCore                       #-}
+{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-} #-}
+{-# FOREIGN GHC type KIND = Kind ()                     #-}
+{-# FOREIGN GHC pattern Star    = Type ()               #-}
+{-# FOREIGN GHC pattern Arrow k j = KindArrow () k j    #-}
+{-# COMPILE GHC Kind = data KIND (Star | Arrow)         #-}
+\end{code}
+
+Let `I`, `J`, `K` range over kinds:
+\begin{code}
+variable
+  I J K : Kind
+\end{code}
+## Term constants
+
+Defined separetely here rather than using generic version used in the
+typed syntax.
+
+\begin{code}
+open import Data.Integer
+open import Data.String
+open import Data.Bool
+postulate ByteString : Set
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# COMPILE GHC ByteString = type BS.ByteString #-}
+
+data TermCon : Set where
+  integer    : ℤ → TermCon
+  bytestring : ByteString → TermCon
+  string     : String → TermCon
+  bool       : Bool → TermCon
+  unit       : TermCon
+  Data       : DATA → TermCon
+
+{-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
+{-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
+{-# FOREIGN GHC pattern TmByteString b = Some (ValueOf DefaultUniByteString b) #-}
+{-# FOREIGN GHC pattern TmString     s = Some (ValueOf DefaultUniString s) #-}
+{-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
+{-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
+{-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
+{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData) #-}
 \end{code}

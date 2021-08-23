@@ -22,7 +22,6 @@ open import Type
 open import Declarative
 open import Builtin hiding (length)
 open import Utils
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
   renaming (TermCon to TyTermCon)
 
@@ -59,6 +58,7 @@ eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
 eraseTC unit           = unit
+eraseTC (Data d)       = Data d
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum

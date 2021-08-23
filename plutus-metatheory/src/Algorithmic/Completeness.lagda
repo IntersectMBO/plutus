@@ -1,6 +1,7 @@
 \begin{code}
 module Algorithmic.Completeness where
 
+open import Utils
 open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution
@@ -66,11 +67,6 @@ lem[] A B = trans
       (sym≡β (soundness B)))
     (sym (sub-eval B idCR (sub-cons ` A))))
 
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
-  as SSig
-import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-  as NSig
 open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
@@ -82,31 +78,10 @@ nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
 nfTypeTC STermCon.unit           = NTermCon.unit
+nfTypeTC (STermCon.Data d)       = NTermCon.Data d
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
-
-nfTypeSIG≡₁ : (bn : Builtin) → proj₁ (SSig.SIG bn) ≡ proj₁ (NSig.SIG bn)
-nfTypeSIG≡₁ addInteger = refl
-nfTypeSIG≡₁ subtractInteger = refl
-nfTypeSIG≡₁ multiplyInteger = refl
-nfTypeSIG≡₁ divideInteger = refl
-nfTypeSIG≡₁ quotientInteger = refl
-nfTypeSIG≡₁ remainderInteger = refl
-nfTypeSIG≡₁ modInteger = refl
-nfTypeSIG≡₁ lessThanInteger = refl
-nfTypeSIG≡₁ lessThanEqualsInteger = refl
-nfTypeSIG≡₁ equalsInteger = refl
-nfTypeSIG≡₁ appendByteString = refl
-nfTypeSIG≡₁ lessThanByteString = refl
-nfTypeSIG≡₁ lessThanEqualsByteString = refl
-nfTypeSIG≡₁ sha2-256 = refl
-nfTypeSIG≡₁ sha3-256 = refl
-nfTypeSIG≡₁ verifySignature = refl
-nfTypeSIG≡₁ equalsByteString = refl
-nfTypeSIG≡₁ ifThenElse = refl
-nfTypeSIG≡₁ appendString = refl
-nfTypeSIG≡₁ trace = refl
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
@@ -132,92 +107,10 @@ lemσ σ C _ refl q = trans
 -- this should be a lemma in NBE/RenSubst
 -- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
-nfTypeSIG≡₂ : (bn : Builtin) →
-  nf (proj₂ (proj₂ (SSig.SIG bn))) ≡
-  substEq (_⊢Nf⋆ *) (sym (nfTypeSIG≡₁ bn))
-  (proj₂ (proj₂ (NSig.SIG bn)))
-nfTypeSIG≡₂ addInteger = refl
-nfTypeSIG≡₂ subtractInteger = refl
-nfTypeSIG≡₂ multiplyInteger = refl
-nfTypeSIG≡₂ divideInteger = refl
-nfTypeSIG≡₂ quotientInteger = refl
-nfTypeSIG≡₂ remainderInteger = refl
-nfTypeSIG≡₂ modInteger = refl
-nfTypeSIG≡₂ lessThanInteger = refl
-nfTypeSIG≡₂ lessThanEqualsInteger = refl
-nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ appendByteString = refl
-nfTypeSIG≡₂ lessThanByteString = refl
-nfTypeSIG≡₂ lessThanEqualsByteString = refl
-nfTypeSIG≡₂ sha2-256 = refl
-nfTypeSIG≡₂ sha3-256 = refl
-nfTypeSIG≡₂ verifySignature = refl
-nfTypeSIG≡₂ equalsByteString = refl
-nfTypeSIG≡₂ ifThenElse = refl
-nfTypeSIG≡₂ appendString = refl
-nfTypeSIG≡₂ trace = refl
-
-nfTypeSIG≡₃ : (bn : Builtin) → length (proj₁ (proj₂ (SSig.SIG bn))) ≡ length (proj₁ (proj₂ (NSig.SIG bn)))
-nfTypeSIG≡₃ addInteger = refl
-nfTypeSIG≡₃ subtractInteger = refl
-nfTypeSIG≡₃ multiplyInteger = refl
-nfTypeSIG≡₃ divideInteger = refl
-nfTypeSIG≡₃ quotientInteger = refl
-nfTypeSIG≡₃ remainderInteger = refl
-nfTypeSIG≡₃ modInteger = refl
-nfTypeSIG≡₃ lessThanInteger = refl
-nfTypeSIG≡₃ lessThanEqualsInteger = refl
-nfTypeSIG≡₃ equalsInteger = refl
-nfTypeSIG≡₃ appendByteString = refl
-nfTypeSIG≡₃ lessThanByteString = refl
-nfTypeSIG≡₃ lessThanEqualsByteString = refl
-nfTypeSIG≡₃ sha2-256 = refl
-nfTypeSIG≡₃ sha3-256 = refl
-nfTypeSIG≡₃ verifySignature = refl
-nfTypeSIG≡₃ equalsByteString = refl
-nfTypeSIG≡₃ ifThenElse = refl
-nfTypeSIG≡₃ appendString = refl
-nfTypeSIG≡₃ trace = refl
-
-open import Builtin.Constant.Type
-
-lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
-  → con tcn ≡ substEq (_⊢Nf⋆ *) p (con tcn)
-lemcon refl tcn = refl
-
-substTC : ∀{Φ Φ' : Ctx⋆}(p : Φ ≡ Φ')(tcn : TyCon)
-  → NTermCon.TermCon {Φ = Φ} (con tcn)
-  → NTermCon.TermCon {Φ = Φ'}(con tcn)
-substTC refl tcn t = t
-
+open import Builtin.Constant.Type  Ctx⋆ (_⊢Nf⋆ *)
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
-
-lemList : (bn : Builtin)
-  → substEq (λ Φ → List (Φ ⊢Nf⋆ *)) (sym (nfTypeSIG≡₁ bn))
-    (proj₁ (proj₂ (NSig.SIG bn)))
-    ≡ nfList (proj₁ (proj₂ (SSig.SIG bn)))
-lemList addInteger = refl
-lemList subtractInteger = refl
-lemList multiplyInteger = refl
-lemList divideInteger = refl
-lemList quotientInteger = refl
-lemList remainderInteger = refl
-lemList modInteger = refl
-lemList lessThanInteger = refl
-lemList lessThanEqualsInteger = refl
-lemList equalsInteger = refl
-lemList appendByteString = refl
-lemList lessThanByteString = refl
-lemList lessThanEqualsByteString = refl
-lemList sha2-256 = refl
-lemList sha3-256 = refl
-lemList verifySignature = refl
-lemList equalsByteString = refl
-lemList ifThenElse = refl
-lemList appendString = refl
-lemList trace = refl
 
 postulate itype-lem : ∀ {Φ} b → Norm.itype {Φ} b ≡ nf (Syn.itype b)
 

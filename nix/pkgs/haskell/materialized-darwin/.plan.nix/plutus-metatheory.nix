@@ -92,7 +92,6 @@
           "MAlonzo/Code/Builtin"
           "MAlonzo/Code/Builtin/Constant/Term"
           "MAlonzo/Code/Builtin/Constant/Type"
-          "MAlonzo/Code/Builtin/Signature"
           "MAlonzo/Code/Category/Applicative/Indexed"
           "MAlonzo/Code/Category/Functor"
           "MAlonzo/Code/Category/Monad/Indexed"
