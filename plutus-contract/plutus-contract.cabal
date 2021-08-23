@@ -23,7 +23,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- See Plutus Tx readme
@@ -147,10 +147,8 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        transformers-base -any,
         unordered-containers -any,
         uuid -any,
-        warp -any,
         IntervalMap -any,
         QuickCheck -any,
 
@@ -160,7 +158,7 @@ library
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         exposed-modules:
             Plutus.Contract.Test
             Plutus.Contract.Test.ContractModel

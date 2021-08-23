@@ -23,8 +23,6 @@ module Cardano.Node.Types
 
      -- * Effects
     , NodeServerEffects
-    , GenRandomTx (..)
-    , genRandomTx
 
      -- *  State types
     , AppState (..)
@@ -52,7 +50,6 @@ import           Control.Lens                        (makeLenses, view)
 import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg (..))
 import           Control.Monad.Freer.Reader          (Reader)
 import           Control.Monad.Freer.State           (State)
-import           Control.Monad.Freer.TH              (makeEffect)
 import           Control.Monad.IO.Class              (MonadIO (..))
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           Data.Default                        (Default, def)
@@ -60,7 +57,7 @@ import qualified Data.Map                            as Map
 import           Data.Text.Prettyprint.Doc           (Pretty (..), pretty, viaShow, (<+>))
 import           Data.Time.Clock                     (UTCTime)
 import qualified Data.Time.Format.ISO8601            as F
-import           Data.Time.Units                     (Millisecond, Second)
+import           Data.Time.Units                     (Millisecond)
 import           Data.Time.Units.Extra               ()
 import           GHC.Generics                        (Generic)
 import           Ledger                              (Tx, txId)
@@ -111,8 +108,6 @@ data MockServerConfig =
     MockServerConfig
         { mscBaseUrl          :: BaseUrl
         -- ^ base url of the service
-        , mscRandomTxInterval :: Maybe Second
-        -- ^ Time between two randomly generated transactions
         , mscInitialTxWallets :: [Wallet]
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
@@ -137,8 +132,7 @@ defaultMockServerConfig :: MockServerConfig
 defaultMockServerConfig =
     MockServerConfig
       -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
-      { mscBaseUrl = BaseUrl Http "localhost" 9082 ""
-      , mscRandomTxInterval = Just 20
+      { mscBaseUrl = BaseUrl Http "127.0.0.1" 9082 ""
       , mscInitialTxWallets =
           [ EM.Wallet 1
           , EM.Wallet 2
@@ -239,9 +233,7 @@ initialChainState =
 -- Effects -------------------------------------------------------------------------------------------------------------
 
 type NodeServerEffects m
-     = '[ GenRandomTx
-        , LogMsg MockServerLogMsg
-        , ChainControlEffect
+     = '[ ChainControlEffect
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
@@ -249,8 +241,3 @@ type NodeServerEffects m
         , State AppState
         , LogMsg MockServerLogMsg
         , m]
-
-data GenRandomTx r where
-    GenRandomTx :: GenRandomTx Tx
-
-makeEffect ''GenRandomTx

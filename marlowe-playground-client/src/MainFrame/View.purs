@@ -43,7 +43,8 @@ render state =
               , projectTitle
               , div_
                   [ a [ href "./doc/marlowe/tutorials/index.html", target "_blank", classNames [ "font-semibold" ] ] [ text "Tutorial" ]
-                  , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classNames [ "ml-medium", "font-semibold" ] ] [ text "Actus Labs" ]
+                  -- Link disabled as the Actus labs is not working properly. Future plans might include moving this functionality to Marlowe run
+                  -- , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classNames [ "ml-medium", "font-semibold" ] ] [ text "Actus Labs" ]
                   ]
               ]
           , topBar

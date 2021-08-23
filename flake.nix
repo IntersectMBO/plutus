@@ -20,7 +20,7 @@
       repo = "nixpkgs";
 
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      rev = "0747387223edf1aa5beaedf48983471315d95e16";
+      rev = "6525bbc06a39f26750ad8ee0d40000ddfdc24acb";
 
       ref = "nixpkgs-unstable";
 
@@ -28,11 +28,16 @@
     };
     haskell-nix = {
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      url = "github:input-output-hk/haskell.nix?rev=531c9f4cac0e335db245849df3b5036973826d36";
+      url = "github:input-output-hk/haskell.nix?rev=7215f083b37741446aa325b20c8ba9f9f76015eb";
 
       flake = false;
     };
 
+    actus-tests = {
+      url = "github:actusfrf/actus-tests";
+
+      flake = false;
+    };
     cardano-repo-tool = {
       url = "github:input-output-hk/cardano-repo-tool";
 
@@ -50,7 +55,7 @@
     };
     hackage-nix = {
       # We pin this revision to avoid unhelpful daily churn from the auto-update process.
-      url = "github:input-output-hk/hackage.nix?rev=afafb0104f1f5029155fcbb15bc1ce1bcd98ea6b";
+      url = "github:input-output-hk/hackage.nix?rev=23545a41ef50c4328e3f95b9a63db59f3ada3518";
 
       flake = false;
     };
@@ -110,22 +115,15 @@
 
           plutus-playground-client = topLevel.plutus-playground.client;
           plutus-playground-server = topLevel.plutus-playground.server;
-          web-ghc-server = plutus.haskell.project.hsPkgs.web-ghc.components.exes.web-ghc-server;
 
-          # must be in $PATH of web-ghc-server and marlowe-playground-server
-          ghcWithPlutus = plutus.haskell.project.ghcWithPackages (ps: [
-            ps.plutus-core
-            ps.plutus-tx
-            ps.plutus-contract
-            ps.marlowe
-            ps.plutus-ledger
-            ps.playground-common
-          ]);
+          web-ghc-server = topLevel.web-ghc;
 
-          plutus-pab-examples = topLevel.plutus-pab.pab-exes.plutus-pab-examples;
+          marlowe-pab = topLevel.marlowe-pab;
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
+
+          plutus-docs = topLevel.docs.site;
         };
       }));
 }

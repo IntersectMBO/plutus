@@ -106,6 +106,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
+        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         }
 
 fromCardanoTxIn :: C.TxIn -> P.TxOutRef

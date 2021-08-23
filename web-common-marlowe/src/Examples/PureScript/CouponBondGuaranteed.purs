@@ -24,10 +24,10 @@ guarantor :: Party
 guarantor = Role "Guarantor"
 
 investor :: Party
-investor = Role "Investor"
+investor = Role "Lender"
 
 issuer :: Party
-issuer = Role "Issuer"
+issuer = Role "Borrower"
 
 principal :: Value
 principal = ConstantParam "Principal"

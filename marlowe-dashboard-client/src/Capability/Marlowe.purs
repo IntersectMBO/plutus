@@ -50,13 +50,14 @@ import Data.UUID (genUUID, parseUUID, toString)
 import Effect.Aff (delay)
 import Effect.Class (liftEffect)
 import Effect.Random (random)
-import Env (DataProvider(..), PABType(..))
+import Env (DataProvider(..))
 import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM, liftAff)
 import MainFrame.Types (Msg)
-import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusApp(..), PlutusAppId(..))
+import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId(..))
 import Marlowe.Semantics (Assets(..), Contract, TokenName, TransactionInput(..), asset, emptyState)
+import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
@@ -95,19 +96,15 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   createWallet = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType -> do
+      MarlowePAB -> do
         ajaxWalletInfo <- Wallet.createWallet
         case ajaxWalletInfo of
           Left ajaxError -> pure $ Left ajaxError
           Right walletInfo -> do
             let
               wallet = view _wallet walletInfo
-            ajaxCompanionAppId <- case pabType of
-              Plain -> Contract.activateContract WalletCompanion wallet
-              WithMarloweContracts -> Contract.activateContract WalletCompanion wallet
-            ajaxMarloweAppId <- case pabType of
-              Plain -> Contract.activateContract MarloweApp wallet
-              WithMarloweContracts -> Contract.activateContract MarloweApp wallet
+            ajaxCompanionAppId <- Contract.activateContract WalletCompanion wallet
+            ajaxMarloweAppId <- Contract.activateContract MarloweApp wallet
             ajaxAssets <- Wallet.getWalletTotalFunds wallet
             let
               createWalletDetails companionAppId marloweAppId assets =
@@ -148,24 +145,14 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   followContract walletDetails marloweParams = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         runExceptT do
           let
             wallet = view (_walletInfo <<< _wallet) walletDetails
-          followAppId <-
-            withExceptT Left $ ExceptT
-              $ case pabType of
-                  Plain -> Contract.activateContract MarloweFollower wallet
-                  WithMarloweContracts -> Contract.activateContract MarloweFollower wallet
-          void $ withExceptT Left $ ExceptT
-            $ case pabType of
-                Plain -> Contract.invokeEndpoint MarloweFollower followAppId "follow" marloweParams
-                WithMarloweContracts -> Contract.invokeEndpoint MarloweFollower followAppId "follow" marloweParams
+          followAppId <- withExceptT Left $ ExceptT $ Contract.activateContract MarloweFollower wallet
+          void $ withExceptT Left $ ExceptT $ Contract.invokeEndpoint followAppId "follow" marloweParams
           observableStateJson <-
-            withExceptT Left $ ExceptT
-              $ case pabType of
-                  Plain -> Contract.getContractInstanceObservableState MarloweFollower followAppId
-                  WithMarloweContracts -> Contract.getContractInstanceObservableState MarloweFollower followAppId
+            withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState followAppId
           observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
           pure $ followAppId /\ observableState
       LocalStorage -> do
@@ -193,12 +180,10 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   createPendingFollowerApp walletDetails = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType -> do
+      MarlowePAB -> do
         let
           wallet = view (_walletInfo <<< _wallet) walletDetails
-        case pabType of
-          Plain -> Contract.activateContract MarloweFollower wallet
-          WithMarloweContracts -> Contract.activateContract MarloweFollower wallet
+        Contract.activateContract MarloweFollower wallet
       LocalStorage -> do
         uuid <- liftEffect genUUID
         pure $ Right $ PlutusAppId uuid
@@ -209,19 +194,13 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   followContractWithPendingFollowerApp walletDetails marloweParams followerAppId = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         runExceptT do
           let
             wallet = view (_walletInfo <<< _wallet) walletDetails
-          void $ withExceptT Left $ ExceptT
-            $ case pabType of
-                Plain -> Contract.invokeEndpoint MarloweFollower followerAppId "follow" marloweParams
-                WithMarloweContracts -> Contract.invokeEndpoint MarloweFollower followerAppId "follow" marloweParams
+          void $ withExceptT Left $ ExceptT $ Contract.invokeEndpoint followerAppId "follow" marloweParams
           observableStateJson <-
-            withExceptT Left $ ExceptT
-              $ case pabType of
-                  Plain -> Contract.getContractInstanceObservableState MarloweFollower followerAppId
-                  WithMarloweContracts -> Contract.getContractInstanceObservableState MarloweFollower followerAppId
+            withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState followerAppId
           observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
           pure $ followerAppId /\ observableState
       LocalStorage -> do
@@ -247,16 +226,14 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   createContract walletDetails roles contract = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
 
           bRoles :: Back.Map Back.TokenName Back.PubKeyHash
           bRoles = toBack roles
         in
-          case pabType of
-            Plain -> Contract.invokeEndpoint MarloweApp marloweAppId "create" (bRoles /\ contract)
-            WithMarloweContracts -> Contract.invokeEndpoint MarloweApp marloweAppId "create" (bRoles /\ contract)
+          Contract.invokeEndpoint marloweAppId "create" (bRoles /\ contract)
       LocalStorage -> do
         walletLibrary <- getWalletLibrary
         uuid <- liftEffect genUUID
@@ -284,13 +261,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   applyTransactionInput walletDetails marloweParams transactionInput@(TransactionInput { interval, inputs }) = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
         in
-          case pabType of
-            Plain -> Contract.invokeEndpoint MarloweApp marloweAppId "apply-inputs" (marloweParams /\ Just interval /\ inputs)
-            WithMarloweContracts -> Contract.invokeEndpoint MarloweApp marloweAppId "apply-inputs" (marloweParams /\ Just interval /\ inputs)
+          Contract.invokeEndpoint marloweAppId "apply-inputs" (marloweParams /\ Just interval /\ inputs)
       LocalStorage -> do
         existingContracts <- getContracts
         -- When we emulate these calls we add a 500ms delay so we give time to the submit button
@@ -305,37 +280,22 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   redeem walletDetails marloweParams tokenName = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
 
           pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
         in
-          case pabType of
-            Plain -> Contract.invokeEndpoint MarloweApp marloweAppId "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
-            WithMarloweContracts -> Contract.invokeEndpoint MarloweApp marloweAppId "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
+          Contract.invokeEndpoint marloweAppId "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
       LocalStorage -> pure $ Right unit
   -- get the WalletInfo of a wallet given the PlutusAppId of its WalletCompanion
   lookupWalletInfo companionAppId = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB Plain ->
+      MarlowePAB ->
         runExceptT do
-          clientState <- ExceptT $ Contract.getContractInstanceClientState WalletCompanion companionAppId
-          let
-            app = view _cicDefinition clientState
-          case app of
-            WalletCompanion -> do
-              let
-                wallet = toFront $ view _cicWallet clientState
-              ExceptT $ Wallet.getWalletInfo wallet
-            _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-      PAB WithMarloweContracts ->
-        runExceptT do
-          clientState <- ExceptT $ Contract.getContractInstanceClientState WalletCompanion companionAppId
-          let
-            app = view _cicDefinition clientState
-          case app of
+          clientState <- ExceptT $ Contract.getContractInstanceClientState companionAppId
+          case view _cicDefinition clientState of
             WalletCompanion -> do
               let
                 wallet = toFront $ view _cicWallet clientState
@@ -350,41 +310,14 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   lookupWalletDetails companionAppId = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB Plain ->
+      MarlowePAB ->
         runExceptT do
-          clientState <- ExceptT $ Contract.getContractInstanceClientState WalletCompanion companionAppId
-          let
-            app = view _cicDefinition clientState
-          case app of
+          clientState <- ExceptT $ Contract.getContractInstanceClientState companionAppId
+          case view _cicDefinition clientState of
             WalletCompanion -> do
               let
                 wallet = toFront $ view _cicWallet clientState
-              walletContracts <- ExceptT $ Contract.getWalletContractInstances WalletCompanion wallet
-              walletInfo <- ExceptT $ Wallet.getWalletInfo wallet
-              assets <- ExceptT $ Wallet.getWalletTotalFunds wallet
-              case find (\state -> (view _cicDefinition state) == MarloweApp) walletContracts of
-                Just marloweApp ->
-                  ExceptT $ pure
-                    $ Right
-                        { walletNickname: mempty
-                        , companionAppId
-                        , marloweAppId: toFront $ view _cicContract marloweApp
-                        , walletInfo
-                        , assets
-                        , previousCompanionAppState: Nothing
-                        }
-                Nothing -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-            _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
-      PAB WithMarloweContracts ->
-        runExceptT do
-          clientState <- ExceptT $ Contract.getContractInstanceClientState WalletCompanion companionAppId
-          let
-            appType = view _cicDefinition clientState
-          case appType of
-            WalletCompanion -> do
-              let
-                wallet = toFront $ view _cicWallet clientState
-              walletContracts <- ExceptT $ Contract.getWalletContractInstances WalletCompanion wallet
+              walletContracts <- ExceptT $ Contract.getWalletContractInstances wallet
               walletInfo <- ExceptT $ Wallet.getWalletInfo wallet
               assets <- ExceptT $ Wallet.getWalletTotalFunds wallet
               case find (\state -> view _cicDefinition state == MarloweApp) walletContracts of
@@ -411,15 +344,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   getRoleContracts walletDetails = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB pabType ->
+      MarlowePAB ->
         runExceptT do
           let
             companionAppId = view _companionAppId walletDetails
-          observableStateJson <-
-            withExceptT Left $ ExceptT
-              $ case pabType of
-                  Plain -> Contract.getContractInstanceObservableState WalletCompanion companionAppId
-                  WithMarloweContracts -> Contract.getContractInstanceObservableState WalletCompanion companionAppId
+          observableStateJson <- withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState companionAppId
           mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
       LocalStorage -> do
         roleContracts <- getWalletRoleContracts $ view (_walletInfo <<< _pubKey) walletDetails
@@ -428,39 +357,18 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   getFollowerApps walletDetails = do
     { dataProvider } <- ask
     case dataProvider of
-      PAB Plain ->
+      MarlowePAB ->
         runExceptT do
           let
             wallet = view (_walletInfo <<< _wallet) walletDetails
-          runningApps <- withExceptT Left $ ExceptT $ Contract.getWalletContractInstances MarloweFollower wallet
-          let
-            followerApps = Array.filter (\cic -> view _cicDefinition cic == MarloweFollower) runningApps
-          case traverse decodeFollowerAppState (followerApps) of
-            Left decodingError -> except $ Left $ Right decodingError
-            Right decodedFollowerApps -> ExceptT $ pure $ Right $ fromFoldable decodedFollowerApps
-        where
-        decodeFollowerAppState :: ContractInstanceClientState PlutusApp -> Either MultipleErrors (Tuple PlutusAppId ContractHistory)
-        decodeFollowerAppState contractInstanceClientState =
-          let
-            plutusAppId = toFront $ view _cicContract contractInstanceClientState
-
-            rawJson = view (_cicCurrentState <<< _observableState) contractInstanceClientState
-          in
-            case runExcept $ decodeJSON $ unwrap rawJson of
-              Left decodingErrors -> Left decodingErrors
-              Right observableState -> Right (plutusAppId /\ observableState)
-      PAB WithMarloweContracts ->
-        runExceptT do
-          let
-            wallet = view (_walletInfo <<< _wallet) walletDetails
-          runningApps <- withExceptT Left $ ExceptT $ Contract.getWalletContractInstances MarloweFollower wallet
+          runningApps <- withExceptT Left $ ExceptT $ Contract.getWalletContractInstances wallet
           let
             followerApps = Array.filter (\cic -> view _cicDefinition cic == MarloweFollower) runningApps
           case traverse decodeFollowerAppState followerApps of
             Left decodingError -> except $ Left $ Right decodingError
             Right decodedFollowerApps -> ExceptT $ pure $ Right $ fromFoldable decodedFollowerApps
         where
-        decodeFollowerAppState :: ContractInstanceClientState PlutusApp -> Either MultipleErrors (Tuple PlutusAppId ContractHistory)
+        decodeFollowerAppState :: ContractInstanceClientState MarloweContract -> Either MultipleErrors (Tuple PlutusAppId ContractHistory)
         decodeFollowerAppState contractInstanceClientState =
           let
             plutusAppId = toFront $ view _cicContract contractInstanceClientState

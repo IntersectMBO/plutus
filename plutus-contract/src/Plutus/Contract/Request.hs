@@ -34,6 +34,10 @@ module Plutus.Contract.Request(
     , fundsAtAddressCondition
     , watchAddressUntilSlot
     , watchAddressUntilTime
+    , awaitUtxoSpent
+    , utxoIsSpent
+    , awaitUtxoProduced
+    , utxoIsProduced
     -- ** Tx confirmation
     , TxStatus(..)
     , awaitTxStatusChange
@@ -62,6 +66,7 @@ module Plutus.Contract.Request(
     , submitTxConstraintsSpending
     , submitTxConstraintsWith
     , submitTxConfirmed
+    , mkTxConstraints
     -- * Etc.
     , ContractRow
     , pabReq
@@ -73,6 +78,7 @@ import qualified Control.Monad.Freer.Error   as E
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Types            as JSON
+import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Proxy                  (Proxy (..))
 import           Data.Row
 import qualified Data.Text                   as Text
@@ -81,7 +87,7 @@ import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, DiffMilliSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx,
-                                              TxId, TxOut (..), TxOutTx (..), Value, fromMilliSeconds, txId)
+                                              TxId, TxOut (..), TxOutRef, TxOutTx (..), Value, fromMilliSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -242,6 +248,46 @@ watchAddressUntilTime ::
     -> POSIXTime
     -> Contract w s e UtxoMap
 watchAddressUntilTime a time = awaitTime time >> utxoAt a
+
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+awaitUtxoSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Contract w s e OnChainTx
+awaitUtxoSpent utxo = pabReq (AwaitUtxoSpentReq utxo) E._AwaitUtxoSpentResp
+
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+utxoIsSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Promise w s e OnChainTx
+utxoIsSpent = Promise . awaitUtxoSpent
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+awaitUtxoProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Contract w s e (NonEmpty OnChainTx)
+awaitUtxoProduced address = pabReq (AwaitUtxoProducedReq address) E._AwaitUtxoProducedResp
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+utxoIsProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Promise w s e (NonEmpty OnChainTx)
+utxoIsProduced = Promise . awaitUtxoProduced
 
 {-| Get the transactions that modified an address in a specific slot.
 -}
@@ -500,6 +546,19 @@ submitTxConstraintsSpending inst utxo =
   let lookups = Constraints.typedValidatorLookups inst <> Constraints.unspentOutputs utxo
   in submitTxConstraintsWith lookups
 
+-- | Build a transaction that satisfies the constraints
+mkTxConstraints :: forall a w s e.
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
+  , AsContractError e
+  )
+  => ScriptLookups a
+  -> TxConstraints (RedeemerType a) (DatumType a)
+  -> Contract w s e UnbalancedTx
+mkTxConstraints sl constraints =
+  either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
+
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. Using the given constraints.
 submitTxConstraintsWith
@@ -512,9 +571,7 @@ submitTxConstraintsWith
   => ScriptLookups a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
-submitTxConstraintsWith sl constraints = do
-  tx <- either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
-  submitUnbalancedTx tx
+submitTxConstraintsWith sl constraints = mkTxConstraints sl constraints >>= submitUnbalancedTx
 
 -- | A version of 'submitTx' that waits until the transaction has been
 --   confirmed on the ledger before returning.

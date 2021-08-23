@@ -1,17 +1,20 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE NamedFieldPuns   #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect'
     in the emulator
 -}
 module Plutus.ChainIndex.Emulator.Handlers(
     handleQuery
     , handleControl
-    , ChainIndexEmulatorState
+    , ChainIndexEmulatorState(..)
     , diskState
     , utxoIndex
     , ChainIndexError(..)
@@ -26,7 +29,9 @@ import           Control.Monad.Freer.State            (State, get, gets, modify,
 import           Data.Default                         (Default (..))
 import           Data.FingerTree                      (Measured (..))
 import           Data.Maybe                           (catMaybes, fromMaybe)
+import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
 import qualified Data.Set                             as Set
+import           GHC.Generics                         (Generic)
 import           Ledger                               (TxId, TxOutRef (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap,
@@ -43,6 +48,8 @@ data ChainIndexEmulatorState =
         { _diskState :: DiskState
         , _utxoIndex :: UtxoIndex
         }
+        deriving stock (Generic)
+        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ChainIndexEmulatorState)
 
 makeLenses ''ChainIndexEmulatorState
 
@@ -145,6 +152,7 @@ data ChainIndexError =
     InsertionFailed UtxoState.InsertUtxoFailed
     | RollbackFailed UtxoState.RollbackFailed
     | QueryFailedNoTip -- ^ Query failed because the chain index does not have a tip (not synchronised with node)
+    deriving Show
 
 data ChainIndexLog =
     InsertionSuccess Tip InsertUtxoPosition

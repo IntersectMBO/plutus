@@ -30,7 +30,7 @@ import qualified Data.Set                             as S
 import qualified Data.Set.NonEmpty                    as NS
 
 import qualified Data.List.NonEmpty                   as NE
-import           Data.Maybe                           (catMaybes, mapMaybe)
+import           Data.Maybe                           (mapMaybe)
 import           Data.Semigroup.Foldable
 
 {- Note [Float algorithm]
@@ -57,30 +57,21 @@ original: let nonstrict x =
 Specifically the algorithm is done in two passes:
 
 
-1st-pass: Traverses an IR term/program and for each let, marks the location of its closest-surrounding lambda or let-nonstrictvalue (or Top if no lambda),
+1st-pass: Traverses an IR term/program and for each let, marks the location of its closest-surrounding lambda or "fixed" let (or Top if no lambda),
 and stores it into a mapping of let-name=>lambda/let-location. We call the closest-surrounding lambda/let-location the *Rank* of a let.
-We have an extra pass that cleans a PIR term from all those lets that are *not* let-effectful; see Note [Cleaning lets].
+We have an extra pass that cleans a PIR term from all those lets that are *not* "fixed" see Note [Cleaning lets].
 
 2nd-pass: Traverses the cleaned-up term to place the removed lets back again, this time  directly under their "Rank".
 During traversal, when a lambda-location of interest is reached (i.e. Rank),
 the algorithm consults the dependency graph to figure (a) the groupings of lets
 into let-groups based on their (mutual) recursivity (by utilizing the SCCs of the depgraph)
 and (b) the correct code-generation *order* of the let-groups (by utilizing the topsort of the SCCs).
-As an optimization, the algorithm merges adjacent *nonrec* let-groups into a single-group for better readability; this is possible
-because letnonrec in PlutusIR is linearly scoped.
 
 Example 1 (floating to the closest-surrounding lambda):
 
 \ x -> 1 + (2 * let i = 3 in i+4)
 ==>
 \ x -> let i = 3 in 1 + (2 * i+4)
-
-Example 2 ( merging adjacent let-nonrecs):
-
-\ x -> letnonrec nonstrict x = 1 in letnonrec nonstrict y = 2 in x + y
-===>
-\ x -> letnonrec nonstrict {x=1; y=2} in x + y
-
 
 Invariants for the algorithm:
 
@@ -143,23 +134,28 @@ data Rank =
      Top
   -- | a let is directly surrounded by the lambda signified by the location lamDepth :: 'Int', lamUnique :: 'PLC.Unique'
   -- NB: the lamDepth (Int) should be strictly positive (1,2..)
-     | Dep Int PLC.Unique
+     | Dep DepKind Int PLC.Unique
   deriving (Eq, Show)
+
+-- | The type of the dependency. This is important so that we can distinguish between the positions
+-- "below the given unique and inside a binding", and "below the given unique and inside the body of the let".
+data DepKind = LamBody | LetRhs | LetBody
+  deriving (Eq, Ord, Show)
 
 -- | Lens-style getter function for depth
 -- NB: Top is arbitrarily defined as having depth 0.
 -- It could also be made 'minBound' or 'Word', but this is conceptually clearer and allows us to use 'IM.IntMap's.
 depth :: Getting r Rank Int
 depth  = to $ \case
-  Top     -> 0
-  Dep d _ -> d
+  Top       -> 0
+  Dep _ d _ -> d
 
 instance Ord Rank where
-  compare Top Top                 = EQ
-  compare Top _                   = LT
-  compare _ Top                   = GT
+  compare Top Top                       = EQ
+  compare Top _                         = LT
+  compare _ Top                         = GT
   -- try depth, then try unique
-  compare (Dep d1 u1) (Dep d2 u2) = compare d1 d2 <> compare u1 u2
+  compare (Dep k1 d1 u1) (Dep k2 d2 u2) = compare d1 d2 <> compare k1 k2 <> compare u1 u2
 
 -- | During the first pass of the AST, a reader context holds the closest-surrounding lambda of a term
 type P1Ctx = Rank     --  the surround lambda (its location)
@@ -211,26 +207,32 @@ p1Term pir = toFloatData $ runReader
     goTerm :: Term tyname name uni fun a -> Reader P1Ctx P1Data
     goTerm = \case
       -- update the surrounding lamdba/Lambda
-      LamAbs _ n _ tBody  -> withAnchor (n^.PLC.theUnique) $ goTerm tBody
-      TyAbs _ n _ tBody   -> withAnchor (n^.PLC.theUnique) $ goTerm tBody
+      LamAbs _ n _ tBody  -> withAnchor LamBody (n^.PLC.theUnique) $ goTerm tBody
+      TyAbs _ n _ tBody   -> withAnchor LamBody (n^.PLC.theUnique) $ goTerm tBody
 
       Let _ r bs tIn    -> do
         let cantMove b = case r of
                 Rec    -> any nonMovableBinding bs
                 NonRec -> nonMovableBinding b
-        resBs <- mconcat <$> forM (NE.toList bs) (goBinding cantMove)
-        resIn <- goTerm tIn
-        pure $ resBs <> resIn
+        let (immovable, movable) = NE.partition cantMove bs
+        resImBs <- mconcat <$> forM immovable (goBinding True)
+        resMovBs <- mconcat <$> forM movable (goBinding False)
+        -- Use the representative binding of the bindings which will remain to
+        -- be part of the anchor
+        resIn <- case NE.nonEmpty immovable of
+            Just bs' -> withAnchor LetBody (representativeBinding bs' ^.principal) $ goTerm tIn
+            Nothing  -> goTerm tIn
+        pure $ resImBs <> resMovBs <> resIn
 
       -- recurse and then accumulate the return values
       t -> mconcat <$> traverse goTerm (t^..termSubterms)
 
-    goBinding :: (Binding tyname name uni fun a -> Bool) -> Binding tyname name uni fun a -> Reader P1Ctx P1Data
+    goBinding :: Bool -> Binding tyname name uni fun a -> Reader P1Ctx P1Data
     goBinding cantMove b =
       let subtermRanks = mconcat <$> traverse goTerm (b^..bindingSubterms)
-      in if cantMove b
+      in if cantMove
          -- leteffectful bindings are anchors themselves like lam/Lam/Top
-         then withAnchor (b^.principal) subtermRanks
+         then withAnchor LetRhs (b^.principal) subtermRanks
          -- for all other let bindings we record their ranks
          else (<>) <$> addRank b <*> subtermRanks
 
@@ -260,10 +262,10 @@ p1Term pir = toFloatData $ runReader
           (M.singleton anchor $ NS.singleton letPrincipal)
 
     -- | Updates the closest-surrounding lam/Lam/leteffectful location for some `b` computation
-    withAnchor :: PLC.Unique -> Reader P1Ctx b -> Reader P1Ctx b
-    withAnchor u = local $ \oldAnchor  ->
+    withAnchor :: DepKind -> PLC.Unique -> Reader P1Ctx b -> Reader P1Ctx b
+    withAnchor k u = local $ \oldAnchor  ->
                              let newDepth = oldAnchor^.depth + 1
-                                 newAnchor = Dep newDepth u
+                                 newAnchor = Dep k newDepth u
                              in newAnchor
 
 
@@ -300,33 +302,28 @@ removeLets t =
  where
    go :: (MonadReader Int m, MonadState (RhsTable tyname name uni fun a) m) => Term tyname name uni fun a -> m (Term tyname name uni fun a)
    go = \case
-         -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
          LamAbs a n ty tBody -> LamAbs a n ty <$> local (+1) (go tBody)
          TyAbs a n k tBody  -> TyAbs a n k <$> local (+1) (go tBody)
 
          Let a r bs tIn -> do
-          let cantMove b = case r of
-                  Rec    -> any nonMovableBinding bs
-                  NonRec -> nonMovableBinding b
-          bs' <- forM bs $ \b ->
-            if cantMove b
-            -- increment depth since it is an anchor
-            then local (+1) $ do
-                b' <- b & traverseOf bindingSubterms go
-                -- keep this let
-                pure $ Just b'
-            else do
-                b' <- b & traverseOf bindingSubterms go
-                curDepth <- ask
-                -- remove the let and store it in the rhstable
-                modify . M.insert (b'^.principal) $ Rhs { _rhsAnn = a
+           curDepth <- ask
+           let cantMove b = case r of
+                   Rec    -> any nonMovableBinding bs
+                   NonRec -> nonMovableBinding b
+           let (immovable, movable) = NE.partition cantMove bs
+           immovBs <- forM immovable $ \b -> local (+1) $ b & traverseOf bindingSubterms go
+           forM_ movable $ \b -> do
+               b' <- b & traverseOf bindingSubterms go
+               -- remove the let and store it in the rhstable
+               modify . M.insert (b'^.principal) $ Rhs { _rhsAnn = a
                                                        , _rhsRecurs = r
                                                        , _rhsBinding =  b'
                                                        , _rhsRank = curDepth
                                                        }
-                pure Nothing
-          let nbs' = catMaybes $ NE.toList bs'
-          mkLet a r nbs' <$> go tIn
+           -- If there are any bindings left then we need to increment the depth for the body
+           if null immovBs
+           then go tIn
+           else mkLet a r immovBs <$> local (+1) (go tIn)
 
          t' -> t' & termSubterms go
 
@@ -365,28 +362,29 @@ p2Term pir fd =
       [] -> pure t -- floating-state is empty, stop descending to the term
       _ -> case t of
         -- we are only interested in lambdas/Lambdas
-        LamAbs a n ty tBody -> LamAbs a n ty  <$> incrDepth curDepth n floatData tBody
-        TyAbs a n k tBody  -> TyAbs a n k <$> incrDepth curDepth n floatData tBody
+        LamAbs a n ty tBody -> LamAbs a n ty  <$> incrDepth LamBody curDepth n floatData tBody
+        TyAbs a n k tBody  -> TyAbs a n k <$> incrDepth LamBody curDepth n floatData tBody
         -- these are the effectful-lets that are not floated
         Let a r bs inTerm ->
           -- here we have an opportunity to merge the "fixed" effectful-let iff its in-term is a nonrec let
-          letMergeOrWrap a r
+          Let a r
           -- increase the depth in the RHS of each binding. the effectful-lets are thus anchors (like lambdas/Lambdas)
-          <$> forM bs (\b -> b & bindingSubterms (incrDepth curDepth (b^.principal) floatData))
-          --  the inTerm has not increased-depth
-          <*> goTerm curDepth floatData inTerm
+          <$> forM bs (\b -> b & bindingSubterms (incrDepth LetRhs curDepth (b^.principal) floatData))
+          --  the inTerm has increased depth
+          <*> incrDepth LetBody curDepth (representativeBinding bs ^. principal) floatData inTerm
 
           -- descend otherwise to apply the transformations to subterms
         t' -> t' & termSubterms (goTerm curDepth floatData)
 
   -- | If a lambda/Lambda/LetEffectful is found, the current location is updated (depth+Unique) and try to float in its body/RHS
   incrDepth :: PLC.HasUnique b b'
-            => Int -- ^ current depth
+            => DepKind
+            -> Int -- ^ current depth
             -> b                  -- ^ lambda/Lambda's/LetEffectful unique
             -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
             -> Term tyname name uni fun a -- ^ lambda/Lambda's/Let body
             -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a)
-  incrDepth oldDepth n = let newDep = Dep (oldDepth+1) (n^.PLC.theUnique)
+  incrDepth k oldDepth n = let newDep = Dep k (oldDepth+1) (n^.PLC.theUnique)
                          in goFloat newDep
 
   -- | We are currently INSIDE (exactly under) a lambda/Lambda body/Top (Top if we are right at the start of the algorithm)
@@ -405,36 +403,35 @@ p2Term pir fd =
         -- the minimum next depth we are looking for, is not this one, so just descend with the whole floatdata
         LT -> goTerm curDepth floatData tBody
         -- found depth, see if our lambda above is a lambda we are interested in (to float some lets)
-        EQ -> genLets (M.lookup curAnchor searchingForAnchor_Lets)
-                   restFloatData
-                   <*> goTerm curDepth restFloatData tBody
+        EQ -> do
+            tBody' <- goTerm curDepth restFloatData tBody
+            genLets (M.lookup curAnchor searchingForAnchor_Lets) restFloatData tBody'
         GT -> error "This shouldn't happen, because the algorithm takes care to stop descending when EQ is reached."
 
-
-  -- | the dependency graph (as the one used by the deadcode elimination)
+  -- | The dependency graph (as the one used by the deadcode elimination)
   -- but w/o the root node and only uses the Var's Unique as the node id
   -- OPTIMIZE: we could use AdjacencyIntMap, but then we require the UniqueMap optimizations, and we lose the type-safety of newtype Unique
   depGraph :: AM.AdjacencyMap PLC.Unique
-  depGraph = AM.induceJust .
-             AM.gmap (\case Variable u -> Just u;
-                            -- we remove Root because we do not care about it
-                            Root       -> Nothing)
-             $ fst $ runTermDeps pir
+  depGraph = AM.induceJust $
+             -- we remove Root because we do not care about it
+             AM.gmap (\case { Variable u -> Just u; Root -> Nothing}) $
+             fst $ runTermDeps pir
 
-  -- | the dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
+  -- | The dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
   reducedDepGraph = M.foldr maybeMergeNode depGraph rhsTable
     where
       maybeMergeNode :: Rhs tyname name uni fun a -> AM.AdjacencyMap PLC.Unique -> AM.AdjacencyMap PLC.Unique
-      maybeMergeNode rhs = let ids = rhs^..rhsBinding.bindingIds
-                           in case ids of
-                               -- A lot of binds are termbinds/typebinds with no vertices to merge.
-                               -- This optimizes all these cases of termbinds/typebinds to avoid traversing in O(n) the graph
-                               -- looking for "possible" merges, because there are none to be performed
-                               [_nonDatatypeBind] -> id -- retain the accgraph
-                               _   ->  AM.mergeVertices (`S.member` S.fromList ids) (rhs^.rhsBinding.principal)
+      maybeMergeNode rhs scc =
+          let ids = rhs^..rhsBinding.bindingIds
+          in case ids of
+            -- A lot of binds are termbinds/typebinds with no vertices to merge.
+            -- This optimizes all these cases of termbinds/typebinds to avoid traversing in O(n) the graph
+            -- looking for "possible" merges, because there are none to be performed
+            [_nonDatatypeBind] -> scc -- retain the accgraph
+            _                  ->  AM.mergeVertices (`S.member` S.fromList ids) (rhs^.rhsBinding.principal) scc
 
-  -- |take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
+  -- | Take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'genLets' code generation
   topSortedSccs :: [NS.NESet PLC.Unique]
   topSortedSccs =
@@ -455,20 +452,21 @@ p2Term pir fd =
   -- Example: `let {i = e, ...} in let rec {j = e, ...} in let rec {...} in let {...} in ..... in originalTerm`
   genLets :: Maybe (NS.NESet PLC.Unique) -- ^ all the let identifiers to wrap around this term
           -> FloatData -- ^ the remaining data to be floated
-          -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a -> Term tyname name uni fun a) -- ^ a wrapper function of term
-  genLets Nothing _ = pure id -- nothing to float, return just the term
-  genLets (Just lets) restDepthTable = do
+          -> Term tyname name uni fun a
+          -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a)
+  genLets Nothing _ t = pure t -- nothing to float, return just the term
+  genLets (Just lets) restDepthTable t = do
     (hereSccs, restSccs) <- gets $ splitSccs lets
     put restSccs
-    foldM genLetsFromScc id hereSccs
+    foldM genLetsFromScc t hereSccs
       where
         -- | given an SCC, it creates a new (rec or nonrec) let-group from it and wraps it around an accumulated term
         -- Special case: if the new group and the accumulated term are both letnonrecs,
         -- it merges them together into a single let-group (i.e. linear scoped).
-        genLetsFromScc :: (Term tyname name uni fun a -> Term tyname name uni fun a)
+        genLetsFromScc :: Term tyname name uni fun a
                        -> NS.NESet PLC.Unique
-                       -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a -> Term tyname name uni fun a)
-        genLetsFromScc accTerm scc = do
+                       -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a)
+        genLetsFromScc term scc = do
               visitedRhses <- forM (NS.toList scc) $ \v ->
                  case M.lookup v rhsTable of
                    Just rhs ->
@@ -484,7 +482,7 @@ p2Term pir fd =
                    _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
 
               let (newAnn, newRecurs, newBindings) = foldMap1 rhsToTriple visitedRhses -- fold the triples using <>
-              pure $ letMergeOrWrap newAnn newRecurs newBindings . accTerm -- wrap the ACCumulator-wrapper function
+              pure $ Let newAnn newRecurs newBindings term
 
            where
              rhsToTriple :: Rhs tyname name uni fun a
@@ -497,25 +495,6 @@ p2Term pir fd =
                       , if isSingleton scc then rhs^.rhsRecurs else Rec
                        -- lift the binding into a semigroup for accumulation
                       , pure $ rhs^.rhsBinding)
-
-
-
--- | Tries to merge a new let-triple (ann,recursivity,bindings) with a next in-term
--- iff the  let is nonrec and the next in-term is also a let-nonrec. Otherwise,
--- it generates (wraps) the new-let around the in-term.
-letMergeOrWrap :: Semigroup a
-               => a -- ^ the new-let ann
-               -> Recursivity -- ^ the new-let recurs
-               -> NE.NonEmpty (Binding tyname name uni fun a) -- ^ the new-let bindings
-               -> Term tyname name uni fun a                  -- ^ the term t1 to merge with or to wrap it around `let newlet {bs} in {t1}`
-               -> Term tyname name uni fun a                  -- ^ the final merged or wrapped term
-letMergeOrWrap newAnn newRecurs newBindings = \case
-  -- MERGE current let-group with previous let-group iff both groups' recursivity is NonRec
-  Let nextAnn NonRec nextBs nextIn | newRecurs == NonRec -> Let (newAnn <> nextAnn) NonRec (newBindings <> nextBs) nextIn
-  -- never merge if the previous let-group is a Rec or the current let-group is Rec,
-  -- but instead create a nested current let-group under the previous let-group (above)
-  t -> Let newAnn newRecurs newBindings t
-
 
 -- | The main transformation function (Term -> Term) to "float" all lets of a term under their closest-surrounding lambda/Lambda.
 -- Is comprised of two AST "passes":
@@ -532,8 +511,6 @@ floatTerm pir = p2Term pir
                 -- give the floatdata of the 1st pass to the start of the 2nd pass
               $ p1Term pir
 
-
-
 -- Helpers
 ----------
 
@@ -546,7 +523,6 @@ principal = to $ \case TermBind _ _ (VarDecl _ n _) _                           
                        TypeBind _ (TyVarDecl _ n _) _                            -> n ^. PLC.theUnique
                        -- arbitrary: uses the type construtors' unique as the principal unique of this data binding group
                        DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.theUnique
-
 
 -- | During pass2, whenever we find an anchor (lambda/Lambda or letEffectful) we try to float
 -- those lets (`ls`) that are dictated by the FloatData of pass1.
@@ -592,6 +568,10 @@ splitSccs lets (scc:sccs) =
 -- | Returns if a foldable can be folded in 1 iteration, hence its length is 1.
 isSingleton :: NS.NESet a -> Bool
 isSingleton s = NS.size s == 1
+
+-- | Selects a binding to be used a representative binding from a group of bindings.
+representativeBinding :: NE.NonEmpty (Binding tyname name uni fun a) -> Binding tyname name uni fun a
+representativeBinding = NE.head
 
 -- | Returns if a binding's rhs is strict and may have effects (see Value.hs)
 mayHaveEffects

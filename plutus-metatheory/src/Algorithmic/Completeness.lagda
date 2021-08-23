@@ -28,7 +28,7 @@ nfTyVar : ∀{Φ Γ}
   → nfCtx Γ Norm.∋ nf A
 nfTyVar Syn.Z             = Norm.Z
 nfTyVar (Syn.S α)         = Norm.S (nfTyVar α)
-nfTyVar (Syn.T {A = A} α) = Norm.conv∋ refl (ren-nf S A) (Norm.T (nfTyVar α)) 
+nfTyVar (Syn.T {A = A} α) = Norm.conv∋ refl (ren-nf S A) (Norm.T (nfTyVar α))
 
 open import Type.BetaNormal.Equality
 
@@ -81,7 +81,6 @@ nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
-nfTypeTC (STermCon.char c)       = NTermCon.char c
 nfTypeTC STermCon.unit           = NTermCon.unit
 
 open import Data.Product renaming (_,_ to _,,_)
@@ -97,21 +96,16 @@ nfTypeSIG≡₁ remainderInteger = refl
 nfTypeSIG≡₁ modInteger = refl
 nfTypeSIG≡₁ lessThanInteger = refl
 nfTypeSIG≡₁ lessThanEqualsInteger = refl
-nfTypeSIG≡₁ greaterThanInteger = refl
-nfTypeSIG≡₁ greaterThanEqualsInteger = refl
 nfTypeSIG≡₁ equalsInteger = refl
-nfTypeSIG≡₁ concatenate = refl
-nfTypeSIG≡₁ takeByteString = refl
-nfTypeSIG≡₁ dropByteString = refl
+nfTypeSIG≡₁ appendByteString = refl
 nfTypeSIG≡₁ lessThanByteString = refl
-nfTypeSIG≡₁ greaterThanByteString = refl
+nfTypeSIG≡₁ lessThanEqualsByteString = refl
 nfTypeSIG≡₁ sha2-256 = refl
 nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
 nfTypeSIG≡₁ ifThenElse = refl
-nfTypeSIG≡₁ charToString = refl
-nfTypeSIG≡₁ append = refl
+nfTypeSIG≡₁ appendString = refl
 nfTypeSIG≡₁ trace = refl
 
 lemσ : ∀{Γ Δ Δ'}
@@ -134,7 +128,7 @@ lemσ σ C _ refl q = trans
       (sub-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
     (sym (sub-eval C idCR σ)))
-    
+
 -- this should be a lemma in NBE/RenSubst
 -- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
@@ -151,21 +145,16 @@ nfTypeSIG≡₂ remainderInteger = refl
 nfTypeSIG≡₂ modInteger = refl
 nfTypeSIG≡₂ lessThanInteger = refl
 nfTypeSIG≡₂ lessThanEqualsInteger = refl
-nfTypeSIG≡₂ greaterThanInteger = refl
-nfTypeSIG≡₂ greaterThanEqualsInteger = refl
 nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ concatenate = refl
-nfTypeSIG≡₂ takeByteString = refl
-nfTypeSIG≡₂ dropByteString = refl
+nfTypeSIG≡₂ appendByteString = refl
 nfTypeSIG≡₂ lessThanByteString = refl
-nfTypeSIG≡₂ greaterThanByteString = refl
+nfTypeSIG≡₂ lessThanEqualsByteString = refl
 nfTypeSIG≡₂ sha2-256 = refl
 nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
 nfTypeSIG≡₂ ifThenElse = refl
-nfTypeSIG≡₂ charToString = refl
-nfTypeSIG≡₂ append = refl
+nfTypeSIG≡₂ appendString = refl
 nfTypeSIG≡₂ trace = refl
 
 nfTypeSIG≡₃ : (bn : Builtin) → length (proj₁ (proj₂ (SSig.SIG bn))) ≡ length (proj₁ (proj₂ (NSig.SIG bn)))
@@ -178,21 +167,16 @@ nfTypeSIG≡₃ remainderInteger = refl
 nfTypeSIG≡₃ modInteger = refl
 nfTypeSIG≡₃ lessThanInteger = refl
 nfTypeSIG≡₃ lessThanEqualsInteger = refl
-nfTypeSIG≡₃ greaterThanInteger = refl
-nfTypeSIG≡₃ greaterThanEqualsInteger = refl
 nfTypeSIG≡₃ equalsInteger = refl
-nfTypeSIG≡₃ concatenate = refl
-nfTypeSIG≡₃ takeByteString = refl
-nfTypeSIG≡₃ dropByteString = refl
+nfTypeSIG≡₃ appendByteString = refl
 nfTypeSIG≡₃ lessThanByteString = refl
-nfTypeSIG≡₃ greaterThanByteString = refl
+nfTypeSIG≡₃ lessThanEqualsByteString = refl
 nfTypeSIG≡₃ sha2-256 = refl
 nfTypeSIG≡₃ sha3-256 = refl
 nfTypeSIG≡₃ verifySignature = refl
 nfTypeSIG≡₃ equalsByteString = refl
 nfTypeSIG≡₃ ifThenElse = refl
-nfTypeSIG≡₃ charToString = refl
-nfTypeSIG≡₃ append = refl
+nfTypeSIG≡₃ appendString = refl
 nfTypeSIG≡₃ trace = refl
 
 open import Builtin.Constant.Type
@@ -223,21 +207,16 @@ lemList remainderInteger = refl
 lemList modInteger = refl
 lemList lessThanInteger = refl
 lemList lessThanEqualsInteger = refl
-lemList greaterThanInteger = refl
-lemList greaterThanEqualsInteger = refl
 lemList equalsInteger = refl
-lemList concatenate = refl
-lemList takeByteString = refl
-lemList dropByteString = refl
+lemList appendByteString = refl
 lemList lessThanByteString = refl
-lemList greaterThanByteString = refl
+lemList lessThanEqualsByteString = refl
 lemList sha2-256 = refl
 lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
 lemList ifThenElse = refl
-lemList charToString = refl
-lemList append = refl
+lemList appendString = refl
 lemList trace = refl
 
 postulate itype-lem : ∀ {Φ} b → Norm.itype {Φ} b ≡ nf (Syn.itype b)
@@ -254,7 +233,7 @@ nfType (Syn.Λ {B = B} t) =
 nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
   refl
   (lem[] A B)
-  (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A)) 
+  (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A))
 nfType (Syn.wrap A B t) = Norm.wrap
   (nf A)
   (nf B)

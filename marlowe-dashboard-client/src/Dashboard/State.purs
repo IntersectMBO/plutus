@@ -200,6 +200,13 @@ handleAction input (UpdateFollowerApps companionAppState) = do
         -- waste any more time than I already have on trying to do something nicer).
         { dataProvider } <- ask
         case dataProvider of
+          MarlowePAB -> do
+            ajaxFollowerApp <- case mPendingContract of
+              Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
+              Nothing -> followContract walletDetails marloweParams
+            case ajaxFollowerApp of
+              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
+              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
           LocalStorage -> do
             ajaxFollowerApp <- followContract walletDetails marloweParams
             case ajaxFollowerApp of
@@ -211,13 +218,6 @@ handleAction input (UpdateFollowerApps companionAppState) = do
                     $ delete key
                     <<< alter (map $ set _nickname value.nickname) followerAppId
                   insertIntoContractNicknames followerAppId value.nickname
-          PAB _ -> do
-            ajaxFollowerApp <- case mPendingContract of
-              Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
-              Nothing -> followContract walletDetails marloweParams
-            case ajaxFollowerApp of
-              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
 
 -- this handler updates the state of an individual contract
 handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory@{ chParams, chHistory }) =

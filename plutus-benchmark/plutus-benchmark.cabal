@@ -15,21 +15,7 @@ build-type: Simple
 
 data-files:
         templates/*.tpl
-        validation/data/crowdfunding/*.flat
-        validation/data/currency/*.flat
-        validation/data/escrow/*.flat
-        validation/data/future/*.flat
-        validation/data/game-sm/*.flat
-        validation/data/multisig-sm/*.flat
-        validation/data/ping-pong/*.flat
-        validation/data/prism/*.flat
-        validation/data/pubkey/*.flat
-        validation/data/stablecoin/*.flat
-        validation/data/token-account/*.flat
-        validation/data/uniswap/*.flat
-        validation/data/vesting/*.flat
-        validation/data/marlowe/trustfund/*.flat
-        validation/data/marlowe/zerocoupon/*.flat
+        validation/data/*.flat
 
 source-repository head
     type: git
@@ -45,7 +31,7 @@ common lang
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
   ghc-options:
-     -Wall -Wnoncanonical-monad-instances
+     -Wall -Wnoncanonical-monad-instances -Wunused-packages
      -Wincomplete-uni-patterns -Wincomplete-record-updates
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances
@@ -146,6 +132,7 @@ benchmark validation
   hs-source-dirs:
       validation
   other-modules:
+      NaturalSort
       Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5

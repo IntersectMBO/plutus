@@ -23,21 +23,16 @@ data Builtin : Set where
   modInteger               : Builtin
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
-  greaterThanInteger       : Builtin
-  greaterThanEqualsInteger : Builtin
   equalsInteger            : Builtin
-  concatenate              : Builtin
-  takeByteString           : Builtin
-  dropByteString           : Builtin
+  appendByteString         : Builtin
   lessThanByteString       : Builtin
-  greaterThanByteString    : Builtin
+  lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
-  charToString             : Builtin
-  append                   : Builtin
+  appendString             : Builtin
   trace                    : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
@@ -50,21 +45,16 @@ data Builtin : Set where
                                           | ModInteger
                                           | LessThanInteger
                                           | LessThanEqualsInteger
-                                          | GreaterThanInteger
-                                          | GreaterThanEqualsInteger
                                           | EqualsInteger
-                                          | Concatenate
-                                          | TakeByteString
-                                          | DropByteString
+                                          | AppendByteString
                                           | LessThanByteString
-                                          | GreaterThanByteString
+                                          | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
-                                          | CharToString
-                                          | Append
+                                          | AppendString
                                           | Trace
                                           ) #-}
 ```
@@ -116,8 +106,6 @@ postulate
 
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
--- no binding needed for greaterthan
--- no binding needed for greaterthaneq
 -- no binding needed for equals
 
 {-# COMPILE GHC concat = BS.append #-}
@@ -135,7 +123,6 @@ postulate
 -- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}
 
--- no binding needed for charToStr
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 

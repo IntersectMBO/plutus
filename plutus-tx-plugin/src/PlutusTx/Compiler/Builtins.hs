@@ -48,6 +48,7 @@ import           Control.Monad.Reader
 import qualified Data.ByteString               as BS
 import qualified Data.Map                      as Map
 import           Data.Proxy
+import           Data.Text                     (Text)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -157,15 +158,17 @@ mkBuiltin = PIR.Builtin ()
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
-    , 'Builtins.concatenate
-    , 'Builtins.takeByteString
-    , 'Builtins.dropByteString
+    , 'Builtins.appendByteString
+    , 'Builtins.consByteString
+    , 'Builtins.sliceByteString
+    , 'Builtins.lengthOfByteString
+    , 'Builtins.indexByteString
     , 'Builtins.sha2_256
     , 'Builtins.sha3_256
     , 'Builtins.blake2b_256
     , 'Builtins.equalsByteString
     , 'Builtins.lessThanByteString
-    , 'Builtins.greaterThanByteString
+    , 'Builtins.lessThanEqualsByteString
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
     , 'Builtins.stringToBuiltinByteString
@@ -181,16 +184,14 @@ builtinNames = [
     , 'Builtins.quotientInteger
     , 'Builtins.remainderInteger
     , 'Builtins.lessThanInteger
-    , 'Builtins.lessThanEqInteger
+    , 'Builtins.lessThanEqualsInteger
     , 'Builtins.equalsInteger
 
     , 'Builtins.error
 
     , ''Builtins.BuiltinString
-    , ''Char
     , 'Builtins.appendString
     , 'Builtins.emptyString
-    , 'Builtins.charToString
     , 'Builtins.equalsString
     , 'Builtins.encodeUtf8
     -- This one is special
@@ -277,14 +278,16 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.chooseUnit $ mkBuiltin PLC.ChooseUnit
 
     -- Bytestring builtins
-    defineBuiltinTerm 'Builtins.concatenate $ mkBuiltin PLC.Concatenate
-    defineBuiltinTerm 'Builtins.takeByteString $ mkBuiltin PLC.TakeByteString
-    defineBuiltinTerm 'Builtins.dropByteString $ mkBuiltin PLC.DropByteString
+    defineBuiltinTerm 'Builtins.appendByteString $ mkBuiltin PLC.AppendByteString
+    defineBuiltinTerm 'Builtins.consByteString $ mkBuiltin PLC.ConsByteString
+    defineBuiltinTerm 'Builtins.sliceByteString $ mkBuiltin PLC.SliceByteString
+    defineBuiltinTerm 'Builtins.lengthOfByteString $ mkBuiltin PLC.LengthOfByteString
+    defineBuiltinTerm 'Builtins.indexByteString $ mkBuiltin PLC.IndexByteString
     defineBuiltinTerm 'Builtins.sha2_256 $ mkBuiltin PLC.Sha2_256
     defineBuiltinTerm 'Builtins.sha3_256 $ mkBuiltin PLC.Sha3_256
     defineBuiltinTerm 'Builtins.equalsByteString $ mkBuiltin PLC.EqualsByteString
     defineBuiltinTerm 'Builtins.lessThanByteString $ mkBuiltin PLC.LessThanByteString
-    defineBuiltinTerm 'Builtins.greaterThanByteString $ mkBuiltin PLC.GreaterThanByteString
+    defineBuiltinTerm 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString
     defineBuiltinTerm 'Builtins.emptyByteString $ PIR.mkConstant () BS.empty
     defineBuiltinTerm 'Builtins.decodeUtf8 $ mkBuiltin PLC.DecodeUtf8
 
@@ -300,7 +303,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.quotientInteger $ mkBuiltin PLC.QuotientInteger
     defineBuiltinTerm 'Builtins.remainderInteger $ mkBuiltin PLC.RemainderInteger
     defineBuiltinTerm 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
-    defineBuiltinTerm 'Builtins.lessThanEqInteger $ mkBuiltin PLC.LessThanEqualsInteger
+    defineBuiltinTerm 'Builtins.lessThanEqualsInteger $ mkBuiltin PLC.LessThanEqualsInteger
     defineBuiltinTerm 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger
 
     -- Error
@@ -309,9 +312,8 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.error func
 
     -- Strings and chars
-    defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.Append
-    defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: String)
-    defineBuiltinTerm 'Builtins.charToString $ mkBuiltin PLC.CharToString
+    defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.AppendString
+    defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
     defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
     defineBuiltinTerm 'Builtins.trace $ mkBuiltin PLC.Trace
     defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
@@ -352,8 +354,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Integer $ PLC.toTypeAst $ Proxy @Integer
     defineBuiltinType ''Builtins.BuiltinBool $ PLC.toTypeAst $ Proxy @Bool
     defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
-    defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @String
-    defineBuiltinType ''Char $ PLC.toTypeAst $ Proxy @Char
+    defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @Text
     defineBuiltinType ''Builtins.BuiltinData $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)

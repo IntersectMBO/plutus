@@ -11,6 +11,7 @@
 module Plutus.PAB.Run.Command
     ( ConfigCommand(..)
     , NoConfigCommand(..)
+    , allServices
     ) where
 
 import qualified Data.Aeson   as JSON
@@ -23,7 +24,6 @@ data ConfigCommand =
     | StartMockNode -- ^ Run the mock node service
     | MockWallet -- ^ Run the mock wallet service
     | ChainIndex -- ^ Run the chain index service
-    | Metadata -- ^ Run the mock meta-data service
     | ForkCommands [ConfigCommand] -- ^ Fork a list of commands
     | ContractState ContractInstanceId -- ^ Display the contract identified by 'ContractInstanceId'
     | ReportContractHistory ContractInstanceId -- ^ Get the history of the contract identified by 'UUID'
@@ -35,6 +35,18 @@ data ConfigCommand =
           }
     deriving stock (Show, Eq, Generic)
     deriving anyclass JSON.ToJSON
+
+
+-- | A single command to the PAB that spins up all the necessary services.
+allServices :: ConfigCommand
+allServices =
+  ForkCommands
+    [ StartMockNode
+    , ChainIndex
+    , MockWallet
+    , PABWebserver
+    ]
+
 
 data NoConfigCommand =
     PSGenerator -- ^ Generate purescript bridge code

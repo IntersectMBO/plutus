@@ -29,6 +29,7 @@ theContract = do
                   , slTxOutputs = Map.singleton txOutRef txOutTx
                   , slOtherScripts = Map.singleton (Scripts.validatorAddress pkInst) (Scripts.validatorScript pkInst)
                   , slOtherData = Map.empty
+                  , slPubKeyHashes = Map.empty
                   , slTypedValidator = Nothing
                   , slOwnPubkey = Nothing
                   }

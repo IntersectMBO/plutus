@@ -10,6 +10,8 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     PABReq(..),
     _AwaitSlotReq,
     _AwaitTimeReq,
+    _AwaitUtxoSpentReq,
+    _AwaitUtxoProducedReq,
     _CurrentSlotReq,
     _CurrentTimeReq,
     _AwaitTxStatusChangeReq,
@@ -35,6 +37,8 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     PABResp(..),
     _AwaitSlotResp,
     _AwaitTimeResp,
+    _AwaitUtxoSpentResp,
+    _AwaitUtxoProducedResp,
     _CurrentSlotResp,
     _CurrentTimeResp,
     _AwaitTxStatusChangeResp,
@@ -79,6 +83,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
 import           Control.Lens                     (Iso', Prism', iso, makePrisms, prism')
 import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
+import           Data.List.NonEmpty               (NonEmpty)
 import qualified Data.Map                         as Map
 import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, hsep, indent, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
@@ -106,14 +111,16 @@ import           Wallet.Types                     (AddressChangeRequest, Address
 data PABReq =
     AwaitSlotReq Slot
     | AwaitTimeReq POSIXTime
+    | AwaitUtxoSpentReq TxOutRef
+    | AwaitUtxoProducedReq Address
+    | AwaitTxStatusChangeReq TxId
     | CurrentSlotReq
     | CurrentTimeReq
-    | AwaitTxStatusChangeReq TxId
     | OwnContractInstanceIdReq
     | OwnPublicKeyReq
     | UtxoAtReq Address
     | ChainIndexQueryReq ChainIndexQuery
-    | AddressChangeReq AddressChangeRequest
+    | AddressChangeReq AddressChangeRequest -- deprecated
     | BalanceTxReq UnbalancedTx
     | WriteBalancedTxReq Tx
     | ExposeEndpointReq ActiveEndpoint
@@ -125,6 +132,8 @@ instance Pretty PABReq where
   pretty = \case
     AwaitSlotReq s                          -> "Await slot:" <+> pretty s
     AwaitTimeReq s                          -> "Await time:" <+> pretty s
+    AwaitUtxoSpentReq utxo                  -> "Await utxo spent:" <+> pretty utxo
+    AwaitUtxoProducedReq a                  -> "Await utxo produced:" <+> pretty a
     CurrentSlotReq                          -> "Current slot"
     CurrentTimeReq                          -> "Current time"
     AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
@@ -142,9 +151,11 @@ instance Pretty PABReq where
 data PABResp =
     AwaitSlotResp Slot
     | AwaitTimeResp POSIXTime
+    | AwaitUtxoSpentResp OnChainTx
+    | AwaitUtxoProducedResp (NonEmpty OnChainTx)
+    | AwaitTxStatusChangeResp TxId TxStatus
     | CurrentSlotResp Slot
     | CurrentTimeResp POSIXTime
-    | AwaitTxStatusChangeResp TxId TxStatus
     | OwnContractInstanceIdResp ContractInstanceId
     | OwnPublicKeyResp PubKey
     | UtxoAtResp UtxoAtAddress
@@ -161,6 +172,8 @@ instance Pretty PABResp where
   pretty = \case
     AwaitSlotResp s                          -> "Slot:" <+> pretty s
     AwaitTimeResp s                          -> "Time:" <+> pretty s
+    AwaitUtxoSpentResp utxo                  -> "Utxo spent:" <+> pretty utxo
+    AwaitUtxoProducedResp addr               -> "Utxo produced:" <+> pretty addr
     CurrentSlotResp s                        -> "Current slot:" <+> pretty s
     CurrentTimeResp s                        -> "Current time:" <+> pretty s
     AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
@@ -178,6 +191,8 @@ matches :: PABReq -> PABResp -> Bool
 matches a b = case (a, b) of
   (AwaitSlotReq{}, AwaitSlotResp{})                        -> True
   (AwaitTimeReq{}, AwaitTimeResp{})                        -> True
+  (AwaitUtxoSpentReq{}, AwaitUtxoSpentResp{})              -> True
+  (AwaitUtxoProducedReq{}, AwaitUtxoProducedResp{})        -> True
   (CurrentSlotReq, CurrentSlotResp{})                      -> True
   (CurrentTimeReq, CurrentTimeResp{})                      -> True
   (AwaitTxStatusChangeReq i, AwaitTxStatusChangeResp i' _) -> i == i'

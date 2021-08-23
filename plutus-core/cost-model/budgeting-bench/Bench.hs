@@ -4,59 +4,73 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import           PlutusCore                               as PLC
-import qualified PlutusCore.DataFilePaths                 as DFP
+import           CriterionExtensions                             (criterionMainWith)
+import           Nops
+import           PlutusCore                                      as PLC
+import qualified PlutusCore.DataFilePaths                        as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.MkPlc
-import           UntypedPlutusCore                        as UPLC
+import           PlutusCore.Pretty                               (Pretty)
+import           UntypedPlutusCore                               as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
+import           Control.DeepSeq                                 (NFData)
 import           Criterion.Main
-import qualified Criterion.Types                          as C
-import qualified Data.ByteString                          as BS
+import           Criterion.Types                                 as C
+import qualified Data.ByteString                                 as BS
 import           Data.Functor
-import qualified Hedgehog                                 as HH
-import qualified Hedgehog.Internal.Gen                    as HH
-import qualified Hedgehog.Internal.Tree                   as HH
-import qualified Hedgehog.Range                           as HH.Range
+import           Data.Ix                                         (Ix)
+import           Data.Typeable                                   (Typeable)
+import qualified Hedgehog                                        as HH
+import qualified Hedgehog.Internal.Gen                           as HH
+import qualified Hedgehog.Internal.Tree                          as HH
+import qualified Hedgehog.Range                                  as HH.Range
 import           System.Directory
-import           System.Random                            (StdGen, getStdGen, randomR)
+import           System.Random                                   (StdGen, getStdGen, randomR)
 
-type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
+type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
 
 -- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
 -- produce data that will be supplied to the things being benchmarked.  Here
 -- we've got a term and we evaluate it to get back the budget consumed, but then
 -- we throw that away and evaluate the term again.  This may have the effect of
 -- avoiding warmup, which could be a good thing.  Let's look into that.
-runTermBench :: String -> PlainTerm -> Benchmark
-runTermBench name term = env
+benchWith
+    :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
+    => MachineParameters CekMachineCosts CekValue DefaultUni fun
+    -> String
+    -> PlainTerm fun
+    -> Benchmark
+benchWith params name term = env
     (do
         (_result, budget) <-
-          pure $ (unsafeEvaluateCek noEmitter defaultCekParameters) term
+          pure $ (unsafeEvaluateCek noEmitter params) term
         pure budget
         )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter defaultCekParameters) term
+    $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter params) term
 
+benchDefault :: String -> PlainTerm DefaultFun -> Benchmark
+benchDefault = benchWith defaultCekParameters
 
 ---------------- Constructing PLC terms for benchmarking ----------------
 
 -- Create a term applying a builtin to one argument
-mkApp1 :: (DefaultUni `Includes` a) => DefaultFun -> a -> PlainTerm
+mkApp1 :: (DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
 mkApp1 name x =
     erase $ mkIterApp () (builtin () name) [mkConstant () x]
 
 -- Create a term applying a builtin to two arguments
 mkApp2
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
-    =>  DefaultFun -> a -> b -> PlainTerm
+    =>  fun -> a -> b -> PlainTerm fun
 mkApp2 name x y =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
 
 -- Create a term applying a builtin to three arguments
 mkApp3
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
-    =>  DefaultFun -> a -> b -> c -> PlainTerm
+    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
+    => fun -> a -> b -> c -> PlainTerm fun
 mkApp3 name x y z =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
@@ -71,7 +85,6 @@ mkApp3 name x y z =
    cause trouble elsewhere.
  -}
 
-
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
@@ -83,9 +96,9 @@ createTwoTermBuiltinBench
     -> Benchmark
 createTwoTermBuiltinBench name xs ys =
     bgroup (show name) $ [bgroup (show xmem) [mkBM yMem x y | (y, yMem) <- ys] | (x,xmem) <- xs]
-        where mkBM yMem x y = runTermBench (show yMem) $ mkApp2 name x y
+        where mkBM yMem x y = benchDefault (show yMem) $ mkApp2 name x y
 
-{- | Given a builtin function f of type a * a -> _ together with lists xs::a and
+{- | Given a builtin function f of type a * b -> _ together with lists xs::a and
    ys::a (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in 'zip xs ys'.  This can be used when the
    worst-case execution time of a two-argument builtin is known to occur when it
@@ -97,14 +110,14 @@ createTwoTermBuiltinBench name xs ys =
    same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (DefaultUni `Includes` a)
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
     => DefaultFun
     -> [(a, ExMemory)]
-    -> [(a, ExMemory)]
+    -> [(b, ExMemory)]
     -> Benchmark
 createTwoTermBuiltinBenchElementwise name xs ys =
     bgroup (show name) $ zipWith (\(x, xmem) (y,ymem) -> bgroup (show xmem) [mkBM ymem x y]) xs ys
-        where mkBM ymem x y = runTermBench (show ymem) $ mkApp2 name x y
+        where mkBM ymem x y = benchDefault (show ymem) $ mkApp2 name x y
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
@@ -181,6 +194,7 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
       inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
 
+
 ---------------- Bytestring builtins ----------------
 
 integerPower :: Integer -> Integer -> Integer
@@ -207,10 +221,10 @@ makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleto
 byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
 
-benchHashOperations :: DefaultFun -> Benchmark
-benchHashOperations name =
+benchByteStringNoArgOperations :: DefaultFun -> Benchmark
+benchByteStringNoArgOperations name =
     bgroup (show name) $
-        byteStringsToBench seedA <&> (\(x, xmem) -> runTermBench (show xmem) $ mkApp1 name x)
+        byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
@@ -219,6 +233,20 @@ benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench se
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteStringsToBench seedA)
                                ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
+
+benchIndexBytestring :: StdGen -> Benchmark
+benchIndexBytestring gen = createTwoTermBuiltinBenchElementwise IndexByteString (byteStringsToBench seedA) numbers
+    where
+        numbers = map (\s -> let x = fst $ randomR (0, s - 1) gen in (x, memoryUsage x)) byteStringSizes
+
+benchSliceByteString :: StdGen -> Benchmark
+benchSliceByteString gen = bgroup (show SliceByteString) $
+    zipWith (\(b, bmem) (from, to) -> bgroup (show bmem) [mkBM b from to]) (byteStringsToBench seedA) indices
+    where
+        numbers = map (\s -> fst $ randomR (1, s - 1) gen) byteStringSizes
+        indices = map (\to -> let from = fst $ randomR (0, to) gen in (from, to)) numbers
+        mkBM b from to = bgroup (show $ memoryUsage from) $
+            [benchDefault (show $ memoryUsage to) $ mkApp3 SliceByteString from to b]
 
 powersOfTwo :: [Integer]
 powersOfTwo = integerPower 2 <$> [1..16]
@@ -251,7 +279,7 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
         bs <&> (\(x, xmem) ->
-            runTermBench (show xmem) $ mkApp3 name pubKey x sig
+            benchDefault (show xmem) $ mkApp3 name pubKey x sig
         )
     where
         name = VerifySignature
@@ -266,19 +294,17 @@ benchVerifySignature =
    benchmark the no-op builtins Nop1, Nop2, and Nop3 and in the R code we
    subtract the costs of those from the time recorded for the real builtins.
    Experiments show that the time taken to evaluate these doesn't depend on the
-   types or the sizes of the arguments, so we just use function which consume a
-   number of integer arguments and return (). -}
+   types or the sizes of the arguments, so we just use functions which consume a
+   number of integer arguments and return a constant integer. -}
 
--- TODO.  Nop1, Nop2, and Nop3 are temporarily included in the set of default
--- builtins.  These functions are only required here, so we should construct an
--- extended set of bultins here and use that instead.
+-- There seems to be quite a lot of variation in repeated runs of these benchmarks.
 
 benchNop1 :: StdGen -> Benchmark
 benchNop1 gen =
     let name = Nop1
         mem = 1
         (x,_) = randNwords mem gen
-    in bgroup (show name) $ [runTermBench (show $ memoryUsage x) $ mkApp1 name x]
+    in bgroup (show name) [benchWith nopCostParameters (show $ memoryUsage x) $ mkApp1 name x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
@@ -286,7 +312,10 @@ benchNop2 gen =
         mem = 1
         (x,gen1) = randNwords mem gen
         (y,_)    = randNwords mem gen1
-    in bgroup (show name) [bgroup (show $ memoryUsage x) [runTermBench (show $ memoryUsage y) $ mkApp2 name x y]]
+    in bgroup (show name)
+           [bgroup (show $ memoryUsage x)
+            [benchWith nopCostParameters (show $ memoryUsage y) $ mkApp2 name x y]
+           ]
 
 benchNop3 :: StdGen -> Benchmark
 benchNop3 gen =
@@ -295,7 +324,12 @@ benchNop3 gen =
         (x,gen1) = randNwords mem gen
         (y,gen2) = randNwords mem gen1
         (z,_)    = randNwords mem gen2
-    in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runTermBench (show $ memoryUsage z) $ mkApp3 name x y z]]]
+    in bgroup (show name)
+           [bgroup (show $ memoryUsage x)
+            [bgroup (show $ memoryUsage y)
+             [benchWith nopCostParameters (show $ memoryUsage z) $ mkApp3 name x y z]
+            ]
+           ]
 
 
 ---------------- Miscellaneous ----------------
@@ -318,8 +352,6 @@ benchNop3 gen =
 
    AddInteger:            SubtractInteger
    DivideInteger:         RemainderInteger, QuotientInteger, ModInteger
-   LessThanInteger:       GreaterThanInteger
-   LessThanEqualsInteger: GreaterThanEqualsInteger
    LessThanByteString:    GreaterThanByteString
 -}
 main :: IO ()
@@ -329,9 +361,14 @@ main = do
   csvExists <- doesFileExist DFP.benchingResultsFile
   if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+  -- Run the nop benchmarks with a large time limit (30 seconds) in an attempt
+  -- to get accurate results.  Criterion doesn't expose the functions that would
+  -- let us run benchmarks with different time limits and put all the results in
+  -- the same file, so we have to use two different CSV files.
+  criterionMainWith True (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
-                      <> (benchTwoIntegers gen <$> [ AddInteger
+  criterionMainWith False  (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+                      (benchTwoIntegers gen <$> [ AddInteger
                                                    , MultiplyInteger
                                                    , DivideInteger
                                                    ])
@@ -339,9 +376,11 @@ main = do
                                                        , LessThanInteger
                                                        , LessThanEqualsInteger
                                                        ])
-                      <> (benchTwoByteStrings <$> [Concatenate])
-                      <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
-                      <> (benchHashOperations <$> [Sha2_256, Sha3_256])
+                      <> (benchTwoByteStrings <$> [AppendByteString])
+                      <> (benchBytestringOperations <$> [ConsByteString])
+                      <> [benchIndexBytestring gen]
+                      <> [benchSliceByteString gen]
+                      <> (benchByteStringNoArgOperations <$> [LengthOfByteString, Sha2_256, Sha3_256])
                       <> (benchSameTwoByteStrings <$> [ EqualsByteString
                                                       , LessThanByteString
                                                       ])

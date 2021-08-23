@@ -41,7 +41,6 @@ data TyCon : Set where
   integer    : TyCon
   bytestring : TyCon
   string     : TyCon
-  char       : TyCon
   unit       : TyCon
   bool       : TyCon
 
@@ -51,8 +50,7 @@ data TyCon : Set where
 {-# FOREIGN GHC pattern TyInteger    = SomeTypeIn DefaultUniInteger    #-}
 {-# FOREIGN GHC pattern TyByteString = SomeTypeIn DefaultUniByteString #-}
 {-# FOREIGN GHC pattern TyString     = SomeTypeIn DefaultUniString     #-}
-{-# FOREIGN GHC pattern TyChar       = SomeTypeIn DefaultUniChar       #-}
 {-# FOREIGN GHC pattern TyUnit       = SomeTypeIn DefaultUniUnit       #-}
 {-# FOREIGN GHC pattern TyBool       = SomeTypeIn DefaultUniBool       #-}
-{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyChar | TyUnit | TyBool) #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyUnit | TyBool) #-}
 ```

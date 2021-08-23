@@ -90,40 +90,16 @@ SIG lessThanEqualsInteger =
   con integer ∷ con integer ∷ []
   ,,
   con bool
-SIG greaterThanInteger =
-  ∅
-  ,,
-  con integer ∷ con integer ∷ []
-  ,,
-  con bool
-SIG greaterThanEqualsInteger =
-  ∅
-  ,,
-  con integer ∷ con integer ∷ []
-  ,,
-  con bool
 SIG equalsInteger =
   ∅
   ,,
   con integer ∷ con integer  ∷ []
   ,,
   con bool
-SIG concatenate =
+SIG appendByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []
-  ,,
-  con bytestring
-SIG takeByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
-  ,,
-  con bytestring
-SIG dropByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
   ,,
   con bytestring
 SIG lessThanByteString =
@@ -132,7 +108,7 @@ SIG lessThanByteString =
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bool
-SIG greaterThanByteString =
+SIG lessThanEqualsByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []
@@ -168,13 +144,7 @@ SIG ifThenElse =
   ` Z ∷ ` Z ∷ con bool ∷ []
   ,,
   ` Z
-SIG charToString =
-  ∅
-  ,,
-  con char ∷ []
-  ,,
-  con string
-SIG append =
+SIG appendString =
   ∅
   ,,
   con string ∷ con string ∷ []

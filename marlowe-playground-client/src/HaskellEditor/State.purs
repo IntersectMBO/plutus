@@ -26,7 +26,7 @@ import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanel
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Marlowe (postRunghc)
+import Marlowe (postApiCompile)
 import Marlowe.Extended (Contract)
 import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
 import Marlowe.Holes (fromTerm)
@@ -86,7 +86,7 @@ handleAction Compile = do
     Nothing -> pure unit
     Just code -> do
       assign _compilationResult Loading
-      result <- runAjax $ flip runReaderT settings $ postRunghc (CompileRequest { code, implicitPrelude: true })
+      result <- runAjax $ flip runReaderT settings $ postApiCompile (CompileRequest { code, implicitPrelude: true })
       assign _compilationResult result
       -- Update the error display.
       case result of

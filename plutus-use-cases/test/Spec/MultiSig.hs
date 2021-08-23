@@ -1,7 +1,8 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 module Spec.MultiSig(tests, failingTrace, succeedingTrace) where
 
 import           Control.Monad             (void)
@@ -40,7 +41,7 @@ failingTrace = do
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signWallets [w1, w2])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2])
     void $ Trace.waitNSlots 1
 
 -- | Lock some funds, then unlock them with a transaction that has the
@@ -51,7 +52,7 @@ succeedingTrace = do
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signWallets [w1, w2, w3])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2, w3])
     void $ Trace.waitNSlots 1
 
 w1, w2, w3 :: Wallet

@@ -15,7 +15,7 @@
       license = "Apache-2.0";
       copyright = "";
       maintainer = "";
-      author = "Pablo Lamela ";
+      author = "Pablo Lamela";
       homepage = "";
       url = "";
       synopsis = "";
@@ -75,7 +75,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
-            (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
             (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."fake-pab" or (errorHandler.buildDepError "fake-pab"))
@@ -86,7 +85,6 @@
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
             (hsPkgs."postgresql-simple" or (errorHandler.buildDepError "postgresql-simple"))
-            (hsPkgs."prometheus" or (errorHandler.buildDepError "prometheus"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."resource-pool" or (errorHandler.buildDepError "resource-pool"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
@@ -95,10 +93,7 @@
             (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."utf8-string" or (errorHandler.buildDepError "utf8-string"))
-            (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
             (hsPkgs."wai" or (errorHandler.buildDepError "wai"))
-            (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
-            (hsPkgs."wai-extra" or (errorHandler.buildDepError "wai-extra"))
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
             ];
           buildable = true;

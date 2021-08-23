@@ -18,6 +18,14 @@ in
       '';
     };
 
+    webghcURL = mkOption {
+      type = types.str;
+      default = "http://localhost:4000";
+      description = ''
+        The webghc endpoint serving /runghc for compilation requests.
+      '';
+    };
+
     port = mkOption {
       type = types.port;
       default = 4001;
@@ -82,6 +90,7 @@ in
           echo "No environment config. Using defaults"
         fi
 
+        export WEBGHC_URL=${cfg.webghcURL}
         export FRONTEND_URL=${cfg.frontendURL}
         export GITHUB_CALLBACK_PATH=${cfg.githubCallbackPath}
 

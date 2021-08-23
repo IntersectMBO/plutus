@@ -30,7 +30,7 @@
     (termbind
       (strict)
       (vardecl
-        lessThanEqInteger (fun (con integer) (fun (con integer) (con bool)))
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) (con bool)))
       )
       (builtin lessThanEqualsInteger)
     )
@@ -73,7 +73,7 @@
                             [
                               [
                                 { ifThenElse Bool }
-                                [ [ lessThanEqInteger x ] y ]
+                                [ [ lessThanEqualsInteger x ] y ]
                               ]
                               True
                             ]

@@ -2,6 +2,7 @@
 , lib
 , docs
 , plutus-pab
+, marlowe-pab
 , plutus-playground
 , marlowe-playground
 , marlowe-dashboard
@@ -26,7 +27,7 @@ makeTest {
       environment.systemPackages = with pkgs; [ curl ];
 
       networking = {
-        firewall.allowedTCPPorts = [ 8080 8081 8082 8083 8084 8085 ];
+        firewall.allowedTCPPorts = [ 8080 8081 8082 8083 8084 ];
         dhcpcd.enable = false;
         interfaces.eth1.ipv6.addresses = lib.mkOverride 0 [{ address = "fd00::1"; prefixLength = 64; }];
         interfaces.eth1.ipv4.addresses = lib.mkOverride 0 [{ address = "192.168.1.1"; prefixLength = 24; }];
@@ -35,7 +36,7 @@ makeTest {
       services.pab = {
         enable = true;
         pab-setup = plutus-pab.pab-exes.plutus-pab-setup;
-        pab-package = plutus-pab.pab-exes.plutus-pab-examples;
+        pab-executable = "${marlowe-pab}/bin/marlowe-pab";
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
@@ -44,7 +45,6 @@ makeTest {
         nodePort = 8082;
         chainIndexPort = 8083;
         signingProcessPort = 8084;
-        metadataPort = 8085;
       };
     };
 
@@ -210,7 +210,6 @@ makeTest {
     pab.wait_for_open_port(8081)
     pab.wait_for_open_port(8082)
     pab.wait_for_open_port(8083)
-    pab.wait_for_open_port(8085)
     webghc.wait_for_unit("network-online.target")
     playgrounds.succeed("ping -c1 192.168.1.1")
     playgrounds.succeed("ping -c1 192.168.1.2")

@@ -59,6 +59,7 @@ let
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
     cacert
+    editorconfig-core-c
     ghcid
     jq
     morph
@@ -84,6 +85,7 @@ let
     hie-bios
     hlint
     marlowe-dashboard.generate-purescript
+    marlowe-dashboard.start-backend
     marlowe-playground.generate-purescript
     marlowe-playground.start-backend
     plutus-playground.generate-purescript
@@ -99,7 +101,6 @@ let
     stylish-haskell
     updateMaterialized
     updateClientDeps
-    updateMetadataSamples
     docs.build-and-serve-docs
   ]);
 
@@ -120,5 +121,12 @@ haskell.project.shellFor {
   # affinity APIs!
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
+  ''
+  # It's handy to have an environment variable for the project root (assuming people
+  # normally start the shell from there.
+  # We also use it in a deployment hack.
+  # We have a local passwords store that we use for deployments etc.
+  + ''
+    export ACTUS_TEST_DATA_DIR=${packages.actus-tests}/tests/
   '';
 }

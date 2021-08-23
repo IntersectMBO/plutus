@@ -29,7 +29,7 @@ type Offset  = (Integer, Integer)
 type Square  = (Integer, Integer)
      -- (1,1) is bottom LH corner
 
-type PieceId = Haskell.Char
+type PieceId = Tx.BuiltinString
 
 type Board = [(Square, PieceId)]  -- Was Map.Map Square PieceId
 
@@ -107,7 +107,7 @@ prune ss =
 {-# INLINABLE try #-}
 try :: Square -> Sex -> Board -> (PieceId,[Offset],[Piece]) -> Maybe Solution
 try square sex board (pid,os,ps)
-  = case (fit board square pid os) of
+  = case fit board square pid os of
         Just board' -> Just (search (next square) (flipSex sex) board' ps)
         Nothing     -> Nothing
 
@@ -173,7 +173,7 @@ extend_maybe board square@(row,col) pid
 
 {-# INLINABLE pickOne #-}
 pickOne :: [a] -> [(a,[a])]
-pickOne xs0 = go id xs0
+pickOne = go id
   where
     go _ []     = []
     go f (x:xs) = (x, f xs) : go ((x :) . f) xs
@@ -190,7 +190,7 @@ fromJust (Just x) = x
 
 {-# INLINABLE initialBoard #-}
 initialBoard :: Board
-initialBoard = fromJust (fit emptyBoard (1,1) 'a' [(1,0),(1,1)])
+initialBoard = fromJust (fit emptyBoard (1,1) "a" [(1,0),(1,1)])
 
 {-# INLINABLE initialPieces #-}
 initialPieces :: [Piece]
@@ -200,46 +200,46 @@ initialPieces = [bPiece, cPiece, dPiece, ePiece, fPiece,
 
 {-# INLINABLE nPiece #-}
 nPiece :: Piece
-nPiece = P 'n' [ [(0,1),(1,1),(2,1),(2,2)],
+nPiece = P "n" [ [(0,1),(1,1),(2,1),(2,2)],
                  [(1,0),(1,-1),(1,-2),(2,-2)] ]
                []
 
 {-# INLINABLE mPiece #-}
 mPiece :: Piece
-mPiece = P 'm' [ [(0,1),(1,0),(2,0),(3,0)] ]
+mPiece = P "m" [ [(0,1),(1,0),(2,0),(3,0)] ]
                [ [(0,1),(0,2),(0,3),(1,3)],
                  [(1,0),(2,0),(3,0),(3,-1)] ]
 
 {-# INLINABLE lPiece #-}
 lPiece :: Piece
-lPiece = P 'l' [ [(0,1),(0,2),(0,3),(1,2)],
+lPiece = P "l" [ [(0,1),(0,2),(0,3),(1,2)],
                  [(1,0),(2,0),(3,0),(2,-1)] ]
                [ [(1,-1),(1,0),(1,1),(1,2)],
                  [(1,0),(2,0),(3,0),(1,1)] ]
 
 {-# INLINABLE kPiece #-}
 kPiece :: Piece
-kPiece = P 'k' [ [(0,1),(1,0),(2,0),(2,-1)] ]
+kPiece = P "k" [ [(0,1),(1,0),(2,0),(2,-1)] ]
                [ [(1,0),(1,1),(1,2),(2,2)] ]
 
 
 {-# INLINABLE jPiece #-}
 jPiece :: Piece
-jPiece = P 'j' [ [(0,1),(0,2),(0,3),(1,1)],
+jPiece = P "j" [ [(0,1),(0,2),(0,3),(1,1)],
                  [(1,0),(2,0),(3,0),(1,-1)],
                  [(1,-2),(1,-1),(1,0),(1,1)] ]
                [ [(1,0),(2,0),(3,0),(2,2)] ]
 
 {-# INLINABLE iPiece #-}
 iPiece :: Piece
-iPiece = P 'i' [ [(1,0),(2,0),(2,1),(3,1)],
+iPiece = P "i" [ [(1,0),(2,0),(2,1),(3,1)],
                  [(0,1),(0,2),(1,0),(1,-1)],
                  [(1,0),(1,1),(2,1),(3,1)] ]
                [ [(0,1),(1,0),(1,-1),(1,-2)] ]
 
 {-# INLINABLE hPiece #-}
 hPiece :: Piece
-hPiece = P 'h' [ [(0,1),(1,1),(1,2),(2,2)],
+hPiece = P "h" [ [(0,1),(1,1),(1,2),(2,2)],
                  [(1,0),(1,-1),(2,-1),(2,-2)],
                  [(1,0),(1,1),(2,1),(2,2)] ]
                [ [(0,1),(1,0),(1,-1),(2,-1)] ]
@@ -247,7 +247,7 @@ hPiece = P 'h' [ [(0,1),(1,1),(1,2),(2,2)],
 
 {-# INLINABLE gPiece #-}
 gPiece :: Piece
-gPiece = P 'g' [ ]
+gPiece = P "g" [ ]
                [ [(0,1),(1,1),(1,2),(1,3)],
                  [(1,0),(1,-1),(2,-1),(3,-1)],
                  [(0,1),(0,2),(1,2),(1,3)],
@@ -255,7 +255,7 @@ gPiece = P 'g' [ ]
 
 {-# INLINABLE fPiece #-}
 fPiece :: Piece
-fPiece = P 'f' [ [(0,1),(1,1),(2,1),(3,1)],
+fPiece = P "f" [ [(0,1),(1,1),(2,1),(3,1)],
                  [(1,0),(1,-1),(1,-2),(1,-3)],
                  [(1,0),(2,0),(3,0),(3,1)] ]
                [ [(0,1),(0,2),(0,3),(1,0)] ]
@@ -263,21 +263,21 @@ fPiece = P 'f' [ [(0,1),(1,1),(2,1),(3,1)],
 
 {-# INLINABLE ePiece #-}
 ePiece :: Piece
-ePiece = P 'e' [ [(0,1),(1,1),(1,2)],
+ePiece = P "e" [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
                [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
 
 {-# INLINABLE dPiece #-}
 dPiece :: Piece
-dPiece = P 'd' [ [(0,1),(1,1),(2,1)],
+dPiece = P "d" [ [(0,1),(1,1),(2,1)],
                  [(1,0),(1,-1),(1,-2)] ]
                [ [(1,0),(2,0),(2,1)] ]
 
 
 {-# INLINABLE cPiece #-}
 cPiece :: Piece
-cPiece = P 'c' [ ]
+cPiece = P "c" [ ]
                [ [(0,1),(0,2),(1,1)],
                  [(1,0),(1,-1),(2,0)],
                  [(1,-1),(1,0),(1,1)],
@@ -285,20 +285,20 @@ cPiece = P 'c' [ ]
 
 {-# INLINABLE bPiece #-}
 bPiece :: Piece
-bPiece = P 'b'  [ [(0,1),(0,2),(1,2)],
+bPiece = P "b"  [ [(0,1),(0,2),(1,2)],
                   [(1,0),(2,0),(2,-1)],
                   [(0,1),(1,0),(2,0)] ]
                 [ [(1,0),(1,1),(1,2)] ]
 
 unindent :: PLC.Doc ann -> [Haskell.String]
-unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
+unindent d = map (Haskell.dropWhile isSpace) (Haskell.lines . Haskell.show $ d)
 
 runLastPiece :: Solution
 runLastPiece = search (1,2) Female initialBoard initialPieces
 
 mkLastPieceTerm :: Term NamedDeBruijn DefaultUni DefaultFun ()
 mkLastPieceTerm =
-  let (Program _ _ code) = getPlc $ $$(compile [|| runLastPiece ||])
+  let (Program _ _ code) = getPlc $$(compile [|| runLastPiece ||])
   in code
 
 -- -- Number of correct solutions: 3

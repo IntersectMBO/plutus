@@ -35,11 +35,12 @@ errors = testNested "Errors" [
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     -- , goldenPlcCatch "negativeInt" negativeInt
     , goldenUPlcCatch "caseInt" caseInt
+    , goldenUPlcCatch "stringLiteral" stringLiteral
     , goldenUPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenUPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
     , goldenUPlcCatch "literalCaseInt" literalCaseInt
     , goldenUPlcCatch "literalCaseBs" literalCaseBs
-    , goldenUPlcCatch "literalConcatenateBs" literalConcatenateBs
+    , goldenUPlcCatch "literalAppendBs" literalAppendBs
     , goldenUPlcCatch "literalCaseOther" literalCaseOther
   ]
 
@@ -51,6 +52,9 @@ negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
 caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
+
+stringLiteral :: CompiledCode String
+stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
@@ -75,8 +79,8 @@ literalCaseInt = plc (Proxy @"literalCaseInt") (\case { 1 -> 2; x -> x})
 literalCaseBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
 literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of { "abc" -> ""; x -> x})
 
-literalConcatenateBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
-literalConcatenateBs = plc (Proxy @"literalConcatenateBs") (\x -> Builtins.concatenate "hello" x)
+literalAppendBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
+literalAppendBs = plc (Proxy @"literalAppendBs") (\x -> Builtins.appendByteString "hello" x)
 
 data AType = AType
 
@@ -86,7 +90,5 @@ instance IsString AType where
 instance Eq AType where
     AType == AType = True
 
--- Unfortunately, this actually succeeds, since the match gets turned into an equality and we can actually inline it.
--- I'm leaving it here since I'd really prefer it were an error for consistency, but I'm not sure how to do that nicely.
 literalCaseOther :: CompiledCode (AType -> AType)
 literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of { "abc" -> ""; x -> x})

@@ -7,7 +7,6 @@ module MainFrame
 
 import Prelude hiding (div)
 import Animation (class MonadAnimate)
-import Cardano.Metadata.Types (Property, PropertyKey, Subject)
 --import Chain.State (handleAction) as Chain
 --import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
@@ -56,7 +55,7 @@ import Plutus.V1.Ledger.Value (Value)
 --import Schema.Types (formArgumentToJson, toArgument)
 --import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), _webSocketMessage, _webSocketStatus, toPropertyKey)
+import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), _webSocketMessage, _webSocketStatus)
 --import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
 --import Validation (_argument)
 import View as View
@@ -81,7 +80,6 @@ initialState =
     , contractStates: Map.empty
     , webSocketMessage: Stream.NotAsked
     , webSocketStatus: WebSocketClosed Nothing
-    , metadata: mempty
     }
 
 ------------------------------------------------------------
@@ -145,11 +143,6 @@ handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessag
 
 handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
   assign _webSocketStatus (WebSocketClosed (Just closeEvent))
-
-upsertProperty :: Subject -> Property -> Map Subject (Map PropertyKey Property) -> Map Subject (Map PropertyKey Property)
-upsertProperty subject property =
-  Map.insertWith append subject
-    $ Map.singleton (toPropertyKey property) property
 
 handleAction ::
   forall m.

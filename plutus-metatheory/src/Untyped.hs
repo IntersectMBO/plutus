@@ -27,7 +27,6 @@ data UConstant = UConInt Integer
                | UConBS BS.ByteString
                | UConStr T.Text
                | UConBool Bool
-               | UConChar Char
                | UConUnit
                deriving Show
 
@@ -38,13 +37,12 @@ convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
 
 convC :: Some (ValueOf DefaultUni) -> UConstant
-convC (Some (ValueOf DefaultUniInteger    i)) = UConInt i
-convC (Some (ValueOf DefaultUniByteString b)) = UConBS b
-convC (Some (ValueOf DefaultUniString     s)) = UConStr (T.pack s)
-convC (Some (ValueOf DefaultUniChar       c)) = UConChar c
-convC (Some (ValueOf DefaultUniUnit       u)) = UConUnit
-convC (Some (ValueOf DefaultUniBool       b)) = UConBool b
-convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"
+convC (Some (ValueOf DefaultUniInteger    i))   = UConInt i
+convC (Some (ValueOf DefaultUniByteString b))   = UConBS b
+convC (Some (ValueOf DefaultUniString       s)) = UConStr s
+convC (Some (ValueOf DefaultUniUnit       u))   = UConUnit
+convC (Some (ValueOf DefaultUniBool       b))   = UConBool b
+convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 conv (Var _ x)      = UVar (unIndex (ndbnIndex x) - 1)
@@ -59,8 +57,7 @@ conv (Force _ t)    = UForce (conv t)
 uconvC :: UConstant -> Some (ValueOf DefaultUni)
 uconvC (UConInt i)  = Some (ValueOf DefaultUniInteger    i)
 uconvC (UConBS b)   = Some (ValueOf DefaultUniByteString b)
-uconvC (UConStr s)  = Some (ValueOf DefaultUniString     $ T.unpack s)
-uconvC (UConChar c) = Some (ValueOf DefaultUniChar       c)
+uconvC (UConStr s)  = Some (ValueOf DefaultUniString     s)
 uconvC UConUnit     = Some (ValueOf DefaultUniUnit       ())
 uconvC (UConBool b) = Some (ValueOf DefaultUniBool       b)
 

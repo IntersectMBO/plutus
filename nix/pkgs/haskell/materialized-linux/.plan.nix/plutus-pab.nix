@@ -54,8 +54,6 @@
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
-          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-          (hsPkgs."errors" or (errorHandler.buildDepError "errors"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."generic-arbitrary" or (errorHandler.buildDepError "generic-arbitrary"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -80,7 +78,6 @@
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-          (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
           (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
@@ -89,7 +86,6 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."swagger2" or (errorHandler.buildDepError "swagger2"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
@@ -137,15 +133,9 @@
           "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
-          "Cardano/Metadata/API"
-          "Cardano/Metadata/Client"
-          "Cardano/Metadata/Mock"
-          "Cardano/Metadata/Server"
-          "Cardano/Metadata/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
           "Cardano/Node/Mock"
-          "Cardano/Node/RandomTx"
           "Cardano/Node/Server"
           "Cardano/Node/Types"
           "Cardano/Protocol/Socket/Mock/Client"
@@ -342,26 +332,23 @@
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."clock" or (errorHandler.buildDepError "clock"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
-            (hsPkgs."http-conduit" or (errorHandler.buildDepError "http-conduit"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mwc-random" or (errorHandler.buildDepError "mwc-random"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."pretty-simple" or (errorHandler.buildDepError "pretty-simple"))
             (hsPkgs."rate-limit" or (errorHandler.buildDepError "rate-limit"))
-            (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."signal" or (errorHandler.buildDepError "signal"))
             (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
             ];
           buildable = true;
+          modules = [ "TxInject/RandomTx" ];
           hsSourceDirs = [ "tx-inject" ];
           mainPath = [
             "Main.hs"
@@ -374,10 +361,6 @@
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
             (hsPkgs."either" or (errorHandler.buildDepError "either"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."ouroboros-consensus-byron" or (errorHandler.buildDepError "ouroboros-consensus-byron"))
-            (hsPkgs."ouroboros-consensus-cardano" or (errorHandler.buildDepError "ouroboros-consensus-cardano"))
-            (hsPkgs."ouroboros-consensus-shelley" or (errorHandler.buildDepError "ouroboros-consensus-shelley"))
-            (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -425,8 +408,6 @@
           buildable = true;
           modules = [
             "Cardano/Api/NetworkId/ExtraSpec"
-            "Cardano/Metadata/ServerSpec"
-            "Cardano/Metadata/TypesSpec"
             "Cardano/Wallet/ServerSpec"
             ];
           hsSourceDirs = [ "test/light" ];
