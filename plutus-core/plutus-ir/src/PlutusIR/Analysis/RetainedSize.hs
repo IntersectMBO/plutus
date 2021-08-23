@@ -220,4 +220,4 @@ annotateWithRetainedSize
 annotateWithRetainedSize term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
     retentionMap = termRetentionMap term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.
-    upd i _ = Retains . fromMaybe (Size 0) $ IntMap.lookup i retentionMap
+    upd i _ = Retains $ IntMap.findWithDefault (Size 0) i retentionMap
