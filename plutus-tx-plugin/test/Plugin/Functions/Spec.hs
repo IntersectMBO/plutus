@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE UnboxedTuples       #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context -fplugin-opt PlutusTx.Plugin:debug #-}
 
 module Plugin.Functions.Spec where
 
@@ -25,8 +25,8 @@ import           Data.Proxy
 
 functions :: TestNested
 functions = testNested "Functions" [
-    recursiveFunctions
-    , unfoldings
+    -- recursiveFunctions
+    unfoldings
   ]
 
 recursiveFunctions :: TestNested
@@ -68,19 +68,19 @@ evenMutual = plc (Proxy @"evenMutual") (
 
 unfoldings :: TestNested
 unfoldings = testNested "unfoldings" [
-    goldenPir "nandDirect" nandPlcDirect
-    , goldenPir "andDirect" andPlcDirect
-    , goldenPir "andExternal" andPlcExternal
-    , goldenPir "allDirect" allPlcDirect
-    , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
-    , goldenPir "recordSelector" recordSelector
-    , goldenPir "recordSelectorExternal" recordSelectorExternal
+    -- goldenPir "nandDirect" nandPlcDirect
+    -- , goldenPir "andDirect" andPlcDirect
+    -- , goldenPir "andExternal" andPlcExternal
+    -- , goldenPir "allDirect" allPlcDirect
+    -- , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
+    -- , goldenPir "recordSelector" recordSelector
+    -- , goldenPir "recordSelectorExternal" recordSelectorExternal
     -- We used to have problems with polymorphic let bindings where the generalization was
     -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
     -- it seems to sometimes float these in, but we should keep an eye on these.
-    , goldenPir "polyMap" polyMap
-    , goldenPir "applicationFunction" applicationFunction
-    , goldenPir "unboxedTuples" workerWrapper
+    -- , goldenPir "polyMap" polyMap
+    -- , goldenPir "applicationFunction" applicationFunction
+    goldenPir "unboxedTuples" unboxedTuples
   ]
 
 andDirect :: Bool -> Bool -> Bool

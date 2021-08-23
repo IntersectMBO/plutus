@@ -16,8 +16,8 @@ main = defaultMain $ runTestNestedIn ["test"] tests
 tests :: TestNested
 tests = testGroup "tests" <$> sequence [
     Plugin.tests
-  , IsData.tests
-  , Lift.tests
-  , TH.tests
-  , Lib.tests
+  -- , IsData.tests
+  -- , Lift.tests
+  -- , TH.tests
+  -- , Lib.tests
   ]

@@ -14,11 +14,11 @@ import           Plugin.Typeclasses.Spec
 
 tests :: TestNested
 tests = testNested "Plugin" [
-    basic
-  , primitives
-  , datat
-  , functions
-  , laziness
-  , errors
-  , typeclasses
+  --   basic
+  -- , primitives
+  -- , datat
+  functions
+  -- , laziness
+  -- , errors
+  -- , typeclasses
   ]

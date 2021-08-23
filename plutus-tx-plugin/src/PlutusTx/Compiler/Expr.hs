@@ -487,7 +487,10 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
         -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
+        l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> withContextM 2 (sdToTxt $ "Ignoring 'LiftedRep:" GHC.<+> GHC.ppr t) $ compileExpr l
+
+        -- arg can be a type here, in which case it's a type instantiation
+        l `GHC.App` GHC.Type t -> withContextM 2 (sdToTxt $ "Applying type to expr:" GHC.<+> GHC.ppr (l, t)) $ PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction

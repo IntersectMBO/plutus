@@ -71,7 +71,8 @@ compileTypeNorm ty = do
     CompileContext {ccFamInstEnvs=envs} <- ask
     -- See Note [Type families and normalizing types]
     let (_, ty') = GHC.normaliseType envs GHC.Representational ty
-    compileType ty'
+    res <- compileType ty'
+    withContextM 2 (sdToTxt $ "Compiled type:" GHC.<+> GHC.ppr (show res)) $ pure res
 
 -- | Compile a type.
 compileType :: Compiling uni fun m => GHC.Type -> m (PIRType uni)
@@ -84,10 +85,10 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
         (GHC.getTyVar_maybe -> Just v) -> case lookupTyName top (GHC.getName v) of
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> compileType i <*> compileType o
-        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType ts
-        (GHC.splitAppTy_maybe -> Just (t1, t2)) -> PIR.TyApp() <$> compileType t1 <*> compileType t2
-        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
+        (GHC.splitFunTy_maybe -> Just (i, o)) -> withContextM 2 (sdToTxt $ "Compiling funty:" GHC.<+> GHC.ppr (i, o)) $ PIR.TyFun () <$> compileType i <*> compileType o
+        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tycon:" GHC.<+> GHC.ppr (tc, ts)) $ PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+        (GHC.splitAppTy_maybe -> Just (t1, t2)) -> withContextM 2 (sdToTxt $ "Compiling appTy:" GHC.<+> GHC.ppr (t1, t2)) $ PIR.TyApp() <$> compileType t1 <*> compileType t2
+        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> withContextM 2 (sdToTxt $ "Compiling forallty:" GHC.<+> GHC.ppr tpe) $ mkTyForallScoped tv (compileType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
@@ -292,8 +293,9 @@ getMatchInstantiated :: Compiling uni fun m => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
-
-        args' <- mapM compileTypeNorm args
-        pure $ PIR.mkIterInst () match args'
+        withContextM 3 (sdToTxt $ "tc:" GHC.<+> GHC.ppr tc) $
+            withContextM 3 (sdToTxt $ "args:" GHC.<+> GHC.ppr args) $ do
+                args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
+                pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
