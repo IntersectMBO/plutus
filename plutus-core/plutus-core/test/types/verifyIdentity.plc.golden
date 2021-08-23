@@ -1,2 +1,3 @@
-(fun (con bytestring)
-(fun (con bytestring) (fun (con bytestring) (all a (type) (fun a a)))))
+(fun
+  (con bytestring)
+  (fun (con bytestring) (fun (con bytestring) (all a (type) (fun a a)))))

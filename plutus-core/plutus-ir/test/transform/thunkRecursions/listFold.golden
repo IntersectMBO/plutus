@@ -15,9 +15,10 @@
       (nonstrict)
       (vardecl
         foldl
-        (all a
-        (type)
-        (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a)))))
+        (all
+          a
+          (type)
+          (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a)))))
       )
       (lam
         f

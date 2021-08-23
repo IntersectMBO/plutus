@@ -1,20 +1,34 @@
-(all a
-(type)
-(fun [
-  (lam a
-  (type)
-  (ifix (lam list
-  (fun (type) (type))
-  (lam a (type) (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r)))))
-  a))
+(all
   a
-]
-[
-  (lam a
   (type)
-  (ifix (lam list
-  (fun (type) (type))
-  (lam a (type) (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r)))))
-  a))
-  a
-]))
+  (fun
+    [
+      (lam
+        a
+        (type)
+        (ifix
+          (lam
+            list
+            (fun (type) (type))
+            (lam
+              a
+              (type)
+              (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r)))))
+          a))
+      a
+    ]
+    [
+      (lam
+        a
+        (type)
+        (ifix
+          (lam
+            list
+            (fun (type) (type))
+            (lam
+              a
+              (type)
+              (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r)))))
+          a))
+      a
+    ]))
