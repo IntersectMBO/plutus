@@ -24,7 +24,8 @@ module PlutusIR.Core.Plated
     ) where
 
 import qualified PlutusCore             as PLC
-import           PlutusCore.Core.Plated (typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques, typeUniquesDeep, tyVarDeclSubkinds, varDeclSubtypes)
+import           PlutusCore.Core.Plated (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques,
+                                         typeUniquesDeep, varDeclSubtypes)
 import           PlutusCore.Flat        ()
 import qualified PlutusCore.Name        as PLC
 
