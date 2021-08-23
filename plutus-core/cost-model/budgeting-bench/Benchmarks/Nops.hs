@@ -67,19 +67,19 @@ nopCostModel =
                   (ModelOneArgumentConstantCost 1000000)
                   (ModelOneArgumentConstantCost 100)
     , paramNop2 = CostingFun
-                  (ModelTwoArgumentsConstantCost 1200000)
+                  (ModelTwoArgumentsConstantCost 1250000)
                   (ModelTwoArgumentsConstantCost 200)
     , paramNop3 = CostingFun
                   (ModelThreeArgumentsConstantCost 1500000)
                   (ModelThreeArgumentsConstantCost 300)
     , paramNop4 = CostingFun
-                  (ModelFourArgumentsConstantCost 1800000)
+                  (ModelFourArgumentsConstantCost 1750000)
                   (ModelFourArgumentsConstantCost 400)
     , paramNop5 = CostingFun
-                  (ModelFiveArgumentsConstantCost 2100000)
+                  (ModelFiveArgumentsConstantCost 2000000)
                   (ModelFiveArgumentsConstantCost 500)
     , paramNop6 = CostingFun
-                  (ModelSixArgumentsConstantCost 2400000)
+                  (ModelSixArgumentsConstantCost 2250000)
                   (ModelSixArgumentsConstantCost 600)
     }
 

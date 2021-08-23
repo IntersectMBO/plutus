@@ -21,7 +21,7 @@ byteStringSizes :: [Integer]
 byteStringSizes = integerPower 2 <$> [1..20::Integer]
 
 makeSizedByteString :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
-makeSizedByteString seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
+makeSizedByteString seed n = let x = genSample seed (HH.bytes (HH.Range.singleton n)) in (x, memoryUsage x)
 
 byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (makeSizedByteString seed . fromInteger) <$> byteStringSizes
@@ -50,6 +50,17 @@ benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString 
     where
         numbers = map (\s -> let x = fst $ randomR (0, s - 1) gen in (x, memoryUsage x)) byteStringSizes
 
+benchSliceByteString2 :: StdGen -> Benchmark
+benchSliceByteString2 gen =
+    let name = SliceByteString
+        mkBM p q = benchDefault (show q) $ mkApp3 name p q s
+        n = 1000::Integer
+        k = n `div` 20
+        (s,_) = makeSizedByteString seedA (fromInteger n)
+        ps = [0, k..n]
+        lens = ps
+    in bgroup (show name) $ [bgroup (show p) [mkBM p len | len <- lens, p+len <= n] | p <- ps]
+
 benchSliceByteString :: StdGen -> Benchmark
 benchSliceByteString gen = bgroup (show SliceByteString) $
     zipWith (\(b, bmem) (from, to) -> bgroup (show bmem) [mkBM b from to]) (byteStringsToBench seedA) indices
@@ -65,11 +76,10 @@ benchByteStringOperations name = createTwoTermBuiltinBench name numbers (byteStr
         numbers = threeToThePower <$> powersOfTwo
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])
-                   <> (benchByteStringOperations <$> [ ConsByteString ])
-                   <> [benchIndexByteString gen]
-                   <> [benchSliceByteString gen]
-                   <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
-                   <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanByteString ])
-
--- TODO: LessThanEqualsByteString
+makeBenchmarks gen =  -- (benchTwoByteStrings <$> [ AppendByteString ])
+                   -- <> (benchByteStringOperations <$> [ ConsByteString ])
+                   -- <> [benchIndexByteString gen]
+                   -- <> [benchSliceByteString gen]
+                   -- <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
+                   -- <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+                     [benchSliceByteString2 gen]

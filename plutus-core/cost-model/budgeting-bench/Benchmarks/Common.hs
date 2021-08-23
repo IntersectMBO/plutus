@@ -205,10 +205,11 @@ randNwords n gen = randomR (lb,ub) gen
     where lb = 2^(64*(n-1))
           ub = 2^(64*n) - 1
 
-
--- TODO: we're using Hedgehog for some things and System.Random for others.  We
--- should rationalise this.  Pehaps Hedgehog is more future-proof since it can
--- produce random instances of a wide variety of types.
+{- TODO: we're using Hedgehog for some things and System.Random for others.  We
+   should rationalise this.  Pehaps Hedgehog is more future-proof since it can
+   produce random instances of a wide variety of types.  On the other hand, you
+   have to be careful with Hedgehog Ranges since they don't necessarily do what
+   you might expect -}
 genSample :: HH.Seed -> HH.Gen a -> a
 genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") HH.treeValue $ HH.evalGen (HH.Size 1) seed gen
 

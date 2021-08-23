@@ -146,15 +146,19 @@ instance ExMemoryUsage Integer where
   memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0, but in practice returns -1
   memoryUsage i = ExMemory . fromIntegral $ (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- Assume 64bit size.
 
+{- Bytestrings: we want things of length 0-8 to have size 1, 9-16 to have size
+   2, etc.  We use 'quot' to deal with the empty bytestring because 'div' would
+   give -1.  Maybe we should just use 1 + (toInteger $ BS.length bs) `div` 8,
+   which would count one extra for things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory . fromIntegral $ 1 + ((toInteger $ BS.length bs)-1) `quot` 8
--- We want things of length 0-8 to have size 1, 9-16 to have size 2, etc.
--- We use 'quot' to deal with the empty bytestring because 'div' would give -1.
--- Maybe we should just use 1 + (toInteger $ BS.length bs) `div` 8, which
--- would count one extra for things whose sizes are multiples of 8.
 
+{- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
+   codepoint) for everything in the Basic Multilingual Plane but four bytes for
+   the other planes.  To be on the safe side we assign four bytes of memory (ie,
+   one word) per character. -}
 instance ExMemoryUsage T.Text where
-  memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
+  memoryUsage = ExMemory . fromIntegral . T.length
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
