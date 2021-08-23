@@ -90,12 +90,14 @@ mkApp1 :: (DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
 mkApp1 name x =
     erase $ mkIterApp () (builtin () name) [mkConstant () x]
 
+
 -- Create a term applying a builtin to two arguments
 mkApp2
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
     =>  fun -> a -> b -> PlainTerm fun
 mkApp2 name x y =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
+
 
 -- Create a term applying a builtin to three arguments
 mkApp3
@@ -104,9 +106,10 @@ mkApp3
 mkApp3 name x y z =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
+
 -- Create a term applying a builtin to four arguments
 mkApp4
-    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
+    :: forall fun a b c d. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
                           DefaultUni `Includes` d)
     => fun -> a -> b -> c -> d -> PlainTerm fun
 mkApp4 name x y z t =
@@ -114,13 +117,14 @@ mkApp4 name x y z t =
                                             mkConstant () t]
 
 -- Create a term applying a builtin to five arguments
-mkApp6
+mkApp5
     :: forall fun a b c d e. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
                                 DefaultUni `Includes` d, DefaultUni `Includes` e)
     => fun -> a -> b -> c -> d -> e -> PlainTerm fun
-mkApp6 name x y z t u =
+mkApp5 name x y z t u =
     erase $ mkIterApp () (builtin () name) [mkConstant () x, mkConstant () y, mkConstant () z,
                                             mkConstant () t, mkConstant () u]
+
 -- Create a term applying a builtin to six arguments
 mkApp6
     :: forall fun a b c d e f. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,

@@ -75,12 +75,12 @@ nopCostModel =
     , paramNop4 = CostingFun
                   (ModelFourArgumentsConstantCost 1800000)
                   (ModelFourArgumentsConstantCost 400)
-    , paramNop5 = CostingFun4
+    , paramNop5 = CostingFun
                   (ModelFiveArgumentsConstantCost 2100000)
                   (ModelFiveArgumentsConstantCost 500)
     , paramNop6 = CostingFun
                   (ModelSixArgumentsConstantCost 2400000)
-                  (ModelsixArgumentsConstantCost 600)
+                  (ModelSixArgumentsConstantCost 600)
     }
 
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFuns
@@ -116,17 +116,17 @@ instance (uni `Contains` Integer, GEq uni, GShow uni) => ToBuiltinMeaning uni No
     toBuiltinMeaning Nop4 =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer)
-             (\_ _ _ -> 44)
+             (\_ _ _ _ -> 44)
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning Nop5 =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
-             (\_ _ _ -> 55)
+             (\_ _ _ _ _ -> 55)
              (runCostingFunFiveArguments . paramNop5)
     toBuiltinMeaning Nop6 =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
-             (\_ _ _ -> 66)
+             (\_ _ _ _ _ _ -> 66)
              (runCostingFunSixArguments . paramNop6)
 
 ---------------- Calibration ----------------
