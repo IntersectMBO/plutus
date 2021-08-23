@@ -47,7 +47,7 @@ let
 
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
-    export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
+    export GITHUB_CALLBACK_PATH=/
 
     ${build-playground-exe}/bin/plutus-playground-server webserver "$@"
   '';
