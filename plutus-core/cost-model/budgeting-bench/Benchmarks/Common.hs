@@ -104,6 +104,23 @@ mkApp3
 mkApp3 name x y z =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
+-- Create a term applying a builtin to four arguments
+mkApp4
+    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
+                          DefaultUni `Includes` d)
+    => fun -> a -> b -> c -> d -> PlainTerm fun
+mkApp4 name x y z t =
+    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z,
+                                            mkConstant () t]
+
+-- Create a term applying a builtin to five arguments
+mkApp6
+    :: forall fun a b c d e. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
+                                DefaultUni `Includes` d, DefaultUni `Includes` e)
+    => fun -> a -> b -> c -> d -> e -> PlainTerm fun
+mkApp6 name x y z t u =
+    erase $ mkIterApp () (builtin () name) [mkConstant () x, mkConstant () y, mkConstant () z,
+                                            mkConstant () t, mkConstant () u]
 -- Create a term applying a builtin to six arguments
 mkApp6
     :: forall fun a b c d e f. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
@@ -199,7 +216,3 @@ threeToThePower :: Integer -> (Integer, ExMemory)
 threeToThePower e =
     let x = integerPower 3 e
     in  (x, memoryUsage x)
-
-
-
-
