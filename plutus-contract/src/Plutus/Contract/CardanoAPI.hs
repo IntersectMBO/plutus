@@ -98,7 +98,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txExtraScriptData = C.BuildTxWith $ toCardanoExtraScriptData (Map.elems txData)
         , txMintValue = txMintValue
         , txProtocolParams = C.BuildTxWith protocolParams
-        , txScriptValidity = C.BuildTxWith (C.TxScriptValidity C.TxScriptValiditySupportedInAlonzoEra C.ScriptValid)
+        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         -- unused:
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
@@ -106,7 +106,6 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
-        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         }
 
 fromCardanoTxIn :: C.TxIn -> P.TxOutRef
