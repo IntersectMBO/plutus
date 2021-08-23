@@ -31,12 +31,10 @@ open import Type.BetaNormal
 open import Untyped as U
 import Untyped.Reduction as U
 import Scoped as S
-import Scoped.Reduction as S
 open import Raw
 open import Scoped
 open import Utils hiding (ByteString)
 open import Untyped
-open import Scoped.CK
 open import Algorithmic
 open import Algorithmic.ReductionEC hiding (Term;Type)
 open import Algorithmic.Reduction
@@ -266,16 +264,6 @@ executePLC TL t = do
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
     where nothing → inj₁ (runtimeError userError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
-
-executePLC L t with S.run t maxsteps
-... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (unshifter Z (extricateScope t')))
-... | t' ,, p ,, inj₁ nothing  = inj₁ (runtimeError gasError)
-... | t' ,, p ,, inj₂ e        = inj₁ (runtimeError userError)
-executePLC CK t = do
-  □ {t = t} v ← withE runtimeError $ Scoped.CK.stepper maxsteps (ε ▻ t)
-    where ◆ → inj₁ (runtimeError userError)
-          _ → inj₁ (runtimeError gasError)
-  return (prettyPrintTm (unshifter Z (extricateScope t)))
 executePLC TCK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ {t = t} v ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ t)
@@ -523,19 +511,6 @@ runTL t = do
   return (unconvTm (unshifter Z (extricateScope (extricate t))))
 
 {-# COMPILE GHC runTL as runTLAgda #-}
-
--- Haskell interface to (untypechecked CK)
-runCK : Term → Either ERROR Term
-runCK t = do
-  tDB ← withE scopeError $ scopeCheckTm {0}{Z} (shifter Z (convTm t))
-  ty ,, _ ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
-  □ V ← withE runtimeError $ Scoped.CK.stepper maxsteps (ε ▻ tDB)
-    where (_ ▻ _) → inj₁ (runtimeError gasError)
-          (_ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ → return (unconvTm (unshifter Z (extricateScope {0}{Z} (extricate (error ty)))))
-  return (unconvTm (unshifter Z (extricateScope (Scoped.CK.discharge V))))
-
-{-# COMPILE GHC runCK as runCKAgda #-}
 
 -- Haskell interface to (typechecked) CK
 runTCK : Term → Either ERROR Term
