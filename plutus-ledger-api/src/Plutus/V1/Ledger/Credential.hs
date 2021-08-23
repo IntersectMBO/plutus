@@ -42,6 +42,7 @@ instance Pretty StakingCredential where
     pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
 instance PlutusTx.Eq StakingCredential where
+    {-# INLINABLE (==) #-}
     StakingHash l == StakingHash r = l PlutusTx.== r
     StakingPtr a b c == StakingPtr a' b' c' =
         a PlutusTx.== a'
@@ -61,6 +62,7 @@ instance Pretty Credential where
     pretty (ScriptCredential val) = "ScriptCredential:" <+> pretty val
 
 instance PlutusTx.Eq Credential where
+    {-# INLINABLE (==) #-}
     PubKeyCredential l == PubKeyCredential r  = l PlutusTx.== r
     ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
     _ == _                                    = False

@@ -88,6 +88,9 @@ data TxInInfo = TxInInfo
     , txInInfoResolved :: TxOut
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
+instance Eq TxInInfo where
+    TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+
 instance Pretty TxInInfo where
     pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
         pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
@@ -99,6 +102,14 @@ data ScriptPurpose
     | Rewarding StakingCredential
     | Certifying DCert
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance Eq ScriptPurpose where
+    {-# INLINABLE (==) #-}
+    Minting cs == Minting cs'           = cs == cs'
+    Spending ref == Spending ref'       = ref == ref'
+    Rewarding sc == Rewarding sc'       = sc == sc'
+    Certifying cert == Certifying cert' = cert == cert'
+    _ == _                              = False
 
 instance Pretty ScriptPurpose where
     pretty = viaShow
@@ -118,6 +129,11 @@ data TxInfo = TxInfo
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
+instance Eq TxInfo where
+    {-# INLINABLE (==) #-}
+    TxInfo i o f m c w r s d tid == TxInfo i' o' f' m' c' w' r' s' d' tid' =
+        i == i' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && d == d' && tid == tid'
+
 instance Pretty TxInfo where
     pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
         vsep
@@ -135,6 +151,10 @@ instance Pretty TxInfo where
 
 data ScriptContext = ScriptContext{scriptContextTxInfo :: TxInfo, scriptContextPurpose :: ScriptPurpose }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
+
+instance Eq ScriptContext where
+    {-# INLINABLE (==) #-}
+    ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
 
 instance Pretty ScriptContext where
     pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =
