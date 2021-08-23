@@ -10,7 +10,7 @@ import           Data.Time
 import           GHC.Generics     (Generic)
 
 data EventType =
-    AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
+    AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR | PD
     deriving (Eq, Show, Read, Ord)
 
 data RiskFactors = RiskFactors

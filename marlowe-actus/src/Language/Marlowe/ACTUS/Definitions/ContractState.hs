@@ -16,7 +16,6 @@ data ContractStatePoly a b = ContractStatePoly
   , ipnr  :: a
   , ipac  :: a
   , feac  :: a
-  , fac   :: a
   , nsc   :: a
   , isc   :: a
   , prf   :: PRF
@@ -24,4 +23,3 @@ data ContractStatePoly a b = ContractStatePoly
   , prnxt :: a
   , ipcb  :: a
   } deriving (Show)
-

@@ -14,13 +14,16 @@ tests = testGroup "Actus" [ testCase fileName (staticFromFile fileName) | fileNa
 testFileNames :: [String]
 testFileNames =
   [
-    "actus-tests-pam"
+    "actus-tests-pam",
+    "actus-tests-lam"
+    -- "actus-tests-nam"
   ]
 
 excludedTestCases :: [String]
 excludedTestCases =
   [
-    "pam25" -- dates include hours, minutes, seconds
+    "pam25", -- dates include hours, minutes, seconds
+    "lam18"  -- dates include hours, minutes, seconds
   ]
 
 

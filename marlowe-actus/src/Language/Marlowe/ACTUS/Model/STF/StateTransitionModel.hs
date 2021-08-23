@@ -6,12 +6,14 @@
 module Language.Marlowe.ACTUS.Model.STF.StateTransitionModel where
 
 import           Data.Maybe                                       (fromJust, fromMaybe, isJust, isNothing)
-import           Language.Marlowe.ACTUS.Definitions.ContractState (ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms (FEB (FEB_N), IPCB (IPCB_NT),
+import           Language.Marlowe.ACTUS.Definitions.ContractState (ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (FEB (FEB_N), IPCB (IPCB_NT, IPCB_NTL),
                                                                    SCEF (SE_00M, SE_0N0, SE_0NM, SE_I00))
-import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_max, _min, _zero),
+import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_abs, _max, _min, _zero),
                                                                    DateOps (_lt), RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
+
+import           Debug.Trace
 
 -- Principal at Maturity
 _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
@@ -45,15 +47,15 @@ _STF_PY_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
     let
         ipac' = ipac + y_sd_t * ipnr * nt
 
-        fac' = case _FEB of
-            Just FEB_N -> fac + y_sd_t * nt * _FER
-            _          -> (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
+        feac' = case _FEB of
+            Just FEB_N -> feac + y_sd_t * nt * _FER
+            _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
 
-    in st {ipac = ipac', fac = fac', sd = t}
+    in st {ipac = ipac', feac = feac', sd = t}
 
 _STF_FP_PAM st@ContractStatePoly{..} t y_sd_t = st {
     ipac = ipac + y_sd_t * ipnr * nt,
-    fac = _zero,
+    feac = _zero,
     sd = t
 }
 
@@ -62,7 +64,7 @@ _STF_PRD_PAM st@ContractStatePoly{..} = _STF_PY_PAM st
 _STF_TD_PAM st@ContractStatePoly{..} t = st {
     nt = _zero,
     ipac = _zero,
-    fac = _zero,
+    feac = _zero,
     ipnr = _zero,
     sd = t
 }
@@ -85,9 +87,9 @@ _STF_IPCI_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
 _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO =
     let
         ipac' = ipac + y_sd_t * ipnr * nt
-        fac'  =
+        feac'  =
           case _FEB of
-            Just FEB_N -> fac + y_sd_t * nt * _FER
+            Just FEB_N -> feac + y_sd_t * nt * _FER
             _          -> (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
 
         st' = _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -95,7 +97,7 @@ _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
         delta_r = (_min (_max (o_rf_RRMO * _RRMLT + _RRSP - ipnr) _RRPF) _RRPC)
 
         ipnr' = (_min (_max (ipnr + delta_r) _RRLF) _RRLC)
-    in st' {ipac = ipac', fac = fac', ipnr = ipnr', sd = t}
+    in st' {ipac = ipac', feac = feac', ipnr = ipnr', sd = t}
 
 _STF_RRF_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT =
     let
@@ -131,7 +133,8 @@ _STF_IED_LAM st@ContractStatePoly{..} t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT 
         ipnr'                       = fromJust _IPNR
 
         ipac' | isJust _IPAC        = fromJust _IPAC
-              | isJust _IPANX       = _lt (fromJust _IPANX) t * y_ipanx_t * nt' * ipnr'
+              -- | isJust _IPANX       = _lt (fromJust _IPANX) t * y_ipanx_t * nt' * ipnr'
+              | isJust _IPANX && fromJust _IPANX < t = y_ipanx_t * nt' * ipnr'
               | otherwise           = _zero
 
         ipcb' | (fromJust _IPCB) == IPCB_NT = _r _CNTRL * _NT
@@ -140,17 +143,19 @@ _STF_IED_LAM st@ContractStatePoly{..} t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT 
 
 _STF_PR_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
     let
-        nt' = nt - _r _CNTRL * prnxt
+        nt' = nt - _r _CNTRL * (prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt))))
 
-        fac' = case _FEB of
-            Just FEB_N -> fac + y_sd_t * nt * _FER
-            _          -> (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
+        feac' = case _FEB of
+            Just FEB_N -> feac + y_sd_t * nt * _FER
+            _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
 
         ipcb' = case (fromJust _IPCB) of
-            IPCB_NT -> nt'
-            _       -> ipcb
+            IPCB_NTL -> ipcb
+            _        -> nt'
 
-    in st {nt = nt', fac = fac', ipcb = ipcb', sd = t}
+        ipac' = ipac + ipnr * ipcb * y_sd_t
+
+    in st {nt = nt', feac = feac', ipcb = ipcb', ipac = ipac', sd = t}
 
 _STF_MD_LAM st@ContractStatePoly{..} t = st {
     nt = _zero,
@@ -173,15 +178,15 @@ _STF_PY_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
     let
         ipac' = ipac + y_sd_t * ipnr * ipcb
 
-        fac' = case _FEB of
-            Just FEB_N -> fac + y_sd_t * nt * _FER
+        feac' = case _FEB of
+            Just FEB_N -> feac + y_sd_t * nt * _FER
             _          -> (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
 
-    in st {ipac = ipac', fac = fac', sd = t}
+    in st {ipac = ipac', feac = feac', sd = t}
 
 _STF_FP_LAM st@ContractStatePoly{..} t y_sd_t = st {
     ipac = ipac + y_sd_t * ipnr * ipcb,
-    fac = _zero,
+    feac = _zero,
     sd = t
 }
 _STF_PRD_LAM st@ContractStatePoly{..} = _STF_PY_LAM st
@@ -220,20 +225,21 @@ _STF_RRF_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _
         ipnr = fromMaybe _zero _RRNXT
     }
 
-_STF_SC_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED =
+_STF_SC_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCCDD =
     let
         st' = _STF_PY_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
 
-        nsc' = case _SCEF of
-            SE_00M -> nsc
-            SE_I00 -> nsc
-            _      -> (o_rf_SCMO - _SCIED) / _SCIED
+        nsc' =
+          if elem 'N' (show _SCEF) then
+            o_rf_SCMO / _SCCDD
+          else
+            nsc
 
-        isc' = case _SCEF of
-            SE_0N0 -> isc
-            SE_00M -> isc
-            SE_0NM -> isc
-            _      -> (o_rf_SCMO - _SCIED) / _SCIED
+        isc' =
+          if elem 'I' (show _SCEF) then
+            o_rf_SCMO / _SCCDD
+          else
+            nsc
     in st' {nsc = nsc', isc = isc'}
 
 _STF_CE_LAM st@ContractStatePoly{..} = _STF_AD_PAM st
@@ -245,12 +251,27 @@ _STF_IED_NAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
     _STF_IED_LAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA
 
 _STF_PR_NAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
+    -- let
+    --     st'@ContractStatePoly{ ipac = ipac' } =
+    --       _STF_PR_LAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+    --
+    --     nt' = nt - prnxt - ipac'
+    -- in st' { nt = nt' }
     let
-        st'@ContractStatePoly{ ipac = ipac' } =
-          _STF_PP_LAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+      st'@ContractStatePoly{ ipac = ipac' } = _STF_PR_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
+      ra  = prnxt - _r _CNTRL * ipac'
+      r   = ra - (_max _zero (ra - (_abs nt)))
+      nt' = nt - _r _CNTRL * r
 
-        nt' = nt - prnxt - ipac'
-    in st' { nt = nt' }
+      -- ACTUS implementation
+      -- ipcb' = case (fromJust _IPCB) of
+      --     IPCB_NT -> ipcb
+      --     _       -> nt'
+
+      -- Java implementation
+      ipcb' = nt'
+
+    in st'{ nt = nt', ipcb = ipcb' }
 
 _STF_MD_NAM st t = _STF_MD_LAM st t
 

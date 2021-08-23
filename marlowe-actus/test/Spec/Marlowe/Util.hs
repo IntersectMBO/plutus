@@ -30,14 +30,20 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.Tasty.HUnit
 
+import           Debug.Trace
+
 data TestResult = TestResult{
   eventDate             :: String
   , eventType           :: String
   , payoff              :: Double
+  -- , payoff              :: String
   , currency            :: String
   , notionalPrincipal   :: Double
   , nominalInterestRate :: Double
   , accruedInterest     :: Double
+  -- , notionalPrincipal   :: String
+  -- , nominalInterestRate :: String
+  -- , accruedInterest     :: String
 }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -63,7 +69,7 @@ assertTestResultsFromFile excludedTestCases fileName = do
       if not $ List.elem identifier excludedTestCases then
         let cashFlows = genProjectedCashflows (parseObservedValues dataObserved) (setDefaultContractTermValues $ testToContractTerms $ decodedTestCase)
         in
-          assertTestResults cashFlows results identifier
+          assertTestResults cashFlows results (trace (show identifier) identifier)
       else
         return ()
 
@@ -109,8 +115,9 @@ assertTestResult
   CashFlow{cashPaymentDay = date, cashEvent = event, amount = payoff}
   testResult@TestResult{eventDate = testDate, eventType = testEvent, payoff = testPayoff} identifier = do
     assertBool ("[" ++ show identifier ++ "] Generated event and test event types should be the same: actual " ++ show event ++ ", expected for " ++ show testResult) $ event == (read testEvent :: EventType)
-    assertBool ("Generated date and test date should be the same: expected " ++ show testDate ++ ", actual " ++ show date ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
+    assertBool ("Generated date and test date should be the same: actual " ++ show date ++ ", expected for " ++ show testResult ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
     assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (realToFrac testPayoff :: Float)
+    -- assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (read testPayoff :: Float)
 
 testToContractTerms :: TestCase -> ContractTerms
 testToContractTerms TestCase{terms = terms} =
@@ -144,6 +151,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_IPCB          = readMaybe (maybeConcatPrefix "IPCB_" (Map.lookup "interestCalculationBase" terms')) :: Maybe IPCB
      , ct_IPCBA         = readMaybe $ Map.lookup "interestCalculationBaseAmount" terms' :: Maybe Double
      , ct_IPNR          = readMaybe $ Map.lookup "nominalInterestRate" terms' :: Maybe Double
+     , ct_SCIP          = readMaybe $ Map.lookup "interestScalingMultiplier" terms' :: Maybe Double
      , ct_NT            = readMaybe $ Map.lookup "notionalPrincipal" terms' :: Maybe Double
      , ct_PDIED         = readMaybe $ Map.lookup "premiumDiscountAtIED" terms' :: Maybe Double
      , ct_MD            = parseMaybeDate $ Map.lookup "maturityDate" terms'
@@ -157,9 +165,10 @@ testToContractTerms TestCase{terms = terms} =
      , ct_SCIED         = readMaybe $ Map.lookup "scalingIndexAtStatusDate" terms' :: Maybe Double
      , ct_SCANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfScalingIndex" terms'
      , ct_SCCL          = parseMaybeCycle $ Map.lookup "cycleOfScalingIndex" terms'
-     , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SCEF_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
+     , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
      , ct_SCCDD         = readMaybe $ Map.lookup "scalingIndexAtContractDealDate" terms' :: Maybe Double
      , ct_SCMO          = Map.lookup "marketObjectCodeOfScalingIndex" terms'
+     , ct_SCNT          = readMaybe $ Map.lookup "notionalScalingMultiplier" terms' :: Maybe Double
      , ct_OPCL          = parseMaybeCycle $ Map.lookup "cycleOfOptionality" terms'
      , ct_OPANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfOptionality" terms'
      , ct_PYRT          = readMaybe $ Map.lookup "penaltyRate" terms' :: Maybe Double

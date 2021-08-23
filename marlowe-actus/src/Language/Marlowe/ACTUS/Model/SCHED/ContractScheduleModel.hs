@@ -3,6 +3,7 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
+import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (Cycle (..), IPCB (IPCB_NTL), PPEF (..),
                                                                          PYTP (..), SCEF (..))
@@ -10,6 +11,8 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule            (Shifted
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
+
+import           Debug.Trace
 
 -- Principal at Maturity
 _S = generateRecurrentScheduleWithCorrections
@@ -95,7 +98,8 @@ _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD =
                 | otherwise                           = tt
     in result
 
-_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD =
+-- ACTUS techspec implementation
+_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _RRNXT _MD _SD =
     let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
                 | otherwise                           = _RRANX
 
@@ -103,7 +107,11 @@ _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD =
 
         result  | isNothing _RRANX && isNothing _RRCL  = Nothing
                 | otherwise                           = tt
-    in result
+    in
+      if isJust _RRNXT then
+        fmap (\d -> [d]) (L.find (\(ShiftedDay{ calculationDay = calculationDay }) -> calculationDay > _SD) (fromMaybe [] result))
+      else
+        Nothing
 
 _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
     let maybeS  | isNothing _SCANX && isNothing _SCCL  = Nothing
@@ -123,7 +131,7 @@ _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
     let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
                 | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
                 | otherwise                          = _PRANX
-    in (\s -> _S s (fromJust _PRCL) _MD scfg ) <$> maybeS
+    in (\s -> _S s (fromJust _PRCL){ includeEndDay = False } _MD scfg ) <$> maybeS
 
 _SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
 
@@ -132,7 +140,7 @@ _SCHED_PP_LAM = _SCHED_PP_PAM
 _SCHED_PY_LAM = _SCHED_PY_PAM
 
 -- To avoid constraint error, we can't fixpoint this
-_SCHED_FP_LAM scfg _FER _FECL _IED _FEANX _MD = _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD
+_SCHED_FP_LAM = _SCHED_FP_PAM
 
 _SCHED_PRD_LAM = _SCHED_PRD_PAM
 
@@ -148,7 +156,7 @@ _SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
                 | otherwise                          = _IPCBANX
 
         result  | (fromJust _IPCB) /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
-                | otherwise                          = (\s -> _S s (fromJust _IPCBCL) _MD scfg) <$> maybeS
+                | otherwise                          = (\s -> _S s (fromJust _IPCBCL){ includeEndDay = False } _MD scfg) <$> maybeS
     in result
 
 _SCHED_RR_LAM = _SCHED_RR_PAM
@@ -158,21 +166,21 @@ _SCHED_RRF_LAM = _SCHED_RRF_PAM
 _SCHED_SC_LAM = _SCHED_SC_PAM
 
 -- Negative Amortizer
-_SCHED_IED_NAM scfg _IED = _SCHED_IED_PAM scfg _IED
+_SCHED_IED_NAM = _SCHED_IED_PAM
 
-_SCHED_PR_NAM scfg _PRCL _IED _PRANX _MD = _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD
+_SCHED_PR_NAM = _SCHED_PR_LAM
 
-_SCHED_MD_NAM scfg tmd = _SCHED_MD_PAM scfg tmd
+_SCHED_MD_NAM = _SCHED_MD_PAM
 
-_SCHED_PP_NAM scfg _PREF _OPCL _IED _OPANX _MD = _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
+_SCHED_PP_NAM = _SCHED_PP_PAM
 
-_SCHED_PY_NAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD = _SCHED_PY_PAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD
+_SCHED_PY_NAM = _SCHED_PY_PAM
 
-_SCHED_FP_NAM scfg _FER _FECL _IED _FEANX _MD = _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD
+_SCHED_FP_NAM = _SCHED_FP_PAM
 
-_SCHED_PRD_NAM scfg _PRD = _SCHED_PRD_PAM scfg _PRD
+_SCHED_PRD_NAM = _SCHED_PRD_PAM
 
-_SCHED_TD_NAM scfg _TD = _SCHED_TD_PAM scfg _TD
+_SCHED_TD_NAM = _SCHED_TD_PAM
 
 _SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
     let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
@@ -187,21 +195,21 @@ _SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
 
         u       | isNothing _IPANX && isNothing _IPCL    = Nothing
                 | isJust _IPCED && fromJust _IPCED >= _T = Nothing
-                | otherwise                              = (\s -> _S s (fromJust _IPCL) _MD scfg) <$> r
+                | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
 
         v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
 
-        result  = Just ((fromMaybe [] u) ++ (fromMaybe [] v))
+        result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
     in
         result
 
 
 _SCHED_IPCI_NAM = _SCHED_IPCI_PAM
 
-_SCHED_IPCB_NAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD = _SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD
+_SCHED_IPCB_NAM = _SCHED_IPCB_LAM
 
-_SCHED_RR_NAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD
+_SCHED_RR_NAM = _SCHED_RR_PAM
 
-_SCHED_RRF_NAM scfg _IED _RRANX _RRCL _MD = _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD
+_SCHED_RRF_NAM = _SCHED_RRF_PAM
 
-_SCHED_SC_NAM scfg _IED _SCEF _SCANX _SCCL _MD = _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD
+_SCHED_SC_NAM = _SCHED_SC_PAM
