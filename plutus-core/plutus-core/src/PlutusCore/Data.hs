@@ -150,7 +150,7 @@ encodeBs b | BS.length b <= 64 = CBOR.encodeBytes b
 -- It's a bit tricky to get cborg to emit an indefinite-length bytestring with chunks that we control,
 -- so we encode it manually
 -- See Note [Evading the 64-byte limit]
-encodeBs b                     = CBOR.encodeBytesIndef <> foldMap encode (to64ByteChunks b) <> CBOR.encodeBreak
+encodeBs b = CBOR.encodeBytesIndef <> foldMap encode (to64ByteChunks b) <> CBOR.encodeBreak
 
 -- | Turns a 'BS.ByteString' into a list of <=64 byte chunks.
 to64ByteChunks :: BS.ByteString -> [BS.ByteString]

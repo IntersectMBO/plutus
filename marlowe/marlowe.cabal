@@ -84,13 +84,17 @@ library
 
 test-suite marlowe-test
     import: lang
-    hs-source-dirs: test
+    hs-source-dirs:
+      test
+      pab
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
         Spec.Marlowe.AutoExecute
+        Spec.PAB.Workflow
+        MarloweContract
     build-depends:
         aeson -any,
         base >=4.9 && <5,
@@ -111,7 +115,16 @@ test-suite marlowe-test
         marlowe,
         plutus-tx -any,
         QuickCheck,
-        streaming -any
+        template-haskell -any,
+        streaming -any,
+        plutus-pab -any,
+        async -any,
+        prettyprinter -any,
+        purescript-bridge -any,
+        servant-client -any,
+        http-client -any,
+        websockets -any,
+        network -any,
 
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab

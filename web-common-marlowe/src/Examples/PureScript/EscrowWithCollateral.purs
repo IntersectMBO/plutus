@@ -37,7 +37,7 @@ defaultSlotContent =
     , "Deposit of collateral by buyer timeout" /\ fromInt 1200
     , "Deposit of price by buyer timeout" /\ fromInt 1800
     , "Dispute by buyer timeout" /\ fromInt 3000
-    , "Seller's response timeout" /\ fromInt 3600
+    , "Complaint deadline" /\ fromInt 3600
     ]
 
 metaData :: MetaData
@@ -74,7 +74,7 @@ disputeTimeout :: Timeout
 disputeTimeout = SlotParam "Dispute by buyer timeout"
 
 answerTimeout :: Timeout
-answerTimeout = SlotParam "Seller's response timeout"
+answerTimeout = SlotParam "Complaint deadline"
 
 depositCollateral :: Party -> Timeout -> Contract -> Contract -> Contract
 depositCollateral party timeout timeoutContinuation continuation =

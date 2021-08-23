@@ -35,6 +35,7 @@ errors = testNested "Errors" [
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     -- , goldenPlcCatch "negativeInt" negativeInt
     , goldenUPlcCatch "caseInt" caseInt
+    , goldenUPlcCatch "stringLiteral" stringLiteral
     , goldenUPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenUPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
     , goldenUPlcCatch "literalCaseInt" literalCaseInt
@@ -51,6 +52,9 @@ negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
 caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
+
+stringLiteral :: CompiledCode String
+stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 

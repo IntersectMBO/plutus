@@ -18,7 +18,6 @@ makeTest {
         nodePort = 8082;
         chainIndexPort = 8083;
         signingProcessPort = 8084;
-        metadataPort = 8085;
       };
     };
   testScript = ''

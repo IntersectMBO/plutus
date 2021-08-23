@@ -219,7 +219,8 @@ executable plutus-use-cases-scripts
         aeson-pretty -any,
         cardano-api -any,
         cardano-binary -any,
-        cborg -any
+        cborg -any,
+        memory -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

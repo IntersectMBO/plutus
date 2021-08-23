@@ -33,7 +33,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 -- | The default cost model for built-in functions.
 defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
-  $$(readJSONFromFile DFP.builtinCostModelFile)
+    $$(readJSONFromFile DFP.builtinCostModelFile)
 
 {- Note [Modifying the cost model]
    When the Haskell representation of the cost model is changed, for example by
@@ -42,13 +42,14 @@ defaultBuiltinCostModel =
    the previous version.  When this happens, uncomment the three lines below (and
    comment out the three above) then rerun
 
-      cabal run plutus-core:update-cost-model
+      cabal bench plutus-core:update-cost-model
 
-   This will generate a new JSON file filled with default values.  After that,
-   restore this file to its previous state and then run "update-cost-model"
-   again to fill in the JSON file with the correct values (assuming that
-   suitable benchmarking data is in benching.csv and that models.R contains R
-   code to generate cost models for any new functions).
+   (You may also need to add 'data-default' to the 'build-depends' for the
+   library in plutus-core.cabal). This will generate a new JSON file filled with
+   default values.  After that, restore this file to its previous state and then
+   run "update-cost-model" again to fill in the JSON file with the correct
+   values (assuming that suitable benchmarking data is in benching.csv and that
+   models.R contains R code to generate cost models for any new functions).
 
    Alternatively, modify builtinCostModelFile by hand so that it matches the new
    format.

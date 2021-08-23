@@ -20,7 +20,7 @@
       repo = "nixpkgs";
 
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      rev = "2457ddc9522b0861649ee5e952fa2e505c1743b7";
+      rev = "6525bbc06a39f26750ad8ee0d40000ddfdc24acb";
 
       ref = "nixpkgs-unstable";
 
@@ -28,11 +28,16 @@
     };
     haskell-nix = {
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      url = "github:input-output-hk/haskell.nix?rev=40c97135df2d83ac0d5531a32028d23eca6d130e";
+      url = "github:input-output-hk/haskell.nix?rev=7215f083b37741446aa325b20c8ba9f9f76015eb";
 
       flake = false;
     };
 
+    actus-tests = {
+      url = "github:actusfrf/actus-tests";
+
+      flake = false;
+    };
     cardano-repo-tool = {
       url = "github:input-output-hk/cardano-repo-tool";
 
@@ -50,7 +55,7 @@
     };
     hackage-nix = {
       # We pin this revision to avoid unhelpful daily churn from the auto-update process.
-      url = "github:input-output-hk/hackage.nix?rev=afafb0104f1f5029155fcbb15bc1ce1bcd98ea6b";
+      url = "github:input-output-hk/hackage.nix?rev=23545a41ef50c4328e3f95b9a63db59f3ada3518";
 
       flake = false;
     };
@@ -117,6 +122,8 @@
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
+
+          plutus-docs = topLevel.docs.site;
         };
       }));
 }

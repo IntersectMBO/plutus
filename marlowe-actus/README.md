@@ -1,4 +1,4 @@
-# Marlowe ACTUS: stadardised financial contracts on Cardano Computation Layer
+# Marlowe ACTUS: standardised financial contracts on Cardano Computation Layer
 
 Here we present a library to generate Marlowe contracts from ACTUS contract terms
 

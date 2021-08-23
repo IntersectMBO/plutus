@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2021-07-07T00:00:00Z
+index-state: 2021-08-14T00:00:00Z
 
 packages: doc
           fake-pab
@@ -27,6 +27,7 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
+          stubs/plutus-ghc-stub
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -98,15 +99,18 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
-  tag: ce8f1934e4b6252084710975bd9bbc0a4648ece4
+  tag: 07397f0e50da97eaa0575d93bee7ac4b2b2576ec
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: a715c7f420770b70bbe95ca51d3dec83866cb1bd
+  tag: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
   subdir:
+    base-deriving-via
     binary
     binary/test
+    measures
+    orphans-deriving-via
     slotting
     cardano-crypto-class
     cardano-crypto-praos
@@ -124,7 +128,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: e338f2cf8e1078fbda9555dd2b169c6737ef6774
+  tag: f149c1c1e4e4bb5bab51fa055e9e3a7084ddc30e
   subdir:
     monoidal-synchronisation
     typed-protocols
@@ -157,7 +161,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: 09433fe537a4ab57df19e70be309c48d832f6576
+  tag: 12a0ef69d64a55e737fbf4e846bd8ed9fb30a956
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -180,7 +184,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: f72c6272eb58a43cd1d2ef4f4381f3822b3c60c6
+  tag: 3a56ac245c83d3345f81123ec3bb496bb23477a3
   subdir:
     cardano-api
     cardano-node
@@ -189,13 +193,18 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/input-output-hk/optparse-applicative
+  tag: 7497a29cb998721a9068d5725d49461f2bba0e7a
+
+source-repository-package
+  type: git
   location: https://github.com/input-output-hk/Win32-network
-  tag: 94153b676617f8f33abe8d8182c37377d2784bd1
+  tag: 3825d3abf75f83f406c1f7161883c438dac7277d
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/hedgehog-extras
-  tag: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+  tag: edf6945007177a638fbeb8802397f3a6f4e47c14
 
 source-repository-package
   type: git

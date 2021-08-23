@@ -34,7 +34,7 @@ defaultConfig = do
                         , scMaxSev = maxBound
                         }]
   CM.setDefaultScribes c ["StdoutSK::stdout"]
-  CM.setEKGBindAddr c $ Just (Endpoint ("localhost", 12790))
+  CM.setEKGBindAddr c $ Just (Endpoint ("127.0.0.1", 12790))
   pure c
 
 -- | Load a 'CM.Configuration' from a YAML file.

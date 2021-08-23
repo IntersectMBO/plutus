@@ -11,6 +11,7 @@
 , sourcesOverride ? { }
 , sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
 , haskellNix ? import sources.haskell-nix {
+    pkgs = import sources.nixpkgs { inherit system; };
     sourcesOverride = {
       hackage = sources.hackage-nix;
       stackage = sources.stackage-nix;
@@ -36,10 +37,8 @@ rec {
   inherit (plutus) web-ghc;
 
   inherit (haskell.packages.plutus-pab.components.exes)
-    plutus-game
-    plutus-currency
-    plutus-atomic-swap
-    plutus-pay-to-wallet;
+    plutus-pab-examples
+    plutus-uniswap;
 
   inherit (haskell.packages.marlowe.components.exes) marlowe-pab;
 
@@ -116,5 +115,9 @@ rec {
 
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
+
+  # Test data needed by marlowe-actus provided via niv
+  inherit (sources) actus-tests;
+
   build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
 }

@@ -65,11 +65,6 @@ library
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
-        Cardano.Metadata.API
-        Cardano.Metadata.Client
-        Cardano.Metadata.Mock
-        Cardano.Metadata.Server
-        Cardano.Metadata.Types
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Mock
@@ -375,8 +370,6 @@ test-suite plutus-pab-test-light
     main-is:          Spec.hs
     other-modules:
         Cardano.Api.NetworkId.ExtraSpec
-        Cardano.Metadata.ServerSpec
-        Cardano.Metadata.TypesSpec
         Cardano.Wallet.ServerSpec
 
     build-depends:

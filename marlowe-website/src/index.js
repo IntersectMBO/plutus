@@ -33,7 +33,27 @@ function initializeHeaderComponent() {
     }
   };
 }
+
+function fixCrossLinks() {
+  const env = window.location.hostname.split('.')[0];
+
+  if (env == 'localhost' || env == 'marlowe-finance') {
+    return;
+  }
+
+  const urls = {
+    'run': 'https://' + env + '.marlowe-dash.iohkdev.io',
+    'play': 'https://' + env + '.marlowe.iohkdev.io'
+  };
+
+  const crossLinks = document.querySelectorAll("a[data-marlowe-component]");
+  for (const crossLink of crossLinks) {
+    crossLink.href = urls[crossLink.dataset.marloweComponent];
+  }
+}
+
 window.onload = function () {
   initializeFaqComponent();
   initializeHeaderComponent();
+  fixCrossLinks();
 };

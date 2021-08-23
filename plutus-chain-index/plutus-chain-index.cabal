@@ -31,9 +31,12 @@ library
     import: lang
     exposed-modules:
         Plutus.ChainIndex
+        Plutus.ChainIndex.Api
         Plutus.ChainIndex.Effects
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
+        Plutus.ChainIndex.Client
+        Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
         Plutus.ChainIndex.Types
         Plutus.ChainIndex.UtxoState
@@ -55,7 +58,15 @@ library
         semigroups -any,
         bytestring -any,
         data-default -any,
-        text -any
+        text -any,
+        servant -any,
+        servant-server -any,
+        stm -any,
+        mtl -any,
+        warp -any,
+        servant-client -any,
+        servant-client-core -any,
+        http-types -any
 
 test-suite plutus-chain-index-test
     import: lang
@@ -98,4 +109,7 @@ executable plutus-chain-index
     aeson -any,
     optparse-applicative -any,
     iohk-monitoring -any,
-    yaml -any
+    yaml -any,
+    prettyprinter >=1.1.0.1,
+    plutus-chain-index -any,
+    stm -any
