@@ -1740,7 +1740,6 @@ unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
 ... | refl ,, refl ,, refl with U E refl p
 ... | refl ,, refl ,, refl = refl
 
-
 notVAL : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→ N → ⊥
 notVAL V (ruleEC E p refl r) = valred (lemVE _ E (Value2VALUE V)) p
 notVAL V (ruleErr E refl)    =
@@ -1766,4 +1765,3 @@ determinism {L = L} (ruleErr E' p) (ruleEC E'' q q' q'') | step ¬VL E err r' U 
 determinism {L = L} (ruleErr E' p) (ruleEC .E () q' q'') | step ¬VL E err r' U | refl ,, refl ,, refl
 determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U E' p err | U E'' q err
 ... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
-
