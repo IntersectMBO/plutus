@@ -990,7 +990,6 @@ bappTermLem appendString {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
 bappTermLem appendString _ (bubble (start _)) (step _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
-
 bappTermLem consByteString _ (start _) base = _ ,, _ ,, refl
 bappTermLem consByteString {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl

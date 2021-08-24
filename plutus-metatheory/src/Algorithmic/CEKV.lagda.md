@@ -487,6 +487,32 @@ bappTermLem mkCons {as = as} (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
 bappTermLem mkCons (bubble (start _)) (app _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem consByteString (start _) base = _ ,, _ ,, refl
+bappTermLem consByteString {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem consByteString (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem sliceByteString (start _) base = _ ,, _ ,, refl
+bappTermLem sliceByteString (bubble (start _)) (app (start _) base _) =
+  _ ,, _ ,, refl
+bappTermLem sliceByteString {as = as} (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] ∷ Term) ∷ Term) ∷ Term) as p refl
+bappTermLem sliceByteString
+            (bubble (bubble (start _)))
+            (app _ (app _ base _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem lengthOfByteString {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem lengthOfByteString (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem indexByteString (start _) base = _ ,, _ ,, refl
+bappTermLem indexByteString {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem indexByteString (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem blake2b-256 {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem blake2b-256 (start _) base | refl ,, refl = _ ,, _ ,, refl
+
 postulate
   bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
     → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
@@ -707,6 +733,11 @@ ival mkPairData = V-I⇒ mkPairData (start _) base
 ival mkNilData = V-I⇒ mkNilData (start _) base
 ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
 ival mkCons = V-I⇒ mkCons (start _) base
+ival consByteString = V-I⇒ consByteString (start _) base
+ival sliceByteString = V-I⇒ sliceByteString (start _) base
+ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) base
+ival indexByteString = V-I⇒ indexByteString (start _) base
+ival blake2b-256 = V-I⇒ blake2b-256 (start _) base
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
