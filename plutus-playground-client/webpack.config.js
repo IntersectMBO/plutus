@@ -111,7 +111,7 @@ module.exports = {
             favicon: "static/favicon.ico",
             title: "Plutus Playground",
             productName: "plutus-playground",
-            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-7",
+            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "G-9FPZ01J8E4",
             segmentAnalyticsId: isDevelopment ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" : "0CEePM8LJUSpPoo2QGrXHDw4GKg4JFBo",
         }),
         new MiniCssExtractPlugin({
