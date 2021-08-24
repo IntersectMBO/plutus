@@ -231,7 +231,7 @@ contractReview assets state =
     valueContentInputs = view _valueContentInputs state
   in
     div
-      [ classNames [ "flex", "flex-col", "p-4", "gap-4" ] ]
+      [ classNames [ "flex", "flex-col", "p-4", "gap-4", "max-h-full", "overflow-y-auto" ] ]
       [ div
           [ classNames [ "rounded", "shadow" ] ]
           [ h3
