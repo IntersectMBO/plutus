@@ -92,15 +92,13 @@ defPrettyConfigPlcOptions = PrettyConfigPlcOptions CondensedErrorsNo
 -- use the classic view and print neither 'Unique's, nor name attachments.
 defPrettyConfigPlcClassic :: PrettyConfigPlcOptions -> PrettyConfigPlc
 defPrettyConfigPlcClassic opts =
-    PrettyConfigPlc opts . PrettyConfigPlcClassic $
-        PrettyConfigClassic defPrettyConfigName
+    PrettyConfigPlc opts $ PrettyConfigPlcClassic defPrettyConfigClassic
 
 -- | The 'PrettyConfigPlc' used for debugging:
 -- use the classic view and print 'Unique's, but not name attachments.
 debugPrettyConfigPlcClassic :: PrettyConfigPlcOptions -> PrettyConfigPlc
 debugPrettyConfigPlcClassic opts =
-    PrettyConfigPlc opts . PrettyConfigPlcClassic $
-        PrettyConfigClassic debugPrettyConfigName
+    PrettyConfigPlc opts $ PrettyConfigPlcClassic debugPrettyConfigClassic
 
 -- | The 'PrettyConfigPlc' used by default and for readability:
 -- use the refined view and print neither 'Unique's, nor name attachments.

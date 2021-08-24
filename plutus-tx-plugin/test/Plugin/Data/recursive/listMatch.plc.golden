@@ -6,15 +6,16 @@
         (tyvardecl List (fun (type) (type)))
         (tyvardecl a (type))
         Nil_match
-        (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+        (vardecl Nil [ List a ])
+        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
       )
     )
     (lam
       ds
-      [List (con integer)]
+      [ List (con integer) ]
       [
         [ { [ { Nil_match (con integer) } ds ] (con integer) } (con integer 0) ]
-        (lam x (con integer) (lam ds [List (con integer)] x))
+        (lam x (con integer) (lam ds [ List (con integer) ] x))
       ]
     )
   )
