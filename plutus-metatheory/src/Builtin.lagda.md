@@ -91,7 +91,7 @@ data Builtin : Set where
                                           | AppendByteString
                                           | ConsByteString
                                           | SliceByteString
-                                          | LengthByteString
+                                          | LengthOfByteString
                                           | IndexByteString
                                           | EqualsByteString
                                           | LessThanByteString
