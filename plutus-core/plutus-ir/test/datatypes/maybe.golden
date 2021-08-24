@@ -1,4 +1,5 @@
-(program 1.0.0
+(program
+  1.0.0
   [
     [
       (lam
@@ -15,10 +16,13 @@
                 (all
                   out_Maybe_i0
                   (type)
-                  (fun
-                    out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))))
+                  (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))
+                )
+              )
               a_i1
-            ]))
+            ]
+          )
+        )
         (lam
           match_Maybe_i0
           (all
@@ -33,13 +37,19 @@
                     out_Maybe_i0
                     (type)
                     (fun
-                      out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))))
+                      out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1)
+                    )
+                  )
+                )
                 a_i1
               ]
               (all
                 out_Maybe_i0
                 (type)
-                (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1)))))
+                (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))
+              )
+            )
+          )
           [
             { Just_i2 (all a_i0 (type) (fun a_i1 a_i1)) }
             (abs a_i0 (type) (lam x_i0 a_i2 x_i1))
@@ -78,7 +88,9 @@
             (all
               out_Maybe_i0
               (type)
-              (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))))
+              (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))
+            )
+          )
           a_i2
         ]
         x_i1

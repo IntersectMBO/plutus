@@ -272,9 +272,13 @@
                     (fun a (fun a Bool))
                     (fun
                       (fun a (fun a Bool))
-                      (fun
-                        (fun a (fun a a))
-                        (fun (fun a (fun a a)) [ Ord a ]))))))))
+                      (fun (fun a (fun a a)) (fun (fun a (fun a a)) [ Ord a ]))
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
@@ -346,7 +350,8 @@
     )
     (termbind
       (strict)
-      (vardecl opCompare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
+      (vardecl
+        opCompare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
       )
       (abs
         a

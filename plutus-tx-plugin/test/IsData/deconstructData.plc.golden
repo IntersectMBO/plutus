@@ -6,7 +6,8 @@
       (vardecl
         unsafeDataAsConstr
         (fun
-          (con data) [ [ (con pair) (con integer) ] [ (con list) (con data) ] ])
+          (con data) [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+        )
       )
       (builtin unConstrData)
     )
@@ -57,7 +58,8 @@
       (vardecl
         chooseData
         (all
-          a (type) (fun (con data) (fun a (fun a (fun a (fun a (fun a a)))))))
+          a (type) (fun (con data) (fun a (fun a (fun a (fun a (fun a a))))))
+        )
       )
       (builtin chooseData)
     )
@@ -91,7 +93,11 @@
               [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
               (fun
                 [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
-                (fun (con data) [ Maybe [ [ Tuple2 a ] b ] ])))))
+                (fun (con data) [ Maybe [ [ Tuple2 a ] b ] ])
+              )
+            )
+          )
+        )
       )
       (abs
         a
@@ -170,7 +176,8 @@
                                           (all
                                             dead
                                             (type)
-                                            [ Maybe [ [ Tuple2 a ] b ] ])
+                                            [ Maybe [ [ Tuple2 a ] b ] ]
+                                          )
                                         }
                                         (lam
                                           ipv
@@ -196,7 +203,8 @@
                                                       (type)
                                                       [
                                                         Maybe [ [ Tuple2 a ] b ]
-                                                      ])
+                                                      ]
+                                                    )
                                                   }
                                                   (lam
                                                     ipv
@@ -250,7 +258,8 @@
                                           {
                                             { chooseList (con data) }
                                             (fun
-                                              Unit [ Maybe [ [ Tuple2 a ] b ] ])
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           [ { tail (con data) } l ]
                                         ]
@@ -273,7 +282,8 @@
                                           {
                                             { chooseList (con data) }
                                             (fun
-                                              Unit [ Maybe [ [ Tuple2 a ] b ] ])
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           l
                                         ]
@@ -296,7 +306,8 @@
                                           {
                                             { chooseList (con data) }
                                             (fun
-                                              Unit [ Maybe [ [ Tuple2 a ] b ] ])
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           l
                                         ]
@@ -317,7 +328,8 @@
                                           ifThenElse
                                           (fun
                                             (con unit)
-                                            [ Maybe [ [ Tuple2 a ] b ] ])
+                                            [ Maybe [ [ Tuple2 a ] b ] ]
+                                          )
                                         }
                                         [
                                           [
@@ -378,7 +390,11 @@
                 [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
                 [
                   (lam a (type) (fun (con data) [ Maybe a ])) [ [ Tuple2 a ] b ]
-                ]))))
+                ]
+              )
+            )
+          )
+        )
       )
       fFromDataTuple2_cfromBuiltinData
     )
@@ -448,7 +464,9 @@
           (type)
           (fun
             [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
-            (fun (con data) [ Maybe a ])))
+            (fun (con data) [ Maybe a ])
+          )
+        )
       )
       (abs a (type) (lam v [ (lam a (type) (fun (con data) [ Maybe a ])) a ] v))
     )

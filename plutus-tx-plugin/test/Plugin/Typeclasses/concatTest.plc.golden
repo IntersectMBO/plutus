@@ -70,9 +70,9 @@
                 m
                 (type)
                 (all
-                  a
-                  (type)
-                  (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -87,7 +87,8 @@
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
                       )
                       [ { p1Monoid m } dMonoid ]
                     )
@@ -154,7 +155,10 @@
                       (all
                         a
                         (type)
-                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                      )
+                    )
+                  )
                   List
                 ]
               )
@@ -170,7 +174,9 @@
                   (all
                     c
                     (type)
-                    (all a (type) (fun (fun b c) (fun (fun a b) (fun a c))))))
+                    (all a (type) (fun (fun b c) (fun (fun a b) (fun a c))))
+                  )
+                )
               )
               (abs
                 b
@@ -197,7 +203,10 @@
                     [ (lam a (type) (fun a a)) a ]
                     (fun
                       [ (lam a (type) (fun a a)) a ]
-                      [ (lam a (type) (fun a a)) a ])))
+                      [ (lam a (type) (fun a a)) a ]
+                    )
+                  )
+                )
               )
               (abs
                 a
@@ -244,8 +253,9 @@
                   a
                   (type)
                   (fun
-                    (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                    [ List a ]))
+                    (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                  )
+                )
               )
               (abs
                 a
@@ -278,11 +288,16 @@
                             (all
                               a
                               (type)
-                              (fun
-                                [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                              (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                            )
+                          )
+                        )
                         t
                       ]
-                      (fun [ t [ List a ] ] [ List a ]))))
+                      (fun [ t [ List a ] ] [ List a ])
+                    )
+                  )
+                )
               )
               (abs
                 t
@@ -302,8 +317,10 @@
                           (all
                             a
                             (type)
-                            (fun
-                              [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                            (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                          )
+                        )
+                      )
                       t
                     ]
                     (lam
