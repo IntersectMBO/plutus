@@ -22,7 +22,7 @@ import           GHC.Generics                   (Generic)
 import qualified Plutus.Contract.Resumable      as Contract
 import qualified Plutus.Contract.State          as Contract
 
-import qualified Data.Swagger.Schema            as Swagger
+import qualified Data.OpenApi.Schema            as OpenApi
 import           Orphans                        ()
 
 
@@ -36,7 +36,7 @@ data PartiallyDecodedResponse v =
         , observableState :: Value
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 
 fromResp :: Contract.ContractResponse Value Value s v -> PartiallyDecodedResponse v

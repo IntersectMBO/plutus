@@ -35,6 +35,7 @@ import           Data.Aeson                          (FromJSON, ToJSON, toJSON)
 import           Data.Coerce                         (coerce)
 import           Data.Default                        (def)
 import           Data.Either                         (isLeft)
+import qualified Data.OpenApi.Schema                 as OpenApi
 import           Data.Proxy                          (Proxy (Proxy))
 import qualified Data.Text                           as Text
 import           Data.Text.Prettyprint.Doc
@@ -81,7 +82,7 @@ tests =
 
 data TestingContracts = PingPong
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (FromJSON, ToJSON)
+  deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance HasDefinitions TestingContracts where
   getDefinitions = [ PingPong ]

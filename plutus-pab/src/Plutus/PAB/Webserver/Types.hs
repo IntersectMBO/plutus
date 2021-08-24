@@ -27,7 +27,7 @@ import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
 import           Wallet.Types                            (ContractInstanceId)
 
-import qualified Data.Swagger.Schema                     as Swagger
+import qualified Data.OpenApi.Schema                     as OpenApi
 
 data ContractReport t =
     ContractReport
@@ -35,7 +35,7 @@ data ContractReport t =
         , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse PABReq)]
         }
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 data ChainReport =
     ChainReport
@@ -44,7 +44,7 @@ data ChainReport =
         , annotatedBlockchain :: [[AnnotatedTx]]
         }
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 emptyChainReport :: ChainReport
 emptyChainReport = ChainReport mempty mempty mempty
@@ -55,7 +55,7 @@ data FullReport t =
         , chainReport    :: ChainReport
         }
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 data ContractSignatureResponse t =
     ContractSignatureResponse
@@ -65,7 +65,7 @@ data ContractSignatureResponse t =
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
 
-deriving instance Swagger.ToSchema t => Swagger.ToSchema (ContractSignatureResponse t)
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractSignatureResponse t)
 
 -- | Data needed to start a new instance of a contract.
 data ContractActivationArgs t =
@@ -76,9 +76,7 @@ data ContractActivationArgs t =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Swagger.ToSchema t => Swagger.ToSchema (ContractActivationArgs t) where
-    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
-
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractActivationArgs t)
 
 instance Pretty t => Pretty (ContractActivationArgs t) where
     pretty ContractActivationArgs{caID, caWallet} =
@@ -97,9 +95,7 @@ data ContractInstanceClientState t =
         deriving anyclass (ToJSON, FromJSON)
 
 
-instance Swagger.ToSchema t => Swagger.ToSchema (ContractInstanceClientState t) where
-    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
-
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractInstanceClientState t)
 
 -- | Status updates for contract instances streamed to client
 data InstanceStatusToClient

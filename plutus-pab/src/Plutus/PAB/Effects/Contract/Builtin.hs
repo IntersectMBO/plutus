@@ -62,9 +62,8 @@ import           Plutus.Trace.Emulator.Types                      (ContractInsta
 import qualified Plutus.Trace.Emulator.Types                      as Emulator
 import           Schema                                           (FormSchema)
 
+import qualified Data.OpenApi                                     as OpenApi
 import           Data.Proxy                                       (Proxy (..))
-import qualified Data.Swagger                                     as Swagger
-import qualified Data.Swagger.Schema                              as Swagger
 
 
 
@@ -75,9 +74,8 @@ import qualified Data.Swagger.Schema                              as Swagger
 -- Purescript with '(equal <*> (genericShow <*> mkSumType)) (Proxy @(Builtin A))'.
 data Builtin a = Builtin deriving (Eq, Generic)
 
-instance Swagger.ToSchema t => Swagger.ToSchema (Builtin t) where
-    declareNamedSchema _ = Swagger.declareNamedSchema (Proxy :: Proxy t)
-
+instance OpenApi.ToSchema t => OpenApi.ToSchema (Builtin t) where
+    declareNamedSchema _ = OpenApi.declareNamedSchema (Proxy :: Proxy t)
 
 
 type ContractConstraints w schema error =

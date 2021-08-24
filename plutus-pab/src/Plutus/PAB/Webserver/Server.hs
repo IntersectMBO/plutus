@@ -31,6 +31,7 @@ import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
 import           Data.Monoid                     (Endo (..))
+import qualified Data.OpenApi.Schema             as OpenApi
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Crypto                   (pubKeyHash)
 import           Network.Wai                     (Middleware)
@@ -43,8 +44,8 @@ import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
 import           Plutus.PAB.Simulator            (Simulation)
 import qualified Plutus.PAB.Simulator            as Simulator
 import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl, defaultWebServerConfig)
-import           Plutus.PAB.Webserver.API        (API, WSAPI, WalletProxy)
-import           Plutus.PAB.Webserver.Handler    (apiHandler, walletProxy, walletProxyClientEnv)
+import           Plutus.PAB.Webserver.API        (API, SwaggerAPI, WSAPI, WalletProxy)
+import           Plutus.PAB.Webserver.Handler    (apiHandler, swagger, walletProxy, walletProxyClientEnv)
 import qualified Plutus.PAB.Webserver.WebSocket  as WS
 import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
                                                   hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
@@ -56,9 +57,11 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
     mapError :: PABError -> Servant.ServerError
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
-type CombinedAPI t =
-      API (Contract.ContractDef t) Integer
-      :<|> WSAPI
+type CombinedAPI t = BasicCombinedAPI t :<|> SwaggerAPI
+
+type BasicCombinedAPI t =
+    API (Contract.ContractDef t) Integer
+    :<|> WSAPI
 
 app ::
     forall t env.
@@ -66,6 +69,7 @@ app ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     ) =>
     Maybe FilePath
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ wallet client (if wallet proxy is enabled)
@@ -74,10 +78,10 @@ app ::
 app fp walletClient pabRunner = do
     let apiServer :: ServerT (CombinedAPI t) Handler
         apiServer =
-            Servant.hoistServer
-                (Proxy @(CombinedAPI t))
+            (Servant.hoistServer
+                (Proxy @(BasicCombinedAPI t))
                 (asHandler pabRunner)
-                (apiHandler :<|> WS.wsHandler)
+                (apiHandler :<|> WS.wsHandler)) :<|> (swagger @t)
 
     case fp of
         Nothing -> do
@@ -111,6 +115,7 @@ startServer ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => WebserverConfig -- ^ Optional file path for static assets
     -> Either ClientEnv (PABAction t env WalletInfo)
@@ -137,6 +142,7 @@ startServer' ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => [Middleware] -- ^ Optional wai middleware
     -> Int -- ^ Port
@@ -177,6 +183,7 @@ startServerDebug ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => Simulation t (Simulation t ())
 startServerDebug = startServerDebug' defaultWebServerConfig
@@ -188,6 +195,7 @@ startServerDebug' ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => WebserverConfig
     -> Simulation t (Simulation t ())
