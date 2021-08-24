@@ -57,7 +57,7 @@ instance P.Eq DCert where
     DCertDelegDeRegKey sc == DCertDelegDeRegKey sc'            = sc P.== sc'
     DCertDelegDelegate sc pkh == DCertDelegDelegate sc' pkh'   = sc P.== sc' && pkh P.== pkh'
     DCertPoolRegister pid pvfr == DCertPoolRegister pid' pvfr' = pid P.== pid' && pvfr P.== pvfr'
-    DCertPoolRetire pkh i == DCertPoolRetire pkh' i'           = pkh P.== pkh' && i == i'
+    DCertPoolRetire pkh i == DCertPoolRetire pkh' i'           = pkh P.== pkh' && i P.== i'
     DCertGenesis == DCertGenesis                               = True
     DCertMir == DCertMir                                       = True
     _ == _                                                     = False
