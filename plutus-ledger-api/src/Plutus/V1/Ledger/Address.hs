@@ -32,12 +32,12 @@ import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Orphans    ()
 import           Plutus.V1.Ledger.Scripts
 
-import qualified Data.Swagger.Schema         as Swagger
+import qualified Data.OpenApi.Schema         as OpenApi
 
 -- | Address with two kinds of credentials, normal and staking.
 data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema, ToJSONKey, FromJSONKey, Serialise, Hashable, NFData)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, Serialise, Hashable, NFData)
 
 instance Pretty Address where
     pretty (Address cred stakingCred) =

@@ -107,7 +107,7 @@ import           Wallet.API                       (WalletAPIError)
 import           Wallet.Types                     (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
                                                    EndpointDescription, EndpointValue)
 
-import qualified Data.Swagger.Schema              as Swagger
+import qualified Data.OpenApi.Schema              as OpenApi
 import           Orphans                          ()
 
 -- | Requests that 'Contract's can make
@@ -129,10 +129,7 @@ data PABReq =
     | ExposeEndpointReq ActiveEndpoint
     | PosixTimeRangeToContainedSlotRangeReq POSIXTimeRange
     deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Swagger.ToSchema PABReq where
-    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 
 instance Pretty PABReq where
@@ -240,10 +237,8 @@ data ChainIndexQuery =
   | UtxoSetAtAddress Credential
   | GetTip
     deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
-instance Swagger.ToSchema ChainIndexQuery where
-    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
 
 instance Pretty ChainIndexQuery where
     pretty = \case
@@ -424,7 +419,7 @@ data ActiveEndpoint = ActiveEndpoint
   , aeMetadata    :: Maybe JSON.Value -- ^ Data that should be shown to the user
   }
   deriving (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
+  deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 instance Pretty ActiveEndpoint where
   pretty ActiveEndpoint{aeDescription, aeMetadata} =

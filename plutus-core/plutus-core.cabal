@@ -314,7 +314,7 @@ library
         witherable -any,
         word-array -any,
         cardano-crypto-class -any,
-        swagger2
+        openapi3
 
 test-suite satint-test
   import: lang

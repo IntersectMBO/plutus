@@ -40,12 +40,11 @@ import           PlutusCore.Name
 import           Control.Lens
 import           Data.Hashable
 import qualified Data.Kind                as GHC
+import qualified Data.OpenApi             as OpenApi
 import           Data.Proxy
 import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
 import           Universe
-
-import qualified Data.Swagger             as Swagger
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -57,7 +56,7 @@ data Kind ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
-deriving instance Swagger.ToSchema ann => Swagger.ToSchema (Kind ann)
+deriving instance OpenApi.ToSchema ann => OpenApi.ToSchema (Kind ann)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -86,21 +85,22 @@ data Term tyname name uni fun ann
     deriving (Show, Functor, Generic, NFData, Hashable)
 
 deriving instance
-    ( Swagger.ToSchema tyname
-    , Swagger.ToSchema name
-    , Swagger.ToSchema (uni ann)
-    , Swagger.ToSchema fun
-    , Swagger.ToSchema ann
-    , Swagger.ToSchema (Type tyname uni ann)
-    , Swagger.ToSchema (Some (ValueOf uni))
-    ) => Swagger.ToSchema (Term tyname name uni fun ann)
+    ( OpenApi.ToSchema tyname
+    , OpenApi.ToSchema name
+    , OpenApi.ToSchema (uni ann)
+    , OpenApi.ToSchema fun
+    , OpenApi.ToSchema ann
+    , OpenApi.ToSchema (Type tyname uni ann)
+    , OpenApi.ToSchema (Some (ValueOf uni))
+    , Typeable uni
+    ) => OpenApi.ToSchema (Term tyname name uni fun ann)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
     deriving (Show, Functor, Generic, NFData, Hashable)
 
-deriving instance Swagger.ToSchema ann => Swagger.ToSchema (Version ann)
+deriving instance OpenApi.ToSchema ann => OpenApi.ToSchema (Version ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)

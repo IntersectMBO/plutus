@@ -77,7 +77,7 @@ library
         tagged -any,
         lens -any,
         scientific -any,
-        swagger2
+        openapi3
     
 test-suite plutus-ledger-api-test
     import: lang

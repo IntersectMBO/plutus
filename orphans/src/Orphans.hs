@@ -7,12 +7,12 @@ module Orphans () where
 import           Control.Monad.Freer.Extras.Log (LogLevel, LogMessage)
 import           Data.Aeson                     (Value (..))
 
-import qualified Data.Swagger                   as Swagger
-import qualified Data.Swagger.Schema            as Swagger
+import qualified Data.OpenApi                   as OpenApi
+import qualified Data.OpenApi.Schema            as OpenApi
 
-deriving instance {-# INCOHERENT #-} Swagger.ToSchema (LogMessage Value)
-deriving instance {-# INCOHERENT #-} Swagger.ToSchema LogLevel
+deriving instance {-# INCOHERENT #-} OpenApi.ToSchema (LogMessage Value)
+deriving instance {-# INCOHERENT #-} OpenApi.ToSchema LogLevel
 
-instance {-# INCOHERENT #-} Swagger.ToSchema Value where
-    declareNamedSchema _ = pure $ Swagger.NamedSchema (Just "JSON") mempty
+instance {-# INCOHERENT #-} OpenApi.ToSchema Value where
+    declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "JSON") mempty
 

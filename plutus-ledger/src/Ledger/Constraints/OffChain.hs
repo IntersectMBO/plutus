@@ -80,7 +80,7 @@ import           Plutus.V1.Ledger.Time            (POSIXTimeRange)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
-import qualified Data.Swagger.Schema              as Swagger
+import qualified Data.OpenApi.Schema              as OpenApi
 
 data ScriptLookups a =
     ScriptLookups
@@ -174,7 +174,7 @@ data UnbalancedTx =
         , unBalancedTxValidityTimeRange   :: POSIXTimeRange
         }
     deriving stock (Eq, Generic, Show)
-    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 makeLensesFor
     [ ("unBalancedTxTx", "tx")

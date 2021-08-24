@@ -28,7 +28,7 @@ import           GHC.Exts                  (IsList (..))
 import           GHC.Generics
 import           Prelude
 
-import qualified Data.Swagger              as Swagger
+import qualified Data.OpenApi              as OpenApi
 
 -- | A generic "data" type.
 --
@@ -45,16 +45,16 @@ data Data =
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
-instance Swagger.ToSchema Data where
+instance OpenApi.ToSchema Data where
   declareNamedSchema _ = do
-    integerSchema <- Swagger.declareSchemaRef (Proxy :: Proxy Integer)
-    constrArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy (Integer, [Data]))
-    mapArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy [(Data, Data)])
-    listArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy [Data])
-    bytestringSchema <- Swagger.declareSchemaRef (Proxy :: Proxy String)
-    return $ Swagger.NamedSchema (Just "Data") $ mempty
-      & Swagger.type_ ?~ Swagger.SwaggerObject
-      & Swagger.properties .~
+    integerSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy Integer)
+    constrArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy (Integer, [Data]))
+    mapArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy [(Data, Data)])
+    listArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy [Data])
+    bytestringSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy String)
+    return $ OpenApi.NamedSchema (Just "Data") $ mempty
+      & OpenApi.type_ ?~ OpenApi.OpenApiObject
+      & OpenApi.properties .~
           fromList
           [ ("Constr", constrArgsSchema)
           , ("Map", mapArgsSchema)

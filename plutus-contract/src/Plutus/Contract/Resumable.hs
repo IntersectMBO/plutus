@@ -91,7 +91,7 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.State
 
-import qualified Data.Swagger.Schema           as Swagger
+import qualified Data.OpenApi.Schema           as OpenApi
 
 {- Note [Resumable state machine]
 
@@ -143,12 +143,12 @@ never = send @(Resumable i o) RZero
 --   'Resumable' programs.
 newtype RequestID = RequestID Natural
     deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, FromJSON, Swagger.ToSchema, ToJSONKey, FromJSONKey, Pretty, Enum, Num)
+    deriving newtype (ToJSON, FromJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, Pretty, Enum, Num)
 
 -- | A value that uniquely identifies groups of requests.
 newtype IterationID = IterationID Natural
     deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, FromJSON, Swagger.ToSchema, ToJSONKey, FromJSONKey, Pretty, Enum, Num)
+    deriving newtype (ToJSON, FromJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, Pretty, Enum, Num)
     deriving (Semigroup) via (Max Natural)
 
 instance Monoid IterationID where
@@ -163,7 +163,7 @@ data Request o =
         } deriving stock (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
            deriving anyclass (ToJSON, FromJSON)
 
-deriving instance Swagger.ToSchema o => Swagger.ToSchema (Request o)
+deriving instance OpenApi.ToSchema o => OpenApi.ToSchema (Request o)
 
 instance Pretty o => Pretty (Request o) where
     pretty Request{rqID, itID, rqRequest} =

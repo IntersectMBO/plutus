@@ -29,7 +29,7 @@ import qualified PlutusCore.Data           as PLC
 import           PlutusTx.Utils            (mustBeReplaced)
 import           Prelude                   as Haskell
 
-import qualified Data.Swagger              as Swagger
+import qualified Data.OpenApi              as OpenApi
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.
@@ -150,8 +150,8 @@ newtype BuiltinByteString = BuiltinByteString ByteString
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
   deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
 
-instance Swagger.ToSchema BuiltinByteString where
-    declareNamedSchema _ = pure $ Swagger.NamedSchema (Just "Bytes") mempty
+instance OpenApi.ToSchema BuiltinByteString where
+    declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "Bytes") mempty
 
 instance Pretty BuiltinByteString where
     pretty = viaShow

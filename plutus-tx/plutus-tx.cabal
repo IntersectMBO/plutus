@@ -92,7 +92,7 @@ library
         hashable -any,
         memory -any,
         serialise -any,
-        swagger2
+        openapi3
 
 test-suite plutus-tx-test
     import: lang

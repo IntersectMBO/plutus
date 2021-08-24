@@ -36,7 +36,7 @@ import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 import qualified Prelude                   as Haskell
 
-import qualified Data.Swagger.Schema       as Swagger
+import qualified Data.OpenApi.Schema       as OpenApi
 
 
 -- | This is a length of time, as measured by a number of milliseconds.
@@ -50,7 +50,7 @@ makeLift ''DiffMilliSeconds
 -- | POSIX time is measured as the number of milliseconds since 1970-01-01T00:00:00Z
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-  deriving anyclass (FromJSONKey, ToJSONKey, Swagger.ToSchema, NFData)
+  deriving anyclass (FromJSONKey, ToJSONKey, OpenApi.ToSchema, NFData)
   deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
   deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 

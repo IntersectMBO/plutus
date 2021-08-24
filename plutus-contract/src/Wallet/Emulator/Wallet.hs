@@ -59,7 +59,7 @@ import           Wallet.Emulator.ChainIndex     (ChainIndexState, idxWatchedAddr
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg (..))
 import           Wallet.Emulator.NodeClient     (NodeClientState, emptyNodeClientState)
 
-import qualified Data.Swagger.Schema            as Swagger
+import qualified Data.OpenApi.Schema            as OpenApi
 
 newtype SigningProcess = SigningProcess {
     unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [PubKeyHash] -> Tx -> Eff effs Tx
@@ -72,7 +72,7 @@ instance Show SigningProcess where
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, Swagger.ToSchema)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, OpenApi.ToSchema)
 
 instance Show Wallet where
     showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i

@@ -121,7 +121,7 @@ library
         deepseq -any,
         freer-simple -any,
         semigroups -any,
-        swagger2
+        openapi3
 
     ghc-options: -fprint-potential-instances
 

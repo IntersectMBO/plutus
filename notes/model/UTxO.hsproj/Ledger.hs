@@ -14,9 +14,9 @@ module Ledger (
 import           "cryptonite" Crypto.Hash
 import qualified Data.ByteArray                 as BA
 import qualified Data.ByteString.Char8          as BS
+import qualified "openapi3" Data.OpenApi.Schema as OpenApi
 import           Data.Set                       (Set)
 import qualified Data.Set                       as Set
-import qualified "swagger2" Data.Swagger.Schema as Swagger
 import           GHC.Generics                   (Generic)
 
 import           Types
@@ -40,7 +40,7 @@ data Tx
     , feeTX     :: Value
     }
     deriving (Show, Generic)
-    deriving (Swagger.ToSchema)
+    deriving (OpenApi.ToSchema)
 
 data TxStripped
   = TxStripped

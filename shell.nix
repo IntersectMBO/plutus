@@ -72,6 +72,7 @@ let
     yq
     z3
     zlib
+    lzma
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
   # local build inputs ( -> ./nix/pkgs/default.nix )

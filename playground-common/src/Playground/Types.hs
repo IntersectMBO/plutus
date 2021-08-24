@@ -36,7 +36,7 @@ import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubK
 import           Wallet.Rollup.Types          (AnnotatedTx)
 import           Wallet.Types                 (EndpointDescription)
 
-import qualified Data.Swagger.Schema          as Swagger
+import qualified Data.OpenApi.Schema          as OpenApi
 
 data KnownCurrency =
     KnownCurrency
@@ -181,7 +181,7 @@ data FunctionSchema a =
              , Traversable
              )
 
-deriving instance Swagger.ToSchema a => Swagger.ToSchema (FunctionSchema a)
+deriving instance OpenApi.ToSchema a => OpenApi.ToSchema (FunctionSchema a)
 
 ------------------------------------------------------------
 data PlaygroundError
