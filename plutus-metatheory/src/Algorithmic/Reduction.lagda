@@ -225,6 +225,8 @@ IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s'
 IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
 IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
   _ ,, inj₁ (V-con (Data (iDATA i)))
+IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
+  _ ,, inj₁ (V-con (Data (bDATA b)))
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)

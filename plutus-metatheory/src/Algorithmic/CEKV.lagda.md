@@ -178,6 +178,8 @@ BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
 BUILTIN iData (app _ base (V-con (integer i))) =
   inj₁ (V-con (Data (iDATA i)))
+BUILTIN bData (app _ base (V-con (bytestring b))) =
+  inj₁ (V-con (Data (bDATA b)))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

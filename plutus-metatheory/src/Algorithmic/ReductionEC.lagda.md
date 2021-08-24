@@ -375,6 +375,7 @@ BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(star
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
 BUILTIN iData (step .(<>>'2<>> [] (Term ∷ []) (Term ∷ []) (lemma<>1 [] (Term ∷ []))) base (V-con (integer i))) = con (Data (iDATA i))
+BUILTIN bData (step .(<>>'2<>> [] (Term ∷ []) (Term ∷ []) (lemma<>1 [] (Term ∷ []))) base (V-con (bytestring b))) = con (Data (bDATA b))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

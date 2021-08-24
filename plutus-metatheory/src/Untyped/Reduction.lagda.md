@@ -32,7 +32,7 @@ open import Utils hiding (_≤L_;*)
 import Data.List
 ```
 
-## Fixyt
+## Fixity
 
 ```
 infix 2 _—→_
@@ -238,6 +238,9 @@ IBUILTIN trace
 IBUILTIN iData
   (tt , (t , V-con (integer i)))
   = _ , inl (V-con (Data (iDATA i)))
+IBUILTIN bData
+  (tt , (t , V-con (bytestring b)))
+  = _ , inl (V-con (Data (bDATA b)))
 IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t

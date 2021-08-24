@@ -396,6 +396,8 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[Trace])
                   ,(TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyDataG)
                   ,[IData])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyDataG)
+                  ,[BData])
                   ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where
