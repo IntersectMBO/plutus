@@ -43,6 +43,7 @@ library
         Data.UUID.Extras
         Plutus.Contract
         Plutus.Contract.CardanoAPI
+        Plutus.Contract.CardanoAPITemp
         Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
@@ -106,6 +107,13 @@ library
     build-depends:
         cardano-api -any,
         cardano-ledger-core -any,
+    -- Temporary for Plutus.Contract.CardanoAPITemp
+    build-depends:
+        cardano-ledger-alonzo -any,
+        cardano-ledger-shelley-ma -any,
+        ouroboros-consensus-shelley -any,
+        shelley-spec-ledger -any,
+        strict-containers -any,
     build-depends:
         aeson >= 1.5.2,
         aeson-pretty -any,
