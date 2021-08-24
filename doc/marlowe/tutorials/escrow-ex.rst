@@ -182,7 +182,8 @@ Notes
 
 -  While the names of Alice, Bob and so on are “hard wired” into the contract here,
    we will see later on that these can be represented by *roles* in an account, such as *buyer* and *seller*. 
-   These roles can then be associated with specific *participants* when a contract is run.
+   These roles can then be associated with specific *participants* when a contract is run; we discuss this 
+   further in the next section.
 
 
 Background
