@@ -104,8 +104,12 @@ arity chooseUnit = [] :< Type :< Term :< Term
 arity mkPairData = [] :< Term :< Term
 arity mkNilData = [] :< Term
 arity mkNilPairData = [] :< Term
-arity mkConsData = [] :< Term :< Term
-
+arity mkCons = [] :< Term :< Term
+arity consByteString = [] :< Term :< Term
+arity sliceByteString = [] :< Term :< Term :< Term
+arity lengthOfByteString = [] :< Term
+arity indexByteString = [] :< Term :< Term
+arity blake2b-256 = [] :< Term
 data _≤L_ : Bwd Label → Bwd Label → Set where
   base     : ls ≤L ls
   skipType : ls :< Type ≤L ls' → ls ≤L ls'
@@ -410,6 +414,11 @@ ival mkPairData = V-F (V-builtin mkPairData refl (skipTerm base) _ _)
 ival mkNilData = V-F (V-builtin mkNilData refl base _ _)
 ival mkNilPairData = V-F (V-builtin mkNilPairData refl base _ _)
 ival mkCons = V-F (V-builtin mkCons refl (skipTerm base) _ _)
+ival consByteString = V-F (V-builtin consByteString refl (skipTerm base) _ _)
+ival sliceByteString = V-F (V-builtin sliceByteString refl (skipTerm (skipTerm base)) _ _)
+ival lengthOfByteString = V-F (V-builtin lengthOfByteString refl base _ _)
+ival indexByteString = V-F (V-builtin indexByteString refl (skipTerm base) _ _)
+ival blake2b-256 = V-F (V-builtin blake2b-256 refl base _ _)
 
 progress : (t : 0 ⊢) → Progress t
 progress (` ())

@@ -146,6 +146,11 @@ lemma⋆ mkPairData = refl
 lemma⋆ mkNilData = refl
 lemma⋆ mkNilPairData = refl
 lemma⋆ mkCons = refl
+lemma⋆ consByteString = refl
+lemma⋆ sliceByteString = refl
+lemma⋆ lengthOfByteString = refl
+lemma⋆ indexByteString = refl
+lemma⋆ blake2b-256 = refl
 
 lemma : ∀ b → wtoℕTm (len (proj₁ (proj₂ (ISIG b)))) ≡ arity b
 lemma addInteger = refl
@@ -194,6 +199,11 @@ lemma mkPairData = refl
 lemma mkNilData = refl
 lemma mkNilPairData = refl
 lemma mkCons = refl
+lemma consByteString = refl
+lemma sliceByteString = refl
+lemma lengthOfByteString = refl
+lemma indexByteString = refl
+lemma blake2b-256 = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
 ≡2≤‴ refl = ≤‴-refl
