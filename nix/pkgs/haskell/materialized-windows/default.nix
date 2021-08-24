@@ -340,9 +340,6 @@
         "srcloc".revision = (((hackage."srcloc")."0.6").revisions).default;
         "aeson-casing".revision = (((hackage."aeson-casing")."0.2.0.0").revisions).default;
         "unliftio".revision = (((hackage."unliftio")."0.2.19").revisions).default;
-        "extensible-effects".revision = (((hackage."extensible-effects")."5.0.0.1").revisions).default;
-        "extensible-effects".flags.lib-werror = false;
-        "extensible-effects".flags.dump-core = false;
         "http-client-tls".revision = (((hackage."http-client-tls")."0.3.5.3").revisions).default;
         "fail".revision = (((hackage."fail")."4.9.0.0").revisions).default;
         "microlens-th".revision = (((hackage."microlens-th")."0.4.3.6").revisions).default;
@@ -1430,7 +1427,6 @@
           "unliftio".components.library.planned = lib.mkOverride 900 true;
           "fail".components.library.planned = lib.mkOverride 900 true;
           "http-client-tls".components.library.planned = lib.mkOverride 900 true;
-          "extensible-effects".components.library.planned = lib.mkOverride 900 true;
           "fake-pab".components.exes."fake-pab-server".planned = lib.mkOverride 900 true;
           "constraints-extras".components.exes."readme".planned = lib.mkOverride 900 true;
           "typed-process".components.library.planned = lib.mkOverride 900 true;

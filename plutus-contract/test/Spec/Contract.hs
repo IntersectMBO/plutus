@@ -12,43 +12,37 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests, loopCheckpointContract, initial, upd) where
 
-import           Control.Lens                         hiding ((.>))
-import           Control.Monad                        (forM_, forever, void)
+import           Control.Lens                   hiding ((.>))
+import           Control.Monad                  (forever, replicateM_, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                 (catchError, throwError)
-import           Control.Monad.Freer                  (Eff)
-import           Control.Monad.Freer.Extras.Log       (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log       as Log
-import           Data.Functor.Apply                   ((.>))
-import qualified Data.Map                             as Map
+import           Control.Monad.Except           (catchError)
+import           Control.Monad.Freer.Extras.Log (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log as Log
+import           Data.Functor.Apply             ((.>))
+import qualified Data.Map                       as Map
 import           Test.Tasty
 
-import           Ledger                               (Address, PubKey, Slot)
+import           Ledger                         (Address, PubKey, Slot)
 import qualified Ledger
-import qualified Ledger.Ada                           as Ada
-import qualified Ledger.Constraints                   as Constraints
-import qualified Ledger.Crypto                        as Crypto
-import           Plutus.Contract                      as Con
-import qualified Plutus.Contract.State                as State
+import qualified Ledger.Ada                     as Ada
+import qualified Ledger.Constraints             as Constraints
+import qualified Ledger.Crypto                  as Crypto
+import           Plutus.Contract                as Con
+import qualified Plutus.Contract.State          as State
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                (ResumableResult (..), responses)
-import           Plutus.Contract.Util                 (loopM)
-import qualified Plutus.Trace                         as Trace
-import           Plutus.Trace.Emulator                (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
-                                                       activeEndpoints, callEndpoint)
-import           Plutus.Trace.Emulator.Types          (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                       ContractInstanceState (..), UserThreadMsg (..))
+import           Plutus.Contract.Types          (ResumableResult (..), responses)
+import           Plutus.Contract.Util           (loopM)
+import qualified Plutus.Trace                   as Trace
+import           Plutus.Trace.Emulator          (ContractInstanceTag, EmulatorTrace, activateContract, activeEndpoints,
+                                                 callEndpoint)
+import           Plutus.Trace.Emulator.Types    (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                 ContractInstanceState (..), UserThreadMsg (..))
 import qualified PlutusTx
-import           PlutusTx.Lattice
-import           Prelude                              hiding (not)
-import qualified Prelude                              as P
-import qualified Wallet.Emulator                      as EM
-import           Wallet.Emulator.Wallet               (walletAddress)
+import           Prelude                        hiding (not, pred)
+import qualified Wallet.Emulator                as EM
+import           Wallet.Emulator.Wallet         (walletAddress)
 
-import           Plutus.Contract.Effects              (ActiveEndpoint (..))
-import qualified Plutus.Contract.Request              as Endpoint
-import           Plutus.Contract.Resumable            (IterationID, Response (..))
-import           Plutus.Contract.Trace.RequestHandler (maybeToHandler)
+import           Plutus.Contract.Effects        (ActiveEndpoint (..))
 
 tests :: TestTree
 tests =
@@ -163,8 +157,8 @@ tests =
           in run 2 "await utxo produced"
             (assertDone theContract tag (const True) "should receive a notification")
             (void $ do
-                activateContract w1 theContract tag
-                Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
+                _ <- activateContract w1 theContract tag
+                _ <- Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
                 Trace.waitNSlots 1
             )
 
@@ -172,8 +166,8 @@ tests =
           in run 2 "await txout spent"
             (assertDone theContract tag (const True) "should receive a notification")
             (void $ do
-                activateContract w1 theContract tag
-                Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
+                _ <- activateContract w1 theContract tag
+                _ <- Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
                 Trace.waitNSlots 1
             )
 
@@ -203,7 +197,7 @@ tests =
             )
             $ do
                 hdl <- activateContract w1 loopCheckpointContract tag
-                forM_ [1..4] (\_ -> callEndpoint @"1" hdl 1)
+                replicateM_ 4 (callEndpoint @"1" hdl 1)
 
         , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> awaitPromise (endpoint @"1" (logInfo . (<>) "Received value: " . show))
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
@@ -227,7 +221,7 @@ tests =
                 (assertUserLog matchLogs)
                 $ do
                     hdl <- Trace.activateContractWallet w1 theContract
-                    Trace.waitNSlots 1
+                    _ <- Trace.waitNSlots 1
                     ContractInstanceState{instContractState=ResumableResult{_finalState}} <- Trace.getContractState hdl
                     Log.logInfo @String "Received contract state"
                     Log.logInfo @String $ "Final state: " <> show _finalState
@@ -241,9 +235,9 @@ w2 :: EM.Wallet
 w2 = EM.Wallet 2
 
 checkpointContract :: Contract () Schema ContractError ()
-checkpointContract = void $ do
-    checkpoint $ awaitPromise $ endpoint @"1" @Int pure .> endpoint @"2" @Int pure
-    checkpoint $ awaitPromise $ endpoint @"1" @Int pure .> endpoint @"3" @Int pure
+checkpointContract = do
+    void $ checkpoint $ awaitPromise $ endpoint @"1" @Int pure .> endpoint @"2" @Int pure
+    void $ checkpoint $ awaitPromise $ endpoint @"1" @Int pure .> endpoint @"3" @Int pure
 
 loopCheckpointContract :: Contract () Schema ContractError Int
 loopCheckpointContract = do

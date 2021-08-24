@@ -11,60 +11,41 @@ module Spec.Emulator(tests) where
 
 
 import           Control.Lens
-import           Control.Monad                  (void)
-import qualified Control.Monad.Freer            as Eff
-import qualified Control.Monad.Freer.Error      as E
-import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Extras.Log (logMessageContent)
-import           Control.Monad.Freer.Writer     (Writer, runWriter, tell)
-import           Control.Monad.Trans.Except     (runExcept)
-import qualified Data.Aeson                     as JSON
-import qualified Data.Aeson.Extras              as JSON
-import qualified Data.Aeson.Internal            as Aeson
-import qualified Data.ByteString                as BSS
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.ByteString.Lazy.Char8     (pack)
-import           Data.Default                   (Default (..))
-import           Data.Either                    (isLeft, isRight)
-import           Data.Foldable                  (fold, foldl', traverse_)
-import           Data.List                      (sort)
-import qualified Data.Map                       as Map
-import           Data.Monoid                    (Sum (..))
-import qualified Data.Set                       as Set
-import           Data.String                    (IsString (fromString))
-import           Hedgehog                       (Property, forAll, property)
+import           Control.Monad              (void)
+import qualified Control.Monad.Freer        as Eff
+import qualified Control.Monad.Freer.Error  as E
+import           Control.Monad.Freer.Writer (Writer, runWriter, tell)
+import qualified Data.ByteString.Lazy       as BSL
+import           Data.ByteString.Lazy.Char8 (pack)
+import           Data.Default               (Default (..))
+import           Data.Foldable              (fold)
+import qualified Data.Set                   as Set
+import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                   as Gen
-import qualified Hedgehog.Range                 as Range
-import           Ledger
-import qualified Ledger.Ada                     as Ada
-import           Ledger.Bytes                   as LedgerBytes
-import           Ledger.Generators              (Mockchain (Mockchain))
-import qualified Ledger.Generators              as Gen
-import qualified Ledger.Index                   as Index
-import           Ledger.Typed.Scripts           (wrapValidator)
-import           Ledger.Value                   (CurrencySymbol, Value (Value))
-import qualified Ledger.Value                   as Value
-import           Plutus.Contract.Test           hiding (not)
-import           Plutus.Trace                   (EmulatorTrace, PrintEffect (..))
-import qualified Plutus.Trace                   as Trace
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
+import           Ledger                     hiding (inputs)
+import qualified Ledger.Ada                 as Ada
+import           Ledger.Generators          (Mockchain (Mockchain))
+import qualified Ledger.Generators          as Gen
+import qualified Ledger.Index               as Index
+import           Ledger.Typed.Scripts       (wrapValidator)
+import qualified Ledger.Value               as Value
+import           Plutus.Contract.Test       hiding (not)
+import           Plutus.Trace               (EmulatorTrace, PrintEffect (..))
+import qualified Plutus.Trace               as Trace
 import qualified PlutusTx
-import           PlutusTx.AssocMap              as AssocMap
-import qualified PlutusTx.Builtins              as Builtins
-import qualified PlutusTx.Numeric               as P
-import qualified PlutusTx.Prelude               as PlutusTx
+import qualified PlutusTx.Numeric           as P
+import qualified PlutusTx.Prelude           as PlutusTx
+import           Prelude                    hiding (pred)
 import           Test.Tasty
-import           Test.Tasty.Golden              (goldenVsString)
-import           Test.Tasty.HUnit               (testCase)
-import qualified Test.Tasty.HUnit               as HUnit
-import           Test.Tasty.Hedgehog            (testProperty)
+import           Test.Tasty.Golden          (goldenVsString)
+import           Test.Tasty.Hedgehog        (testProperty)
 import           Wallet
-import qualified Wallet.API                     as W
-import qualified Wallet.Emulator.Chain          as Chain
-import           Wallet.Emulator.MultiAgent     (EmulatorEvent' (..), eteEvent)
-import qualified Wallet.Emulator.NodeClient     as NC
+import qualified Wallet.API                 as W
+import qualified Wallet.Emulator.Chain      as Chain
 import           Wallet.Emulator.Types
-import qualified Wallet.Emulator.Wallet         as Wallet
+import qualified Wallet.Emulator.Wallet     as Wallet
 import qualified Wallet.Graph
 
 
@@ -137,8 +118,8 @@ pubKey3 = walletPubKey wallet3
 
 utxo :: Property
 utxo = property $ do
-    Mockchain txPool o <- forAll Gen.genMockchain
-    Hedgehog.assert (unspentOutputs [map Valid txPool] == o)
+    Mockchain initialTxPool o <- forAll Gen.genMockchain
+    Hedgehog.assert (Ledger.unspentOutputs [map Ledger.Valid initialTxPool] == o)
 
 txnValid :: Property
 txnValid = property $ do
@@ -163,7 +144,7 @@ txnValidFrom =
 
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
+    inputs <- forAll $ zip @Integer [1..] <$> Gen.list (Range.linear 1 100) Gen.genValueNonNegative
     target <- forAll Gen.genValueNonNegative
     let result = Eff.run $ E.runError @WalletAPIError (selectCoin inputs target)
     case result of
@@ -218,9 +199,9 @@ invalidTrace = property $ do
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ _ txn (Index.ValueNotPreserved _ _) _
+                , Chain.TxnValidationFail _ _ txn' (Index.ValueNotPreserved _ _) _
                 , Chain.SlotAdd _
-                ] -> txn == invalidTxn
+                ] -> txn' == invalidTxn
             _ -> False
     checkPredicateInner options (assertChainEvents pred) trace Hedgehog.annotate Hedgehog.assert
 
@@ -229,10 +210,10 @@ invalidScript = property $ do
     (Mockchain m _, txn1) <- forAll genChainTxn
 
     -- modify one of the outputs to be a script output
-    index <- forAll $ Gen.int (Range.linear 0 ((length $ txOutputs txn1) -1))
-    let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitDatum
+    ndx <- forAll $ Gen.int (Range.linear 0 ((length $ txOutputs txn1) -1))
+    let scriptTxn = txn1 & outputs . element ndx %~ \o -> scriptTxOut (txOutValue o) failValidator unitDatum
     Hedgehog.annotateShow scriptTxn
-    let outToSpend = txOutRefs scriptTxn !! index
+    let outToSpend = txOutRefs scriptTxn !! ndx
     let totalVal = Ada.fromValue $ txOutValue (fst outToSpend)
 
     -- try and spend the script output
@@ -310,8 +291,7 @@ payToPubKeyScript2 =
 
 pubKeyTransactions :: EmulatorTrace ()
 pubKeyTransactions = do
-    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        five = Ada.lovelaceValueOf 5
+    let five = Ada.lovelaceValueOf 5
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always five pubKey2
     _ <- Trace.nextSlot
     Trace.liftWallet wallet2 $ payToPublicKey_ W.always five pubKey3
@@ -321,8 +301,7 @@ pubKeyTransactions = do
 
 pubKeyTransactions2 :: EmulatorTrace ()
 pubKeyTransactions2 = do
-    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        payment1 = initialBalance P.- Ada.lovelaceValueOf 100
+    let payment1 = initialBalance P.- Ada.lovelaceValueOf 100
         payment2 = initialBalance P.+ Ada.lovelaceValueOf 100
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always payment1 pubKey2
     _ <- Trace.nextSlot

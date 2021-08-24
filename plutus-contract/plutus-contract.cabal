@@ -168,9 +168,7 @@ library
             tasty-golden -any,
 
 test-suite plutus-contract-test
-    -- TODO: put this back, turns out there were lots of warnings in the `plutus-emulator` tests...
-    --import: lang
-    default-language: Haskell2010
+    import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -196,7 +194,6 @@ test-suite plutus-contract-test
         aeson -any,
         lens -any,
         transformers -any,
-        extensible-effects -any,
         plutus-contract -any,
         plutus-ledger -any,
         plutus-tx -any,
