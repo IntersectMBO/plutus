@@ -3,7 +3,7 @@
 Tutorials
 =========
 
-This document gives an overview the Marlowe tutorials.
+This document gives an overview of the Marlowe tutorials.
 
 1.  :ref:`introducing-marlowe`
     This tutorial gives an overview of the ideas behind Marlowe, as a
