@@ -250,21 +250,20 @@
             </div>
           </div>
         </div>
-        <div class="mx-3 md:mx-5vw max-w-2xl xl:mx-auto">
-          <h3 class="pt-16 text-xl font-semibold pb-4">See how it works</h3>
-          <div class="relative w-100 pb-16/9 ">
-            {# FIXME: change video link #}
-            <iframe class="absolute top-0 left-0 right-0 border-0 h-full w-full" src="https://www.youtube.com/embed/WB-bYHleFYY?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe>
+        <div class=" flex flex-col items-center justify-center">
+          <div class="mx-3 md:mx-5vw max-w-2xl w-full">
+            <h3 class="pt-16 text-xl font-semibold pb-4">See how it works</h3>
+            <div class="relative w-100 pb-16/9 ">
+              {# FIXME: change video link #}
+              <iframe class="absolute top-0 left-0 right-0 border-0 h-full w-full" src="https://www.youtube.com/embed/WB-bYHleFYY?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe>
+            </div>
           </div>
         </div>
         <div class="mt-16 mx-3 md:mx-5vw flex justify-center">
-          <div class="relative w-full max-w-screen-widest">
-            <div class="lg:w-3/4 w-full mx-auto">
-              <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg relative" data-marlowe-component="run">
-                Try demo
-                <img loading="lazy" class="w-32 absolute -right-36 bottom-6 lg:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try demo button">
-              </a>
-            </div>
+          <div class="w-full max-w-screen-widest flex justify-center">
+            <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg text-center flex-grow md:flex-grow-0" data-marlowe-component="run">
+              Try demo
+            </a>
           </div>
         </div>
         <img loading="lazy" class="section-circle-top-right hidden lg:block" src="{% static './static/img/circle-top-right.svg' %}" alt="Circle">
@@ -299,14 +298,9 @@
               <h3 class=" text-green lg:text-xl text-lg font-semibold lg:mt-0 md:mt-5 pb-4">No code? No problem.</h3>
               <h4 class="font-comfortaa-bold md:text-3xl text-27px mb-4">Write smart contracts in the visual builder</h4>
               <p class="md:text-xl text-lg md:mb-0 mb-12">With the Blockly visual builder you can develop financial smart contracts whithout writing a single line of code, right in the browser.</p>
-              <div class="relative md:w-5/6 w-11/12 md:mt-14 mt-8">
-
-                <div class="relative w-full">
-
-                  <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg" data-marlowe-component="run">Try it</a>
-                  <img loading="lazy" class="w-32 absolute left-52 bottom-2 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try it button">
-                </div>
-
+              <div class="md:mt-14 mt-8 w-full flex">
+                <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg text-center flex-grow md:flex-grow-0" data-marlowe-component="run">Try it</a>
+                <img loading="lazy" class="w-32 relative bottom-6 ml-4 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try it button">
               </div>
             </div>
 
@@ -356,14 +350,9 @@
               <h3 class=" text-green lg:text-xl text-lg font-semibold pb-4">Write in Marlowe, JS or Haskell</h3>
               <h4 class="font-comfortaa-bold md:text-3xl text-27px mb-4">Build your very own smart contract ideas</h4>
               <p class="md:text-xl text-lg lg:mb-14 mb-12">Rapidly build your own smart contracts from scratch or from pre-built templates in the Marlowe Build sandbox.</p>
-              <div class="relative md:w-5/6 w-11/12">
-
-                <div class="relative w-full">
-
-                  <a href="https://play.marlowe-finance.io" target="_blank" class="primary-button text-lgl" data-marlowe-component="play">Try it</a>
-                  <img loading="lazy" class="w-32 absolute left-52 bottom-2 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at try it button">
-                </div>
-
+              <div class="w-full flex">
+                <a href="https://play.marlowe-finance.io" target="_blank" class="primary-button text-lg text-center flex-grow md:flex-grow-0" data-marlowe-component="play">Try it</a>
+                <img loading="lazy" class="w-32 relative bottom-6 ml-4 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at try it button">
               </div>
 
             </div>
@@ -427,8 +416,8 @@
             </div>
           </div>
         </div>
-        <img loading=" lazy" class="pink-m-left pink-m-left w-pinkm=" w-pinkm="w-pinkM" hidden="hidden" lg:block="lg:block" src=" {% static './static/img/pink-m-left.svg' %} " alt="xx">
-        <img loading="lazy" class="pink-m-right w-pinkM hidden lg:block" src="{% static './static/img/pink-m-right.svg' %}" alt="xx">
+        <img loading="lazy" class="pink-m-left pink-m-left w-pinkM hidden xl:block" src=" {% static './static/img/pink-m-left.svg' %} " alt="background image">
+        <img loading="lazy" class="pink-m-right w-pinkM hidden xl:block" src="{% static './static/img/pink-m-right.svg' %}" alt="background image">
       </section>
 
       <footer class="shadow-sm bg-white md:py-5 py-10">
