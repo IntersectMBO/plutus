@@ -18,7 +18,8 @@ compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isLiftedTypeKind -> True)         -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just (i, o))  -> PLC.KindArrow () <$> compileKind i <*> compileKind o
-    (isUnboxedTuplesKind -> True)          -> pure $ PLC.Type ()
+    -- TODO: should construct a proper kind of unboxed tuple
+    (isUnboxedTuplesKind -> True)          -> pure $ PLC.KindArrow () (PLC.Type ()) (PLC.KindArrow () (PLC.Type ()) (PLC.Type ()))
     -- Treat 'RunTimeRep' as type
     (GHC.isRuntimeRepTy -> True)           -> pure $ PLC.Type ()
     -- Treat 'TYPE rep' as type
@@ -26,7 +27,6 @@ compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $
     _                                      -> unsupportedKind
     where
         unsupportedKind = throwSd UnsupportedError $ "Kind:" GHC.<+> (GHC.ppr k)
-        preds = [GHC.isKindLevPoly, GHC.classifiesTypeWithValues, GHC.isUnliftedTypeKind, GHC.isLiftedTypeKind, GHC.isRuntimeRepKindedTy, GHC.isUnliftedType, GHC.isUnliftedRuntimeRep, GHC.isLiftedRuntimeRep, GHC.isUnboxedTupleType]
 
 -- | We match on pi type (unboxed tuples has two pi types) and deconstruct two arrow types
 isUnboxedTuplesKind :: GHC.Kind -> Bool

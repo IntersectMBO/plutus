@@ -43,6 +43,8 @@ import qualified Data.List.NonEmpty            as NE
 import qualified Data.Set                      as Set
 import           Data.Traversable
 
+import           Debug.Trace
+
 -- Types
 
 {- Note [Type families and normalizing types]
@@ -86,12 +88,17 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> withContextM 2 (sdToTxt $ "Compiling funty:" GHC.<+> GHC.ppr (i, o)) $ PIR.TyFun () <$> compileType i <*> compileType o
-        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tycon:" GHC.<+> GHC.ppr (tc, ts)) $ PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+        -- (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (t, tc, ts, GHC.dropRuntimeRepArgs ts)) $ case ts of
+        --     (ty' : ts') | GHC.isRuntimeRepKindedTy ty' -> PIR.mkIterTyFun () <$> traverse compileType (GHC.dropRuntimeRepArgs ts) <*> compileTyCon tc
+        --     _ -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType ts -- (GHC.dropRuntimeRepArgs ts)
         (GHC.splitAppTy_maybe -> Just (t1, t2)) -> withContextM 2 (sdToTxt $ "Compiling appTy:" GHC.<+> GHC.ppr (t1, t2)) $ PIR.TyApp() <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> withContextM 2 (sdToTxt $ "Compiling forallty:" GHC.<+> GHC.ppr tpe) $ mkTyForallScoped tv (compileType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
+
+-- trace (GHC.showSDocUnsafe $ GHC.ppr t) t
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
