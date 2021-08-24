@@ -187,6 +187,6 @@ Videos
 
 -  `YouTube playlist: Marlowe: financial contracts on
    blockchain <https://www.youtube.com/playlist?list=PLqu19-ygE4ofUgGpslOs5zCr9Z6zCMibq>`_.
-   A general introduction to Marlowe from April 2020, updated in October
-   1.    Some features of the Playground have been updated since then.
+   A general introduction to Marlowe from October 2020.
+   Some features of the Playground have been updated since then.
 
