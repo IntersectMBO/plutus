@@ -74,10 +74,15 @@ module.exports = {
         logo: "100px",
         "logo-wider": "85px",
       },
+      padding: {
+        "16/9": "56.25%",
+      },
       width: {
         pinkM: "280px",
       },
-
+      maxWidth: {
+        widest: "1440px",
+      },
       borderWidth: {
         3: "3px",
       },

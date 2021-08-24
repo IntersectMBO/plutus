@@ -1,4 +1,5 @@
 import "./index.css";
+import "./carousel.css";
 import $ from "jquery";
 
 function initializeFaqComponent() {
@@ -69,6 +70,71 @@ function initializeSmoothScrolling() {
     });
 }
 
+function initializeMobileMenu() {
+  const drawer = document.getElementById("menu-drawer");
+  const menu = document.getElementById("mobile-menu");
+  const mobileMenuClose = document.getElementById("mobile-menu-close");
+  function closeOnEscape(evt) {
+    if (evt.key == "Escape") {
+      closeMenu();
+    }
+  }
+
+  function openMenu() {
+    menu.classList.remove("hidden");
+    // We need to add this class to the body so that the menu does not
+    // let the user scroll.
+    document.body.classList.add("overflow-hidden");
+    // Allow the menu to be closed with the Escape key.
+    document.addEventListener("keydown", closeOnEscape);
+  }
+
+  function closeMenu() {
+    menu.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+    document.removeEventListener("keydown", closeOnEscape);
+  }
+  drawer.onclick = openMenu;
+  mobileMenuClose.onclick = closeMenu;
+  $("#mobile-menu a").on("click", closeMenu);
+}
+
+function initializeContractCarousel() {
+  const carousel = document.getElementById("contract-carousel");
+
+  const selectors = Array.from(document.getElementById("carousel-selectors").children);
+  const items = Array.from(document.getElementById("carousel-items").children);
+  console.log(items);
+  let selectedItem = 0;
+  function select(index) {
+    selectors[selectedItem].classList.remove("active");
+    selectors[index].classList.add("active");
+    items[selectedItem].classList.remove("active");
+    items[index].classList.add("active");
+    selectedItem = index;
+  }
+
+  selectors.forEach((elm, i) => {
+    elm.onclick = function () {
+      select(i);
+    };
+  });
+
+  function startRotation() {
+    return setInterval(function () {
+      select((selectedItem + 1) % 3);
+    }, 3500);
+  }
+
+  let rotateSubscription = startRotation();
+  carousel.onmouseenter = function () {
+    clearInterval(rotateSubscription);
+  };
+  carousel.onmouseleave = function () {
+    rotateSubscription = startRotation();
+  };
+}
+
 function fixCrossLinks() {
   const env = window.location.hostname.split(".")[0];
 
@@ -91,5 +157,7 @@ window.onload = function () {
   initializeFaqComponent();
   initializeBackToTopComponent();
   initializeSmoothScrolling();
+  initializeMobileMenu();
+  initializeContractCarousel();
   fixCrossLinks();
 };
