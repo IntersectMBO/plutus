@@ -21,7 +21,6 @@ import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
 import           PlutusTx.PIRTypes
-import           PlutusTx.Prelude              (trace)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import qualified PlutusTx.Builtins.Class       as Builtins
 
@@ -405,13 +404,13 @@ hoistExpr var t =
                     (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                     mempty
 
-                CompileContext {ccOpts=profileOpts} <- ask
-                t' <-
-                    if coProfile profileOpts==All then do
+                -- CompileContext {ccOpts=profileOpts} <- ask
+                t' <- do
+                        let ty = PLC.varDeclType var'
+                    -- if coProfile profileOpts==All then do
                         t'' <- compileExpr t
-                        return $ trace "entering x" (\() -> trace "exiting x" t'') ()
-                    else compileExpr t
-                    -- TODO add Some option
+                        return $ mkTrace ty "entering" ((\() -> mkTrace ty "exiting" t'') ())
+                    -- else compileExpr t
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
@@ -427,6 +426,18 @@ hoistExpr var t =
                     (PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
                     (Set.map LexName deps)
                 pure $ PIR.mkVar () var'
+
+mkTrace
+    :: (PLC.Contains uni T.Text)
+    => PLC.Type PLC.TyName uni ()
+    -> T.Text
+    -> PIRTerm uni PLC.DefaultFun
+    -> PIRTerm uni PLC.DefaultFun
+mkTrace ty str v =
+    PLC.mkIterApp
+        ()
+        (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
+        [PLC.mkConstant () str, v]
 
 -- Expressions
 

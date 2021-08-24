@@ -9,44 +9,36 @@
 
 module Plugin.Profiling where
 import           Common
-import           PlcTestUtils          (ToUPlc (toUPlc), goldenUEvalProfile)
-import           Plugin.Lib            (MyExternalRecord (myExternal), andExternal, evenDirect)
+import           Lib                     (goldenPir)
+import           PlcTestUtils            (ToUPlc (toUPlc), goldenUEvalProfile)
+import           Plugin.Basic.Spec
+import           Plugin.Lib              (MyExternalRecord (myExternal), andExternal, evenDirect)
 
 import           Plugin.Data.Spec
-import           Plugin.Functions.Spec hiding (recursiveFunctions)
+import           Plugin.Functions.Spec   hiding (fib, recursiveFunctions)
+import           Plugin.Typeclasses.Spec
+import qualified PlutusTx.Builtins       as Builtins
+import           PlutusTx.Code           (CompiledCode)
+import           PlutusTx.Plugin         (plc)
 
-import qualified PlutusTx.Builtins     as Builtins
-import           PlutusTx.Code         (CompiledCode)
-import           PlutusTx.Plugin       (plc)
-
-import qualified PlutusCore.Default    as PLC
+import qualified PlutusCore.Default      as PLC
 
 import           Data.Proxy
-import           Data.Text             (Text)
+import           Data.Text               (Text)
 
 
 profiling :: TestNested
 profiling = testNested "Profiling" [
-    recursiveFunctions
-    , dataNewtypes
-    -- , unfoldings
+  goldenPir "fib" fibTest
   ]
 
-recursiveFunctions :: TestNested
-recursiveFunctions = testNested "recursive" [
-    -- goldenPir "fib" fib
-     goldenUEvalProfile "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-    -- , goldenPir "sum" sumDirect
-    , goldenUEvalProfile "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
-    -- , goldenPir "even" evenMutual
-    , goldenUEvalProfile "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
-    , goldenUEvalProfile "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-      ]
+fib :: Integer -> Integer
+fib n = if Builtins.equalsInteger n 0
+          then 0
+          else if Builtins.equalsInteger n 1
+          then 1
+          else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
 
-dataNewtypes :: TestNested
-dataNewtypes = testNested "data, newtypes" [
-    goldenUEvalProfile "ptreeConstDest" [ toUPlc ptreeMatch, toUPlc ptreeConstruct ]
-    , goldenUEvalProfile "polyRecEval" [ toUPlc polyRec, toUPlc ptreeConstruct ]
-    , goldenUEvalProfile "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
-    , goldenUEvalProfile "sameEmptyRoseEval" [ toUPlc sameEmptyRose, toUPlc emptyRoseConstruct ]
-    ]
+fibTest :: CompiledCode (Integer -> Integer)
+-- not using case to avoid literal cases
+fibTest = plc (Proxy @"fib") fib

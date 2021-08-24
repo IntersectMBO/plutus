@@ -171,7 +171,7 @@ functionDefToType (FunctionDef _ _ funTy _) = functionTypeToType funTy
 functionDefVarDecl :: FunctionDef term tyname name uni fun ann -> VarDecl tyname name uni fun ann
 functionDefVarDecl (FunctionDef ann name funTy _) = VarDecl ann name $ functionTypeToType funTy
 
--- | Make a 'FunctioDef'. Return 'Nothing' if the provided type is not functional.
+-- | Make a 'FunctionDef'. Return 'Nothing' if the provided type is not functional.
 mkFunctionDef
     :: ann
     -> name
