@@ -40,8 +40,8 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢_ #-}
 {-# INJECTIVE _⊢Nf⋆_ #-}
+{-# INJECTIVE _⊢_ #-}
 ```
 
 ## Some syntactic lemmas about injectivity
@@ -139,7 +139,12 @@ arity chooseUnit = Type ∷ Term ∷ Term ∷ []
 arity mkPairData = Term ∷ Term ∷ []
 arity mkNilData = Term ∷ []
 arity mkNilPairData = Term ∷ []
-arity mkConsData = Term ∷ Term ∷ []
+arity mkCons = Term ∷ Term ∷ []
+arity consByteString = Term ∷ Term ∷ []
+arity sliceByteString = Term ∷ Term ∷ Term ∷ []
+arity lengthOfByteString = Term ∷ []
+arity indexByteString = Term ∷ Term ∷ []
+arity blake2b-256 = Term ∷ []
 
 data Bwd (A : Set) : Set where
   [] : Bwd A
@@ -985,7 +990,34 @@ bappTermLem appendString {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
 bappTermLem appendString _ (bubble (start _)) (step _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
-  
+
+bappTermLem consByteString _ (start _) base = _ ,, _ ,, refl
+bappTermLem consByteString {as = as} _ (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem consByteString _ (bubble (start _)) (step _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem sliceByteString _ (start _) base = _ ,, _ ,, refl
+bappTermLem sliceByteString _ (bubble (start _)) (step (start _) base _) =
+  _ ,, _ ,, refl
+bappTermLem sliceByteString {as = as} _ (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] ∷ Term) ∷ Term) ∷ Term) as p refl
+bappTermLem sliceByteString
+            _
+            (bubble (bubble (start _)))
+            (step _ (step _ base _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem lengthOfByteString {az = az} {as} M p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem lengthOfByteString _ (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem indexByteString _ (start _) base = _ ,, _ ,, refl
+bappTermLem indexByteString {as = as} _ (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem indexByteString _ (bubble (start _)) (step _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem blake2b-256 {az = az} {as} M p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem blake2b-256 _ (start _) base | refl ,, refl = _ ,, _ ,, refl
+
 bappTypeLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Type ∷ as) ∈ arity b)
   → BAPP b p M → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
 bappTypeLem addInteger _ (bubble {as = az} p) _
@@ -1144,6 +1176,21 @@ bappTypeLem iData {az = az} _ p q
 bappTypeLem lessThanEqualsByteString _ (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) _ p refl
 ... | refl ,, refl ,, ()
+bappTypeLem consByteString _ (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) _ p refl
+... | refl ,, refl ,, ()
+bappTypeLem sliceByteString _ (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
+... | refl ,, refl ,, ()
+bappTypeLem lengthOfByteString {az = az} _ p q
+  with <>>-cancel-both' az _ ([] ∷ Term) _ p refl
+... | refl ,, refl ,, ()
+bappTypeLem indexByteString _ (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) _ p refl
+... | refl ,, refl ,, ()
+bappTypeLem blake2b-256 {az = az} _ p q
+  with <>>-cancel-both' az _ ([] ∷ Term) _ p refl
+... | refl ,, refl ,, ()
 
 -- a smart constructor that looks at the arity and then puts on the
 -- right constructor
@@ -1208,6 +1255,11 @@ ival equalsInteger = V-I⇒ equalsInteger (start _) base
 ival appendByteString = V-I⇒ appendByteString (start _) base
 ival appendString = V-I⇒ appendString (start _) base
 ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString (start _) base
+ival consByteString = V-I⇒ consByteString (start _) base
+ival sliceByteString = V-I⇒ sliceByteString (start _) base
+ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) base
+ival indexByteString = V-I⇒ indexByteString (start _) base
+ival blake2b-256 = V-I⇒ blake2b-256 (start _) base
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 progress (ƛ M)        = done (V-ƛ M)

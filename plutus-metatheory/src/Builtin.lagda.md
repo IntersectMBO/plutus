@@ -27,12 +27,17 @@ data Builtin : Set where
   lessThanEqualsInteger    : Builtin
   -- Bytestrings
   appendByteString         : Builtin
+  consByteString           : Builtin
+  sliceByteString          : Builtin
+  lengthOfByteString       : Builtin
+  indexByteString          : Builtin
   equalsByteString         : Builtin
   lessThanByteString       : Builtin
   lessThanEqualsByteString : Builtin
   -- Cryptography and hashes
   sha2-256                 : Builtin
   sha3-256                 : Builtin
+  blake2b-256              : Builtin
   verifySignature          : Builtin
   -- String
   appendString             : Builtin
@@ -84,11 +89,16 @@ data Builtin : Set where
                                           | LessThanInteger
                                           | LessThanEqualsInteger
                                           | AppendByteString
+                                          | ConsByteString
+                                          | SliceByteString
+                                          | LengthByteString
+                                          | IndexByteString
                                           | EqualsByteString
                                           | LessThanByteString
                                           | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
+                                          | Blake2b_256
                                           | VerifySignature
                                           | AppendString
                                           | EqualsString

@@ -151,8 +151,14 @@ ISIG mkPairData =
   _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
 ISIG mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
 ISIG mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
-ISIG mkConsData =
+ISIG mkCons =
   _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
+ISIG consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG sliceByteString =
+  _ ,, ∅ , con integer , con integer , con bytestring ,, con bytestring
+ISIG lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
+ISIG indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
+ISIG blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 isig2type .∅ ∅ C = C
