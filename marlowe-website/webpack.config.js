@@ -3,6 +3,11 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const faqContent = require("./faqContent.json");
 
+const isDevelopment = process.env.NODE_ENV === "development";
+
+const googleAnalyticsId = isDevelopment ? "UA-XXXXXXXXX-X" : "G-E6DSPBDB87";
+const segmentAnalyticsId = isDevelopment ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" : "eKDUP7DVpmHzpqvvwuO5GXpfXmyAI6Y4";
+
 module.exports = {
   entry: path.resolve(__dirname, "src/index.js"),
   output: {
@@ -56,11 +61,9 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.njk"),
-      templateParameters: { faqContent },
+      templateParameters: { faqContent, googleAnalyticsId, segmentAnalyticsId },
       favicon: "static/favicon.ico",
       title: "Marlowe",
-      // FIXME: add google analytics id
-      // googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
     }),
     new MiniCssExtractPlugin({
       filename: "css/[name]-[chunkhash].css",
