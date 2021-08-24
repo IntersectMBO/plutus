@@ -28,7 +28,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Fin using ()
-open import Utils hiding (_≤L_;_:<_;*)
+open import Utils hiding (_≤L_;*)
 import Data.List
 ```
 
@@ -49,14 +49,8 @@ data Label : Set where
   Type : Label
   Term : Label
 
-data Bwd (A : Set) : Set where
-  [] : Bwd A
-  _:<_ : Bwd A → A → Bwd A
-
 variable
   ls ls' : Bwd Label
-
-infixl 10 _:<_
 
 arity : Builtin → Bwd Label
 arity addInteger = [] :< Term :< Term
@@ -112,8 +106,8 @@ arity indexByteString = [] :< Term :< Term
 arity blake2b-256 = [] :< Term
 data _≤L_ : Bwd Label → Bwd Label → Set where
   base     : ls ≤L ls
-  skipType : ls :< Type ≤L ls' → ls ≤L ls'
-  skipTerm : ls :< Term ≤L ls' → ls ≤L ls'
+  skipType : (ls :< Type) ≤L ls' → ls ≤L ls'
+  skipTerm : (ls :< Term) ≤L ls' → ls ≤L ls'
 
 infix 5 _≤L_
 ```
@@ -137,7 +131,7 @@ data FValue : 0 ⊢ → Set where
   V-builtin : (b : Builtin)
             → ∀ {ls ls'}
             → ls' ≡ arity b
-            → ls :< Term ≤L ls'
+            → (ls :< Term) ≤L ls'
             → ITel b ls
             → (t : 0 ⊢)
             → FValue t
@@ -149,7 +143,7 @@ data Value  : 0 ⊢ → Set where
   V-builtin⋆ : (b : Builtin)
             → ∀ {ls ls'}
             → ls' ≡ arity b
-            → ls :< Type ≤L ls'
+            → (ls :< Type) ≤L ls'
             → ITel b ls
             → (t : 0 ⊢)
             → Value t

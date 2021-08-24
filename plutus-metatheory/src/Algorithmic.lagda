@@ -253,4 +253,17 @@ Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 Ctx2type ∅        C = C
 Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
 Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
+
+data Arg : Set where
+  Term Type : Arg
+
+Arity = List Arg
+
+ctx2bwdarity : ∀{Φ}(Γ : Ctx Φ) → Bwd Arg
+ctx2bwdarity ∅        = []
+ctx2bwdarity (Γ ,⋆ J) = ctx2bwdarity Γ :< Type
+ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
+
+arity : Builtin → Arity
+arity b = ctx2bwdarity (proj₁ (proj₂ (ISIG b))) <>> []
 \end{code}

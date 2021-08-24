@@ -35,8 +35,8 @@ open import Raw
 open import Scoped
 open import Utils hiding (ByteString)
 open import Untyped
-open import Algorithmic
-open import Algorithmic.ReductionEC hiding (Term;Type)
+open import Algorithmic hiding (Term;Type)
+open import Algorithmic.ReductionEC
 open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV

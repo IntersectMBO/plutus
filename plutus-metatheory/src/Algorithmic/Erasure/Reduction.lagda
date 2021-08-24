@@ -37,10 +37,10 @@ import Data.Bool as B
 \end{code}
 
 \begin{code}
-eraseCtx : ∀{Φ}(Γ : Ctx Φ) → U.Bwd U.Label
-eraseCtx ∅        = U.[]
-eraseCtx (Γ ,⋆ J) = eraseCtx Γ U.:< U.Type
-eraseCtx (Γ , A)  = eraseCtx Γ U.:< U.Term
+eraseCtx : ∀{Φ}(Γ : Ctx Φ) → Bwd U.Label
+eraseCtx ∅        = []
+eraseCtx (Γ ,⋆ J) = eraseCtx Γ :< U.Type
+eraseCtx (Γ , A)  = eraseCtx Γ :< U.Term
 
 erase≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ A.≤C' Γ' → eraseCtx Γ U.≤L eraseCtx Γ'
 erase≤C' A.base      = U.base

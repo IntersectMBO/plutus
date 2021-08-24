@@ -82,9 +82,19 @@ lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
 +-monoʳ-≤‴ : (n₁ : ℕ) {x y : ℕ} → x ≤‴ y → n₁ + x ≤‴ n₁ + y
 +-monoʳ-≤‴ n p = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ n (≤″⇒≤ (≤‴⇒≤″ p))))
 
-_:<_ : ∀{A : Set}{n} → Vec A n → A → Vec A (suc n)
-[]        :< a = a ∷ []
-(a' ∷ as) :< a = a' ∷ (as :< a)
+data Bwd (A : Set) : Set where
+  [] : Bwd A
+  _:<_ : Bwd A → A → Bwd A
+
+infixl 5 _:<_
+
+_<>>_ : ∀{A} → Bwd A → List A → List A
+[] <>> as = as
+(az :< a) <>> as = az <>> (a ∷ as)
+
+_<><_ : ∀{A} → Bwd A → List A → Bwd A
+az <>< []       = az
+az <>< (a ∷ as) = (az :< a) <>< as
 
 _:<L_ : ∀{A : Set} → List A → A → List A
 []        :<L a = a ∷ []

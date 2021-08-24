@@ -152,7 +152,7 @@ lemma⋆ lengthOfByteString = refl
 lemma⋆ indexByteString = refl
 lemma⋆ blake2b-256 = refl
 
-lemma : ∀ b → wtoℕTm (len (proj₁ (proj₂ (ISIG b)))) ≡ arity b
+lemma : ∀ b → wtoℕTm (len (proj₁ (proj₂ (ISIG b)))) ≡ Scoped.arity b
 lemma addInteger = refl
 lemma subtractInteger = refl
 lemma multiplyInteger = refl
