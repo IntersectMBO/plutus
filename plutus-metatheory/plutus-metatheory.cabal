@@ -35,6 +35,7 @@ library
   build-depends: base -any,
                  bytestring -any,
                  cryptonite -any,
+                 extra -any,
                  ieee754 -any,
                  memory -any,
                  plutus-core,

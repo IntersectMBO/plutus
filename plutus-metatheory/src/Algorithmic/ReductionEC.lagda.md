@@ -350,6 +350,11 @@ BUILTIN indexByteString (step _ (step _ base (V-con (bytestring b))) (V-con (int
 ... | yes _ = con (integer (index b i))
 BUILTIN equalsString (step _ (step _ base (V-con (string s))) (V-con (string s'))) =
   con (bool (primStringEquality s s'))
+BUILTIN encodeUtf8 (step _ base (V-con (string s))) =
+  con (bytestring (ENCODEUTF8 s))
+BUILTIN decodeUtf8 (step _ base (V-con (bytestring b))) with DECODEUTF8 b
+... | nothing = error _
+... | just s  = con (string s)
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

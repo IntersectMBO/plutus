@@ -171,6 +171,11 @@ BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
 BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
 ... | just b = inj₁ (V-con (bool b))
 ... | nothing = inj₂ (con bool)
+BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
+  inj₁ (V-con (bytestring (ENCODEUTF8 s)))
+BUILTIN decodeUtf8 (app _ base (V-con (bytestring b))) with DECODEUTF8 b
+... | nothing = inj₂ (con string)
+... | just s  = inj₁ (V-con (string s))
 
 BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
 BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf

@@ -238,6 +238,11 @@ IBUILTIN indexByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (in
 ... | no _ =  _ ,, inj₂ E-error
 ... | yes _ = _ ,, inj₁ (V-con (integer (index b i)))
 IBUILTIN equalsString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = _ ,, inj₁ (V-con (bool (primStringEquality s s')))
+IBUILTIN encodeUtf8 σ (tt ,, _ ,, V-con (string s)) =
+  _ ,, inj₁ (V-con (bytestring (ENCODEUTF8 s)))
+IBUILTIN decodeUtf8 σ (tt ,, _ ,, V-con (bytestring b)) with DECODEUTF8 b
+... | nothing = _ ,, inj₂ E-error
+... | just s  = _ ,, inj₁ (V-con (string s))
 
 IBUILTIN b σ t = _ ,, inj₂ E-error
 

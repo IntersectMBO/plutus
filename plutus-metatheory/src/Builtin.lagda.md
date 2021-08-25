@@ -11,6 +11,7 @@ module Builtin where
 open import Data.Nat
 open import Data.Bool
 open import Agda.Builtin.Int
+open import Agda.Builtin.String
 open import Utils
 
 data Builtin : Set where
@@ -144,6 +145,7 @@ postulate
   mod            : Int → Int → Int
 
   concat    : ByteString → ByteString → ByteString
+  cons  : Int → ByteString → ByteString
   slice     : Int → Int → ByteString → ByteString
   B<        : ByteString -> ByteString -> Bool
   B>        : ByteString -> ByteString -> Bool
@@ -152,8 +154,8 @@ postulate
   BLAKE2B-256  : ByteString → ByteString
   verifySig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
-
-  cons  : Int → ByteString → ByteString
+  ENCODEUTF8 : String → ByteString
+  DECODEUTF8 : ByteString → Maybe String
 ```
 
 # What builtin operations should be compiled to if we compile to Haskell
@@ -164,6 +166,8 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
+{-# FOREIGN GHC import Data.Text.Encoding #-}
+{-# FOREIGN GHC import Data.Either.Extra #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
@@ -191,6 +195,8 @@ postulate
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}
+{-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
+{-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

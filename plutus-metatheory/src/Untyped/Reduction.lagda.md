@@ -260,6 +260,14 @@ IBUILTIN indexByteString ((tt , (t , V-con (bytestring b))) , (t' , V-con (integ
 ... | yes _ with i <? Builtin.length b
 ... | no _ =  _ , inr E-error
 ... | yes _ = _ , inl (V-con (integer (index b i)))
+IBUILTIN encodeUtf8
+  (tt , (t , V-con (string s)))
+  = _ , inl (V-con (bytestring (ENCODEUTF8 s)))
+IBUILTIN decodeUtf8
+  (tt , (t , V-con (bytestring b)))
+  with DECODEUTF8 b
+... | nothing = _ , inr E-error
+... | just s  = _ , inl (V-con (string s))
   
 IBUILTIN _ _ = error , inr E-error
 

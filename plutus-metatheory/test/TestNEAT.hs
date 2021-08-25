@@ -135,4 +135,4 @@ prop_Term tyG tmG = do
   -- erase it after the fact
   let tmU'' = U.erase tm''
   unless (tmU' == tmU'') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmU',tmU''])
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmU'),("reduce;erase" , tmU'')])
