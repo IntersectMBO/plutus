@@ -12,12 +12,11 @@ module Wallet.Rollup.Types where
 import           Control.Lens              (makeLenses, makeLensesFor)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Map                  (Map)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
 import           GHC.Generics
 import           Ledger
 import           Ledger.Credential         (Credential (..))
-
-import qualified Data.OpenApi.Schema       as OpenApi
 
 data TxKey =
     TxKey

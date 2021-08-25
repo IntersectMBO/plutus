@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
-module Orphans () where
+module Orphans.OpenApi () where
 
 import           Control.Monad.Freer.Extras.Log (LogLevel, LogMessage)
 import           Data.Aeson                     (Value (..))

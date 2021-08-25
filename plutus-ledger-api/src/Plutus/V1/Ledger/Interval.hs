@@ -43,6 +43,7 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
 import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
@@ -51,7 +52,6 @@ import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
-import qualified Data.OpenApi.Schema       as OpenApi
 
 -- | An interval of @a@s.
 --

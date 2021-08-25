@@ -22,6 +22,7 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
@@ -29,8 +30,6 @@ import           Plutus.V1.Ledger.Scripts  (ValidatorHash)
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Bool             as PlutusTx
 import qualified PlutusTx.Eq               as PlutusTx
-
-import qualified Data.OpenApi.Schema       as OpenApi
 
 -- | Staking credential used to assign rewards
 data StakingCredential

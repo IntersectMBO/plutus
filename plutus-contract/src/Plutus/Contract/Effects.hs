@@ -85,6 +85,7 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
 import           Data.List.NonEmpty               (NonEmpty)
 import qualified Data.Map                         as Map
+import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, hsep, indent, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
@@ -99,6 +100,7 @@ import           Ledger.Slot                      (Slot (..), SlotRange)
 import           Ledger.Time                      (POSIXTime (..), POSIXTimeRange)
 import           Ledger.TimeSlot                  (SlotConversionError)
 import           Ledger.Tx                        (TxOut)
+import           Orphans.OpenApi                  ()
 import           Plutus.ChainIndex                (Tip)
 import           Plutus.ChainIndex.Tx             (ChainIndexTx (_citxTxId))
 import           Plutus.ChainIndex.Types          (Page (pageItems))
@@ -106,9 +108,6 @@ import           PlutusTx.Lattice                 (MeetSemiLattice (..))
 import           Wallet.API                       (WalletAPIError)
 import           Wallet.Types                     (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
                                                    EndpointDescription, EndpointValue)
-
-import qualified Data.OpenApi.Schema              as OpenApi
-import           Orphans                          ()
 
 -- | Requests that 'Contract's can make
 data PABReq =

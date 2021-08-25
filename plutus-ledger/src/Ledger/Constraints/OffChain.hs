@@ -52,6 +52,7 @@ import           Data.Foldable                    (traverse_)
 import           Data.List                        (elemIndex)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
+import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.Semigroup                   (First (..))
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
@@ -80,7 +81,6 @@ import           Plutus.V1.Ledger.Time            (POSIXTimeRange)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
-import qualified Data.OpenApi.Schema              as OpenApi
 
 data ScriptLookups a =
     ScriptLookups

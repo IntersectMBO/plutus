@@ -8,12 +8,7 @@ extra-doc-files: README.md
 
 library
     default-language: Haskell2010
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wnoncanonical-monoid-instances
-                 -Wunused-packages
-    exposed-modules:  Orphans
+    exposed-modules:  Orphans.OpenApi
 
     build-depends:    base ^>=4.14.1.0,
                       openapi3 -any,

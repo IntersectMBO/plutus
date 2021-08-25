@@ -29,6 +29,7 @@ import           Data.Foldable
 import           Data.Hashable                  (Hashable)
 import qualified Data.Map                       as Map
 import           Data.Maybe
+import qualified Data.OpenApi.Schema            as OpenApi
 import           Data.Semigroup                 (Sum (..))
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (..))
@@ -58,8 +59,6 @@ import           Wallet.Emulator.Chain          (ChainState (..))
 import           Wallet.Emulator.ChainIndex     (ChainIndexState, idxWatchedAddresses)
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg (..))
 import           Wallet.Emulator.NodeClient     (NodeClientState, emptyNodeClientState)
-
-import qualified Data.OpenApi.Schema            as OpenApi
 
 newtype SigningProcess = SigningProcess {
     unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [PubKeyHash] -> Tx -> Eff effs Tx

@@ -13,14 +13,13 @@ module Plutus.V1.Ledger.TxId(
 import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
 import           Plutus.V1.Ledger.Orphans  ()
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Prelude          as PlutusTx
-
-import qualified Data.OpenApi.Schema       as OpenApi
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }

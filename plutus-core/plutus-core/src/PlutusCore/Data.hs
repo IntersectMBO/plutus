@@ -21,14 +21,13 @@ import           Control.Monad.Except
 import           Data.Bits                 (shiftR)
 import qualified Data.ByteString           as BS
 import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.OpenApi              as OpenApi
 import           Data.Proxy                (Proxy (..))
 import           Data.Text.Prettyprint.Doc
 import           Data.Word                 (Word64, Word8)
 import           GHC.Exts                  (IsList (..))
 import           GHC.Generics
 import           Prelude
-
-import qualified Data.OpenApi              as OpenApi
 
 -- | A generic "data" type.
 --

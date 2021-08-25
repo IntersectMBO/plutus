@@ -25,6 +25,7 @@ import qualified Data.Aeson.Extras                as JSON
 import qualified Data.ByteString                  as BS
 import           Data.ByteString.Internal         (c2w, w2c)
 import           Data.Either.Extras               (unsafeFromEither)
+import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.String                      (IsString (..))
 import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
@@ -33,8 +34,6 @@ import           GHC.Generics                     (Generic)
 import qualified PlutusTx                         as PlutusTx
 import           PlutusTx.Lift
 import qualified PlutusTx.Prelude                 as P
-
-import qualified Data.OpenApi.Schema              as OpenApi
 
 fromHex :: BS.ByteString -> Either String LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral

@@ -24,6 +24,7 @@ import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, F
 import qualified Data.Aeson                as JSON
 import qualified Data.Aeson.Extras         as JSON
 import           Data.Hashable             (Hashable)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
@@ -32,8 +33,6 @@ import           Plutus.V1.Ledger.Orphans  ()
 import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import qualified PlutusTx.Prelude          as PlutusTx
-
-import qualified Data.OpenApi.Schema       as OpenApi
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }

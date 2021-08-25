@@ -42,6 +42,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import qualified Data.Bimap                as BM
+import qualified Data.OpenApi.Schema       as OpenApi
 import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc
 
@@ -50,8 +51,6 @@ import           Numeric.Natural
 import           Control.DeepSeq           (NFData)
 import           ErrorCode
 import           GHC.Generics
-
-import qualified Data.OpenApi.Schema       as OpenApi
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural

@@ -57,9 +57,9 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
     mapError :: PABError -> Servant.ServerError
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
-type CombinedAPI t = BasicCombinedAPI t :<|> SwaggerAPI
+type CombinedAPI t = BaseCombinedAPI t :<|> SwaggerAPI
 
-type BasicCombinedAPI t =
+type BaseCombinedAPI t =
     API (Contract.ContractDef t) Integer
     :<|> WSAPI
 
@@ -79,7 +79,7 @@ app fp walletClient pabRunner = do
     let apiServer :: ServerT (CombinedAPI t) Handler
         apiServer =
             (Servant.hoistServer
-                (Proxy @(BasicCombinedAPI t))
+                (Proxy @(BaseCombinedAPI t))
                 (asHandler pabRunner)
                 (apiHandler :<|> WS.wsHandler)) :<|> (swagger @t)
 

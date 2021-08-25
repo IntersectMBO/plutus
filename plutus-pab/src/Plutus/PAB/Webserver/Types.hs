@@ -13,6 +13,7 @@ module Plutus.PAB.Webserver.Types where
 import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
+import qualified Data.OpenApi.Schema                     as OpenApi
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           GHC.Generics                            (Generic)
 import           Ledger                                  (Tx, TxId)
@@ -26,8 +27,6 @@ import           Schema                                  (FormSchema)
 import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
 import           Wallet.Types                            (ContractInstanceId)
-
-import qualified Data.OpenApi.Schema                     as OpenApi
 
 data ContractReport t =
     ContractReport

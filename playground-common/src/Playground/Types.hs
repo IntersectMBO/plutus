@@ -21,6 +21,7 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.Aeson                   as JSON
 import           Data.Functor.Foldable        (Fix)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import qualified Data.OpenApi.Schema          as OpenApi
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
@@ -35,8 +36,6 @@ import           Schema                       (FormArgumentF, FormSchema, ToArgu
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
 import           Wallet.Rollup.Types          (AnnotatedTx)
 import           Wallet.Types                 (EndpointDescription)
-
-import qualified Data.OpenApi.Schema          as OpenApi
 
 data KnownCurrency =
     KnownCurrency
