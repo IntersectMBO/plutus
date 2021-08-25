@@ -159,7 +159,7 @@ instance ExMemoryUsage BS.ByteString where
    the other planes.  We use lengthWord16 because (a) it tells us the actual number
    of bytes used, and (2) it's O(1), but T.length is O(n). -}
 instance ExMemoryUsage T.Text where
-  memoryUsage = ExMemory . (2*) . fromIntegral . T.lengthWord16
+  memoryUsage = ExMemory . (4*) . fromIntegral . T.lengthWord16
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
