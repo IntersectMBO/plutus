@@ -29,10 +29,11 @@ typeReplacements = replacements ++ [
     , ("(,,)", "Tuple3")
     , ("(,,,)", "Tuple4")
     , ("(,,,,)", "Tuple5")
-    , ("(#,#)", "Tuple2")
-    , ("(#,,#)", "Tuple3")
-    , ("(#,,,#)", "Tuple4")
-    , ("(#,,,,#)", "Tuple5")    ]
+    , ("(#,#)", "UnboxedTypeTuple2")
+    , ("(#,,#)", "UnboxedTuple3")
+    , ("(#,,,#)", "UnboxedTuple4")
+    , ("(#,,,,#)", "UnboxedTuple5")
+    ]
 
 termReplacements :: [(T.Text, T.Text)]
 termReplacements = replacements ++ [
@@ -43,10 +44,10 @@ termReplacements = replacements ++ [
     , ("(,,)", "Tuple3")
     , ("(,,,)", "Tuple4")
     , ("(,,,,)", "Tuple5")
-    , ("(#,#)", "Tuple2")
-    , ("(#,,#)", "Tuple3")
-    , ("(#,,,#)", "Tuple4")
-    , ("(#,,,,#)", "Tuple5")
+    , ("(#,#)", "UnboxedTermTuple2")
+    , ("(#,,#)", "UnboxedTuple3")
+    , ("(#,,,#)", "UnboxedTuple4")
+    , ("(#,,,,#)", "UnboxedTuple5")
     ]
 
 data NameKind = TypeName | TermName

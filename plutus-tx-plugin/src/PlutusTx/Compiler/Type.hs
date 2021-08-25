@@ -12,7 +12,6 @@ module PlutusTx.Compiler.Type (
     compileKind,
     getDataCons,
     getConstructors,
-    getConstructorsInstantiated,
     getMatch,
     getMatchInstantiated) where
 
@@ -88,7 +87,9 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> withContextM 2 (sdToTxt $ "Compiling funty:" GHC.<+> GHC.ppr (i, o)) $ PIR.TyFun () <$> compileType i <*> compileType o
-        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+        -- (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+--        (GHC.splitTyConApp_maybe -> Just (tc, (t : ts))) | GHC.isRuntimeRepKindedTy t  -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (tc, ts)) $ throwSd UnsupportedError "bla"
+        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (tc, ts)) $ PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
         -- (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (t, tc, ts, GHC.dropRuntimeRepArgs ts)) $ case ts of
         --     (ty' : ts') | GHC.isRuntimeRepKindedTy ty' -> PIR.mkIterTyFun () <$> traverse compileType (GHC.dropRuntimeRepArgs ts) <*> compileTyCon tc
         --     _ -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType ts -- (GHC.dropRuntimeRepArgs ts)
@@ -148,22 +149,23 @@ compileTyCon tc
                     pure alias
                 Nothing -> do
                     matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
-
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
                     PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
-                    -- Type variables are in scope for the rest of the definition
-                    withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
-                        constructors <- for dcs $ \dc -> do
-                            name <- compileNameFresh (GHC.getName dc)
-                            ty <- mkConstructorType dc
-                            pure $ PIR.VarDecl () name ty
+                    withContextM 2 (sdToTxt $ "tyConTyVars tc:" GHC.<+> (GHC.ppr (tc, GHC.tyConTyVars tc, GHC.varType $ head $ GHC.tyConTyVars tc))) $ do
 
-                        let datatype = PIR.Datatype () tvd tvs matchName constructors
+                        -- Type variables are in scope for the rest of the definition
+                        withTyVarsScoped (dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc) $ \tvs -> do
+                            constructors <- for dcs $ \dc -> do
+                                name <- compileNameFresh (GHC.getName dc)
+                                ty <- mkConstructorType dc
+                                pure $ PIR.VarDecl () name ty
 
-                        PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
-                    pure $ PIR.mkTyVar () tvd
+                            let datatype = PIR.Datatype () tvd tvs matchName constructors
+
+                            PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
+                        pure $ PIR.mkTyVar () tvd
 
 getUsedTcs :: Compiling uni fun m => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do
@@ -270,19 +272,6 @@ getConstructors tc = do
     case maybeConstrs of
         Just constrs -> pure constrs
         Nothing      -> throwSd UnsupportedError $ "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
-
--- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
--- the type constructor argument types.
-getConstructorsInstantiated :: Compiling uni fun m => GHC.Type -> m [PIRTerm uni fun]
-getConstructorsInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
-    (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
-        constrs <- getConstructors tc
-
-        forM constrs $ \c -> do
-            args' <- mapM compileTypeNorm args
-            pure $ PIR.mkIterInst () c args'
-    -- must be a TC app
-    _ -> throwSd CompilationError $ "Cannot construct a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Compiling uni fun m => GHC.TyCon -> m (PIRTerm uni fun)

@@ -3,13 +3,11 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-        (tyvardecl k (type))
-        (tyvardecl k (type))
-        (tyvardecl a (type))
-        (tyvardecl b (type))
-        Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+        (tyvardecl UnboxedTypeTuple2 (type))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        UnboxedTermTuple2_match
+        (vardecl UnboxedTermTuple2 (fun a (fun b [ [ UnboxedTypeTuple2 a ] b ]))
+        )
       )
     )
     (termbind
@@ -25,14 +23,16 @@
     (termbind
       (strict)
       (vardecl
-        unboxedTuple (fun [[Tuple2 (con integer)] (con integer)] (con integer))
+        unboxedTuple
+        (fun
+          [ [ UnboxedTypeTuple2 (con integer) ] (con integer) ] (con integer))
       )
       (lam
         ds
-        [[Tuple2 (con integer)] (con integer)]
+        [ [ UnboxedTypeTuple2 (con integer) ] (con integer) ]
         [
           {
-            [ { { Tuple2_match (con integer) } (con integer) } ds ]
+            [ { { UnboxedTermTuple2_match (con integer) } (con integer) } ds ]
             (con integer)
           }
           (lam i (con integer) (lam j (con integer) [ [ addInteger i ] j ]))
@@ -42,7 +42,10 @@
     (lam
       x
       (con integer)
-      [ unboxedTuple [ [ { { Tuple2 (con integer) } (con integer) } x ] x ] ]
+      [
+        unboxedTuple
+        [ [ { { UnboxedTermTuple2 (con integer) } (con integer) } x ] x ]
+      ]
     )
   )
 )
