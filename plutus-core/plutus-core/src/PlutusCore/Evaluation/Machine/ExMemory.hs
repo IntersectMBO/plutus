@@ -157,9 +157,9 @@ instance ExMemoryUsage BS.ByteString where
 {- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
    codepoint) for everything in the Basic Multilingual Plane but four bytes for
    the other planes.  We use lengthWord16 because (a) it tells us the actual number
-   of bytes used, and (2) it's O(1), but T.length is O(n). -}
+   of 2-byte words used, and (2) it's O(1), but T.length is O(n). -}
 instance ExMemoryUsage T.Text where
-  memoryUsage = ExMemory . (4*) . fromIntegral . T.lengthWord16
+  memoryUsage s = ExMemory .  fromIntegral $ 1 + ((toInteger $ T.lengthWord16 s) -1) `quot` 4
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1

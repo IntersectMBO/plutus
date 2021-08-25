@@ -93,13 +93,12 @@ oneArgumentSizes = [0, 100..10000] -- 101 entries
 twoArgumentSizes :: [Integer]
 twoArgumentSizes = [0, 250..5000]  -- 21 entries
 
-
 {- This makes a Text string containing n unicode characters.  We use the unicode
  generator since that mostly produces 4 bytes per character, which is the worst
  case. If we were to use the ascii generator that would give us two bytes per
  character. -}
 makeSizedTextString :: H.Seed -> Int -> T.Text
-makeSizedTextString seed n = genSample seed (G.text (R.singleton n) G.unicode)
+makeSizedTextString seed n = genSample seed (G.text (R.singleton (2*n)) G.unicode)
 
 makeSizedTextStrings :: H.Seed -> [Integer] -> [T.Text]
 makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
@@ -123,7 +122,7 @@ each one will be expensive to process.  Benchmarking shows that the latter is
 about x times more expensive than the former, so we use the latter here.
 -}
 makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton n) G.unicode)
+makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2*n)) G.unicode)
 
 makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [BS.ByteString]
 makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
