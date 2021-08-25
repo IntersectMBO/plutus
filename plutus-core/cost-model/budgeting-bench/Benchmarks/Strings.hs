@@ -98,7 +98,7 @@ twoArgumentSizes = [0, 250..5000]  -- 21 entries
  case. If we were to use the ascii generator that would give us two bytes per
  character. -}
 makeSizedTextString :: H.Seed -> Int -> T.Text
-makeSizedTextString seed n = genSample seed (G.text (R.singleton (2*n)) G.unicode)
+makeSizedTextString seed n = genSample seed (G.text (R.singleton (4*n)) G.ascii)
 
 makeSizedTextStrings :: H.Seed -> [Integer] -> [T.Text]
 makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
@@ -122,7 +122,7 @@ each one will be expensive to process.  Benchmarking shows that the latter is
 about x times more expensive than the former, so we use the latter here.
 -}
 makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2*n)) G.unicode)
+makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (8*n)) G.ascii)
 
 makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [BS.ByteString]
 makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
