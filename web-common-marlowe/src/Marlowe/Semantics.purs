@@ -1406,7 +1406,7 @@ giveMoney accountId payee token@(Token cur tok) amount accounts =
       Party _ -> accounts
       Account accId -> addMoneyToAccount accId token amount accounts
   in
-    Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
+    Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) newAccounts
 
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
