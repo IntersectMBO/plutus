@@ -1,0 +1,17 @@
+(let
+  (rec)
+  (termbind
+    (nonstrict)
+    (vardecl r (con integer))
+    (let
+      (nonrec)
+      (termbind
+        (nonstrict)
+        (vardecl i (con integer))
+        (let (nonrec) (termbind (strict) (vardecl j (con integer)) r) j)
+      )
+      i
+    )
+  )
+  (con integer 3)
+)

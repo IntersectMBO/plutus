@@ -92,5 +92,6 @@ roundTripPirTerm = decodeOrError . unflat . flat . void
 errors :: TestNested
 errors = testNested "errors"
     [ goldenPlcFromPirCatch term "mutuallyRecursiveTypes"
-    , goldenPlcFromPirCatch term "recursiveTypeBind"
+    -- turned off because RecSplit makes this not fail anymore
+    -- , goldenPlcFromPirCatch term "recursiveTypeBind"
     ]
