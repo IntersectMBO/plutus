@@ -1,17 +1,18 @@
-cabal-version:      3.0
-name:               orphans
-version:            0.1.0.0
-synopsis:
-
-homepage:
-
-license:            NONE
-author:             Danil Berestov
-maintainer:         GooseDB@yandex.ru
-
-extra-source-files: CHANGELOG.md
+cabal-version: 2.4
+name: orphans
+version: 0.1.0.0
+synopsis: Orphan instances 
+license: Apache-2.0
+author: Plutus Core Team
+extra-doc-files: README.md
 
 library
+    default-language: Haskell2010
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -Wnoncanonical-monoid-instances
+                 -Wunused-packages
     exposed-modules:  Orphans
 
     build-depends:    base ^>=4.14.1.0,
@@ -21,4 +22,3 @@ library
                       bytestring -any
 
     hs-source-dirs:   src
-    default-language: Haskell2010
