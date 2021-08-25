@@ -47,6 +47,7 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
