@@ -5,7 +5,7 @@
 
 module Algorithmic.CEKV where
 
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Function hiding (_∋_)
 open import Data.Product using (proj₁;proj₂)
 open import Data.List using ([];_∷_)
@@ -184,6 +184,12 @@ BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestrin
 BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (slice st n b)))
 BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (integer (length b)))
+BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = inj₂ (con integer)
+... | yes _ with i <? length b
+... | no _  = inj₂ (con integer)
+... | yes _ = inj₁ (V-con (integer (index b i)))
+BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (bool (primStringEquality s s')))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

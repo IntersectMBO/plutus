@@ -5,7 +5,7 @@ module Algorithmic.ReductionEC where
 
 ```
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend ; primStringEquality)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -18,6 +18,7 @@ open import Data.List as List using (List; _∷_; []; _++_;reverse;length)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero;ℕ;_+_)
 open import Data.Unit using (tt)
+open import Agda.Builtin.String using (primStringAppend;primStringEquality)
 
 open import Utils hiding (TermCon)
 open import Type
@@ -340,6 +341,13 @@ BUILTIN bData (step _ base (V-con (bytestring b))) = con (Data (bDATA b))
 BUILTIN consByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
 BUILTIN sliceByteString (step _ (step _ (step _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
 BUILTIN lengthOfByteString (step _ base (V-con (bytestring b))) = con (integer (Builtin.length b))
+BUILTIN indexByteString (step _ (step _ base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = error _
+... | yes _ with i <? Builtin.length b
+... | no _ =  error _
+... | yes _ = con (integer (index b i))
+BUILTIN equalsString (step _ (step _ base (V-con (string s))) (V-con (string s'))) =
+  con (bool (primStringEquality s s'))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

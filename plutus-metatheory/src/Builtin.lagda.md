@@ -137,7 +137,7 @@ data Builtin : Set where
 ```
 postulate
   length     : ByteString → Int
-
+  index      : ByteString → Int → Int
   div            : Int → Int → Int
   quot           : Int → Int → Int
   rem            : Int → Int → Int
@@ -186,7 +186,7 @@ postulate
 {-# COMPILE GHC B> = (>) #-}
 {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
-
+{-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}
 

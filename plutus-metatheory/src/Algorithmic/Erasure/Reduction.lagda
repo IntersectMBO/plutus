@@ -209,10 +209,14 @@ erase-BUILTIN mkPairData σ vs = refl
 erase-BUILTIN mkNilData σ vs = refl
 erase-BUILTIN mkNilPairData σ vs = refl
 erase-BUILTIN mkCons σ vs = refl
-erase-BUILTIN consByteString σ vs = refl
-erase-BUILTIN sliceByteString σ vs = refl
-erase-BUILTIN lengthOfByteString σ vs = refl
-erase-BUILTIN indexByteString σ vs = refl
+erase-BUILTIN consByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN sliceByteString σ (((tt ,, _ ,, A.V-con (integer st)) ,, _ ,, A.V-con (integer n)) ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN lengthOfByteString σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN indexByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (integer i)) with +0 ≤? i
+... | no  _ = refl
+... | yes _ with i Data.Integer.<? Builtin.length b
+... | no  _ = refl
+... | yes _ = refl
 erase-BUILTIN blake2b-256 σ vs = refl
 
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →

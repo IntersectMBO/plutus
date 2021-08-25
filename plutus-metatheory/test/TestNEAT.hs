@@ -33,7 +33,7 @@ allTests genOpts = testGroup "NEAT"
       (Type ())
       (packAssertion prop_Type)
   , bigTestTermG_NO_LIST "term-level"
-      genOpts {genDepth = 18}
+      genOpts {genDepth = 20}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]
@@ -104,18 +104,19 @@ prop_Term tyG tmG = do
     liftEither $ runTCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   unless (tmPlcCK == tmCKN) $
-    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
+    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [("prod CK",tmPlcCK),("meta CK",tmCKN)])
 
   -- 3. run all the metatheory evaluators against each other. Taking
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
-  let evs = [runTLAgda,runTCKAgda,runTCEKAgda]
+  let namedEvs = [("meta red",runTLAgda),("meta CK",runTCKAgda),("meta CEK",runTCEKAgda)]
+  let (ss,evs) = unzip namedEvs
   let tmEvsM = map ($ tmDB) evs
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM
   tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
 
-  unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)
+  unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (zip ss tmEvsN))
   -- 4. untyped_reduce . erase == erase . typed_reduce
 
   -- erase original named term
@@ -123,11 +124,11 @@ prop_Term tyG tmG = do
   -- turn it into an untyped de Bruij term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
-  tmUDB' <- withExceptT (\e -> trace (show e) (Ctrex (CtrexTermEvaluationFail tyG tmG))) $ liftEither $ runUAgda tmUDB
+  tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail tyG tmG))) $ liftEither $ runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
   -- reduce the orignal de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> trace (show e) (Ctrex (CtrexTermEvaluationFail tyG tmG))) $
+  tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail tyG tmG))) $
     liftEither $ runTLAgda tmDB
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''

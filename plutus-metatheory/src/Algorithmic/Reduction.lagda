@@ -7,7 +7,7 @@ module Algorithmic.Reduction where
 
 \begin{code}
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -231,6 +231,13 @@ IBUILTIN consByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytest
 IBUILTIN sliceByteString σ (((tt ,, _ ,, V-con (integer st)) ,, _ ,, V-con (integer n)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (slice st n b)))
 IBUILTIN lengthOfByteString σ (tt ,, _ ,, V-con (bytestring b)) =
   _ ,, inj₁ (V-con (integer (length b)))
+IBUILTIN indexByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (integer i)) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = _ ,, inj₂ E-error
+... | yes _ with i <? length b
+... | no _ =  _ ,, inj₂ E-error
+... | yes _ = _ ,, inj₁ (V-con (integer (index b i)))
+IBUILTIN equalsString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = _ ,, inj₁ (V-con (bool (primStringEquality s s')))
+
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)

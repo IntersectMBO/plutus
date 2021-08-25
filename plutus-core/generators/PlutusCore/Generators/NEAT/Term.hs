@@ -384,6 +384,8 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[SliceByteString])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyIntegerG)
                    ,[LengthOfByteString])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+                   ,[IndexByteString])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
                    ,[Sha2_256,Sha3_256])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))

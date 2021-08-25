@@ -14,7 +14,7 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend;primStringEquality)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
@@ -232,6 +232,9 @@ IBUILTIN ifThenElse
 IBUILTIN appendString
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (string (primStringAppend s s')))
+IBUILTIN equalsString
+  ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
+  = _ , inl (V-con (bool (primStringEquality s s')))
 IBUILTIN trace
   (tt , (t , v))
   = _ , inl (V-con unit)
@@ -249,6 +252,12 @@ IBUILTIN sliceByteString
 IBUILTIN lengthOfByteString
   (tt , (t , V-con (bytestring b)))
   = _ , inl (V-con (integer (length b)))
+IBUILTIN indexByteString ((tt , (t , V-con (bytestring b))) , (t' , V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = _ , inr E-error
+... | yes _ with i <? Builtin.length b
+... | no _ =  _ , inr E-error
+... | yes _ = _ , inl (V-con (integer (index b i)))
+  
 IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t
