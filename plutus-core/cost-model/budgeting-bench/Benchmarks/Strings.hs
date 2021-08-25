@@ -96,15 +96,22 @@ stringSizesMedium = [0, 10..1000]
 stringSizesBig :: [Integer]
 stringSizesBig = [0, 200..10000]
 
+oneArgumentSizes :: [Integer]
+oneArgumentSizes = [0, 100..10000] -- 101 entries
+
+twoArgumentSizes :: [Integer]
+twoArgumentSizes = [0, 250..5000]
+
+
 makeSizedTextString :: H.Seed -> Int -> T.Text
 makeSizedTextString seed n = genSample seed (G.text (R.singleton n) G.unicode)
 
-textStringsToBench :: H.Seed -> [T.Text]
-textStringsToBench seed = (makeSizedTextString seed . fromInteger) <$> stringSizesMedium
+textStringsToBench :: H.Seed -> [Integer] -> [T.Text]
+textStringsToBench seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
 
 benchOneTextString :: DefaultFun -> Benchmark
 benchOneTextString name =
-    createOneTermBuiltinBench name $ textStringsToBench seedA
+    createOneTermBuiltinBench name $ textStringsToBench seedA stringSizesBig
 
 
 {- | Generate a valid UTF-8 bytestring with memory usage approximately n for
