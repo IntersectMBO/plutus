@@ -70,7 +70,7 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
                 | otherwise                     = fromMaybe 0.0 _IPNR
         ipac
                 | isNothing _IPNR               = 0.0
-                | isJust _IPAC                  = fromJust _IPAC
+                | isJust _IPAC                  = r _CNTRL * fromJust _IPAC
                 | otherwise                     = (y _DCC' tminus t0 _MD) * nt * ipnr
         feac
                 | isNothing _FER                = 0.0
@@ -155,7 +155,7 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus
                 | otherwise = (fromJust _NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust _PRCL){ includeEndDay = True } tmd scfg ) <$> _PRANX)))
         -- IPCB
         ipcb
-                | t0 < _IED'                     = 0.0
+                | t0 < _IED'                    = 0.0
                 | fromJust _IPCB == IPCB_NT     = r _CNTRL * fromJust _NT
                 | otherwise                     = r _CNTRL * fromJust _IPCBA
     -- All is same as PAM except PRNXT, IPCB, and TMD
@@ -192,7 +192,7 @@ _INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus
         pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
 
         -- PRNXT
-        prnxt = r _CNTRL * _PRNXT'
+        prnxt = _PRNXT'
 
         -- IPCB
         ipcb

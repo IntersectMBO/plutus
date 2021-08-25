@@ -14,9 +14,9 @@ tests = testGroup "Actus" [ testCase fileName (staticFromFile fileName) | fileNa
 testFileNames :: [String]
 testFileNames =
   [
-    "actus-tests-pam",
-    "actus-tests-lam"
-    -- "actus-tests-nam"
+    -- "actus-tests-pam",
+    -- "actus-tests-lam"
+    "actus-tests-nam"
   ]
 
 excludedTestCases :: [String]

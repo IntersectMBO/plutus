@@ -36,14 +36,10 @@ data TestResult = TestResult{
   eventDate             :: String
   , eventType           :: String
   , payoff              :: Double
-  -- , payoff              :: String
   , currency            :: String
   , notionalPrincipal   :: Double
   , nominalInterestRate :: Double
   , accruedInterest     :: Double
-  -- , notionalPrincipal   :: String
-  -- , nominalInterestRate :: String
-  -- , accruedInterest     :: String
 }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -117,7 +113,6 @@ assertTestResult
     assertBool ("[" ++ show identifier ++ "] Generated event and test event types should be the same: actual " ++ show event ++ ", expected for " ++ show testResult) $ event == (read testEvent :: EventType)
     assertBool ("Generated date and test date should be the same: actual " ++ show date ++ ", expected for " ++ show testResult ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
     assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (realToFrac testPayoff :: Float)
-    -- assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (read testPayoff :: Float)
 
 testToContractTerms :: TestCase -> ContractTerms
 testToContractTerms TestCase{terms = terms} =

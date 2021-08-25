@@ -70,10 +70,10 @@ _STF_TD_PAM st@ContractStatePoly{..} t = st {
 }
 
 _STF_IP_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
-    let
-        st' = _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-    in st' {
-        ipac = _zero
+    st {
+        ipac = _zero,
+        feac = y_sd_t * _FER * nt,
+        sd = t
     }
 
 _STF_IPCI_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
@@ -132,22 +132,24 @@ _STF_IED_LAM st@ContractStatePoly{..} t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT 
         nt'                         = _r _CNTRL * _NT
         ipnr'                       = fromJust _IPNR
 
-        ipac' | isJust _IPAC        = fromJust _IPAC
+        ipcb' | (fromJust _IPCB) == IPCB_NT = nt'
+              | otherwise                   = _r _CNTRL * (fromJust _IPCBA)
+
+        ipac' | isJust _IPAC        = _r _CNTRL * fromJust _IPAC
               -- | isJust _IPANX       = _lt (fromJust _IPANX) t * y_ipanx_t * nt' * ipnr'
-              | isJust _IPANX && fromJust _IPANX < t = y_ipanx_t * nt' * ipnr'
+              | isJust _IPANX && fromJust _IPANX < t = y_ipanx_t * nt' * ipcb'
               | otherwise           = _zero
 
-        ipcb' | (fromJust _IPCB) == IPCB_NT = _r _CNTRL * _NT
-              | otherwise                   = _r _CNTRL * (fromJust _IPCBA)
     in st { nt = nt', ipnr = ipnr', ipac = ipac', ipcb = ipcb', sd = t }
 
 _STF_PR_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
     let
         nt' = nt - _r _CNTRL * (prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt))))
 
-        feac' = case _FEB of
-            Just FEB_N -> feac + y_sd_t * nt * _FER
-            _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
+        -- feac' = case _FEB of
+        --     Just FEB_N -> feac + y_sd_t * nt * _FER
+        --     _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
+        feac' = feac + y_sd_t * nt * _FER
 
         ipcb' = case (fromJust _IPCB) of
             IPCB_NTL -> ipcb

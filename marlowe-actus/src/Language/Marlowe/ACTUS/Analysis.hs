@@ -98,9 +98,9 @@ filterEvents terms@ContractTerms{ contractType = contractType } events =
       else
         events
     NAM ->
-      -- if isJust (ct_TD terms) then
-      --   L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
-      -- else
+      if isJust (ct_TD terms) then
+        L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
+      else
         events
     _ ->
       events
