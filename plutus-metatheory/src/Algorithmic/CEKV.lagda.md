@@ -182,6 +182,8 @@ BUILTIN bData (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (Data (bDATA b)))
 BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (cons i b)))
 BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (slice st n b)))
+BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
+  inj₁ (V-con (integer (length b)))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

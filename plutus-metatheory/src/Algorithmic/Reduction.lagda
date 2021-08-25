@@ -227,6 +227,10 @@ IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
   _ ,, inj₁ (V-con (Data (iDATA i)))
 IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
   _ ,, inj₁ (V-con (Data (bDATA b)))
+IBUILTIN consByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (cons i b)))
+IBUILTIN sliceByteString σ (((tt ,, _ ,, V-con (integer st)) ,, _ ,, V-con (integer n)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (slice st n b)))
+IBUILTIN lengthOfByteString σ (tt ,, _ ,, V-con (bytestring b)) =
+  _ ,, inj₁ (V-con (integer (length b)))
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)

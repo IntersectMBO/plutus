@@ -82,6 +82,7 @@
           "MAlonzo/Code/Algebra/Structures"
           "MAlonzo/Code/Algebra/Structures/Biased"
           "MAlonzo/Code/Algorithmic"
+          "MAlonzo/Code/Algorithmic/Properties"
           "MAlonzo/Code/Algorithmic/CEKV"
           "MAlonzo/Code/Algorithmic/ReductionEC"
           "MAlonzo/Code/Algorithmic/CC"

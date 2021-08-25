@@ -136,7 +136,7 @@ data Builtin : Set where
 
 ```
 postulate
-  length     : ByteString → ℕ
+  length     : ByteString → Int
 
   div            : Int → Int → Int
   quot           : Int → Int → Int

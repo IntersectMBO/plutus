@@ -339,6 +339,7 @@ BUILTIN iData (step _ base (V-con (integer i))) = con (Data (iDATA i))
 BUILTIN bData (step _ base (V-con (bytestring b))) = con (Data (bDATA b))
 BUILTIN consByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
 BUILTIN sliceByteString (step _ (step _ (step _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
+BUILTIN lengthOfByteString (step _ base (V-con (bytestring b))) = con (integer (Builtin.length b))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
