@@ -292,14 +292,26 @@ metadataView metadataHints metadata metadataAction =
               ]
           ]
         , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
-              [ text "Contract description: " ]
+              [ text "Contract short description: " ]
           , div [ class_ $ ClassName "metadata-mainprop-edit" ]
               [ input
                   [ type_ InputText
                   , placeholder "Contract description"
                   , class_ $ ClassName "metadata-input"
-                  , value metadata.contractDescription
-                  , onValueChange $ Just <<< metadataAction <<< SetContractDescription
+                  , value metadata.contractShortDescription
+                  , onValueChange $ Just <<< metadataAction <<< SetContractShortDescription
+                  ]
+              ]
+          ]
+        , [ div [ class_ $ ClassName "metadata-mainprop-label" ]
+              [ text "Contract long description: " ]
+          , div [ class_ $ ClassName "metadata-mainprop-edit" ]
+              [ input
+                  [ type_ InputText
+                  , placeholder "Contract description"
+                  , class_ $ ClassName "metadata-input"
+                  , value metadata.contractLongDescription
+                  , onValueChange $ Just <<< metadataAction <<< SetContractLongDescription
                   ]
               ]
           ]

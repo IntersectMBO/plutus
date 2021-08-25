@@ -3,12 +3,15 @@ module Type.BetaNBE.Completeness where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNormal.Equality
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
 
 open import Relation.Binary.PropositionalEquality hiding (subst)
 open import Data.Sum
@@ -38,7 +41,7 @@ CR (K ⇒ J) (inj₂ f) (inj₂ f') =
      → (ρ : Ren _ Ψ)
      → {v v' : Val Ψ K}
      → CR K v v'
-       ---------------------------------------------------------
+       ----------------------
      → CR J (f ρ v) (f' ρ v')
   where
     -- Uniformity
@@ -48,7 +51,7 @@ CR (K ⇒ J) (inj₂ f) (inj₂ f') =
       → (ρ' : Ren Ψ Ψ')
       → (v v' : Val Ψ K)
       → CR K v v'
-        --------—————————————————————————————————————————————————
+        --------————————————————————————————————————————————
       → CR J (renVal ρ' (f ρ v)) (f (ρ' ∘ ρ) (renVal ρ' v'))
 \end{code}
 
@@ -57,7 +60,7 @@ have a value that is related to something else by CR then we can
 derive a reflexivity result for it.
 
 \begin{code}
-symCR : ∀{Φ K}{v v' : Val Φ K}
+symCR : ∀{K}{v v' : Val Φ K}
   → CR K v v'
     --------------------------
   → CR K v' v
@@ -68,7 +71,7 @@ symCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()
 symCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
   p' , p , λ ρ q → symCR (p'' ρ (symCR q))
 
-transCR : ∀{Φ K} {v v' v'' : Val Φ K}
+transCR : ∀{K}{v v' v'' : Val Φ K}
   → CR K v v'
   → CR K v' v''
     ----------------------------------
@@ -84,7 +87,7 @@ transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₁ n}   p              ()
 transCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'') (q , q' , q'')
  = p , q' , λ ρ r → transCR (p'' ρ r) (q'' ρ (transCR (symCR r) r))
 
-reflCR : ∀{Φ K}{v v' : Val Φ K}
+reflCR : {v v' : Val Φ K}
   → CR K v v'
     ---------------------------
   → CR K v v
@@ -100,16 +103,16 @@ using reflectCR to build identify environments will give us the
 completeness result.
 
 \begin{code}
-reflectCR : ∀{Φ K} → {n n' : Φ ⊢Ne⋆ K}
+reflectCR : ∀{K}{n n' : Φ ⊢Ne⋆ K}
   → n ≡ n'
     -----------------------------
   → CR K (reflect n) (reflect n')
 reflectCR {K = *}     p = cong ne p
 reflectCR {K = K ⇒ J} p = p
 
-reifyCR : ∀{Φ K} → {v v' : Val Φ K}
+reifyCR : ∀{K}{v v' : Val Φ K}
   → CR K v v'
-    -------------------------------
+    --------------------------
   → reify v ≡ reify v'
 reifyCR {K = *    }                    p              = p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
@@ -129,7 +132,7 @@ EnvCR η η' = ∀{K}(α : _ ∋⋆ K) → CR K (η α) (η' α)
 Closure under environment extension
 
 \begin{code}
-CR,,⋆ : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
+CR,,⋆ : {η η' : Env Φ Ψ}
   → EnvCR η η'
   → {v v' : Val Ψ K}
   → CR K v v'
@@ -142,11 +145,12 @@ CR,,⋆ p q (S α) = p α
 Closure under application
 
 \begin{code}
-AppCR : ∀{Φ K J}
-  → {f f' : Val Φ (K ⇒ J)}
+AppCR : 
+    {f f' : Val Φ (K ⇒ J)}
   → CR (K ⇒ J) f f'
   → {v v' : Val Φ K}
   → CR K v v'
+    ------------------------
   → CR J (f ·V v) (f' ·V v')
 AppCR {f = inj₁ n} {inj₁ n'} p              q =
   reflectCR (cong₂ _·_ p (reifyCR q))
@@ -158,10 +162,10 @@ AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 renVal commutes with reflect
 
 \begin{code}
-renVal-reflect : ∀{Φ Ψ K}
+renVal-reflect : ∀{K}
   → (ρ : Ren Φ Ψ)
   → (n : Φ ⊢Ne⋆ K)
-    --------------------------------------------------------
+    -------------------------------------------------
   → CR K (renVal ρ (reflect n)) (reflect (renNe ρ n))
 renVal-reflect {K = *}     ρ n = refl
 renVal-reflect {K = K ⇒ J} ρ n = renNe-cong (λ _ → refl) n
@@ -170,52 +174,53 @@ renVal-reflect {K = K ⇒ J} ρ n = renNe-cong (λ _ → refl) n
 renaming commutes with reify
 
 \begin{code}
-ren-reify : ∀{K Φ Ψ}{v v' : Val Φ K}
+ren-reify : ∀{K}{v v' : Val Φ K}
   → CR K v v'
   → (ρ : Ren Φ Ψ)
-    ---------------------------------------------
+    ---------------------------------------
   → renNf ρ (reify v) ≡ reify (renVal ρ v')
-ren-reify {*}                            p              ρ =
+ren-reify {K = *} p ρ =
   cong (renNf ρ) p
-ren-reify {K ⇒ J} {v = inj₁ n} {inj₁ n'} p              ρ =
+ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p ρ =
   cong (ne ∘ renNe ρ) p
-ren-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
-ren-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-ren-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ
+ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} () ρ
+ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () ρ
+ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ
   (trans (ren-reify (p'' S (reflectCR refl)) (ext ρ))
-           (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl)) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) (ρ' ∘ S ∘ ρ) q) (renVal-reflect (ext ρ) (` Z)))))))
+         (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl)) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) (ρ' ∘ S ∘ ρ) q) (renVal-reflect (ext ρ) (` Z)))))))
 \end{code}
 
 first functor law for renVal
 
 \begin{code}
-renVal-id : ∀ {K Φ}{v v' : Val Φ K}
+renVal-id : ∀{K}{v v' : Val Φ K}
   → CR K v v'
-    ------------------------
+    -------------------------------
   → CR K (renVal id v) v'
-renVal-id {*}                            p = trans (renNf-id _) p
-renVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} p = trans (renNe-id _) p
-renVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
-renVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
-renVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
+renVal-id {K = *} p = trans (renNf-id _) p
+renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p = trans (renNe-id _) p
+renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
+renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
+renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
 \end{code}
 
 second functor law for renVal
 
 \begin{code}
-renVal-comp : ∀ {K Φ Ψ Θ}
+renVal-comp : ∀{K}
   → (ρ : Ren Φ Ψ)
   → (ρ' : Ren Ψ Θ)
   → {v v' : Val Φ K}
   → CR K v v'
+    --------------------------------------------------
   → CR K (renVal (ρ' ∘ ρ) v) (renVal ρ' (renVal ρ v'))
-renVal-comp {*}      ρ ρ'                    p              =
+renVal-comp {K = *} ρ ρ' p =
   trans (cong (renNf (ρ' ∘ ρ)) p) (renNf-comp _)
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} p              =
+renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} p =
   trans (cong (renNe (ρ' ∘ ρ)) p) (renNe-comp _)
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
-renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
+renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
+renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
+renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
   (λ ρ'' ρ''' v → p (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
@@ -226,12 +231,12 @@ renVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
 CR is closed under renaming
 
 \begin{code}
-renCR : ∀{Φ Ψ K}{v v' : Val Φ K}
+renCR : ∀{K}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
   → CR K v v'
   → CR K (renVal ρ v) (renVal ρ v')
-renCR {K = *}                        ρ p              = cong (renNf ρ) p
-renCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} ρ p              = cong (renNe ρ) p
+renCR {K = *} ρ p = cong (renNf ρ) p
+renCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} ρ p = cong (renNe ρ) p
 renCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ρ ()
 renCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ρ ()
 renCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
@@ -244,21 +249,21 @@ renCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
 
 CR is closed under application
 \begin{code}
-renVal·V : ∀{K J Φ Ψ}
-  → (ρ : Ren Φ Ψ)
+renVal·V :
+    (ρ : Ren Φ Ψ)
   → {f f' : Val Φ (K ⇒ J)}
   → CR (K ⇒ J) f f'
   → {v v' : Val Φ K}
   → CR K v v'
-    --------------------------------------------------------------
+    -----------------------------------------------------
   → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
 renVal·V {J = *} ρ {inj₁ n} {inj₁ n'} p {v}{v'}  q =
   cong₂ (λ x y → ne (x · y)) (cong (renNe ρ) p) (ren-reify q ρ)
 renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ n'} p      q = cong₂ _·_
   (cong (renNe ρ) p)
   (ren-reify q ρ)
-renVal·V ρ {inj₁ n} {inj₂ f}  ()             q
-renVal·V ρ {inj₂ f} {inj₁ n'} ()             q
+renVal·V ρ {inj₁ n} {inj₂ f}  () q
+renVal·V ρ {inj₂ f} {inj₁ n'} () q
 renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
   transCR (p id ρ _ _ q) (p'' ρ (renCR ρ (reflCR (symCR q))))
 \end{code}
@@ -266,25 +271,56 @@ renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
 identity extension lemma, (post) renaming commutes with eval, defined mutually
 
 \begin{code}
-idext : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
+idext : ∀{K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → (t : Φ ⊢⋆ K)
-    ----------------------------
+    ---------------------------
   → CR K (eval t η) (eval t η')
+
+idextTyCon : ∀{Φ Ψ}{η η' : Env Φ Ψ}
+  → EnvCR η η'
+  → (c : Syn.TyCon Φ)
+    ------------------------------
+  → evalTyCon c η ≡ evalTyCon c η'
+idextTyCon p Syn.integer    = refl
+idextTyCon p Syn.bytestring = refl
+idextTyCon p Syn.string     = refl
+idextTyCon p Syn.unit       = refl
+idextTyCon p Syn.bool       = refl
+idextTyCon p (Syn.list A)   = cong Nf.list (idext p A)
+idextTyCon p (Syn.pair A B) = cong₂ Nf.pair (idext p A) (idext p B)
+idextTyCon p Syn.Data       = refl
 
 renVal-eval : ∀{Φ Ψ Θ K}
   → (t : Ψ ⊢⋆ K)
-  → {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
+  → {η η' : Env Ψ Φ}
   → (p : EnvCR η η')
   → (ρ : Ren Φ Θ )
-    ---------------------------------------------------------
+    ---------------------------------------------------
   → CR K (renVal ρ (eval t η)) (eval t (renVal ρ ∘ η'))
-  
-idext p (` x)       = p x
-idext p (Π B)     =
+
+renValTyCon-eval : 
+    (c : Syn.TyCon Ψ)
+  → {η η' : Env Ψ Φ}
+  → (p : EnvCR η η')
+  → (ρ : Ren Φ Θ )
+    ----------------------------------------------------------
+  → renNfTyCon ρ (evalTyCon c η) ≡ evalTyCon c (renVal ρ ∘ η')
+renValTyCon-eval Syn.integer    p ρ = refl
+renValTyCon-eval Syn.bytestring p ρ = refl
+renValTyCon-eval Syn.string     p ρ = refl
+renValTyCon-eval Syn.unit       p ρ = refl
+renValTyCon-eval Syn.bool       p ρ = refl
+renValTyCon-eval (Syn.list A)   p ρ = cong Nf.list (renVal-eval A p ρ)
+renValTyCon-eval (Syn.pair A B) p ρ =
+  cong₂ Nf.pair (renVal-eval A p ρ) (renVal-eval B p ρ) 
+renValTyCon-eval Syn.Data       p ρ = refl
+
+idext p (` x) = p x
+idext p (Π B) =
   cong Π (idext (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) B)
 idext p (A ⇒ B)     = cong₂ _⇒_ (idext p A) (idext p B)
-idext p (ƛ B)     =
+idext p (ƛ B) =
   (λ ρ ρ' v v' q →
     transCR (renVal-eval B (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
             (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
@@ -299,9 +335,9 @@ idext p (ƛ B)     =
              B)) -- first two terms are identical (except for symCR (p x))
   ,
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
-idext p (A · B)     = AppCR (idext p A) (idext p B)
-idext p (μ A B)     = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
-idext p (con tcn)   = refl
+idext p (A · B) = AppCR (idext p A) (idext p B)
+idext p (μ A B) = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
+idext p (con c) = cong con (idextTyCon p c)
 
 renVal-eval (` x) p ρ = renCR ρ (p x)
 renVal-eval (Π B) p ρ = cong Π (trans
@@ -315,7 +351,7 @@ renVal-eval (Π B) p ρ = cong Π (trans
              B))
 renVal-eval (A ⇒ B) p ρ =
   cong₂ _⇒_ (renVal-eval A p ρ) (renVal-eval B p ρ)
-renVal-eval (ƛ B) {η}{η'} p ρ =
+renVal-eval (ƛ B) p ρ =
   (λ ρ' ρ'' v v' q →
     transCR (renVal-eval B (CR,,⋆ (renCR (ρ' ∘ ρ) ∘ p) q) ρ'')
             (idext (λ { Z     → renCR ρ'' (reflCR (symCR q))
@@ -335,21 +371,40 @@ renVal-eval (ƛ B) {η}{η'} p ρ =
 renVal-eval (A · B) p ρ = transCR
   (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
-renVal-eval (μ A B)     p ρ = cong₂ μ
+renVal-eval (μ A B) p ρ = cong₂ μ
   (trans (ren-reify (idext (reflCR ∘ p) A) ρ) (reifyCR (renVal-eval A p ρ)))
   (trans (ren-reify (idext (reflCR ∘ p) B) ρ) (reifyCR (renVal-eval B p ρ)))
-renVal-eval (con tcn)   p ρ = refl
+renVal-eval (con c) p ρ = cong con (renValTyCon-eval c p ρ)
 \end{code}
 
 (pre) renaming commutes with eval
 
 \begin{code}
-ren-eval : ∀{Φ Ψ Θ K}
+ren-eval :
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (ρ : Ren Θ Ψ) →
+  -----------------------------------------
   CR K (eval (ren ρ t) η) (eval t (η' ∘ ρ))
+
+renTyCon-eval :
+  (c : Syn.TyCon Θ)
+  {η η' : Env Ψ Φ}
+  (p : EnvCR η η')
+  (ρ : Ren Θ Ψ) →
+  -------------------------------------------------
+  evalTyCon (renTyCon ρ c) η ≡ evalTyCon c (η' ∘ ρ)
+renTyCon-eval Syn.integer    p ρ = refl
+renTyCon-eval Syn.bytestring p ρ = refl
+renTyCon-eval Syn.string     p ρ = refl
+renTyCon-eval Syn.unit       p ρ = refl
+renTyCon-eval Syn.bool       p ρ = refl
+renTyCon-eval (Syn.list A)   p ρ = cong Nf.list (ren-eval A p ρ)
+renTyCon-eval (Syn.pair A B) p ρ =
+  cong₂ Nf.pair (ren-eval A p ρ) (ren-eval B p ρ) 
+renTyCon-eval Syn.Data       p ρ = refl
+
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π B) p ρ =
   cong Π (trans (ren-eval
@@ -380,18 +435,37 @@ ren-eval (ƛ B) p ρ =
 ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
 ren-eval (μ A B) p ρ =
   cong₂ μ (reifyCR (ren-eval A p ρ)) (reifyCR (ren-eval B p ρ))
-ren-eval (con tcn) p ρ = refl
+ren-eval (con c) p ρ = cong con (renTyCon-eval c p ρ)
 \end{code}
 
 Subsitution lemma
 
 \begin{code}
-sub-eval : ∀{Φ Ψ Θ K}
+sub-eval :
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (σ : Sub Θ Ψ) →
+  ------------------------------------------------------
   CR K (eval (sub σ t) η) (eval t (λ x → eval (σ x) η'))
+
+subTyCon-eval :
+  (c : Syn.TyCon Θ)
+  {η η' : Env Ψ Φ}
+  (p : EnvCR η η')
+  (σ : Sub Θ Ψ) →
+  --------------------------------------------------------------
+  evalTyCon (subTyCon σ c) η ≡ evalTyCon c (λ x → eval (σ x) η')
+subTyCon-eval Syn.integer    p ρ = refl
+subTyCon-eval Syn.bytestring p ρ = refl
+subTyCon-eval Syn.string     p ρ = refl
+subTyCon-eval Syn.unit       p ρ = refl
+subTyCon-eval Syn.bool       p ρ = refl
+subTyCon-eval (Syn.list A)   p ρ = cong Nf.list (sub-eval A p ρ)
+subTyCon-eval (Syn.pair A B) p ρ =
+  cong₂ Nf.pair (sub-eval A p ρ) (sub-eval B p ρ) 
+subTyCon-eval Syn.Data       p ρ = refl
+
 sub-eval (` x)      p σ = idext p (σ x)
 sub-eval (Π B)    p σ = cong Π (trans
   (sub-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (exts σ))
@@ -429,16 +503,29 @@ sub-eval (ƛ B) p σ =
 sub-eval (A · B) p σ = AppCR (sub-eval A p σ) (sub-eval B p σ)
 sub-eval (μ A B) p ρ =
   cong₂ μ (reifyCR (sub-eval A p ρ)) (reifyCR (sub-eval B p ρ))
-sub-eval (con tcn) p ρ = refl
+sub-eval (con c) p ρ = cong con (subTyCon-eval c p ρ)
 \end{code}
 
 Fundamental Theorem of logical relations for CR
 
 \begin{code}
-fund : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
-  → EnvCR η η'
-  → {t t' : Φ ⊢⋆ K}
-  → t ≡β t' → CR K (eval t η) (eval t' η')
+fund : {η η' : Env Φ Ψ}
+     → EnvCR η η'
+     → {t t' : Φ ⊢⋆ K}
+     → t ≡β t'
+       ----------------------------
+     → CR K (eval t η) (eval t' η')
+
+fundTyCon : {η η' : Env Φ Ψ}
+          → EnvCR η η'
+          → {c c' : Syn.TyCon Φ}
+          → c ≡βTyCon c'
+            -------------------------------
+          → evalTyCon c η ≡ evalTyCon c' η'
+fundTyCon p (refl≡β c) = idextTyCon p c
+fundTyCon p (list≡β A) = cong Nf.list (fund p A)
+fundTyCon p (pair≡β A B) = cong₂ Nf.pair (fund p A) (fund p B) 
+
 fund p (refl≡β A)          = idext p A
 fund p (sym≡β q)           = symCR (fund (symCR ∘ p) q)
 fund p (trans≡β q r)       = transCR (fund (reflCR ∘ p) q) (fund p r)
@@ -466,16 +553,17 @@ fund p (β≡β B A) =
                     ; (S x) → renVal-id (reflCR (p x))})
                  B)
           (symCR (sub-eval B (symCR ∘ p) (sub-cons ` A)))
+fund p (con≡β q) = cong con (fundTyCon p q)
 \end{code}
 
 constructing the identity CR
 
 \begin{code}
-idCR : ∀{Φ K} → (x : Φ ∋⋆ K) → CR K (idEnv Φ x) (idEnv Φ x)
+idCR : (x : Φ ∋⋆ K) → CR K (idEnv Φ x) (idEnv Φ x)
 idCR x = reflectCR refl
 \end{code}
 
 \begin{code}
-completeness : ∀ {K Φ} {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
+completeness : {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
 completeness p = reifyCR (fund idCR p)
 \end{code}

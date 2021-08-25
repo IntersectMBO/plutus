@@ -25,23 +25,7 @@
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = ".";
-      dataFiles = [
-        "templates/*.tpl"
-        "validation/data/auction/*.flat"
-        "validation/data/crowdfunding/*.flat"
-        "validation/data/currency/*.flat"
-        "validation/data/escrow/*.flat"
-        "validation/data/future/*.flat"
-        "validation/data/game-sm/*.flat"
-        "validation/data/multisig-sm/*.flat"
-        "validation/data/ping-pong/*.flat"
-        "validation/data/prism/*.flat"
-        "validation/data/pubkey/*.flat"
-        "validation/data/stablecoin/*.flat"
-        "validation/data/token-account/*.flat"
-        "validation/data/uniswap/*.flat"
-        "validation/data/vesting/*.flat"
-        ];
+      dataFiles = [ "templates/*.tpl" "validation/data/*.flat" ];
       extraSrcFiles = [];
       extraTmpFiles = [];
       extraDocFiles = [];
@@ -158,7 +142,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "Paths_plutus_benchmark" ];
+          modules = [ "NaturalSort" "Paths_plutus_benchmark" ];
           hsSourceDirs = [ "validation" ];
           };
         };

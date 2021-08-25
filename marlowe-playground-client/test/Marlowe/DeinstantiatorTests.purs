@@ -28,10 +28,10 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Buyer's deposit timeout" /\ fromInt 600
-                          , "Buyer's dispute timeout" /\ fromInt 1800
-                          , "Seller's response timeout" /\ fromInt 2400
-                          , "Timeout for arbitrage" /\ fromInt 3600
+                          [ "Payment deadline" /\ fromInt 600
+                          , "Complaint response deadline" /\ fromInt 1800
+                          , "Complaint deadline" /\ fromInt 2400
+                          , "Mediation deadline" /\ fromInt 3600
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -43,32 +43,6 @@ all =
             )
       assertFalse "Could not instantiate Escrow contract" (mFilledEscrow == Nothing)
       equal (Just Escrow.contractTemplate) (maybe Nothing findTemplate mFilledEscrow)
-    test "Escrow with collateral" do
-      let
-        mFilledEscrowWithCollateral :: Maybe Contract
-        mFilledEscrowWithCollateral =
-          toCore
-            ( fillTemplate
-                ( TemplateContent
-                    { slotContent:
-                        Map.fromFoldable
-                          [ "Collateral deposit by seller timeout" /\ fromInt 600
-                          , "Deposit of collateral by buyer timeout" /\ fromInt 1200
-                          , "Deposit of price by buyer timeout" /\ fromInt 1800
-                          , "Dispute by buyer timeout" /\ fromInt 3000
-                          , "Seller's response timeout" /\ fromInt 3600
-                          ]
-                    , valueContent:
-                        Map.fromFoldable
-                          [ "Collateral amount" /\ fromInt 500
-                          , "Price" /\ fromInt 500
-                          ]
-                    }
-                )
-                EscrowWithCollateral.contractTemplate.extendedContract
-            )
-      assertFalse "Could not instantiate Escrow with collateral contract" (mFilledEscrowWithCollateral == Nothing)
-      equal (Just EscrowWithCollateral.contractTemplate) (maybe Nothing findTemplate mFilledEscrowWithCollateral)
     test "Zero Coupon Bond" do
       let
         mFilledZeroCouponBond :: Maybe Contract
@@ -78,13 +52,13 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Initial exchange deadline" /\ fromInt 600
-                          , "Maturity exchange deadline" /\ fromInt 1500
+                          [ "Loan deadline" /\ fromInt 600
+                          , "Payback deadline" /\ fromInt 1500
                           ]
                     , valueContent:
                         Map.fromFoldable
-                          [ "Discounted price" /\ fromInt 50
-                          , "Notional price" /\ fromInt 100
+                          [ "Interest" /\ fromInt 50
+                          , "Amount" /\ fromInt 100
                           ]
                     }
                 )
@@ -92,22 +66,3 @@ all =
             )
       assertFalse "Could not instantiate Zero Coupon Bond contract" (mFilledZeroCouponBond == Nothing)
       equal (Just ZeroCouponBond.contractTemplate) (maybe Nothing findTemplate mFilledZeroCouponBond)
-    test "Coupon Bond Guaranteed" do
-      let
-        mFilledCouponBondGuaranteed :: Maybe Contract
-        mFilledCouponBondGuaranteed =
-          toCore
-            ( fillTemplate
-                ( TemplateContent
-                    { slotContent: mempty
-                    , valueContent:
-                        Map.fromFoldable
-                          [ "Interest instalment" /\ fromInt 10
-                          , "Principal" /\ fromInt 1000
-                          ]
-                    }
-                )
-                CouponBondGuaranteed.contractTemplate.extendedContract
-            )
-      assertFalse "Could not instantiate Coupon Bond Guaranteed contract" (mFilledCouponBondGuaranteed == Nothing)
-      equal (Just CouponBondGuaranteed.contractTemplate) (maybe Nothing findTemplate mFilledCouponBondGuaranteed)

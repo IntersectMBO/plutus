@@ -17,11 +17,10 @@ open import Data.Unit
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
 
+open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative
 ```
@@ -80,7 +79,7 @@ renTermCon _ (bytestring b) = bytestring b
 renTermCon _ (string s)     = string s
 renTermCon _ (bool b)       = bool b
 renTermCon _ unit           = unit
-
+renTermCon _ (Data d)       = Data d
 ```
 
 Renaming for terms
@@ -172,6 +171,7 @@ subTermCon _ (bytestring b) = bytestring b
 subTermCon _ (string s)     = string s
 subTermCon _ (bool b)       = bool b
 subTermCon _ unit           = unit
+subTermCon _ (Data d)       = Data d
 
 ```
 

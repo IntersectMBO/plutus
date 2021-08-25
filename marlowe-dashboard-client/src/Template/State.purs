@@ -19,6 +19,7 @@ import Data.Traversable (for)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
+import Examples.PureScript.ContractForDifferences (defaultSlotContent) as ContractForDifferences
 import Examples.PureScript.Escrow (contractTemplate, defaultSlotContent) as Escrow
 import Examples.PureScript.EscrowWithCollateral (defaultSlotContent) as EscrowWithCollateral
 import Examples.PureScript.Swap (defaultSlotContent) as Swap
@@ -143,6 +144,7 @@ mkSlotContentInputs metaData slotContent =
       EscrowWithCollateral -> EscrowWithCollateral.defaultSlotContent
       Swap -> Swap.defaultSlotContent
       ZeroCouponBond -> ZeroCouponBond.defaultSlotContent
+      ContractForDifferences -> ContractForDifferences.defaultSlotContent
       _ -> mempty
 
     mkSlotContentInput key _ =

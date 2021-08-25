@@ -12,6 +12,7 @@ open import Data.Sum
 open import Data.List hiding ([_])
 open import Data.Product renaming (_,_ to _,,_)
 
+open import Utils hiding (TermCon)
 open import Type
 open import Type.Equality
 import Type.RenamingSubstitution as ⋆
@@ -23,8 +24,6 @@ open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNormal.Equality
 \end{code}
 
@@ -67,6 +66,7 @@ renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
 renTermCon ρ⋆ (bool b)       = bool b
 renTermCon ρ⋆ unit           = unit
+renTermCon ρ⋆ (Data d)       = Data d
 \end{code}
 
 \begin{code}
@@ -154,6 +154,7 @@ subTermCon σ⋆ (bytestring b) = bytestring b
 subTermCon σ⋆ (string s)     = string s
 subTermCon σ⋆ (bool b)       = bool b
 subTermCon σ⋆ unit           = unit
+subTermCon σ⋆ (Data d)       = Data d
 \end{code}
 
 \begin{code}

@@ -7,7 +7,7 @@ module Contract.View
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), State, StepBalance, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), State, StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -378,7 +378,7 @@ renderPastStep viewInput state stepNumber step =
 
     renderBody Tasks { state: TransactionStep txInput } = renderPastStepTasksTab viewInput stepNumber state txInput step
 
-    renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout viewInput stepNumber timeoutSlot
+    renderBody Tasks { state: TimeoutStep timeoutInfo } = renderTimeout viewInput state stepNumber timeoutInfo
 
     renderBody Balances { balances } = renderBalances stepNumber state balances
 
@@ -460,7 +460,7 @@ renderPastStepTasksTab viewInput stepNumber state txInput step =
           ]
         else
           append
-            (renderPartyPastActions stepNumber viewInput state <$> actionsByParticipant)
+            (renderPartyPastActions viewInput state <$> actionsByParticipant)
             if length resultingPayments == 0 then
               []
             else
@@ -503,12 +503,11 @@ renderPaymentSummary stepNumber state step =
 renderPartyPastActions ::
   forall m action.
   MonadAff m =>
-  Int ->
   Input ->
   State ->
   InputsByParty ->
   ComponentHTML action ChildSlots m
-renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party } =
+renderPartyPastActions { tzOffset } state { inputs, interval, party } =
   let
     -- We don't know exactly when a transaction was executed, we have an interval. But
     -- the design asks for an exact date so we use the lower end of the interval so that
@@ -521,28 +520,14 @@ renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party }
 
     transactionTime = maybe "-" (formatTime tzOffset) mTransactionDateTime
 
-    timeId = "pastActionTime" <> show stepNumber
-
-    selectedStep = state ^. _selectedStep
-
     renderPartyHeader =
       div [ classNames [ "flex", "justify-between", "items-center", "border-b", "border-gray", "px-3", "pb-4" ] ]
-        ( append
-            [ renderParty [] state party
-            , div [ classNames [ "flex", "flex-col", "items-end", "text-xs" ], id_ timeId ]
-                [ span [] [ text $ transactionDate ]
-                , span [ classNames [ "font-semibold" ] ] [ text $ transactionTime ]
-                ]
+        [ renderParty [] state party
+        , div [ classNames [ "flex", "flex-col", "items-end", "text-xxs", "font-semibold" ] ]
+            [ span_ [ text transactionDate ]
+            , span_ [ text $ transactionTime <> " (" <> humanizeOffset tzOffset <> ")" ]
             ]
-            -- The tooltip is placed in a wrong place if it's not the current step (most likely
-            -- because non current steps have a transform:scale), so we only show the tooltip
-            -- when you hover over the current step
-            if selectedStep == stepNumber then
-              [ tooltip ("Times are in " <> humanizeOffset tzOffset) (RefId timeId) Top
-              ]
-            else
-              []
-        )
+        ]
 
     renderFeesSummary =
       div [ classNames [ "pt-4", "px-3", "border-t", "border-gray", "flex", "items-center", "text-xs" ] ]
@@ -577,22 +562,67 @@ renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party }
       , renderFeesSummary
       ]
 
-renderTimeout :: forall p a. Input -> Int -> Slot -> HTML p a
-renderTimeout { tzOffset } stepNumber timeoutSlot =
+renderTimeout :: forall p a. Input -> State -> Int -> TimeoutInfo -> HTML p a
+renderTimeout { tzOffset } state stepNumber timeoutInfo =
   let
-    timedOutDate =
-      maybe
-        "invalid date"
-        (\dt -> formatDate tzOffset dt <> " at " <> formatTime tzOffset dt)
-        (slotToDateTime timeoutSlot)
+    mTimeoutDateTime = slotToDateTime timeoutInfo.slot
+
+    timeoutDate = maybe "-" (formatDate tzOffset) mTimeoutDateTime
+
+    timeoutTime = maybe "-" (formatTime tzOffset) mTimeoutDateTime
+
+    header =
+      div
+        [ classNames [ "py-2", "px-3", "w-full", "flex", "justify-between" ] ]
+        [ div [ classNames [ "flex", "items-center", "text-xs" ] ]
+            [ icon Icon.Timer [ "mr-1" ]
+            , span [ classNames [ "font-semibold" ] ] [ text "Timed out" ]
+            ]
+        , div [ classNames [ "flex", "flex-col", "items-end", "text-xxs", "font-semibold" ] ]
+            [ span_ [ text timeoutDate ]
+            , span_ [ text $ timeoutTime <> " (" <> humanizeOffset tzOffset <> ")" ]
+            ]
+        ]
+
+    body =
+      div [ classNames [ "py-2", "px-3", "border-t", "border-gray" ] ]
+        $ renderMissingActions state timeoutInfo
   in
-    div [ classNames [ "flex", "flex-col", "items-center", "px-4" ] ]
-      -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
-      --       centered and it has more space above than below.
-      [ icon Icon.Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
-      , span [ classNames [ "font-semibold", "text-center", "text-sm" ] ]
-          [ text $ "Step " <> show (stepNumber + 1) <> " timed out on " <> timedOutDate ]
+    div [ classNames [ "mt-4", "bg-white", "rounded", "shadow-sm", "mx-4", "flex", "flex-col", "items-center" ] ]
+      [ header
+      , body
       ]
+
+renderMissingActions :: forall p a. State -> TimeoutInfo -> Array (HTML p a)
+renderMissingActions _ { missedActions: [] } =
+  [ div [ classNames [ "font-semibold", "text-xs", "leading-none" ] ] [ text "There were no tasks to complete at this step and the contract has timeouted as expected." ]
+  ]
+
+renderMissingActions state { missedActions } =
+  append
+    [ div [ classNames [ "font-semibold", "text-xs", "leading-none" ] ] [ text "The step timed out before the following actions could be made." ]
+    ]
+    (missedActions <#> uncurry (renderPartyMissingActions state))
+
+renderPartyMissingActions :: forall p a. State -> Party -> Array NamedAction -> HTML p a
+renderPartyMissingActions state party actions =
+  let
+    renderMissingAction (MakeChoice (ChoiceId name _) _ _) = span_ [ text "Make a choice for ", span [ classNames [ "font-semibold" ] ] [ text name ] ]
+
+    renderMissingAction (MakeDeposit _ _ token value) = span [] [ text $ "Make a deposit of " <> humanizeValue token value ]
+
+    renderMissingAction (MakeNotify _) = span [] [ text "awaiting observation" ]
+
+    renderMissingAction _ = span [] [ text "invalid action" ]
+
+    actionsSeparatedByOr =
+      intercalate
+        [ div [ classNames [ "font-semibold", "my-2", "text-xs" ] ] [ text "or" ]
+        ]
+        (Array.singleton <<< renderMissingAction <$> actions)
+  in
+    div [ classNames [ "border-l-2", "border-black", "pl-2", "mt-3" ] ]
+      $ Array.cons (renderParty [ "mb-2" ] state party) actionsSeparatedByOr
 
 renderCurrentStep :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 renderCurrentStep viewInput state =

@@ -19,8 +19,6 @@ open import Data.Bool using (true;false)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 import Debug.Trace as Debug
-open import Utils
-
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE using (nf)
@@ -28,10 +26,10 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Builtin
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-open import Builtin.Constant.Type
+open import Utils hiding (TermCon)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Utils using (decIf;just;nothing)
+
 
 open import Algorithmic.ReductionEC using (Arg;Term;Type;_<>>_∈_;start;bubble;arity;saturated;_<><_;<>>2<>>';lemma<>2;unique<>>;Bwd;[];_∷_;<>>-cancel-both;<>>-cancel-both')
 
@@ -58,7 +56,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
    → Value (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
    → Value (μ A B)
 
-  V-con : {tcn : TyCon}
+  V-con : {tcn : TyCon _}
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
 
@@ -178,7 +176,10 @@ BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))
 BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
 BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
-
+BUILTIN iData (app _ base (V-con (integer i))) =
+  inj₁ (V-con (Data (iDATA i)))
+BUILTIN _ {A} _ = inj₂ A
+  
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
   → ∀{A}
   → BAPP b p A
@@ -195,7 +196,7 @@ BUILTIN' b {az = az} p q
 open import Data.Product using (∃)
 
 bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
-  → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
+    → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
 bappTermLem addInteger _ base = _ ,, _ ,, refl
 bappTermLem addInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -350,9 +351,147 @@ bappTermLem appendString {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
 ... | refl ,, refl ,, ()
 bappTermLem trace {az = az} {as} p q with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem trace {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
-
-bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
-  → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+bappTermLem equalsString (start _) base = _ ,, _ ,, refl
+bappTermLem equalsString {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem equalsString (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem encodeUtf8 {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem encodeUtf8 (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem decodeUtf8 {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem decodeUtf8 (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem fstPair (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ([] <>< arity fstPair) _ p refl
+bappTermLem fstPair
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem sndPair (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ([] <>< arity fstPair) _ p refl
+bappTermLem sndPair
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem nullList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem nullList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem headList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem headList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem tailList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem tailList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseList
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            = _ ,, _ ,, refl
+bappTermLem chooseList
+            (bubble (bubble (bubble (start _))))
+            (app _ (app⋆ _ (app⋆ _ base refl) refl) x)
+            = _ ,, _ ,, refl
+bappTermLem chooseList (bubble (bubble (bubble (bubble {as = az} p)))) q
+  with <>>-cancel-both' az _ ([] <>< arity chooseList) _ p refl
+bappTermLem chooseList
+            (bubble (bubble (bubble (bubble (start _)))))
+            (app _ (app _ (app⋆ _ (app⋆ _ base refl) refl) _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem constrData (start _) base = _ ,, _ ,, refl
+bappTermLem constrData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem constrData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mapData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mapData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem listData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem listData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem iData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem iData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem bData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem bData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unConstrData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unConstrData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unMapData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unMapData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unListData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unListData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unIData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unIData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unBData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unBData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem equalsData (start _) base = _ ,, _ ,, refl
+bappTermLem equalsData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem equalsData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseData (bubble (start _)) (app⋆ _ base refl) =
+  _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (start _)))
+            (app _ (app⋆ _ base refl) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (start _))))
+            (app _ (app _ (app⋆ _ base refl) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (start _)))))
+            (app _ (app _ (app _ (app⋆ _ base refl) _) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (bubble (start _))))))
+            (app _ (app _ (app _ (app _ (app⋆ _ base refl) _) _) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (bubble (bubble {as = az} p)))))) q
+  with <>>-cancel-both' az _ ([] <>< arity chooseData) _ p refl
+bappTermLem
+  chooseData
+  (bubble (bubble (bubble (bubble (bubble (bubble (start _)))))))
+  (app _ (app _ (app _ (app _ (app _ (app⋆ _ base refl)_)_)_)_)_)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseUnit (bubble (start _)) (app⋆ _ base refl) =
+  _ ,, _ ,, refl
+bappTermLem chooseUnit (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] ∷ Type) ∷ Term) ∷ Term) _ p refl
+bappTermLem chooseUnit
+            (bubble (bubble (start _)))
+            (app _ (app⋆ _ base refl) x)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkPairData (start _) base = _ ,, _ ,, refl
+bappTermLem mkPairData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem mkPairData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkNilData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mkNilData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkNilPairData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mkNilPairData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkConsData (start _) base = _ ,, _ ,, refl
+bappTermLem mkConsData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem mkConsData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+postulate
+  bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
+    → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+-- commenting out pending a change in the builtins
+{-
 bappTypeLem addInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, () 
@@ -485,7 +624,7 @@ bappTypeLem appendString {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
 bappTypeLem trace {az = az} {as} p q
   with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-
+-}
 V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
        → (p : as <>> a ∷ as' ∈ arity b)
        → BAPP b p A
@@ -542,6 +681,32 @@ ival equalsByteString = V-I⇒ equalsByteString _ base
 ival ifThenElse = V-IΠ ifThenElse _ base
 ival appendString = V-I⇒ appendString _ base
 ival trace = V-I⇒ trace _ base
+ival equalsString = V-I⇒ equalsString (start _) base
+ival encodeUtf8 = V-I⇒ encodeUtf8 (start _) base
+ival decodeUtf8 = V-I⇒ decodeUtf8 (start _) base
+ival fstPair = V-IΠ fstPair (start _) base
+ival sndPair = V-IΠ sndPair (start _) base
+ival nullList = V-IΠ nullList (start _) base
+ival headList = V-IΠ headList (start _) base
+ival tailList = V-IΠ tailList (start _) base
+ival chooseList = V-IΠ chooseList (start _) base
+ival constrData = V-I⇒ constrData (start _) base
+ival mapData = V-I⇒ mapData (start _) base
+ival listData = V-I⇒ listData (start _) base
+ival iData = V-I⇒ iData (start _) base
+ival bData = V-I⇒ bData (start _) base
+ival unConstrData = V-I⇒ unConstrData (start _) base
+ival unMapData = V-I⇒ unMapData (start _) base
+ival unListData = V-I⇒ unListData (start _) base
+ival unIData = V-I⇒ unIData (start _) base
+ival unBData = V-I⇒ unBData (start _) base
+ival equalsData = V-I⇒ equalsData (start _) base
+ival chooseData = V-IΠ chooseData (start _) base
+ival chooseUnit = V-IΠ chooseUnit (start _) base
+ival mkPairData = V-I⇒ mkPairData (start _) base
+ival mkNilData = V-I⇒ mkNilData (start _) base
+ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
+ival mkConsData = V-I⇒ mkConsData (start _) base
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ

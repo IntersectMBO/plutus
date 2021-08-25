@@ -13,8 +13,8 @@ explicitRefunds = False
 
 guarantor, investor, issuer :: Party
 guarantor = Role "Guarantor"
-investor = Role "Investor"
-issuer = Role "Issuer"
+investor = Role "Lender"
+issuer = Role "Borrower"
 
 principal, instalment :: Value
 principal = ConstantParam "Principal"
@@ -41,8 +41,8 @@ transfer amount from to timeout timeoutContinuation continuation =
   $ Pay to (Party to) ada amount
     continuation
 
-giveCollateralToInvestor :: Value -> Contract
-giveCollateralToInvestor amount
+giveCollateralToLender :: Value -> Contract
+giveCollateralToLender amount
   | explicitRefunds = Pay investor (Party investor) ada amount Close
   | otherwise = Close
 
@@ -52,12 +52,12 @@ contract = deposit (guaranteedAmount 3) guarantor investor
          $ transfer principal investor issuer
                     600 (refundGuarantor (guaranteedAmount 3) Close)
          $ transfer instalment issuer investor
-                    900 (giveCollateralToInvestor $ guaranteedAmount 3)
+                    900 (giveCollateralToLender $ guaranteedAmount 3)
          $ refundGuarantor instalment
          $ transfer instalment issuer investor
-                    1200 (giveCollateralToInvestor $ guaranteedAmount 2)
+                    1200 (giveCollateralToLender $ guaranteedAmount 2)
          $ refundGuarantor instalment
          $ transfer lastInstalment issuer investor
-                    1500 (giveCollateralToInvestor $ guaranteedAmount 1)
+                    1500 (giveCollateralToLender $ guaranteedAmount 1)
          $ refundGuarantor lastInstalment
            Close

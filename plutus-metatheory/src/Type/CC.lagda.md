@@ -10,6 +10,7 @@ module Type.CC where
 ## Imports
 
 ```
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 open import Type.ReductionC hiding (step)

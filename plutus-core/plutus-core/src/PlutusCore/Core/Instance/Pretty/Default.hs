@@ -18,16 +18,17 @@ import           PlutusCore.Pretty.PrettyConst
 
 import           Universe
 
-instance Pretty (Kind ann) where
+instance Pretty ann => Pretty (Kind ann) where
     pretty = prettyClassicDef
 
-instance (PrettyClassic tyname, GShow uni) => Pretty (Type tyname uni ann) where
+instance (PrettyClassic tyname, GShow uni, Pretty ann) => Pretty (Type tyname uni ann) where
     pretty = prettyClassicDef
 
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty ann
         ) => Pretty (Term tyname name uni fun ann) where
     pretty = prettyClassicDef
 
@@ -35,5 +36,6 @@ instance
         ( PrettyClassic tyname
         , PrettyClassic name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty ann
         ) => Pretty (Program tyname name uni fun ann) where
     pretty = prettyClassicDef

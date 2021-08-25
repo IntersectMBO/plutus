@@ -8,16 +8,17 @@ import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe')
 import Data.Tuple.Nested ((/\), type (/\))
-import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.ContractForDifferences as ContractForDifferences
+import Examples.PureScript.Escrow as Escrow
+import Marlowe.ContractTests (toTerm)
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Holes (Term, fromTerm)
 import Marlowe.Holes as T
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Input, Party(..), Slot(..), Token(..), TransactionInput, emptyState)
 import Marlowe.Semantics as S
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Test.Unit (Test, TestSuite, failure, success, suite, test)
 import Test.Unit.Assert (equal)
 import Text.Pretty (pretty)
@@ -55,7 +56,7 @@ buyer :: Party
 buyer = Role "Buyer"
 
 arbiter :: Party
-arbiter = Role "Arbiter"
+arbiter = Role "Mediator"
 
 ada :: Token
 ada = Token "" ""
@@ -97,14 +98,14 @@ escrowFlows =
             , transaction $ S.IChoice (S.ChoiceId "Dispute problem" seller) zero
             , transaction $ S.IChoice (S.ChoiceId "Dismiss claim" arbiter) zero
             ]
-    , "Arbiter confirm problem"
+    , "Mediator confirm problem"
         /\ List.fromFoldable
             [ transaction $ S.IDeposit seller buyer ada escrowPrice
             , transaction $ S.IChoice (S.ChoiceId "Report problem" buyer) one
             , transaction $ S.IChoice (S.ChoiceId "Dispute problem" seller) zero
             , transaction $ S.IChoice (S.ChoiceId "Confirm problem" arbiter) one
             ]
-    , "Arbiter confirm problem (multiple actions in same transaction)"
+    , "Mediator confirm problem (multiple actions in same transaction)"
         /\ List.singleton
             ( multipleInputs
                 $ List.fromFoldable
@@ -151,7 +152,26 @@ cfdPrice :: BigInteger
 cfdPrice = fromInt 100000000
 
 contractForDifferences :: EM.Contract
-contractForDifferences = ContractForDifferences.extendedContract
+contractForDifferences =
+  fillTemplate
+    ( TemplateContent
+        { slotContent:
+            Map.fromFoldable
+              [ "Party deposit deadline" /\ fromInt 10
+              , "Counterparty deposit deadline" /\ fromInt 20
+              , "First window beginning" /\ fromInt 30
+              , "First window deadline" /\ fromInt 40
+              , "Second window beginning" /\ fromInt 100
+              , "Second window deadline" /\ fromInt 110
+              ]
+        , valueContent:
+            Map.fromFoldable
+              [ "Amount paid by party" /\ fromInt 100000000
+              , "Amount paid by counterparty" /\ fromInt 100000000
+              ]
+        }
+    )
+    ContractForDifferences.extendedContract
 
 contractForDifferencesFlows :: ContractFlows
 contractForDifferencesFlows =
@@ -160,25 +180,28 @@ contractForDifferencesFlows =
         /\ List.fromFoldable
             [ transaction $ S.IDeposit party party ada cfdPrice
             , transaction $ S.IDeposit counterparty counterparty ada cfdPrice
-            , transaction $ S.IChoice (S.ChoiceId "Price at beginning" oracle) (fromInt 90000000)
-            , timeout (fromInt 160)
-            , transaction $ S.IChoice (S.ChoiceId "Price at end" oracle) (fromInt 85000000)
+            , timeout (fromInt 35)
+            , transaction $ S.IChoice (S.ChoiceId "Price in first window" oracle) (fromInt 90000000)
+            , timeout (fromInt 105)
+            , transaction $ S.IChoice (S.ChoiceId "Price in second window" oracle) (fromInt 85000000)
             ]
     , "Increase in price"
         /\ List.fromFoldable
             [ transaction $ S.IDeposit party party ada cfdPrice
             , transaction $ S.IDeposit counterparty counterparty ada cfdPrice
-            , transaction $ S.IChoice (S.ChoiceId "Price at beginning" oracle) (fromInt 90000000)
-            , timeout (fromInt 160)
-            , transaction $ S.IChoice (S.ChoiceId "Price at end" oracle) (fromInt 95000000)
+            , timeout (fromInt 35)
+            , transaction $ S.IChoice (S.ChoiceId "Price in first window" oracle) (fromInt 90000000)
+            , timeout (fromInt 105)
+            , transaction $ S.IChoice (S.ChoiceId "Price in second window" oracle) (fromInt 95000000)
             ]
     , "Same price"
         /\ List.fromFoldable
             [ transaction $ S.IDeposit party party ada cfdPrice
             , transaction $ S.IDeposit counterparty counterparty ada cfdPrice
-            , transaction $ S.IChoice (S.ChoiceId "Price at beginning" oracle) (fromInt 90000000)
-            , timeout (fromInt 160)
-            , transaction $ S.IChoice (S.ChoiceId "Price at end" oracle) (fromInt 90000000)
+            , timeout (fromInt 35)
+            , transaction $ S.IChoice (S.ChoiceId "Price in first window" oracle) (fromInt 90000000)
+            , timeout (fromInt 105)
+            , transaction $ S.IChoice (S.ChoiceId "Price in second window" oracle) (fromInt 90000000)
             ]
     ]
 

@@ -18,8 +18,6 @@ import qualified UntypedPlutusCore                as U
 import           MAlonzo.Code.Main                (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
                                                    normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda, runTCEKAgda,
                                                    runTCKAgda, runTLAgda, runUAgda)
-import           MAlonzo.Code.Scoped              (deBruijnifyK, unDeBruijnifyK)
-
 import           PlutusCore.DeBruijn
 import           Raw                              hiding (TypeError, tynames)
 
@@ -52,7 +50,7 @@ prop_Type k tyG = do
 
   -- 1. check soundness of Agda kindchecker with respect to NEAT:
   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
-    checkKindAgda tyDB (deBruijnifyK (convK k))
+    checkKindAgda tyDB k
   -- infer kind using Agda kind inferer:
   k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
@@ -60,8 +58,8 @@ prop_Type k tyG = do
   k2 <- withExceptT TypeError $ inferKind tcConfig ty
 
   -- 2. check that production and Agda kind inferer agree:
-  unless (unconvK (unDeBruijnifyK k1) == k2) $
-    throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k1)) k2)
+  unless (k1 == k2) $
+    throwCtrex (CtrexKindMismatch k tyG k1 k2)
 
 
   -- normalize type using Agda type normalizer:
@@ -70,7 +68,7 @@ prop_Type k tyG = do
 
   -- 3. check that the Agda type normalizer doesn't mange the kind:
   withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
-    liftEither $ checkKindAgda ty' (deBruijnifyK (convK k))
+    liftEither $ checkKindAgda ty' k
 
   -- convert Agda normalized type back to named notation:
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'
