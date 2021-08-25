@@ -149,6 +149,7 @@ postulate
   B>        : ByteString -> ByteString -> Bool
   SHA2-256  : ByteString → ByteString
   SHA3-256  : ByteString → ByteString
+  BLAKE2B-256  : ByteString → ByteString
   verifySig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
 
@@ -162,7 +163,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
-{-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hash) #-}
+{-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
@@ -179,8 +180,9 @@ postulate
 -- no binding needed for equals
 
 {-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC SHA2-256 = B.convert . hash @BS.ByteString @SHA256 #-}
-{-# COMPILE GHC SHA3-256 = B.convert . hash @BS.ByteString @SHA3_256 #-}
+{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
+{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}
+{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B> = (>) #-}

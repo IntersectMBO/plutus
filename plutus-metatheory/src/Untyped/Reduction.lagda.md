@@ -215,6 +215,9 @@ IBUILTIN sha2-256
 IBUILTIN sha3-256
   (tt , (t , V-con (bytestring b)))
   = _ , inl (V-con (bytestring (SHA3-256 b)))
+IBUILTIN blake2b-256
+  (tt , (t , V-con (bytestring b)))
+  = _ , inl (V-con (bytestring (BLAKE2B-256 b)))
 IBUILTIN verifySignature
   (((tt , (t , V-con (bytestring k))) , (t' , V-con (bytestring d))) , (t'' , V-con (bytestring c)))
    with verifySig k d c

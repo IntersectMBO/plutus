@@ -326,6 +326,8 @@ BUILTIN sha2-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
 BUILTIN sha3-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
   con (bytestring (SHA3-256 b))
+BUILTIN blake2b-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
+  con (bytestring (BLAKE2B-256 b))
 BUILTIN verifySignature (step .(bubble (bubble (start (Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))  with verifySig k d c
 ... | just b = con (bool b)
 ... | nothing = error _

@@ -162,10 +162,12 @@ BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'
 BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
 BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
 BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B> b b')))
-BUILTIN sha2-256 (app _ base (V-con (bytestring b))) =
-  inj₁ (V-con (bytestring (SHA2-256 b)))
+BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₁ (V-con
+  (bytestring (SHA2-256 b)))
 BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (bytestring (SHA3-256 b)))
+BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
+  inj₁ (V-con (bytestring (BLAKE2B-256 b)))
 BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
 ... | just b = inj₁ (V-con (bool b))
 ... | nothing = inj₂ (con bool)

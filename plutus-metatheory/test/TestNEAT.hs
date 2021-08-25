@@ -33,7 +33,7 @@ allTests genOpts = testGroup "NEAT"
       (Type ())
       (packAssertion prop_Type)
   , bigTestTermG_NO_LIST "term-level"
-      genOpts {genDepth = 20}
+      genOpts {genDepth = 21}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]

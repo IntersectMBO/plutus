@@ -545,8 +545,8 @@ postulate showU : TermU -> String
 
 runU : TermU → Either ERROR TermU
 runU t = do
-  tDB ← withE scopeError $ U.scopeCheckU {0} (convTmU (D.trace (showU t) t))
-  just tR ← withE runtimeError $ U.progressor maxsteps (D.trace (Untyped.ugly tDB) tDB)
+  tDB ← withE scopeError $ U.scopeCheckU {0} (convTmU t)
+  just tR ← withE runtimeError $ U.progressor maxsteps tDB
     where nothing → inj₂ (unconvTmU UError)
   return (unconvTmU (extricateU tR))
 
