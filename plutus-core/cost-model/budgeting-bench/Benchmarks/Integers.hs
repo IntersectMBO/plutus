@@ -3,10 +3,9 @@ module Benchmarks.Integers (makeBenchmarks) where
 import           Benchmarks.Common
 
 import           PlutusCore
-import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Criterion.Main
-import           System.Random                          (StdGen)
+import           System.Random     (StdGen)
 
 ---------------- Integer builtins ----------------
 
@@ -40,8 +39,7 @@ benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchTwoIntegers gen builtinName =
     createTwoTermBuiltinBench builtinName inputs inputs
     where
-      (numbers,_) = makeDefaultIntegerArgs gen
-      inputs  = fmap (\e -> (e, memoryUsage e)) numbers
+      (inputs,_) = makeDefaultIntegerArgs gen
 
 
 {- Some larger inputs for cases where we're using the same number for both
@@ -56,8 +54,8 @@ benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName inputs inputs'
     where
       (numbers,_) = makeBiggerIntegerArgs gen
-      inputs  = fmap (\e -> (e, memoryUsage e)) numbers
-      inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
+      inputs  = numbers
+      inputs' = map copyInteger numbers
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =

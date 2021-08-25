@@ -14,10 +14,9 @@ import qualified Data.Text                              as T
 import qualified Data.Text.Encoding                     as T
 import           System.Random                          (StdGen)
 
-import qualified Hedgehog                               as HH
-import qualified Hedgehog.Internal.Gen                  as HH
-import qualified Hedgehog.Internal.Tree                 as HH
-import qualified Hedgehog.Range                         as HH.Range
+import qualified Hedgehog                               as H
+import qualified Hedgehog.Internal.Gen                  as G
+import qualified Hedgehog.Range                         as R
 
 import qualified Debug.Trace                            as T
 
@@ -37,11 +36,11 @@ import qualified Debug.Trace                            as T
  the strings we encounter in practice.
 -}
 
-seedA :: HH.Seed
-seedA = HH.Seed 42 43
+seedA :: H.Seed
+seedA = H.Seed 42 43
 
-seedB :: HH.Seed
-seedB = HH.Seed 44 45
+seedB :: H.Seed
+seedB = H.Seed 44 45
 
 stringSizesSmall :: [Integer]
 stringSizesSmall = [0, 5..100]
@@ -52,8 +51,8 @@ stringSizesMedium = [0, 10..1000]
 stringSizesBig :: [Integer]
 stringSizesBig = [0, 200..10000]
 
-makeSizedString :: HH.Seed -> Int -> (T.Text, ExMemory)
-makeSizedString seed n = let x = genSample seed (HH.text (HH.Range.singleton n) HH.unicode) in (x, memoryUsage x)
+makeSizedString :: H.Seed -> Int -> T.Text
+makeSizedString seed n = genSample seed (G.text (R.singleton n) G.unicode)
 
 -- We use the unicode generator here: this will typically give us characters
 -- that require four bytes in UTF-16 format. What is the size here?  Number
@@ -64,15 +63,15 @@ makeSizedString seed n = let x = genSample seed (HH.text (HH.Range.singleton n) 
 -- gives bytestrings of length ~ 390-400.  Applying decodeUtf8, the output of
 -- all of these yields Text strings of length 100.
 -- UTF-16: two bytes in the BMP, four in the other planes.
-makeSizedUtf8ByteString :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
-makeSizedUtf8ByteString seed e = let x = genSample seed (HH.utf8 (HH.Range.singleton (4*e)) HH.unicode) in (x, memoryUsage x)
+makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
+makeSizedUtf8ByteString seed e = genSample seed (G.utf8 (R.singleton (4*e)) G.unicode)
 -- 4*e because with the unicode generator this will generally produce a
 -- bytestring containing e bytes since the *output* will contain 100 characters.
 
-stringsToBench :: HH.Seed -> [(T.Text, ExMemory)]
+stringsToBench :: H.Seed -> [T.Text]
 stringsToBench seed = (makeSizedString seed . fromInteger) <$> stringSizesMedium
 
-utf8StringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
+utf8StringsToBench :: H.Seed -> [BS.ByteString]
 utf8StringsToBench seed = (makeSizedUtf8ByteString seed . fromInteger) <$> stringSizesMedium
 
 benchOneString :: DefaultFun -> Benchmark
@@ -95,18 +94,18 @@ benchTwoStrings name =
 benchStringNoArgOperations :: DefaultFun -> Benchmark
 benchStringNoArgOperations name =
     bgroup (show name) $
-        stringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
+        stringsToBench seedA <&> (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x)
 
 -- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoStrings :: DefaultFun -> Benchmark
 benchSameTwoStrings name = createTwoTermBuiltinBenchElementwise name (stringsToBench seedA)
-                               ((\(s, e) -> (T.copy s, e)) <$> stringsToBench seedA)
+                               (fmap T.copy $ stringsToBench seedA)
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [  -- benchOneString EncodeUtf8
-                         -- benchOneByteString DecodeUtf8
---                      , benchTwoStrings AppendString
---                      , benchSameTwoStrings EqualsString
+makeBenchmarks _gen = [ benchOneString EncodeUtf8
+                      , benchOneByteString DecodeUtf8
+                      , benchTwoStrings AppendString
+                      , benchSameTwoStrings EqualsString
                       ]
 
 

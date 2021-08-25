@@ -21,12 +21,14 @@ import           Data.Typeable                                   (Typeable)
 import           System.Random                                   (StdGen, randomR)
 
 
-import qualified Hedgehog                                        as HH
-import qualified Hedgehog.Internal.Gen                           as HH
-import qualified Hedgehog.Internal.Tree                          as HH
+import qualified Hedgehog                                        as H
+import qualified Hedgehog.Internal.Gen                           as G
+import qualified Hedgehog.Internal.Tree                          as T
 
 type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
 
+showMemoryUsage :: ExMemoryUsage a => a -> String
+showMemoryUsage = show . memoryUsage
 
 ---------------- Cloning objects ----------------
 -- TODO: look at GHC.Compact
@@ -152,26 +154,26 @@ integerPower = (^) -- Just to avoid some type ascriptions later
    (along with their memory sizes), create a collection of benchmarks which run
    f on all elements of xs. -}
 createOneTermBuiltinBench
-    :: (DefaultUni `Includes` a)
+    :: (DefaultUni `Includes` a, ExMemoryUsage a)
     => DefaultFun
-    -> [(a, ExMemory)]
+    -> [a]
     -> Benchmark
 createOneTermBuiltinBench name xs =
-    bgroup (show name) $ [mkBM xmem x | (x,xmem) <- xs]
-        where mkBM xMem x = benchDefault (show xMem) $ mkApp1 name x
+    bgroup (show name) $ [mkBM x | x <- xs]
+        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name x
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
     => DefaultFun
-    -> [(a, ExMemory)]
-    -> [(b, ExMemory)]
+    -> [a]
+    -> [b]
     -> Benchmark
 createTwoTermBuiltinBench name xs ys =
-    bgroup (show name) $ [bgroup (show xmem) [mkBM yMem x y | (y, yMem) <- ys] | (x,xmem) <- xs]
-        where mkBM yMem x y = benchDefault (show yMem) $ mkApp2 name x y
+    bgroup (show name) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name x y
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::a and
    ys::a (along with their memory sizes), create a collection of benchmarks
@@ -185,14 +187,14 @@ createTwoTermBuiltinBench name xs ys =
    same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
     => DefaultFun
-    -> [(a, ExMemory)]
-    -> [(b, ExMemory)]
+    -> [a]
+    -> [b]
     -> Benchmark
 createTwoTermBuiltinBenchElementwise name xs ys =
-    bgroup (show name) $ zipWith (\(x, xmem) (y,ymem) -> bgroup (show xmem) [mkBM ymem x y]) xs ys
-        where mkBM ymem x y = benchDefault (show ymem) $ mkApp2 name x y
+    bgroup (show name) $ zipWith (\x y -> bgroup (showMemoryUsage x) [mkBM x y]) xs ys
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name x y
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
@@ -209,15 +211,14 @@ randNwords n gen = randomR (lb,ub) gen
    should rationalise this.  Pehaps Hedgehog is more future-proof since it can
    produce random instances of a wide variety of types.  On the other hand, you
    have to be careful with Hedgehog Ranges since they don't necessarily do what
-   you might expect -}
-genSample :: HH.Seed -> HH.Gen a -> a
-genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") HH.treeValue $ HH.evalGen (HH.Size 1) seed gen
+   you might expect.  It might be a bit tricky to use Hedgehog everywhere
+   because we'd need a lot of monadic code to take care of generator states. -}
+genSample :: H.Seed -> G.Gen a -> a
+genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (H.Size 1) seed gen
 
 powersOfTwo :: [Integer]
 powersOfTwo = integerPower 2 <$> [1..16]
 
 -- Make some really big numbers for benchmarking
-threeToThePower :: Integer -> (Integer, ExMemory)
-threeToThePower e =
-    let x = integerPower 3 e
-    in  (x, memoryUsage x)
+threeToThePower :: Integer -> Integer
+threeToThePower e = integerPower 3 e

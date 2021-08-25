@@ -363,34 +363,34 @@ consByteString _ = do
       let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
       pure $ CostingFun cpuModel memModel
 
--- ### TODO: get model from R ###
+
+{- | Return a substring of a bytestring with a specified start point and length.
+   Plutus Core bytestrings are implemented using Data.ByteString, which
+   represents a (strict) bytestring as a C array of bytes together with a
+   pointer into that and a length.  The sliceBytestring function is implemented
+   using 'take' and 'drop', and these work by modifying the pointer and length;
+   no bytes are copied so sliceByteString requires constant time and a constant
+   memory overhead.  Nevertheless we use linear costing functions here to leave
+   some room for future flexibility.
+-}
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 sliceByteString _ = do
-  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 150000 5000
-  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 0 1
+  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 150000 0
+  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 0 20
   pure $ CostingFun cpuModel memModel
--- This will be a bit tricky.  We're looking at sliceByteString p l s, which
--- gets the substring of length l starting at p.  Probably the best we can do is
--- to make it linear in the size of s.  We'll have to run some experiments to
--- see which p and l give the worst case and then run benchmarks with
--- bytestrings of various sizes and the worst case p and l for each.  For the
--- size, the real size of the result will be bounded above by l, but the costing
--- function only knows about the _size_ of l, so let's just make it the size of
--- s.  That could be a big overstimate, but memory doesn't seem to be too much
--- of a problem.
 
 
 -- ### TODO: get model from R ###
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 lengthOfByteString _ = do
-      let cpuModel = ModelOneArgumentConstantCost 150000 -- ### Get this from R
-      let memModel = ModelOneArgumentConstantCost 4  -- One word. Probably need some heap overhead.
+      let cpuModel = ModelOneArgumentConstantCost 150000
+      let memModel = ModelOneArgumentConstantCost 10
       pure $ CostingFun cpuModel memModel
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 indexByteString _ = do
-      let cpuModel = ModelTwoArgumentsConstantCost 150000 -- ### Get this from R
-      let memModel = ModelTwoArgumentsConstantCost 1  -- One byte. Probably need some heap overhead.
+      let cpuModel = ModelTwoArgumentsConstantCost 150000
+      let memModel = ModelTwoArgumentsConstantCost 4
       pure $ CostingFun cpuModel memModel
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

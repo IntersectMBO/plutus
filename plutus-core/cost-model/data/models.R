@@ -261,14 +261,14 @@ modelFun <- function(path) {
     consByteStringModel  <- 0
 
     sliceByteStringModel <- 0
-    ## {
-    ##     fname <- "SliceByteString"
-    ##     filtered <- data %>%
-    ##         filter.and.check.nonempty(fname) %>%
-    ##         discard.overhead (two.args.overhead)
-    ##     m <- lm(Mean ~ 1, data=filtered)   ## FIX THIS!!!
-    ##     adjustModel(m,fname)
-    ## }
+    {
+        fname <- "SliceByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+             discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ 1, data=filtered)   ## FIX THIS!!!
+        adjustModel(m,fname)
+    }
 
     lengthOfByteStringModel <- 0
     indexByteStringModel    <- 0
