@@ -87,31 +87,26 @@ seedA = H.Seed 42 43
 seedB :: H.Seed
 seedB = H.Seed 44 45
 
-stringSizesSmall :: [Integer]
-stringSizesSmall = [0, 5..100]
-
-stringSizesMedium :: [Integer]
-stringSizesMedium = [0, 10..1000]
-
-stringSizesBig :: [Integer]
-stringSizesBig = [0, 200..10000]
-
 oneArgumentSizes :: [Integer]
 oneArgumentSizes = [0, 100..10000] -- 101 entries
 
 twoArgumentSizes :: [Integer]
-twoArgumentSizes = [0, 250..5000]
+twoArgumentSizes = [0, 250..5000]  -- 21 entries
 
 
+{- This makes a Text string containing n unicode characters.  We use the unicode
+ generator since that mostly produces 4 bytes per character, which is the worst
+ case. If we were to use the ascii generator that would give us two bytes per
+ character. -}
 makeSizedTextString :: H.Seed -> Int -> T.Text
 makeSizedTextString seed n = genSample seed (G.text (R.singleton n) G.unicode)
 
-textStringsToBench :: H.Seed -> [Integer] -> [T.Text]
-textStringsToBench seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
+makeSizedTextStrings :: H.Seed -> [Integer] -> [T.Text]
+makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
 
 benchOneTextString :: DefaultFun -> Benchmark
 benchOneTextString name =
-    createOneTermBuiltinBench name $ textStringsToBench seedA stringSizesBig
+    createOneTermBuiltinBench name $ makeSizedTextStrings seedA oneArgumentSizes
 
 
 {- | Generate a valid UTF-8 bytestring with memory usage approximately n for
@@ -130,35 +125,35 @@ about x times more expensive than the former, so we use the latter here.
 makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
 makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton n) G.unicode)
 
-utf8StringsToBench :: H.Seed -> [BS.ByteString]
-utf8StringsToBench seed = (makeSizedUtf8ByteString seed . fromInteger) <$> stringSizesMedium
+makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [BS.ByteString]
+makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
 
 {- This is for DecodeUtf8.  That fails if the encoded data is invalid, so we make
    sure that the input data is valid data for it by using data produced by
    G.utf8 (see above). -}
-benchOneByteString :: DefaultFun -> Benchmark
-benchOneByteString name =
-    createOneTermBuiltinBench name $ utf8StringsToBench seedA
+benchOneUtf8ByteString :: DefaultFun -> Benchmark
+benchOneUtf8ByteString name =
+    createOneTermBuiltinBench name $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
 
 benchTwoTextStrings :: DefaultFun -> Benchmark
 benchTwoTextStrings name =
-    let s1 = textStringsToBench seedA
-        s2 = textStringsToBench seedB
+    let s1 = makeSizedTextStrings seedA twoArgumentSizes
+        s2 = makeSizedTextStrings seedB twoArgumentSizes
     in createTwoTermBuiltinBench name s1 s2
 
 benchTextStringNoArgOperations :: DefaultFun -> Benchmark
 benchTextStringNoArgOperations name =
     bgroup (show name) $
-        textStringsToBench seedA <&> (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x)
+        fmap (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x) oneArgumentSizes
 
 -- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
-benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name (textStringsToBench seedA)
-                               (fmap T.copy $ textStringsToBench seedA)
+benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name inputs (fmap T.copy inputs)
+                               where inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
-                      , benchOneByteString DecodeUtf8
+                      , benchOneUtf8ByteString DecodeUtf8
                       , benchTwoTextStrings AppendString
                       , benchSameTwoTextStrings EqualsString
                       ]

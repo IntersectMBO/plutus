@@ -26,6 +26,7 @@ import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
 import qualified Data.Text                  as T
+import qualified Data.Text.Foreign          as T (lengthWord16)
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
@@ -155,10 +156,10 @@ instance ExMemoryUsage BS.ByteString where
 
 {- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
    codepoint) for everything in the Basic Multilingual Plane but four bytes for
-   the other planes.  To be on the safe side we assign four bytes of memory (ie,
-   one word) per character. -}
+   the other planes.  We use lengthWord16 because (a) it tells us the actual number
+   of bytes used, and (2) it's O(1), but T.length is O(n). -}
 instance ExMemoryUsage T.Text where
-  memoryUsage = ExMemory . fromIntegral . T.length
+  memoryUsage = ExMemory . (2*) . fromIntegral . T.lengthWord16
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
