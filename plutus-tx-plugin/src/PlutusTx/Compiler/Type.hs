@@ -42,8 +42,6 @@ import qualified Data.List.NonEmpty            as NE
 import qualified Data.Set                      as Set
 import           Data.Traversable
 
-import           Debug.Trace
-
 -- Types
 
 {- Note [Type families and normalizing types]
@@ -72,8 +70,7 @@ compileTypeNorm ty = do
     CompileContext {ccFamInstEnvs=envs} <- ask
     -- See Note [Type families and normalizing types]
     let (_, ty') = GHC.normaliseType envs GHC.Representational ty
-    res <- compileType ty'
-    withContextM 2 (sdToTxt $ "Compiled type:" GHC.<+> GHC.ppr (show res)) $ pure res
+    compileType ty'
 
 -- | Compile a type.
 compileType :: Compiling uni fun m => GHC.Type -> m (PIRType uni)
@@ -86,20 +83,14 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
         (GHC.getTyVar_maybe -> Just v) -> case lookupTyName top (GHC.getName v) of
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (i, o)) -> withContextM 2 (sdToTxt $ "Compiling funty:" GHC.<+> GHC.ppr (i, o)) $ PIR.TyFun () <$> compileType i <*> compileType o
-        -- (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
---        (GHC.splitTyConApp_maybe -> Just (tc, (t : ts))) | GHC.isRuntimeRepKindedTy t  -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (tc, ts)) $ throwSd UnsupportedError "bla"
-        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (tc, ts)) $ PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
-        -- (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> withContextM 2 (sdToTxt $ "Compiling tyconapp:" GHC.<+> GHC.ppr (t, tc, ts, GHC.dropRuntimeRepArgs ts)) $ case ts of
-        --     (ty' : ts') | GHC.isRuntimeRepKindedTy ty' -> PIR.mkIterTyFun () <$> traverse compileType (GHC.dropRuntimeRepArgs ts) <*> compileTyCon tc
-        --     _ -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType ts -- (GHC.dropRuntimeRepArgs ts)
-        (GHC.splitAppTy_maybe -> Just (t1, t2)) -> withContextM 2 (sdToTxt $ "Compiling appTy:" GHC.<+> GHC.ppr (t1, t2)) $ PIR.TyApp() <$> compileType t1 <*> compileType t2
-        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> withContextM 2 (sdToTxt $ "Compiling forallty:" GHC.<+> GHC.ppr tpe) $ mkTyForallScoped tv (compileType tpe)
+        (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> compileType i <*> compileType o
+        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)'
+        (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+        (GHC.splitAppTy_maybe -> Just (t1, t2)) -> PIR.TyApp() <$> compileType t1 <*> compileType t2
+        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
-
--- trace (GHC.showSDocUnsafe $ GHC.ppr t) t
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
@@ -149,12 +140,15 @@ compileTyCon tc
                     pure alias
                 Nothing -> do
                     matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
+
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
                     PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
                     -- Type variables are in scope for the rest of the definition
-                    withTyVarsScoped (dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc) $ \tvs -> do
+                    -- We remove vars of 'RuntimeRep' type to properly compile '(#, #)' type constructor
+                    let filteredTyVars = dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc
+                    withTyVarsScoped filteredTyVars $ \tvs -> do
                         constructors <- for dcs $ \dc -> do
                             name <- compileNameFresh (GHC.getName dc)
                             ty <- mkConstructorType dc
@@ -287,9 +281,8 @@ getMatchInstantiated :: Compiling uni fun m => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
-        withContextM 3 (sdToTxt $ "tc:" GHC.<+> GHC.ppr tc) $
-            withContextM 3 (sdToTxt $ "args:" GHC.<+> GHC.ppr args) $ do
-                args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-                pure $ PIR.mkIterInst () match args'
+        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)'
+        args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
+        pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t

@@ -1,16 +1,13 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | Functions for compiling GHC names into Plutus Core names.
 module PlutusTx.Compiler.Names where
 
 
-import                          PlutusTx.Compiler.Error
 import                          PlutusTx.Compiler.Kind
 import {-# SOURCE #-}           PlutusTx.Compiler.Type
 import                          PlutusTx.Compiler.Types
-import                          PlutusTx.Compiler.Utils
 import                          PlutusTx.PLCTypes
 
 import                qualified GhcPlugins              as GHC

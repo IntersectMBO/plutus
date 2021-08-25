@@ -3,11 +3,10 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl UnboxedTypeTuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl UTuple2 (fun (type) (fun (type) (type))))
         (tyvardecl a (type)) (tyvardecl b (type))
-        UnboxedTermTuple2_match
-        (vardecl UnboxedTermTuple2 (fun a (fun b [ [ UnboxedTypeTuple2 a ] b ]))
-        )
+        UTuple2_match
+        (vardecl UTuple2 (fun a (fun b [ [ UTuple2 a ] b ])))
       )
     )
     (termbind
@@ -24,15 +23,14 @@
       (strict)
       (vardecl
         unboxedTuple
-        (fun
-          [ [ UnboxedTypeTuple2 (con integer) ] (con integer) ] (con integer))
+        (fun [ [ UTuple2 (con integer) ] (con integer) ] (con integer))
       )
       (lam
         ds
-        [ [ UnboxedTypeTuple2 (con integer) ] (con integer) ]
+        [ [ UTuple2 (con integer) ] (con integer) ]
         [
           {
-            [ { { UnboxedTermTuple2_match (con integer) } (con integer) } ds ]
+            [ { { UTuple2_match (con integer) } (con integer) } ds ]
             (con integer)
           }
           (lam i (con integer) (lam j (con integer) [ [ addInteger i ] j ]))
@@ -42,10 +40,7 @@
     (lam
       x
       (con integer)
-      [
-        unboxedTuple
-        [ [ { { UnboxedTermTuple2 (con integer) } (con integer) } x ] x ]
-      ]
+      [ unboxedTuple [ [ { { UTuple2 (con integer) } (con integer) } x ] x ] ]
     )
   )
 )

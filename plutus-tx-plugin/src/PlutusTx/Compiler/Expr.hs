@@ -51,8 +51,6 @@ import qualified Data.Text                     as T
 import qualified Data.Text.Encoding            as TE
 import           Data.Traversable
 
-import           Debug.Trace
-
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
 
@@ -489,10 +487,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
         -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> withContextM 2 (sdToTxt $ "Ignoring 'LiftedRep:" GHC.<+> GHC.ppr t) $ compileExpr l -- throwSd CompilationError $ "Blabla"  -- compileExpr l
-
-        -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> withContextM 2 (sdToTxt $ "Applying expr to type:" GHC.<+> GHC.ppr (l, t)) $ PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
+        -- we ignore types of 'RuntimeRep' kind to compile unboxed tuples properly
+        l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
+        l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction

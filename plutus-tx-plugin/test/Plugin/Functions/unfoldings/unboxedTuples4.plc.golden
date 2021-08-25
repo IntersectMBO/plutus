@@ -4,17 +4,16 @@
     (datatypebind
       (datatype
         (tyvardecl
-          UnboxedTuple4
-          (fun (type) (fun (type) (fun (type) (fun (type) (type)))))
+          UTuple4 (fun (type) (fun (type) (fun (type) (fun (type) (type)))))
         )
         (tyvardecl a (type))
         (tyvardecl b (type))
         (tyvardecl c (type))
         (tyvardecl d (type))
-        UnboxedTuple4_match
+        UTuple4_match
         (vardecl
-          UnboxedTuple4
-          (fun a (fun b (fun c (fun d [ [ [ [ UnboxedTuple4 a ] b ] c ] d ]))))
+          UTuple4
+          (fun a (fun b (fun c (fun d [ [ [ [ UTuple4 a ] b ] c ] d ]))))
         )
       )
     )
@@ -34,7 +33,7 @@
         unboxedTuple
         (fun
           [
-            [ [ [ UnboxedTuple4 (con integer) ] (con integer) ] (con integer) ]
+            [ [ [ UTuple4 (con integer) ] (con integer) ] (con integer) ]
             (con integer)
           ]
           (con integer))
@@ -42,7 +41,7 @@
       (lam
         ds
         [
-          [ [ [ UnboxedTuple4 (con integer) ] (con integer) ] (con integer) ]
+          [ [ [ UTuple4 (con integer) ] (con integer) ] (con integer) ]
           (con integer)
         ]
         [
@@ -50,7 +49,7 @@
             [
               {
                 {
-                  { { UnboxedTuple4_match (con integer) } (con integer) }
+                  { { UTuple4_match (con integer) } (con integer) }
                   (con integer)
                 }
                 (con integer)
@@ -91,10 +90,7 @@
             [
               [
                 {
-                  {
-                    { { UnboxedTuple4 (con integer) } (con integer) }
-                    (con integer)
-                  }
+                  { { { UTuple4 (con integer) } (con integer) } (con integer) }
                   (con integer)
                 }
                 x
