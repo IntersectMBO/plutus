@@ -338,6 +338,7 @@ BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
 BUILTIN iData (step _ base (V-con (integer i))) = con (Data (iDATA i))
 BUILTIN bData (step _ base (V-con (bytestring b))) = con (Data (bDATA b))
 BUILTIN consByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
+BUILTIN sliceByteString (step _ (step _ (step _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

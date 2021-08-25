@@ -144,8 +144,7 @@ postulate
   mod            : Int → Int → Int
 
   concat    : ByteString → ByteString → ByteString
-  take      : Int → ByteString → ByteString
-  drop      : Int → ByteString → ByteString
+  slice     : Int → Int → ByteString → ByteString
   B<        : ByteString -> ByteString -> Bool
   B>        : ByteString -> ByteString -> Bool
   SHA2-256  : ByteString → ByteString
@@ -153,7 +152,6 @@ postulate
   verifySig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
 
-  empty : ByteString
   cons  : Int → ByteString → ByteString
 ```
 
@@ -181,20 +179,16 @@ postulate
 -- no binding needed for equals
 
 {-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC take = BS.take . fromIntegral #-}
-{-# COMPILE GHC drop = BS.drop . fromIntegral #-}
 {-# COMPILE GHC SHA2-256 = B.convert . hash @BS.ByteString @SHA256 #-}
 {-# COMPILE GHC SHA3-256 = B.convert . hash @BS.ByteString @SHA3_256 #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B> = (>) #-}
 {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+{-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}
-
--- no binding needed for equalsByteString
-{-# COMPILE GHC empty = BS.empty #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

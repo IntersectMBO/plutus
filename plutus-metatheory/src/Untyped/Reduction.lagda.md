@@ -244,6 +244,8 @@ IBUILTIN bData
 IBUILTIN consByteString
   ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
   = _ , inl (V-con (bytestring (cons i b)))
+IBUILTIN sliceByteString
+  (((tt , (t , V-con (integer st))) , (t' , V-con (integer n))) , (t'' , V-con (bytestring b))) = _ , inl (V-con (bytestring (slice st n b)))
 IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t
