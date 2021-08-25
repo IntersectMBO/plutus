@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE UnboxedTuples       #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context -fplugin-opt PlutusTx.Plugin:dump-plc -fplugin-opt PlutusTx.Plugin:dump-pir -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
 
 module Plugin.Functions.Spec where
 
@@ -80,7 +80,12 @@ unfoldings = testNested "unfoldings" [
     -- it seems to sometimes float these in, but we should keep an eye on these.
     -- , goldenPir "polyMap" polyMap
     -- , goldenPir "applicationFunction" applicationFunction
-    goldenPir "unboxedTuples" unboxedTuples
+    goldenPir "unboxedTuples2" unboxedTuples2
+    , goldenPir "unboxedTuples3" unboxedTuples3
+    , goldenPir "unboxedTuples4" unboxedTuples4
+    , goldenPir "unboxedTuples5" unboxedTuples5
+    , goldenPir "unboxedTuples2Tuples" unboxedTuples2Tuples
+    , goldenPir "unboxedTuples3Tuples" unboxedTuples3Tuples
   ]
 
 -- andDirect :: Bool -> Bool -> Bool
@@ -130,8 +135,38 @@ unfoldings = testNested "unfoldings" [
 -- applicationFunction :: CompiledCode (Integer)
 -- applicationFunction = plc (Proxy @"applicationFunction") ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
 
-unboxedTuple :: (# Integer, Integer #) -> Integer
-unboxedTuple (# i, j #) = i `Builtins.addInteger` j
+unboxedTuple2 :: (# Integer, Integer #) -> Integer
+unboxedTuple2 (# i, j #) = i `Builtins.addInteger` j
 
-unboxedTuples :: CompiledCode (Integer -> Integer)
-unboxedTuples = plc (Proxy @"unboxedTuples") (\x -> let a = unboxedTuple (# x, x #) in a)
+unboxedTuple3 :: (# Integer, Integer, Integer #) -> Integer
+unboxedTuple3 (# i, j, k #) = i `Builtins.addInteger` j `Builtins.addInteger` k
+
+unboxedTuple4 :: (# Integer, Integer, Integer, Integer #) -> Integer
+unboxedTuple4 (# i, j, k, l #) = i `Builtins.addInteger` j `Builtins.addInteger` k `Builtins.addInteger` l
+
+unboxedTuple5 :: (# Integer, Integer, Integer, Integer, Integer #) -> Integer
+unboxedTuple5 (# i, j, k, l, m #) = i `Builtins.addInteger` j `Builtins.addInteger` k `Builtins.addInteger` l `Builtins.addInteger` m
+
+unboxedTuples2 :: CompiledCode (Integer -> Integer)
+unboxedTuples2 = plc (Proxy @"unboxedTuples2") (\x -> let a = unboxedTuple2 (# x, x #) in a)
+
+unboxedTuples3 :: CompiledCode (Integer -> Integer)
+unboxedTuples3 = plc (Proxy @"unboxedTuples3") (\x -> let a = unboxedTuple3 (# x, x, x #) in a)
+
+unboxedTuples4 :: CompiledCode (Integer -> Integer)
+unboxedTuples4 = plc (Proxy @"unboxedTuples4") (\x -> let a = unboxedTuple4 (# x, x, x, x #) in a)
+
+unboxedTuples5 :: CompiledCode (Integer -> Integer)
+unboxedTuples5 = plc (Proxy @"unboxedTuples5") (\x -> let a = unboxedTuple5 (# x, x, x, x, x #) in a)
+
+unboxedTuples2Tuple :: (# (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #) #) -> Integer
+unboxedTuples2Tuple (# i, j #) = unboxedTuple5 i `Builtins.addInteger` unboxedTuple5 j
+
+unboxedTuples2Tuples :: CompiledCode (Integer -> Integer)
+unboxedTuples2Tuples = plc (Proxy @"unboxedTuples2Tuples") (\x -> let a = unboxedTuples2Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)
+
+unboxedTuples3Tuple :: (# (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #) #) -> Integer
+unboxedTuples3Tuple (# i, j, k #) = unboxedTuple5 i `Builtins.addInteger` unboxedTuple5 j `Builtins.addInteger` unboxedTuple5 k
+
+unboxedTuples3Tuples :: CompiledCode (Integer -> Integer)
+unboxedTuples3Tuples = plc (Proxy @"unboxedTuples3Tuples") (\x -> let a = unboxedTuples3Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)

@@ -1,0 +1,332 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl UnboxedTypeTuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        UnboxedTermTuple2_match
+        (vardecl UnboxedTermTuple2 (fun a (fun b [ [ UnboxedTypeTuple2 a ] b ]))
+        )
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl
+          UnboxedTuple5
+          (fun
+            (type) (fun (type) (fun (type) (fun (type) (fun (type) (type))))))
+        )
+        (tyvardecl a (type))
+        (tyvardecl b (type))
+        (tyvardecl c (type))
+        (tyvardecl d (type))
+        (tyvardecl e (type))
+        UnboxedTuple5_match
+        (vardecl
+          UnboxedTuple5
+          (fun
+            a
+            (fun
+              b
+              (fun
+                c (fun d (fun e [ [ [ [ [ UnboxedTuple5 a ] b ] c ] d ] e ])))))
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        unboxedTuple
+        (fun
+          [
+            [
+              [
+                [ [ UnboxedTuple5 (con integer) ] (con integer) ] (con integer)
+              ]
+              (con integer)
+            ]
+            (con integer)
+          ]
+          (con integer))
+      )
+      (lam
+        ds
+        [
+          [
+            [ [ [ UnboxedTuple5 (con integer) ] (con integer) ] (con integer) ]
+            (con integer)
+          ]
+          (con integer)
+        ]
+        [
+          {
+            [
+              {
+                {
+                  {
+                    { { UnboxedTuple5_match (con integer) } (con integer) }
+                    (con integer)
+                  }
+                  (con integer)
+                }
+                (con integer)
+              }
+              ds
+            ]
+            (con integer)
+          }
+          (lam
+            i
+            (con integer)
+            (lam
+              j
+              (con integer)
+              (lam
+                k
+                (con integer)
+                (lam
+                  l
+                  (con integer)
+                  (lam
+                    m
+                    (con integer)
+                    [
+                      [
+                        addInteger
+                        [
+                          [
+                            addInteger
+                            [ [ addInteger [ [ addInteger i ] j ] ] k ]
+                          ]
+                          l
+                        ]
+                      ]
+                      m
+                    ]
+                  )
+                )
+              )
+            )
+          )
+        ]
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        unboxedTuples2Tuple
+        (fun
+          [
+            [
+              UnboxedTypeTuple2
+              [
+                [
+                  [
+                    [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                    (con integer)
+                  ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+            ]
+            [
+              [
+                [
+                  [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+              (con integer)
+            ]
+          ]
+          (con integer))
+      )
+      (lam
+        ds
+        [
+          [
+            UnboxedTypeTuple2
+            [
+              [
+                [
+                  [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+              (con integer)
+            ]
+          ]
+          [
+            [
+              [
+                [ [ UnboxedTuple5 (con integer) ] (con integer) ] (con integer)
+              ]
+              (con integer)
+            ]
+            (con integer)
+          ]
+        ]
+        [
+          {
+            [
+              {
+                {
+                  UnboxedTermTuple2_match
+                  [
+                    [
+                      [
+                        [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                        (con integer)
+                      ]
+                      (con integer)
+                    ]
+                    (con integer)
+                  ]
+                }
+                [
+                  [
+                    [
+                      [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                      (con integer)
+                    ]
+                    (con integer)
+                  ]
+                  (con integer)
+                ]
+              }
+              ds
+            ]
+            (con integer)
+          }
+          (lam
+            i
+            [
+              [
+                [
+                  [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+              (con integer)
+            ]
+            (lam
+              j
+              [
+                [
+                  [
+                    [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                    (con integer)
+                  ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+              [ [ addInteger [ unboxedTuple i ] ] [ unboxedTuple j ] ]
+            )
+          )
+        ]
+      )
+    )
+    (lam
+      x
+      (con integer)
+      [
+        unboxedTuples2Tuple
+        [
+          [
+            {
+              {
+                UnboxedTermTuple2
+                [
+                  [
+                    [
+                      [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                      (con integer)
+                    ]
+                    (con integer)
+                  ]
+                  (con integer)
+                ]
+              }
+              [
+                [
+                  [
+                    [ [ UnboxedTuple5 (con integer) ] (con integer) ]
+                    (con integer)
+                  ]
+                  (con integer)
+                ]
+                (con integer)
+              ]
+            }
+            [
+              [
+                [
+                  [
+                    [
+                      {
+                        {
+                          {
+                            { { UnboxedTuple5 (con integer) } (con integer) }
+                            (con integer)
+                          }
+                          (con integer)
+                        }
+                        (con integer)
+                      }
+                      x
+                    ]
+                    x
+                  ]
+                  x
+                ]
+                x
+              ]
+              x
+            ]
+          ]
+          [
+            [
+              [
+                [
+                  [
+                    {
+                      {
+                        {
+                          { { UnboxedTuple5 (con integer) } (con integer) }
+                          (con integer)
+                        }
+                        (con integer)
+                      }
+                      (con integer)
+                    }
+                    x
+                  ]
+                  x
+                ]
+                x
+              ]
+              x
+            ]
+            x
+          ]
+        ]
+      ]
+    )
+  )
+)

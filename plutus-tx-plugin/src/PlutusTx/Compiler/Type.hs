@@ -153,19 +153,17 @@ compileTyCon tc
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
                     PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
-                    withContextM 2 (sdToTxt $ "tyConTyVars tc:" GHC.<+> (GHC.ppr (tc, GHC.tyConTyVars tc, GHC.varType $ head $ GHC.tyConTyVars tc))) $ do
+                    -- Type variables are in scope for the rest of the definition
+                    withTyVarsScoped (dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc) $ \tvs -> do
+                        constructors <- for dcs $ \dc -> do
+                            name <- compileNameFresh (GHC.getName dc)
+                            ty <- mkConstructorType dc
+                            pure $ PIR.VarDecl () name ty
 
-                        -- Type variables are in scope for the rest of the definition
-                        withTyVarsScoped (dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc) $ \tvs -> do
-                            constructors <- for dcs $ \dc -> do
-                                name <- compileNameFresh (GHC.getName dc)
-                                ty <- mkConstructorType dc
-                                pure $ PIR.VarDecl () name ty
+                        let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-                            let datatype = PIR.Datatype () tvd tvs matchName constructors
-
-                            PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
-                        pure $ PIR.mkTyVar () tvd
+                        PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
+                    pure $ PIR.mkTyVar () tvd
 
 getUsedTcs :: Compiling uni fun m => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do

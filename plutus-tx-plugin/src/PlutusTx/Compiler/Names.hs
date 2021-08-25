@@ -66,13 +66,13 @@ compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
 compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
 compileTyVarFresh :: Compiling uni fun m => GHC.TyVar -> m PLCTyVar
-compileTyVarFresh v = withContextM 2 (sdToTxt $ "compileTyVarFresh:" GHC.<+> (GHC.ppr (GHC.tyVarKind v, v, GHC.getName v))) $ do
+compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
     pure $ PLC.TyVarDecl () t' k'
 
 compileTcTyVarFresh :: Compiling uni fun m => GHC.TyCon -> m PLCTyVar
-compileTcTyVarFresh tc = withContextM 2 (sdToTxt $ "compileTcTyVarFresh:" GHC.<+> (GHC.ppr $ GHC.tyConKind tc)) $ do
+compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
     pure $ PLC.TyVarDecl () t' k'

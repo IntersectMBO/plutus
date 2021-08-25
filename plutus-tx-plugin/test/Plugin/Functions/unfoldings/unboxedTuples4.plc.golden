@@ -1,0 +1,111 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl
+          UnboxedTuple4
+          (fun (type) (fun (type) (fun (type) (fun (type) (type)))))
+        )
+        (tyvardecl a (type))
+        (tyvardecl b (type))
+        (tyvardecl c (type))
+        (tyvardecl d (type))
+        UnboxedTuple4_match
+        (vardecl
+          UnboxedTuple4
+          (fun a (fun b (fun c (fun d [ [ [ [ UnboxedTuple4 a ] b ] c ] d ]))))
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        unboxedTuple
+        (fun
+          [
+            [ [ [ UnboxedTuple4 (con integer) ] (con integer) ] (con integer) ]
+            (con integer)
+          ]
+          (con integer))
+      )
+      (lam
+        ds
+        [
+          [ [ [ UnboxedTuple4 (con integer) ] (con integer) ] (con integer) ]
+          (con integer)
+        ]
+        [
+          {
+            [
+              {
+                {
+                  { { UnboxedTuple4_match (con integer) } (con integer) }
+                  (con integer)
+                }
+                (con integer)
+              }
+              ds
+            ]
+            (con integer)
+          }
+          (lam
+            i
+            (con integer)
+            (lam
+              j
+              (con integer)
+              (lam
+                k
+                (con integer)
+                (lam
+                  l
+                  (con integer)
+                  [
+                    [ addInteger [ [ addInteger [ [ addInteger i ] j ] ] k ] ] l
+                  ]
+                )
+              )
+            )
+          )
+        ]
+      )
+    )
+    (lam
+      x
+      (con integer)
+      [
+        unboxedTuple
+        [
+          [
+            [
+              [
+                {
+                  {
+                    { { UnboxedTuple4 (con integer) } (con integer) }
+                    (con integer)
+                  }
+                  (con integer)
+                }
+                x
+              ]
+              x
+            ]
+            x
+          ]
+          x
+        ]
+      ]
+    )
+  )
+)
