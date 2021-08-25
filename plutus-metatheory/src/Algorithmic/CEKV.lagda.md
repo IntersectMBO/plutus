@@ -180,6 +180,7 @@ BUILTIN iData (app _ base (V-con (integer i))) =
   inj₁ (V-con (Data (iDATA i)))
 BUILTIN bData (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (Data (bDATA b)))
+BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (cons i b)))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

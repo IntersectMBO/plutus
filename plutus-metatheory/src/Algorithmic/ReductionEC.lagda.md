@@ -24,6 +24,7 @@ open import Type
 import Type.RenamingSubstitution as T
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
+open import Algorithmic.Properties
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
@@ -37,50 +38,10 @@ open import Data.String using (String)
 open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
 ```
 
-## Pragmas
-
 ```
 {-# INJECTIVE _⊢_ #-}
 {-# INJECTIVE _⊢Nf⋆_ #-}
 ```
-
-## Some syntactic lemmas about injectivity
-
-```
-lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
-  → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
-  → M' ≅ M × A ≅ A' × B ≅ B'
-lem-·⋆' refl = refl ,, refl ,, refl
-
-lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
-  → (o : K ≡ K')
-  → (p : substEq (∅ ⊢Nf⋆_) o A ≡ A')
-  → (q : Π B ≡ Π B')
-  → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
-  → ∀{M}
-  → substEq (∅ ⊢_) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
-lem-·⋆ refl refl refl refl = refl
-
-lem-·⋆wrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ _}
-  → M _⊢_.·⋆ A ≅ _⊢_.wrap A' B' M'
-  → ⊥
-lem-·⋆wrap ()
-
-lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ μ A' B'}
-  → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
-  → ⊥
-lem-·⋆unwrap ()
-
-lem-unwrap : ∀{K K'}{A}{A'}{B : ∅ ⊢Nf⋆ K}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}
-  → _⊢_.unwrap M ≅ _⊢_.unwrap M'
-  → A ≅ A' × B ≅ B' × M ≅ M'
-lem-unwrap refl = refl ,, refl ,, refl
-```
-
 
 ## Values
 
@@ -374,8 +335,9 @@ BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term
 BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
-BUILTIN iData (step .(<>>'2<>> [] (Term ∷ []) (Term ∷ []) (lemma<>1 [] (Term ∷ []))) base (V-con (integer i))) = con (Data (iDATA i))
-BUILTIN bData (step .(<>>'2<>> [] (Term ∷ []) (Term ∷ []) (lemma<>1 [] (Term ∷ []))) base (V-con (bytestring b))) = con (Data (bDATA b))
+BUILTIN iData (step _ base (V-con (integer i))) = con (Data (iDATA i))
+BUILTIN bData (step _ base (V-con (bytestring b))) = con (Data (bDATA b))
+BUILTIN consByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
@@ -1766,3 +1728,4 @@ determinism {L = L} (ruleErr E' p) (ruleEC E'' q q' q'') | step ¬VL E err r' U 
 determinism {L = L} (ruleErr E' p) (ruleEC .E () q' q'') | step ¬VL E err r' U | refl ,, refl ,, refl
 determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U E' p err | U E'' q err
 ... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
+-- -}

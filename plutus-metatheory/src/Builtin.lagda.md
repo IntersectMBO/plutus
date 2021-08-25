@@ -154,6 +154,7 @@ postulate
   equals    : ByteString → ByteString → Bool
 
   empty : ByteString
+  cons  : Int → ByteString → ByteString
 ```
 
 # What builtin operations should be compiled to if we compile to Haskell
@@ -187,6 +188,7 @@ postulate
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B> = (>) #-}
+{-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}
