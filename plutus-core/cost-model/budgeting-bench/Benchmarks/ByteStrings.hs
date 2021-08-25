@@ -61,8 +61,8 @@ benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString 
    returning modified pointers into a C array.  We still want a decent number of
    data points, so we generate bytestrings of length 1000, 2000, ..., 10000 and
    for each of them look at four choices each of index and length. -}
-benchSliceByteString :: StdGen -> Benchmark
-benchSliceByteString gen =
+benchSliceByteString :: Benchmark
+benchSliceByteString =
     let name = SliceByteString
         quarters n = if n < 4 then [n] else [0, t..(n-t)] where t = n `div` 4
         -- quarters n may contain more than four elements if n < 16, but we
@@ -70,8 +70,8 @@ benchSliceByteString gen =
         -- you an infinite list of zeros.
         byteStrings = makeSizedByteString seedA <$> [1000, 2000..10000]
         mkBMsFor b =
-            [bgroup (show $ start)
-             [bgroup (show $ len)
+            [bgroup (showMemoryUsage start)
+             [bgroup (showMemoryUsage len)
               [benchDefault (showMemoryUsage b) $ mkApp3 name start len b] |
               len <- quarters (blen - start)] |
              start <- quarters blen]
@@ -87,5 +87,40 @@ makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])
                    <> [benchConsByteString]
                    <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
                    <> [benchIndexByteString gen]
-                   <> [benchSliceByteString gen]
+                   <> [benchSliceByteString]
                    <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+
+{- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The
+   biggest inputs here are of size 1048576, or about 4 megabytes.  That's surely
+   too big.  Maybe try [1000, 2000, ..., 100000] oor [100, 200, ..., 10000] for
+   one-argument functions and [500, 1000, ..., 10000] for two-argument
+   functions.
+
+
+   AppendByteString : good fit for I(x+y), but underpredicts for reasonably-sized
+   inputs
+
+   EqualsByteString LessThanEqualsByteString, LessThanByteString: these all
+   agree to within 2%, but the plot bends up towards the right.  You get a
+   pretty good linear fit for sizes less than 250000
+
+   ConsByteString: this does appear to be linear in the size of the string, and
+   the size of the thing you're consing is irrelevant.  Again, the inputs are a
+   bit too big.
+
+   LengthOfByteString: this does appear to be pretty much constant, although
+   it's hard to tell over the exponential range of scales we have here.  The
+   time taken varies between 888ns and 1143ns, but randomly.  We could do with
+   more data points here, and more uniformly spaced.
+
+   IndexByteString: again this looks constant.  More uniform spacing would be
+   good.
+
+   SliceByteString: again, pretty constant.
+
+   Overall it looks like we'd get good models with smaller and evenly spaced
+   strings. We should do this but check what happens with larger inputs for
+   AppendByteString.  We should also give more inputs to the single-argument
+   functions.
+
+-}

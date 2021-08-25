@@ -36,6 +36,51 @@ import qualified Debug.Trace                            as T
  the strings we encounter in practice.
 -}
 
+{- | Note [Unicode encodings and Data.Text] Unicode characters are organised into
+17 'planes', each containing 65536 'codepoints'.  Only some of the codepoints in
+each plane represent actual characters: some code pointsare permanently
+unavailable, some are used for non-printing operations like forming ligatures or
+adding accents, and some are used for other administrative purposes.  To
+complicate matters, an actual rendered character (grapheme) may be constructed
+from multiple codepoints, but that shouldn't concern us here.
+
+Plane 0 is called the Basic Multilingual Plane (BMP) and contains most commonly
+used characters from most human languages.
+
+Plutus Strings are implemented as Text objects, which are UTF-16 encoded
+sequences of Unicode characters (Text refers to characters, but really means
+codepoints).  In UTF-16, characters in the BMP are encoded using two bytes, and
+characters from other planes require four bytes (encoded using 'surrogate'
+codepoints in the ranges 0xD800-0xDBFF and 0xDC00-0xDFFF, the actual character
+being encoded using the lower-order bits).  Text strings internally contain an
+Array of 16-byte values, but the length reported by Data.Text.length s is the
+number of Unicode characters.  Thus a Text string containing n characters will
+require between 2*n and 4*n bytes of memory, the latter case occurring when
+every character in s lies outside the BMP (Data.Text.Foreign.lengthWord16 tells
+you the number of 16-bit words in the internal representation). Calculating the
+character length of a Text string requires traversal of the entire string, so is
+O(n).
+
+We provide builtins for the encodeUtf8 and decodeUtf8 functions, which convert
+Text objects to UTF-8 encoded Strings and back.  UTF-8 uses 1 to four bytes for
+each character: ASCII characters (0x00-0x7F) require one byte, 1920 characters
+in various common scripts (Latin-1, Cyrillic, ...) require two bytes, three bytes
+are required for everything else in the BMP, and four bytes for codepoints from
+the other planes.
+
+In practice we'll probably mostly encounter ASCII strings (which are cheap to
+process and encode), but for costing purposes we have to consider the most
+expensive operations.  Thus we benchmark 'encodeUtf8' with inputs produced by
+Hedgehog's 'unicode' generator, which produces characters uniformly distributed
+over the entire set of planes.  Typically, over 9% of the characters generated
+by this require four bytes in UTF-8 (and two in UTF-16).  If we use the 'ascii'
+generator instead then a Text string of length n requires exactly n bytes,
+and if we use 'latin1' then about 3n/2 bytes are required (the characters
+in 0x00-0x7F need one byte in UTF-8, those in 0x80-0xFF require two, so the
+average number of bytes per character is 3/2).
+-}
+
+
 seedA :: H.Seed
 seedA = H.Seed 42 43
 
@@ -51,68 +96,65 @@ stringSizesMedium = [0, 10..1000]
 stringSizesBig :: [Integer]
 stringSizesBig = [0, 200..10000]
 
-makeSizedString :: H.Seed -> Int -> T.Text
-makeSizedString seed n = genSample seed (G.text (R.singleton n) G.unicode)
+makeSizedTextString :: H.Seed -> Int -> T.Text
+makeSizedTextString seed n = genSample seed (G.text (R.singleton n) G.unicode)
 
--- We use the unicode generator here: this will typically give us characters
--- that require four bytes in UTF-16 format. What is the size here?  Number
--- of bytes or number of characters?  Suppose we let u = utf8 (Range.singleton
--- 100).  The number 100 here is the number of Unicode characters in the output
--- of the generator.  If we look at (u ascii) it always gives us a bytestring of
--- length 100; (u latin1) gives bytestrings of length ~ 140-160; (u unicode)
--- gives bytestrings of length ~ 390-400.  Applying decodeUtf8, the output of
--- all of these yields Text strings of length 100.
--- UTF-16: two bytes in the BMP, four in the other planes.
+textStringsToBench :: H.Seed -> [T.Text]
+textStringsToBench seed = (makeSizedTextString seed . fromInteger) <$> stringSizesMedium
+
+benchOneTextString :: DefaultFun -> Benchmark
+benchOneTextString name =
+    createOneTermBuiltinBench name $ textStringsToBench seedA
+
+
+{- | Generate a valid UTF-8 bytestring with memory usage approximately n for
+benchmarking decodeUtf8.  The 'utf8' generator produces bytestrings containing n
+UTF-8 encoded Unicode characters, and if we use the 'unicode' generator most of
+these will require four bytes, so the output will have memory usage of
+approximately n words.  If we used 'ascii' instead then we'd get exactly n
+bytes, so n/4 words. We want to measure the worst-case time of decoding a
+bytestring 'b' of length n, and it's not initially clear when the worst case
+occurs.  If 'b' contains only ascii characters then 'decodeUtf8' will have to
+process n characters, but processing each character will be cheap; if 'b'
+contains only characters outside the BMP then there will be n/4 characters but
+each one will be expensive to process.  Benchmarking shows that the latter is
+about x times more expensive than the former, so we use the latter here.
+-}
 makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedUtf8ByteString seed e = genSample seed (G.utf8 (R.singleton (4*e)) G.unicode)
--- 4*e because with the unicode generator this will generally produce a
--- bytestring containing e bytes since the *output* will contain 100 characters.
-
-stringsToBench :: H.Seed -> [T.Text]
-stringsToBench seed = (makeSizedString seed . fromInteger) <$> stringSizesMedium
+makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton n) G.unicode)
 
 utf8StringsToBench :: H.Seed -> [BS.ByteString]
 utf8StringsToBench seed = (makeSizedUtf8ByteString seed . fromInteger) <$> stringSizesMedium
 
-benchOneString :: DefaultFun -> Benchmark
-benchOneString name =
-    createOneTermBuiltinBench name $ stringsToBench seedA
-
-{- This is for DecodeUtf8.  That fails if the encoded data is invalid, so we
-   create some valid data for it by encoding random strings. We should use the
-   Hedgehog generator for this. -}
+{- This is for DecodeUtf8.  That fails if the encoded data is invalid, so we make
+   sure that the input data is valid data for it by using data produced by
+   G.utf8 (see above). -}
 benchOneByteString :: DefaultFun -> Benchmark
 benchOneByteString name =
     createOneTermBuiltinBench name $ utf8StringsToBench seedA
 
-benchTwoStrings :: DefaultFun -> Benchmark
-benchTwoStrings name =
-    let s1 = stringsToBench seedA
-        s2 = stringsToBench seedB
+benchTwoTextStrings :: DefaultFun -> Benchmark
+benchTwoTextStrings name =
+    let s1 = textStringsToBench seedA
+        s2 = textStringsToBench seedB
     in createTwoTermBuiltinBench name s1 s2
 
-benchStringNoArgOperations :: DefaultFun -> Benchmark
-benchStringNoArgOperations name =
+benchTextStringNoArgOperations :: DefaultFun -> Benchmark
+benchTextStringNoArgOperations name =
     bgroup (show name) $
-        stringsToBench seedA <&> (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x)
+        textStringsToBench seedA <&> (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x)
 
 -- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
-benchSameTwoStrings :: DefaultFun -> Benchmark
-benchSameTwoStrings name = createTwoTermBuiltinBenchElementwise name (stringsToBench seedA)
-                               (fmap T.copy $ stringsToBench seedA)
+benchSameTwoTextStrings :: DefaultFun -> Benchmark
+benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name (textStringsToBench seedA)
+                               (fmap T.copy $ textStringsToBench seedA)
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [ benchOneString EncodeUtf8
+makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
                       , benchOneByteString DecodeUtf8
-                      , benchTwoStrings AppendString
-                      , benchSameTwoStrings EqualsString
+                      , benchTwoTextStrings AppendString
+                      , benchSameTwoTextStrings EqualsString
                       ]
 
 
 
-{- TODO:
-   appendString
-   equalsString
-   encodeUtf8
-   decodeUtf8
--}
