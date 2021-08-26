@@ -399,6 +399,9 @@ classifiesTypeWithValues _ = True
 isRuntimeRepTy :: Type -> Bool
 isRuntimeRepTy _ = True
 
+isRuntimeRepKindedTy :: Type -> Bool
+isRuntimeRepKindedTy _ = True
+
 splitFunTy_maybe :: Type -> Maybe (Type, Type)
 splitFunTy_maybe _ = Nothing
 
