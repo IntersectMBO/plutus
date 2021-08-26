@@ -281,7 +281,7 @@ getMatchInstantiated :: Compiling uni fun m => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
-        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)', see Note [Unboxed tuples]
+        -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
         args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
