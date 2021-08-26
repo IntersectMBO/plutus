@@ -99,7 +99,7 @@ schedule ev
             PRD  -> _SCHED_PRD_NAM scfg ct_PRD
             TD   -> _SCHED_TD_NAM scfg ct_TD
             IP   -> _SCHED_IP_NAM scfg ct_IED' ct_PRCL ct_PRANX ct_IPCED ct_IPANX ct_IPCL _tmd
-            IPCI -> _SCHED_IPCI_NAM scfg ct_IED' ct_IPANX ct_IPCL ct_IPCED _tmd ct_IPNR
+            IPCI -> _SCHED_IPCI_NAM scfg ct_IED' ct_PRCL ct_PRANX ct_IPCED ct_IPANX ct_IPCL _tmd
             IPCB -> _SCHED_IPCB_NAM scfg ct_IED' ct_IPCB ct_IPCBCL ct_IPCBANX _tmd
             RR   -> _SCHED_RR_NAM scfg ct_IED' ct_SD ct_RRANX ct_RRCL ct_RRNXT _tmd
             RRF  -> _SCHED_RRF_NAM scfg ct_IED' ct_RRANX ct_RRCL ct_RRNXT _tmd ct_SD

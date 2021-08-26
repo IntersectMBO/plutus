@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
 
-import           Data.List                                              as L (filter, head)
+import           Data.List                                              as L (filter, head, last)
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), Cycle (..), FEB (FEB_N),
@@ -15,8 +15,6 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (applyEO
                                                                          generateRecurrentScheduleWithCorrections,
                                                                          minusCycle, moveToEndOfMonth, plusCycle)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
-
-import           Debug.Trace
 
 
 _S = generateRecurrentScheduleWithCorrections
@@ -174,6 +172,8 @@ _INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus
     , ct_PRANX = _PRANX
     , ct_PRCL  = _PRCL
     , ct_PRNXT = _PRNXT
+    , ct_SD    = _SD
+    , scfg     = scfg
   } =
     let
         _IED'   = fromJust _IED
@@ -187,7 +187,29 @@ _INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus
                     | otherwise                           = Just tpr_minus
         tmd
                 | isJust _MD = fromJust _MD
-                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling((fromJust _NT) / (_PRNXT' - (fromJust _NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust _PRCL) _MD) * fromJust _IPNR))}
+                | otherwise =
+                  let
+                    lastEvent =
+                      if isJust _PRANX && (fromJust _PRANX) >= _SD then
+                        fromJust _PRANX
+                      else
+                        if _IED' `plusCycle` (fromJust _PRCL) >= _SD then
+                          _IED' `plusCycle` (fromJust _PRCL)
+                        else
+                          let previousEvents  = (\s -> _S s (fromJust _PRCL) _SD scfg ) <$> _PRANX
+                              previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= _SD ) (fromMaybe [] previousEvents)
+                              previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == _SD) previousEvents'
+                              ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
+                          in
+                              lastEventCalcDay
+                    yLastEventPlusPRCL = (y _DCC' lastEvent (lastEvent `plusCycle` (fromJust _PRCL)) _MD)
+                    redemptionPerCycle = _PRNXT' - (yLastEventPlusPRCL * (fromJust _IPNR) * (fromJust _NT))
+                    remainingPeriods = (ceiling ((fromJust _NT) / redemptionPerCycle)) - 1
+                    cycle@Cycle{ n = n } = fromJust _PRCL
+                    maturity = plusCycle lastEvent cycle{ n = n * remainingPeriods}
+                  in
+                    applyEOMC lastEvent cycle (fromJust (eomc scfg)) maturity
+                -- | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling((fromJust _NT) / (_PRNXT' - (fromJust _NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust _PRCL) _MD) * fromJust _IPNR))}
 
         pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
 

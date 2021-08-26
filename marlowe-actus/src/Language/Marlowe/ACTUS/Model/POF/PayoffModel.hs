@@ -8,7 +8,6 @@ import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..)
                                                                    RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
 
-import           Debug.Trace
 
 -- Principal at Maturity
 _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED =
@@ -68,18 +67,16 @@ _POF_TD_LAM o_rf_CURS _CNTRL _PTD ipac ipnr ipcb y_sd_t =
     o_rf_CURS * _r _CNTRL * (_PTD + ipac + y_sd_t * ipnr * ipcb)
 
 _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t =
-
-    trace (show (o_rf_CURS, isc, ipac, y_sd_t, ipnr, ipcb)) o_rf_CURS * isc * (ipac + y_sd_t * ipnr * ipcb)
+  o_rf_CURS * isc * (ipac + y_sd_t * ipnr * ipcb)
 
 
 -- Negative Amortizer
 _POF_IED_NAM o_rf_CURS _CNTRL _NT _PDIED = _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED
 
 _POF_PR_NAM o_rf_CURS _CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt =
-    -- o_rf_CURS * nsc * prnxt - ipac - y_sd_t * ipnr * ipcb
   let
-    ra = trace ("ra: " ++ show ((prnxt, ipac, y_sd_t, ipnr, ipcb))) prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
-    r  = trace ("r: " ++ show (ra - (_max _zero (ra - (_abs nt))))) ra - (_max _zero (ra - (_abs nt)))
+    ra = prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
+    r  = ra - (_max _zero (ra - (_abs nt)))
   in
     o_rf_CURS * _r _CNTRL * nsc * r
 

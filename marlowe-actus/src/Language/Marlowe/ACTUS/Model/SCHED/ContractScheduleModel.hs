@@ -12,7 +12,6 @@ import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBD
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
 
-import           Debug.Trace
 
 -- Principal at Maturity
 _S = generateRecurrentScheduleWithCorrections
@@ -188,23 +187,48 @@ _SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
 
         _T      = fromJust maybeS `minusCycle` fromJust _PRCL
 
-        r       | isJust _IPCED = _IPCED
-                | isJust _IPANX = _IPANX
+        r       | isJust _IPANX = _IPANX
                 | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
                 | otherwise     = Nothing
 
         u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-                | isJust _IPCED && fromJust _IPCED >= _T = Nothing
+                | isJust _IPCED && fromJust _IPCED > _T  = Nothing
                 | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
 
         v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
 
         result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+
+        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) > fromJust _IPCED) $ fromJust result
+                | otherwise = result
     in
-        result
+        result'
 
 
-_SCHED_IPCI_NAM = _SCHED_IPCI_PAM
+_SCHED_IPCI_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
+  let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
+              | otherwise        = _PRANX
+
+      _T      = fromJust maybeS `minusCycle` fromJust _PRCL
+
+      r       | isJust _IPCED = _IPCED
+              | isJust _IPANX = _IPANX
+              | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
+              | otherwise     = Nothing
+
+      u       | isNothing _IPANX && isNothing _IPCL    = Nothing
+              | isJust _IPCED && fromJust _IPCED > _T  = Nothing
+              | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
+
+      v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
+
+      result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+
+      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) <= fromJust _IPCED) $ fromJust result
+              | otherwise = Nothing
+  in
+      result'
+
 
 _SCHED_IPCB_NAM = _SCHED_IPCB_LAM
 

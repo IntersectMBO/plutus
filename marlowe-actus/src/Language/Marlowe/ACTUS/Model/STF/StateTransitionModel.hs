@@ -13,7 +13,6 @@ import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..)
                                                                    DateOps (_lt), RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
 
-import           Debug.Trace
 
 -- Principal at Maturity
 _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
@@ -266,12 +265,12 @@ _STF_PR_NAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_
       nt' = nt - _r _CNTRL * r
 
       -- ACTUS implementation
-      -- ipcb' = case (fromJust _IPCB) of
-      --     IPCB_NT -> ipcb
-      --     _       -> nt'
+      ipcb' = case (fromJust _IPCB) of
+          IPCB_NT -> nt'
+          _       -> ipcb
 
-      -- Java implementation
-      ipcb' = nt'
+      -- -- Java implementation
+      -- ipcb' = nt'
 
     in st'{ nt = nt', ipcb = ipcb' }
 

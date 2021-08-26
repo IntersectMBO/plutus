@@ -19,7 +19,6 @@ import           Language.Marlowe.ACTUS.Ops                             (YearFra
 
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift
 
-import           Debug.Trace
 
 shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg

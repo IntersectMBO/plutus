@@ -25,7 +25,6 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle (..), E
 import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (..), ShiftedSchedule)
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
 
-import           Debug.Trace
 
 maximumMaybe :: Ord a => [a] -> Maybe a
 maximumMaybe [] = Nothing

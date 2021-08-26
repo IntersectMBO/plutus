@@ -23,7 +23,6 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransition      (stateTra
 import           Language.Marlowe.ACTUS.Ops                            (ActusNum (..), YearFractionOps (_y))
 import           Prelude                                               hiding (Fractional, Num, (*), (+), (-), (/))
 
-import           Debug.Trace
 
 genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
 genProjectedCashflows dataObserved = sampleCashflows dataObserved
@@ -64,11 +63,11 @@ sampleCashflows dataObserved terms =
             , AD
             , ShiftedDay analysisDate analysisDate
             )
-        states  = L.tail $ L.scanl applyStateTransition initialState (trace (show events'') events'')
+        states  = L.tail $ L.scanl applyStateTransition initialState events''
 
         states' = filterStates terms states
 
-        payoffs = calculatePayoff <$> (trace (show states') states')
+        payoffs = calculatePayoff <$> states'
 
         genCashflow ((_, ev, d), pff) = CashFlow
             { tick               = 0

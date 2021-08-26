@@ -30,7 +30,6 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.Tasty.HUnit
 
-import           Debug.Trace
 
 data TestResult = TestResult{
   eventDate             :: String
@@ -65,7 +64,7 @@ assertTestResultsFromFile excludedTestCases fileName = do
       if not $ List.elem identifier excludedTestCases then
         let cashFlows = genProjectedCashflows (parseObservedValues dataObserved) (setDefaultContractTermValues $ testToContractTerms $ decodedTestCase)
         in
-          assertTestResults cashFlows results (trace (show identifier) identifier)
+          assertTestResults cashFlows results identifier
       else
         return ()
 
