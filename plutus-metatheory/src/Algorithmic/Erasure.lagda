@@ -181,15 +181,6 @@ lem∷' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : A)(ts : Vec
   → t ∷ subst (Vec A) p ts ≡ subst (Vec A) q (t ∷ ts) 
 lem∷' refl refl t ts = refl
 
-lem:< : ∀{m n n'}(p : n ≡ n')(ts : Vec (n ⊢) m)(t : n ⊢)
-  → subst (λ n → Vec (n ⊢) m) p ts :< subst _⊢ p t ≡ subst (λ n → Vec (n ⊢) (suc m)) p (ts :< t) 
-lem:< refl ts t = refl
-
-lem:<' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(ts : Vec A n)(t : A)
-  → subst (Vec A) p ts :< t ≡ subst (Vec A) q (ts :< t) 
-lem:<' refl refl ts t = refl
-
-
 {-
 lemTel : ∀{m n n'}(p : n ≡ n')(bn : Builtin)(ts : Vec (n ⊢) m)
   → (q : m ≤‴ arity bn)

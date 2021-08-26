@@ -3,6 +3,7 @@ module Declarative.Examples.StdLib.Function where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.Equality
 open import Declarative

@@ -5,6 +5,7 @@ module Scoped.Extrication.RenamingSubstitution where
 erasure commutes with renaming/substitution
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Data.Nat

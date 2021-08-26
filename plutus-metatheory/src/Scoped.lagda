@@ -71,7 +71,13 @@ arity chooseUnit = 2
 arity mkPairData = 2
 arity mkNilData = 1
 arity mkNilPairData = 1
-arity mkConsData = 2
+arity mkCons = 2
+arity consByteString = 2
+arity sliceByteString = 3
+arity lengthOfByteString = 1
+arity indexByteString = 2
+arity blake2b-256 = 1
+
 
 arity⋆ : Builtin → ℕ
 arity⋆ ifThenElse = 1

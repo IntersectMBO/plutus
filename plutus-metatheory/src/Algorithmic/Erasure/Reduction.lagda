@@ -37,10 +37,10 @@ import Data.Bool as B
 \end{code}
 
 \begin{code}
-eraseCtx : ∀{Φ}(Γ : Ctx Φ) → U.Bwd U.Label
-eraseCtx ∅        = U.[]
-eraseCtx (Γ ,⋆ J) = eraseCtx Γ U.:< U.Type
-eraseCtx (Γ , A)  = eraseCtx Γ U.:< U.Term
+eraseCtx : ∀{Φ}(Γ : Ctx Φ) → Bwd U.Label
+eraseCtx ∅        = []
+eraseCtx (Γ ,⋆ J) = eraseCtx Γ :< U.Type
+eraseCtx (Γ , A)  = eraseCtx Γ :< U.Term
 
 erase≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ A.≤C' Γ' → eraseCtx Γ U.≤L eraseCtx Γ'
 erase≤C' A.base      = U.base
@@ -94,7 +94,12 @@ erase-arity-lem chooseUnit refl refl = refl
 erase-arity-lem mkPairData refl refl = refl
 erase-arity-lem mkNilData refl refl = refl
 erase-arity-lem mkNilPairData refl refl = refl
-erase-arity-lem mkConsData refl refl = refl
+erase-arity-lem mkCons refl refl = refl
+erase-arity-lem consByteString refl refl = refl
+erase-arity-lem sliceByteString refl refl = refl
+erase-arity-lem lengthOfByteString refl refl = refl
+erase-arity-lem indexByteString refl refl = refl
+erase-arity-lem blake2b-256 refl refl = refl
 
 eraseITel : ∀ b {Φ}(Δ : Ctx Φ)(σ : SubNf Φ ∅)
           →  A.ITel b Δ σ → U.ITel b (eraseCtx Δ)
@@ -191,7 +196,7 @@ erase-BUILTIN constrData σ vs = refl
 erase-BUILTIN mapData σ vs = refl
 erase-BUILTIN listData σ vs = refl
 erase-BUILTIN iData σ (tt ,, _ ,, A.V-con (integer i)) = refl
-erase-BUILTIN bData σ vs = refl
+erase-BUILTIN bData σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN unConstrData σ vs = refl
 erase-BUILTIN unMapData σ vs = refl
 erase-BUILTIN unListData σ vs = refl
@@ -203,8 +208,17 @@ erase-BUILTIN chooseUnit σ vs = refl
 erase-BUILTIN mkPairData σ vs = refl
 erase-BUILTIN mkNilData σ vs = refl
 erase-BUILTIN mkNilPairData σ vs = refl
-erase-BUILTIN mkConsData σ vs = refl
-  
+erase-BUILTIN mkCons σ vs = refl
+erase-BUILTIN consByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN sliceByteString σ (((tt ,, _ ,, A.V-con (integer st)) ,, _ ,, A.V-con (integer n)) ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN lengthOfByteString σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
+erase-BUILTIN indexByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (integer i)) with +0 ≤? i
+... | no  _ = refl
+... | yes _ with i Data.Integer.<? Builtin.length b
+... | no  _ = refl
+... | yes _ = refl
+erase-BUILTIN blake2b-256 σ vs = refl
+
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →
   proj₁
   (U.IBUILTIN' b (erase-arity-lem b p q)

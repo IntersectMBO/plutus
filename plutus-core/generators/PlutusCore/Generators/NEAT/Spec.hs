@@ -164,7 +164,7 @@ prop_agree_termEval tyG tmG = do
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [tmUCk,tmUCek])
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("untyped CK",tmUCk),("untyped CEK",tmUCek)])
 
 -- |Property: the following diagram commutes for well-kinded types...
 --
@@ -301,11 +301,11 @@ data Ctrex
   | CtrexTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    [Term TyName Name DefaultUni DefaultFun ()]
+    [(String,Term TyName Name DefaultUni DefaultFun ())]
   | CtrexUntypedTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    [U.Term Name DefaultUni DefaultFun ()]
+    [(String,U.Term Name DefaultUni DefaultFun ())]
 
 instance Show TestFail where
   show (TypeError e)  = "type error: " ++ show e
@@ -386,14 +386,14 @@ instance Show Ctrex where
     printf tpl (show tmG) (show tyG) ++ results tms
     where
       tpl = "TypedTermEvaluationMismatch\n" ++ "Counterexample found: %s :: %s\n"
-      results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
-      results []     = ""
+      results ((s,t):ts) = s ++ " evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
+      results []         = ""
   show (CtrexUntypedTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where
       tpl = "UntypedTermEvaluationMismatch\n" ++ "Counterexample found: %s :: %s\n"
-      results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
-      results []     = ""
+      results ((s,t):ts) = s ++ " evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
+      results []         = ""
   show (CtrexTypePreservationFail tyG tmG tm1 tm2) =
     printf tpl (show tmG) (show tyG) (show (pretty tm1)) (show (pretty tm2))
     where

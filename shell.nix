@@ -80,6 +80,7 @@ let
     aws-mfa-login
     cabal-install
     cardano-repo-tool
+    fixPngOptimization
     fixPurty
     fixStylishHaskell
     haskell-language-server

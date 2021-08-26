@@ -23,6 +23,7 @@ pkgs.callPackage (import ./devcontainer.nix) {
     plutus.haskell-language-server
     plutus.cabal-install
     pkgs.binutils
+    pkgs.pkg-config
   ];
   extraCommands = ''
     # Put the environment stuff somewhere convenient

@@ -58,7 +58,7 @@ import qualified Prelude                      as Haskell
 -- * Holders of those tokens can propose changes to the state of the contract and vote on them.
 -- * After a certain period of time the voting ends and the proposal is rejected or accepted.
 
--- | The paramaters for the proposal contract.
+-- | The parameters for the proposal contract.
 data Proposal = Proposal
     { newLaw         :: BuiltinByteString
     -- ^ The new contents of the law
