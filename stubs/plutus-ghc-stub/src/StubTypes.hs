@@ -392,6 +392,9 @@ varType _ = Type_
 isLiftedTypeKind :: Kind -> Bool
 isLiftedTypeKind _ = True
 
+classifiesTypeWithValues :: Kind -> Bool
+classifiesTypeWithValues _ = True
+
 splitFunTy_maybe :: Type -> Maybe (Type, Type)
 splitFunTy_maybe _ = Nothing
 
@@ -465,6 +468,9 @@ splitForAllTy_maybe _ = Nothing
 
 splitCastTy_maybe :: Type -> Maybe (Type, Coercion)
 splitCastTy_maybe _ = Nothing
+
+splitPiTy_maybe :: Type -> Maybe (TyCoBinder, Type)
+splitPiTy_maybe = Nothing
 
 unwrapNewTyCon_maybe :: TyCon -> Maybe ([TyVar], Type, CoAxiom Unbranched)
 unwrapNewTyCon_maybe _ = Nothing
