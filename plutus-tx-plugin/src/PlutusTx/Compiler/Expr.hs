@@ -336,6 +336,53 @@ the plugin compilation mode, so we have a special function that's not a builtin 
 just get turned into a function in PLC).
 -}
 
+{- Note [Unboxed tuples]
+This note describes the support of unboxed tuples which are different from boxed tuples.
+The difference between boxed and unboxed types is available in GHC manual
+https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/primitives.html#unboxed-type-kinds
+
+Boxed tuples have kind '* -> * -> *' and they match the usual plugin workflow. But unboxed tuples
+have a polymorphic kind and require additional tweaks on kind, type and expression levels.
+
+For example, the kind of '(# a , b #)' is
+```
+TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1])
+```
+where 'a' and 'b' are some types and `[k0, k1]` are type variables.
+
+Suppose that 'a = b = Integer', a boxed type, then the kind of '(# Integer, Integer #)' is
+```
+* -> * -> TYPE ('GHC.Types.TupleRep '[ 'GHC.Types.LiftedRep, 'GHC.Types.LiftedRep])
+```
+
+As Plutus has no different runtime representations, the overall strategy is to ignore them in arguments
+on all levels and match any 'TYPE rep' to the usual Plutus type.
+
+The following changes were introduced:
+
+1. 'compileKind' uses 'splitPiTy_maybe' to match on pi type that surrounds unboxed tuple,
+ignores it by calling 'compileKind' on the inner type:
+
+```
+compileKind( TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
+~> compileKind( TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
+~> compileKind( TYPE ('GHC.Types.TupleRep '[k0, k1]) )
+```
+
+And then uses `classifiesTypeWithValues` to match `TYPE rep` to PLC Type.
+
+2. We ignore 'RuntimeRep' type arguments:
+- using 'dropRuntimeRepArgs' in 'compileType' and 'getMatchInstantiated'
+to handle 'TyCon' application ('(#,#)');
+
+- using 'dropRuntimeRepVars' in 'compileTyCon' to ignore 'RuntimeRep' type variables
+and to compile the kind of '(#,#)' properly.
+
+3. 'compileExpr' uses 'isRuntimeRepKindedTy' to match on type application and to ignore
+'RuntimeRep' type arguments.
+
+-}
+
 hoistExpr
     :: CompilingDefault uni fun m
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
@@ -486,9 +533,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
-        -- arg can be a type here, in which case it's a type instantiation
-        -- we ignore types of 'RuntimeRep' kind to compile unboxed tuples properly
+        -- ignoring types of 'RuntimeRep' kind to compile unboxed tuples properly, see Note [Unboxed tuples]
         l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
+        -- arg can be a type here, in which case it's a type instantiation
         l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg

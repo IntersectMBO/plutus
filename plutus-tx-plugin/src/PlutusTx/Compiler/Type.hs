@@ -84,7 +84,7 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> compileType i <*> compileType o
-        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)'
+        -- ignoring 'RuntimeRep' type arguments to properly compile '(#, #)', see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
         (GHC.splitAppTy_maybe -> Just (t1, t2)) -> PIR.TyApp() <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
@@ -146,9 +146,9 @@ compileTyCon tc
                     PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
 
                     -- Type variables are in scope for the rest of the definition
-                    -- We remove vars of 'RuntimeRep' type to properly compile '(#, #)' type constructor
-                    let filteredTyVars = dropWhile (GHC.isRuntimeRepTy . GHC.varType) $ GHC.tyConTyVars tc
-                    withTyVarsScoped filteredTyVars $ \tvs -> do
+                    -- We remove 'RuntimeRep' type variables with 'dropRuntimeRepVars'
+                    -- to compile unboxed tuples type constructor, see Note [Unboxed tuples]
+                    withTyVarsScoped (dropRuntimeRepVars $ GHC.tyConTyVars tc) $ \tvs -> do
                         constructors <- for dcs $ \dc -> do
                             name <- compileNameFresh (GHC.getName dc)
                             ty <- mkConstructorType dc
@@ -281,8 +281,16 @@ getMatchInstantiated :: Compiling uni fun m => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
-        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)'
+        -- We drop 'RuntimeRep' arguments to properly compile '(#, #)', see Note [Unboxed tuples]
         args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
         pure $ PIR.mkIterInst () match args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
+
+-- | Drops prefix of 'RuntimeRep' type variables (similar to 'dropRuntimeRepArgs').
+-- Useful for e.g. dropping 'LiftedRep type variables arguments of unboxed tuple type applications:
+--
+--   dropRuntimeRepVars [ k0, k1, a, b ] == [a, b]
+--
+dropRuntimeRepVars :: [GHC.TyVar] -> [GHC.TyVar]
+dropRuntimeRepVars = dropWhile (GHC.isRuntimeRepTy . GHC.varType)

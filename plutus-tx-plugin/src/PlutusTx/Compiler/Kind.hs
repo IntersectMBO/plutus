@@ -18,8 +18,8 @@ compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isLiftedTypeKind -> True)         -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just (i, o))  -> PLC.KindArrow () <$> compileKind i <*> compileKind o
-    -- We ignore pi types to handle '(#, #)' kind
+    -- We match on pi type to handle '(#, #)' kind and catch 'TYPE rep'
+    -- with 'classifiesTypeWithValues' to match it to a type, see Note [Unboxed tuples]
     (GHC.splitPiTy_maybe -> Just (_, ty))  -> compileKind ty
-    -- Treat 'TYPE rep' as type to compile unboxed tuples 'TYPE GHC.Types.TupleRep'
     (GHC.classifiesTypeWithValues -> True) -> pure $ PLC.Type ()
     _                                      -> throwSd UnsupportedError $ "Kind:" GHC.<+> (GHC.ppr k)
