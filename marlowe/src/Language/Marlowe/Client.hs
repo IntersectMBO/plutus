@@ -261,6 +261,7 @@ marlowePlutusContract = do
         let lookups = Constraints.typedValidatorLookups typedValidator
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
+        tell OK
         marlowePlutusContract
     apply = endpoint @"apply-inputs" $ \(params, slotInterval, inputs) -> do
         _ <- applyInputs params slotInterval inputs
