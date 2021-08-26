@@ -360,8 +360,8 @@ on all levels and match any 'TYPE rep' to the usual Plutus type.
 
 To do this, we do the following:
 
-1. 'compileKind' uses 'splitPiTy_maybe' to match on the forall type that surrounds unboxed tuple,
-ignores it by calling 'compileKind' on the inner type:
+1. 'compileKind' uses 'splitForAllTy_maybe' to match on the forall type with 'RuntimeRep' type variable
+that surrounds unboxed tuple, ignores it by calling 'compileKind' on the inner type:
 
 ```
 compileKind( forall k0 k1 .TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
