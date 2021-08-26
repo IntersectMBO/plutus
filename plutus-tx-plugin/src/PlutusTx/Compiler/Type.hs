@@ -84,7 +84,7 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar () name
             Nothing                       -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> compileType i <*> compileType o
-        -- ignoring 'RuntimeRep' type arguments to properly compile '(#, #)', see Note [Unboxed tuples]
+        -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> PIR.mkIterTyApp () <$> compileTyCon tc <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
         (GHC.splitAppTy_maybe -> Just (t1, t2)) -> PIR.TyApp() <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
