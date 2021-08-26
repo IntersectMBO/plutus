@@ -342,38 +342,37 @@ The difference between boxed and unboxed types is available in GHC manual
 https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/primitives.html#unboxed-type-kinds
 
 Boxed tuples have kind '* -> * -> *' and can be compiled as normal datatypes. But unboxed tuples
-have a polymorphic kind and require additional tweaks on kind, type and expression levels.
+involve types which are not of kind `*`, and moreover are *polymorphic* in their runtime representation. This requires extra work on all levels: kind, type and term.
 
 For example, the kind of '(# a , b #)' is
 ```
-TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1])
+forall k0 k1 . TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1])
 ```
-where 'a' and 'b' are some types and `[k0, k1]` are type variables.
+where 'a' and 'b' are some types and `[k0, k1]` are type variables standing for runtime representations.
 
 Suppose that 'a = b = Integer', a boxed type, then the kind of '(# Integer, Integer #)' is
 ```
-* -> * -> TYPE ('GHC.Types.TupleRep '[ 'GHC.Types.LiftedRep, 'GHC.Types.LiftedRep])
+TYPE 'GHC.Types.LiftedRep -> TYPE 'GHC.Types.LiftedRep -> TYPE ('GHC.Types.TupleRep '[ 'GHC.Types.LiftedRep, 'GHC.Types.LiftedRep])
 ```
 
-As Plutus has no different runtime representations, the overall strategy is to ignore them in arguments
+As Plutus has no different runtime representations, the overall strategy is consider `Type rep` to always be `Type LiftedRep`, which becomes `Type` on the Plutus side.
 on all levels and match any 'TYPE rep' to the usual Plutus type.
 
-The following changes were introduced:
+To do this, we do the following:
 
-1. 'compileKind' uses 'splitPiTy_maybe' to match on pi type that surrounds unboxed tuple,
+1. 'compileKind' uses 'splitPiTy_maybe' to match on the forall type that surrounds unboxed tuple,
 ignores it by calling 'compileKind' on the inner type:
 
 ```
-compileKind( TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
-~> compileKind( TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
-~> compileKind( TYPE ('GHC.Types.TupleRep '[k0, k1]) )
+compileKind( forall k0 k1 .TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
+~> compileKind( TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
 ```
 
 And then uses `classifiesTypeWithValues` to match `TYPE rep` to PLC Type.
 
 2. We ignore 'RuntimeRep' type arguments:
 - using 'dropRuntimeRepArgs' in 'compileType' and 'getMatchInstantiated'
-to handle 'TyCon' application ('(#,#)');
+to handle the initial runtime rep arguments in a 'TyCon' application  of `(#,#)';
 
 - using 'dropRuntimeRepVars' in 'compileTyCon' to ignore 'RuntimeRep' type variables
 and to compile the kind of '(#,#)' properly.
@@ -533,7 +532,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
-        -- ignoring types of 'RuntimeRep' kind to compile unboxed tuples properly, see Note [Unboxed tuples]
+        -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
         l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
         -- arg can be a type here, in which case it's a type instantiation
         l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
