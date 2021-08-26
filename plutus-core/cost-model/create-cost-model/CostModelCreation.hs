@@ -252,7 +252,6 @@ uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f ~(a,b,c) = f a b c
 
 
--- Currently unused.  Note that something with this cost model could get expensive quickly.
 readModelMultipliedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultipliedSizes
 readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
 
@@ -261,6 +260,14 @@ readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(I
 
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
+
+-- For models which are linear on the diagonal and constant elsewhere we currently
+-- only benchmark and model the linear part, so here we read in the model from R
+-- and supply the constant as a parameter
+readModelLinearOnDiagonal :: MonadR m => (SomeSEXP (Region m)) -> CostingInteger -> m ModelConstantOrLinear
+readModelLinearOnDiagonal model c = do
+  (intercept, slope) <- unsafeReadModelFromR "x_mem" model
+  pure $ ModelConstantOrLinear c intercept slope
 
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
@@ -440,36 +447,34 @@ verifySignature cpuModelR = do
 
 ---------------- Strings ----------------
 
--- ### TODO: get model from R ###
 appendString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-appendString _ = do
-  let cpuModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 150000 1000
-  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+appendString cpuModelR = do
+  cpuModel <- ModelTwoArgumentsAddedSizes <$> readModelAddedSizes cpuModelR
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 4 1
   pure $ CostingFun cpuModel memModel
 
--- ### TODO: get model from R ###
 equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-equalsString _ = do
-  let cpuModel = ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear 1000 150000 1000)
+equalsString cpuModelR = do
+  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 100000
+  -- TODO: 100000 is a made-up cost for off-diagonal comparisons.  We should put
+  -- something more sensible here
   let memModel = boolMemModel
   pure $ CostingFun cpuModel memModel
 
--- ### TODO: get model from R ###
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-encodeUtf8 _ = do
-  let cpuModel = ModelOneArgumentLinearCost $ ModelLinearSize 150000 1000
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 8
+encodeUtf8 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinear cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+                 -- In the worst case two UTF-16 bytes encode to three UTF-8
+                 -- bytes, so two output words per input word should cover that.
   pure $ CostingFun cpuModel memModel
--- Complicated: one character can be encoded as many bytes and I think we only know the
--- number of characters.  This will need benchmarking with complicated Unicode strings.
 
--- ### TODO: get model from R ###
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-decodeUtf8 _ = do
-  let cpuModel = ModelOneArgumentLinearCost $ ModelLinearSize 150000 1000
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 8
+decodeUtf8 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinear cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+                 -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
   pure $ CostingFun cpuModel memModel
--- Complicated again.
 
 
 ---------------- Bool ----------------

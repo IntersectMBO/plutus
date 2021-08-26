@@ -4,38 +4,36 @@ module Benchmarks.CryptoAndHashes (makeBenchmarks) where
 
 import           Benchmarks.Common
 
-import           PlutusCore                             as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore            as PLC
 
 import           Criterion.Main
-import qualified Data.ByteString                        as BS
-import           Data.Functor                           ((<&>))
-import           System.Random                          (StdGen)
+import qualified Data.ByteString       as BS
+import           System.Random         (StdGen)
 
-import qualified Hedgehog                               as HH
-import qualified Hedgehog.Internal.Gen                  as HH
-import qualified Hedgehog.Range                         as HH.Range
+import qualified Hedgehog              as HH
+import qualified Hedgehog.Internal.Gen as HH
+import qualified Hedgehog.Range        as HH.Range
 
 
 -- *** DUPLICATED
 
 byteStringSizes :: [Integer]
-byteStringSizes = integerPower 2 <$> [1..20::Integer]
+byteStringSizes = fmap (100*) [0..100]
+-- 0--80000 bytes
 
-byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
+byteStringsToBench :: HH.Seed -> [BS.ByteString]
 byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
 
-makeSizedBytestring :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
-makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
+makeSizedBytestring :: HH.Seed -> Int -> BS.ByteString
+makeSizedBytestring seed e = genSample seed (HH.bytes (HH.Range.singleton e))
 
 seedA :: HH.Seed
 seedA = HH.Seed 42 43
 
-benchByteStringNoArgOperations :: DefaultFun -> Benchmark
-benchByteStringNoArgOperations name =
-    bgroup (show name) $
-        byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
-
+benchByteStringOneArgOp :: DefaultFun -> Benchmark
+benchByteStringOneArgOp name =
+    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name b
 
 
 ---------------- Verify signature ----------------
@@ -52,19 +50,14 @@ pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 -- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
-    bgroup (show name) $
-        bs <&> (\(x, xmem) ->
-            benchDefault (show xmem) $ mkApp3 name pubKey x sig
-        )
-    where
-        name = VerifySignature
-        bs = (makeSizedBytestring seedA . fromInteger) <$> byteStringSizes
+    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+           where name = VerifySignature
+                 mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name pubKey b sig
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [benchVerifySignature] <> (benchByteStringNoArgOperations <$> [ Sha2_256, Sha3_256, Blake2b_256 ])
-
-{- TODO: check Shas and Blake -}
+makeBenchmarks _gen =  [benchVerifySignature]
+                    <> (benchByteStringOneArgOp <$> [ Sha2_256, Sha3_256, Blake2b_256 ])
 
 
 

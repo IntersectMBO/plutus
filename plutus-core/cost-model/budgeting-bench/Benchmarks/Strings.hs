@@ -4,21 +4,16 @@ module Benchmarks.Strings (makeBenchmarks) where
 
 import           Benchmarks.Common
 
-import           PlutusCore                             as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore            as PLC
 
 import           Criterion.Main
-import           Data.ByteString                        as BS
-import           Data.Functor                           ((<&>))
-import qualified Data.Text                              as T
-import qualified Data.Text.Encoding                     as T
-import           System.Random                          (StdGen)
+import           Data.ByteString       as BS
+import qualified Data.Text             as T
+import           System.Random         (StdGen)
 
-import qualified Hedgehog                               as H
-import qualified Hedgehog.Internal.Gen                  as G
-import qualified Hedgehog.Range                         as R
-
-import qualified Debug.Trace                            as T
+import qualified Hedgehog              as H
+import qualified Hedgehog.Internal.Gen as G
+import qualified Hedgehog.Range        as R
 
 {- The memory usage of a string is defined to be four bytes per character.  Plutus
  strings are implemented as Text objects, which are UTF-16 encoded sequences of
@@ -131,10 +126,13 @@ benchTwoTextStrings name =
         s2 = makeSizedTextStrings seedB twoArgumentSizes
     in createTwoTermBuiltinBench name s1 s2
 
+
+{- Unused?
 benchTextStringNoArgOperations :: DefaultFun -> Benchmark
 benchTextStringNoArgOperations name =
     bgroup (show name) $
         fmap (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x) oneArgumentSizes
+-}
 
 -- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark

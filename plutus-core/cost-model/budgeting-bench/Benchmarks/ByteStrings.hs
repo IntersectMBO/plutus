@@ -6,7 +6,6 @@ import           PlutusCore            as PLC
 
 import           Criterion.Main
 import qualified Data.ByteString       as BS
-import           Data.Functor          ((<&>))
 import           System.Random         (StdGen, randomR)
 
 import qualified Hedgehog              as H
@@ -18,8 +17,12 @@ import qualified Hedgehog.Range        as R
 integerLength :: BS.ByteString -> Integer
 integerLength = fromIntegral . BS.length
 
+
+-- Sizes of the arguments that we're goint to use as inputs to the bytestring builtin benchmarks.
+-- These are sizes in words, so the actual bytestrings will be 8 times longer, ie [0, 2000..40000]
 byteStringSizes :: [Integer]
-byteStringSizes = integerPower 2 <$> [1..20::Integer]
+byteStringSizes = [0, 250..5000]  -- 21 entries.
+-- byteStringSizes = integerPower 2 <$> [1..20::Integer]
 
 -- Create a bytestring whose memory usage is n.  Since we measure memory usage
 -- in 64-bit words we have to create a bytestring containing 8*n bytes.
@@ -40,8 +43,8 @@ benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench se
 
 benchByteStringNoArgOperations :: DefaultFun -> Benchmark
 benchByteStringNoArgOperations name =
-    bgroup (show name) $
-        byteStringsToBench seedA <&> (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x)
+    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name b
 
 -- Copy the byteString here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
@@ -78,9 +81,12 @@ benchSliceByteString =
             where blen = integerLength b
     in bgroup (show name) $ concatMap mkBMsFor byteStrings
 
-benchConsByteString :: Benchmark -- TODO the numbers are a bit too big here
+benchConsByteString :: Benchmark
 benchConsByteString = createTwoTermBuiltinBench ConsByteString numbers (byteStringsToBench seedA)
-    where numbers = threeToThePower <$> powersOfTwo
+                      where numbers = fmap (1000 *) [100..2000] :: [Integer]
+             -- In fact the numbers don't seem to matter here.  There'll be some
+             -- cost coercing them to Word8, but even with very large numbers
+             -- that seems to be negligible.
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])

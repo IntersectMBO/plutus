@@ -279,7 +279,7 @@ data ModelConstantOrLinear = ModelConstantOrLinear
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelConstantOrLinear", CamelToSnake)] ModelConstantOrLinear
 
--- | if p then s*x else c; p depends on usage
+-- | if p then f(x,y) else c; p depends on usage
 data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     { modelConstantOrTwoArgumentsConstant :: CostingInteger
     , modelConstantOrTwoArgumentsModel    :: ModelTwoArguments

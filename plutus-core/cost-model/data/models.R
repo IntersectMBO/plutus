@@ -91,7 +91,7 @@ get.bench.data <- function(path) {
 
 filter.and.check.nonempty <- function (frame, name) {
     filtered <- filter (frame, BuiltinName == name)
-##    cat (sprintf ("Reading data for %s\n", name))
+    cat (sprintf ("Reading data for %s\n", name))
     if (nrow(filtered) == 0) {
         stop ("No data found for ", name)
     } else filtered
@@ -441,10 +441,10 @@ modelFun <- function(path) {
         sha3_256Model                 = sha3_256Model,
         blake2bModel                  = blake2bModel,
         verifySignatureModel          = verifySignatureModel,
-        ## appendStringModel  : filter x=0 & y=0; linear in x+y
-        ## equalStringModel   : linear in x (=y); type of contents doesn't matter
-        ## encodeUtf8Model    : linear in 
-        ## decodeUtf8Model
+        appendStringModel             = appendStringModel,
+        equalsStringModel             = equalsStringModel,
+        encodeUtf8Model               = encodeUtf8Model,
+        decodeUtf8Model               = decodeUtf8Model,
         ifThenElseModel               = ifThenElseModel,
         chooseUnitModel               = chooseUnitModel,
         traceModel                    = traceModel,

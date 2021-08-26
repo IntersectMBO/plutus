@@ -19,7 +19,6 @@ import           Benchmarks.Common
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel  hiding (BuiltinCostModel)
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Pretty
 import           UntypedPlutusCore.Evaluation.Machine.Cek
@@ -147,7 +146,7 @@ benchNop1 gen =
     let name = Nop1
         mem = 1
         (x,_) = randNwords mem gen
-    in bgroup (show name) [benchWith nopCostParameters (show $ memoryUsage x) $ mkApp1 name x]
+    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
@@ -156,8 +155,8 @@ benchNop2 gen =
         (x,gen1) = randNwords mem gen
         (y,_)    = randNwords mem gen1
     in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [benchWith nopCostParameters (show $ memoryUsage y) $ mkApp2 name x y]
+           [bgroup (showMemoryUsage x)
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name x y]
            ]
 
 benchNop3 :: StdGen -> Benchmark
@@ -168,9 +167,9 @@ benchNop3 gen =
         (y,gen2) = randNwords mem gen1
         (z,_)    = randNwords mem gen2
     in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [bgroup (show $ memoryUsage y)
-             [benchWith nopCostParameters (show $ memoryUsage z) $ mkApp3 name x y z]
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name x y z]
             ]
            ]
 
@@ -183,10 +182,10 @@ benchNop4 gen =
         (z,gen3) = randNwords mem gen2
         (t,_)    = randNwords mem gen3
     in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [bgroup (show $ memoryUsage y)
-             [bgroup (show $ memoryUsage z)
-              [benchWith nopCostParameters (show $ memoryUsage t) $ mkApp4 name x y z t]
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name x y z t]
              ]
             ]
            ]
@@ -201,11 +200,11 @@ benchNop5 gen =
         (t,gen4) = randNwords mem gen3
         (u,_)    = randNwords mem gen4
     in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [bgroup (show $ memoryUsage y)
-             [bgroup (show $ memoryUsage z)
-              [bgroup (show $ memoryUsage t)
-               [benchWith nopCostParameters (show $ memoryUsage u) $ mkApp5 name x y z t u]
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name x y z t u]
               ]
              ]
             ]
@@ -222,12 +221,12 @@ benchNop6 gen =
         (u,gen5) = randNwords mem gen4
         (v,_)    = randNwords mem gen5
     in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [bgroup (show $ memoryUsage y)
-             [bgroup (show $ memoryUsage z)
-              [bgroup (show $ memoryUsage t)
-               [bgroup (show $ memoryUsage u)
-                [benchWith nopCostParameters (show $ memoryUsage v) $ mkApp6 name x y z t u v]
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [bgroup (showMemoryUsage u)
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name x y z t u v]
                ]
               ]
              ]
