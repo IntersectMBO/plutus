@@ -151,8 +151,14 @@ ISIG mkPairData =
   _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
 ISIG mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
 ISIG mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
-ISIG mkConsData =
+ISIG mkCons =
   _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
+ISIG consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG sliceByteString =
+  _ ,, ∅ , con integer , con integer , con bytestring ,, con bytestring
+ISIG lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
+ISIG indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
+ISIG blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 isig2type .∅ ∅ C = C
@@ -247,4 +253,17 @@ Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 Ctx2type ∅        C = C
 Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
 Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
+
+data Arg : Set where
+  Term Type : Arg
+
+Arity = List Arg
+
+ctx2bwdarity : ∀{Φ}(Γ : Ctx Φ) → Bwd Arg
+ctx2bwdarity ∅        = []
+ctx2bwdarity (Γ ,⋆ J) = ctx2bwdarity Γ :< Type
+ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
+
+arity : Builtin → Arity
+arity b = ctx2bwdarity (proj₁ (proj₂ (ISIG b))) <>> []
 \end{code}

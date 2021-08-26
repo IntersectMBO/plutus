@@ -19,6 +19,7 @@ version does full normalisation.
 ## Imports
 
 ```
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)

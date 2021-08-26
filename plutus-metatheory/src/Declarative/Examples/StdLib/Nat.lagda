@@ -3,6 +3,7 @@ module Declarative.Examples.StdLib.Nat where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.Equality
 import Type.RenamingSubstitution as ⋆
