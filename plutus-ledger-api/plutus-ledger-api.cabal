@@ -23,7 +23,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses FlexibleContexts
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -Wunused-packages
                  -- See Plutus Tx readme
@@ -60,8 +60,6 @@ library
         bytestring -any,
         cborg -any,
         containers -any,
-        cryptonite >=0.25,
-        cardano-crypto -any,
         flat -any,
         hashable -any,
         plutus-core -any,

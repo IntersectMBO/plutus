@@ -16,7 +16,6 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Integer hiding (suc;_≤_)
 open import Data.Integer.Show
 open import Data.String using (String) renaming (_++_ to _+++_)
-open import Data.Char
 open import Data.Sum
 open import Data.Product renaming (_,_ to _,,_)
 open import Relation.Nullary
@@ -27,21 +26,7 @@ open import Raw
 open import Utils
 open import Scoped using (ScopeError;deBError)
 open import Builtin
-```
-
-## Term constants
-
-Defined separetely here rather than using generic version used in the
-typed syntax.
-
-```
-data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  char       : Char → TermCon
-  unit       : TermCon
+open import Utils
 ```
 
 ## Well-scoped Syntax
@@ -77,7 +62,7 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " +++ s +++ ")"
 uglyTermCon (bool false) = "(bool " +++ "false" +++ ")"
 uglyTermCon (bool true) = "(bool " +++ "true" +++ ")"
-uglyTermCon (char c) = "(char)"
+uglyTermCon (Data d) = "(DATA)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
@@ -119,7 +104,6 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
-{-# COMPILE GHC TermCon = data UConstant (UConInt | UConBS | UConStr | UConBool | UConChar | UConUnit) #-}
 ```
 
 ## Scope checking
@@ -173,7 +157,6 @@ decUTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
 decUTermCon unit unit = true
-decUTermCon (char c) (char c') = true
 decUTermCon _ _ = false
 
 decUTm : (t t' : Untyped) → Bool

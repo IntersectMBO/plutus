@@ -6,12 +6,12 @@ module Marlowe.Execution.Lenses
   , _mPendingTimeouts
   , _pendingTimeouts
   , _mNextTimeout
-  , _initialSemanticState
+  , _balancesAtStart
   , _txInput
+  , _balancesAtEnd
   , _resultingPayments
-  , _nextSemanticState
+  , _continuationState
   , _continuationContract
-  , _timeouts
   ) where
 
 import Prelude
@@ -20,8 +20,8 @@ import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import Marlowe.Execution.Types (PastState, PendingTimeouts, State)
-import Marlowe.Semantics (Contract, Payment, Slot, TransactionInput)
+import Marlowe.Execution.Types (ContractAndState, PastState, PendingTimeouts, State, TimeoutInfo)
+import Marlowe.Semantics (Contract, Payment, Slot, TransactionInput, Accounts)
 import Marlowe.Semantics (State) as Semantic
 
 _semanticState :: Lens' State Semantic.State
@@ -39,28 +39,34 @@ _previousTransactions = _history <<< traversed <<< _txInput
 _mPendingTimeouts :: Lens' State (Maybe PendingTimeouts)
 _mPendingTimeouts = prop (SProxy :: SProxy "mPendingTimeouts")
 
-_pendingTimeouts :: Traversal' State (Array Slot)
+_pendingTimeouts :: Traversal' State (Array TimeoutInfo)
 _pendingTimeouts = _mPendingTimeouts <<< _Just <<< _timeouts
 
 _mNextTimeout :: Lens' State (Maybe Slot)
 _mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
 
 ----------
-_initialSemanticState :: Lens' PastState Semantic.State
-_initialSemanticState = prop (SProxy :: SProxy "initialSemanticState")
+_balancesAtStart :: Lens' PastState Accounts
+_balancesAtStart = prop (SProxy :: SProxy "balancesAtStart")
 
 _txInput :: Lens' PastState TransactionInput
 _txInput = prop (SProxy :: SProxy "txInput")
+
+_balancesAtEnd :: Lens' PastState Accounts
+_balancesAtEnd = prop (SProxy :: SProxy "balancesAtEnd")
 
 _resultingPayments :: Lens' PastState (List Payment)
 _resultingPayments = prop (SProxy :: SProxy "resultingPayments")
 
 ----------
-_nextSemanticState :: Lens' PendingTimeouts Semantic.State
-_nextSemanticState = prop (SProxy :: SProxy "nextSemanticState")
+_continuation :: Lens' PendingTimeouts ContractAndState
+_continuation = prop (SProxy :: SProxy "continuation")
+
+_continuationState :: Lens' PendingTimeouts Semantic.State
+_continuationState = _continuation <<< prop (SProxy :: SProxy "state")
 
 _continuationContract :: Lens' PendingTimeouts Contract
-_continuationContract = prop (SProxy :: SProxy "continuationContract")
+_continuationContract = _continuation <<< prop (SProxy :: SProxy "contract")
 
-_timeouts :: Lens' PendingTimeouts (Array Slot)
+_timeouts :: Lens' PendingTimeouts (Array TimeoutInfo)
 _timeouts = prop (SProxy :: SProxy "timeouts")

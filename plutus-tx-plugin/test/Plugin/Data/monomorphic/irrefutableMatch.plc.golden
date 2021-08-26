@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl MyMonoData (type))
 
@@ -17,28 +14,31 @@
     (lam
       ds
       MyMonoData
-      [
+      {
         [
           [
             [
-              { [ MyMonoData_match ds ] (fun Unit (con integer)) }
+              { [ MyMonoData_match ds ] (all dead (type) (con integer)) }
               (lam
                 default_arg0
                 (con integer)
                 (lam
                   default_arg1
                   (con integer)
-                  (lam thunk Unit (error (con integer)))
+                  (abs dead (type) { (abs e (type) (error e)) (con integer) })
                 )
               )
             ]
-            (lam a (con integer) (lam thunk Unit a))
+            (lam a (con integer) (abs dead (type) a))
           ]
-          (lam default_arg0 (con integer) (lam thunk Unit (error (con integer)))
+          (lam
+            default_arg0
+            (con integer)
+            (abs dead (type) { (abs e (type) (error e)) (con integer) })
           )
         ]
-        Unit
-      ]
+        (all dead (type) dead)
+      }
     )
   )
 )

@@ -4,7 +4,12 @@
     (termbind
       (strict)
       (vardecl encodeUtf (fun (con string) (con bytestring)))
-      (lam s (con string) [ (builtin encodeUtf8) s ])
+      (builtin encodeUtf8)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl encodeUtf (fun (con string) (con bytestring)))
+      encodeUtf
     )
     [ encodeUtf (con string "abc") ]
   )

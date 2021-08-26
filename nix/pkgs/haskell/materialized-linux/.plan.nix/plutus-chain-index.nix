@@ -40,25 +40,55 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
+          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+          (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
+          (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
           ];
         buildable = true;
         modules = [
           "Plutus/ChainIndex"
+          "Plutus/ChainIndex/Api"
           "Plutus/ChainIndex/Effects"
           "Plutus/ChainIndex/Emulator/DiskState"
           "Plutus/ChainIndex/Emulator/Handlers"
+          "Plutus/ChainIndex/Client"
+          "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"
           "Plutus/ChainIndex/Types"
           "Plutus/ChainIndex/UtxoState"
           ];
         hsSourceDirs = [ "src" ];
+        };
+      exes = {
+        "plutus-chain-index" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+            (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            ];
+          buildable = true;
+          modules = [ "CommandLine" "Config" "Logging" ];
+          hsSourceDirs = [ "app" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       tests = {
         "plutus-chain-index-test" = {

@@ -1,37 +1,23 @@
+{-# LANGUAGE RecordWildCards #-}
 module Spec.Marlowe.Actus
-    ( tests
+    (
+      tests, TestCase(..)
     )
 where
 
+import           Language.Marlowe.ACTUS.Analysis                  (genProjectedCashflows)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms hiding (Assertion)
 import           Spec.Marlowe.Util
-import           System.Environment
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-tests :: TestTree
-tests = testGroup "Actus" [ testCase fileName (staticFromFile fileName) | fileName <- testFileNames ]
+tests :: String -> [TestCase] -> TestTree
+tests n t = testGroup n $ [ testCase (identifier tc) (runTest tc) | tc <- t]
 
-testFileNames :: [String]
-testFileNames =
-  [
-    -- "actus-tests-pam",
-    -- "actus-tests-lam"
-    "actus-tests-nam"
-  ]
-
-excludedTestCases :: [String]
-excludedTestCases =
-  [
-    "pam25", -- dates include hours, minutes, seconds
-    "lam18"  -- dates include hours, minutes, seconds
-  ]
-
-
-pathToTestData :: IO String
-pathToTestData = do
-  getEnv "ACTUS_TEST_DATA_DIR"
-
-staticFromFile :: String -> IO ()
-staticFromFile fileName = do
-  testDataPath <- pathToTestData
-  assertTestResultsFromFile excludedTestCases (testDataPath ++ fileName ++ ".json")
+runTest :: TestCase -> Assertion
+runTest tc@TestCase{..} =
+  let testcase = testToContractTerms tc
+      contract = setDefaultContractTermValues testcase
+      observed = parseObservedValues dataObserved
+      cashFlows = genProjectedCashflows observed contract
+  in assertTestResults cashFlows results identifier

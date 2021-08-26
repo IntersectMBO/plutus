@@ -31,6 +31,12 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+flag use-ghc-stub
+    description:
+        Use the `plutus-ghc-stub` package instead of `ghc`.
+    default: False
+    manual: True
+
 library
     import: lang
     hs-source-dirs: src
@@ -44,7 +50,6 @@ library
         PlutusTx.Compiler.Kind
         PlutusTx.Compiler.Laziness
         PlutusTx.Compiler.Names
-        PlutusTx.Compiler.Primitives
         PlutusTx.Compiler.Type
         PlutusTx.Compiler.Types
         PlutusTx.Compiler.Utils
@@ -56,7 +61,6 @@ library
         containers -any,
         extra -any,
         flat -any,
-        ghc >=8.10 && <9,
         ghc-prim -any,
         plutus-core -any,
         lens -any,
@@ -66,12 +70,21 @@ library
         text -any,
         transformers -any,
         plutus-tx -any
+    if flag(use-ghc-stub)
+        build-depends: plutus-ghc-stub
+        ghc-options: -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
+    else
+        build-depends: ghc >=8.10 && <9
+
 
 test-suite plutus-tx-tests
+    if flag(use-ghc-stub)
+        buildable: False
     type: exitcode-stdio-1.0
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
+        IsData.Spec
         Lift.Spec
         Plugin.Spec
         Plugin.Basic.Spec
@@ -104,8 +117,10 @@ test-suite plutus-tx-tests
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
+        text -any,
         hedgehog -any,
         lens -any,
         ghc-prim -any,
-    -- this makes the plugin give better errors
-    ghc-options: -g
+    -- NOTE: -g makes the plugin give better errors
+    -- NOTE: we disable the simplifier as it simplifies away some tests
+    ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0

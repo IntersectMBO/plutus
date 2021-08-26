@@ -44,7 +44,6 @@ import qualified Wallet.Emulator.Chain             as Chain
 import qualified Wallet.Emulator.ChainIndex        as ChainIndex
 import           Wallet.Emulator.LogMessages       (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient        as NC
-import qualified Wallet.Emulator.Notify            as Notify
 import           Wallet.Emulator.Wallet            (Wallet)
 import qualified Wallet.Emulator.Wallet            as Wallet
 import           Wallet.Types                      (AssertionError (..))
@@ -79,7 +78,6 @@ data EmulatorEvent' =
     | ClientEvent Wallet.Wallet NC.NodeClientEvent
     | WalletEvent Wallet.Wallet Wallet.WalletEvent
     | ChainIndexEvent Wallet.Wallet ChainIndex.ChainIndexEvent
-    | NotificationEvent Notify.EmulatorNotifyLogMsg
     | SchedulerEvent Scheduler.SchedulerLog
     | InstanceEvent ContractInstanceLog
     | UserThreadEvent UserThreadMsg
@@ -92,7 +90,6 @@ instance Pretty EmulatorEvent' where
         ChainEvent e        -> pretty e
         WalletEvent w e     -> pretty w <> colon <+> pretty e
         ChainIndexEvent w e -> pretty w <> colon <+> pretty e
-        NotificationEvent e -> pretty e
         SchedulerEvent e    -> pretty e
         InstanceEvent e     -> pretty e
         UserThreadEvent e   -> pretty e
@@ -113,9 +110,6 @@ walletEvent' = prism' (uncurry WalletEvent) (\case { WalletEvent w c -> Just (w,
 
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
-
-notificationEvent :: Prism' EmulatorEvent' Notify.EmulatorNotifyLogMsg
-notificationEvent = prism' NotificationEvent (\case { NotificationEvent e -> Just e; _ -> Nothing })
 
 schedulerEvent :: Prism' EmulatorEvent' Scheduler.SchedulerLog
 schedulerEvent = prism' SchedulerEvent (\case { SchedulerEvent e -> Just e; _ -> Nothing })
@@ -358,8 +352,6 @@ handleMultiAgent feeCfg = interpret $ \case
             p5 = walletEvent wallet . Wallet._RequestHandlerLog
             p6 :: AReview EmulatorEvent' TxBalanceMsg
             p6 = walletEvent wallet . Wallet._TxBalanceLog
-            p7 :: AReview EmulatorEvent' Notify.EmulatorNotifyLogMsg
-            p7 = notificationEvent
         act
             & raiseEnd
             & interpret (Wallet.handleWallet feeCfg)
@@ -370,7 +362,6 @@ handleMultiAgent feeCfg = interpret $ \case
             & interpret (mapLog (review p5))
             & interpret (mapLog (review p6))
             & interpret (mapLog (review p4))
-            & interpret (mapLog (review p7))
             & interpret (handleZoomedState (walletState wallet))
             & interpret (mapLog (review p1))
             & interpret (handleZoomedState (walletState wallet . Wallet.nodeClient))

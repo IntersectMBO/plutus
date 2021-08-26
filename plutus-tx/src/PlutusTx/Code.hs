@@ -15,6 +15,7 @@ import           PlutusTx.Lift.Instances ()
 import qualified PlutusIR                as PIR
 
 import qualified PlutusCore              as PLC
+import qualified PlutusCore.Pretty       as PLC
 import qualified UntypedPlutusCore       as UPLC
 
 import           Control.Exception
@@ -45,12 +46,12 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
 -- | Apply a compiled function to a compiled argument.
 applyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 applyCode fun arg = DeserializedCode (getPlc fun `UPLC.applyProgram` getPlc arg) Nothing
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
-sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
+sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun) => CompiledCodeIn uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
 
 {- Note [Deserializing the AST]
@@ -68,7 +69,7 @@ instance HasErrorCode ImpossibleDeserialisationFailure where
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
     => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
 getPlc wrapper = case wrapper of
     SerializedCode plc _ -> case unflat (BSL.fromStrict plc) of

@@ -211,7 +211,7 @@ create us CreateParams{..} = do
         tx       = Constraints.mustPayToTheScript usDat1 usVal                                     <>
                    Constraints.mustPayToTheScript usDat2 lpVal                                     <>
                    Constraints.mustMintValue (unitValue psC <> valueOf lC liquidity)              <>
-                   Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData $ Create lp)
+                   Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toBuiltinData $ Create lp)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
     void $ awaitTxConfirmed $ txId ledgerTx
@@ -232,7 +232,7 @@ close us CloseParams{..} = do
         usVal    = unitValue usC
         psVal    = unitValue psC
         lVal     = valueOf lC liquidity
-        redeemer = Redeemer $ PlutusTx.toData Close
+        redeemer = Redeemer $ PlutusTx.toBuiltinData Close
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
@@ -244,7 +244,7 @@ close us CloseParams{..} = do
                    Constraints.mustMintValue (negate $ psVal <> lVal) <>
                    Constraints.mustSpendScriptOutput oref1 redeemer    <>
                    Constraints.mustSpendScriptOutput oref2 redeemer    <>
-                   Constraints.mustIncludeDatum (Datum $ PlutusTx.toData $ Pool lp liquidity)
+                   Constraints.mustIncludeDatum (Datum $ PlutusTx.toBuiltinData $ Pool lp liquidity)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
     void $ awaitTxConfirmed $ txId ledgerTx
@@ -269,7 +269,7 @@ remove us RemoveParams{..} = do
         inB          = amountOf inVal rpCoinB
         (outA, outB) = calculateRemoval inA inB liquidity rpDiff
         val          = psVal <> valueOf rpCoinA outA <> valueOf rpCoinB outB
-        redeemer     = Redeemer $ PlutusTx.toData Remove
+        redeemer     = Redeemer $ PlutusTx.toBuiltinData Remove
 
         lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
@@ -310,7 +310,7 @@ add us AddParams{..} = do
         psVal        = unitValue psC
         lVal         = valueOf lC delL
         val          = psVal <> valueOf apCoinA newA <> valueOf apCoinB newB
-        redeemer     = Redeemer $ PlutusTx.toData Add
+        redeemer     = Redeemer $ PlutusTx.toBuiltinData Add
 
         lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
@@ -359,7 +359,7 @@ swap us SwapParams{..} = do
                   Constraints.unspentOutputs (Map.singleton oref o)      <>
                   Constraints.ownPubKeyHash pkh
 
-        tx      = mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData Swap) <>
+        tx      = mustSpendScriptOutput oref (Redeemer $ PlutusTx.toBuiltinData Swap) <>
                   Constraints.mustPayToTheScript (Pool lp liquidity) val
 
     logInfo $ show tx
@@ -410,7 +410,7 @@ getUniswapDatum o = case txOutDatumHash $ txOutTxOut o of
         Nothing -> throwError "datumHash not found"
         Just h -> case Map.lookup h $ txData $ txOutTxTx o of
             Nothing -> throwError "datum not found"
-            Just (Datum e) -> case PlutusTx.fromData e of
+            Just (Datum e) -> case PlutusTx.fromBuiltinData e of
                 Nothing -> throwError "datum has wrong type"
                 Just d  -> return d
 
@@ -491,7 +491,6 @@ ownerEndpoint = do
     e <- mapError absurd $ runError start
     void $ waitNSlots 1
     tell $ Last $ Just e
-    void $ waitNSlots 1
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --
@@ -503,35 +502,33 @@ ownerEndpoint = do
 --      [@pools@]: Finds all liquidity pools and their liquidity belonging to the Uniswap instance. This merely inspects the blockchain and does not issue any transactions.
 --      [@funds@]: Gets the caller's funds. This merely inspects the blockchain and does not issue any transactions.
 --      [@stop@]: Stops the contract.
-userEndpoints :: Uniswap -> Contract (Last (Either Text UserContractState)) UniswapUserSchema Void ()
+userEndpoints :: Uniswap -> Promise (Last (Either Text UserContractState)) UniswapUserSchema Void ()
 userEndpoints us =
     stop
         `select`
-    ((f (Proxy @"create") (const Created) create                 `select`
-      f (Proxy @"swap")   (const Swapped) swap                   `select`
-      f (Proxy @"close")  (const Closed)  close                  `select`
-      f (Proxy @"remove") (const Removed) remove                 `select`
-      f (Proxy @"add")    (const Added)   add                    `select`
-      f (Proxy @"pools")  Pools           (\us' () -> pools us') `select`
-      f (Proxy @"funds")  Funds           (\_us () -> funds))    >> userEndpoints us)
+    (void (f (Proxy @"create") (const Created) create                 `select`
+           f (Proxy @"swap")   (const Swapped) swap                   `select`
+           f (Proxy @"close")  (const Closed)  close                  `select`
+           f (Proxy @"remove") (const Removed) remove                 `select`
+           f (Proxy @"add")    (const Added)   add                    `select`
+           f (Proxy @"pools")  Pools           (\us' () -> pools us') `select`
+           f (Proxy @"funds")  Funds           (\_us () -> funds))
+     <> userEndpoints us)
   where
     f :: forall l a p.
          (HasEndpoint l p UniswapUserSchema, FromJSON p)
       => Proxy l
       -> (a -> UserContractState)
       -> (Uniswap -> p -> Contract (Last (Either Text UserContractState)) UniswapUserSchema Text a)
-      -> Contract (Last (Either Text UserContractState)) UniswapUserSchema Void ()
-    f _ g c = do
-        e <- runError $ do
-            p <- endpoint @l
-            c us p
+      -> Promise (Last (Either Text UserContractState)) UniswapUserSchema Void ()
+    f _ g c = handleEndpoint @l $ \p -> do
+        e <- either (pure . Left) (runError . c us) p
         tell $ Last $ Just $ case e of
             Left err -> Left err
             Right a  -> Right $ g a
 
-    stop :: Contract (Last (Either Text UserContractState)) UniswapUserSchema Void ()
-    stop = do
-        e <- runError $ endpoint @"stop"
+    stop :: Promise (Last (Either Text UserContractState)) UniswapUserSchema Void ()
+    stop = handleEndpoint @"stop" $ \e -> do
         tell $ Last $ Just $ case e of
             Left err -> Left err
             Right () -> Right Stopped

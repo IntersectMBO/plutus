@@ -53,4 +53,4 @@ fromMaybe a = maybe a id
 --   "2"
 --
 mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-mapMaybe p = foldr (\e xs -> case p e of { Just e' -> e':xs; Nothing -> xs}) []
+mapMaybe p = foldr (\e xs -> maybe xs (:xs) (p e)) []

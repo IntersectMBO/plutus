@@ -61,7 +61,7 @@ library
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- See Plutus Tx readme
@@ -125,19 +125,16 @@ test-suite plutus-use-cases-test
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
-        plutus-core -any,
         plutus-tx -any,
         plutus-contract -any,
         plutus-ledger -any,
         plutus-use-cases -any
     build-depends:
         base >=4.9 && <5,
-        aeson -any,
         bytestring -any,
         containers -any,
         data-default -any,
         freer-extras -any,
-        hedgehog -any,
         prettyprinter -any,
         tasty -any,
         tasty-hunit -any,
@@ -147,7 +144,6 @@ test-suite plutus-use-cases-test
         text -any,
         lens -any,
         mtl -any,
-        row-types -any,
         QuickCheck -any,
         freer-simple -any,
         foldl -any,
@@ -201,7 +197,6 @@ executable plutus-use-cases-scripts
         QuickCheck -any,
         tasty -any,
         tasty-hunit -any,
-        tasty-hedgehog >=0.2.0.0,
         tasty-golden -any,
         tasty-quickcheck -any,
         text -any,
@@ -219,39 +214,13 @@ executable plutus-use-cases-scripts
         plutus-tx -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        optparse-applicative -any,
+        aeson-pretty -any,
+        cardano-api -any,
+        cardano-binary -any,
+        cborg -any,
+        memory -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
-
-benchmark plutus-use-cases-bench
-    type: exitcode-stdio-1.0
-    main-is: Bench.hs
-    hs-source-dirs: bench
-    other-modules:
-        Scott
-        Recursion
-        IFix
-        Opt
-    default-language: Haskell2010
-    ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
-                 -rtsopts
-    build-depends:
-        base -any,
-        criterion -any,
-        cryptonite -any,
-        data-default -any,
-        freer-extras -any,
-        plutus-core -any,
-        lens -any,
-        memory -any,
-        mtl -any,
-        plutus-tx -any,
-        plutus-use-cases -any,
-        plutus-ledger -any,
-        bytestring -any,
-        plutus-contract -any
-
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin -any

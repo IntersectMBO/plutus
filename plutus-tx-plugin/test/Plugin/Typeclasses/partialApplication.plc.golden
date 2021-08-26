@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -22,8 +19,25 @@
     )
     (termbind
       (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
       (vardecl
-        fOrdData_ccompare (fun (con integer) (fun (con integer) Ordering))
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) (con bool)))
+      )
+      (builtin lessThanEqualsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fOrdInteger_ccompare (fun (con integer) (fun (con integer) Ordering))
       )
       (lam
         x
@@ -31,31 +45,25 @@
         (lam
           y
           (con integer)
-          [
+          {
             [
               [
                 {
                   [
                     Bool_match
                     [
-                      [
-                        [
-                          { (builtin ifThenElse) Bool }
-                          [ [ (builtin equalsInteger) x ] y ]
-                        ]
-                        True
-                      ]
+                      [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ]
                       False
                     ]
                   ]
-                  (fun Unit Ordering)
+                  (all dead (type) Ordering)
                 }
-                (lam thunk Unit EQ)
+                (abs dead (type) EQ)
               ]
-              (lam
-                thunk
-                Unit
-                [
+              (abs
+                dead
+                (type)
+                {
                   [
                     [
                       {
@@ -64,29 +72,29 @@
                           [
                             [
                               [
-                                { (builtin ifThenElse) Bool }
-                                [ [ (builtin lessThanEqualsInteger) x ] y ]
+                                { ifThenElse Bool }
+                                [ [ lessThanEqualsInteger x ] y ]
                               ]
                               True
                             ]
                             False
                           ]
                         ]
-                        (fun Unit Ordering)
+                        (all dead (type) Ordering)
                       }
-                      (lam thunk Unit LT)
+                      (abs dead (type) LT)
                     ]
-                    (lam thunk Unit GT)
+                    (abs dead (type) GT)
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
-    fOrdData_ccompare
+    fOrdInteger_ccompare
   )
 )

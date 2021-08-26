@@ -1,8 +1,7 @@
 module View (render) where
 
+import Prelude hiding (div)
 import Bootstrap (col12_, col5_, container_, row_)
-import Cardano.Metadata.Types (Property)
-import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Data.Array as Array
 import Data.Foldable (findMap)
@@ -18,10 +17,8 @@ import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
 --import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
---import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ChainReport)
-import Prelude (bind, ($), (<$>), (<<<), (<>))
-import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
+import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex, _unContractSignatures)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
 import View.Events (utxoIndexPane)
@@ -29,10 +26,12 @@ import View.Events (utxoIndexPane)
 import View.Utils (streamErrorPane, webDataPane, webStreamDataPane)
 
 render ::
-  forall m slots.
+  forall m slots a.
   MonadAff m =>
-  State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, contractSignatures, chainReport, contractStates, webSocketStatus, webSocketMessage, metadata }) =
+  Show a =>
+  State a ->
+  ComponentHTML (HAction a) slots m
+render (State { currentView, chainState, contractSignatures, chainReport, contractStates, webSocketStatus, webSocketMessage }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -49,21 +48,7 @@ render (State { currentView, chainState, contractSignatures, chainReport, contra
         ]
     ]
 
-nameIfAvailable ::
-  forall k.
-  Map Metadata.Subject (Map k Property) -> String -> String
-nameIfAvailable metadata key =
-  fromMaybe key
-    $ do
-        properties <- Map.lookup (Metadata.Subject key) metadata
-        findMap
-          ( case _ of
-              Metadata.Name name _ -> Just name
-              _ -> Nothing
-          )
-          (Array.fromFoldable (Map.values properties))
-
-mainHeader :: forall p. HTML p HAction
+mainHeader :: forall p a. HTML p (HAction a)
 mainHeader =
   div_
     [ h1
@@ -109,14 +94,15 @@ webSocketStatusIcon webSocketStatus =
   webSocketStatusClass = ClassName "web-socket-status"
 
 mainPane ::
-  forall p.
+  forall p a.
+  Show a =>
   View ->
   ContractStates ->
   Chain.State ->
-  WebStreamData ContractSignatures ->
+  WebStreamData (ContractSignatures a) ->
   ChainReport ->
   --Array (ChainEvent ContractExe) ->
-  HTML p HAction
+  HTML p (HAction a)
 mainPane currentView contractStates chainState contractSignatures chainReport {-events-} =
   row_
     [ activeContractPane currentView contractSignatures contractStates
@@ -125,11 +111,12 @@ mainPane currentView contractStates chainState contractSignatures chainReport {-
     ]
 
 activeContractPane ::
-  forall p.
+  forall p a.
+  Show a =>
   View ->
-  WebStreamData ContractSignatures ->
+  WebStreamData (ContractSignatures a) ->
   ContractStates ->
-  HTML p HAction
+  HTML p (HAction a)
 activeContractPane currentView contractSignatures contractStates =
   let
     buttonsDisabled = Stream.isExpected contractSignatures
@@ -139,11 +126,14 @@ activeContractPane currentView contractSignatures contractStates =
           [ col12_ [ contractStatusesPane contractStates ]
           , col12_
               ( webStreamDataPane
-                  ( installedContractsPane buttonsDisabled
-                      <<< ( toArrayOf
-                            ( traversed
-                                <<< _csrDefinition
-                            )
+                  ( \x ->
+                      installedContractsPane buttonsDisabled
+                        ( ( toArrayOf
+                              ( traversed
+                                  <<< _csrDefinition
+                              )
+                          )
+                            (view _unContractSignatures x)
                         )
                   )
                   contractSignatures
@@ -152,10 +142,10 @@ activeContractPane currentView contractSignatures contractStates =
       ]
 
 blockchainPane ::
-  forall p.
+  forall p a.
   View ->
   Chain.State ->
-  ChainReport -> HTML p HAction
+  ChainReport -> HTML p (HAction a)
 blockchainPane currentView chainState chainReport =
   viewContainer currentView Blockchain
     [ row_
@@ -164,11 +154,11 @@ blockchainPane currentView chainState chainReport =
     ]
 
 eventLogPane ::
-  forall p.
+  forall p a.
   View ->
   --Array (ChainEvent ContractExe) ->
   ChainReport ->
-  HTML p HAction
+  HTML p (HAction a)
 eventLogPane currentView {-events-} chainReport =
   viewContainer currentView EventLog
     [ row_

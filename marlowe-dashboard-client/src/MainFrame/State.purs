@@ -5,6 +5,7 @@ import Bridge (toFront)
 import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -13,27 +14,27 @@ import Dashboard.State (dummyState, handleAction, mkInitialState) as Dashboard
 import Dashboard.Types (Action(..), State) as Dashboard
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, use, view)
+import Data.Lens (assign, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Map (keys)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Set (toUnfoldable) as Set
+import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Now (getTimezoneOffset)
 import Env (DataProvider(..), Env)
 import Foreign.Generic (decodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, modify_, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.LocalStorage (localStorageEvents)
-import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _webSocketStatus, _welcomeState)
+import Humanize (getTimezoneOffset)
+import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _tzOffset, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
-import Template.Types (Action(..)) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast)
@@ -49,6 +50,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
@@ -70,6 +72,7 @@ initialState =
   , currentSlot: zero -- this will be updated as soon as the websocket connection is working
   , subState: Left Welcome.dummyState
   , toast: Toast.defaultState
+  , tzOffset: Minutes 0.0 -- This will be updated on MainFrame.Init
   }
 
 handleQuery ::
@@ -78,6 +81,7 @@ handleQuery ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
@@ -105,7 +109,6 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       SlotChange slot -> do
         assign _currentSlot $ toFront slot
         handleAction $ DashboardAction Dashboard.AdvanceTimedoutSteps
-        handleAction $ DashboardAction $ Dashboard.TemplateAction Template.UpdateSlotContentValidators
       -- update the wallet funds (if the change is to the current wallet)
       -- note: we should only ever be notified of changes to the current wallet, since we subscribe to
       -- this update when we pick it up, and unsubscribe when we put it down - but we check here
@@ -176,12 +179,16 @@ handleAction ::
   ManageMarlowe m =>
   ManageMarloweStorage m =>
   Toast m =>
+  MonadClipboard m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
 -- mainframe actions
 handleAction Init = do
+  tzOffset <- liftEffect getTimezoneOffset
   walletLibrary <- getWalletLibrary
-  assign (_welcomeState <<< _walletLibrary) walletLibrary
+  modify_
+    $ set (_welcomeState <<< _walletLibrary) walletLibrary
+    <<< set _tzOffset tzOffset
   { dataProvider } <- ask
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ DashboardAction $ Dashboard.UpdateFromStorage)
 
@@ -208,9 +215,8 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       subscribeToWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
       subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
       for_ followerAppIds $ subscribeToPlutusApp dataProvider
-      timezoneOffset <- liftEffect getTimezoneOffset
       contractNicknames <- getContractNicknames
-      assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot timezoneOffset
+      assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
       ajaxRoleContracts <- getRoleContracts walletDetails
@@ -224,9 +230,8 @@ handleAction (WelcomeAction welcomeAction) = toWelcome $ Welcome.handleAction we
 
 handleAction (DashboardAction dashboardAction) = do
   currentSlot <- use _currentSlot
-  let
-    inputs = { currentSlot }
-  toDashboard $ Dashboard.handleAction inputs dashboardAction
+  tzOffset <- use _tzOffset
+  toDashboard $ Dashboard.handleAction { currentSlot, tzOffset } dashboardAction
 
 handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastAction
 

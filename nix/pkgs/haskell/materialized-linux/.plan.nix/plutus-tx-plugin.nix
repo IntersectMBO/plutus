@@ -8,7 +8,7 @@
   , config
   , ... }:
   {
-    flags = {};
+    flags = { use-ghc-stub = false; };
     package = {
       specVersion = "2.2";
       identifier = { name = "plutus-tx-plugin"; version = "0.1.0.0"; };
@@ -38,7 +38,6 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
-          (hsPkgs."ghc" or (errorHandler.buildDepError "ghc"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -48,7 +47,11 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-          ];
+          ] ++ (if flags.use-ghc-stub
+          then [
+            (hsPkgs."plutus-ghc-stub" or (errorHandler.buildDepError "plutus-ghc-stub"))
+            ]
+          else [ (hsPkgs."ghc" or (errorHandler.buildDepError "ghc")) ]);
         buildable = true;
         modules = [
           "PlutusTx/Compiler/Binders"
@@ -57,7 +60,6 @@
           "PlutusTx/Compiler/Kind"
           "PlutusTx/Compiler/Laziness"
           "PlutusTx/Compiler/Names"
-          "PlutusTx/Compiler/Primitives"
           "PlutusTx/Compiler/Type"
           "PlutusTx/Compiler/Types"
           "PlutusTx/Compiler/Utils"
@@ -86,12 +88,14 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
             ];
-          buildable = true;
+          buildable = if flags.use-ghc-stub then false else true;
           modules = [
+            "IsData/Spec"
             "Lift/Spec"
             "Plugin/Spec"
             "Plugin/Basic/Spec"

@@ -1,31 +1,39 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
 
-import           Data.List                                              as L (filter, head, last)
+import           Data.List                                              as L (filter, head)
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
+import           Data.Time.Calendar                                     (Day)
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), Cycle (..), FEB (FEB_N),
-                                                                         IPCB (IPCB_NT),
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, ContractTerms (..), Cycle (..), DCC,
+                                                                         FEB (FEB_N), IPCB (IPCB_NT),
                                                                          SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM),
                                                                          ScheduleConfig (..), n)
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign  (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (applyEOMC,
                                                                          generateRecurrentScheduleWithCorrections,
-                                                                         minusCycle, moveToEndOfMonth, plusCycle)
+                                                                         minusCycle, plusCycle)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
 
-
+_S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 _S = generateRecurrentScheduleWithCorrections
+
+r :: CR -> Double
 r = contractRoleSign
+
+y :: DCC -> Day -> Day -> Maybe Day -> Double
 y = yearFraction
 
+scef_xNx :: SCEF -> Bool
 scef_xNx SE_0N0 = True
 scef_xNx SE_0NM = True
 scef_xNx SE_IN0 = True
 scef_xNx SE_INM = True
 scef_xNx _      = False
+
+scef_Ixx :: SCEF -> Bool
 scef_Ixx SE_IN0 = True
 scef_Ixx SE_INM = True
 scef_Ixx SE_I00 = True
@@ -34,192 +42,158 @@ scef_Ixx _      = False
 
 
 
+_INIT_PAM :: Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
 _INIT_PAM t0 tminus tfp_minus tfp_plus
-  ContractTerms{
-      ct_CNTRL  = _CNTRL
-    , ct_IED    = _IED
-    , ct_DCC    = _DCC
-    , ct_PRF    = _PRF
-    , ct_FEAC   = _FEAC
-    , ct_FEB    = _FEB
-    , ct_FER    = _FER
-    , ct_IPAC   = _IPAC
-    , ct_IPNR   = _IPNR
-    , ct_NT     = _NT
-    , ct_MD     = _MD
-    , ct_SCEF   = _SCEF
-    , ct_SCNT   = _SCNT
-    , ct_SCIP   = _SCIP
-  } =
+  ContractTerms{..} =
     let
-        _IED'   = fromJust _IED
-        _DCC'   = fromJust _DCC
-        _PRF'   = fromJust _PRF
-        _SCEF'  = fromJust _SCEF
-        _SCNT'  = fromJust _SCNT
-        _SCIP'  = fromJust _SCIP
+        _IED   = fromJust ct_IED
+        _DCC   = fromJust ct_DCC
+        _PRF   = fromJust ct_PRF
+        _SCEF  = fromJust ct_SCEF
+        _SCNT  = fromJust ct_SCNT
+        _SCIP  = fromJust ct_SCIP
 
-        tmd                                     = fromJust _MD
+        tmd                                     = fromJust ct_MD
         nt
-                | _IED' > t0                    = 0.0
-                | otherwise                     = r _CNTRL * fromJust _NT
+                | _IED > t0                     = 0.0
+                | otherwise                     = r ct_CNTRL * fromJust ct_NT
+
         ipnr
-                | _IED' > t0                    = 0.0
-                | otherwise                     = fromMaybe 0.0 _IPNR
+                | _IED > t0                     = 0.0
+                | otherwise                     = fromMaybe 0.0 ct_IPNR
         ipac
-                | isNothing _IPNR               = 0.0
-                | isJust _IPAC                  = r _CNTRL * fromJust _IPAC
-                | otherwise                     = (y _DCC' tminus t0 _MD) * nt * ipnr
+                | isNothing ct_IPNR             = 0.0
+                | isJust ct_IPAC                = r ct_CNTRL * fromJust ct_IPAC
+                | otherwise                     = (y _DCC tminus t0 ct_MD) * nt * ipnr
         feac
-                | isNothing _FER                = 0.0
-                | isJust _FEAC                  = fromJust _FEAC
-                | fromJust _FEB == FEB_N        = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
-                | otherwise                     = (y _DCC' tfp_minus t0 _MD / y _DCC' tfp_minus tfp_plus _MD) * fromJust _FER
+                | isNothing ct_FER              = 0.0
+                | isJust ct_FEAC                = fromJust ct_FEAC
+                | fromJust ct_FEB == FEB_N      = y _DCC tfp_minus t0 ct_MD * nt * fromJust ct_FER
+                | otherwise                     = y _DCC tfp_minus t0 ct_MD / y _DCC tfp_minus tfp_plus ct_MD * fromJust ct_FER
+
         nsc
-                | scef_xNx _SCEF'               = _SCNT'
+                | scef_xNx _SCEF                = _SCNT
                 | otherwise                     = 1.0
+
         isc
-                | scef_Ixx _SCEF'               = _SCIP'
+                | scef_Ixx _SCEF                = _SCIP
                 | otherwise                     = 1.0
-        prf                                     = _PRF'
+
+        prf                                     = _PRF
+
         sd                                      = t0
     in ContractStatePoly { prnxt = 0.0, ipcb = 0.0, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
 
-_INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus
-  terms@ContractTerms{
-      ct_CNTRL = _CNTRL
-    , ct_IED   = _IED
-    , ct_DCC   = _DCC
-    , ct_IPCL  = _IPCL
-    , ct_IPCB  = _IPCB
-    , ct_IPCBA = _IPCBA
-    , ct_NT    = _NT
-    , ct_MD    = _MD
-    , ct_PRANX = _PRANX
-    , ct_PRCL  = _PRCL
-    , ct_PRNXT = _PRNXT
-    , ct_SD    = _SD
-    , scfg     = scfg
-  } =
+_INIT_LAM :: Day -> Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
+_INIT_LAM t0 tminus _ tfp_minus tfp_plus
+  terms@ContractTerms{..} =
     let
-        _IED' = fromJust _IED
-        _DCC' = fromJust _DCC
+        _IED' = fromJust ct_IED
+        _DCC' = fromJust ct_DCC
 
         -- TMD
         -- maybeTMinus
         --             | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
-        --             | (_IED' `plusCycle` fromJust _PRCL) >= t0 = Just $ _IED' `plusCycle` fromJust _PRCL
+        --             | (_IED' `plusCycle` fromJust ct_PRCL) >= t0 = Just $ _IED' `plusCycle` fromJust ct_PRCL
         --             | otherwise                           = Just tpr_minus
         -- tmd
-        --         | isJust _MD = fromJust _MD
-        --         | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ((ceiling ((fromJust _NT) / (fromJust _PRNXT))) * (n (fromJust _PRCL))) }
+        --         | isJust ct_MD = fromJust ct_MD
+        --         | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ((ceiling ((fromJust ct_NT) / (fromJust ct_PRNXT))) * (n (fromJust ct_PRCL))) }
 
         -- TMD
         tmd
-          | isJust _MD = fromJust _MD
+          | isJust ct_MD = fromJust ct_MD
           | otherwise =
             let
               (lastEvent, remainingPeriods) =
-                if isJust _PRANX && fromJust _PRANX < _SD then
+                if isJust ct_PRANX && fromJust ct_PRANX < ct_SD then
                   let
-                    previousEvents   = (\s -> _S s (fromJust _PRCL) _SD scfg ) <$> _PRANX
-                    previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay > (minusCycle _SD (fromJust _IPCL))) (fromMaybe [] previousEvents)
-                    previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == _SD) previousEvents'
+                    previousEvents   = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
+                    previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay > (minusCycle ct_SD (fromJust ct_IPCL))) (fromMaybe [] previousEvents)
+                    previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
                     ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
                   in
-                    (lastEventCalcDay, (fromJust _NT) / (fromJust _PRNXT))
+                    (lastEventCalcDay, (fromJust ct_NT) / (fromJust ct_PRNXT))
                 else
                   -- TODO: check applicability for PRANX
-                  (fromJust _PRANX, (fromJust _NT) / (fromJust _PRNXT) - 1)
-              cycle@Cycle{ n = n } = fromJust _PRCL
-              maturity = plusCycle lastEvent cycle{ n = n * (round remainingPeriods) :: Integer}
+                  (fromJust ct_PRANX, (fromJust ct_NT) / (fromJust ct_PRNXT) - 1)
+              c@Cycle{ n = n } = fromJust ct_PRCL
+              maturity = plusCycle lastEvent c { n = n * (round remainingPeriods) :: Integer}
             in
-              applyEOMC lastEvent cycle (fromJust (eomc scfg)) maturity
+              applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
 
 
         pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
 
         -- PRNXT
         -- s
-        --         | isJust _PRANX && ((fromJust _PRANX) > t0) = fromJust _PRANX
-        --         | isNothing _PRANX && ((_IED' `plusCycle` fromJust _PRCL) > t0) = _IED' `plusCycle` fromJust _PRCL
+        --         | isJust ct_PRANX && ((fromJust ct_PRANX) > t0) = fromJust ct_PRANX
+        --         | isNothing ct_PRANX && ((_IED' `plusCycle` fromJust ct_PRCL) > t0) = _IED' `plusCycle` fromJust ct_PRCL
         --         | otherwise = tpr_minus
         prnxt
-                | isJust _PRNXT                 = fromJust _PRNXT
+                | isJust ct_PRNXT                 = fromJust ct_PRNXT
                 -- ACTUS implementation
-                -- | otherwise                     = (fromJust _NT) * (1.0 / (fromIntegral $ ((ceiling (y _DCC' s tmd (Just tmd) / y _DCC' s (s `plusCycle` fromJust _PRCL) (Just tmd))) :: Integer)))
+                -- | otherwise                     = (fromJust ct_NT) * (1.0 / (fromIntegral $ ((ceiling (y _DCC' s tmd (Just tmd) / y _DCC' s (s `plusCycle` fromJust ct_PRCL) (Just tmd))) :: Integer)))
 
                 -- Java implementation
-                | otherwise = (fromJust _NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust _PRCL){ includeEndDay = True } tmd scfg ) <$> _PRANX)))
+                | otherwise = (fromJust ct_NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust ct_PRCL){ includeEndDay = True } tmd scfg ) <$> ct_PRANX)))
         -- IPCB
         ipcb
                 | t0 < _IED'                    = 0.0
-                | fromJust _IPCB == IPCB_NT     = r _CNTRL * fromJust _NT
-                | otherwise                     = r _CNTRL * fromJust _IPCBA
+                | fromJust ct_IPCB == IPCB_NT     = r ct_CNTRL * fromJust ct_NT
+                | otherwise                     = r ct_CNTRL * fromJust ct_IPCBA
     -- All is same as PAM except PRNXT, IPCB, and TMD
     in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
 
-_INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus
-  terms@ContractTerms{
-      ct_CNTRL = _CNTRL
-    , ct_IED   = _IED
-    , ct_DCC   = _DCC
-    , ct_IPCB  = _IPCB
-    , ct_IPCBA = _IPCBA
-    , ct_IPNR  = _IPNR
-    , ct_NT    = _NT
-    , ct_MD    = _MD
-    , ct_PRANX = _PRANX
-    , ct_PRCL  = _PRCL
-    , ct_PRNXT = _PRNXT
-    , ct_SD    = _SD
-    , scfg     = scfg
-  } =
+_INIT_NAM :: Day -> Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
+_INIT_NAM t0 tminus _ tfp_minus tfp_plus
+  terms@ContractTerms{..} =
     let
-        _IED'   = fromJust _IED
-        _DCC'   = fromJust _DCC
-        _PRNXT' = fromJust _PRNXT
+        _IED   = fromJust ct_IED
+        _DCC   = fromJust ct_DCC
+        _PRNXT = fromJust ct_PRNXT
 
         -- TMD
-        maybeTMinus
-                    | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
-                    | (_IED' `plusCycle` fromJust _PRCL) >= t0 = Just $ _IED' `plusCycle` fromJust _PRCL
-                    | otherwise                           = Just tpr_minus
+        -- maybeTMinus
+                    -- | isJust ct_PRANX && fromJust ct_PRANX >= t0 = ct_PRANX
+                    -- | (_IED `plusCycle` fromJust ct_PRCL) >= t0  = Just $ _IED `plusCycle` fromJust ct_PRCL
+                    -- | otherwise                                  = Just tpr_minus
         tmd
-                | isJust _MD = fromJust _MD
+                | isJust ct_MD = fromJust ct_MD
                 | otherwise =
                   let
                     lastEvent =
-                      if isJust _PRANX && (fromJust _PRANX) >= _SD then
-                        fromJust _PRANX
+                      if isJust ct_PRANX && (fromJust ct_PRANX) >= ct_SD then
+                        fromJust ct_PRANX
                       else
-                        if _IED' `plusCycle` (fromJust _PRCL) >= _SD then
-                          _IED' `plusCycle` (fromJust _PRCL)
+                        if _IED `plusCycle` (fromJust ct_PRCL) >= ct_SD then
+                          _IED `plusCycle` (fromJust ct_PRCL)
                         else
-                          let previousEvents  = (\s -> _S s (fromJust _PRCL) _SD scfg ) <$> _PRANX
-                              previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= _SD ) (fromMaybe [] previousEvents)
-                              previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == _SD) previousEvents'
+                          let previousEvents  = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
+                              previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= ct_SD ) (fromMaybe [] previousEvents)
+                              previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
                               ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
                           in
                               lastEventCalcDay
-                    yLastEventPlusPRCL = (y _DCC' lastEvent (lastEvent `plusCycle` (fromJust _PRCL)) _MD)
-                    redemptionPerCycle = _PRNXT' - (yLastEventPlusPRCL * (fromJust _IPNR) * (fromJust _NT))
-                    remainingPeriods = (ceiling ((fromJust _NT) / redemptionPerCycle)) - 1
-                    cycle@Cycle{ n = n } = fromJust _PRCL
-                    maturity = plusCycle lastEvent cycle{ n = n * remainingPeriods}
+                    yLastEventPlusPRCL = (y _DCC lastEvent (lastEvent `plusCycle` (fromJust ct_PRCL)) ct_MD)
+                    redemptionPerCycle = _PRNXT - (yLastEventPlusPRCL * (fromJust ct_IPNR) * (fromJust ct_NT))
+                    remainingPeriods = (ceiling ((fromJust ct_NT) / redemptionPerCycle)) - 1
+                    c@Cycle{ n = n } = fromJust ct_PRCL
+                    maturity = plusCycle lastEvent c { n = n * remainingPeriods}
                   in
-                    applyEOMC lastEvent cycle (fromJust (eomc scfg)) maturity
-                -- | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ceiling((fromJust _NT) / (_PRNXT' - (fromJust _NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust _PRCL) _MD) * fromJust _IPNR))}
-
-        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
+                    applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
+                -- | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ceiling((fromJust ct_NT) / (_PRNXT' - (fromJust ct_NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust ct_PRCL) ct_MD) * fromJust ct_IPNR))}
 
         -- PRNXT
-        prnxt = _PRNXT'
+        prnxt = _PRNXT
 
         -- IPCB
         ipcb
-                | t0 < _IED'                    = 0.0
-                | fromJust _IPCB == IPCB_NT     = r _CNTRL * fromJust _NT
-                | otherwise                     = r _CNTRL * fromJust _IPCBA
+                | t0 < _IED                     = 0.0
+                | fromJust ct_IPCB == IPCB_NT     = r ct_CNTRL * fromJust ct_NT
+                | otherwise                     = r ct_CNTRL * fromJust ct_IPCBA
+
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
+
     -- All is same as PAM except PRNXT and TMD, IPCB same as LAM
     in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }

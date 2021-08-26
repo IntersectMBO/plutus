@@ -9,6 +9,8 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStorage, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
+import Clipboard (handleAction) as Clipboard
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -21,20 +23,22 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapSubmodule)
-import InputField.State (handleAction, initialState) as InputField
+import Halogen.Query.HalogenM (mapAction)
+import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Toast.Types (ajaxErrorToast, errorToast)
+import Toast.Types (ajaxErrorToast, errorToast, successToast)
+import Types (WebData)
 import WalletData.Lenses (_companionAppId, _walletNickname)
-import WalletData.Types (WalletLibrary)
-import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError, parsePlutusAppId, walletNicknameError, walletNicknameOrIdError)
+import WalletData.State (parsePlutusAppId, walletNicknameError)
+import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
-import Welcome.Types (Action(..), Card(..), State)
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Types (Action(..), Card(..), State, WalletNicknameOrIdError(..))
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -45,9 +49,9 @@ mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
   , cardOpen: false
-  , walletNicknameOrIdInput: InputField.initialState Nothing
-  , walletNicknameInput: InputField.initialState Nothing
-  , walletIdInput: InputField.initialState Nothing
+  , walletNicknameOrIdInput: InputField.mkInitialState Nothing
+  , walletNicknameInput: InputField.mkInitialState Nothing
+  , walletIdInput: InputField.mkInitialState Nothing
   , remoteWalletDetails: NotAsked
   , enteringDashboardState: false
   }
@@ -62,6 +66,7 @@ handleAction ::
   ManageMarlowe m =>
   ManageMarloweStorage m =>
   Toast m =>
+  MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) =
   modify_
@@ -165,6 +170,10 @@ handleAction ClearLocalStorage = do
     location_ <- location =<< window
     reload location_
 
+handleAction (ClipboardAction clipboardAction) = do
+  mapAction ClipboardAction $ Clipboard.handleAction clipboardAction
+  addToast $ successToast "Copied to clipboard"
+
 ------------------------------------------------------------
 toWalletNicknameOrIdInput ::
   forall m msg slots.
@@ -186,3 +195,10 @@ toWalletIdInput ::
   HalogenM (InputField.State WalletIdError) (InputField.Action WalletIdError) slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toWalletIdInput = mapSubmodule _walletIdInput WalletIdInputAction
+
+------------------------------------------------------------
+walletNicknameOrIdError :: WebData WalletDetails -> String -> Maybe WalletNicknameOrIdError
+walletNicknameOrIdError remoteWalletDetails _ = case remoteWalletDetails of
+  Loading -> Just UnconfirmedWalletNicknameOrId
+  Failure _ -> Just NonexistentWalletNicknameOrId
+  _ -> Nothing

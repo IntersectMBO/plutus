@@ -14,8 +14,8 @@
       identifier = { name = "plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "vanessa.mchale@iohk.io";
-      author = "Vanessa McHale";
+      maintainer = "michael.peyton-jones@iohk.io";
+      author = "Plutus Core Team";
       homepage = "";
       url = "";
       synopsis = "Language library for Plutus Core";
@@ -60,7 +60,9 @@
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."dlist" or (errorHandler.buildDepError "dlist"))
+          (hsPkgs."dom-lt" or (errorHandler.buildDepError "dom-lt"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+          (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
@@ -70,7 +72,6 @@
           (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
-          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
           (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -88,16 +89,19 @@
           (hsPkgs."sop-core" or (errorHandler.buildDepError "sop-core"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+          (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
+          (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
@@ -118,6 +122,7 @@
           "PlutusCore/Core/Instance/Pretty/Plc"
           "PlutusCore/Core/Instance/Pretty/Readable"
           "PlutusCore/Core/Instance/Recursive"
+          "PlutusCore/Core/Instance/Scoping"
           "PlutusCore/Core/Plated"
           "PlutusCore/Core/Type"
           "PlutusCore/DeBruijn/Internal"
@@ -132,7 +137,6 @@
           "PlutusCore/Generators/Internal/TypedBuiltinGen"
           "PlutusCore/Generators/Internal/Utils"
           "PlutusCore/Lexer/Type"
-          "PlutusCore/Mark"
           "PlutusCore/Parsable"
           "PlutusCore/Parser/Internal"
           "PlutusCore/ParserCommon"
@@ -147,6 +151,7 @@
           "PlutusCore/TypeCheck"
           "PlutusCore/TypeCheck/Internal"
           "PlutusIR/Analysis/Dependencies"
+          "PlutusIR/Analysis/Size"
           "PlutusIR/Analysis/Usages"
           "PlutusIR/Compiler/Datatype"
           "PlutusIR/Compiler/Error"
@@ -171,7 +176,7 @@
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
-          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
@@ -183,6 +188,7 @@
           "Universe/Core"
           "PlutusCore"
           "PlutusCore/Check/Normal"
+          "PlutusCore/Check/Scoping"
           "PlutusCore/Check/Uniques"
           "PlutusCore/Check/Value"
           "PlutusCore/Constant"
@@ -221,6 +227,7 @@
           "PlutusCore/Generators/NEAT/Type"
           "PlutusCore/Generators/Test"
           "PlutusCore/Lexer"
+          "PlutusCore/Mark"
           "PlutusCore/MkPlc"
           "PlutusCore/Name"
           "PlutusCore/Normalize"
@@ -250,35 +257,40 @@
           "PlutusCore/StdLib/Type"
           "PlutusCore/Subst"
           "PlutusIR"
+          "PlutusIR/Analysis/RetainedSize"
+          "PlutusIR/Compiler"
+          "PlutusIR/Compiler/Definitions"
+          "PlutusIR/Compiler/Names"
           "PlutusIR/Core"
           "PlutusIR/Core/Instance"
+          "PlutusIR/Core/Instance/Flat"
           "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Instance/Scoping"
           "PlutusIR/Core/Plated"
           "PlutusIR/Core/Type"
-          "PlutusIR/Compiler"
-          "PlutusIR/Compiler/Names"
-          "PlutusIR/Compiler/Definitions"
           "PlutusIR/Error"
           "PlutusIR/Generators/AST"
-          "PlutusIR/Parser"
           "PlutusIR/Mark"
           "PlutusIR/MkPir"
+          "PlutusIR/Parser"
           "PlutusIR/Purity"
           "PlutusIR/Subst"
+          "PlutusIR/Transform/Beta"
           "PlutusIR/Transform/DeadCode"
+          "PlutusIR/Transform/Inline"
+          "PlutusIR/Transform/LetFloat"
+          "PlutusIR/Transform/LetMerge"
+          "PlutusIR/Transform/NonStrict"
+          "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
-          "PlutusIR/Transform/Rename"
-          "PlutusIR/Transform/NonStrict"
-          "PlutusIR/Transform/LetFloat"
-          "PlutusIR/Transform/Inline"
-          "PlutusIR/Transform/Beta"
           "PlutusIR/Transform/Unwrap"
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"
           "UntypedPlutusCore/Evaluation/HOAS"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/Check/Uniques"
@@ -339,6 +351,7 @@
         "uplc" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
@@ -355,6 +368,20 @@
           modules = [ "Common" "Parsers" ];
           hsSourceDirs = [ "executables" ];
           mainPath = [ "uplc/Main.hs" ];
+          };
+        "pir" = {
+          depends = [
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "executables" ];
+          mainPath = [ "pir/Main.hs" ];
           };
         };
       tests = {
@@ -393,14 +420,15 @@
             ];
           buildable = true;
           modules = [
+            "Check/Spec"
+            "CostModelInterface/Spec"
             "Evaluation/Machines"
             "Evaluation/Spec"
+            "Names/Spec"
             "Normalization/Check"
             "Normalization/Type"
             "Pretty/Readable"
-            "Check/Spec"
             "TypeSynthesis/Spec"
-            "CostModelInterface/Spec"
             ];
           hsSourceDirs = [ "plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
@@ -422,7 +450,13 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
+          modules = [
+            "NamesSpec"
+            "ParserSpec"
+            "TestLib"
+            "TransformSpec"
+            "TypeSpec"
+            ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };
@@ -431,6 +465,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -473,11 +508,16 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."criterion-measurement" or (errorHandler.buildDepError "criterion-measurement"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             ];
           buildable = true;
+          modules = [ "CriterionExtensions" "Nops" ];
           hsSourceDirs = [ "cost-model/budgeting-bench" ];
           };
         "update-cost-model" = {
@@ -488,7 +528,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
             (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
@@ -506,7 +545,6 @@
             (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
             (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))

@@ -39,7 +39,9 @@ import           Data.Coolean                      (Cool, false, toCool, true, (
 import qualified Data.Map                          as Map
 import qualified Data.Stream                       as Stream
 import qualified Data.Text                         as Text
+import           Data.Text.Encoding                (decodeUtf8)
 import           PlutusCore
+import           PlutusCore.Data
 import           PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
@@ -96,17 +98,22 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 instance Enumerable ByteString where
   enumerate = share $ fmap pack access
 
+instance (Enumerable Text.Text) where
+  enumerate = share $ fmap (decodeUtf8 . pack) access
+
 data TermConstantG = TmIntegerG Integer
                    | TmByteStringG ByteString
-                   | TmStringG String
+                   | TmStringG Text.Text
                    | TmBoolG Bool
                    | TmUnitG ()
-                   | TmCharG Char
+                   | TmDataG Data
                    deriving (Show, Eq)
 
 deriveEnumerable ''TermConstantG
 
 deriveEnumerable ''DefaultFun
+
+deriveEnumerable ''Data
 
 data TermG tyname name
     = VarG
@@ -144,13 +151,9 @@ convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
 convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
 convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
 convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
-convertTypeBuiltin TyCharG       = SomeTypeIn DefaultUniChar
 convertTypeBuiltin TyListG       = SomeTypeIn DefaultUniProtoList
-
--- Calling it 'TypeStringG' rather than @TyStringG@ to emphasize that it creates a 'TypeG' rather
--- than a 'TyBuiltinG'.
-pattern TypeStringG :: TypeG n
-pattern TypeStringG = TyAppG (TyBuiltinG TyListG) (TyBuiltinG TyCharG) (Type ())
+convertTypeBuiltin TyStringG     = SomeTypeIn DefaultUniString
+convertTypeBuiltin TyDataG       = SomeTypeIn DefaultUniData
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -218,7 +221,7 @@ convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
 convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
 convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
-convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniChar c
+convertTermConstant (TmDataG d)       = Some $ ValueOf DefaultUniData d
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
@@ -281,9 +284,10 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _)                        TyByteStringG = true
   check (Type _)                        TyIntegerG    = true
   check (Type _)                        TyBoolG       = true
-  check (Type _)                        TyCharG       = true
   check (Type _)                        TyUnitG       = true
   check (KindArrow _ (Type _) (Type _)) TyListG       = true
+  check (Type _)                        TyStringG     = true
+  check (Type _)                        TyDataG       = true
   check _                               _             = false
 
 -- |Kind check types.
@@ -361,9 +365,9 @@ instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyByteStringG) (TmByteStringG _) = true
   check (TyBuiltinG TyIntegerG   ) (TmIntegerG    _) = true
   check (TyBuiltinG TyBoolG      ) (TmBoolG       _) = true
-  check (TyBuiltinG TyCharG      ) (TmCharG       _) = true
   check (TyBuiltinG TyUnitG      ) (TmUnitG       _) = true
-  check TypeStringG                (TmStringG     _) = true
+  check (TyBuiltinG TyStringG    ) (TmStringG     _) = true
+  check (TyBuiltinG TyDataG      ) (TmDataG     _)   = true
   check _                          _                 = false
 
 
@@ -371,25 +375,27 @@ defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
 defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
                    ,[AddInteger,SubtractInteger,MultiplyInteger,DivideInteger,QuotientInteger,RemainderInteger,ModInteger])
                   ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
-                   ,[LessThanInteger,LessThanEqualsInteger,GreaterThanInteger,GreaterThanEqualsInteger,EqualsInteger])
+                   ,[LessThanInteger,LessThanEqualsInteger,EqualsInteger])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-                   ,[Concatenate])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-                   ,[TakeByteString,DropByteString])
+                   ,[AppendByteString])
+--                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
+--                   ,[SliceByteString])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
                    ,[Sha2_256,Sha3_256])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
                    ,[VerifySignature])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
-                   ,[EqualsByteString,LessThanByteString,GreaterThanByteString])
+                   ,[EqualsByteString,LessThanByteString,LessThanEqualsByteString])
                   ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
                    ,[IfThenElse])
-                  ,(TyFunG (TyBuiltinG TyCharG) TypeStringG
-                   ,[CharToString])
-                  ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
-                   ,[Append])
-                  ,(TyFunG TypeStringG (TyBuiltinG TyUnitG)
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
+                   ,[AppendString])
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyBoolG))
+                   ,[EqualsString])
+                  ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyVarG FZ) (TyVarG FZ)))
                    ,[Trace])
+                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyDataG)
+                  ,[IData])
                   ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where

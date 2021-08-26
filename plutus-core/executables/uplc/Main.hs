@@ -10,11 +10,14 @@ import qualified PlutusCore                               as PLC
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
 import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
 
+import qualified Data.Aeson                               as Aeson
+import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (asum)
 import           Data.Function                            ((&))
 import           Data.Functor                             (void)
 import           Data.List                                (nub)
 import           Data.List.Split                          (splitOn)
+import           Data.Maybe                               (fromJust)
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
@@ -43,6 +46,7 @@ data Command = Apply     ApplyOptions
              | Print     PrintOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
+             | DumpModel
 
 ---------------- Option parsers ----------------
 
@@ -119,7 +123,7 @@ plutusOpts = hsubparser (
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            ++ "for example, 'uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -135,6 +139,9 @@ plutusOpts = hsubparser (
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate an untyped Plutus Core program using the CEK machine."))
+    <> command "dump-model"
+           (info (pure DumpModel)
+            (progDesc "Dump the cost model parameters"))
   )
 
 
@@ -206,14 +213,16 @@ runPrint (PrintOptions inp mode) =
 
 ---------------- Conversions ----------------
 
--- | Convert between textual and FLAT representations.  This subsumes the
--- `print` command: for example, `plc convert -i prog.plc --typed --fmt Readable`
--- will read a typed plc file and print it in the Readable format.  Having
--- the separate `print` option may be more user-friendly though.
+-- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
     writeProgram outp ofmt mode program
+
+runDumpModel :: IO ()
+runDumpModel = do
+    let params = fromJust PLC.defaultCostModelParams
+    BSL.putStr $ Aeson.encode params
 
 main :: IO ()
 main = do
@@ -224,3 +233,4 @@ main = do
         Example   opts -> runUplcPrintExample opts
         Print     opts -> runPrint        opts
         Convert   opts -> runConvert      opts
+        DumpModel      -> runDumpModel

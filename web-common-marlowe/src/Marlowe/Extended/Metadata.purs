@@ -5,7 +5,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Data.Map (Map, keys)
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set (Set)
@@ -13,6 +13,10 @@ import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 import Marlowe.Extended (Contract, ContractType(..), getChoiceNames)
+import Data.Map.Ordered.OMap (OMap)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
+import Data.Set.Ordered.OSet as OSet
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics as S
 import Marlowe.Template (Placeholders(..), getPlaceholderIds)
@@ -20,6 +24,7 @@ import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 data NumberFormat
   = DefaultFormat
   | DecimalFormat Int String
+  | TimeFormat
 
 derive instance eqNumberFormat :: Eq NumberFormat
 
@@ -56,6 +61,7 @@ isDecimalFormat _ = false
 data NumberFormatType
   = DefaultFormatType
   | DecimalFormatType
+  | TimeFormatType
 
 derive instance eqNumberFormatType :: Eq NumberFormatType
 
@@ -63,6 +69,8 @@ toString :: NumberFormatType -> String
 toString DefaultFormatType = "DefaultFormatType"
 
 toString DecimalFormatType = "DecimalFormatType"
+
+toString TimeFormatType = "TimeFormatType"
 
 fromString :: String -> Maybe NumberFormatType
 fromString "DefaultFormatType" = Just DefaultFormatType
@@ -76,10 +84,14 @@ getFormatType DefaultFormat = DefaultFormatType
 
 getFormatType (DecimalFormat _ _) = DecimalFormatType
 
+getFormatType TimeFormat = TimeFormatType
+
 defaultForFormatType :: NumberFormatType -> NumberFormat
 defaultForFormatType DefaultFormatType = DefaultFormat
 
 defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
+
+defaultForFormatType TimeFormatType = TimeFormat
 
 type ValueParameterInfo
   = { valueParameterFormat :: NumberFormat
@@ -98,11 +110,11 @@ emptyValueParameterInfo =
   , valueParameterDescription: mempty
   }
 
-getValueParameterInfo :: String -> Map String ValueParameterInfo -> ValueParameterInfo
-getValueParameterInfo str = fromMaybe emptyValueParameterInfo <<< Map.lookup str
+getValueParameterInfo :: String -> OMap String ValueParameterInfo -> ValueParameterInfo
+getValueParameterInfo str = fromMaybe emptyValueParameterInfo <<< OMap.lookup str
 
-updateValueParameterInfo :: (ValueParameterInfo -> ValueParameterInfo) -> String -> Map String ValueParameterInfo -> Map String ValueParameterInfo
-updateValueParameterInfo f = Map.alter updateValueParameterInfoEntry
+updateValueParameterInfo :: (ValueParameterInfo -> ValueParameterInfo) -> String -> OMap String ValueParameterInfo -> OMap String ValueParameterInfo
+updateValueParameterInfo f = OMap.alter updateValueParameterInfoEntry
   where
   updateValueParameterInfoEntry :: Maybe ValueParameterInfo -> Maybe ValueParameterInfo
   updateValueParameterInfoEntry mValueParameterInfo = Just $ f $ fromMaybe emptyValueParameterInfo mValueParameterInfo
@@ -136,10 +148,11 @@ updateChoiceInfo f = Map.alter updateChoiceInfoEntry
 type MetaData
   = { contractType :: ContractType
     , contractName :: String
-    , contractDescription :: String
+    , contractShortDescription :: String
+    , contractLongDescription :: String
     , roleDescriptions :: Map S.TokenName String
-    , slotParameterDescriptions :: Map String String
-    , valueParameterInfo :: Map String ValueParameterInfo
+    , slotParameterDescriptions :: OMap String String
+    , valueParameterInfo :: OMap String ValueParameterInfo
     , choiceInfo :: Map String ChoiceInfo
     }
 
@@ -149,16 +162,19 @@ _contractName = prop (SProxy :: SProxy "contractName")
 _contractType :: Lens' MetaData ContractType
 _contractType = prop (SProxy :: SProxy "contractType")
 
-_contractDescription :: Lens' MetaData String
-_contractDescription = prop (SProxy :: SProxy "contractDescription")
+_contractShortDescription :: Lens' MetaData String
+_contractShortDescription = prop (SProxy :: SProxy "contractShortDescription")
+
+_contractLongDescription :: Lens' MetaData String
+_contractLongDescription = prop (SProxy :: SProxy "contractLongDescription")
 
 _roleDescriptions :: Lens' MetaData (Map S.TokenName String)
 _roleDescriptions = prop (SProxy :: SProxy "roleDescriptions")
 
-_slotParameterDescriptions :: Lens' MetaData (Map String String)
+_slotParameterDescriptions :: Lens' MetaData (OMap String String)
 _slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
 
-_valueParameterInfo :: Lens' MetaData (Map String ValueParameterInfo)
+_valueParameterInfo :: Lens' MetaData (OMap String ValueParameterInfo)
 _valueParameterInfo = prop (SProxy :: SProxy "valueParameterInfo")
 
 _choiceInfo :: Lens' MetaData (Map String ChoiceInfo)
@@ -168,7 +184,8 @@ emptyContractMetadata :: MetaData
 emptyContractMetadata =
   { contractType: Other
   , contractName: ""
-  , contractDescription: ""
+  , contractShortDescription: ""
+  , contractLongDescription: ""
   , roleDescriptions: mempty
   , slotParameterDescriptions: mempty
   , valueParameterInfo: mempty
@@ -180,18 +197,18 @@ getChoiceFormat { choiceInfo } choiceName = maybe DefaultFormat (\choiceInfoVal 
 
 type MetadataHintInfo
   = { roles :: Set S.TokenName
-    , slotParameters :: Set String
-    , valueParameters :: Set String
+    , slotParameters :: OSet String
+    , valueParameters :: OSet String
     , choiceNames :: Set String
     }
 
 _roles :: Lens' MetadataHintInfo (Set S.TokenName)
 _roles = prop (SProxy :: SProxy "roles")
 
-_slotParameters :: Lens' MetadataHintInfo (Set String)
+_slotParameters :: Lens' MetadataHintInfo (OSet String)
 _slotParameters = prop (SProxy :: SProxy "slotParameters")
 
-_valueParameters :: Lens' MetadataHintInfo (Set String)
+_valueParameters :: Lens' MetadataHintInfo (OSet String)
 _valueParameters = prop (SProxy :: SProxy "valueParameters")
 
 _choiceNames :: Lens' MetadataHintInfo (Set String)
@@ -209,8 +226,8 @@ getMetadataHintInfo contract =
               _ -> Nothing
           )
           $ getParties contract
-    , slotParameters: placeholders.slotPlaceholderIds
-    , valueParameters: placeholders.valuePlaceholderIds
+    , slotParameters: OSet.fromFoldable (placeholders.slotPlaceholderIds)
+    , valueParameters: OSet.fromFoldable (placeholders.valuePlaceholderIds)
     , choiceNames: getChoiceNames contract
     }
 
@@ -220,10 +237,10 @@ getHintsFromMetadata { roleDescriptions
 , valueParameterInfo
 , choiceInfo
 } =
-  { roles: keys roleDescriptions
-  , slotParameters: keys slotParameterDescriptions
-  , valueParameters: keys valueParameterInfo
-  , choiceNames: keys choiceInfo
+  { roles: Map.keys roleDescriptions
+  , slotParameters: OMap.keys slotParameterDescriptions
+  , valueParameters: OMap.keys valueParameterInfo
+  , choiceNames: Map.keys choiceInfo
   }
 
 type ContractTemplate

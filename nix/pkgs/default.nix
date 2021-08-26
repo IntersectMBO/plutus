@@ -8,14 +8,13 @@
 let
   inherit (pkgs) stdenv;
 
-  gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
+  gitignore-nix = pkgs.callPackage sources.gitignore-nix { };
 
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
-
-    actus-tests = "${sources.actus-tests.outPath}";
+    inherit (sources) actus-tests;
 
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
@@ -76,6 +75,16 @@ let
         rev = "v${version}";
         sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
       };
+      # This is preConfigure is copied from more recent nixpkgs that also uses version 1.7 of standard-library
+      # Old nixpkgs (that used 1.4) had a preConfigure step that worked with 1.7
+      # Less old nixpkgs (that used 1.6) had a preConfigure step that attempts to `rm` files that are now in the
+      # .gitignore list for 1.7
+      preConfigure = ''
+        runhaskell GenerateEverything.hs
+        # We will only build/consider Everything.agda, in particular we don't want Everything*.agda
+        # do be copied to the store.
+        rm EverythingSafe.agda
+      '';
     });
 
     in agdaPackages.agda.withPackages [ stdlib ];
@@ -93,12 +102,12 @@ let
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
+    $(nix-build default.nix -A plutus.haskell.project.projectCross.mingwW64.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
 
     # This updates the sha files for the extra packages
     $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
     $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-darwin)
   '';
-  updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
     inherit purs psc-package spago spago2nix;
   };
@@ -113,7 +122,7 @@ let
   # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
   # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
   # to which both `nixpkgs` and `system` can be passed.
-  nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
+  nix-pre-commit-hooks = (pkgs.callPackage (sources.pre-commit-hooks-nix + "/nix/default.nix") {
     inherit system;
     inherit (sources) nixpkgs;
   });
@@ -155,7 +164,8 @@ let
   # If it succeeds:
   #
   # * Merge your new `inherit (easyPS) spago2nix` with the one above.
-  # * Run `niv delete spago2nix`.
+  # * Remove spago2nix from flake.nix
+  # * Run `nix --experimental-features 'nix-command flakes' flake lock`
   #
   spago2nix = pkgs.callPackage (sources.spago2nix) { };
 
@@ -185,7 +195,7 @@ let
     latex = pkgs.callPackage ../lib/latex.nix { };
     filterNpm = pkgs.callPackage ../lib/filter-npm.nix { };
     npmlock2nix = pkgs.callPackage sources.npmlock2nix { };
-    buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
+    buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS; inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
       inherit npmlock2nix;
     } // pkgs.lib.optionalAttrs (stdenv.isDarwin) {
@@ -201,7 +211,7 @@ in
   inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios cardano-cli cardano-node;
   inherit purty purty-pre-commit purs spago spago2nix;
-  inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
+  inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateClientDeps;
   inherit web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;

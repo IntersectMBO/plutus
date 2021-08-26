@@ -172,8 +172,9 @@ data Assertion = NpvAssertionAgainstZeroRiskBond
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-
-
+{-| ACTUS contract terms and attributes are defined in
+    https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-terms.json
+-}
 data ContractTerms = ContractTerms
   { -- General
     contractId       :: String
@@ -373,8 +374,6 @@ setDefaultContractTermValues ct@ContractTerms{..} =
 
             , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
             }
-          _ ->
-            ct
   in
     ct' {
       scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' }

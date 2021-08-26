@@ -1,6 +1,6 @@
 let
   # Generic nixpkgs, use *only* for lib functions that are stable across versions
-  pkgs = import (import ../sources.nix).nixpkgs { };
+  pkgs = import (import ../sources.nix { system = builtins.currentSystem; }).nixpkgs { };
   lib = pkgs.lib;
 in
 rec {
@@ -160,7 +160,7 @@ rec {
     in
     drv:
     if drv ? meta && drv.meta ? platforms then
-      lib.any (lib.meta.platformMatch platform) drv.meta.platforms
+      lib.any (lib.meta.platformMatch platform) (lib.flatten drv.meta.platforms)
     else true;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!

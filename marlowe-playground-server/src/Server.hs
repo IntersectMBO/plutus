@@ -15,28 +15,41 @@ import           API
 import qualified Auth
 import           Auth.Types                                       (OAuthClientId (OAuthClientId),
                                                                    OAuthClientSecret (OAuthClientSecret))
-import           Control.Monad.Except                             (ExceptT)
+import           Control.Monad.Except                             (ExceptT, runExceptT, throwError)
 import           Control.Monad.IO.Class                           (MonadIO, liftIO)
 import           Control.Monad.Logger                             (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader                             (ReaderT, runReaderT)
 import           Data.Aeson                                       (FromJSON, ToJSON, eitherDecode, encode)
 import           Data.Aeson                                       as Aeson
+import           Data.Bits                                        (toIntegralSized)
+import qualified Data.ByteString.Lazy.Char8                       as BSL
 import qualified Data.HashMap.Strict                              as HM
 import           Data.Proxy                                       (Proxy (Proxy))
 import           Data.String                                      as S
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
+import           Data.Time.Units                                  (Second, toMicroseconds)
 import qualified Data.Validation                                  as Validation
 import           GHC.Generics                                     (Generic)
+import           Language.Haskell.Interpreter                     (InterpreterError (CompilationErrors),
+                                                                   InterpreterResult)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
 import           Language.Marlowe.Pretty                          (pretty)
+import           Network.HTTP.Client.Conduit                      (defaultManagerSettings, managerResponseTimeout,
+                                                                   responseTimeoutMicro)
+import           Network.HTTP.Conduit                             (newManager)
 import           Network.HTTP.Simple                              (getResponseBody, httpJSON)
 import           Network.Wai.Middleware.Cors                      (cors, corsRequestHeaders, simpleCorsResourcePolicy)
 import           Servant                                          (Application, Handler (Handler), Server, ServerError,
-                                                                   hoistServer, serve, (:<|>) ((:<|>)), (:>))
+                                                                   err400, errBody, hoistServer, serve, (:<|>) ((:<|>)),
+                                                                   (:>))
+import           Servant.Client                                   (ClientEnv, mkClientEnv, parseBaseUrl)
 import           System.Environment                               (lookupEnv)
+import           System.IO                                        (hPutStrLn, stderr)
 import qualified Web.JWT                                          as JWT
+import           Webghc.Client                                    (runscript)
+import           Webghc.Server                                    (CompileRequest)
 
 genActusContract :: ContractTerms -> Handler String
 genActusContract terms =
@@ -57,6 +70,18 @@ oracle exchange pair = do
     let result = getResponseBody response :: Value
     pure result
 
+compile ::
+       ClientEnv
+    -> CompileRequest
+    -> Handler (Either InterpreterError (InterpreterResult String))
+compile clientEnv req = do
+    r <- liftIO . runExceptT $ runscript clientEnv req
+    case r of
+        Right vs -> pure . Right $ vs
+        Left (CompilationErrors errors) ->
+            pure . Left $ CompilationErrors errors
+        Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
+
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
 liftedAuthServer githubEndpoints config =
   hoistServer (Proxy @Auth.API) liftAuthToHandler Auth.server
@@ -72,10 +97,10 @@ type Web = "api" :> (API :<|> Auth.API)
 mkHandlers :: (MonadIO m) => AppConfig -> m (Server Web)
 mkHandlers AppConfig {..} = do
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
-  pure (mhandlers :<|> liftedAuthServer githubEndpoints authConfig)
+  pure (mhandlers webghcClientEnv :<|> liftedAuthServer githubEndpoints authConfig)
 
-mhandlers :: Server API
-mhandlers = oracle :<|> genActusContract :<|> genActusContractStatic
+mhandlers :: ClientEnv -> Server API
+mhandlers webghcClientEnv = oracle :<|> (genActusContract :<|> genActusContractStatic) :<|> compile webghcClientEnv
 
 app :: Server Web -> Application
 app handlers =
@@ -84,13 +109,26 @@ app handlers =
     policy =
       simpleCorsResourcePolicy
 
-newtype AppConfig = AppConfig {authConfig :: Auth.Config}
+data AppConfig = AppConfig { authConfig :: !Auth.Config, webghcClientEnv :: !ClientEnv }
 
-initializeServerContext :: Maybe FilePath -> IO AppConfig
-initializeServerContext secrets = do
+initializeServerContext :: Second -> Maybe FilePath -> IO AppConfig
+initializeServerContext maxInterpretationTime secrets = do
   putStrLn "Initializing Context"
   authConfig <- mkAuthConfig secrets
-  pure $ AppConfig authConfig
+  mWebghcURL <- lookupEnv "WEBGHC_URL"
+  webghcURL <- case mWebghcURL of
+    Just url -> parseBaseUrl url
+    Nothing -> do
+      let localhost = "http://localhost:8080"
+      hPutStrLn stderr $ "WEBGHC_URL not set, using " <> localhost
+      parseBaseUrl localhost
+  manager <- newManager $ defaultManagerSettings
+    { managerResponseTimeout = maybe
+      (managerResponseTimeout defaultManagerSettings)
+      responseTimeoutMicro . toIntegralSized
+      $ toMicroseconds maxInterpretationTime
+    }
+  pure . AppConfig authConfig $ mkClientEnv manager webghcURL
 
 mkAuthConfig :: MonadIO m => Maybe FilePath -> m Auth.Config
 mkAuthConfig (Just path) = do

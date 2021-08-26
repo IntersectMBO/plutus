@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE NamedFieldPuns  #-}
@@ -16,20 +17,22 @@ module Plutus.ChainIndex.Tx(
     , citxData
     , citxRedeemers
     , citxMintingPolicies
+    , citxStakeValidators
     , citxValidators
     , citxTxId
     ) where
 
 import           Control.Lens (makeLenses)
+import           Data.Aeson   (FromJSON, ToJSON)
 import           Data.Map     (Map)
 import qualified Data.Map     as Map
 import           Data.Set     (Set)
 import qualified Data.Set     as Set
 import           GHC.Generics (Generic)
 import           Ledger       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, OnChainTx (..), Redeemer (..),
-                               RedeemerHash, SlotRange, Tx (..), TxId, TxIn (txInType), TxInType (..), TxOut,
-                               TxOutRef (..), Validator, ValidatorHash, datumHash, mintingPolicyHash, redeemerHash,
-                               txId, validatorHash)
+                               RedeemerHash, SlotRange, StakeValidator, StakeValidatorHash, Tx (..), TxId,
+                               TxIn (txInType), TxInType (..), TxOut, TxOutRef (..), Validator, ValidatorHash,
+                               datumHash, mintingPolicyHash, redeemerHash, txId, validatorHash)
 
 data ChainIndexTx = ChainIndexTx {
     _citxTxId            :: TxId,
@@ -39,8 +42,9 @@ data ChainIndexTx = ChainIndexTx {
     _citxData            :: Map DatumHash Datum,
     _citxRedeemers       :: Map RedeemerHash Redeemer,
     _citxMintingPolicies :: Map MintingPolicyHash MintingPolicy,
+    _citxStakeValidators :: Map StakeValidatorHash StakeValidator,
     _citxValidators      :: Map ValidatorHash Validator
-    } deriving (Show, Eq, Generic)
+    } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 makeLenses ''ChainIndexTx
 
@@ -60,6 +64,7 @@ fromOnChainTx = \case
             , _citxData = txData <> otherDataHashes
             , _citxRedeemers = redeemers
             , _citxMintingPolicies = mintingPolicies txMintScripts
+            , _citxStakeValidators = mempty
             , _citxValidators = validatorHashes
             }
     Invalid tx@Tx{txCollateral, txValidRange, txData, txInputs, txMintScripts} ->
@@ -72,6 +77,7 @@ fromOnChainTx = \case
             , _citxData = txData <> otherDataHashes
             , _citxRedeemers = redeemers
             , _citxMintingPolicies = mintingPolicies txMintScripts
+            , _citxStakeValidators = mempty
             , _citxValidators = validatorHashes
             }
 

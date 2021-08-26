@@ -59,20 +59,20 @@ mirror ::
 mirror = do
     logInfo @String "mirror started"
     authority <- mapError SetupError $ CredentialAuthority . pubKeyHash <$> ownPubKey
-    forever (createTokens authority `select` revokeToken authority)
+    forever $ do
+        logInfo @String "waiting for 'issue' call"
+        selectList [createTokens authority, revokeToken authority]
 
 createTokens ::
     ( HasEndpoint "issue" CredentialOwnerReference s
     )
     => CredentialAuthority
-    -> Contract w s MirrorError ()
-createTokens authority = do
-    logInfo @String "waiting for 'issue' call"
-    CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
+    -> Promise w s MirrorError ()
+createTokens authority = endpoint @"issue" $ \CredentialOwnerReference{coTokenName, coOwner} -> do
     logInfo @String "Endpoint 'issue' called"
     let pk      = Credential.unCredentialAuthority authority
         lookups = Constraints.mintingPolicy (Credential.policy authority)
-                  <> Constraints.ownPubKeyHash pk
+                <> Constraints.ownPubKeyHash pk
         theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
             Constraints.mustMintValue theToken
@@ -88,9 +88,8 @@ revokeToken ::
     ( HasEndpoint "revoke" CredentialOwnerReference s
     )
     => CredentialAuthority
-    -> Contract w s MirrorError ()
-revokeToken authority = do
-    CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
+    -> Promise w s MirrorError ()
+revokeToken authority = endpoint @"revoke" $ \CredentialOwnerReference{coTokenName, coOwner} -> do
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
         lookups = Constraints.mintingPolicy (Credential.policy authority) <>
                   Constraints.ownPubKeyHash  (Credential.unCredentialAuthority authority)
@@ -108,8 +107,7 @@ revokeToken authority = do
 data MirrorError =
     StateNotFound TokenName PubKeyHash
     | SetupError ContractError
-    | IssueEndpointError ContractError
-    | RevokeEndpointError ContractError
+    | MirrorEndpointError ContractError
     | CreateTokenTxError ContractError
     | StateMachineError SMContractError
     deriving stock (Eq, Show, Generic)
@@ -121,5 +119,5 @@ instance AsSMContractError MirrorError where
     _SMContractError = _StateMachineError
 
 instance AsContractError MirrorError where
-    _ContractError =  _SMContractError . _ContractError
+    _ContractError = _MirrorEndpointError . _ContractError
 

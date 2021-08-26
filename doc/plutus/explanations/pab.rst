@@ -75,19 +75,13 @@ Hosted
 
 In the “Hosted PAB” scenario, the dApp provider / developer hosts an instance of the PAB alongside the :ref:`chain index<pab_chain_index>` and an Alonzo node.
 The off-chain code of the Plutus app is run on the dApp provider’s infrastructure.
-Coin selection and transaction signing (in short: anything that deals with the user’s money) happens on the user’s machine.
 
 .. figure:: ./hosted-pab.png
 
     The hosted deployment scenario for the PAB.
 
-In-browser
-~~~~~~~~~~
-
-In the “In-browser PAB” scenario, the PAB runs in the user’s browser, and therefore all of the off-chain code of the app is run on the client’s machine.
-A centrally hosted :ref:`chain index<pab_chain_index>` is still required. 
-This can be shared with other applications as the chain index is a read-only component.
-
-.. figure:: ./in-browser-pab.png
-
-    The in-browser deployment scenario for the PAB.
+Coin selection and transaction signing (in short: anything that deals with the user’s money) happens on the user’s machine.
+The PAB produces a link (URI) for each partial transaction that needs to be balanced and signed.
+When the user clicks the link, the user's operating system opens the wallet that is registered to handle the link schema.
+This scheme is not restricted to Daedalus, or even to full wallets.
+Any wallet that implements a handler for the link schema can be used to balance, sign and submit Plutus transactions.

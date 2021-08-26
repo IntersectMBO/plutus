@@ -3,6 +3,7 @@ module View.Pretty where
 import Prelude
 import Bootstrap (alertDanger_, nbsp)
 import Data.Array (length)
+import Data.Either (Either(..))
 import Data.Lens (view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
@@ -11,9 +12,11 @@ import Halogen.HTML (HTML, b_, div_, span_, text)
 import Plutus.Contract.Effects (ActiveEndpoint, BalanceTxResponse(..), WriteBalancedTxResponse(..), PABReq(..), PABResp(..))
 import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
+import Plutus.V1.Ledger.Interval (Interval(..), Extended(..), LowerBound(..), UpperBound(..))
+import Plutus.V1.Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
@@ -32,9 +35,6 @@ withHeading prefix content =
         ]
     , content
     ]
-
-instance prettyContractExe :: Pretty ContractExe where
-  pretty ((ContractExe { contractPath })) = text contractPath
 
 instance prettyResponse :: Pretty a => Pretty (Response a) where
   pretty (Response { rspRqID, rspItID, rspResponse }) =
@@ -74,11 +74,13 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show time
       ]
-  pretty (AwaitTxConfirmedResp txConfirmed) =
+  pretty (AwaitTxStatusChangeResp txConfirmed txStatus) =
     span_
-      [ text "AwaitTxConfirmedResponse:"
+      [ text "AwaitTxStatusChangeResponse:"
       , nbsp
       , text $ view _txId txConfirmed
+      , nbsp
+      , text $ show txStatus
       ]
   pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
@@ -99,6 +101,12 @@ instance prettyPABResp :: Pretty PABResp where
       [ text "UtxoAtResponse:"
       , nbsp
       , text $ show utxoAtAddress
+      ]
+  pretty (ChainIndexQueryResp chainIndexQueryResponse) =
+    span_
+      [ text "ChainIndexQueryResponse:"
+      , nbsp
+      , text $ show chainIndexQueryResponse
       ]
   pretty (AddressChangeResp addressChangeResponse) =
     span_
@@ -124,6 +132,26 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
       ]
+  pretty (PosixTimeRangeToContainedSlotRangeResp (Left slotConversionError)) =
+    span_
+      [ text "SlotConversionError:"
+      , nbsp
+      , text $ show slotConversionError
+      ]
+  pretty (PosixTimeRangeToContainedSlotRangeResp (Right slotRange)) =
+    span_
+      [ text "SlotRange:"
+      , nbsp
+      , pretty slotRange
+      ]
+  pretty (AwaitUtxoSpentResp _) =
+    span_
+      [ text "AwaitUtxoSpentResp"
+      ]
+  pretty (AwaitUtxoProducedResp _) =
+    span_
+      [ text "AwaitUtxoProducedResp"
+      ]
 
 instance prettyContractPABRequest :: Pretty PABReq where
   pretty (AwaitSlotReq slot) =
@@ -146,9 +174,9 @@ instance prettyContractPABRequest :: Pretty PABReq where
     span_
       [ text "CurrentTimeRequest"
       ]
-  pretty (AwaitTxConfirmedReq txId) =
+  pretty (AwaitTxStatusChangeReq txId) =
     span_
-      [ text "AwaitTxConfirmedRequest:"
+      [ text "AwaitTxStatusChangeReq:"
       , nbsp
       , text $ view _txId txId
       ]
@@ -167,6 +195,12 @@ instance prettyContractPABRequest :: Pretty PABReq where
       [ text "UtxoAtRequest:"
       , nbsp
       , text $ show utxoAtAddress
+      ]
+  pretty (ChainIndexQueryReq chainIndexQueryRequest) =
+    span_
+      [ text "ChainIndexQueryRequest:"
+      , nbsp
+      , text $ show chainIndexQueryRequest
       ]
   pretty (AddressChangeReq addressChangeRequest) =
     span_
@@ -188,7 +222,21 @@ instance prettyContractPABRequest :: Pretty PABReq where
       ]
   pretty OwnContractInstanceIdReq =
     span_
-      [ text "OwnInstanceIdRequest:"
+      [ text "OwnInstanceIdRequest"
+      ]
+  pretty (PosixTimeRangeToContainedSlotRangeReq timeRange) =
+    span_
+      [ text "PosixTimeRangeToContainedSlotRangeReq:"
+      , nbsp
+      , pretty timeRange
+      ]
+  pretty (AwaitUtxoSpentReq _) =
+    span_
+      [ text "AwaitUtxoSpentReq"
+      ]
+  pretty (AwaitUtxoProducedReq _) =
+    span_
+      [ text "AwaitUtxoProducedReq"
       ]
 
 instance prettyBalanceTxResponse :: Pretty BalanceTxResponse where
@@ -240,6 +288,27 @@ instance prettyActiveEndpoint :: Pretty ActiveEndpoint where
 
 instance prettyEndpointDescription :: Pretty EndpointDescription where
   pretty description = text $ show $ view _getEndpointDescription description
+
+instance prettyLowerBound :: Pretty a => Pretty (LowerBound a) where
+  pretty (LowerBound PosInf _) = text "(+∞"
+  pretty (LowerBound NegInf _) = text "(-∞"
+  pretty (LowerBound (Finite a) true) = span_ [ text "[", pretty a ]
+  pretty (LowerBound (Finite a) false) = span_ [ text "(", pretty a ]
+
+instance prettyUpperBound :: Pretty a => Pretty (UpperBound a) where
+  pretty (UpperBound PosInf _) = text "+∞)"
+  pretty (UpperBound NegInf _) = text "-∞)"
+  pretty (UpperBound (Finite a) true) = span_ [ pretty a, text "]" ]
+  pretty (UpperBound (Finite a) false) = span_ [ pretty a, text ")" ]
+
+instance prettyInterval :: Pretty a => Pretty (Interval a) where
+  pretty (Interval { ivFrom, ivTo }) = span_ [ pretty ivFrom, text ", ", pretty ivTo ]
+
+instance prettyPOSIXTime :: Pretty POSIXTime where
+  pretty (POSIXTime { getPOSIXTime }) = span_ [ text "POSIXTime:", nbsp, text $ show getPOSIXTime ]
+
+instance prettySlot :: Pretty Slot where
+  pretty (Slot { getSlot }) = span_ [ text "Slot:", nbsp, text $ show getSlot ]
 
 -- | Yes, this is dumb and only handles _most_ English words, but it's and better than saying '1 input(s)'.
 -- And hey, "most English words" is still a lot of words.

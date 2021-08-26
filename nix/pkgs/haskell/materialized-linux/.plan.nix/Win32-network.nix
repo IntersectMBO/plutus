@@ -32,9 +32,13 @@
       };
     components = {
       "library" = {
-        depends = (([
+        depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."network" or (errorHandler.buildDepError "network"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
+          ] ++ (pkgs.lib).optionals (system.isWindows) [
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."network" or (errorHandler.buildDepError "network"))
+          (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))
+          ];
         libs = (pkgs.lib).optional (system.isWindows) (pkgs."ws2_32" or (errorHandler.sysDepError "ws2_32"));
         buildable = true;
         modules = [
@@ -59,23 +63,39 @@
         };
       exes = {
         "named-pipe-demo" = {
-          depends = (([
+          depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            ] ++ (pkgs.lib).optionals (system.isWindows) [
+            (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))
             (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
-            ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."binary" or (errorHandler.buildDepError "binary"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
+            ];
           buildable = true;
           hsSourceDirs = [ "demo" ];
-          mainPath = (([
+          mainPath = [
             "named-pipe-demo.hs"
-            ] ++ (pkgs.lib).optional (system.isWindows) "") ++ (pkgs.lib).optional (system.isWindows) "") ++ (pkgs.lib).optional (system.isWindows) "";
+            ] ++ (pkgs.lib).optional (system.isWindows) "";
           };
         };
       tests = {
         "test" = {
-          depends = (((((((((([
+          depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            ] ++ (pkgs.lib).optionals (system.isWindows) [
+            (hsPkgs."async" or (errorHandler.buildDepError "async"))
+            (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."network" or (errorHandler.buildDepError "network"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
+            (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))
             (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
-            ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."async" or (errorHandler.buildDepError "async"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."binary" or (errorHandler.buildDepError "binary"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."network" or (errorHandler.buildDepError "network"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."stm" or (errorHandler.buildDepError "stm"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
+            ];
           buildable = true;
           modules = (pkgs.lib).optionals (system.isWindows) [
             "Test/Generators"
@@ -88,4 +108,14 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/52; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "11";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "11";
+      rev = "minimal";
+      sha256 = "";
+      };
+    }

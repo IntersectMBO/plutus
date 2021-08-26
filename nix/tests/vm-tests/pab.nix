@@ -1,4 +1,4 @@
-{ makeTest, plutus-pab, marlowe-dashboard }:
+{ makeTest, plutus-pab, marlowe-dashboard, marlowe-pab }:
 makeTest {
   name = "pab";
   skipLint = true;
@@ -8,7 +8,8 @@ makeTest {
       environment.systemPackages = with pkgs; [ curl ];
       services.pab = {
         enable = true;
-        pab-package = plutus-pab.pab-exes.plutus-pab;
+        pab-setup = plutus-pab.pab-exes.plutus-pab-setup;
+        pab-executable = "${marlowe-pab}/bin/marlowe-pab";
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
@@ -17,8 +18,6 @@ makeTest {
         nodePort = 8082;
         chainIndexPort = 8083;
         signingProcessPort = 8084;
-        metadataPort = 8085;
-        contracts = [ "/tmp/file-that-does-not-exist" ];
       };
     };
   testScript = ''
@@ -34,11 +33,6 @@ makeTest {
     with subtest("********************************************************************************************* TEST: Serves static files from config"):
       res = machine.succeed("curl -s localhost:8080 | grep marlowe-dashboard")
       assert "marlowe-dashboard" in res, "Expected string 'marlowe-dashboard' in served content. Actual: {}".format(res)
-
-    with subtest("********************************************************************************************* TEST: Loads contracts in config"):
-      res = machine.succeed("pab-exec contracts installed")
-      assert "/tmp/file-that-does-not-exist" in res, "Expected '/tmp/file-that-does-not-exist' in output. Actual: {}".format(res)
-
   '';
 
 }

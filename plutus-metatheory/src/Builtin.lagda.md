@@ -23,22 +23,43 @@ data Builtin : Set where
   modInteger               : Builtin
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
-  greaterThanInteger       : Builtin
-  greaterThanEqualsInteger : Builtin
   equalsInteger            : Builtin
-  concatenate              : Builtin
-  takeByteString           : Builtin
-  dropByteString           : Builtin
   lessThanByteString       : Builtin
-  greaterThanByteString    : Builtin
+  lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
-  charToString             : Builtin
-  append                   : Builtin
+  appendByteString         : Builtin
+  equalsString             : Builtin
+  encodeUtf8               : Builtin
+  decodeUtf8               : Builtin  
+  appendString             : Builtin
   trace                    : Builtin
+  fstPair                  : Builtin
+  sndPair                  : Builtin
+  nullList                 : Builtin
+  headList                 : Builtin
+  tailList                 : Builtin
+  chooseList               : Builtin
+  constrData               : Builtin
+  mapData                  : Builtin
+  listData                 : Builtin
+  iData                    : Builtin
+  bData                    : Builtin
+  unConstrData             : Builtin
+  unMapData                : Builtin
+  unListData               : Builtin
+  unIData                  : Builtin
+  unBData                  : Builtin
+  equalsData               : Builtin
+  chooseData               : Builtin
+  chooseUnit               : Builtin
+  mkPairData               : Builtin
+  mkNilData                : Builtin
+  mkNilPairData            : Builtin
+  mkConsData               : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun (AddInteger
@@ -50,22 +71,43 @@ data Builtin : Set where
                                           | ModInteger
                                           | LessThanInteger
                                           | LessThanEqualsInteger
-                                          | GreaterThanInteger
-                                          | GreaterThanEqualsInteger
                                           | EqualsInteger
-                                          | Concatenate
-                                          | TakeByteString
-                                          | DropByteString
                                           | LessThanByteString
-                                          | GreaterThanByteString
+                                          | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
-                                          | CharToString
-                                          | Append
+                                          | AppendByteString
+                                          | EqualsString
+                                          | EncodeUtf8
+                                          | DecodeUtf8
+                                          | AppendString
                                           | Trace
+                                          | FstPair
+                                          | SndPair
+                                          | NullList
+                                          | HeadList
+                                          | TailList
+                                          | ChooseList
+                                          | ConstrData
+                                          | MapData
+                                          | ListData
+                                          | IData
+                                          | BData
+                                          | UnConstrData
+                                          | UnMapData
+                                          | UnListData
+                                          | UnIData
+                                          | UnBData
+                                          | EqualsData
+                                          | ChooseData
+                                          | ChooseUnit
+                                          | MkPairData
+                                          | MkNilData
+                                          | MkNilPairData
+                                          | MkCons
                                           ) #-}
 ```
 
@@ -73,7 +115,6 @@ data Builtin : Set where
 
 ```
 postulate
-  ByteString : Set
   length     : ByteString → ℕ
 
   div            : Int → Int → Int
@@ -102,7 +143,6 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hash) #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
@@ -116,8 +156,6 @@ postulate
 
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
--- no binding needed for greaterthan
--- no binding needed for greaterthaneq
 -- no binding needed for equals
 
 {-# COMPILE GHC concat = BS.append #-}
@@ -135,7 +173,6 @@ postulate
 -- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}
 
--- no binding needed for charToStr
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 

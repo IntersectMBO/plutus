@@ -8,21 +8,23 @@
         DefaultMethods_match
         (vardecl
           CConsDefaultMethods
-          (fun (fun a (con integer)) (fun (fun a (con integer)) [DefaultMethods a]))
+          (fun
+            (fun a (con integer))
+            (fun (fun a (con integer)) [ DefaultMethods a ]))
         )
       )
     )
     (termbind
       (strict)
       (vardecl
-        method (all a (type) (fun [DefaultMethods a] (fun a (con integer))))
+        method (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
       )
       (abs
         a
         (type)
         (lam
           v
-          [DefaultMethods a]
+          [ DefaultMethods a ]
           [
             { [ { DefaultMethods_match a } v ] (fun a (con integer)) }
             (lam v (fun a (con integer)) (lam v (fun a (con integer)) v))
@@ -32,13 +34,14 @@
     )
     (termbind
       (strict)
-      (vardecl f (all a (type) (fun [DefaultMethods a] (fun a (con integer)))))
+      (vardecl f (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
+      )
       (abs
         a
         (type)
         (lam
           dDefaultMethods
-          [DefaultMethods a]
+          [ DefaultMethods a ]
           (lam a a [ [ { method a } dDefaultMethods ] a ])
         )
       )
@@ -50,12 +53,17 @@
     )
     (termbind
       (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (strict)
       (vardecl fDefaultMethodsInteger_cmethod (fun (con integer) (con integer)))
-      (lam a (con integer) [ [ (builtin addInteger) a ] (con integer 1) ])
+      (lam a (con integer) [ [ addInteger a ] (con integer 1) ])
     )
     (termbind
       (nonstrict)
-      (vardecl fDefaultMethodsInteger [DefaultMethods (con integer)])
+      (vardecl fDefaultMethodsInteger [ DefaultMethods (con integer) ])
       [
         [ { CConsDefaultMethods (con integer) } fDefaultMethodsInteger_cmethod ]
         fDefaultMethodsInteger_cmethod

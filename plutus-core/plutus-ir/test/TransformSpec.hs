@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -9,12 +10,15 @@ import           TestLib
 import           PlutusCore.Quote
 
 import qualified PlutusCore                         as PLC
+import qualified PlutusCore.Pretty                  as PLC
 
+import qualified PlutusIR.Analysis.RetainedSize     as RetainedSize
 import           PlutusIR.Parser
 import qualified PlutusIR.Transform.Beta            as Beta
 import qualified PlutusIR.Transform.DeadCode        as DeadCode
 import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
+import qualified PlutusIR.Transform.LetMerge        as LetMerge
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
@@ -32,6 +36,8 @@ transform = testNested "transform" [
     , beta
     , unwrapCancel
     , deadCode
+    , retainedSize
+    , rename
     ]
 
 thunkRecursions :: TestNested
@@ -43,14 +49,14 @@ thunkRecursions = testNested "thunkRecursions"
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "nonStrict1"
     ]
 
 letFloat :: TestNested
 letFloat =
     testNested "letFloat"
-    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (LetMerge.letMerge . LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -79,6 +85,7 @@ letFloat =
   ,"strictValueValue"
   ,"even3Eval"
   ,"strictNonValueDeep"
+  ,"regression1"
   ]
 
 instance Semigroup SourcePos where
@@ -136,3 +143,45 @@ deadCode =
     , "recBindingSimple"
     , "recBindingComplex"
     ]
+
+retainedSize :: TestNested
+retainedSize =
+    testNested "retainedSize"
+    $ map (goldenPir renameAndAnnotate $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "typeLet"
+    , "termLet"
+    , "strictLet"
+    , "nonstrictLet"
+    -- @Maybe@ is referenced, so it retains all of the data type.
+    , "datatypeLiveType"
+    -- @Nothing@ is referenced, so it retains all of the data type.
+    , "datatypeLiveConstr"
+    -- @match_Maybe@ is referenced, so it retains all of the data type.
+    , "datatypeLiveDestr"
+    , "datatypeDead"
+    , "singleBinding"
+    , "builtinBinding"
+    , "etaBuiltinBinding"
+    , "etaBuiltinBindingUsed"
+    , "nestedBindings"
+    , "nestedBindingsIndirect"
+    , "recBindingSimple"
+    , "recBindingComplex"
+    ] where
+        displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
+        renameAndAnnotate
+            = PLC.AttachPrettyConfig displayAnnsConfig
+            . RetainedSize.annotateWithRetainedSize
+            . runQuote
+            . PLC.rename
+
+rename :: TestNested
+rename =
+    testNested "rename"
+    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "allShadowedDataNonRec"
+    , "allShadowedDataRec"
+    , "paramShadowedDataNonRec"
+    , "paramShadowedDataRec"
+    ] where
+        debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False

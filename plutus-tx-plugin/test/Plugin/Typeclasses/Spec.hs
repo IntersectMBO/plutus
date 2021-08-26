@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context -fplugin-opt PlutusTx.Plugin:dont-typecheck #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
 
 module Plugin.Typeclasses.Spec where
 
@@ -79,7 +79,7 @@ multiFunction = plc (Proxy @"multiFunction") (
     let
         {-# NOINLINE predicate #-}
         predicate :: (PersonLike p) => p -> Bool
-        predicate p = likesAnimal p Cat P.&& (age p `Builtins.greaterThanInteger` 30)
+        predicate p = likesAnimal p Cat P.&& (age p `Builtins.lessThanInteger` 30)
     in \(p::Person) -> predicate p)
 
 defaultMethods :: CompiledCode (Integer -> Integer)

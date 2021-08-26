@@ -47,22 +47,43 @@ ISIG remainderInteger = 0 , S (S Z)
 ISIG modInteger = 0 , S (S Z)
 ISIG lessThanInteger = 0 , S (S Z)
 ISIG lessThanEqualsInteger = 0 , S (S Z)
-ISIG greaterThanInteger = 0 , S (S Z)
-ISIG greaterThanEqualsInteger = 0 , S (S Z)
 ISIG equalsInteger = 0 , S (S Z)
-ISIG concatenate = 0 , S (S Z)
-ISIG takeByteString = 0 , S (S Z)
-ISIG dropByteString = 0 , S (S Z)
+ISIG appendByteString = 0 , S (S Z)
 ISIG lessThanByteString = 0 , S (S Z)
-ISIG greaterThanByteString = 0 , S (S Z)
+ISIG lessThanEqualsByteString = 0 , S (S Z)
 ISIG sha2-256 = 0 , S Z
 ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
 ISIG ifThenElse = 1 , S (S (S (T Z))) -- this may be in the wrong order
-ISIG charToString = 0 , S Z
-ISIG append = 0 , S (S Z)
+ISIG appendString = 0 , S (S Z)
 ISIG trace = 0 , S Z
+ISIG equalsString = 0 , S (S Z)
+ISIG encodeUtf8 = 0 , S Z
+ISIG decodeUtf8 = 0 , S Z
+ISIG fstPair = 2 , S (T (T Z))
+ISIG sndPair = 2 , S (T (T Z))
+ISIG nullList = 1 , S (T Z)
+ISIG headList = 1 , S (T Z)
+ISIG tailList = 1 , S (T Z)
+ISIG chooseList = 2 , S (S (S (T (T Z))))
+ISIG constrData = 0 , S (S Z)
+ISIG mapData = 0 , S Z
+ISIG listData = 0 , S Z
+ISIG iData = 0 , S Z
+ISIG bData = 0 , S Z
+ISIG unConstrData = 0 , S Z
+ISIG unMapData = 0 , S Z
+ISIG unListData = 0 , S Z
+ISIG unIData = 0 , S Z
+ISIG unBData = 0 , S Z
+ISIG equalsData = 0 , S (S Z)
+ISIG chooseData = 1 , S (S (S (S (S (S (T Z))))))
+ISIG chooseUnit = 1 , S (S (T Z))
+ISIG mkPairData = 0 , S (S Z)
+ISIG mkNilData = 0 , S Z
+ISIG mkNilPairData = 0 , S Z
+ISIG mkConsData = 0 , S (S Z)
 
 open import Data.Unit
 ITel : Builtin → ∀{n n'}(w : Weirdℕ n)(w' : Weirdℕ n') → Set
@@ -120,7 +141,6 @@ VERIFYSIG (just true)  = con (bool true)
 VERIFYSIG nothing      = error (con bool)
 
 open import Data.List using (List;[];_∷_)
-open import Type using (Kind)
 
 IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → ITel b (proj₂ (ISIG b)) w → ScopedTm w
 IBUILTIN addInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = con (integer (i I.+ i'))
@@ -132,23 +152,18 @@ IBUILTIN remainderInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')
 IBUILTIN modInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
 IBUILTIN lessThanInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.<? i') (con (bool true)) (con (bool false))
 IBUILTIN lessThanEqualsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≤? i') (con (bool true)) (con (bool false))
-IBUILTIN greaterThanInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I>? i') (con (bool true)) (con (bool false))
-IBUILTIN greaterThanEqualsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I≥? i') (con (bool true)) (con (bool false))
 IBUILTIN equalsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≟ i') (con (bool true)) (con (bool false))
-IBUILTIN concatenate ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b')) 
-IBUILTIN takeByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (take i b)) 
-IBUILTIN dropByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (drop i b)) 
+IBUILTIN appendByteString ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
 IBUILTIN sha2-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA2-256 b))
 IBUILTIN sha3-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA3-256 b))
 IBUILTIN verifySignature (((_ , t , V-con (bytestring k)) , t' , V-con (bytestring d)) , t'' , V-con (bytestring c)) = VERIFYSIG (verifySig k d c)
 IBUILTIN equalsByteString  ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
 IBUILTIN ifThenElse (((_ , _ , V-con (bool true))  , t , _) , f , _) = t
 IBUILTIN ifThenElse (((_ , _ , V-con (bool false)) , t , _) , f , _) = f
-IBUILTIN charToString (_ , t , V-con (char c)) =
-  con (string (primStringFromList (c ∷ [])))
-IBUILTIN append ((_ , t , V-con (string s)) , t' , V-con (string s')) =
+IBUILTIN appendString ((_ , t , V-con (string s)) , t' , V-con (string s')) =
   con (string (primStringAppend s s'))
 IBUILTIN trace (_ , t , V-con (string s)) = con (Debug.trace s unit)
+IBUILTIN iData (_ , t , V-con (integer i)) = con (Data (iDATA i))
 IBUILTIN _ _ = error missing
 
 IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → ITel b w' w → ScopedTm w
@@ -301,22 +316,43 @@ ival remainderInteger = V-builtin remainderInteger _ refl refl (skipS base) _
 ival modInteger = V-builtin modInteger _ refl refl (skipS base) _
 ival lessThanInteger = V-builtin lessThanInteger _ refl refl (skipS base) _
 ival lessThanEqualsInteger = V-builtin lessThanEqualsInteger _ refl refl (skipS base) _
-ival greaterThanInteger = V-builtin greaterThanInteger _ refl refl (skipS base) _
-ival greaterThanEqualsInteger = V-builtin greaterThanEqualsInteger _ refl refl (skipS base) _
 ival equalsInteger = V-builtin equalsInteger _ refl refl (skipS base) _
-ival concatenate = V-builtin concatenate _ refl refl (skipS base) _
-ival takeByteString = V-builtin takeByteString _ refl refl (skipS base) _
-ival dropByteString = V-builtin dropByteString _ refl refl (skipS base) _
+ival appendByteString = V-builtin appendByteString _ refl refl (skipS base) _
 ival lessThanByteString = V-builtin equalsByteString _ refl refl (skipS base) _
-ival greaterThanByteString = V-builtin equalsByteString _ refl refl (skipS base) _
+ival lessThanEqualsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival sha2-256 = V-builtin sha2-256 _ refl refl base _
 ival sha3-256 = V-builtin sha2-256 _ refl refl base _
 ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
 ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS (skipS base)) _
-ival charToString = V-builtin charToString _ refl refl base _
-ival append = V-builtin append _ refl refl (skipS base) _
+ival appendString = V-builtin appendString _ refl refl (skipS base) _
 ival trace = V-builtin trace _ refl refl base _
+ival equalsString = V-builtin equalsString _ refl refl (skipS base) _
+ival encodeUtf8 = V-builtin encodeUtf8 _ refl refl base _
+ival decodeUtf8 = V-builtin decodeUtf8 _ refl refl base _
+ival fstPair = V-builtin fstPair _ refl refl base _
+ival sndPair = V-builtin sndPair _ refl refl base _
+ival nullList = V-builtin nullList _ refl refl base _
+ival headList = V-builtin headList _ refl refl base _
+ival tailList = V-builtin tailList _ refl refl base _
+ival chooseList = V-builtin chooseList _ refl refl (skipS (skipS base)) _
+ival constrData = V-builtin constrData _ refl refl (skipS base) _
+ival mapData = V-builtin mapData _ refl refl base _
+ival listData = V-builtin listData _ refl refl base _
+ival iData = V-builtin iData _ refl refl base _
+ival bData = V-builtin bData _ refl refl base _
+ival unConstrData = V-builtin unConstrData _ refl refl base _
+ival unMapData = V-builtin unMapData _ refl refl base _
+ival unListData = V-builtin unListData _ refl refl base _
+ival unIData = V-builtin unIData _ refl refl base _
+ival unBData = V-builtin unBData _ refl refl base _
+ival equalsData = V-builtin equalsData _ refl refl (skipS base) _
+ival chooseData = V-builtin chooseData _ refl refl (skipS (skipS (skipS (skipS (skipS base))))) _
+ival chooseUnit = V-builtin chooseUnit _ refl refl (skipS base) _
+ival mkPairData = V-builtin mkPairData _ refl refl (skipS base) _
+ival mkNilData = V-builtin mkNilData _ refl refl base _
+ival mkNilPairData = V-builtin mkNilPairData _ refl refl base _
+ival mkConsData = V-builtin mkConsData _ refl refl (skipS base) _
 
 progress : (t : ScopedTm Z) → Progress t
 progress (Λ K t)           = done (V-Λ t)

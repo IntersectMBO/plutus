@@ -3,9 +3,11 @@ module SimulationPage.View where
 import Prelude hiding (div)
 import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
-import Data.Array (concatMap, intercalate, reverse, sortWith)
+import Data.Array (concatMap, intercalate, length, reverse, sortWith)
 import Data.Array as Array
+import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
+import Data.Enum (fromEnum)
 import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -29,9 +31,11 @@ import Halogen.Monaco (monacoComponent)
 import Hint.State (hint)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
-import Marlowe.Template (IntegerTemplateType(..))
+import Marlowe.Template (IntegerTemplateType(..), orderContentUsingMetadata)
 import Material.Icons as Icon
 import Monaco as Monaco
 import Popper (Placement(..))
@@ -69,16 +73,22 @@ render metadata state =
   where
   panelTitles =
     [ { title: "Current State", view: CurrentStateView, classes: [] }
+    , { title: problemsTitle, view: WarningsAndErrorsView, classes: [] }
     ]
 
-  currentStateClasses = if hasRuntimeWarnings || hasRuntimeError then [ ClassName "error-tab" ] else []
+  runtimeWarnings = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings) state
 
-  -- QUESTION: what are runtimeWarnings and runtimeError? how can I reach that state?
-  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
-
+  hasRuntimeError :: Boolean
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
 
-  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents metadata state panelView
+  numberOfProblems = length runtimeWarnings + fromEnum hasRuntimeError
+
+  problemsTitle = "Warnings and errors" <> if numberOfProblems == 0 then "" else " (" <> show numberOfProblems <> ")"
+
+  -- TODO: improve this wrapper helper
+  actionWrapper = BottomPanelTypes.PanelAction
+
+  wrapBottomPanelContents panelView = bimap (map actionWrapper) actionWrapper $ panelContents metadata state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -199,6 +209,7 @@ type TemplateFormDisplayInfo a action
     , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
     , title :: String -- Title of the section of the template type
     , prefix :: String -- Prefix for the explanation of the template
+    , orderedMetadataSet :: OSet String -- Ordered set of parameters with metadata (in custom metadata order)
     }
 
 startSimulationWidget ::
@@ -216,8 +227,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
-                    <> integerTemplateParameters SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
+                ( integerTemplateParameters metadata SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
+                    <> integerTemplateParameters metadata SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -231,21 +242,23 @@ startSimulationWidget metadata { initialSlot, templateContent } =
   where
   slotParameterDisplayInfo =
     { lookupFormat: const Nothing
-    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , lookupDefinition: (flip Map.lookup) (Map.fromFoldableWithIndex metadata.slotParameterDescriptions) -- Convert to normal Map for efficiency
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
+    , orderedMetadataSet: OMap.keys metadata.slotParameterDescriptions
     }
 
   valueParameterDisplayInfo =
     { lookupFormat: extractValueParameterNuberFormat
-    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , lookupDefinition: (flip lookupDescription) (Map.fromFoldableWithIndex metadata.valueParameterInfo) -- Convert to normal Map for efficiency
     , typeName: ValueContent
     , title: "Value template parameters"
     , prefix: "Constant for"
+    , orderedMetadataSet: OMap.keys metadata.valueParameterInfo
     }
 
-  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+  extractValueParameterNuberFormat valueParameter = case OMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
@@ -259,11 +272,12 @@ startSimulationWidget metadata { initialSlot, templateContent } =
 integerTemplateParameters ::
   forall a action m.
   MonadAff m =>
+  MetaData ->
   (IntegerTemplateType -> String -> BigInteger -> action) ->
   TemplateFormDisplayInfo a action ->
   Map String BigInteger ->
   Array (ComponentHTML action ChildSlots m)
-integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
+integerTemplateParameters metadata actionGen { lookupFormat, lookupDefinition, typeName, title, prefix, orderedMetadataSet } content =
   let
     parameterHint key =
       maybe []
@@ -300,9 +314,11 @@ integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, 
                         )
                       )
                   )
-                  (Map.toUnfoldable content)
+                  (OMap.toUnfoldable orderedContent)
               )
     ]
+  where
+  orderedContent = orderContentUsingMetadata content orderedMetadataSet
 
 ------------------------------------------------------------
 simulationStateWidget ::

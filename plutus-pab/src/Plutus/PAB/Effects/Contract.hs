@@ -3,14 +3,9 @@
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
 {-
 
 Effects for running contract instances and for storing and loading their state.
@@ -32,7 +27,7 @@ module Plutus.PAB.Effects.Contract(
     , putStartInstance
     , putStopInstance
     -- * Storing and retrieving definitions of contracts
-    , ContractDefinitionStore(..)
+    , ContractDefinition(..)
     , addDefinition
     , getDefinitions
     ) where
@@ -52,7 +47,7 @@ import           Schema                     (FormSchema)
 import           Wallet.Types               (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
---   parameter @t@ is to allow for different ways of running
+--   parameter @contract@ is to allow for different ways of running
 --   contracts, for example: A compiled executable running in a separate
 --   process, or an "inline" contract that was compiled with the PAB and
 --   runs in the same process.
@@ -68,7 +63,7 @@ class PABContract contract where
     type State contract
 
     -- | Extract the serialisable state from the contract instance state.
-    serialisableState :: Proxy contract -> State contract -> ContractResponse Value Value Value PABReq
+    serialisableState :: Proxy contract -> State contract -> ContractResponse Value Value PABResp PABReq
 
 -- | The open requests of the contract instance.
 requests :: forall contract. PABContract contract => State contract -> [Request PABReq]
@@ -193,24 +188,24 @@ getDefinition i = Map.lookup i <$> (getActiveContracts @t)
 
 -- | Storing and retrieving definitions of contracts.
 --   (Not all 't's support this)
-data ContractDefinitionStore t r where
-    AddDefinition :: ContractDef t -> ContractDefinitionStore t ()
-    GetDefinitions :: ContractDefinitionStore t [ContractDef t]
+data ContractDefinition t r where
+    AddDefinition :: ContractDef t -> ContractDefinition t ()
+    GetDefinitions :: ContractDefinition t [ContractDef t]
 
 addDefinition ::
     forall t effs.
-    ( Member (ContractDefinitionStore t) effs
+    ( Member (ContractDefinition t) effs
     )
     => ContractDef t
     -> Eff effs ()
 addDefinition def =
-    let command :: ContractDefinitionStore t ()
+    let command :: ContractDefinition t ()
         command = AddDefinition def
     in send command
 
 getDefinitions ::
     forall t effs.
-    ( Member (ContractDefinitionStore t) effs
+    ( Member (ContractDefinition t) effs
     )
     => Eff effs [ContractDef t]
-getDefinitions = send @(ContractDefinitionStore t) GetDefinitions
+getDefinitions = send @(ContractDefinition t) GetDefinitions

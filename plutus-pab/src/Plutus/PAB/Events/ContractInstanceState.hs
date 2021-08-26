@@ -33,7 +33,7 @@ data PartiallyDecodedResponse v =
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
 
-fromResp :: Contract.ContractResponse Value Value Value v -> PartiallyDecodedResponse v
+fromResp :: Contract.ContractResponse Value Value s v -> PartiallyDecodedResponse v
 fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.lastLogs, Contract.newState = Contract.State{Contract.observableState}} =
     PartiallyDecodedResponse{hooks, logs, err, observableState, lastLogs}
 

@@ -41,8 +41,9 @@ data TypeBuiltinG = TyByteStringG
                   | TyIntegerG
                   | TyBoolG
                   | TyUnitG
-                  | TyCharG
+                  | TyStringG
                   | TyListG
+                  | TyDataG
                       deriving (Show, Eq, Ord)
 
 deriveEnumerable ''TypeBuiltinG
@@ -100,3 +101,4 @@ instance Monad TypeG where
 instance Applicative TypeG where
   (<*>) = ap
   pure = TyVarG
+

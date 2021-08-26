@@ -31,6 +31,7 @@ module Ledger.Generators(
     ) where
 
 import           Data.Bifunctor            (Bifunctor (..))
+import qualified Data.ByteString           as BS
 import           Data.Default              (Default (def))
 import           Data.Foldable             (fold, foldl')
 import           Data.Map                  (Map)
@@ -48,7 +49,6 @@ import qualified Ledger.Index              as Index
 import qualified Plutus.V1.Ledger.Ada      as Ada
 import qualified Plutus.V1.Ledger.Interval as Interval
 import qualified Plutus.V1.Ledger.Value    as Value
-import qualified PlutusTx.Prelude          as P
 
 -- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx
@@ -186,19 +186,19 @@ genAda :: MonadGen m => m Ada
 genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))
 
 -- | Generate a 'ByteString s' of up to @s@ bytes.
-genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteString :: forall m. MonadGen m => Int -> m BS.ByteString
 genSizedByteString s =
     let range = Range.linear 0 s
     in Gen.bytes range
 
 -- | Generate a 'ByteString s' of exactly @s@ bytes.
-genSizedByteStringExact :: forall m. MonadGen m => Int -> m P.ByteString
+genSizedByteStringExact :: forall m. MonadGen m => Int -> m BS.ByteString
 genSizedByteStringExact s =
     let range = Range.singleton s
     in Gen.bytes range
 
 genTokenName :: MonadGen m => m TokenName
-genTokenName = Value.TokenName <$> genSizedByteString 32
+genTokenName = Value.tokenName <$> genSizedByteString 32
 
 genValue' :: MonadGen m => Range Integer -> m Value
 genValue' valueRange = do

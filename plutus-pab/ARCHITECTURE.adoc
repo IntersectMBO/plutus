@@ -26,7 +26,7 @@ In the examples below we assume the PAB has been started in the simulator config
 
 [source]
 ----
- GET /api/new/contract/instances
+ GET /api/contract/instances
 ----
 
 Gives a list of active instances of contracts.
@@ -35,7 +35,7 @@ Gives a list of active instances of contracts.
 
 [source]
 ----
- GET /api/new/contract/definitions
+ GET /api/contract/definitions
 ----
 
 Gives a list of contract definitions.
@@ -44,7 +44,7 @@ Gives a list of contract definitions.
 
 [source]
 ----
-POST /api/new/contract/activate
+POST /api/contract/activate
 ----
 
 Starts a new instance of the contract. Expects a `ContractActivationArgs` object. Example:
@@ -66,7 +66,7 @@ This call returns the UUID of the newly started contract instance.
 
 [source]
 ----
- GET /api/new/contract/instance/:contract-instance-id/status
+ GET /api/contract/instance/:contract-instance-id/status
 ----
 
 Get the status of the instance, identified by UUID.
@@ -75,7 +75,7 @@ Get the status of the instance, identified by UUID.
 
 [source]
 ----
- POST /api/new/contract/instance/:contract-instance-id/endpoint/:endpoint-name
+ POST /api/contract/instance/:contract-instance-id/endpoint/:endpoint-name
 ----
 
 Call an endpoint on an active contract instance. Expects a JSON object with the value of the endpoint call. The name of the endpoint and the type of its value are determined by the contract schema. For example, the `Currency` contract that comes with the simulator PAB configuration has the following line in its schema:

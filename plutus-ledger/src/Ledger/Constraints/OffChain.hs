@@ -23,12 +23,14 @@ module Ledger.Constraints.OffChain(
     , otherScript
     , otherData
     , ownPubKeyHash
+    , pubKey
     -- * Constraints resolution
     , SomeLookupsAndConstraints(..)
     , UnbalancedTx(..)
     , tx
     , requiredSignatories
     , utxoIndex
+    , validityTimeRange
     , emptyUnbalancedTx
     , MkTxError(..)
     , mkTx
@@ -51,31 +53,30 @@ import           Data.List                        (elemIndex)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Semigroup                   (First (..))
-import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 
-import           PlutusTx                         (IsData (..))
+import           PlutusTx                         (FromData (..), ToData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
-import           Data.Default                     (Default (def))
+import           Ledger.Address                   (Address (..), pubKeyHashAddress)
+import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
+import           Ledger.Crypto                    (pubKeyHash)
 import           Ledger.Orphans                   ()
-import qualified Ledger.TimeSlot                  as TimeSlot
+import           Ledger.Scripts                   (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
+                                                   Redeemer (..), Validator, datumHash, mintingPolicyHash)
+import           Ledger.Tx                        (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
+                                                   TxOutTx (..))
+import qualified Ledger.Tx                        as Tx
 import           Ledger.Typed.Scripts             (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
 import qualified Ledger.Typed.Tx                  as Typed
-import           Plutus.V1.Ledger.Address         (Address (..), pubKeyHashAddress)
-import qualified Plutus.V1.Ledger.Address         as Address
-import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
-import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
-                                                   Redeemer (..), Validator, datumHash, mintingPolicyHash)
-import           Plutus.V1.Ledger.Tx              (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
-                                                   TxOutTx (..))
-import qualified Plutus.V1.Ledger.Tx              as Tx
+import           Plutus.V1.Ledger.Crypto          (PubKey, PubKeyHash)
+import           Plutus.V1.Ledger.Time            (POSIXTimeRange)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
@@ -89,6 +90,8 @@ data ScriptLookups a =
         -- ^ Validators of scripts other than "our script"
         , slOtherData      :: Map DatumHash Datum
         -- ^ Datums that we might need
+        , slPubKeyHashes   :: Map PubKeyHash PubKey
+        -- ^ Public keys that we might need
         , slTypedValidator :: Maybe (TypedValidator a)
         -- ^ The script instance with the typed validator hash & actual compiled program
         , slOwnPubkey      :: Maybe PubKeyHash
@@ -103,15 +106,15 @@ instance Semigroup (ScriptLookups a) where
             , slTxOutputs = slTxOutputs l <> slTxOutputs r
             , slOtherScripts = slOtherScripts l <> slOtherScripts r
             , slOtherData = slOtherData l <> slOtherData r
+            , slPubKeyHashes = slPubKeyHashes l <> slPubKeyHashes r
             -- 'First' to match the semigroup instance of Map (left-biased)
             , slTypedValidator = fmap getFirst $ (First <$> slTypedValidator l) <> (First <$> slTypedValidator r)
             , slOwnPubkey = fmap getFirst $ (First <$> slOwnPubkey l) <> (First <$> slOwnPubkey r)
-
             }
 
 instance Monoid (ScriptLookups a) where
     mappend = (<>)
-    mempty  = ScriptLookups mempty mempty mempty mempty Nothing Nothing
+    mempty  = ScriptLookups mempty mempty mempty mempty mempty Nothing Nothing
 
 -- | A script lookups value with a script instance. For convenience this also
 --   includes the minting policy script that forwards all checks to the
@@ -123,6 +126,7 @@ typedValidatorLookups inst =
         , slTxOutputs = Map.empty
         , slOtherScripts = Map.empty
         , slOtherData = Map.empty
+        , slPubKeyHashes = Map.empty
         , slTypedValidator = Just inst
         , slOwnPubkey = Nothing
         }
@@ -150,6 +154,10 @@ otherData dt =
     let dh = datumHash dt in
     mempty { slOtherData = Map.singleton dh dt }
 
+-- | A script lookups value with a public key
+pubKey :: PubKey -> ScriptLookups a
+pubKey pk = mempty { slPubKeyHashes = Map.singleton (pubKeyHash pk) pk }
+
 ownPubKeyHash :: PubKeyHash -> ScriptLookups a
 ownPubKeyHash ph = mempty { slOwnPubkey = Just ph}
 
@@ -159,8 +167,9 @@ ownPubKeyHash ph = mempty { slOwnPubkey = Just ph}
 data UnbalancedTx =
     UnbalancedTx
         { unBalancedTxTx                  :: Tx
-        , unBalancedTxRequiredSignatories :: Set PubKeyHash
+        , unBalancedTxRequiredSignatories :: Map PubKeyHash (Maybe PubKey)
         , unBalancedTxUtxoIndex           :: Map TxOutRef TxOut
+        , unBalancedTxValidityTimeRange   :: POSIXTimeRange
         }
     deriving stock (Eq, Generic, Show)
     deriving anyclass (FromJSON, ToJSON)
@@ -169,17 +178,19 @@ makeLensesFor
     [ ("unBalancedTxTx", "tx")
     , ("unBalancedTxRequiredSignatories", "requiredSignatories")
     , ("unBalancedTxUtxoIndex", "utxoIndex")
+    , ("unBalancedTxValidityTimeRange", "validityTimeRange")
     ] ''UnbalancedTx
 
 emptyUnbalancedTx :: UnbalancedTx
-emptyUnbalancedTx = UnbalancedTx mempty mempty mempty
+emptyUnbalancedTx = UnbalancedTx mempty mempty mempty top
 
 instance Pretty UnbalancedTx where
-    pretty (UnbalancedTx utx rs utxo) =
+    pretty (UnbalancedTx utx rs utxo vr) =
         vsep
         [ hang 2 $ vsep ["Tx:", pretty utx]
-        , hang 2 $ vsep $ "Requires signatures:" : (pretty <$> Set.toList rs)
+        , hang 2 $ vsep $ "Requires signatures:" : (pretty . fst <$> Map.toList rs)
         , hang 2 $ vsep $ "Utxo index:" : (pretty <$> Map.toList utxo)
+        , hang 2 $ vsep ["Validity range:", pretty vr]
         ]
 
 {- Note [Balance of value spent]
@@ -267,7 +278,7 @@ required v = ValueSpentBalances { vbsRequired = v, vbsProvided = mempty }
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
 data SomeLookupsAndConstraints where
-    SomeLookupsAndConstraints :: forall a. (IsData (DatumType a), IsData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
+    SomeLookupsAndConstraints :: forall a. (FromData (DatumType a), ToData (DatumType a), ToData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
 
 -- | Given a list of 'SomeLookupsAndConstraints' describing the constraints
 --   for several scripts, build a single transaction that runs all the scripts.
@@ -284,8 +295,9 @@ mkSomeTx xs =
 -- | Resolve some 'TxConstraints' by modifying the 'UnbalancedTx' in the
 --   'ConstraintProcessingState'
 processLookupsAndConstraints
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a)
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a)
        , MonadState ConstraintProcessingState m
        , MonadError MkTxError m
        )
@@ -306,8 +318,9 @@ processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, t
 --   'Plutus.Contract.submitTxConstraints'
 --   and related functions.
 mkTx
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a))
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a))
     => ScriptLookups a
     -> TxConstraints (RedeemerType a) (DatumType a)
     -> Either MkTxError UnbalancedTx
@@ -363,8 +376,9 @@ addOwnInput
     :: ( MonadReader (ScriptLookups a) m
         , MonadError MkTxError m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
-        , IsData (RedeemerType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
+        , ToData (RedeemerType a)
         )
     => InputConstraint (RedeemerType a)
     -> m ()
@@ -384,7 +398,8 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
 addOwnOutput
     :: ( MonadReader (ScriptLookups a) m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
         , MonadError MkTxError m
         )
     => OutputConstraint (DatumType a)
@@ -393,7 +408,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
     ScriptLookups{slTypedValidator} <- ask
     inst <- maybe (throwError TypedValidatorMissing) pure slTypedValidator
     let txOut = Typed.makeTypedScriptTxOut inst ocDatum ocValue
-        dsV   = Datum (toData ocDatum)
+        dsV   = Datum (toBuiltinData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
     valueSpentOutputs <>= provided ocValue
@@ -408,6 +423,7 @@ data MkTxError =
     | OwnPubKeyMissing
     | TypedValidatorMissing
     | DatumWrongHash DatumHash Datum
+    | CannotSatisfyAny
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -422,6 +438,7 @@ instance Pretty MkTxError where
         OwnPubKeyMissing        -> "Own public key is missing"
         TypedValidatorMissing   -> "Script instance is missing"
         DatumWrongHash h d      -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
+        CannotSatisfyAny        -> "Cannot satisfy any of the required constraints"
 
 lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m
@@ -459,6 +476,17 @@ lookupValidator addr =
     let err = throwError (ValidatorHashNotFound addr) in
     asks slOtherScripts >>= maybe err pure . view (at addr)
 
+-- | Get the 'Map.Map PubKeyHash (Maybe PubKey)' for a pub key hash,
+--   associating the pub key hash with the public key (if known).
+--   This value that can be added to the
+--   'unBalancedTxRequiredSignatories' field
+getSignatories ::
+    ( MonadReader (ScriptLookups a) m)
+    => PubKeyHash
+    -> m (Map.Map PubKeyHash (Maybe PubKey))
+getSignatories pkh =
+    Map.singleton pkh <$> asks (Map.lookup pkh . slPubKeyHashes)
+
 -- | Modify the 'UnbalancedTx' so that it satisfies the constraints, if
 --   possible. Fails if a hash is missing from the lookups, or if an output
 --   of the wrong type is spent.
@@ -473,18 +501,18 @@ processConstraint = \case
         let theHash = datumHash dv in
         unbalancedTx . tx . Tx.datumWitnesses . at theHash .= Just dv
     MustValidateIn timeRange ->
-        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToSlotRange def timeRange /\)
-    MustBeSignedBy pk ->
-        unbalancedTx . requiredSignatories %= Set.insert pk
+        unbalancedTx . validityTimeRange %= (timeRange /\)
+    MustBeSignedBy pk -> do
+        sigs <- getSignatories pk
+        unbalancedTx . requiredSignatories <>= sigs
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl
     MustProduceAtLeast vl -> valueSpentOutputs <>= required vl
     MustSpendPubKeyOutput txo -> do
         TxOutTx{txOutTxOut} <- lookupTxOutRef txo
         case Address.toPubKeyHash (Tx.txOutAddress txOutTxOut) of
-            Just pk -> do
+            Just{} -> do
                 unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
                 valueSpentInputs <>= provided (Tx.txOutValue txOutTxOut)
-                unbalancedTx . requiredSignatories %= Set.insert pk
             _                 -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
         txOutTx <- lookupTxOutRef txo
@@ -532,3 +560,10 @@ processConstraint = \case
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
         unbalancedTx . tx . Tx.datumWitnesses . at dvh .= Just dv
+    MustSatisfyAnyOf xs -> do
+        s <- get
+        let tryNext [] =
+                throwError CannotSatisfyAny
+            tryNext (h:q) = do
+                processConstraint h `catchError` \_ -> put s >> tryNext q
+        tryNext xs

@@ -34,7 +34,7 @@ The ``SplitData`` type has instances for a number of typeclasses.
 These instances enable the serialisation of ``SplitData`` to different formats.
 ``ToJSON`` and ``FromJSON`` are needed for JSON serialization.
 JSON objects are passed between the frontend (for example, the Playground) and the app instance.
-:hsobj:`PlutusTx.IsData` is used for values that are attached to transactions, for example as the <redeemer> of a script output.
+:hsobj:`PlutusTx.FromData` and :hsobj:`PlutusTx.ToData` are used for values that are attached to transactions, for example as the <redeemer> of a script output.
 This class is used by the Plutus app at runtime to construct ``Data`` values.
 Finally, :hsobj:`PlutusTx.makeLift` is a Template Haskell statement that generates an instance of the :hsobj:`PlutusTx.Lift.Class.Lift` class for ``SplitData``.
 This class is used by the Plutus compiler at compile-time to construct Plutus core programs.

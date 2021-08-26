@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -21,26 +18,29 @@
         (lam
           ds
           Bool
-          [
+          {
             [
-              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
-              (lam
-                thunk
-                Unit
-                [
+              [
+                { [ Bool_match ds ] (all dead (type) Bool) }
+                (abs dead (type) False)
+              ]
+              (abs
+                dead
+                (type)
+                {
                   [
                     [
-                      { [ Bool_match ds ] (fun Unit Bool) }
-                      (lam thunk Unit False)
+                      { [ Bool_match ds ] (all dead (type) Bool) }
+                      (abs dead (type) False)
                     ]
-                    (lam thunk Unit True)
+                    (abs dead (type) True)
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
@@ -64,15 +64,16 @@
           (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
           Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
       )
       (let
         (rec)
         (termbind
-          (nonstrict)
+          (strict)
           (vardecl
-            allDirect (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
+            allDirect (all a (type) (fun (fun a Bool) (fun [ List a ] Bool)))
           )
           (abs
             a
@@ -82,29 +83,29 @@
               (fun a Bool)
               (lam
                 l
-                [List a]
-                [
+                [ List a ]
+                {
                   [
                     [
-                      { [ { Nil_match a } l ] (fun Unit Bool) }
-                      (lam thunk Unit True)
+                      { [ { Nil_match a } l ] (all dead (type) Bool) }
+                      (abs dead (type) True)
                     ]
                     (lam
                       h
                       a
                       (lam
                         t
-                        [List a]
-                        (lam
-                          thunk
-                          Unit
+                        [ List a ]
+                        (abs
+                          dead
+                          (type)
                           [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
                         )
                       )
                     )
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             )
           )
@@ -115,7 +116,11 @@
             (strict)
             (vardecl
               build
-              (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+              (all
+                a
+                (type)
+                (fun
+                  (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]))
             )
             (abs
               a
@@ -123,14 +128,28 @@
               (lam
                 g
                 (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
               )
             )
           )
           (termbind
             (strict)
             (vardecl
-              greaterThanInteger (fun (con integer) (fun (con integer) Bool))
+              ifThenElse (all a (type) (fun (con bool) (fun a (fun a a))))
+            )
+            (builtin ifThenElse)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
+            )
+            (builtin lessThanInteger)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              lessThanInteger (fun (con integer) (fun (con integer) Bool))
             )
             (lam
               x
@@ -139,13 +158,7 @@
                 y
                 (con integer)
                 [
-                  [
-                    [
-                      { (builtin ifThenElse) Bool }
-                      [ [ (builtin greaterThanInteger) x ] y ]
-                    ]
-                    True
-                  ]
+                  [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ]
                   False
                 ]
               )
@@ -154,9 +167,7 @@
           [
             [
               { allDirect (con integer) }
-              (lam
-                ds (con integer) [ [ greaterThanInteger ds ] (con integer 5) ]
-              )
+              (lam ds (con integer) [ [ lessThanInteger ds ] (con integer 5) ])
             ]
             [
               { build (con integer) }

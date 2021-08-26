@@ -69,7 +69,7 @@ infixr 9 `TypeSchemeArrow`
 
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
--- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme term [Char, Bool] Integer@.
+-- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme term [Text, Bool] Integer@.
 data TypeScheme term (args :: [GHC.Type]) res where
     TypeSchemeResult
         :: KnownType term res
@@ -97,9 +97,9 @@ data TypeScheme term (args :: [GHC.Type]) res where
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
 --
 -- >>> :set -XDataKinds
--- >>> :kind! FoldArgs [Char, Bool] Integer
--- FoldArgs [Char, Bool] Integer :: *
--- = Char -> Bool -> Integer
+-- >>> :kind! FoldArgs [Text, Bool] Integer
+-- FoldArgs [Text, Bool] Integer :: *
+-- = Text -> Bool -> Integer
 type family FoldArgs args res where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
@@ -668,7 +668,7 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
 
 instance uni `Contains` Integer       => KnownTypeAst uni Integer
 instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Contains` Char          => KnownTypeAst uni Char
+instance uni `Contains` Text.Text          => KnownTypeAst uni Text.Text
 instance uni `Contains` ()            => KnownTypeAst uni ()
 instance uni `Contains` Bool          => KnownTypeAst uni Bool
 instance uni `Contains` [a]           => KnownTypeAst uni [a]
@@ -677,7 +677,7 @@ instance uni `Contains` Data          => KnownTypeAst uni Data
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term Char          => KnownType term Char
+instance KnownBuiltinType term Text.Text          => KnownType term Text.Text
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]

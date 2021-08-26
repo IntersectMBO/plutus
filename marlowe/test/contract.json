@@ -18,10 +18,10 @@
             "add": 100
           },
           "into_account": {
-            "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+            "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
           },
           "party": {
-            "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+            "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
           }
         },
         "then": {
@@ -48,7 +48,7 @@
               "currency_symbol": ""
             },
             "from_account": {
-              "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
             },
             "then": "close"
           },
@@ -60,7 +60,7 @@
           "for_choice": {
             "choice_name": "choice",
             "choice_owner": {
-              "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
             }
           },
           "choose_between": [
@@ -80,7 +80,7 @@
               "chose_something_for": {
                 "choice_name": "choice",
                 "choice_owner": {
-                  "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+                  "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
                 }
               }
             },
@@ -89,7 +89,7 @@
                 "value_of_choice": {
                   "choice_name": "choice",
                   "choice_owner": {
-                    "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+                    "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
                   }
                 }
               },
@@ -107,12 +107,12 @@
                 "currency_symbol": "6161"
               },
               "in_account": {
-                "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+                "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
               }
             },
             "to": {
               "account": {
-                "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+                "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
               }
             },
             "token": {
@@ -120,7 +120,7 @@
               "currency_symbol": "6161"
             },
             "from_account": {
-              "pk_hash": "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
+              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
             },
             "then": "close"
           },

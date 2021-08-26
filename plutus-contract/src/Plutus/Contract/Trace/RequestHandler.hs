@@ -22,13 +22,12 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleCurrentSlot
     , handleTimeNotifications
     , handleCurrentTime
+    , handleTimeToSlotConversions
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
-    , handleTxConfirmedQueries
     , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
-    , handleContractNotifications
     ) where
 
 import           Control.Applicative            (Alternative (empty, (<|>)))
@@ -41,7 +40,6 @@ import qualified Control.Monad.Freer.Error      as Eff
 import           Control.Monad.Freer.NonDet     (NonDet)
 import qualified Control.Monad.Freer.NonDet     as NonDet
 import           Control.Monad.Freer.Reader     (Reader, ask)
-import           Data.Default                   (Default (def))
 import           Data.Foldable                  (traverse_)
 import qualified Data.Map                       as Map
 import           Data.Monoid                    (Alt (..), Ap (..))
@@ -51,19 +49,19 @@ import qualified Ledger.AddressMap              as AM
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, PubKey, Slot, Tx, TxId)
+import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, POSIXTimeRange, PubKey, Slot,
+                                                 SlotRange, Tx)
 import           Ledger.AddressMap              (AddressMap (..))
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
-import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
+import           Plutus.Contract.Effects        (UtxoAtAddress (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
-import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                 WalletEffect)
+import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..))
 import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,
-                                                 Notification, NotificationError, slotRange, targetSlot)
+                                                 slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -152,10 +150,11 @@ handleTimeNotifications =
     RequestHandler $ \targetTime_ ->
         surroundDebug @Text "handleTimeNotifications" $ do
             currentSlot <- Wallet.Effects.getClientSlot
-            let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot def targetTime_
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot slotConfig targetTime_
             logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
-            pure $ TimeSlot.slotToEndPOSIXTime def currentSlot
+            pure $ TimeSlot.slotToEndPOSIXTime slotConfig currentSlot
 
 handleCurrentSlot ::
     forall effs a.
@@ -177,7 +176,20 @@ handleCurrentTime ::
 handleCurrentTime =
     RequestHandler $ \_ ->
         surroundDebug @Text "handleCurrentTime" $ do
-            TimeSlot.slotToEndPOSIXTime def <$> Wallet.Effects.getClientSlot
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            TimeSlot.slotToEndPOSIXTime slotConfig <$> Wallet.Effects.getClientSlot
+
+handleTimeToSlotConversions ::
+    forall effs.
+    ( Member NodeClientEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    )
+    => RequestHandler effs POSIXTimeRange SlotRange
+handleTimeToSlotConversions =
+    RequestHandler $ \poxisTimeRange ->
+        surroundDebug @Text "handleTimeToSlotConversions" $ do
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            pure $ TimeSlot.posixTimeRangeToContainedSlotRange slotConfig poxisTimeRange
 
 handleUnbalancedTransactions ::
     forall effs.
@@ -224,18 +236,6 @@ handleUtxoQueries = RequestHandler $ \addr ->
                 empty
             Just s  -> pure (UtxoAtAddress addr s)
 
-handleTxConfirmedQueries ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ChainIndexEffect effs
-    )
-    => RequestHandler effs TxId TxConfirmed
-handleTxConfirmedQueries = RequestHandler $ \txid ->
-    surroundDebug @Text "handleTxConfirmedQueries" $ do
-        conf <- Wallet.Effects.transactionConfirmed txid
-        guard conf
-        pure (TxConfirmed txid)
-
 handleAddressChangedAtQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
@@ -265,12 +265,3 @@ handleOwnInstanceIdQueries ::
     => RequestHandler effs a ContractInstanceId
 handleOwnInstanceIdQueries = RequestHandler $ \_ ->
     surroundDebug @Text "handleOwnInstanceIdQueries" ask
-
-handleContractNotifications ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ContractRuntimeEffect effs
-    )
-    => RequestHandler effs Notification (Maybe NotificationError)
-handleContractNotifications = RequestHandler $
-    surroundDebug @Text "handleContractNotifications" . Wallet.Effects.sendNotification

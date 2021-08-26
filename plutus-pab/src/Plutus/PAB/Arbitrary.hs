@@ -10,6 +10,7 @@ module Plutus.PAB.Arbitrary where
 
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
+import           Data.ByteString                   (ByteString)
 import           Ledger                            (ValidatorHash (ValidatorHash))
 import qualified Ledger
 import           Ledger.Address                    (Address (..))
@@ -23,6 +24,7 @@ import           Ledger.TxId                       (TxId)
 import           Plutus.Contract.Effects           (ActiveEndpoint (..), PABReq (..), PABResp (..))
 import qualified PlutusTx                          as PlutusTx
 import qualified PlutusTx.AssocMap                 as AssocMap
+import qualified PlutusTx.Prelude                  as PlutusTx
 import           Test.QuickCheck                   (Gen, oneof)
 import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary, genericShrink, shrink)
 import           Test.QuickCheck.Instances         ()
@@ -37,6 +39,9 @@ acceptingValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| (\_ _ _ ->
 -- | A minting policy that always succeeds.
 acceptingMintingPolicy :: Ledger.MintingPolicy
 acceptingMintingPolicy = Ledger.mkMintingPolicyScript $$(PlutusTx.compile [|| (\_ _ -> ()) ||])
+
+instance Arbitrary PlutusTx.BuiltinByteString where
+    arbitrary = PlutusTx.toBuiltin <$> (arbitrary :: Gen ByteString)
 
 instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
@@ -131,6 +136,10 @@ instance Arbitrary PlutusTx.Data where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
+instance Arbitrary PlutusTx.BuiltinData where
+    arbitrary = PlutusTx.dataToBuiltinData <$> arbitrary
+    shrink d = PlutusTx.dataToBuiltinData <$> shrink (PlutusTx.builtinDataToData d)
+
 instance Arbitrary Ledger.Datum where
     arbitrary = genericArbitrary
     shrink = genericShrink
@@ -169,7 +178,6 @@ instance Arbitrary PABReq where
         oneof
             [ AwaitSlotReq <$> arbitrary
             , pure CurrentSlotReq
-            , AwaitTxConfirmedReq <$> arbitrary
             , pure OwnContractInstanceIdReq
             , ExposeEndpointReq <$> arbitrary
             , UtxoAtReq <$> arbitrary
@@ -211,8 +219,7 @@ instance Arbitrary ActiveEndpoint where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: PABReq -> Maybe (Gen PABResp)
-genResponse (AwaitSlotReq slot)        = Just . pure . AwaitSlotResp $ slot
-genResponse (AwaitTxConfirmedReq txId) = Just . pure . AwaitTxConfirmedResp $ txId
-genResponse (ExposeEndpointReq _)      = Just $ ExposeEndpointResp <$> arbitrary <*> (EndpointValue <$> arbitrary)
-genResponse OwnPublicKeyReq            = Just $ OwnPublicKeyResp <$> arbitrary
-genResponse _                          = Nothing
+genResponse (AwaitSlotReq slot)   = Just . pure . AwaitSlotResp $ slot
+genResponse (ExposeEndpointReq _) = Just $ ExposeEndpointResp <$> arbitrary <*> (EndpointValue <$> arbitrary)
+genResponse OwnPublicKeyReq       = Just $ OwnPublicKeyResp <$> arbitrary
+genResponse _                     = Nothing

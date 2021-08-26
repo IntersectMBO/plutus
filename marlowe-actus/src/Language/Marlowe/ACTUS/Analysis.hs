@@ -101,8 +101,6 @@ filterEvents terms@ContractTerms{ contractType = contractType } events =
         L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
       else
         events
-    _ ->
-      events
 
 filterStates :: ContractTerms -> [(ContractState, EventType, ShiftedDay)] -> [(ContractState, EventType, ShiftedDay)]
 filterStates terms@ContractTerms{ contractType = contractType } states =
@@ -122,8 +120,6 @@ filterStates terms@ContractTerms{ contractType = contractType } states =
         L.filter (\(_, eventType, (ShiftedDay{ calculationDay = calculationDay })) -> eventType == PRD || calculationDay > fromJust (ct_PRD terms)) states
       else
         states
-    _ ->
-      states
 
 genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
 genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue =

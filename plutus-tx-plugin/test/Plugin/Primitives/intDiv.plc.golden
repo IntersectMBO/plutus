@@ -6,11 +6,14 @@
       (vardecl
         divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam
-        x
-        (con integer)
-        (lam y (con integer) [ [ (builtin divideInteger) x ] y ])
+      (builtin divideInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
+      (lam x (con integer) (lam y (con integer) [ [ divideInteger x ] y ]))
     )
     divideInteger
   )

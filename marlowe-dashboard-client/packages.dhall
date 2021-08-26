@@ -171,6 +171,12 @@ let additions =
           ⫽ { repo = "https://github.com/shmish111/purescript-foreign-generic"
             , version = "bd412a186bae788967cfc92fd3c5e1415355ff8c"
             }
+      , markdown =
+          { dependencies =
+            [ "const", "datetime", "functors", "lists", "ordered-collections", "parsing", "partial", "precise", "prelude", "strings", "unicode", "validation" ]
+          , repo = "https://github.com/input-output-hk/purescript-markdown"
+          , version = "b51ee0e4aa04c9e6a5a70f2552a400c3f9cad439"
+          }
       , matryoshka =
           { dependencies =
             [ "prelude", "fixed-points", "free", "transformers", "profunctor" ]
@@ -188,6 +194,12 @@ let additions =
             [ "prelude", "integers", "rationals", "uint", "bigints" ]
           , repo = "https://github.com/Proclivis/purescript-numerics"
           , version = "v0.1.2"
+          }
+      , precise =
+          { dependencies =
+            [ "arrays", "console", "effect", "exceptions", "gen", "integers", "lists", "numbers", "prelude", "strings" ]
+          , repo = "https://github.com/purescript-contrib/purescript-precise"
+          , version = "v5.1.0"
           }
       }
 

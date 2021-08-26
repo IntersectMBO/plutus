@@ -3,11 +3,13 @@ module Examples.PureScript.ZeroCouponBond
   , fullExtendedContract
   , metaData
   , fixedTimeoutContract
+  , defaultSlotContent
   ) where
 
 import Prelude
-import Data.BigInteger (fromInt)
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
+import Data.Map (Map)
 import Data.Tuple.Nested ((/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
@@ -16,22 +18,24 @@ import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+contractTemplate = { metaData, extendedContract: fullExtendedContract }
 
 fixedTimeoutContract :: Contract
 fixedTimeoutContract =
   fillTemplate
     ( TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Initial exchange deadline" /\ fromInt 600
-              , "Maturity exchange deadline" /\ fromInt 1500
-              ]
-        , valueContent:
-            Map.empty
+        { slotContent: defaultSlotContent
+        , valueContent: Map.empty
         }
     )
     fullExtendedContract
+
+defaultSlotContent :: Map String BigInteger
+defaultSlotContent =
+  Map.fromFoldable
+    [ "Loan deadline" /\ fromInt 600
+    , "Payback deadline" /\ fromInt 1500
+    ]
 
 metaData :: MetaData
 metaData = Metadata.zeroCouponBond
@@ -40,22 +44,22 @@ ada :: Token
 ada = Token "" ""
 
 discountedPrice :: Value
-discountedPrice = ConstantParam "Discounted price"
+discountedPrice = ConstantParam "Interest"
 
 notionalPrice :: Value
-notionalPrice = ConstantParam "Notional price"
+notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
 
 investor :: Party
-investor = Role "Investor"
+investor = Role "Lender"
 
 issuer :: Party
-issuer = Role "Issuer"
+issuer = Role "Borrower"
 
 initialExchange :: Timeout
-initialExchange = SlotParam "Initial exchange deadline"
+initialExchange = SlotParam "Loan deadline"
 
 maturityExchangeTimeout :: Timeout
-maturityExchangeTimeout = SlotParam "Maturity exchange deadline"
+maturityExchangeTimeout = SlotParam "Payback deadline"
 
 transfer :: Timeout -> Party -> Party -> Value -> Contract -> Contract
 transfer timeout from to amount continuation =
