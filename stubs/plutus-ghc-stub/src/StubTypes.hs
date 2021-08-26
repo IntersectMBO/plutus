@@ -396,6 +396,9 @@ isLiftedTypeKind _ = True
 classifiesTypeWithValues :: Kind -> Bool
 classifiesTypeWithValues _ = True
 
+isRuntimeRepTy :: Type -> Bool
+isRuntimeRepTy _ = True
+
 splitFunTy_maybe :: Type -> Maybe (Type, Type)
 splitFunTy_maybe _ = Nothing
 
@@ -683,3 +686,6 @@ thNameToGhcName _ = undefined
 
 showSDocUnsafe :: SDoc -> String
 showSDocUnsafe _ = undefined
+
+dropRuntimeRepArgs :: [Type] -> [Type]
+dropRuntimeRepArgs _ = []
