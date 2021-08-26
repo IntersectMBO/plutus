@@ -355,6 +355,8 @@ BUILTIN encodeUtf8 (step _ base (V-con (string s))) =
 BUILTIN decodeUtf8 (step _ base (V-con (bytestring b))) with DECODEUTF8 b
 ... | nothing = error _
 ... | just s  = con (string s)
+BUILTIN unIData (step _ base (V-con (Data (iDATA i)))) = con (integer i)
+BUILTIN unBData (step _ base (V-con (Data (bDATA b)))) = con (bytestring b)
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

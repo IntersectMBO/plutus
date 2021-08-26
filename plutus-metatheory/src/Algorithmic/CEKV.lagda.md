@@ -176,7 +176,6 @@ BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
 BUILTIN decodeUtf8 (app _ base (V-con (bytestring b))) with DECODEUTF8 b
 ... | nothing = inj₂ (con string)
 ... | just s  = inj₁ (V-con (string s))
-
 BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
 BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
 BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
@@ -197,6 +196,9 @@ BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integ
 ... | no _  = inj₂ (con integer)
 ... | yes _ = inj₁ (V-con (integer (index b i)))
 BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (bool (primStringEquality s s')))
+BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₁ (V-con (integer i))
+BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
+  inj₁ (V-con (bytestring b))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

@@ -243,7 +243,10 @@ IBUILTIN encodeUtf8 σ (tt ,, _ ,, V-con (string s)) =
 IBUILTIN decodeUtf8 σ (tt ,, _ ,, V-con (bytestring b)) with DECODEUTF8 b
 ... | nothing = _ ,, inj₂ E-error
 ... | just s  = _ ,, inj₁ (V-con (string s))
-
+IBUILTIN unIData σ (tt ,, _ ,, V-con (Data (iDATA i))) =
+  _ ,, inj₁ (V-con (integer i))
+IBUILTIN unBData σ (tt ,, _ ,, V-con (Data (bDATA b))) =
+  _ ,, inj₁ (V-con (bytestring b))
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)

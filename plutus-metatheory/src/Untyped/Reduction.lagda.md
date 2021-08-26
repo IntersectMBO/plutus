@@ -268,6 +268,10 @@ IBUILTIN decodeUtf8
   with DECODEUTF8 b
 ... | nothing = _ , inr E-error
 ... | just s  = _ , inl (V-con (string s))
+IBUILTIN unIData (tt , (t , V-con (Data (iDATA i)))) =
+  _ , inl (V-con (integer i))
+IBUILTIN unBData (tt , (t , V-con (Data (bDATA b))))
+  = _ , inl (V-con (bytestring b))
   
 IBUILTIN _ _ = error , inr E-error
 
