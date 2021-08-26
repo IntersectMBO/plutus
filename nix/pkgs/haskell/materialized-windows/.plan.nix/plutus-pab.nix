@@ -86,6 +86,9 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-swagger-ui" or (errorHandler.buildDepError "servant-swagger-ui"))
+          (hsPkgs."servant-openapi3" or (errorHandler.buildDepError "servant-openapi3"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
@@ -117,6 +120,7 @@
           (hsPkgs."beam-sqlite" or (errorHandler.buildDepError "beam-sqlite"))
           (hsPkgs."beam-migrate" or (errorHandler.buildDepError "beam-migrate"))
           (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
+          (hsPkgs."orphans" or (errorHandler.buildDepError "orphans"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.cardano-node.components.exes.cardano-node or (pkgs.buildPackages.cardano-node or (errorHandler.buildToolDepError "cardano-node:cardano-node")))
@@ -249,6 +253,7 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [
@@ -274,6 +279,7 @@
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           hsSourceDirs = [ "examples/uniswap" ];
@@ -453,6 +459,7 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [

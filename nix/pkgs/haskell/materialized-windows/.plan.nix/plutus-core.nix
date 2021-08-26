@@ -102,6 +102,7 @@
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))

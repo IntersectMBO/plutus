@@ -55,6 +55,7 @@
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ];
         buildable = true;
         modules = [
