@@ -72,7 +72,7 @@ benchSliceByteString =
 
 benchConsByteString :: Benchmark
 benchConsByteString = createTwoTermBuiltinBench ConsByteString numbers (byteStringsToBench seedA)
-                      where numbers = fmap (1000 *) [100..2000] :: [Integer]
+                      where numbers = fmap (1000 *) [100, 200..2000] :: [Integer]
              -- In fact the numbers don't seem to matter here.  There'll be some
              -- cost coercing them to Word8, but even with very large numbers
              -- that seems to be negligible.
