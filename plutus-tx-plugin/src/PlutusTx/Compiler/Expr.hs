@@ -341,7 +341,7 @@ This note describes the support of unboxed tuples which are different from boxed
 The difference between boxed and unboxed types is available in GHC manual
 https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/primitives.html#unboxed-type-kinds
 
-Boxed tuples have kind '* -> * -> *' and they match the usual plugin workflow. But unboxed tuples
+Boxed tuples have kind '* -> * -> *' and can be compiled as normal datatypes. But unboxed tuples
 have a polymorphic kind and require additional tweaks on kind, type and expression levels.
 
 For example, the kind of '(# a , b #)' is
