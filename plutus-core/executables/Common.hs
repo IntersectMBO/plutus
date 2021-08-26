@@ -77,7 +77,7 @@ class Executable a where
     -> m ()
 
   -- | Convert names to de Bruijn indices and then serialise
-  serialiseDbProgramFlat :: Flat b => a b -> IO BSL.ByteString
+  serialiseDbProgramFlat :: (Flat b, PP.Pretty b) => a b -> IO BSL.ByteString
 
   -- | Read and deserialise a Flat-encoded UPLC AST
   loadASTfromFlat :: AstNameType -> Input -> IO (a ())

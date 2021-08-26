@@ -183,15 +183,26 @@ runPAB ::
     -> PABAction t env a
     -> IO (Either PABError a)
 runPAB endpointTimeout effectHandlers action = runM $ runError $ do
-    let EffectHandlers{initialiseEnvironment, onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionEffect} = effectHandlers
+    let EffectHandlers { initialiseEnvironment
+                       , onStartup
+                       , onShutdown
+                       , handleLogMessages
+                       , handleContractStoreEffect
+                       , handleContractEffect
+                       , handleContractDefinitionEffect
+                       } = effectHandlers
     (instancesState, blockchainEnv, appEnv) <- initialiseEnvironment
     let env = PABEnvironment{instancesState, blockchainEnv, appEnv, effectHandlers, endpointTimeout}
 
-    runReader env $ interpret (handleTimeEffect @t @env) $ handleLogMessages $ handleContractDefinitionEffect $ handleContractEffect $ handleContractStoreEffect $ do
-        onStartup
-        result <- action
-        onShutdown
-        pure result
+    runReader env $ interpret (handleTimeEffect @t @env)
+                  $ handleLogMessages
+                  $ handleContractDefinitionEffect
+                  $ handleContractEffect
+                  $ handleContractStoreEffect
+                  $ do onStartup
+                       result <- action
+                       onShutdown
+                       pure result
 
 -- | Run a PABAction in the context of the given environment.
 -- TODO: Clean it up so there is less duplication of the above.
@@ -201,19 +212,38 @@ runPAB' ::
     -> PABAction t env a
     -> IO (Either PABError a)
 runPAB' env@PABEnvironment{effectHandlers} action = runM $ runError $ do
-    let EffectHandlers{onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionEffect} = effectHandlers
+    let EffectHandlers { onStartup
+                       , onShutdown
+                       , handleLogMessages
+                       , handleContractStoreEffect
+                       , handleContractEffect
+                       , handleContractDefinitionEffect
+                       } = effectHandlers
 
-    runReader env $ interpret (handleTimeEffect @t @env) $ handleLogMessages $ handleContractDefinitionEffect $ handleContractEffect $ handleContractStoreEffect $ do
-        onStartup
-        result <- action
-        onShutdown
-        pure result
+    runReader env $ interpret (handleTimeEffect @t @env)
+                  $ handleLogMessages
+                  $ handleContractDefinitionEffect
+                  $ handleContractEffect
+                  $ handleContractStoreEffect
+                  $ do
+                    onStartup
+                    result <- action
+                    onShutdown
+                    pure result
 
 -- | Start a new instance of a contract, with a given state. Note that we skip
 -- running the effects that push the state into the contract store, because we
 -- assume that if you're providing the state, it's already present in the
 -- store.
-activateContract' :: forall t env. PABContract t => ContractInstanceState t -> ContractInstanceId -> Wallet -> ContractDef t -> PABAction t env ContractInstanceId
+activateContract' ::
+    forall t env.
+    ( PABContract t
+    )
+    => ContractInstanceState t
+    -> ContractInstanceId
+    -> Wallet
+    -> ContractDef t
+    -> PABAction t env ContractInstanceId
 activateContract' state cid w def = do
     PABRunner{runPABAction} <- pabRunner
 
@@ -257,7 +287,8 @@ callEndpointOnInstance instanceID ep value = do
 instanceStateInternal :: forall t env. ContractInstanceId -> PABAction t env Instances.InstanceState
 instanceStateInternal instanceId = do
     instancesState <- asks @(PABEnvironment t env) instancesState
-    r <- liftIO $ STM.atomically $ (Left <$> Instances.instanceState instanceId instancesState) <|> (pure $ Right $ ContractInstanceNotFound instanceId)
+    r <- liftIO $ STM.atomically $ (Left <$> Instances.instanceState instanceId instancesState)
+                               <|> (pure $ Right $ ContractInstanceNotFound instanceId)
     case r of
         Right err -> throwError err
         Left s    -> pure s
@@ -593,3 +624,4 @@ handleTimeEffect = \case
     SystemTime -> do
         Instances.BlockchainEnv{Instances.beCurrentSlot} <- asks @(PABEnvironment t env) blockchainEnv
         liftIO $ STM.readTVarIO beCurrentSlot
+

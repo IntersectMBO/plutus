@@ -38,23 +38,24 @@ module Plutus.Contract.CardanoAPI(
   , ToCardanoError(..)
 ) where
 
-import qualified Cardano.Api                 as C
-import qualified Cardano.Api.Shelley         as C
-import qualified Codec.Serialise             as Codec
-import           Data.Bifunctor              (first)
-import           Data.ByteString             as BS
-import qualified Data.ByteString.Lazy        as BSL
-import           Data.ByteString.Short       as BSS
-import qualified Data.Map                    as Map
-import qualified Data.Set                    as Set
-import           Data.Text.Prettyprint.Doc   (Pretty (..), colon, (<+>))
-import qualified Ledger                      as P
-import qualified Ledger.Ada                  as Ada
-import qualified Plutus.V1.Ledger.Api        as Api
-import qualified Plutus.V1.Ledger.Credential as Credential
-import qualified Plutus.V1.Ledger.Value      as Value
-import qualified PlutusCore.Data             as Data
-import qualified PlutusTx.Prelude            as PlutusTx
+import qualified Cardano.Api                    as C
+import qualified Cardano.Api.Shelley            as C
+import qualified Codec.Serialise                as Codec
+import           Data.Bifunctor                 (first)
+import           Data.ByteString                as BS
+import qualified Data.ByteString.Lazy           as BSL
+import           Data.ByteString.Short          as BSS
+import qualified Data.Map                       as Map
+import qualified Data.Set                       as Set
+import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, (<+>))
+import qualified Ledger                         as P
+import qualified Ledger.Ada                     as Ada
+import           Plutus.Contract.CardanoAPITemp (makeTransactionBody')
+import qualified Plutus.V1.Ledger.Api           as Api
+import qualified Plutus.V1.Ledger.Credential    as Credential
+import qualified Plutus.V1.Ledger.Value         as Value
+import qualified PlutusCore.Data                as Data
+import qualified PlutusTx.Prelude               as PlutusTx
 
 fromCardanoBlock :: C.BlockInMode mode -> Either FromCardanoError P.Block
 fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) _) =
@@ -88,7 +89,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
     txFee' <- toCardanoFee txFee
     txValidityRange <- toCardanoValidityRange txValidRange
     txMintValue <- toCardanoMintValue txMint txMintScripts
-    first TxBodyError $ C.makeTransactionBody C.TxBodyContent
+    first TxBodyError $ makeTransactionBody' C.TxBodyContent
         { txIns = txIns
         , txInsCollateral = txInsCollateral
         , txOuts = txOuts
@@ -96,15 +97,15 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txValidityRange = txValidityRange
         , txExtraScriptData = C.BuildTxWith $ toCardanoExtraScriptData (Map.elems txData)
         , txMintValue = txMintValue
+        , txProtocolParams = C.BuildTxWith protocolParams
+        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         -- unused:
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
         , txExtraKeyWits = C.TxExtraKeyWitnessesNone
-        , txProtocolParams = C.BuildTxWith protocolParams
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
-        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         }
 
 fromCardanoTxIn :: C.TxIn -> P.TxOutRef

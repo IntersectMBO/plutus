@@ -26,7 +26,9 @@
         (vardecl StakingHash (fun Credential StakingCredential))
         (vardecl
           StakingPtr
-          (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
+          (fun
+            (con integer)
+            (fun (con integer) (fun (con integer) StakingCredential)))
         )
       )
     )
@@ -83,9 +85,9 @@
         (tyvardecl Extended (fun (type) (type)))
         (tyvardecl a (type))
         Extended_match
-        (vardecl Finite (fun a [Extended a]))
-        (vardecl NegInf [Extended a])
-        (vardecl PosInf [Extended a])
+        (vardecl Finite (fun a [ Extended a ]))
+        (vardecl NegInf [ Extended a ])
+        (vardecl PosInf [ Extended a ])
       )
     )
     (datatypebind
@@ -93,7 +95,7 @@
         (tyvardecl LowerBound (fun (type) (type)))
         (tyvardecl a (type))
         LowerBound_match
-        (vardecl LowerBound (fun [Extended a] (fun Bool [LowerBound a])))
+        (vardecl LowerBound (fun [ Extended a ] (fun Bool [ LowerBound a ])))
       )
     )
     (datatypebind
@@ -101,7 +103,7 @@
         (tyvardecl UpperBound (fun (type) (type)))
         (tyvardecl a (type))
         UpperBound_match
-        (vardecl UpperBound (fun [Extended a] (fun Bool [UpperBound a])))
+        (vardecl UpperBound (fun [ Extended a ] (fun Bool [ UpperBound a ])))
       )
     )
     (datatypebind
@@ -109,7 +111,8 @@
         (tyvardecl Interval (fun (type) (type)))
         (tyvardecl a (type))
         Interval_match
-        (vardecl Interval (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
+        (vardecl
+          Interval (fun [ LowerBound a ] (fun [ UpperBound a ] [ Interval a ]))
         )
       )
     )
@@ -118,7 +121,7 @@
         (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
         Maybe_match
-        (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
       )
     )
     (datatypebind
@@ -127,7 +130,7 @@
 
         Address_match
         (vardecl
-          Address (fun Credential (fun [Maybe StakingCredential] Address))
+          Address (fun Credential (fun [ Maybe StakingCredential ] Address))
         )
       )
     )
@@ -136,7 +139,7 @@
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
         (tyvardecl a (type)) (tyvardecl b (type))
         Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+        (vardecl Tuple2 (fun a (fun b [ [ Tuple2 a ] b ])))
       )
     )
     (let
@@ -146,7 +149,8 @@
           (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
           Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
       )
       (let
@@ -158,7 +162,24 @@
             TxOut_match
             (vardecl
               TxOut
-              (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] TxOut)))
+              (fun
+                Address
+                (fun
+                  [
+                    [
+                      (lam k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                      (con bytestring)
+                    ]
+                    [
+                      [
+                        (lam
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                        (con bytestring)
+                      ]
+                      (con integer)
+                    ]
+                  ]
+                  (fun [ Maybe (con bytestring) ] TxOut)))
             )
           )
         )
@@ -177,7 +198,60 @@
             TxInfo_match
             (vardecl
               TxInfo
-              (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con data)]] (fun (con bytestring) TxInfo))))))))))
+              (fun
+                [ List TxInInfo ]
+                (fun
+                  [ List TxOut ]
+                  (fun
+                    [
+                      [
+                        (lam
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                        (con bytestring)
+                      ]
+                      [
+                        [
+                          (lam
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          (con bytestring)
+                        ]
+                        (con integer)
+                      ]
+                    ]
+                    (fun
+                      [
+                        [
+                          (lam
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          (con bytestring)
+                        ]
+                        [
+                          [
+                            (lam
+                              k
+                              (type)
+                              (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            (con bytestring)
+                          ]
+                          (con integer)
+                        ]
+                      ]
+                      (fun
+                        [ List DCert ]
+                        (fun
+                          [
+                            List [ [ Tuple2 StakingCredential ] (con integer) ]
+                          ]
+                          (fun
+                            [ Interval (con integer) ]
+                            (fun
+                              [ List (con bytestring) ]
+                              (fun
+                                [
+                                  List
+                                  [ [ Tuple2 (con bytestring) ] (con data) ]
+                                ]
+                                (fun (con bytestring) TxInfo))))))))))
             )
           )
         )
@@ -198,13 +272,15 @@
             Campaign_match
             (vardecl
               Campaign
-              (fun (con integer) (fun (con integer) (fun (con bytestring) Campaign)))
+              (fun
+                (con integer)
+                (fun (con integer) (fun (con bytestring) Campaign)))
             )
           )
         )
         (termbind
           (strict)
-          (vardecl collectionRange (fun Campaign [Interval (con integer)]))
+          (vardecl collectionRange (fun Campaign [ Interval (con integer) ]))
           (lam
             cmp
             Campaign
@@ -535,13 +611,27 @@
             Ord_match
             (vardecl
               CConsOrd
-              (fun [(lam a (type) (fun a (fun a Bool))) a] (fun (fun a (fun a Ordering)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a a)) (fun (fun a (fun a a)) [Ord a]))))))))
+              (fun
+                [ (lam a (type) (fun a (fun a Bool))) a ]
+                (fun
+                  (fun a (fun a Ordering))
+                  (fun
+                    (fun a (fun a Bool))
+                    (fun
+                      (fun a (fun a Bool))
+                      (fun
+                        (fun a (fun a Bool))
+                        (fun
+                          (fun a (fun a Bool))
+                          (fun
+                            (fun a (fun a a))
+                            (fun (fun a (fun a a)) [ Ord a ]))))))))
             )
           )
         )
         (termbind
           (nonstrict)
-          (vardecl fOrdPOSIXTime [Ord (con integer)])
+          (vardecl fOrdPOSIXTime [ Ord (con integer) ])
           [
             [
               [
@@ -567,19 +657,20 @@
         )
         (termbind
           (strict)
-          (vardecl compare (all a (type) (fun [Ord a] (fun a (fun a Ordering))))
+          (vardecl
+            compare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
           )
           (abs
             a
             (type)
             (lam
               v
-              [Ord a]
+              [ Ord a ]
               [
                 { [ { Ord_match a } v ] (fun a (fun a Ordering)) }
                 (lam
                   v
-                  [(lam a (type) (fun a (fun a Bool))) a]
+                  [ (lam a (type) (fun a (fun a Bool))) a ]
                   (lam
                     v
                     (fun a (fun a Ordering))
@@ -611,20 +702,24 @@
           (strict)
           (vardecl
             hull_ccompare
-            (all a (type) (fun [Ord a] (fun [Extended a] (fun [Extended a] Ordering))))
+            (all
+              a
+              (type)
+              (fun
+                [ Ord a ] (fun [ Extended a ] (fun [ Extended a ] Ordering))))
           )
           (abs
             a
             (type)
             (lam
               dOrd
-              [Ord a]
+              [ Ord a ]
               (lam
                 ds
-                [Extended a]
+                [ Extended a ]
                 (lam
                   ds
-                  [Extended a]
+                  [ Extended a ]
                   (let
                     (nonrec)
                     (termbind
@@ -666,7 +761,8 @@
                                                 (strict)
                                                 (vardecl
                                                   fail
-                                                  (fun (all a (type) a) Ordering)
+                                                  (fun
+                                                    (all a (type) a) Ordering)
                                                 )
                                                 (lam
                                                   ds
@@ -682,7 +778,10 @@
                                                               }
                                                               ds
                                                             ]
-                                                            (all dead (type) Ordering)
+                                                            (all
+                                                              dead
+                                                              (type)
+                                                              Ordering)
                                                           }
                                                           (lam
                                                             default_arg0
@@ -702,7 +801,10 @@
                                                                           }
                                                                           ds
                                                                         ]
-                                                                        (all dead (type) Ordering)
+                                                                        (all
+                                                                          dead
+                                                                          (type)
+                                                                          Ordering)
                                                                       }
                                                                       (lam
                                                                         l
@@ -722,7 +824,10 @@
                                                                                       }
                                                                                       ds
                                                                                     ]
-                                                                                    (all dead (type) Ordering)
+                                                                                    (all
+                                                                                      dead
+                                                                                      (type)
+                                                                                      Ordering)
                                                                                   }
                                                                                   (lam
                                                                                     r
@@ -776,7 +881,10 @@
                                                                                 ]
                                                                               )
                                                                             ]
-                                                                            (all dead (type) dead)
+                                                                            (all
+                                                                              dead
+                                                                              (type)
+                                                                              dead)
                                                                           }
                                                                         )
                                                                       )
@@ -802,7 +910,10 @@
                                                                     GT
                                                                   )
                                                                 ]
-                                                                (all dead (type) dead)
+                                                                (all
+                                                                  dead
+                                                                  (type)
+                                                                  dead)
                                                               }
                                                             )
                                                           )
@@ -822,7 +933,10 @@
                                                                       }
                                                                       ds
                                                                     ]
-                                                                    (all dead (type) Ordering)
+                                                                    (all
+                                                                      dead
+                                                                      (type)
+                                                                      Ordering)
                                                                   }
                                                                   (lam
                                                                     l
@@ -842,7 +956,10 @@
                                                                                   }
                                                                                   ds
                                                                                 ]
-                                                                                (all dead (type) Ordering)
+                                                                                (all
+                                                                                  dead
+                                                                                  (type)
+                                                                                  Ordering)
                                                                               }
                                                                               (lam
                                                                                 r
@@ -896,7 +1013,10 @@
                                                                             ]
                                                                           )
                                                                         ]
-                                                                        (all dead (type) dead)
+                                                                        (all
+                                                                          dead
+                                                                          (type)
+                                                                          dead)
                                                                       }
                                                                     )
                                                                   )
@@ -918,7 +1038,8 @@
                                                                 dead (type) GT
                                                               )
                                                             ]
-                                                            (all dead (type) dead)
+                                                            (all
+                                                              dead (type) dead)
                                                           }
                                                         )
                                                       ]
@@ -937,7 +1058,8 @@
                                                           { Extended_match a }
                                                           ds
                                                         ]
-                                                        (all dead (type) Ordering)
+                                                        (all
+                                                          dead (type) Ordering)
                                                       }
                                                       (lam
                                                         default_arg0
@@ -978,7 +1100,10 @@
                                                                 }
                                                                 ds
                                                               ]
-                                                              (all dead (type) Ordering)
+                                                              (all
+                                                                dead
+                                                                (type)
+                                                                Ordering)
                                                             }
                                                             (lam
                                                               default_arg0
@@ -1065,7 +1190,10 @@
                                                                     }
                                                                     ds
                                                                   ]
-                                                                  (all dead (type) Ordering)
+                                                                  (all
+                                                                    dead
+                                                                    (type)
+                                                                    Ordering)
                                                                 }
                                                                 (lam
                                                                   l
@@ -1085,7 +1213,10 @@
                                                                                 }
                                                                                 ds
                                                                               ]
-                                                                              (all dead (type) Ordering)
+                                                                              (all
+                                                                                dead
+                                                                                (type)
+                                                                                Ordering)
                                                                             }
                                                                             (lam
                                                                               r
@@ -1139,7 +1270,10 @@
                                                                           ]
                                                                         )
                                                                       ]
-                                                                      (all dead (type) dead)
+                                                                      (all
+                                                                        dead
+                                                                        (type)
+                                                                        dead)
                                                                     }
                                                                   )
                                                                 )
@@ -1179,7 +1313,10 @@
                                                                 }
                                                                 ds
                                                               ]
-                                                              (all dead (type) Ordering)
+                                                              (all
+                                                                dead
+                                                                (type)
+                                                                Ordering)
                                                             }
                                                             (lam
                                                               l
@@ -1199,7 +1336,10 @@
                                                                             }
                                                                             ds
                                                                           ]
-                                                                          (all dead (type) Ordering)
+                                                                          (all
+                                                                            dead
+                                                                            (type)
+                                                                            Ordering)
                                                                         }
                                                                         (lam
                                                                           r
@@ -1253,7 +1393,10 @@
                                                                       ]
                                                                     )
                                                                   ]
-                                                                  (all dead (type) dead)
+                                                                  (all
+                                                                    dead
+                                                                    (type)
+                                                                    dead)
                                                                 }
                                                               )
                                                             )
@@ -1324,7 +1467,8 @@
                                                           { Extended_match a }
                                                           ds
                                                         ]
-                                                        (all dead (type) Ordering)
+                                                        (all
+                                                          dead (type) Ordering)
                                                       }
                                                       (lam
                                                         default_arg0
@@ -1442,7 +1586,10 @@
                                                                     }
                                                                     ds
                                                                   ]
-                                                                  (all dead (type) Ordering)
+                                                                  (all
+                                                                    dead
+                                                                    (type)
+                                                                    Ordering)
                                                                 }
                                                                 (lam
                                                                   l
@@ -1462,7 +1609,10 @@
                                                                                 }
                                                                                 ds
                                                                               ]
-                                                                              (all dead (type) Ordering)
+                                                                              (all
+                                                                                dead
+                                                                                (type)
+                                                                                Ordering)
                                                                             }
                                                                             (lam
                                                                               r
@@ -1516,7 +1666,10 @@
                                                                           ]
                                                                         )
                                                                       ]
-                                                                      (all dead (type) dead)
+                                                                      (all
+                                                                        dead
+                                                                        (type)
+                                                                        dead)
                                                                     }
                                                                   )
                                                                 )
@@ -1556,7 +1709,10 @@
                                                                 }
                                                                 ds
                                                               ]
-                                                              (all dead (type) Ordering)
+                                                              (all
+                                                                dead
+                                                                (type)
+                                                                Ordering)
                                                             }
                                                             (lam
                                                               l
@@ -1576,7 +1732,10 @@
                                                                             }
                                                                             ds
                                                                           ]
-                                                                          (all dead (type) Ordering)
+                                                                          (all
+                                                                            dead
+                                                                            (type)
+                                                                            Ordering)
                                                                         }
                                                                         (lam
                                                                           r
@@ -1630,7 +1789,10 @@
                                                                       ]
                                                                     )
                                                                   ]
-                                                                  (all dead (type) dead)
+                                                                  (all
+                                                                    dead
+                                                                    (type)
+                                                                    dead)
                                                                 }
                                                               )
                                                             )
@@ -1701,7 +1863,8 @@
                                                           { Extended_match a }
                                                           ds
                                                         ]
-                                                        (all dead (type) Ordering)
+                                                        (all
+                                                          dead (type) Ordering)
                                                       }
                                                       (lam
                                                         default_arg0
@@ -1779,7 +1942,10 @@
                                                               }
                                                               ds
                                                             ]
-                                                            (all dead (type) Ordering)
+                                                            (all
+                                                              dead
+                                                              (type)
+                                                              Ordering)
                                                           }
                                                           (lam
                                                             l
@@ -1799,7 +1965,10 @@
                                                                           }
                                                                           ds
                                                                         ]
-                                                                        (all dead (type) Ordering)
+                                                                        (all
+                                                                          dead
+                                                                          (type)
+                                                                          Ordering)
                                                                       }
                                                                       (lam
                                                                         r
@@ -1852,7 +2021,10 @@
                                                                     ]
                                                                   )
                                                                 ]
-                                                                (all dead (type) dead)
+                                                                (all
+                                                                  dead
+                                                                  (type)
+                                                                  dead)
                                                               }
                                                             )
                                                           )
@@ -1887,7 +2059,8 @@
                                                           { Extended_match a }
                                                           ds
                                                         ]
-                                                        (all dead (type) Ordering)
+                                                        (all
+                                                          dead (type) Ordering)
                                                       }
                                                       (lam
                                                         l
@@ -1907,7 +2080,10 @@
                                                                       }
                                                                       ds
                                                                     ]
-                                                                    (all dead (type) Ordering)
+                                                                    (all
+                                                                      dead
+                                                                      (type)
+                                                                      Ordering)
                                                                   }
                                                                   (lam
                                                                     r
@@ -1957,7 +2133,8 @@
                                                                 ]
                                                               )
                                                             ]
-                                                            (all dead (type) dead)
+                                                            (all
+                                                              dead (type) dead)
                                                           }
                                                         )
                                                       )
@@ -2066,25 +2243,29 @@
           (strict)
           (vardecl
             fOrdUpperBound0_c
-            (all a (type) (fun [Ord a] (fun [UpperBound a] (fun [UpperBound a] Bool))))
+            (all
+              a
+              (type)
+              (fun
+                [ Ord a ] (fun [ UpperBound a ] (fun [ UpperBound a ] Bool))))
           )
           (abs
             a
             (type)
             (lam
               dOrd
-              [Ord a]
+              [ Ord a ]
               (lam
                 x
-                [UpperBound a]
+                [ UpperBound a ]
                 (lam
                   y
-                  [UpperBound a]
+                  [ UpperBound a ]
                   [
                     { [ { UpperBound_match a } x ] Bool }
                     (lam
                       v
-                      [Extended a]
+                      [ Extended a ]
                       (lam
                         in
                         Bool
@@ -2092,7 +2273,7 @@
                           { [ { UpperBound_match a } y ] Bool }
                           (lam
                             v
-                            [Extended a]
+                            [ Extended a ]
                             (lam
                               in
                               Bool
@@ -2148,41 +2329,44 @@
           (strict)
           (vardecl
             contains
-            (all a (type) (fun [Ord a] (fun [Interval a] (fun [Interval a] Bool))))
+            (all
+              a
+              (type)
+              (fun [ Ord a ] (fun [ Interval a ] (fun [ Interval a ] Bool))))
           )
           (abs
             a
             (type)
             (lam
               dOrd
-              [Ord a]
+              [ Ord a ]
               (lam
                 ds
-                [Interval a]
+                [ Interval a ]
                 (lam
                   ds
-                  [Interval a]
+                  [ Interval a ]
                   [
                     { [ { Interval_match a } ds ] Bool }
                     (lam
                       l
-                      [LowerBound a]
+                      [ LowerBound a ]
                       (lam
                         h
-                        [UpperBound a]
+                        [ UpperBound a ]
                         [
                           { [ { Interval_match a } ds ] Bool }
                           (lam
                             l
-                            [LowerBound a]
+                            [ LowerBound a ]
                             (lam
                               h
-                              [UpperBound a]
+                              [ UpperBound a ]
                               [
                                 { [ { LowerBound_match a } l ] Bool }
                                 (lam
                                   v
-                                  [Extended a]
+                                  [ Extended a ]
                                   (lam
                                     in
                                     Bool
@@ -2190,7 +2374,7 @@
                                       { [ { LowerBound_match a } l ] Bool }
                                       (lam
                                         v
-                                        [Extended a]
+                                        [ Extended a ]
                                         (lam
                                           in
                                           Bool
@@ -2222,7 +2406,8 @@
                                                         [
                                                           {
                                                             [ Bool_match in ]
-                                                            (all dead (type) Bool)
+                                                            (all
+                                                              dead (type) Bool)
                                                           }
                                                           (abs
                                                             dead
@@ -2235,7 +2420,10 @@
                                                                       Bool_match
                                                                       in
                                                                     ]
-                                                                    (all dead (type) Bool)
+                                                                    (all
+                                                                      dead
+                                                                      (type)
+                                                                      Bool)
                                                                   }
                                                                   (abs
                                                                     dead
@@ -2261,7 +2449,10 @@
                                                                   False
                                                                 )
                                                               ]
-                                                              (all dead (type) dead)
+                                                              (all
+                                                                dead
+                                                                (type)
+                                                                dead)
                                                             }
                                                           )
                                                         ]
@@ -2330,7 +2521,7 @@
             Monoid_match
             (vardecl
               CConsMonoid
-              (fun [(lam a (type) (fun a (fun a a))) a] (fun a [Monoid a]))
+              (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
             )
           )
         )
@@ -2338,35 +2529,39 @@
           (strict)
           (vardecl
             p1Monoid
-            (all a (type) (fun [Monoid a] [(lam a (type) (fun a (fun a a))) a]))
+            (all
+              a
+              (type)
+              (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
           )
           (abs
             a
             (type)
             (lam
               v
-              [Monoid a]
+              [ Monoid a ]
               [
                 {
-                  [ { Monoid_match a } v ] [(lam a (type) (fun a (fun a a))) a]
+                  [ { Monoid_match a } v ]
+                  [ (lam a (type) (fun a (fun a a))) a ]
                 }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
               ]
             )
           )
         )
         (termbind
           (strict)
-          (vardecl mempty (all a (type) (fun [Monoid a] a)))
+          (vardecl mempty (all a (type) (fun [ Monoid a ] a)))
           (abs
             a
             (type)
             (lam
               v
-              [Monoid a]
+              [ Monoid a ]
               [
                 { [ { Monoid_match a } v ] a }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
               ]
             )
           )
@@ -2377,7 +2572,13 @@
             (strict)
             (vardecl
               fFoldableNil_cfoldMap
-              (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
+              (all
+                m
+                (type)
+                (all
+                  a
+                  (type)
+                  (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
             )
             (abs
               m
@@ -2387,12 +2588,13 @@
                 (type)
                 (lam
                   dMonoid
-                  [Monoid m]
+                  [ Monoid m ]
                   (let
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
+                      (vardecl dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      )
                       [ { p1Monoid m } dMonoid ]
                     )
                     (lam
@@ -2400,7 +2602,7 @@
                       (fun a m)
                       (lam
                         ds
-                        [List a]
+                        [ List a ]
                         {
                           [
                             [
@@ -2412,7 +2614,7 @@
                               a
                               (lam
                                 xs
-                                [List a]
+                                [ List a ]
                                 (abs
                                   dead
                                   (type)
@@ -2448,23 +2650,30 @@
               (strict)
               (vardecl
                 fSemigroupFirst_c
-                (all a (type) (fun [(lam a (type) [Maybe a]) a] (fun [(lam a (type) [Maybe a]) a] [(lam a (type) [Maybe a]) a])))
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ (lam a (type) [ Maybe a ]) a ]
+                    (fun
+                      [ (lam a (type) [ Maybe a ]) a ]
+                      [ (lam a (type) [ Maybe a ]) a ])))
               )
               (abs
                 a
                 (type)
                 (lam
                   ds
-                  [(lam a (type) [Maybe a]) a]
+                  [ (lam a (type) [ Maybe a ]) a ]
                   (lam
                     b
-                    [(lam a (type) [Maybe a]) a]
+                    [ (lam a (type) [ Maybe a ]) a ]
                     {
                       [
                         [
                           {
                             [ { Maybe_match a } ds ]
-                            (all dead (type) [(lam a (type) [Maybe a]) a])
+                            (all dead (type) [ (lam a (type) [ Maybe a ]) a ])
                           }
                           (lam ipv a (abs dead (type) ds))
                         ]
@@ -2480,14 +2689,14 @@
               (strict)
               (vardecl
                 fMonoidFirst
-                (all a (type) [Monoid [(lam a (type) [Maybe a]) a]])
+                (all a (type) [ Monoid [ (lam a (type) [ Maybe a ]) a ] ])
               )
               (abs
                 a
                 (type)
                 [
                   [
-                    { CConsMonoid [(lam a (type) [Maybe a]) a] }
+                    { CConsMonoid [ (lam a (type) [ Maybe a ]) a ] }
                     { fSemigroupFirst_c a }
                   ]
                   { Nothing a }
@@ -2507,31 +2716,75 @@
                     { [ TxInfo_match ds ] Bool }
                     (lam
                       ds
-                      [List TxInInfo]
+                      [ List TxInInfo ]
                       (lam
                         ds
-                        [List TxOut]
+                        [ List TxOut ]
                         (lam
                           ds
-                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                          [
+                            [
+                              (lam
+                                k
+                                (type)
+                                (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                              (con bytestring)
+                            ]
+                            [
+                              [
+                                (lam
+                                  k
+                                  (type)
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                (con bytestring)
+                              ]
+                              (con integer)
+                            ]
+                          ]
                           (lam
                             ds
-                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                            [
+                              [
+                                (lam
+                                  k
+                                  (type)
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                (con bytestring)
+                              ]
+                              [
+                                [
+                                  (lam
+                                    k
+                                    (type)
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (con bytestring)
+                                ]
+                                (con integer)
+                              ]
+                            ]
                             (lam
                               ds
-                              [List DCert]
+                              [ List DCert ]
                               (lam
                                 ds
-                                [List [[Tuple2 StakingCredential] (con integer)]]
+                                [
+                                  List
+                                  [ [ Tuple2 StakingCredential ] (con integer) ]
+                                ]
                                 (lam
                                   ds
-                                  [Interval (con integer)]
+                                  [ Interval (con integer) ]
                                   (lam
                                     ds
-                                    [List (con bytestring)]
+                                    [ List (con bytestring) ]
                                     (lam
                                       ds
-                                      [List [[Tuple2 (con bytestring)] (con data)]]
+                                      [
+                                        List
+                                        [
+                                          [ Tuple2 (con bytestring) ] (con data)
+                                        ]
+                                      ]
                                       (lam
                                         ds
                                         (con bytestring)
@@ -2549,7 +2802,13 @@
                                                         {
                                                           {
                                                             fFoldableNil_cfoldMap
-                                                            [(lam a (type) [Maybe a]) (con bytestring)]
+                                                            [
+                                                              (lam
+                                                                a
+                                                                (type)
+                                                                [ Maybe a ])
+                                                              (con bytestring)
+                                                            ]
                                                           }
                                                           (con bytestring)
                                                         }
@@ -2591,7 +2850,14 @@
                                                                     False
                                                                   ]
                                                                 ]
-                                                                (all dead (type) [Maybe (con bytestring)])
+                                                                (all
+                                                                  dead
+                                                                  (type)
+                                                                  [
+                                                                    Maybe
+                                                                    (con
+                                                                      bytestring)
+                                                                  ])
                                                               }
                                                               (abs
                                                                 dead
@@ -2599,7 +2865,8 @@
                                                                 [
                                                                   {
                                                                     Just
-                                                                    (con bytestring)
+                                                                    (con
+                                                                      bytestring)
                                                                   }
                                                                   x
                                                                 ]
@@ -2670,35 +2937,97 @@
                               [
                                 {
                                   [ TxInfo_match txinfo ]
-                                  [Interval (con integer)]
+                                  [ Interval (con integer) ]
                                 }
                                 (lam
                                   ds
-                                  [List TxInInfo]
+                                  [ List TxInInfo ]
                                   (lam
                                     ds
-                                    [List TxOut]
+                                    [ List TxOut ]
                                     (lam
                                       ds
-                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                      [
+                                        [
+                                          (lam
+                                            k
+                                            (type)
+                                            (lam
+                                              v
+                                              (type)
+                                              [ List [ [ Tuple2 k ] v ] ]))
+                                          (con bytestring)
+                                        ]
+                                        [
+                                          [
+                                            (lam
+                                              k
+                                              (type)
+                                              (lam
+                                                v
+                                                (type)
+                                                [ List [ [ Tuple2 k ] v ] ]))
+                                            (con bytestring)
+                                          ]
+                                          (con integer)
+                                        ]
+                                      ]
                                       (lam
                                         ds
-                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                        [
+                                          [
+                                            (lam
+                                              k
+                                              (type)
+                                              (lam
+                                                v
+                                                (type)
+                                                [ List [ [ Tuple2 k ] v ] ]))
+                                            (con bytestring)
+                                          ]
+                                          [
+                                            [
+                                              (lam
+                                                k
+                                                (type)
+                                                (lam
+                                                  v
+                                                  (type)
+                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                              (con bytestring)
+                                            ]
+                                            (con integer)
+                                          ]
+                                        ]
                                         (lam
                                           ds
-                                          [List DCert]
+                                          [ List DCert ]
                                           (lam
                                             ds
-                                            [List [[Tuple2 StakingCredential] (con integer)]]
+                                            [
+                                              List
+                                              [
+                                                [ Tuple2 StakingCredential ]
+                                                (con integer)
+                                              ]
+                                            ]
                                             (lam
                                               ds
-                                              [Interval (con integer)]
+                                              [ Interval (con integer) ]
                                               (lam
                                                 ds
-                                                [List (con bytestring)]
+                                                [ List (con bytestring) ]
                                                 (lam
                                                   ds
-                                                  [List [[Tuple2 (con bytestring)] (con data)]]
+                                                  [
+                                                    List
+                                                    [
+                                                      [
+                                                        Tuple2 (con bytestring)
+                                                      ]
+                                                      (con data)
+                                                    ]
+                                                  ]
                                                   (lam ds (con bytestring) ds)
                                                 )
                                               )
@@ -2803,35 +3132,100 @@
                                 [
                                   {
                                     [ TxInfo_match txinfo ]
-                                    [Interval (con integer)]
+                                    [ Interval (con integer) ]
                                   }
                                   (lam
                                     ds
-                                    [List TxInInfo]
+                                    [ List TxInInfo ]
                                     (lam
                                       ds
-                                      [List TxOut]
+                                      [ List TxOut ]
                                       (lam
                                         ds
-                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                        [
+                                          [
+                                            (lam
+                                              k
+                                              (type)
+                                              (lam
+                                                v
+                                                (type)
+                                                [ List [ [ Tuple2 k ] v ] ]))
+                                            (con bytestring)
+                                          ]
+                                          [
+                                            [
+                                              (lam
+                                                k
+                                                (type)
+                                                (lam
+                                                  v
+                                                  (type)
+                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                              (con bytestring)
+                                            ]
+                                            (con integer)
+                                          ]
+                                        ]
                                         (lam
                                           ds
-                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                          [
+                                            [
+                                              (lam
+                                                k
+                                                (type)
+                                                (lam
+                                                  v
+                                                  (type)
+                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                              (con bytestring)
+                                            ]
+                                            [
+                                              [
+                                                (lam
+                                                  k
+                                                  (type)
+                                                  (lam
+                                                    v
+                                                    (type)
+                                                    [
+                                                      List [ [ Tuple2 k ] v ]
+                                                    ]))
+                                                (con bytestring)
+                                              ]
+                                              (con integer)
+                                            ]
+                                          ]
                                           (lam
                                             ds
-                                            [List DCert]
+                                            [ List DCert ]
                                             (lam
                                               ds
-                                              [List [[Tuple2 StakingCredential] (con integer)]]
+                                              [
+                                                List
+                                                [
+                                                  [ Tuple2 StakingCredential ]
+                                                  (con integer)
+                                                ]
+                                              ]
                                               (lam
                                                 ds
-                                                [Interval (con integer)]
+                                                [ Interval (con integer) ]
                                                 (lam
                                                   ds
-                                                  [List (con bytestring)]
+                                                  [ List (con bytestring) ]
                                                   (lam
                                                     ds
-                                                    [List [[Tuple2 (con bytestring)] (con data)]]
+                                                    [
+                                                      List
+                                                      [
+                                                        [
+                                                          Tuple2
+                                                          (con bytestring)
+                                                        ]
+                                                        (con data)
+                                                      ]
+                                                    ]
                                                     (lam ds (con bytestring) ds)
                                                   )
                                                 )
@@ -2862,7 +3256,11 @@
               (strict)
               (vardecl
                 mkValidator
-                (fun Campaign (fun (con bytestring) (fun CampaignAction (fun ScriptContext Bool))))
+                (fun
+                  Campaign
+                  (fun
+                    (con bytestring)
+                    (fun CampaignAction (fun ScriptContext Bool))))
               )
               (lam
                 c

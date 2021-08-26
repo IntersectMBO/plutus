@@ -39,7 +39,7 @@ data Node = Variable PLC.Unique | Root deriving (Show, Eq, Ord)
 
 -- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from it), whose
 -- vertices are 'Node's.
-type DepGraph g = (G.Graph g, (G.Vertex g)~Node)
+type DepGraph g = (G.Graph g, G.Vertex g ~ Node)
 
 varStrictnessFun ::
     (MonadState DepState m, PLC.HasUnique name u)

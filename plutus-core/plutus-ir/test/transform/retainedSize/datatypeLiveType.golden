@@ -1,0 +1,13 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      $1$
+      (tyvardecl $17$ Maybe (fun (type) (type)))
+      (tyvardecl $2$ a (type))
+      match_Maybe
+      (vardecl $4$ Nothing [ Maybe a ]) (vardecl $6$ Just (fun a [ Maybe a ]))
+    )
+  )
+  (error Maybe)
+)
