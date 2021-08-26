@@ -1,5 +1,7 @@
 module Benchmarks.Tracing (makeBenchmarks) where
 
+import           PlutusCore
+
 import           Benchmarks.Common
 
 import           Criterion.Main

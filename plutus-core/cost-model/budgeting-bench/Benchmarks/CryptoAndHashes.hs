@@ -4,7 +4,7 @@ module Benchmarks.CryptoAndHashes (makeBenchmarks) where
 
 import           Benchmarks.Common
 
-import           PlutusCore            as PLC
+import           PlutusCore
 
 import           Criterion.Main
 import qualified Data.ByteString       as BS
@@ -26,9 +26,6 @@ byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStrin
 
 makeSizedBytestring :: HH.Seed -> Int -> BS.ByteString
 makeSizedBytestring seed e = genSample seed (HH.bytes (HH.Range.singleton e))
-
-seedA :: HH.Seed
-seedA = HH.Seed 42 43
 
 benchByteStringOneArgOp :: DefaultFun -> Benchmark
 benchByteStringOneArgOp name =

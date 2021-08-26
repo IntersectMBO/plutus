@@ -145,15 +145,15 @@ benchNop1 :: StdGen -> Benchmark
 benchNop1 gen =
     let name = Nop1
         mem = 1
-        (x,_) = randNwords mem gen
+        (x,_) = randNwords gen mem
     in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
     let name = Nop2
         mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,_)    = randNwords mem gen1
+        (x,gen1) = randNwords gen  mem
+        (y,_)    = randNwords gen1 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name x y]
@@ -163,9 +163,9 @@ benchNop3 :: StdGen -> Benchmark
 benchNop3 gen =
     let name = Nop3
         mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,gen2) = randNwords mem gen1
-        (z,_)    = randNwords mem gen2
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,_)    = randNwords gen2 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
@@ -177,10 +177,10 @@ benchNop4 :: StdGen -> Benchmark
 benchNop4 gen =
     let name = Nop4
         mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,gen2) = randNwords mem gen1
-        (z,gen3) = randNwords mem gen2
-        (t,_)    = randNwords mem gen3
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,_)    = randNwords gen3 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
@@ -194,11 +194,11 @@ benchNop5 :: StdGen -> Benchmark
 benchNop5 gen =
     let name = Nop5
         mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,gen2) = randNwords mem gen1
-        (z,gen3) = randNwords mem gen2
-        (t,gen4) = randNwords mem gen3
-        (u,_)    = randNwords mem gen4
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,_)    = randNwords gen4 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
@@ -214,12 +214,12 @@ benchNop6 :: StdGen -> Benchmark
 benchNop6 gen =
     let name = Nop6
         mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,gen2) = randNwords mem gen1
-        (z,gen3) = randNwords mem gen2
-        (t,gen4) = randNwords mem gen3
-        (u,gen5) = randNwords mem gen4
-        (v,_)    = randNwords mem gen5
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,gen5) = randNwords gen4 mem
+        (v,_)    = randNwords gen5 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)

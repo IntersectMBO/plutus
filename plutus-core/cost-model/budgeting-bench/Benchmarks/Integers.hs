@@ -19,21 +19,13 @@ indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
 NOINLINE suffices, but that's perhaps a bit too fragile).
 -}
 
--- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
-makeSizedIntegers :: [Integer] -> StdGen -> ([Integer], StdGen)
-makeSizedIntegers [] g = ([], g)
-makeSizedIntegers (n:ns) g =
-    let (m,g1) = randNwords n g
-        (ms,g2) = makeSizedIntegers ns g1
-    in (m:ms,g2)
-
 {- For benchmarking functions with integer arguments we provide a list of random
    integers with 1,3,5,...,31 words.  Experiments suggest that these give us good
    models of the behaviour of functions for "reasonable" inputs (which will in
    fact probably only occupy one word).  We still need to guard against denial
    of service, and we may need to impose penalties for *really* large inputs. -}
 makeDefaultIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeDefaultIntegerArgs gen = makeSizedIntegers [1, 3..31] gen
+makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31]
 
 benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchTwoIntegers gen builtinName =
@@ -48,7 +40,7 @@ benchTwoIntegers gen builtinName =
    the results are very uniform with the smaller numbers, leading to occasional
    models with negative slopes.  Using larger numbers may help to avoid this. -}
 makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeBiggerIntegerArgs gen = makeSizedIntegers [1, 3..101] gen
+makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3..101]
 
 benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName inputs inputs'

@@ -485,11 +485,12 @@ ifThenElse _ =
 
 ---------------- Unit ----------------
 
--- ### TODO: get model from R ###
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-chooseUnit _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
--- \() a -> a;  probably cheap
+chooseUnit _ = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost 4
+    pure $ CostingFun cpuModel memModel
+-- \() a -> a
 
 ---------------- Tracing ----------------
 

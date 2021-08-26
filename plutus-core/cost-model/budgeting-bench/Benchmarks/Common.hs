@@ -4,7 +4,7 @@
 module Benchmarks.Common
 where
 
-import           PlutusCore                                      as PLC
+import           PlutusCore
 import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.MachineParameters
@@ -23,6 +23,7 @@ import           System.Random                                   (StdGen, random
 
 import qualified Hedgehog                                        as H
 import qualified Hedgehog.Internal.Gen                           as G
+import qualified Hedgehog.Internal.Range                         as R
 import qualified Hedgehog.Internal.Tree                          as T
 
 type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
@@ -202,8 +203,8 @@ createTwoTermBuiltinBenchElementwise name xs ys =
 {- In principle a random 5-word integer (for example) might only occupy 4 or
    fewer words, but we're generating uniformly distributed values so the
    probability of that happening should be at most 1 in 2^64. -}
-randNwords :: Integer -> StdGen -> (Integer, StdGen)
-randNwords n gen = randomR (lb,ub) gen
+randNwords :: StdGen -> Integer -> (Integer, StdGen)
+randNwords gen n = randomR (lb,ub) gen
     where lb = 2^(64*(n-1))
           ub = 2^(64*n) - 1
 
@@ -216,9 +217,28 @@ randNwords n gen = randomR (lb,ub) gen
 genSample :: H.Seed -> G.Gen a -> a
 genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (H.Size 1) seed gen
 
-powersOfTwo :: [Integer]
-powersOfTwo = integerPower 2 <$> [1..16]
 
--- Make some really big numbers for benchmarking
-threeToThePower :: Integer -> Integer
-threeToThePower e = integerPower 3 e
+---------------- Creating things of a given size ----------------
+
+seedA :: H.Seed
+seedA = H.Seed 42 43
+
+seedB :: H.Seed
+seedB = H.Seed 44 45
+
+-- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
+makeSizedIntegers :: StdGen -> [Integer] -> ([Integer], StdGen)
+makeSizedIntegers g [] = ([], g)
+makeSizedIntegers g (n:ns) =
+    let (m,g1) = randNwords g n
+        (ms,g2) = makeSizedIntegers g1 ns
+    in (m:ms,g2)
+
+-- Create a bytestring whose memory usage is n.  Since we measure memory usage
+-- in 64-bit words we have to create a bytestring containing 8*n bytes.
+makeSizedByteString :: H.Seed -> Int -> BS.ByteString
+makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8*n)))
+
+-- FIXME: this is terrible
+makeSizedByteStrings :: H.Seed -> [Int] -> [BS.ByteString]
+makeSizedByteStrings seed l = map (makeSizedByteString seed) l

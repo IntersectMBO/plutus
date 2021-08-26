@@ -2,7 +2,7 @@ module Benchmarks.ByteStrings (makeBenchmarks) where
 
 import           Benchmarks.Common
 
-import           PlutusCore            as PLC
+import           PlutusCore
 
 import           Criterion.Main
 import qualified Data.ByteString       as BS
@@ -24,19 +24,8 @@ byteStringSizes :: [Integer]
 byteStringSizes = [0, 250..5000]  -- 21 entries.
 -- byteStringSizes = integerPower 2 <$> [1..20::Integer]
 
--- Create a bytestring whose memory usage is n.  Since we measure memory usage
--- in 64-bit words we have to create a bytestring containing 8*n bytes.
-makeSizedByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8*n)))
-
 byteStringsToBench :: H.Seed -> [BS.ByteString]
 byteStringsToBench seed = (makeSizedByteString seed . fromInteger) <$> byteStringSizes
-
-seedA :: H.Seed
-seedA = H.Seed 42 43
-
-seedB :: H.Seed
-seedB = H.Seed 44 45
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
@@ -87,6 +76,8 @@ benchConsByteString = createTwoTermBuiltinBench ConsByteString numbers (byteStri
              -- In fact the numbers don't seem to matter here.  There'll be some
              -- cost coercing them to Word8, but even with very large numbers
              -- that seems to be negligible.
+             -- FIXME: This takes a long time, so confirm that the size of the first argument
+             -- is irrelevant and pass a list of 100 or so bytestrings.
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])

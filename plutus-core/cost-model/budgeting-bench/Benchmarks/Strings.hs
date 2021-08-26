@@ -4,7 +4,7 @@ module Benchmarks.Strings (makeBenchmarks) where
 
 import           Benchmarks.Common
 
-import           PlutusCore            as PLC
+import           PlutusCore
 
 import           Criterion.Main
 import           Data.ByteString       as BS
@@ -75,12 +75,6 @@ in 0x00-0x7F need one byte in UTF-8, those in 0x80-0xFF require two, so the
 average number of bytes per character is 3/2).
 -}
 
-
-seedA :: H.Seed
-seedA = H.Seed 42 43
-
-seedB :: H.Seed
-seedB = H.Seed 44 45
 
 oneArgumentSizes :: [Integer]
 oneArgumentSizes = [0, 100..10000] -- 101 entries

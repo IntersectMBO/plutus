@@ -380,7 +380,15 @@ modelFun <- function(path) {
 
     ##### Unit #####
 
-    chooseUnitModel <- 0
+    chooseUnitModel <- {
+        fname <- "chooseUnit"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ 1, data=filtered)
+        adjustModel(m,fname)
+    }
     
 
     ##### Tracing #####
