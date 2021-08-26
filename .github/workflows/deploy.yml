@@ -1,0 +1,13 @@
+name: "Deploy"
+on:
+  push:
+    branches:
+      - bitte
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PLUTUS_OPS_GITHUB_TOKEN }}
+    steps:
+      # Purposefully don't checkout
+      - run: ./scripts/deploy-bitte master
