@@ -309,6 +309,7 @@ modelFun <- function(path) {
         fname <- "Sha3_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
             discard.overhead (one.arg.overhead)
       m <- lm(Mean ~ x_mem, data=filtered)
       adjustModel(m,fname)
@@ -327,7 +328,52 @@ modelFun <- function(path) {
     }
 
 
-    ##### Bool #####
+    ##### Strings #####
+
+    appendByteStringModel <- {
+        fname <- "AppendString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter (x_mem > 0 & ymem > 0)    %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
+        adjustModel(m,fname)
+    }
+
+    equalsStringModel <- {
+        fname <- "EqualsString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ x_mem, data=filtered)
+        adjustModel(m,fname)
+    }
+
+    decodeUtf8Model <- {
+        fname <- "decodeUtf8"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (one.arg.overhead)
+        m <- lm(Mean ~ x_mem, data=filtered)
+        adjustModel(m,fname)
+    }
+    
+    encodeUtf8Model <- {
+        fname <- "encodeUtf8"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (one.arg.overhead)
+        m <- lm(Mean ~ x_mem, data=filtered)
+        adjustModel(m,fname)
+    }
+
+    
+##### Bool #####
 
     ifThenElseModel <- 0
 
@@ -395,9 +441,9 @@ modelFun <- function(path) {
         sha3_256Model                 = sha3_256Model,
         blake2bModel                  = blake2bModel,
         verifySignatureModel          = verifySignatureModel,
-        ## appendStringModel
-        ## equalStringModel
-        ## encodeUtf8Model
+        ## appendStringModel  : filter x=0 & y=0; linear in x+y
+        ## equalStringModel   : linear in x (=y); type of contents doesn't matter
+        ## encodeUtf8Model    : linear in 
         ## decodeUtf8Model
         ifThenElseModel               = ifThenElseModel,
         chooseUnitModel               = chooseUnitModel,

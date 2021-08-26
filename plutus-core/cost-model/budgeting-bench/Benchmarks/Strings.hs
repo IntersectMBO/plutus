@@ -96,7 +96,7 @@ twoArgumentSizes = [0, 250..5000]  -- 21 entries
 {- This makes a Text string containing n unicode characters.  We use the unicode
  generator since that mostly produces 4 bytes per character, which is the worst
  case. If we were to use the ascii generator that would give us two bytes per
- character. -}
+ character.  See Note [Choosing the inputs for costing benchmarks] below.-}
 makeSizedTextString :: H.Seed -> Int -> T.Text
 makeSizedTextString seed n = genSample seed (G.text (R.singleton (2*n)) G.unicode)
 
@@ -109,27 +109,18 @@ benchOneTextString name =
 
 
 {- | Generate a valid UTF-8 bytestring with memory usage approximately n for
-benchmarking decodeUtf8.  The 'utf8' generator produces bytestrings containing n
-UTF-8 encoded Unicode characters, and if we use the 'unicode' generator most of
-these will require four bytes, so the output will have memory usage of
-approximately n words.  If we used 'ascii' instead then we'd get exactly n
-bytes, so n/4 words. We want to measure the worst-case time of decoding a
-bytestring 'b' of length n, and it's not initially clear when the worst case
-occurs.  If 'b' contains only ascii characters then 'decodeUtf8' will have to
-process n characters, but processing each character will be cheap; if 'b'
-contains only characters outside the BMP then there will be n/4 characters but
-each one will be expensive to process.  Benchmarking shows that the latter is
-about x times more expensive than the former, so we use the latter here.
--}
+   benchmarking decodeUtf8.  We use the 'unicode' generator beacuse that gives
+   the worst-case behaviour: see Note [Choosing the inputs for costing
+   benchmarks] below).-}
 makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
 makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2*n)) G.unicode)
 
 makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [BS.ByteString]
 makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
 
-{- This is for DecodeUtf8.  That fails if the encoded data is invalid, so we make
-   sure that the input data is valid data for it by using data produced by
-   G.utf8 (see above). -}
+{- This is for benchmarking DecodeUtf8.  That fails if the encoded data is
+   invalid, so we make sure that the input data is valid data for it by using
+   data produced by G.utf8 (see above). -}
 benchOneUtf8ByteString :: DefaultFun -> Benchmark
 benchOneUtf8ByteString name =
     createOneTermBuiltinBench name $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
@@ -157,5 +148,54 @@ makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
                       , benchSameTwoTextStrings EqualsString
                       ]
 
+{- Note [Choosing the inputs for costing benchmarks].  We carried out some
+   preliminary benchmarking to determine the execution times for encodeUtf8 and
+   decodeUtf8 with different kinds of input to check which gave the worst case,
+   and we use the worsrt-case inputs for the costing benchmarks above.
 
 
+   encodeUtf8: we looked at two different types of input, both containing n
+   64-bit words and generated with Hedgehog's 'text' generator:
+
+     (A) inputs using the 'ascii' generator for characters: these contain 4n
+         characters (one 16-bit codepoint per character) and produce a 4n-byte
+         UTF-8 output (4n characters, each encoded using 1 byte).
+
+     (B) inputs using the 'unicode' generator for characters: these contain 2n
+         characters (the majority (> 98%)requiring 16-bit codepoints per
+         character) and produce a UTF-8 output of size about 8n bytes (n words:
+         2n characters, mostly encoded using 4 bytes).
+
+   Encoding inputs of both types is linear in the size of the input, but type B
+   takes 2.5-3 times as long as inputs of type A, so we use B as the benchmark
+   inputs to covert the worst case.  The strings we're likely to see in practice
+   will be of type A, so we'll overestimate the cost of encoding them.
+
+
+   decodeUtf8: similarly to encodeUtf8, we looked at two different types of
+   UTF-8 encoded inputs generated with the 'utf8' generator, each requiring 8n
+   bytes (ie size n in words):
+
+     (A) inputs generated with the 'ascii' generator for characters: these
+         contain 8n characters (each encoded using one byte) and produce a
+         UTF-16 output of size 16n bytes (2n words: 8n characters, each encoded
+         using one 16-bit codepoint).
+
+     (B) inputs generated with the 'unicode' generator for characters: these
+         contain 2n characters (mostly encoded using four bytes) and produce a
+         UTF-16 output of size about 8n bytes (n words: 2n characters, each
+         encoded using two 16-bit codepoints).
+
+   Decoding both types of input was linear in the size of the input, but inputs
+   of type B took about 3.5 times as long as type A (despite the fact that
+   inputs of type A contain 4 times as many characters as B), so we use inputs
+   of type B for the costing benchmarks.
+
+   For the other string functions (appendString and equalsString) the time taken
+   depended only on the size of the input, with the contents not mattering.
+   AppendString was linear in the sum of the input sizes (except that it was
+   anomalously fast when one of the inputs was empty, presumably because the
+   underlying Haskell function has to do less work in this case) and
+   equalsString (applied to strings with identical contents) was linear in the
+   input size.
+-}
