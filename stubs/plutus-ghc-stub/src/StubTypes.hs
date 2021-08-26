@@ -40,6 +40,7 @@ data Coercion  = Coercion_ deriving Data
 data Type      = Type_ deriving (Data, Outputable)
 type Kind      = Type
 type TyVar = Var
+data TyCoBinder = TyCoBinder_ deriving (Data, Outputable)
 data SrcSpan = SrcSpan_ deriving (Eq, Ord, Data, Outputable)
 data RealSrcSpan = RealSrcSpan_ deriving (Data, Outputable)
 data Tickish a =
@@ -470,7 +471,7 @@ splitCastTy_maybe :: Type -> Maybe (Type, Coercion)
 splitCastTy_maybe _ = Nothing
 
 splitPiTy_maybe :: Type -> Maybe (TyCoBinder, Type)
-splitPiTy_maybe = Nothing
+splitPiTy_maybe _ = Nothing
 
 unwrapNewTyCon_maybe :: TyCon -> Maybe ([TyVar], Type, CoAxiom Unbranched)
 unwrapNewTyCon_maybe _ = Nothing
