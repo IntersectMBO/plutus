@@ -15,21 +15,22 @@ import qualified Hedgehog.Internal.Gen as HH
 import qualified Hedgehog.Range        as HH.Range
 
 
--- *** DUPLICATED
-
-byteStringSizes :: [Integer]
+byteStringSizes :: [Int]
 byteStringSizes = fmap (100*) [0..100]
--- 0--80000 bytes
 
-byteStringsToBench :: HH.Seed -> [BS.ByteString]
-byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
+mediumByteStrings :: HH.Seed -> [BS.ByteString]
+mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 
-makeSizedBytestring :: HH.Seed -> Int -> BS.ByteString
-makeSizedBytestring seed e = genSample seed (HH.bytes (HH.Range.singleton e))
+bigByteStrings :: HH.Seed -> [BS.ByteString]
+bigByteStrings seed = makeSizedByteStrings seed (fmap (100*) byteStringSizes)
+-- Up to  8,000,000 bytes.
+
+--VerifySignature : check the results, maybe try with bigger inputs.
+
 
 benchByteStringOneArgOp :: DefaultFun -> Benchmark
 benchByteStringOneArgOp name =
-    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+    bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name b
 
 
@@ -47,7 +48,7 @@ pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 -- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
-    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+    bgroup (show name) $ fmap mkBM (bigByteStrings seedA)
            where name = VerifySignature
                  mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name pubKey b sig
 

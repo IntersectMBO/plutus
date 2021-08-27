@@ -68,9 +68,9 @@ main = do
   criterionMainWith
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-            Benchmarks.Unit.makeBenchmarks gen
-        <>  Benchmarks.ByteStrings.makeBenchmarks     gen
-        <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
+ ---           Benchmarks.Unit.makeBenchmarks gen
+--        <>  Benchmarks.ByteStrings.makeBenchmarks     gen
+          Benchmarks.CryptoAndHashes.makeBenchmarks gen
 {-            Benchmarks.Strings.makeBenchmarks         gen
         <>  Benchmarks.Integers.makeBenchmarks        gen
         <>  Benchmarks.Bool.makeBenchmarks            gen

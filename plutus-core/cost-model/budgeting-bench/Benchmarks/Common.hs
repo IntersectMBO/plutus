@@ -203,7 +203,7 @@ createTwoTermBuiltinBenchElementwise name xs ys =
 {- In principle a random 5-word integer (for example) might only occupy 4 or
    fewer words, but we're generating uniformly distributed values so the
    probability of that happening should be at most 1 in 2^64. -}
-randNwords :: StdGen -> Integer -> (Integer, StdGen)
+randNwords :: StdGen -> Int -> (Integer, StdGen)
 randNwords gen n = randomR (lb,ub) gen
     where lb = 2^(64*(n-1))
           ub = 2^(64*n) - 1
@@ -227,7 +227,7 @@ seedB :: H.Seed
 seedB = H.Seed 44 45
 
 -- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
-makeSizedIntegers :: StdGen -> [Integer] -> ([Integer], StdGen)
+makeSizedIntegers :: StdGen -> [Int] -> ([Integer], StdGen)
 makeSizedIntegers g [] = ([], g)
 makeSizedIntegers g (n:ns) =
     let (m,g1) = randNwords g n
