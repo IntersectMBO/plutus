@@ -489,7 +489,7 @@ instanceState wallet instanceId = handleAgentThread wallet (Contract.getState @t
 observableState :: forall t env. ContractInstanceId -> PABAction t env (STM JSON.Value)
 observableState instanceId = do
     instancesState <- asks @(PABEnvironment t env) instancesState
-    pure $ Instances.obervableContractState instanceId instancesState
+    pure $ Instances.observableContractState instanceId instancesState
 
 -- | Wait until the observable state of the instance matches a predicate.
 waitForState :: forall t env a. (JSON.Value -> Maybe a) -> ContractInstanceId -> PABAction t env a
