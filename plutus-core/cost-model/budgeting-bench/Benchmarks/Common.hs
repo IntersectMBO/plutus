@@ -36,6 +36,16 @@ showMemoryUsage = show . memoryUsage
 ---------------- Cloning objects ----------------
 -- TODO: look at GHC.Compact
 
+{- | In some cases (for example, equality testing) the worst-case behaviour of a
+builtin will be when it has two identical arguments However, there's a danger
+that if the arguments are physically identical (ie, they are (pointers to) the
+same object in the heap) the underlying implementation may notice that and
+return immediately.  The code below attempts to avoid this by producing a
+completely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
+indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
+NOINLINE suffices, but that's perhaps a bit too fragile).
+-}
+
 {-# NOINLINE incInteger #-}
 incInteger :: Integer -> Integer
 incInteger n = n+1
@@ -170,9 +180,8 @@ mkApp6 name tys x y z t u v =
 integerPower :: Integer -> Integer -> Integer
 integerPower = (^) -- Just to avoid some type ascriptions later
 
-{- | Given a builtin function f of type a -> _ together with a lists xs::[a]
-   (along with their memory sizes), create a collection of benchmarks which run
-   f on all elements of xs. -}
+{- | Given a builtin function f of type a -> _ together with a lists xs, create a
+   collection of benchmarks which run f on all elements of xs. -}
 createOneTermBuiltinBench
     :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, ExMemoryUsage a)
     => fun
@@ -184,8 +193,8 @@ createOneTermBuiltinBench name tys xs =
         where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name tys x
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
-   ys::[b] (along with their memory sizes), create a collection of benchmarks
-   which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
+   ys::[b], create a collection of benchmarks which run f on all pairs in
+   {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
     :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
     => fun

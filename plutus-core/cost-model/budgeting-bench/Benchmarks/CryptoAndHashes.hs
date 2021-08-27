@@ -56,12 +56,11 @@ benchVerifySignature =
            where name = VerifySignature
                  mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name [] pubKey b sig
 -- TODO: this seems suspicious.  The benchmark results seem to be pretty much
--- constant (w few microseconds) irrespective of the size of the input, but I'm
+-- constant (a few microseconds) irrespective of the size of the input, but I'm
 -- pretty certain that you need to look at every byte of the input to verify the
 -- signature.  If you change the size of the public key then it takes three
 -- times as long, but the 'verify' implementation checks the size and fails
 -- immediately if the key or signature has the wrong size.
-
 
 
 makeBenchmarks :: StdGen -> [Benchmark]

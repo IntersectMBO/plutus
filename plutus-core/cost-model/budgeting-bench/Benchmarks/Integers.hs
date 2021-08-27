@@ -9,16 +9,6 @@ import           System.Random     (StdGen)
 
 ---------------- Integer builtins ----------------
 
-{- | In some cases (for example, equality testing) the worst-case behaviour of a
-builtin will be when it has two identical arguments However, there's a danger
-that if the arguments are physically identical (ie, they are (pointers to) the
-same object in the heap) the underlying implementation may notice that and
-return immediately.  The code below attempts to avoid this by producing a
-complerely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
-indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
-NOINLINE suffices, but that's perhaps a bit too fragile).
--}
-
 {- For benchmarking functions with integer arguments we provide a list of random
    integers with 1,3,5,...,31 words.  Experiments suggest that these give us good
    models of the behaviour of functions for "reasonable" inputs (which will in
@@ -29,10 +19,10 @@ makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31]
 
 benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchTwoIntegers gen builtinName =
-    createTwoTermBuiltinBench builtinName [] inputs inputs
+    createTwoTermBuiltinBench builtinName [] inputs inputs'
     where
-      (inputs,_) = makeDefaultIntegerArgs gen
-
+      (inputs,gen') = makeDefaultIntegerArgs gen
+      (inputs', _)  = makeDefaultIntegerArgs gen'
 
 {- Some larger inputs for cases where we're using the same number for both
    arguments.  (A) If we're not examining all NxN pairs then we can eaxmine
@@ -52,9 +42,10 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
     (benchTwoIntegers gen <$>
-                          [ AddInteger
+                          [ AddInteger      -- SubtractInteger behaves identically.
                           , MultiplyInteger
-                          , DivideInteger])
+                          , DivideInteger   -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
+                          ])
     <> (benchSameTwoIntegers gen <$>
                                  [ EqualsInteger
                                  , LessThanInteger

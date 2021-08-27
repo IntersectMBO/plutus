@@ -543,8 +543,7 @@ tailList _ =
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 nullList _ =
     pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
-
--- x -> [], same type as x
+-- x::[a] -> Bool
 
 ---------------- Data ----------------
 
