@@ -94,7 +94,7 @@ makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) 
 
 benchOneTextString :: DefaultFun -> Benchmark
 benchOneTextString name =
-    createOneTermBuiltinBench name $ makeSizedTextStrings seedA oneArgumentSizes
+    createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
 
 
 {- | Generate a valid UTF-8 bytestring with memory usage approximately n for
@@ -112,13 +112,13 @@ makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromIntege
    data produced by G.utf8 (see above). -}
 benchOneUtf8ByteString :: DefaultFun -> Benchmark
 benchOneUtf8ByteString name =
-    createOneTermBuiltinBench name $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
+    createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
 
 benchTwoTextStrings :: DefaultFun -> Benchmark
 benchTwoTextStrings name =
     let s1 = makeSizedTextStrings seedA twoArgumentSizes
         s2 = makeSizedTextStrings seedB twoArgumentSizes
-    in createTwoTermBuiltinBench name s1 s2
+    in createTwoTermBuiltinBench name [] s1 s2
 
 
 {- Unused?
@@ -130,7 +130,7 @@ benchTextStringNoArgOperations name =
 
 -- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
-benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name inputs (fmap T.copy inputs)
+benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
                                where inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]

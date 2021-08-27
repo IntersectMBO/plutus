@@ -5,8 +5,12 @@ import           Benchmarks.Common
 import           Criterion.Main
 import           System.Random     (StdGen)
 
+benchNullList :: Benchmark
+benchNullList = undefined
+
+
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = []
+makeBenchmarks _gen = [benchNullList]
 
 {- TODO:
    chooseList

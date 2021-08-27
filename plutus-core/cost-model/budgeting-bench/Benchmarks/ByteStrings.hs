@@ -26,7 +26,7 @@ largerByteStrings21 :: H.Seed -> [BS.ByteString]
 largerByteStrings21 seed = makeSizedByteStrings seed [0, 250..5000]
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
-benchTwoByteStrings name = createTwoTermBuiltinBench name (largerByteStrings21 seedA) (largerByteStrings21 seedB)
+benchTwoByteStrings name = createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
 
 benchLengthOfByteString :: Benchmark
 benchLengthOfByteString =
@@ -36,12 +36,12 @@ benchLengthOfByteString =
 
 -- Copy the byteString here, because otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name inputs (fmap BS.copy inputs)
+benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap BS.copy inputs)
     where inputs = largerByteStrings21 seedA
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
-benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString bytestrings (randomIndices gen bytestrings)
+benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString [] bytestrings (randomIndices gen bytestrings)
     where bytestrings = smallerByteStrings100 seedA
           randomIndices gen1 l =
               case l of
@@ -51,7 +51,7 @@ benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString 
 
 {- This should be constant time, since the underlying operations are just
    returning modified pointers into a C array.  We still want a decent number of
-   data points, so we generate bytestrings of size 100, 200, ..., 1000 and
+   data points, so we generate ten bytestrings of size 100, 200, ..., 1000 and
    for each of them look at four choices each of starting index and length of
    slice. -}
 benchSliceByteString :: Benchmark
@@ -74,7 +74,7 @@ benchSliceByteString =
 
 benchConsByteString :: Benchmark
 benchConsByteString =
-    createTwoTermBuiltinBench ConsByteString [n] (smallerByteStrings100 seedA)
+    createTwoTermBuiltinBench ConsByteString [] [n] (smallerByteStrings100 seedA)
         where n = 123456789 :: Integer
               -- The precise numbers don't seem to matter here.  There'll be
               -- some cost coercing them to Word8, but even with very large

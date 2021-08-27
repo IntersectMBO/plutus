@@ -1,6 +1,7 @@
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Benchmarks.Common
 where
@@ -175,11 +176,12 @@ integerPower = (^) -- Just to avoid some type ascriptions later
 createOneTermBuiltinBench
     :: (DefaultUni `Includes` a, ExMemoryUsage a)
     => DefaultFun
+    -> [Type tyname DefaultUni ()]
     -> [a]
     -> Benchmark
-createOneTermBuiltinBench name xs =
+createOneTermBuiltinBench name tys xs =
     bgroup (show name) $ [mkBM x | x <- xs]
-        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name [] x
+        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name tys x
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
@@ -187,33 +189,34 @@ createOneTermBuiltinBench name xs =
 createTwoTermBuiltinBench
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
     => DefaultFun
+    -> [Type tyname DefaultUni ()]
     -> [a]
     -> [b]
     -> Benchmark
-createTwoTermBuiltinBench name xs ys =
+createTwoTermBuiltinBench name tys xs ys =
     bgroup (show name) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name [] x y
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::a and
-   ys::a (along with their memory sizes), create a collection of benchmarks
-   which run f on all pairs in 'zip xs ys'.  This can be used when the
-   worst-case execution time of a two-argument builtin is known to occur when it
-   is given two identical arguments (for example equality testing, where the
-   function has to examine the whole of both inputs in that case; with unequal
-   arguments it will usually be able to return more quickly).  The caller may
-   wish to ensure that the elements of the two lists are physically different to
-   avoid early return if a builtin can spot that its arguments both point to the
-   same heap object.
+   ys::a, create a collection of benchmarks which run f on all pairs in 'zip xs
+   ys'.  This can be used when the worst-case execution time of a two-argument
+   builtin is known to occur when it is given two identical arguments (for
+   example equality testing, where the function has to examine the whole of both
+   inputs in that case; with unequal arguments it will usually be able to return
+   more quickly).  The caller may wish to ensure that the elements of the two
+   lists are physically different to avoid early return if a builtin can spot
+   that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
     => DefaultFun
+    -> [Type tyname DefaultUni ()]
     -> [a]
     -> [b]
     -> Benchmark
-createTwoTermBuiltinBenchElementwise name xs ys =
+createTwoTermBuiltinBenchElementwise name tys xs ys =
     bgroup (show name) $ zipWith (\x y -> bgroup (showMemoryUsage x) [mkBM x y]) xs ys
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name [] x y
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 

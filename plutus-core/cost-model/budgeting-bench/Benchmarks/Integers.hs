@@ -29,7 +29,7 @@ makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31]
 
 benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchTwoIntegers gen builtinName =
-    createTwoTermBuiltinBench builtinName inputs inputs
+    createTwoTermBuiltinBench builtinName [] inputs inputs
     where
       (inputs,_) = makeDefaultIntegerArgs gen
 
@@ -43,7 +43,7 @@ makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
 makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3..101]
 
 benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
-benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName inputs inputs'
+benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName [] inputs inputs'
     where
       (numbers,_) = makeBiggerIntegerArgs gen
       inputs  = numbers
