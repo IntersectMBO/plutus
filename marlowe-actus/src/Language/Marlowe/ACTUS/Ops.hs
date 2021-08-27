@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 module Language.Marlowe.ACTUS.Ops where
 
 import           Data.Time                                             (Day)
