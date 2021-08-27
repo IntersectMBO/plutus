@@ -111,7 +111,7 @@ makeTestAction :: FormArgument -> ContractCall FormArgument
 makeTestAction argument =
   CallEndpoint
     { caller:
-        Wallet { getWallet: one }
+        Wallet { getWalletId: one }
     , argumentValues:
         FunctionSchema
           { endpointDescription: EndpointDescription { getEndpointDescription: "test" }

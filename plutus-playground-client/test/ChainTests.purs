@@ -56,7 +56,7 @@ wallets =
   mapWithIndex
     ( \id value ->
         SimulatorWallet
-          { simulatorWalletWallet: Wallet { getWallet: BigInteger.fromInt id }
+          { simulatorWalletWallet: Wallet { getWalletId: BigInteger.fromInt id }
           , simulatorWalletBalance: value
           }
     )

@@ -150,6 +150,12 @@ bultinByteStringBridge = do
     typeModule ^== "PlutusTx.Builtins.Internal"
     pure psString
 
+walletIdBridge :: BridgePart
+walletIdBridge = do
+    typeName ^== "WalletId"
+    typeModule ^== "Wallet.Emulator.Wallet"
+    pure psBigInteger
+
 scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
@@ -177,7 +183,7 @@ exBudgetBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> walletIdBridge
 
 ------------------------------------------------------------
 

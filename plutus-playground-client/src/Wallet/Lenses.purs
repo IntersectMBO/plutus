@@ -22,7 +22,7 @@ _simulatorWalletBalance :: Lens' SimulatorWallet Value
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
 _walletId :: Iso' Wallet BigInteger
-_walletId = _Wallet <<< iso _.getWallet { getWallet: _ }
+_walletId = _Wallet <<< iso _.getWalletId { getWalletId: _ }
 
 _pubKey :: Lens' PubKey String
 _pubKey = _PubKey <<< prop (SProxy :: SProxy "getPubKey")

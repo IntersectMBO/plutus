@@ -68,9 +68,9 @@ walletPane signatures initialValue walletIndex simulatorWallet@(SimulatorWallet 
 
 -- this function is exported so that action panes can show their associated wallet
 walletIdPane :: forall p i. Wallet -> HTML p i
-walletIdPane wallet@(Wallet { getWallet }) =
+walletIdPane wallet@(Wallet { getWalletId }) =
   span [ class_ $ ClassName "wallet-id" ]
-    [ text $ "Wallet " <> show getWallet ]
+    [ text $ "Wallet " <> show getWalletId ]
 
 addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =

@@ -125,11 +125,11 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
 
 emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> logMessageText ]
+    [ text $ "Message from wallet " <> show walletId.getWalletId <> ": " <> logMessageText ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> show logMessage ]
+    [ text $ "Message from wallet " <> show walletId.getWalletId <> ": " <> show logMessage ]
 
 emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
   div_

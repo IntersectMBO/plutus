@@ -79,7 +79,7 @@ import Web.HTML.Event.DataTransfer as DataTransfer
 mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet
 mkSimulatorWallet currencies walletId =
   SimulatorWallet
-    { simulatorWalletWallet: Wallet { getWallet: walletId }
+    { simulatorWalletWallet: Wallet { getWalletId: walletId }
     , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 100_000_000)
     }
 
