@@ -7,11 +7,14 @@ import           Benchmarks.Common
 import           PlutusCore
 
 import           Criterion.Main
-import qualified Data.ByteString   as BS
-import           System.Random     (StdGen)
+import qualified Data.ByteString         as BS
+import           System.Random           (StdGen)
 
-import qualified Hedgehog          as H
+import qualified Hedgehog                as H
+import qualified Hedgehog.Internal.Gen   as G
+import qualified Hedgehog.Internal.Range as R
 
+import qualified Debug.Trace             as T
 
 byteStringSizes :: [Int]
 byteStringSizes = fmap (100*) [0..100]
@@ -20,8 +23,8 @@ mediumByteStrings :: H.Seed -> [BS.ByteString]
 mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 
 bigByteStrings :: H.Seed -> [BS.ByteString]
-bigByteStrings seed = makeSizedByteStrings seed (fmap (100*) byteStringSizes)
--- Up to  8,000,000 bytes.
+bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
+-- Up to  800,000 bytes.
 
 --VerifySignature : check the results, maybe try with bigger inputs.
 
@@ -34,27 +37,39 @@ benchByteStringOneArgOp name =
 
 ---------------- Verify signature ----------------
 
--- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
-sig :: BS.ByteString
-sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
-
+-- For VerifySignature, for speed purposes it shouldn't matter if the signature
+-- and public key are correct as long as they're the correct sizes (256 bits/32
+-- bytes for keys, 512 bytes/64 bits for signatures).
 pubKey :: BS.ByteString
-pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+pubKey = genSample seedB (G.bytes (R.singleton 32))
 
--- The sizes of the signature and the key are fixed (64 and 32 bytes) so we don't include
+sig :: BS.ByteString
+sig = genSample seedB (G.bytes (R.singleton 64))
+
+-- The sizes of the key and the signature are fixed (32 and 64 bytes) so we don't include
 -- them in the benchmark name.  However, in models.R we still have to remove the overhead
 -- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
+    T.trace (show $ BS.length pubKey) $ T.trace (show $ BS.length sig) $
     bgroup (show name) $ fmap mkBM (bigByteStrings seedA)
            where name = VerifySignature
                  mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name [] pubKey b sig
+-- TODO: this seems suspicious.  The benchmark results seem to be pretty much
+-- constant (w few microseconds) irrespective of the size of the input, but I'm
+-- pretty certain that you need to look at every byte of the input to verify the
+-- signature.  If you change the size of the public key then it takes three
+-- times as long, but the 'verify' implementation checks the size and fails
+-- immediately if the key or signature has the wrong size.
+
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen =  [benchVerifySignature]
                     <> (benchByteStringOneArgOp <$> [ Sha2_256, Sha3_256, Blake2b_256 ])
 
-
+-- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
+-- 2.82 times longer than Blake2b.  All are (very) linear in the size of the
+-- input.
 
 

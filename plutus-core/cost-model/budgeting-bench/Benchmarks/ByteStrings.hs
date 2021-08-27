@@ -15,32 +15,34 @@ import qualified Hedgehog          as H
 integerLength :: BS.ByteString -> Integer
 integerLength = fromIntegral . BS.length
 
+-- Arguments for single-argument benchmarks: 100 entries.
+-- Note that the length is eight times the size.
+smallerByteStrings100 :: H.Seed -> [BS.ByteString]
+smallerByteStrings100 seed = makeSizedByteStrings seed [10, 20..1000]
 
--- Sizes of the arguments that we're goint to use as inputs to the bytestring builtin benchmarks.
--- These are sizes in words, so the actual bytestrings will be 8 times longer, ie [0, 2000..40000]
-byteStringSizes :: [Integer]
-byteStringSizes = [0, 250..5000]  -- 21 entries.
--- byteStringSizes = integerPower 2 <$> [1..20::Integer]
-
-byteStringsToBench :: H.Seed -> [BS.ByteString]
-byteStringsToBench seed = (makeSizedByteString seed . fromInteger) <$> byteStringSizes
+-- Arguments for two-argument benchmarks: 21 entries.
+-- Note that the length is eight times the size.
+largerByteStrings21 :: H.Seed -> [BS.ByteString]
+largerByteStrings21 seed = makeSizedByteStrings seed [0, 250..5000]
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
-benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
+benchTwoByteStrings name = createTwoTermBuiltinBench name (largerByteStrings21 seedA) (largerByteStrings21 seedB)
 
-benchByteStringNoArgOperations :: DefaultFun -> Benchmark
-benchByteStringNoArgOperations name =
-    bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
+benchLengthOfByteString :: Benchmark
+benchLengthOfByteString =
+    bgroup (show name) $ fmap mkBM (smallerByteStrings100 seedA)
         where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
+              name = LengthOfByteString
 
--- Copy the byteString here, because otherwise it'll be exactly the same, and the equality will short-circuit.
+-- Copy the byteString here, because otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteStringsToBench seedA)
-                               (fmap BS.copy $ byteStringsToBench seedA)
+benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name inputs (fmap BS.copy inputs)
+    where inputs = largerByteStrings21 seedA
 
+-- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
 benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString bytestrings (randomIndices gen bytestrings)
-    where bytestrings = byteStringsToBench seedA
+    where bytestrings = smallerByteStrings100 seedA
           randomIndices gen1 l =
               case l of
                 [] -> []
@@ -49,8 +51,9 @@ benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString 
 
 {- This should be constant time, since the underlying operations are just
    returning modified pointers into a C array.  We still want a decent number of
-   data points, so we generate bytestrings of length 1000, 2000, ..., 10000 and
-   for each of them look at four choices each of index and length. -}
+   data points, so we generate bytestrings of size 100, 200, ..., 1000 and
+   for each of them look at four choices each of starting index and length of
+   slice. -}
 benchSliceByteString :: Benchmark
 benchSliceByteString =
     let name = SliceByteString
@@ -58,7 +61,7 @@ benchSliceByteString =
         -- quarters n may contain more than four elements if n < 16, but we
         -- won't encounter that case.  For n<4 then the 'else' branch would give
         -- you an infinite list of zeros.
-        byteStrings = makeSizedByteString seedA <$> [1000, 2000..10000]
+        byteStrings = makeSizedByteString seedA <$> [100, 200..1000]
         mkBMsFor b =
             [bgroup (showMemoryUsage start)
              [bgroup (showMemoryUsage len)
@@ -68,22 +71,25 @@ benchSliceByteString =
             where blen = integerLength b
     in bgroup (show name) $ concatMap mkBMsFor byteStrings
 
+
 benchConsByteString :: Benchmark
-benchConsByteString = createTwoTermBuiltinBench ConsByteString numbers (byteStringsToBench seedA)
-                      where numbers = fmap (1000 *) [100, 200..2000] :: [Integer]
-             -- In fact the numbers don't seem to matter here.  There'll be some
-             -- cost coercing them to Word8, but even with very large numbers
-             -- that seems to be negligible.
-             -- FIXME: This takes a long time, so confirm that the size of the first argument
-             -- is irrelevant and pass a list of 100 or so bytestrings.
+benchConsByteString =
+    createTwoTermBuiltinBench ConsByteString [n] (smallerByteStrings100 seedA)
+        where n = 123456789 :: Integer
+              -- The precise numbers don't seem to matter here.  There'll be
+              -- some cost coercing them to Word8, but even with very large
+              -- numbers that seems to be negligible.
+
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])
-                   <> [benchConsByteString]
-                   <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
-                   <> [benchIndexByteString gen]
-                   <> [benchSliceByteString]
-                   <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,
+                        benchConsByteString,
+                        benchLengthOfByteString,
+                        benchIndexByteString gen,
+                        benchSliceByteString
+                      ]
+                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+
 
 {- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The
    biggest inputs here are of size 1048576, or about 4 megabytes.  That's surely
