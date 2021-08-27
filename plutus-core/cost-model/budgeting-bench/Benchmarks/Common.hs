@@ -1,7 +1,7 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Benchmarks.Common
 where
@@ -174,9 +174,9 @@ integerPower = (^) -- Just to avoid some type ascriptions later
    (along with their memory sizes), create a collection of benchmarks which run
    f on all elements of xs. -}
 createOneTermBuiltinBench
-    :: (DefaultUni `Includes` a, ExMemoryUsage a)
-    => DefaultFun
-    -> [Type tyname DefaultUni ()]
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, ExMemoryUsage a)
+    => fun
+    -> [Type tyname uni ()]
     -> [a]
     -> Benchmark
 createOneTermBuiltinBench name tys xs =
@@ -187,9 +187,9 @@ createOneTermBuiltinBench name tys xs =
    ys::[b] (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
-    => DefaultFun
-    -> [Type tyname DefaultUni ()]
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
+    => fun
+    -> [Type tyname uni ()]
     -> [a]
     -> [b]
     -> Benchmark
@@ -208,9 +208,9 @@ createTwoTermBuiltinBench name tys xs ys =
    that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
-    => DefaultFun
-    -> [Type tyname DefaultUni ()]
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
+    => fun
+    -> [Type tyname uni ()]
     -> [a]
     -> [b]
     -> Benchmark
