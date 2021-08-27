@@ -130,10 +130,10 @@ contractScreen viewInput state =
     --       why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
     --       property, and we add an empty `div` that occupies space (aka also cant be shrinked) to allow that the
     --       first and last card can be scrolled to the center
-    paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
+    paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element", "h-full" ] ] [] ]
   in
     div
-      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full", "relative" ] ]
+      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full", "w-screen", "relative" ] ]
       [ lifeCycleSlot "carousel-lifecycle" case _ of
           OnInit -> Just CarouselOpened
           OnFinalize -> Just CarouselClosed
