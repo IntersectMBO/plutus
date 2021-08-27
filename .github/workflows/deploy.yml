@@ -9,5 +9,8 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.PLUTUS_OPS_GITHUB_TOKEN }}
     steps:
-      # Purposefully don't checkout
-      - run: ./scripts/deploy-bitte master
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy to bitte
+        run: ./scripts/deploy-bitte master
