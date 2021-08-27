@@ -29,7 +29,7 @@ import           Data.Text               (Text)
 
 profiling :: TestNested
 profiling = testNested "Profiling" [
-  goldenPir "fib" fibTest
+  goldenUEvalProfile "fib4" [ toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer) ]
   ]
 
 fib :: Integer -> Integer
@@ -42,3 +42,4 @@ fib n = if Builtins.equalsInteger n 0
 fibTest :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
 fibTest = plc (Proxy @"fib") fib
+

@@ -404,13 +404,18 @@ hoistExpr var t =
                     (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                     mempty
 
-                -- CompileContext {ccOpts=profileOpts} <- ask
+                CompileContext {ccOpts=profileOpts} <- ask
                 t' <- do
+                    if coProfile profileOpts==All then do
                         let ty = PLC.varDeclType var'
-                    -- if coProfile profileOpts==All then do
                         t'' <- compileExpr t
-                        return $ mkTrace ty "entering" ((\() -> mkTrace ty "exiting" t'') ())
-                    -- else compileExpr t
+                        let tInText = T.pack (show t'')
+                        return $
+                            mkTrace
+                                ty
+                                ("entering" <> tInText)
+                                ((\() -> mkTrace ty ("exiting"<> tInText) t'') ())
+                    else compileExpr t
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
