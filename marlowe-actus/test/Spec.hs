@@ -1,8 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
 
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-
 module Main(main) where
 
 import           Data.Aeson                as Aeson (decode)
@@ -11,6 +8,7 @@ import           Data.Map                  hiding (filter)
 import           Spec.Marlowe.Actus
 import           System.Environment
 import           Test.Tasty
+import           Test.Tasty.HUnit
 
 main :: IO ()
 main = do
@@ -30,7 +28,8 @@ main = do
 testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
 testCasesFromFile excludedTestCases fileName = do
   tcs <- readFile fileName
-  let Just decodedTests = let tc = fromString tcs in decode tc :: Maybe (Map String TestCase)
-  return
-    $ filter (\TestCase{..} -> notElem identifier excludedTestCases)
-    $ fmap snd (toList decodedTests)
+  case let tc = fromString tcs in decode tc :: Maybe (Map String TestCase) of
+    (Just decodedTests) -> return
+                              $ filter (\TestCase{..} -> notElem identifier excludedTestCases)
+                              $ fmap snd (toList decodedTests)
+    Nothing             -> assertFailure "Cannot parse test specification" >> return []
