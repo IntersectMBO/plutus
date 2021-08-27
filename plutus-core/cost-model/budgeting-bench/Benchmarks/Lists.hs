@@ -59,13 +59,14 @@ benchChooseList gen =
         results2 = makeSizedByteStrings seedB resultSizes
         intInputs = take 10 $ intLists gen
         bsInputs  = take 10 $ byteStringLists seedA
-        mkBMs ty inputs = [ bgroup (showMemoryUsage x)
+        mkBMs tys inputs = [ bgroup (showMemoryUsage x)
                            [ bgroup (showMemoryUsage r1)
-                            [ benchDefault (showMemoryUsage r2) $ mkApp3 name [ty] x r1 r2
+                            [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
                             | r2 <- results2 ]
                            | r1 <- results1 ]
                           | x <- inputs ]
-    in bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
+    in bgroup (show name) (mkBMs [integer,bytestring] intInputs
+                            ++ mkBMs [bytestring,bytestring] bsInputs)
 
 
 benchMkCons :: StdGen -> Benchmark

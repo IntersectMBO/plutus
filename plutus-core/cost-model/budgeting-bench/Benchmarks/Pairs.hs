@@ -2,13 +2,13 @@ module Benchmarks.Pairs (makeBenchmarks) where
 
 import           Benchmarks.Common
 
+import           PlutusCore
+
 import           Criterion.Main
 import           System.Random     (StdGen)
 
-makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = []
+benchPairOp :: StdGen -> DefaultFun -> Benchmark
+benchPairOp gen fun = bgroup ("UNIMPLEMENTED: " ++ show fun) []
 
-{- TODO:
-   fstPair
-   sndPair
--}
+makeBenchmarks :: StdGen -> [Benchmark]
+makeBenchmarks gen = benchPairOp gen <$> [FstPair, SndPair]

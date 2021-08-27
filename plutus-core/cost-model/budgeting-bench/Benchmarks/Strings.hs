@@ -1,6 +1,6 @@
 {- | Benchmarks for string builtins.  Remember that "strings" are actually Text. -}
 
-module Benchmarks.Strings (makeBenchmarks) where
+module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
 import           Benchmarks.Common
 
