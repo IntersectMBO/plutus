@@ -3,10 +3,12 @@
 The Marlowe data types
 ======================
 
-This tutorial formally introduces Marlowe as used above, a Haskell data type, as used above,
-well as used above, presenting the different types used by the model, and discussing
+This tutorial formally introduces Marlowe as a Haskell data type, as well as
+presenting the different types used by the model, and discussing
 a number of assumptions about the infrastructure in which contracts will
-be run. The code that we describe here comes from the Haskell modules
+be run. It also introduces *Extended Marlowe* which we use for describing *contract templates* in Marlowe.
+
+The code that we describe here comes from the Haskell modules
 `SemanticsTypes.hs <https://github.com/input-output-hk/marlowe/blob/master/src/Language/Marlowe/SemanticsTypes.hs>`_
 ,
 `Semantics.hs <https://github.com/input-output-hk/marlowe/blob/master/src/Language/Marlowe/Semantics.hs>`_
@@ -223,6 +225,36 @@ Three kinds of action are possible:
 
 This completes our discussion of the types that make up Marlowe
 contracts.
+
+Extended Marlowe
+----------------
+
+Extended Marlowe adds templating functionality to Marlowe language, so that constants need not be “hard wired”
+into Marlowe contracts, but can be replaced by *parameters*. 
+Objects in Extended Marlowe are called *templates* or *contract templates*.
+
+
+Specifically, Extended Marlowe extends the ``Value``
+type with these parameter values:
+
+.. code:: haskell
+
+   ConstantParam "string"
+
+which can be used in forming more complex values just in the same way as constants. Similarly the ``Slot`` type is
+extended with these values:
+
+.. code:: haskell
+
+   SlotParam "string"
+
+Extended Marlowe is not directly executable, it has to be translated to core Marlowe before
+execution, deployment, or analysis, through the process of *instantiation*.
+The purpose of Extended Marlowe is to allow Marlowe contracts to be reusable
+in different situations without cluttering the code that goes on-chain
+(core Marlowe). In Marlowe Run and the Marlowe Playground templates need to be instantiated before
+being run or simulated, respectively.
+
 
 Transactions
 ------------
