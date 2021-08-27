@@ -49,6 +49,7 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
 import Popper (Placement(..))
 import Tooltip.State (tooltip)
+import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
@@ -1057,7 +1058,7 @@ shortDescription :: forall p a. Boolean -> String -> HTML p a
 shortDescription isActiveParticipant description =
   div [ classNames ([ "text-xs" ] <> applyWhen (not isActiveParticipant) [ "opacity-50" ]) ]
     [ span [ classNames [ "font-semibold" ] ] [ text "Short description: " ]
-    , span_ [ text description ]
+    , span_ $ markdownToHTML description
     ]
 
 getParty :: S.Input -> Maybe Party
