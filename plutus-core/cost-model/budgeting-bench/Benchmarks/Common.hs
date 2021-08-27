@@ -1,5 +1,6 @@
-{-# LANGUAGE LambdaCase    #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Benchmarks.Common
 where
@@ -26,7 +27,7 @@ import qualified Hedgehog.Internal.Gen                           as G
 import qualified Hedgehog.Internal.Range                         as R
 import qualified Hedgehog.Internal.Tree                          as T
 
-type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
+type PlainTerm uni fun = UPLC.Term Name uni fun ()
 
 showMemoryUsage :: ExMemoryUsage a => a -> String
 showMemoryUsage = show . memoryUsage
@@ -72,7 +73,7 @@ benchWith
     :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
     => MachineParameters CekMachineCosts CekValue DefaultUni fun
     -> String
-    -> PlainTerm fun
+    -> PlainTerm DefaultUni fun
     -> Benchmark
 benchWith params name term = env
     (do
@@ -82,60 +83,77 @@ benchWith params name term = env
         )
     $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter params) term
 
-benchDefault :: String -> PlainTerm DefaultFun -> Benchmark
+benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith defaultCekParameters
 
 
----------------- Constructing PLC terms for benchmarking ----------------
+---------------- Constructing Polymorphic PLC terms for benchmarking ----------------
 
--- Create a term applying a builtin to one argument
-mkApp1 :: (DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
-mkApp1 name x =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x]
+integer :: uni `Includes` Integer => Type tyname uni ()
+integer = mkTyBuiltin @_ @Integer ()
+
+bytestring :: uni `Includes` BS.ByteString => Type tyname uni ()
+bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
 
--- Create a term applying a builtin to two arguments
+-- To make monomorhpic terms, make tys equal to [] in the mkApp functions
+
+-- Create a term instantiating a builtin and applying it to one argument
+mkApp1 :: (uni `Includes` a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
+mkApp1 name tys x =
+    erase $ mkIterApp () instantiated [mkConstant () x]
+    where instantiated = mkIterInst () (builtin () name) tys
+
+
+-- Create a term instantiating a builtin and applying it to two arguments
 mkApp2
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
-    =>  fun -> a -> b -> PlainTerm fun
-mkApp2 name x y =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
+    :: (uni `Includes` a, uni `Includes` b)
+    =>  fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
+mkApp2 name tys x y =
+    erase $ mkIterApp () instantiated [mkConstant () x,  mkConstant () y]
+    where instantiated = mkIterInst () (builtin () name) tys
 
 
--- Create a term applying a builtin to three arguments
+-- Create a term instantiating a builtin and applying it to three arguments
 mkApp3
-    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
-    => fun -> a -> b -> c -> PlainTerm fun
-mkApp3 name x y z =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
+    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c)
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
+mkApp3 name tys x y z =
+    erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
+    where instantiated = mkIterInst () (builtin () name) tys
 
 
--- Create a term applying a builtin to four arguments
+-- Create a term instantiating a builtin and applying it to four arguments
 mkApp4
-    :: forall fun a b c d. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
-                          DefaultUni `Includes` d)
-    => fun -> a -> b -> c -> d -> PlainTerm fun
-mkApp4 name x y z t =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z,
-                                            mkConstant () t]
+    :: (uni `Includes` a, uni `Includes` b,
+        uni `Includes` c, uni `Includes` d)
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
+mkApp4 name tys x y z t =
+    erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y
+                                      , mkConstant () z, mkConstant () t ]
+    where instantiated = mkIterInst () (builtin () name) tys
 
--- Create a term applying a builtin to five arguments
+
+-- Create a term instantiating a builtin and applying it to five arguments
 mkApp5
-    :: forall fun a b c d e. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
-                                DefaultUni `Includes` d, DefaultUni `Includes` e)
-    => fun -> a -> b -> c -> d -> e -> PlainTerm fun
-mkApp5 name x y z t u =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x, mkConstant () y, mkConstant () z,
-                                            mkConstant () t, mkConstant () u]
+    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
+        uni `Includes` d, uni `Includes` e)
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
+mkApp5 name tys x y z t u =
+    erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
+                                      , mkConstant () t, mkConstant () u ]
+    where instantiated = mkIterInst () (builtin () name) tys
 
--- Create a term applying a builtin to six arguments
+
+-- Create a term instantiating a builtin and applying it to six arguments
 mkApp6
-    :: forall fun a b c d e f. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c,
-                                DefaultUni `Includes` d, DefaultUni `Includes` e, DefaultUni `Includes` f)
-    => fun -> a -> b -> c -> d -> e -> f-> PlainTerm fun
-mkApp6 name x y z t u v =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x, mkConstant () y, mkConstant () z,
-                                            mkConstant () t, mkConstant () u, mkConstant () v]
+    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
+        uni `Includes` d, uni `Includes` e, uni `Includes` f)
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
+mkApp6 name tys x y z t u v =
+    erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
+                                       mkConstant () t, mkConstant () u, mkConstant () v]
+    where instantiated = mkIterInst () (builtin () name) tys
 
 
 ---------------- Creating benchmarks ----------------
@@ -161,7 +179,7 @@ createOneTermBuiltinBench
     -> Benchmark
 createOneTermBuiltinBench name xs =
     bgroup (show name) $ [mkBM x | x <- xs]
-        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name x
+        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name [] x
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
@@ -174,7 +192,7 @@ createTwoTermBuiltinBench
     -> Benchmark
 createTwoTermBuiltinBench name xs ys =
     bgroup (show name) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name x y
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name [] x y
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::a and
    ys::a (along with their memory sizes), create a collection of benchmarks
@@ -195,7 +213,7 @@ createTwoTermBuiltinBenchElementwise
     -> Benchmark
 createTwoTermBuiltinBenchElementwise name xs ys =
     bgroup (show name) $ zipWith (\x y -> bgroup (showMemoryUsage x) [mkBM x y]) xs ys
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name x y
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name [] x y
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 

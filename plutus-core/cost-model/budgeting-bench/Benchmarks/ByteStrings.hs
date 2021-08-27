@@ -5,12 +5,10 @@ import           Benchmarks.Common
 import           PlutusCore
 
 import           Criterion.Main
-import qualified Data.ByteString       as BS
-import           System.Random         (StdGen, randomR)
+import qualified Data.ByteString   as BS
+import           System.Random     (StdGen, randomR)
 
-import qualified Hedgehog              as H
-import qualified Hedgehog.Internal.Gen as G
-import qualified Hedgehog.Range        as R
+import qualified Hedgehog          as H
 
 ---------------- ByteString builtins ----------------
 
@@ -33,7 +31,7 @@ benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench se
 benchByteStringNoArgOperations :: DefaultFun -> Benchmark
 benchByteStringNoArgOperations name =
     bgroup (show name) $ fmap mkBM (byteStringsToBench seedA)
-        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name b
+        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 -- Copy the byteString here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
@@ -64,7 +62,7 @@ benchSliceByteString =
         mkBMsFor b =
             [bgroup (showMemoryUsage start)
              [bgroup (showMemoryUsage len)
-              [benchDefault (showMemoryUsage b) $ mkApp3 name start len b] |
+              [benchDefault (showMemoryUsage b) $ mkApp3 name [] start len b] |
               len <- quarters (blen - start)] |
              start <- quarters blen]
             where blen = integerLength b

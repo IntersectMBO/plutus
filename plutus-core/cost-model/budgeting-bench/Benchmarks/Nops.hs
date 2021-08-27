@@ -146,7 +146,7 @@ benchNop1 gen =
     let name = Nop1
         mem = 1
         (x,_) = randNwords gen mem
-    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name x]
+    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
@@ -156,7 +156,7 @@ benchNop2 gen =
         (y,_)    = randNwords gen1 mem
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name x y]
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
            ]
 
 benchNop3 :: StdGen -> Benchmark
@@ -169,7 +169,7 @@ benchNop3 gen =
     in bgroup (show name)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name x y z]
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
             ]
            ]
 
@@ -185,7 +185,7 @@ benchNop4 gen =
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
              [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name x y z t]
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
              ]
             ]
            ]
@@ -204,7 +204,7 @@ benchNop5 gen =
             [bgroup (showMemoryUsage y)
              [bgroup (showMemoryUsage z)
               [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name x y z t u]
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
               ]
              ]
             ]
@@ -226,7 +226,7 @@ benchNop6 gen =
              [bgroup (showMemoryUsage z)
               [bgroup (showMemoryUsage t)
                [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name x y z t u v]
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
                ]
               ]
              ]

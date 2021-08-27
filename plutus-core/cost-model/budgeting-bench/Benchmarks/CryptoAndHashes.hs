@@ -7,21 +7,19 @@ import           Benchmarks.Common
 import           PlutusCore
 
 import           Criterion.Main
-import qualified Data.ByteString       as BS
-import           System.Random         (StdGen)
+import qualified Data.ByteString   as BS
+import           System.Random     (StdGen)
 
-import qualified Hedgehog              as HH
-import qualified Hedgehog.Internal.Gen as HH
-import qualified Hedgehog.Range        as HH.Range
+import qualified Hedgehog          as H
 
 
 byteStringSizes :: [Int]
 byteStringSizes = fmap (100*) [0..100]
 
-mediumByteStrings :: HH.Seed -> [BS.ByteString]
+mediumByteStrings :: H.Seed -> [BS.ByteString]
 mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 
-bigByteStrings :: HH.Seed -> [BS.ByteString]
+bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (100*) byteStringSizes)
 -- Up to  8,000,000 bytes.
 
@@ -31,7 +29,7 @@ bigByteStrings seed = makeSizedByteStrings seed (fmap (100*) byteStringSizes)
 benchByteStringOneArgOp :: DefaultFun -> Benchmark
 benchByteStringOneArgOp name =
     bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
-           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name b
+           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
 ---------------- Verify signature ----------------
@@ -50,7 +48,7 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $ fmap mkBM (bigByteStrings seedA)
            where name = VerifySignature
-                 mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name pubKey b sig
+                 mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name [] pubKey b sig
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
