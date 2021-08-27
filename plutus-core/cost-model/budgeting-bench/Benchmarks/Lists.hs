@@ -71,14 +71,14 @@ benchChooseList gen =
 
 benchMkCons :: StdGen -> Benchmark
 benchMkCons gen =
-    let name = ConsByteString
+    let name = MkCons
         intInputs = intLists gen
         (intsToCons, _) = makeSizedIntegers gen $ take (length intInputs) (cycle [1,2,4,10,15])
         bsInputs = byteStringLists seedA
         bssToCons = makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
-    in  bgroup (show name) $ fmap (mkBM name integer) (zip intsToCons intInputs)
-                           ++ fmap (mkBM name bytestring) (zip bssToCons bsInputs)
-          where mkBM name ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
+        mkBM ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
+    in  bgroup (show name) $ fmap (mkBM integer) (zip intsToCons intInputs)
+                           ++ fmap (mkBM bytestring) (zip bssToCons bsInputs)
 
 
 -- nullList tests if a list is empty

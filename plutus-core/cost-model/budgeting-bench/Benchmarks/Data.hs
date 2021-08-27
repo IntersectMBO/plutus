@@ -36,12 +36,14 @@ genData =
            I <$> G.integral (R.constant 1 1234567890)
          , B <$> G.bytes (R.constant 1 100)
          ]
-        [
-          Constr <$> G.integral (R.constant 1 1000) <*> G.list (R.constant 1 10) genData
-        , Map <$> G.list (R.constant 1 10) genDataPair
-        , List <$> G.list (R.constant 1 10) genData
-        ]
+         [
+           Constr <$> G.integral (R.constant 1 1000) <*> G.list (R.constant 1 10) genData
+         , Map <$> G.list (R.constant 1 10) genDataPair
+         , List <$> G.list (R.constant 1 10) genData
+         ]
 
+genDataSample :: Int -> [Data]
+genDataSample n = genSample seedA (G.list (R.singleton n) genData)
 
 benchChooseData :: StdGen -> Benchmark
 benchChooseData gen = bgroup "UNIMPLEMENTED: ChooseData" []
@@ -91,12 +93,15 @@ benchUnBData :: StdGen -> Benchmark
 benchUnBData gen = bgroup "UNIMPLEMENTED: UnBData" []
 -- Match against B, failing otherwise
 
-benchEqualsData :: StdGen -> Benchmark
-benchEqualsData gen = bgroup "UNIMPLEMENTED: EqualsData" []
+benchEqualsData :: Benchmark
+benchEqualsData =
+    createTwoTermBuiltinBenchElementwise EqualsData [] args1 args2
+        where args1 = genDataSample 200
+              args2 = fmap copyData args1
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen = [benchIData gen, benchBData gen]
+makeBenchmarks gen = [benchEqualsData, benchIData gen, benchBData gen]
 
     -- [ benchChooseData gen,
                      --   benchConstrData gen,
