@@ -147,7 +147,9 @@ _STF_IED_LAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
               | otherwise                   = _r _CNTRL * (fromJust _IPCBA)
 
         ipac' | isJust _IPAC        = _r _CNTRL * fromJust _IPAC
+              {-
               -- | isJust _IPANX       = _lt (fromJust _IPANX) t * y_ipanx_t * nt' * ipnr'
+              -}
               | isJust _IPANX && fromJust _IPANX < t = y_ipanx_t * nt' * ipcb'
               | otherwise           = _zero
 

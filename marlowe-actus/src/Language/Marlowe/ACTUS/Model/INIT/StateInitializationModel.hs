@@ -132,8 +132,9 @@ _INIT_LAM t0 tminus _ tfp_minus tfp_plus
         --         | otherwise = tpr_minus
         prnxt
                 | isJust ct_PRNXT                 = fromJust ct_PRNXT
-                -- ACTUS implementation
+                {- ACTUS implementation
                 -- | otherwise                     = (fromJust ct_NT) * (1.0 / (fromIntegral $ ((ceiling (y _DCC' s tmd (Just tmd) / y _DCC' s (s `plusCycle` fromJust ct_PRCL) (Just tmd))) :: Integer)))
+                -}
 
                 -- Java implementation
                 | otherwise = (fromJust ct_NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust ct_PRCL){ includeEndDay = True } tmd scfg ) <$> ct_PRANX)))
@@ -153,11 +154,14 @@ _INIT_NAM t0 tminus _ tfp_minus tfp_plus
         _DCC   = fromJust ct_DCC
         _PRNXT = fromJust ct_PRNXT
 
+        {-
         -- TMD
         -- maybeTMinus
                     -- | isJust ct_PRANX && fromJust ct_PRANX >= t0 = ct_PRANX
                     -- | (_IED `plusCycle` fromJust ct_PRCL) >= t0  = Just $ _IED `plusCycle` fromJust ct_PRCL
                     -- | otherwise                                  = Just tpr_minus
+        -}
+
         tmd
                 | isJust ct_MD = fromJust ct_MD
                 | otherwise =
@@ -182,8 +186,10 @@ _INIT_NAM t0 tminus _ tfp_minus tfp_plus
                     maturity = plusCycle lastEvent c { n = n * remainingPeriods}
                   in
                     applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
+                    {-
                 -- | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ceiling((fromJust ct_NT) / (_PRNXT' - (fromJust ct_NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust ct_PRCL) ct_MD) * fromJust ct_IPNR))}
 
+                    -}
         -- PRNXT
         prnxt = _PRNXT
 
