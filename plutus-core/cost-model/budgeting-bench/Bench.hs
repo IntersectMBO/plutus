@@ -69,10 +69,10 @@ main = do
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
  ---           Benchmarks.Unit.makeBenchmarks gen
---        <>  Benchmarks.ByteStrings.makeBenchmarks     gen
-            Benchmarks.Tracing.makeBenchmarks      gen
-         <> Benchmarks.Misc.makeBenchmarks         gen
-         <> Benchmarks.Lists.makeBenchmarks        gen
+            Benchmarks.ByteStrings.makeBenchmarks     gen
+--            Benchmarks.Tracing.makeBenchmarks      gen
+--         <> Benchmarks.Misc.makeBenchmarks         gen
+--         <> Benchmarks.Lists.makeBenchmarks        gen
 {-            Benchmarks.Strings.makeBenchmarks         gen
         <>  Benchmarks.Integers.makeBenchmarks        gen
         <>  Benchmarks.Bool.makeBenchmarks            gen

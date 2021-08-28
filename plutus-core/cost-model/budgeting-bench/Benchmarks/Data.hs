@@ -21,6 +21,8 @@ import           System.Random           (StdGen)
        | B BS.ByteString
 -}
 
+-- TODO: probably do this manually
+
 genDataList :: H.MonadGen m => m [Data]
 genDataList =
     G.list (R.constant 1 10) genData

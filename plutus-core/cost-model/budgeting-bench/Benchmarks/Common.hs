@@ -89,7 +89,7 @@ benchWith
 benchWith params name term = env
     (do
         (_result, budget) <-
-          pure $ (unsafeEvaluateCek noEmitter params) term
+          pure $ (unsafeEvaluateCek noEmitter params) term            -- <--------------- AAAAAAAAAAAAAAAHHHHHHHH
         pure budget
         )
     $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter params) term
