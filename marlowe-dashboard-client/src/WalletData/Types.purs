@@ -24,8 +24,8 @@ import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
-import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
-import Marlowe.Semantics (Assets, PubKey)
+import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey)
 import Types (WebData)
 
 type State
