@@ -405,6 +405,7 @@ data ToCardanoError
     | NoDefaultCostModelParams
     | StakingPointersNotSupported
     | MissingTxInType
+    | UnableToResolveInput Api.TxOutRef
     | Tag String ToCardanoError
 
 instance Pretty ToCardanoError where
@@ -416,4 +417,5 @@ instance Pretty ToCardanoError where
     pretty NoDefaultCostModelParams    = "Extracting default cost model failed"
     pretty StakingPointersNotSupported = "Staking pointers are not supported"
     pretty MissingTxInType             = "Missing TxInType"
+    pretty (UnableToResolveInput i)    = "Unable to resolve input" <> colon <+> pretty i
     pretty (Tag t err)                 = pretty t <> colon <+> pretty err

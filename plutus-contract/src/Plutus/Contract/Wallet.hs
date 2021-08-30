@@ -18,6 +18,7 @@ module Plutus.Contract.Wallet(
     , WAPI.signTxAndSubmit
     -- * Exporting transactions
     , ExportTx(..)
+    , MissingValueBalance(..)
     , ExportTxInput(..)
     , export
     ) where
@@ -31,6 +32,7 @@ import           Control.Monad.Freer.Error   (Error, throwError)
 import           Data.Aeson                  (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Bitraversable          (bitraverse)
 import           Data.ByteArray.Encoding     (Base (Base16), convertToBase)
+import           Data.Foldable               (fold)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
 import           Data.Maybe                  (mapMaybe)
@@ -48,9 +50,11 @@ import           Ledger.Constraints          (mustPayToPubKey)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
 import           Ledger.Crypto               (PubKey (..), pubKeyHash)
 import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
+import qualified Ledger.Value                as PlutusTx
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
 import           Plutus.Contract.Types       (Contract)
+import qualified PlutusTx.Prelude            as PlutusTx
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
 import           Wallet.Emulator.Error       (WalletAPIError)
@@ -115,9 +119,10 @@ getUnspentOutput = do
 -- | Partial transaction that can be balanced by the wallet backend.
 data ExportTx =
         ExportTx
-            { partialTx   :: C.Tx C.AlonzoEra -- ^ The transaction itself
-            , lookups     :: [ExportTxInput] -- ^ The tx outputs for all inputs spent by the partial tx
-            , signatories :: [Text] -- ^ Key(s) that we expect to be used for balancing & signing. (Advisory) See note [Keys in ExportT]
+            { partialTx           :: C.Tx C.AlonzoEra -- ^ The transaction itself
+            , lookups             :: [ExportTxInput] -- ^ The tx outputs for all inputs spent by the partial tx
+            , signatories         :: [Text] -- ^ Key(s) that we expect to be used for balancing & signing. (Advisory) See note [Keys in ExportT]
+            , missingValueBalance :: MissingValueBalance -- ^ Additional value that we expect the wallet to provide inputs / outputs for (excl. fees)
             }
     deriving stock (Generic, Typeable)
 
@@ -125,12 +130,30 @@ data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.AlonzoEra}
     deriving stock (Generic, Typeable)
     deriving anyclass (ToJSON)
 
+data MissingValueBalance = MissingValueBalance
+    { missingInputVal  :: C.Value -- ^ Total value to be provided by additional inputs
+    , missingOutputVal :: C.Value -- ^ Total value to paid to additional outputs
+    }
+    deriving stock (Generic, Typeable)
+
+instance ToJSON MissingValueBalance where
+    toJSON MissingValueBalance{missingInputVal, missingOutputVal} =
+        object ["inputs" .= toJSON missingInputVal, "outputs" .= toJSON missingOutputVal]
+
+instance FromJSON MissingValueBalance where
+    parseJSON (Object v) =
+        MissingValueBalance
+            <$> v .: "inputs"
+            <*> v .: "outputs"
+    parseJSON _ = fail "Expected Object"
+
 instance ToJSON ExportTx where
-    toJSON ExportTx{partialTx, lookups, signatories} =
+    toJSON ExportTx{partialTx, lookups, signatories, missingValueBalance} =
         object
             [ "transaction" .= toJSON (C.serialiseToTextEnvelope Nothing partialTx)
             , "inputs"      .= toJSON lookups
             , "signatories" .= toJSON signatories
+            , "missingValue" .= toJSON missingValueBalance
             ]
 
 instance FromJSON ExportTx where
@@ -139,14 +162,32 @@ instance FromJSON ExportTx where
             <$> ((v .: "transaction") >>= either (fail . show) pure . C.deserialiseFromTextEnvelope (C.proxyToAsType Proxy))
             <*> pure mempty -- FIXME: How to deserialise Utxo / [(TxIn, TxOut)] ) see https://github.com/input-output-hk/cardano-node/issues/3051
             <*> v .: "signatories"
-    parseJSON _ = fail "Expexted Object"
+            <*> v .: "missingValue"
+    parseJSON _ = fail "Expected Object"
 
 export :: C.ProtocolParameters -> C.NetworkId -> UnbalancedTx -> Either CardanoAPI.ToCardanoError ExportTx
-export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex, unBalancedTxRequiredSignatories} =
+export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex, unBalancedTxRequiredSignatories} = do
     ExportTx
         <$> mkPartialTx params networkId unBalancedTxTx
         <*> mkLookups networkId unBalancedTxUtxoIndex
         <*> mkSignatories unBalancedTxRequiredSignatories
+        <*> missingValue unBalancedTxUtxoIndex unBalancedTxTx
+
+missingValue :: Map TxOutRef Plutus.TxOut -> Plutus.Tx -> Either CardanoAPI.ToCardanoError MissingValueBalance
+missingValue outRefMap tx = do
+    inVal <- (PlutusTx.+) (txMint tx) <$> balanceOfInputs outRefMap tx
+    let outVal = balanceOfOutputs tx
+        (missingOutputVal, missingInputVal) = PlutusTx.split (outVal PlutusTx.<> (PlutusTx.inv inVal))
+    MissingValueBalance
+        <$> CardanoAPI.toCardanoValue missingInputVal
+        <*> CardanoAPI.toCardanoValue missingOutputVal
+
+balanceOfOutputs :: Plutus.Tx -> Plutus.Value
+balanceOfOutputs = foldMap Plutus.txOutValue . txOutputs
+
+balanceOfInputs :: Map TxOutRef Plutus.TxOut -> Plutus.Tx -> Either CardanoAPI.ToCardanoError Plutus.Value
+balanceOfInputs refs = fmap fold . traverse inputVal . Set.toList . txInputs where
+    inputVal Plutus.TxIn{Plutus.txInRef} = maybe (Left $ CardanoAPI.UnableToResolveInput txInRef) (pure . Plutus.txOutValue) (Map.lookup txInRef refs)
 
 mkPartialTx :: C.ProtocolParameters -> C.NetworkId -> Plutus.Tx -> Either CardanoAPI.ToCardanoError (C.Tx C.AlonzoEra)
 mkPartialTx params networkId = fmap (C.makeSignedTransaction []) . CardanoAPI.toCardanoTxBody (Just params) networkId
