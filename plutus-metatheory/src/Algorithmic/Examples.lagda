@@ -7,6 +7,7 @@ module Algorithmic.Examples where
 ## Imports
 
 \begin{code}
+open import Utils using (*;_⇒_)
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution

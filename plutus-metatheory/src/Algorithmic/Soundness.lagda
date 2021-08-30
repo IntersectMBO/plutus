@@ -10,6 +10,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) hiding ([_])
 open import Data.Sum
 
+open import Utils
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
@@ -25,11 +26,6 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Builtin
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
-  as SSig
-import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-  as NSig
 \end{code}
 
 \begin{code}
@@ -84,6 +80,7 @@ embTC (NTermCon.bytestring b) = STermCon.bytestring b
 embTC (NTermCon.string s)     = STermCon.string s
 embTC (NTermCon.bool b)       = STermCon.bool b
 embTC NTermCon.unit           = STermCon.unit
+embTC (NTermCon.Data d)       = STermCon.Data d
 \end{code}
 
 \begin{code}
@@ -128,31 +125,6 @@ embList []       = []
 embList (A ∷ As) = embNf A ∷ embList As
 
 open import Algorithmic.Completeness
-
-lemList' : (bn : Builtin)
-  → embList (proj₁ (proj₂ (NSig.SIG bn))) ≡βL
-    substEq (λ Δ₁ → List (Δ₁ ⊢⋆ *)) (nfTypeSIG≡₁ bn)
-    (proj₁ (proj₂ (SSig.SIG bn)))
-lemList' addInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' subtractInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' multiplyInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' divideInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' quotientInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' remainderInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' modInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' lessThanInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' lessThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' equalsInteger = refl≡β _ ,, refl≡β _ ,, _
-lemList' appendByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' lessThanByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' lessThanEqualsByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' sha2-256 = refl≡β _ ,, _
-lemList' sha3-256 = refl≡β _ ,, _
-lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
-lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' ifThenElse = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
-lemList' appendString = refl≡β _ ,, refl≡β _ ,, _
-lemList' trace = refl≡β _ ,, _
 
 lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)

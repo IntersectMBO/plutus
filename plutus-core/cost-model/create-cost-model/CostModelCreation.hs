@@ -328,7 +328,7 @@ modInteger = divideInteger
 
 equalsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsInteger cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
+  cpuModel <- readModelMinSize cpuModelR -- ModelTwoArgumentsLinearOnDiagonal?
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
@@ -612,7 +612,7 @@ unBData _ =
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsData _ = do
   let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize 150000 10000
-  let memModel = ModelTwoArgumentsConstantCost 1
+  let memModel = ModelTwoArgumentsConstantCost 1 -- Maybe this should be linear?
   pure $ CostingFun cpuModel memModel
   {- The size function for 'Data' counts the total number of nodes, and so is
      potentially expensive.  Luckily laziness in the costing functions ensures

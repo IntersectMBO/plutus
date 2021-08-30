@@ -3,7 +3,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -11,6 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+
 {-
 
 Start the threads for contract instances
@@ -102,14 +102,15 @@ activateContractSTM' c@ContractInstanceState{contractState} activeContractInstan
   logInfo @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
   Contract.putStartInstance @t a activeContractInstanceId
   Contract.putState @t a activeContractInstanceId contractState
-  startContractInstanceThread' c activeContractInstanceId runAppBackend a
+  cid <- startContractInstanceThread' c activeContractInstanceId runAppBackend a
+  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID (caWallet a) activeContractInstanceId
+  pure cid
 
 -- | Spin up the STM Instance thread for the provided contract and add it to
 -- the STM instance state.
 startContractInstanceThread' ::
     forall t m appBackend effs.
-    ( Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (Reader InstancesState) effs
+    ( Member (Reader InstancesState) effs
     , Contract.PABContract t
     , AppBackendConstraints t m appBackend
     , LastMember m (Reader ContractInstanceId ': appBackend)
@@ -120,10 +121,9 @@ startContractInstanceThread' ::
     -> (Eff appBackend ~> IO)
     -> ContractActivationArgs (ContractDef t)
     -> Eff effs ContractInstanceId
-startContractInstanceThread' ContractInstanceState{stmState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
+startContractInstanceThread' ContractInstanceState{stmState} activeContractInstanceId runAppBackend a = do
   s <- startSTMInstanceThread' @t @m stmState runAppBackend a activeContractInstanceId
   ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
-  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID caWallet activeContractInstanceId
   pure activeContractInstanceId
 
 -- | Create a new instance of the contract
@@ -159,7 +159,7 @@ initContractInstanceState ::
 initContractInstanceState ContractActivationArgs{caID} = do
   activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
   initialState <- Contract.initialState @t activeContractInstanceId caID
-  pure $ (activeContractInstanceId, ContractInstanceState initialState emptyInstanceState)
+  pure (activeContractInstanceId, ContractInstanceState initialState emptyInstanceState)
 
 processAwaitSlotRequestsSTM ::
     forall effs.

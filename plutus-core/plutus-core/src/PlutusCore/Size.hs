@@ -1,50 +1,74 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module PlutusCore.Size
-    ( termSize
-    , typeSize
+    ( Size (..)
     , kindSize
+    , typeSize
+    , tyVarDeclSize
+    , termSize
+    , varDeclSize
     , programSize
     , serialisedSize
     ) where
 
+import           PlutusPrelude
+
 import           PlutusCore.Core
 
-import qualified Data.ByteString       as BS
-import           Data.Functor.Foldable
-import           Flat
+import           Control.Lens
+import qualified Data.ByteString as BS
+import           Data.Monoid
+import           Flat            hiding (to)
+
+newtype Size = Size
+    { unSize :: Integer
+    } deriving stock (Show)
+      deriving newtype (Pretty)
+      deriving (Semigroup, Monoid) via Sum Integer
 
 -- | Count the number of AST nodes in a kind.
-kindSize :: Kind a -> Integer
-kindSize = cata a where
-    a TypeF{}             = 1
-    a (KindArrowF _ k k') = 1 + k + k'
+--
+-- >>> kindSize $ Type ()
+-- Size {unSize = 1}
+-- >>> kindSize $ KindArrow () (KindArrow () (Type ()) (Type ())) (Type ())
+-- Size {unSize = 5}
+kindSize :: Kind a -> Size
+kindSize kind = fold
+    [ Size 1
+    , kind ^. kindSubkinds . to kindSize
+    ]
 
 -- | Count the number of AST nodes in a type.
-typeSize :: Type tyname uni ann -> Integer
-typeSize = cata a where
-    a TyVarF{}             = 1
-    a (TyFunF _ ty ty')    = 1 + ty + ty'
-    a (TyIFixF _ ty ty')   = 1 + ty + ty'
-    a (TyForallF _ _ k ty) = 1 + kindSize k + ty
-    a TyBuiltinF{}         = 1
-    a (TyLamF _ _ k ty)    = 1 + kindSize k + ty
-    a (TyAppF _ ty ty')    = 1 + ty + ty'
+typeSize :: Type tyname uni ann -> Size
+typeSize ty = fold
+    [ Size 1
+    , ty ^. typeSubkinds . to kindSize
+    , ty ^. typeSubtypes . to typeSize
+    ]
+
+tyVarDeclSize :: TyVarDecl tyname ann -> Size
+tyVarDeclSize tyVarDecl = fold
+    [ Size 1
+    , tyVarDecl ^. tyVarDeclSubkinds . to kindSize
+    ]
 
 -- | Count the number of AST nodes in a term.
-termSize :: Term tyname name uni fun ann -> Integer
-termSize = cata a where
-    a VarF{}              = 1
-    a (TyAbsF _ _ k t)    = 1 + kindSize k + t
-    a (ApplyF _ t t')     = 1 + t + t'
-    a (LamAbsF _ _ ty t)  = 1 + typeSize ty + t
-    a ConstantF{}         = 1
-    a BuiltinF{}          = 1
-    a (TyInstF _ t ty)    = 1 + t + typeSize ty
-    a (UnwrapF _ t)       = 1 + t
-    a (IWrapF _ ty ty' t) = 1 + typeSize ty + typeSize ty' + t
-    a (ErrorF _ ty)       = 1 + typeSize ty
+termSize :: Term tyname name uni fun ann -> Size
+termSize term = fold
+    [ Size 1
+    , term ^. termSubkinds . to kindSize
+    , term ^. termSubtypes . to typeSize
+    , term ^. termSubterms . to termSize
+    ]
+
+varDeclSize :: VarDecl tyname name uni fun ann -> Size
+varDeclSize varDecl = fold
+    [ Size 1
+    , varDecl ^. varDeclSubtypes . to typeSize
+    ]
 
 -- | Count the number of AST nodes in a program.
-programSize :: Program tyname name uni fun ann -> Integer
+programSize :: Program tyname name uni fun ann -> Size
 programSize (Program _ _ t) = termSize t
 
 -- | Compute the size of the serializabled form of a value.

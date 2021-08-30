@@ -1,7 +1,9 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 module Raw where
 
 import           GHC.Natural
@@ -9,6 +11,7 @@ import           GHC.Natural
 import           Data.ByteString     as BS
 import qualified Data.Text           as T
 import           PlutusCore
+import           PlutusCore.Data
 import           PlutusCore.DeBruijn
 import           PlutusCore.Default
 import           PlutusCore.Parser
@@ -16,32 +19,33 @@ import           PlutusCore.Pretty
 
 import           Data.Either
 
-data RKind = RKiStar
-           | RKiFun RKind RKind
-           deriving Show
-
 data RType = RTyVar Integer
            | RTyFun RType RType
-           | RTyPi RKind RType
-           | RTyLambda RKind RType
+           | RTyPi (Kind ()) RType
+           | RTyLambda (Kind ()) RType
            | RTyApp RType RType
-           | RTyCon (SomeTypeIn DefaultUni)
+           | RTyCon RTyCon
            | RTyMu RType RType
            deriving Show
 
-data RConstant = RConInt Integer
-               | RConBS BS.ByteString
-               | RConStr T.Text
-               | RConBool Bool
-               | RConUnit
-               deriving Show
+-- I don't need this...
+data RTyCon = RTyConInt
+            | RTyConBS
+            | RTyConStr
+            | RTyConBool
+            | RTyConUnit
+            | RTyConList RType
+            | RTyConPair RType RType
+            | RTyConData
+            deriving Show
+
 
 data RTerm = RVar Integer
-           | RTLambda RKind RTerm
+           | RTLambda (Kind ()) RTerm
            | RTApp RTerm RType
            | RLambda RType RTerm
            | RApp RTerm RTerm
-           | RCon RConstant
+           | RCon (Some (ValueOf DefaultUni))
            | RError RType
            | RBuiltin DefaultFun
            | RWrap RType RType RTerm
@@ -54,42 +58,35 @@ unIndex (Index n) = naturalToInteger n
 convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 convP (Program _ _ t) = conv t
 
-convK :: Kind a -> RKind
-convK (Type _)            = RKiStar
-convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
-
 convT :: Type NamedTyDeBruijn DefaultUni a -> RType
 convT (TyVar _ (NamedTyDeBruijn x)) = RTyVar (unIndex (ndbnIndex x))
 convT (TyFun _ _A _B)               = RTyFun (convT _A) (convT _B)
-convT (TyForall _ _ _K _A)          = RTyPi (convK _K) (convT _A)
-convT (TyLam _ _ _K _A)             = RTyLambda (convK _K) (convT _A)
+convT (TyForall _ _ _K _A)          = RTyPi (() <$ _K) (convT _A)
+convT (TyLam _ _ _K _A)             = RTyLambda (() <$ _K) (convT _A)
 convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin _ b)               = RTyCon b
+convT (TyBuiltin _ b)               = RTyCon (convTyCon b)
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 
-convC :: Some (ValueOf DefaultUni) -> RConstant
-convC (Some (ValueOf DefaultUniInteger    i))   = RConInt i
-convC (Some (ValueOf DefaultUniByteString b))   = RConBS b
-convC (Some (ValueOf DefaultUniString       s)) = RConStr s
-convC (Some (ValueOf DefaultUniUnit       u))   = RConUnit
-convC (Some (ValueOf DefaultUniBool       b))   = RConBool b
-convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
+convTyCon :: SomeTypeIn DefaultUni -> RTyCon
+convTyCon (SomeTypeIn DefaultUniInteger)    = RTyConInt
+convTyCon (SomeTypeIn DefaultUniByteString) = RTyConBS
+convTyCon (SomeTypeIn DefaultUniString)     = RTyConStr
+convTyCon (SomeTypeIn DefaultUniBool)       = RTyConBool
+convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
+convTyCon (SomeTypeIn DefaultUniData)       = RTyConData
+convTyCon _                                 = error "unsupported builtin"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
-conv (TyAbs _ _ _K t)    = RTLambda (convK _K) (conv t)
+conv (TyAbs _ _ _K t)    = RTLambda (() <$ _K) (conv t)
 conv (TyInst _ t _A)     = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)   = RLambda (convT _A) (conv t)
 conv (Apply _ t u)       = RApp (conv t) (conv u)
 conv (Builtin _ b)       = RBuiltin b
-conv (Constant _ c)      = RCon (convC c)
+conv (Constant _ c)      = RCon c
 conv (Unwrap _ t)        = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)        = RError (convT _A)
-
-unconvK :: RKind -> Kind ()
-unconvK RKiStar        = Type ()
-unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
 varTm :: Int -> NamedDeBruijn
 varTm i = NamedDeBruijn (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
@@ -103,19 +100,24 @@ unconvT i (RTyVar x)        =
   TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
-  TyForall () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
-unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
+  TyForall () (NamedTyDeBruijn (varTy i)) k (unconvT (i+1) t)
+unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) k (unconvT (i+1) t)
 
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
-unconvT i (RTyCon c)        = TyBuiltin () c
+unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon i c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 
-unconvC :: RConstant -> Some (ValueOf DefaultUni)
-unconvC (RConInt i)  = Some (ValueOf DefaultUniInteger    i)
-unconvC (RConBS b)   = Some (ValueOf DefaultUniByteString b)
-unconvC (RConStr s)  = Some (ValueOf DefaultUniString     s)
-unconvC RConUnit     = Some (ValueOf DefaultUniUnit       ())
-unconvC (RConBool b) = Some (ValueOf DefaultUniBool       b)
+unconvTyCon :: Int -> RTyCon -> SomeTypeIn DefaultUni
+unconvTyCon i RTyConInt        = SomeTypeIn DefaultUniInteger
+unconvTyCon i RTyConBS         = SomeTypeIn DefaultUniByteString
+unconvTyCon i RTyConStr        = SomeTypeIn DefaultUniString
+unconvTyCon i RTyConBool       = SomeTypeIn DefaultUniBool
+unconvTyCon i RTyConUnit       = SomeTypeIn DefaultUniUnit
+unconvTyCon i (RTyConList a) =
+  error "builtin lists not supported"
+unconvTyCon i (RTyConPair a b) =
+  error "builtin pairs not supported"
+unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
@@ -124,11 +126,11 @@ tynames = ['A' .. 'Z']
 unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun ()
 unconv i (RVar x)          =
   Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromIntegral x )]) (Index (naturalFromInteger x)))
-unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconv (i+1) tm)
+unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) k (unconv (i+1) tm)
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
 unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
-unconv i (RCon c)          = Constant () (unconvC c)
+unconv i (RCon c)          = Constant () c
 unconv i (RError ty)       = Error () (unconvT i ty)
 unconv i (RBuiltin b)      = Builtin () b
 unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)

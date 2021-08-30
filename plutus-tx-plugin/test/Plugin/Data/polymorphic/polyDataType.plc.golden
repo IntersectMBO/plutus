@@ -6,10 +6,10 @@
         (tyvardecl MyPolyData (fun (type) (fun (type) (type))))
         (tyvardecl a (type)) (tyvardecl b (type))
         MyPolyData_match
-        (vardecl Poly (fun a (fun b [[MyPolyData a] b])))
-        (vardecl Poly (fun a [[MyPolyData a] b]))
+        (vardecl Poly (fun a (fun b [ [ MyPolyData a ] b ])))
+        (vardecl Poly (fun a [ [ MyPolyData a ] b ]))
       )
     )
-    (lam ds [[MyPolyData (con integer)] (con integer)] ds)
+    (lam ds [ [ MyPolyData (con integer) ] (con integer) ] ds)
   )
 )

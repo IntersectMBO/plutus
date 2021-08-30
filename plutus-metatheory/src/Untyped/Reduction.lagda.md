@@ -14,7 +14,7 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend;primStringEquality)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
@@ -28,11 +28,11 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Fin using ()
-open import Utils hiding (_≤L_;_:<_)
+open import Utils hiding (_≤L_;*)
 import Data.List
 ```
 
-## Fixyt
+## Fixity
 
 ```
 infix 2 _—→_
@@ -49,14 +49,8 @@ data Label : Set where
   Type : Label
   Term : Label
 
-data Bwd (A : Set) : Set where
-  [] : Bwd A
-  _:<_ : Bwd A → A → Bwd A
-
 variable
   ls ls' : Bwd Label
-
-infixl 10 _:<_
 
 arity : Builtin → Bwd Label
 arity addInteger = [] :< Term :< Term
@@ -79,11 +73,41 @@ arity equalsByteString = [] :< Term :< Term
 arity ifThenElse = [] :< Type :< Term :< Term :< Term
 arity appendString = [] :< Term :< Term
 arity trace = [] :< Term
-
+arity equalsString = [] :< Term :< Term
+arity encodeUtf8 = [] :< Term
+arity decodeUtf8 = [] :< Term
+arity fstPair = [] :< Type :< Type :< Term
+arity sndPair = [] :< Type :< Type :< Term
+arity nullList = [] :< Type :< Term
+arity headList = [] :< Type :< Term
+arity tailList = [] :< Type :< Term
+arity chooseList = [] :< Type :< Type :< Term :< Term :< Term
+arity constrData = [] :< Term :< Term
+arity mapData = [] :< Term
+arity listData = [] :< Term
+arity iData = [] :< Term
+arity bData = [] :< Term
+arity unConstrData = [] :< Term
+arity unMapData = [] :< Term
+arity unListData = [] :< Term
+arity unIData = [] :< Term
+arity unBData = [] :< Term
+arity equalsData = [] :< Term :< Term
+arity chooseData = [] :< Type :< Term :< Term :< Term :< Term :< Term :< Term
+arity chooseUnit = [] :< Type :< Term :< Term
+arity mkPairData = [] :< Term :< Term
+arity mkNilData = [] :< Term
+arity mkNilPairData = [] :< Term
+arity mkCons = [] :< Term :< Term
+arity consByteString = [] :< Term :< Term
+arity sliceByteString = [] :< Term :< Term :< Term
+arity lengthOfByteString = [] :< Term
+arity indexByteString = [] :< Term :< Term
+arity blake2b-256 = [] :< Term
 data _≤L_ : Bwd Label → Bwd Label → Set where
   base     : ls ≤L ls
-  skipType : ls :< Type ≤L ls' → ls ≤L ls'
-  skipTerm : ls :< Term ≤L ls' → ls ≤L ls'
+  skipType : (ls :< Type) ≤L ls' → ls ≤L ls'
+  skipTerm : (ls :< Term) ≤L ls' → ls ≤L ls'
 
 infix 5 _≤L_
 ```
@@ -107,7 +131,7 @@ data FValue : 0 ⊢ → Set where
   V-builtin : (b : Builtin)
             → ∀ {ls ls'}
             → ls' ≡ arity b
-            → ls :< Term ≤L ls'
+            → (ls :< Term) ≤L ls'
             → ITel b ls
             → (t : 0 ⊢)
             → FValue t
@@ -119,7 +143,7 @@ data Value  : 0 ⊢ → Set where
   V-builtin⋆ : (b : Builtin)
             → ∀ {ls ls'}
             → ls' ≡ arity b
-            → ls :< Type ≤L ls'
+            → (ls :< Type) ≤L ls'
             → ITel b ls
             → (t : 0 ⊢)
             → Value t
@@ -191,6 +215,9 @@ IBUILTIN sha2-256
 IBUILTIN sha3-256
   (tt , (t , V-con (bytestring b)))
   = _ , inl (V-con (bytestring (SHA3-256 b)))
+IBUILTIN blake2b-256
+  (tt , (t , V-con (bytestring b)))
+  = _ , inl (V-con (bytestring (BLAKE2B-256 b)))
 IBUILTIN verifySignature
   (((tt , (t , V-con (bytestring k))) , (t' , V-con (bytestring d))) , (t'' , V-con (bytestring c)))
    with verifySig k d c
@@ -208,9 +235,44 @@ IBUILTIN ifThenElse
 IBUILTIN appendString
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (string (primStringAppend s s')))
+IBUILTIN equalsString
+  ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
+  = _ , inl (V-con (bool (primStringEquality s s')))
 IBUILTIN trace
   (tt , (t , v))
   = _ , inl (V-con unit)
+IBUILTIN iData
+  (tt , (t , V-con (integer i)))
+  = _ , inl (V-con (Data (iDATA i)))
+IBUILTIN bData
+  (tt , (t , V-con (bytestring b)))
+  = _ , inl (V-con (Data (bDATA b)))
+IBUILTIN consByteString
+  ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
+  = _ , inl (V-con (bytestring (cons i b)))
+IBUILTIN sliceByteString
+  (((tt , (t , V-con (integer st))) , (t' , V-con (integer n))) , (t'' , V-con (bytestring b))) = _ , inl (V-con (bytestring (slice st n b)))
+IBUILTIN lengthOfByteString
+  (tt , (t , V-con (bytestring b)))
+  = _ , inl (V-con (integer (length b)))
+IBUILTIN indexByteString ((tt , (t , V-con (bytestring b))) , (t' , V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = _ , inr E-error
+... | yes _ with i <? Builtin.length b
+... | no _ =  _ , inr E-error
+... | yes _ = _ , inl (V-con (integer (index b i)))
+IBUILTIN encodeUtf8
+  (tt , (t , V-con (string s)))
+  = _ , inl (V-con (bytestring (ENCODEUTF8 s)))
+IBUILTIN decodeUtf8
+  (tt , (t , V-con (bytestring b)))
+  with DECODEUTF8 b
+... | nothing = _ , inr E-error
+... | just s  = _ , inl (V-con (string s))
+IBUILTIN unIData (tt , (t , V-con (Data (iDATA i)))) =
+  _ , inl (V-con (integer i))
+IBUILTIN unBData (tt , (t , V-con (Data (bDATA b))))
+  = _ , inl (V-con (bytestring b))
+  
 IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t
@@ -355,6 +417,37 @@ ival ifThenElse =
   V-builtin⋆ ifThenElse refl (skipTerm (skipTerm (skipTerm base))) _ _
 ival appendString = V-F (V-builtin appendString refl (skipTerm base) _ _)
 ival trace = V-F (V-builtin trace refl base _ _)
+ival equalsString = V-F (V-builtin equalsString refl (skipTerm base) _ _)
+ival encodeUtf8 = V-F (V-builtin encodeUtf8 refl base _ _)
+ival decodeUtf8 = V-F (V-builtin decodeUtf8 refl base _ _)
+ival fstPair = V-F (V-builtin fstPair refl base _ _)
+ival sndPair = V-F (V-builtin sndPair refl base _ _)
+ival nullList = V-F (V-builtin nullList refl base _ _)
+ival headList = V-F (V-builtin headList refl base _ _)
+ival tailList = V-F (V-builtin tailList refl base _ _)
+ival chooseList = V-builtin⋆ chooseList refl (skipType (skipTerm (skipTerm (skipTerm base)))) _ _
+ival constrData = V-F (V-builtin constrData refl (skipTerm base) _ _)
+ival mapData = V-F (V-builtin mapData refl base _ _)
+ival listData = V-F (V-builtin listData refl base _ _)
+ival iData = V-F (V-builtin iData refl base _ _)
+ival bData = V-F (V-builtin bData refl base _ _)
+ival unConstrData = V-F (V-builtin unConstrData refl base _ _)
+ival unMapData = V-F (V-builtin unMapData refl base _ _)
+ival unListData = V-F (V-builtin unListData refl base _ _)
+ival unIData = V-F (V-builtin unIData refl base _ _)
+ival unBData = V-F (V-builtin unBData refl base _ _)
+ival equalsData = V-F (V-builtin equalsData refl (skipTerm base) _ _)
+ival chooseData = V-F (V-builtin chooseData refl (skipTerm (skipTerm (skipTerm (skipTerm (skipTerm base))))) _ _)
+ival chooseUnit = V-F (V-builtin chooseUnit refl (skipTerm base) _ _)
+ival mkPairData = V-F (V-builtin mkPairData refl (skipTerm base) _ _)
+ival mkNilData = V-F (V-builtin mkNilData refl base _ _)
+ival mkNilPairData = V-F (V-builtin mkNilPairData refl base _ _)
+ival mkCons = V-F (V-builtin mkCons refl (skipTerm base) _ _)
+ival consByteString = V-F (V-builtin consByteString refl (skipTerm base) _ _)
+ival sliceByteString = V-F (V-builtin sliceByteString refl (skipTerm (skipTerm base)) _ _)
+ival lengthOfByteString = V-F (V-builtin lengthOfByteString refl base _ _)
+ival indexByteString = V-F (V-builtin indexByteString refl (skipTerm base) _ _)
+ival blake2b-256 = V-F (V-builtin blake2b-256 refl base _ _)
 
 progress : (t : 0 ⊢) → Progress t
 progress (` ())

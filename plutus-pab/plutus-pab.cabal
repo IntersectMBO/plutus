@@ -80,6 +80,8 @@ library
         Cardano.Wallet.Server
         Cardano.Wallet.Types
         Control.Concurrent.Availability
+        Control.Concurrent.STM.Extras
+        Control.Concurrent.STM.Extras.Stream
         Control.Monad.Freer.Delay
         Plutus.PAB.App
         Plutus.PAB.Arbitrary
@@ -371,6 +373,7 @@ test-suite plutus-pab-test-light
     other-modules:
         Cardano.Api.NetworkId.ExtraSpec
         Cardano.Wallet.ServerSpec
+        Control.Concurrent.STM.ExtrasSpec
 
     build-depends:
         QuickCheck -any,
@@ -402,6 +405,8 @@ test-suite plutus-pab-test-light
         text -any,
         transformers -any,
         prettyprinter -any,
+        stm -any,
+        async -any,
 
 test-suite plutus-pab-test-full
     default-language: Haskell2010

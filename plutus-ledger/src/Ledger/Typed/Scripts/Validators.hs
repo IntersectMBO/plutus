@@ -119,7 +119,7 @@ mkTypedValidator vc wrapper =
         , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
--- | Make a 'TypedValidator' from the 'CompiledCode' of a paramaterized validator script and its wrapper.
+-- | Make a 'TypedValidator' from the 'CompiledCode' of a parameterized validator script and its wrapper.
 mkTypedValidatorParam
     :: forall a param. Lift DefaultUni param
     => CompiledCode (param -> ValidatorType a)

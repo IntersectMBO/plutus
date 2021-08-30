@@ -21,7 +21,6 @@ open import Declarative.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term
-open import Builtin.Signature
 open import Declarative.Examples.StdLib.Function
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])

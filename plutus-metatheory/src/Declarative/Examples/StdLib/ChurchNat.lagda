@@ -3,6 +3,7 @@ module Declarative.Examples.StdLib.ChurchNat where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Declarative
 open import Builtin

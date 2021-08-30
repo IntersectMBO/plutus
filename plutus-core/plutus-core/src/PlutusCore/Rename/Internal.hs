@@ -11,7 +11,6 @@ module PlutusCore.Rename.Internal
     ) where
 
 import           PlutusCore.Core
-import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
 import           PlutusCore.Rename.Monad as Export

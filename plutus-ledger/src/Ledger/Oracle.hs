@@ -100,7 +100,7 @@ data SignedMessageCheckError =
     | DecodingError
     -- ^ The datum had the wrong shape
     | DatumNotEqualToExpected
-    -- ^ The datum that correponds to the hash is wrong
+    -- ^ The datum that corresponds to the hash is wrong
     deriving (Generic, Haskell.Show)
 
 {-# INLINABLE checkSignature #-}
@@ -122,7 +122,7 @@ checkSignature datumHash pubKey signature_ =
         else Left $ SignatureMismatch signature_ pubKey datumHash
 
 {-# INLINABLE checkHashConstraints #-}
--- | Extrat the contents of the message and produce a constraint that checks
+-- | Extract the contents of the message and produce a constraint that checks
 --   that the hash is correct. In off-chain code, where we check the hash
 --   straightforwardly, 'checkHashOffChain' can be used instead of this.
 checkHashConstraints ::

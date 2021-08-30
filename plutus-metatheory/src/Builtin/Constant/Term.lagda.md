@@ -1,5 +1,6 @@
 ```
 open import Builtin.Constant.Type
+open import Utils hiding (TermCon)
 ```
 
 ```
@@ -7,7 +8,7 @@ module Builtin.Constant.Term
   (Ctx⋆ Kind : Set)
   (* : Kind)
   (_⊢⋆_ : Ctx⋆ → Kind → Set)
-  (con : ∀{φ} → TyCon → φ ⊢⋆ *)
+  (con : ∀{Φ} → TyCon Ctx⋆ (_⊢⋆ *) Φ → Φ ⊢⋆ *)
   where
 
 open import Builtin
@@ -34,4 +35,5 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
       (b : Bool)
     → TermCon (con bool)
   unit       : TermCon (con unit)
+  Data       : DATA → TermCon (con Data)  
 ```

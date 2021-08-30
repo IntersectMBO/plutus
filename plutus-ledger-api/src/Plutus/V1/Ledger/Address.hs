@@ -43,6 +43,7 @@ instance Pretty Address where
         "addressed to" <+> pretty cred <+> parens staking
 
 instance PlutusTx.Eq Address where
+    {-# INLINABLE (==) #-}
     Address cred stakingCred == Address cred' stakingCred' =
         cred PlutusTx.== cred'
         PlutusTx.&& stakingCred PlutusTx.== stakingCred'

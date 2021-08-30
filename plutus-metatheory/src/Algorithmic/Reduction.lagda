@@ -7,7 +7,7 @@ module Algorithmic.Reduction where
 
 \begin{code}
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -22,10 +22,9 @@ open import Data.Nat using (zero)
 open import Data.Unit using (tt)
 import Debug.Trace as Debug
 
-
+open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as T
-open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability
@@ -33,18 +32,67 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
+open import Algorithmic
 \end{code}
 
 ## Values
 
 \begin{code}
+data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
+
+data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C' Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
+
+skip' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A} → Γ ≤C' Γ' → Γ ≤C' (Γ' , A)
+skip' base = skip base
+skip' (skip⋆ p) = skip⋆ (skip' p)
+skip' (skip p) = skip (skip' p)
+
+skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
+skip⋆' base = skip⋆ base
+skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
+skip⋆' (skip p) = skip (skip⋆' p)
+
+≤Cto≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Γ ≤C' Γ'
+≤Cto≤C' base      = base
+≤Cto≤C' (skip⋆ p) = skip⋆' (≤Cto≤C' p)
+≤Cto≤C' (skip p)  = skip' (≤Cto≤C' p)
+
+<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+<C'2type base      C = C
+<C'2type (skip⋆ p) C = Π (<C'2type p C)
+<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
+
+Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
+  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
+  → (Π
+       (eval
+        (T.sub (T.exts (T.exts (λ x → embNf (σ x))))
+         (embNf (<C'2type p C)))
+        (exte (exte (idEnv ∅))))
+       [ A ]Nf)
+      ≡ subNf (subNf-cons σ A) (Π (<C'2type p C))
+Πlem p A C σ = sym (subNf-cons-[]Nf (Π (<C'2type p C)))
+
+⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
+       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
+  → ((eval (T.sub (T.exts (λ x → embNf (σ x))) (embNf B))
+        (exte (idEnv ∅))
+        ⇒
+        eval (T.sub (T.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
+        (exte (idEnv ∅)))
+       [ A ]Nf)
+      ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
+⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
 
 -- something very much like a substitution
 -- labelled by a builtin and given a first order presentation
@@ -69,7 +117,7 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
    → Value M
    → Value (wrap A B M)
 
-  V-con : ∀{tcn : TyCon}
+  V-con : ∀{tcn : TyCon _}
     → (cn : TermCon (con tcn))
     → Value (con cn)
 
@@ -164,6 +212,7 @@ IBUILTIN lessThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con 
 IBUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
 IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
 IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
+IBUILTIN blake2b-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (BLAKE2B-256 b)))
 IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
 ... | just b = _ ,, inj₁ (V-con (bool b))
 ... | nothing = _ ,, inj₂ E-error -- not sure what this is for
@@ -175,6 +224,30 @@ IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
 IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
   _ ,, inj₁ (V-con (string (primStringAppend s s')))
 IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
+IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
+  _ ,, inj₁ (V-con (Data (iDATA i)))
+IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
+  _ ,, inj₁ (V-con (Data (bDATA b)))
+IBUILTIN consByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (cons i b)))
+IBUILTIN sliceByteString σ (((tt ,, _ ,, V-con (integer st)) ,, _ ,, V-con (integer n)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (slice st n b)))
+IBUILTIN lengthOfByteString σ (tt ,, _ ,, V-con (bytestring b)) =
+  _ ,, inj₁ (V-con (integer (length b)))
+IBUILTIN indexByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (integer i)) with Data.Integer.ℤ.pos 0 ≤? i
+... | no  _ = _ ,, inj₂ E-error
+... | yes _ with i <? length b
+... | no _ =  _ ,, inj₂ E-error
+... | yes _ = _ ,, inj₁ (V-con (integer (index b i)))
+IBUILTIN equalsString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = _ ,, inj₁ (V-con (bool (primStringEquality s s')))
+IBUILTIN encodeUtf8 σ (tt ,, _ ,, V-con (string s)) =
+  _ ,, inj₁ (V-con (bytestring (ENCODEUTF8 s)))
+IBUILTIN decodeUtf8 σ (tt ,, _ ,, V-con (bytestring b)) with DECODEUTF8 b
+... | nothing = _ ,, inj₂ E-error
+... | just s  = _ ,, inj₁ (V-con (string s))
+IBUILTIN unIData σ (tt ,, _ ,, V-con (Data (iDATA i))) =
+  _ ,, inj₁ (V-con (integer i))
+IBUILTIN unBData σ (tt ,, _ ,, V-con (Data (bDATA b))) =
+  _ ,, inj₁ (V-con (bytestring b))
+IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -354,26 +427,57 @@ convValue : ∀{A A'}{t : ∅ ⊢ A}(p : A ≡ A') → Value (conv⊢ refl p t) 
 convValue refl v = v
 
 ival : ∀ b → Value (ibuiltin b)
-ival addInteger = V-I⇒ addInteger {Γ = proj₁ (proj₂ (ISIG addInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG addInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin addInteger)
-ival subtractInteger = V-I⇒ subtractInteger {Γ = proj₁ (proj₂ (ISIG subtractInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG subtractInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin subtractInteger)
-ival multiplyInteger = V-I⇒ multiplyInteger {Γ = proj₁ (proj₂ (ISIG multiplyInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG multiplyInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin multiplyInteger)
-ival divideInteger = V-I⇒ divideInteger {Γ = proj₁ (proj₂ (ISIG divideInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG divideInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin divideInteger)
-ival quotientInteger = V-I⇒ quotientInteger {Γ = proj₁ (proj₂ (ISIG quotientInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG quotientInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin quotientInteger)
-ival remainderInteger = V-I⇒ remainderInteger {Γ = proj₁ (proj₂ (ISIG remainderInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG remainderInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin remainderInteger)
-ival modInteger = V-I⇒ modInteger {Γ = proj₁ (proj₂ (ISIG modInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG modInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin modInteger)
-ival lessThanInteger = V-I⇒ lessThanInteger {Γ = proj₁ (proj₂ (ISIG lessThanInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanInteger)
-ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger {Γ = proj₁ (proj₂ (ISIG lessThanEqualsInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanEqualsInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsInteger)
-ival equalsInteger = V-I⇒ equalsInteger {Γ = proj₁ (proj₂ (ISIG equalsInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsInteger)
-ival appendByteString = V-I⇒ appendByteString {Γ = proj₁ (proj₂ (ISIG appendByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG appendByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin appendByteString)
-ival lessThanByteString = V-I⇒ lessThanByteString {Γ = proj₁ (proj₂ (ISIG lessThanByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanByteString)
-ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString {Γ = proj₁ (proj₂ (ISIG lessThanEqualsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanEqualsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsByteString)
-ival sha2-256 = V-I⇒ sha2-256 {Γ = proj₁ (proj₂ (ISIG sha2-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha2-256))} refl refl refl (λ()) base tt (ibuiltin sha2-256)
-ival sha3-256 = V-I⇒ sha3-256 {Γ = proj₁ (proj₂ (ISIG sha3-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha3-256))} refl refl refl (λ()) base tt (ibuiltin sha3-256)
-ival verifySignature = V-I⇒ verifySignature {Γ = proj₁ (proj₂ (ISIG verifySignature))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG verifySignature))} refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
-ival equalsByteString = V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString)
-ival ifThenElse = V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse)
-ival appendString = V-I⇒ appendString {Γ = proj₁ (proj₂ (ISIG appendString))}{C = proj₂ (proj₂ (ISIG appendString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin appendString)
-ival trace = V-I⇒ trace {Γ = proj₁ (proj₂ (ISIG trace))}{C = proj₂ (proj₂ (ISIG trace))} refl refl refl (λ()) base tt (ibuiltin trace)
+ival addInteger = V-I⇒ addInteger refl refl refl (λ()) (skip base) tt (ibuiltin addInteger)
+ival subtractInteger = V-I⇒ subtractInteger refl refl refl (λ()) (skip base) tt (ibuiltin subtractInteger)
+ival multiplyInteger = V-I⇒ multiplyInteger refl refl refl (λ()) (skip base) tt (ibuiltin multiplyInteger)
+ival divideInteger = V-I⇒ divideInteger refl refl refl (λ()) (skip base) tt (ibuiltin divideInteger)
+ival quotientInteger = V-I⇒ quotientInteger refl refl refl (λ()) (skip base) tt (ibuiltin quotientInteger)
+ival remainderInteger = V-I⇒ remainderInteger refl refl refl (λ()) (skip base) tt (ibuiltin remainderInteger)
+ival modInteger = V-I⇒ modInteger refl refl refl (λ()) (skip base) tt (ibuiltin modInteger)
+ival lessThanInteger = V-I⇒ lessThanInteger refl refl refl (λ()) (skip base) tt (ibuiltin lessThanInteger)
+ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsInteger)
+ival equalsInteger = V-I⇒ equalsInteger refl refl refl (λ()) (skip base) tt (ibuiltin equalsInteger)
+ival lessThanByteString = V-I⇒ lessThanByteString refl refl refl (λ()) (skip base) tt (ibuiltin lessThanByteString)
+ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsByteString)
+ival sha2-256 = V-I⇒ sha2-256 refl refl refl (λ()) base tt (ibuiltin sha2-256)
+ival sha3-256 = V-I⇒ sha3-256 refl refl refl (λ()) base tt (ibuiltin sha3-256)
+ival verifySignature = V-I⇒ verifySignature refl refl refl (λ()) (skip (skip base)) tt (ibuiltin verifySignature)
+ival equalsByteString = V-I⇒ equalsByteString refl refl refl (λ()) (skip base) tt (ibuiltin equalsByteString)
+ival appendByteString = V-I⇒ appendByteString refl refl refl (λ()) (skip base) tt (ibuiltin appendByteString)
+ival appendString = V-I⇒ appendString refl refl refl (λ()) (skip base) tt (ibuiltin appendString)
+ival ifThenElse = V-IΠ ifThenElse refl refl refl (λ()) (skip (skip (skip base))) tt (ibuiltin ifThenElse)
+ival trace = V-I⇒ trace refl refl refl (λ()) base tt (ibuiltin trace)
+ival equalsString = V-I⇒ equalsString refl refl refl (λ()) (skip base) tt (ibuiltin equalsString)
+ival encodeUtf8 = V-I⇒ encodeUtf8 refl refl refl (λ()) base tt (ibuiltin encodeUtf8)
+ival decodeUtf8 = V-I⇒ decodeUtf8 refl refl refl (λ()) base tt (ibuiltin decodeUtf8)
+ival fstPair = V-IΠ fstPair refl refl refl (λ()) (skip⋆ (skip base)) tt (ibuiltin fstPair)
+ival sndPair = V-IΠ sndPair refl refl refl (λ()) (skip⋆ (skip base)) tt (ibuiltin sndPair)
+ival nullList = V-IΠ nullList refl refl refl (λ()) (skip base) tt (ibuiltin nullList)
+ival headList = V-IΠ headList refl refl refl (λ()) (skip base) tt (ibuiltin headList)
+ival tailList = V-IΠ tailList refl refl refl (λ()) (skip base) tt (ibuiltin tailList)
+ival chooseList = V-IΠ chooseList refl refl refl (λ()) (skip⋆ (skip (skip (skip base)))) tt (ibuiltin chooseList)
+ival constrData = V-I⇒ constrData refl refl refl (λ()) (skip base) tt (ibuiltin constrData)
+ival mapData = V-I⇒ mapData refl refl refl (λ()) base tt (ibuiltin mapData)
+ival listData = V-I⇒ listData refl refl refl (λ()) base tt (ibuiltin listData)
+ival iData = V-I⇒ iData refl refl refl (λ()) base tt (ibuiltin iData)
+ival bData = V-I⇒ bData refl refl refl (λ()) base tt (ibuiltin bData)
+ival unConstrData = V-I⇒ unConstrData refl refl refl (λ()) base tt (ibuiltin unConstrData)
+ival unMapData = V-I⇒ unMapData refl refl refl (λ()) base tt (ibuiltin unMapData) 
+ival unListData = V-I⇒ unListData refl refl refl (λ()) base tt (ibuiltin unListData)
+ival unIData = V-I⇒ unIData refl refl refl (λ()) base tt (ibuiltin unIData)
+ival unBData = V-I⇒ unBData refl refl refl (λ()) base tt (ibuiltin unBData)
+ival equalsData = V-I⇒ equalsData refl refl refl (λ()) (skip base) tt (ibuiltin equalsData)
+ival chooseData = V-IΠ chooseData refl refl refl (λ()) (skip (skip (skip (skip (skip (skip base)))))) tt (ibuiltin chooseData)
+ival chooseUnit = V-IΠ chooseUnit refl refl refl (λ()) (skip (skip base)) tt (ibuiltin chooseUnit)
+ival mkPairData = V-I⇒ mkPairData refl refl refl (λ()) (skip base) tt (ibuiltin mkPairData)
+ival mkNilData = V-I⇒ mkNilData refl refl refl (λ()) base tt (ibuiltin mkNilData)
+ival mkNilPairData = V-I⇒ mkNilPairData refl refl refl (λ()) base tt (ibuiltin mkNilPairData)
+ival mkCons = V-I⇒ mkCons refl refl refl (λ()) (skip base) tt (ibuiltin mkCons)
+ival consByteString = V-I⇒ consByteString refl refl refl (λ()) (skip base) tt (ibuiltin consByteString)
+ival sliceByteString = V-I⇒ sliceByteString refl refl refl (λ()) (skip (skip base)) tt (ibuiltin sliceByteString)
+ival lengthOfByteString = V-I⇒ lengthOfByteString refl refl refl (λ()) base tt (ibuiltin lengthOfByteString)
+ival indexByteString = V-I⇒ indexByteString refl refl refl (λ()) (skip base) tt (ibuiltin indexByteString)
+ival blake2b-256 = V-I⇒ blake2b-256 refl refl refl (λ()) base tt (ibuiltin blake2b-256)
 
 progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)

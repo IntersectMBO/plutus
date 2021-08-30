@@ -10,7 +10,8 @@ class ShowConstructor a where
 data MetadataAction
   = SetContractName String
   | SetContractType ContractType
-  | SetContractDescription String
+  | SetContractShortDescription String
+  | SetContractLongDescription String
   | SetRoleDescription S.TokenName String
   | DeleteRoleDescription S.TokenName
   | SetSlotParameterDescription String String
@@ -25,7 +26,8 @@ data MetadataAction
 instance metadataActionShowConstructor :: ShowConstructor MetadataAction where
   showConstructor (SetContractName _) = "SetContractName"
   showConstructor (SetContractType _) = "SetContractType"
-  showConstructor (SetContractDescription _) = "SetContractDescription"
+  showConstructor (SetContractShortDescription _) = "SetContractShortDescription"
+  showConstructor (SetContractLongDescription _) = "SetContractLongDescription"
   showConstructor (SetRoleDescription _ _) = "SetRoleDescription"
   showConstructor (DeleteRoleDescription _) = "DeleteRoleDescription"
   showConstructor (SetSlotParameterDescription _ _) = "SetSlotParameterDescription"
