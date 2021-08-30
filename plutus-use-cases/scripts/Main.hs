@@ -13,33 +13,19 @@ import qualified Cardano.Api                    as C
 import qualified Cardano.Api.Shelley            as C
 import qualified Control.Foldl                  as L
 import           Control.Monad.Freer            (run)
-import           Data.Aeson                     (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import qualified Data.Aeson                     as Aeson
 import           Data.Aeson.Encode.Pretty       (encodePretty)
-import           Data.Bitraversable             (bitraverse)
-import           Data.ByteArray.Encoding        (Base (Base16), convertToBase)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Default                   (Default (..))
 import           Data.Foldable                  (traverse_)
 import           Data.Int                       (Int64)
-import           Data.Map                       (Map)
-import qualified Data.Map                       as Map
-import           Data.Maybe                     (mapMaybe)
 import           Data.Monoid                    (Sum (..))
-import           Data.Proxy                     (Proxy (..))
-import           Data.Text                      (Text)
-import qualified Data.Text.Encoding             as Text
 import           Data.Text.Prettyprint.Doc      (Pretty (..))
-import           Data.Typeable                  (Typeable)
 import           Flat                           (flat)
-import           GHC.Generics                   (Generic)
-import qualified Ledger                         as Plutus
-import           Ledger.Bytes                   (LedgerBytes (..))
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
-import           Ledger.Crypto                  (PubKey (..))
-import           Ledger.Index                   (ScriptType (..), ScriptValidationEvent (..))
+import           Ledger.Index                   (ScriptValidationEvent (..), ValidatorMode (..), getScript)
 import           Options.Applicative
-import qualified Plutus.Contract.CardanoAPI     as CardanoAPI
+import           Plutus.Contract.Wallet         (ExportTx (..), export)
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
 import qualified Plutus.Contracts.Uniswap.Trace as Uniswap
 import           Plutus.Trace.Emulator          (EmulatorConfig, EmulatorTrace)
@@ -166,21 +152,21 @@ writeScriptsTo
     -> EmulatorConfig
     -> IO (Sum Int64, ExBudget)
 writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
-    let (scriptEvents, balanceEvents) =
-            S.fst'
-            $ run
-            $ foldEmulatorStreamM (L.generalize theFold)
-            $ Trace.runEmulatorStream emulatorCfg trace
-
+    let stream = Trace.runEmulatorStream emulatorCfg trace
+        getEvents :: Folds.EmulatorEventFold a -> a
+        getEvents theFold = S.fst' $ run $ foldEmulatorStreamM (L.generalize theFold) stream
     createDirectoryIfMissing True scPath
     case scCommand of
         Scripts mode -> do
-            foldMap (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] scriptEvents)
+            foldMap (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] $ getEvents Folds.scriptEvents)
         Transactions{networkId, protocolParamsJSON} -> do
             bs <- BSL.readFile protocolParamsJSON
             case Aeson.eitherDecode bs of
                 Left err -> putStrLn err
-                Right params -> traverse_ (uncurry $ writeTransaction params networkId scPath prefix) (zip [1::Int ..] balanceEvents)
+                Right params ->
+                    traverse_
+                        (uncurry $ writeTransaction params networkId scPath prefix)
+                        (zip [1::Int ..] $ getEvents Folds.walletTxBalanceEvents)
             pure mempty
 
 {- There's an instance of Codec.Serialise for
@@ -216,76 +202,6 @@ writeTransaction params networkId fp prefix idx tx = do
 -- | `uncurry3` converts a curried function to a function on triples.
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
-
-theFold :: Folds.EmulatorEventFold ([ScriptValidationEvent], [UnbalancedTx])
-theFold = (,) <$> Folds.scriptEvents <*> Folds.walletTxBalanceEvents
-
-{- Note [Keys in ExportTx]
-
-The wallet backend (receiver of 'ExportTx' values) expectes the public keys in the
-'signatories' field to be 'Cardano.Crypto.Wallet.XPub' keys - extended public keys
-of 64 bytes. In the emulator we only deal with ED25519 keys of 32 bytes. Until that
-is changed (https://jira.iohk.io/browse/SCP-2644) we simply append each of our keys
-to itself in order to get a key of the correct length.
-
--}
-
--- | Partial transaction that can be balanced by the wallet backend.
-data ExportTx =
-        ExportTx
-            { partialTx   :: C.Tx C.AlonzoEra -- ^ The transaction itself
-            , lookups     :: [ExportTxInput] -- ^ The tx outputs for all inputs spent by the partial tx
-            , signatories :: [Text] -- ^ Key(s) that we expect to be used for balancing & signing. (Advisory) See note [Keys in ExportT]
-            }
-    deriving stock (Generic, Typeable)
-
-data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.AlonzoEra}
-    deriving stock (Generic, Typeable)
-    deriving anyclass (ToJSON)
-
-instance ToJSON ExportTx where
-    toJSON ExportTx{partialTx, lookups, signatories} =
-        object
-            [ "transaction" .= toJSON (C.serialiseToTextEnvelope Nothing partialTx)
-            , "inputs"      .= toJSON lookups
-            , "signatories" .= toJSON signatories
-            ]
-
-instance FromJSON ExportTx where
-    parseJSON (Object v) =
-        ExportTx
-            <$> ((v .: "transaction") >>= either (fail . show) pure . C.deserialiseFromTextEnvelope (C.proxyToAsType Proxy))
-            <*> pure mempty -- FIXME: How to deserialise Utxo / [(TxIn, TxOut)] ) see https://github.com/input-output-hk/cardano-node/issues/3051
-            <*> v .: "signatories"
-    parseJSON _ = fail "Expexted Object"
-
-export :: C.ProtocolParameters -> C.NetworkId -> UnbalancedTx -> Either CardanoAPI.ToCardanoError ExportTx
-export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex, unBalancedTxRequiredSignatories} =
-    ExportTx
-        <$> mkTx params networkId unBalancedTxTx
-        <*> mkLookups networkId unBalancedTxUtxoIndex
-        <*> mkSignatories unBalancedTxRequiredSignatories
-
-mkTx :: C.ProtocolParameters -> C.NetworkId -> Plutus.Tx -> Either CardanoAPI.ToCardanoError (C.Tx C.AlonzoEra)
-mkTx params networkId = fmap (C.makeSignedTransaction []) . CardanoAPI.toCardanoTxBody (Just params) networkId
-
-mkLookups :: C.NetworkId -> Map Plutus.TxOutRef Plutus.TxOut -> Either CardanoAPI.ToCardanoError [ExportTxInput]
-mkLookups networkId = fmap (fmap $ uncurry ExportTxInput) . traverse (bitraverse CardanoAPI.toCardanoTxIn (CardanoAPI.toCardanoTxOut networkId)) . Map.toList
-
-mkSignatories :: Map Plutus.PubKeyHash (Maybe Plutus.PubKey) -> Either CardanoAPI.ToCardanoError [Text]
-mkSignatories =
-    -- see note [Keys in ExportTx]
-    Right . fmap (\(PubKey (LedgerBytes k)) -> Text.decodeUtf8 $ convertToBase Base16 (k <> k)) . mapMaybe snd . Map.toList
-
-data ValidatorMode = FullyAppliedValidators | UnappliedValidators
-    deriving (Eq, Ord, Show)
-
-getScript :: ValidatorMode -> ScriptValidationEvent -> Script
-getScript FullyAppliedValidators ScriptValidationEvent{sveScript} = sveScript
-getScript UnappliedValidators ScriptValidationEvent{sveType} =
-    case sveType of
-        ValidatorScript (Plutus.Validator script) _    -> script
-        MintingPolicyScript (Plutus.MintingPolicy mps) -> mps
 
 filenameSuffix :: ValidatorMode -> String
 filenameSuffix FullyAppliedValidators = ""
