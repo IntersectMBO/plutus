@@ -2,8 +2,8 @@
 {-# LANGUAGE TypeOperators #-}
 module Plutus.ChainIndex.Api(API, FromHashAPI) where
 
-import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
-                                          StakeValidatorHash, TxId, Validator, ValidatorHash)
+import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
+                                          StakeValidator, StakeValidatorHash, TxId, Validator, ValidatorHash)
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
@@ -24,3 +24,4 @@ type FromHashAPI =
     :<|> "validator" :> ReqBody '[JSON] ValidatorHash :> Post '[JSON] Validator
     :<|> "minting-policy" :> ReqBody '[JSON] MintingPolicyHash :> Post '[JSON] MintingPolicy
     :<|> "stake-validator" :> ReqBody '[JSON] StakeValidatorHash :> Post '[JSON] StakeValidator
+    :<|> "redeemer" :> ReqBody '[JSON] RedeemerHash :> Post '[JSON] Redeemer

@@ -109,7 +109,7 @@ import           Ledger.TimeSlot                                (SlotConfig)
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.ChainIndex                              (ChainIndexControlEffect, ChainIndexEmulatorState,
                                                                  ChainIndexError, ChainIndexLog,
-                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
+                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
                                                                  getTip)
 import qualified Plutus.ChainIndex                              as ChainIndex
 import           Plutus.Contract.Effects                        (TxStatus)
@@ -570,6 +570,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     ValidatorFromHash h      -> ChainIndex.validatorFromHash h
     MintingPolicyFromHash h  -> ChainIndex.mintingPolicyFromHash h
     StakeValidatorFromHash h -> ChainIndex.stakeValidatorFromHash h
+    RedeemerFromHash h       -> ChainIndex.redeemerFromHash h
     TxOutFromRef ref         -> ChainIndex.txOutFromRef ref
     TxFromTxId txid          -> ChainIndex.txFromTxId txid
     UtxoSetMembership ref    -> ChainIndex.utxoSetMembership ref
