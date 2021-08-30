@@ -44,7 +44,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , watchedTransactions
     , callEndpointOnInstance
     , callEndpointOnInstanceTimeout
-    , obervableContractState
+    , observableContractState
     , instanceState
     , instanceIDs
     , runningInstances
@@ -378,8 +378,8 @@ instanceState instanceId (InstancesState m) = do
 
 -- | Get the observable state of the contract instance. Blocks if the
 --   state is not available yet.
-obervableContractState :: ContractInstanceId -> InstancesState -> STM Value
-obervableContractState instanceId m = do
+observableContractState :: ContractInstanceId -> InstancesState -> STM Value
+observableContractState instanceId m = do
     InstanceState{issObservableState} <- instanceState instanceId m
     v <- STM.readTVar issObservableState
     case v of

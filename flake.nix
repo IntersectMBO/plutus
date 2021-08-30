@@ -103,27 +103,10 @@
       let
         topLevel = import ./. {
           inherit system;
-          sources = removeAttrs inputs [ "self" "flake-utils" ];
+          sources = inputs;
         };
-
-        inherit (topLevel) pkgs plutus;
       in
-      rec {
-        packages = rec {
-          marlowe-playground-client = topLevel.marlowe-playground.client;
-          marlowe-playground-server = topLevel.marlowe-playground.server;
-
-          plutus-playground-client = topLevel.plutus-playground.client;
-          plutus-playground-server = topLevel.plutus-playground.server;
-
-          web-ghc-server = topLevel.web-ghc;
-
-          marlowe-pab = topLevel.marlowe-pab;
-          marlowe-run-client = topLevel.marlowe-dashboard.client;
-
-          marlowe-website = topLevel.marlowe-web;
-
-          plutus-docs = topLevel.docs.site;
-        };
+      {
+        packages = topLevel.bitte-packages;
       }));
 }
