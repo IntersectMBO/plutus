@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-
 module Language.Marlowe.ACTUS.Ops where
 
 import           Data.Time                                             (Day)
@@ -17,11 +15,11 @@ marloweFixedPoint :: Integer
 marloweFixedPoint = 1000
 
 class ActusOps a where
-    _min :: a -> a -> a
-    _max :: a -> a -> a
-    _abs :: a -> a
+    _min  :: a -> a -> a
+    _max  :: a -> a -> a
+    _abs  :: a -> a
     _zero :: a
-    _one :: a
+    _one  :: a
 
 class ActusNum a where
     (+) :: a -> a -> a
@@ -63,7 +61,7 @@ instance RoleSignOps Double where
 instance ActusOps (Value Observation) where
     _min a b = Cond (ValueLT a b) a b
     _max a b = Cond (ValueGT a b) a b
-    _abs (Constant a) = Constant (abs a)
+    _abs a = _max a (SubValue _zero a)
     _zero = Constant 0
     _one  = Constant marloweFixedPoint
 
