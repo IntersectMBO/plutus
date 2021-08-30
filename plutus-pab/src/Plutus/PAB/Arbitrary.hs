@@ -22,6 +22,7 @@ import           Ledger.Slot                       (Slot)
 import           Ledger.Tx                         (RedeemerPtr, ScriptTag, Tx, TxIn, TxInType, TxOut, TxOutRef)
 import           Ledger.TxId                       (TxId)
 import           Plutus.Contract.Effects           (ActiveEndpoint (..), PABReq (..), PABResp (..))
+import           Plutus.Contract.StateMachine      (ThreadToken)
 import qualified PlutusTx                          as PlutusTx
 import qualified PlutusTx.AssocMap                 as AssocMap
 import qualified PlutusTx.Prelude                  as PlutusTx
@@ -129,6 +130,10 @@ instance Arbitrary TxId where
     shrink = genericShrink
 
 instance Arbitrary Signature where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary ThreadToken where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
