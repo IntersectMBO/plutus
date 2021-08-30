@@ -235,28 +235,40 @@ Blockly: holes in Marlowe become literal holes in Blockly. To transfer
 to Blockly use the **View as blocks** in the top right-hand
 corner of the screen, and *vice versa*.
 
-Simulating Marlowe contracts
-----------------------------
+Simulating Marlowe contracts and templates
+------------------------------------------
 
 However a contract is written, when it is sent to simulation this is the
-view seen first.
+view seen first. Here we’re looking at the *Zero coupon bond* example.
 
 .. image:: images/simulation-tab.png
    :alt: The Simulation pane
 
-The code shown here presents whatever of the contract remains to be
-simulated, and the pane at the foot gives data about the simulation, as
-well as giving access to *static analysis* for the contract (from its
-current state).
+Before a simulation can be started you need to supply some information.
+
+- The *slot number* at which to start the simulation.
+- Any *value parameters*: in this case the amount loaned and the (added) amount of interest to be paid.
+- Any *slot parameters*: here we give the time by which the lender has to deposit the amount, and
+  the time by which the borrower needs to repay that amount with interest.
+
+The code shown here presents the complete contract that is being
+simulated. Once the simulation has begun, whatever of the contract remains to be
+simulated is highlighted. The footer gives data about the simulation.
+
+For our example let’s fill in the parameters like this, and retain slot 0 as the starting point.
+
+.. image:: images/completed-params.png
+   :alt: Parameters added.
 
 Simulation is started by clicking the **Start simulation** button, and
 once this is done, the available actions that will advance the contract
-are presented;
+are presented. Note too that the whole contract is highlighted, showing that none
+of it has yet been executed.
 
 .. image:: images/available-actions.png
    :alt: The actions available
 
-In this case there are two potential actions: Alice can make a deposit,
+In this case there are two potential actions: the *Lender* can make a deposit of 10,000 Ada,
 or the slot (time) can advance to ``10`` at which the wait for a deposit
 times out. Two other generic actions can be taken too
 
@@ -268,27 +280,27 @@ times out. Two other generic actions can be taken too
    values: the full contract and an empty state. It also *stops* the
    simulation.
 
-For our example, let us select for Alice to make the deposit of 450
-lovelace. We can do that with the **+** button next to this input. After
+For our example, let us select for the *Lender* to make the deposit of 10,000
+Ada. We can do that with the **+** button next to this input. After
 doing that we see
 
 .. image:: images/simulation2.png
    :alt: Simulation step 2
 
-Where we see at the foot of the screen that the deposit has taken place.
+where we see to the right of the screen that the deposit has been made, followed by
+an automatic payment to the *Borrower*. We can also see that the highlighted part has changed
+to reflect that fact that the initial deposit and pay have been performed.
 
-This remains in view if we then make Alice’s and then Bob’s choice. Note
-also that the current state of the contract is shown in the main part of
-the window, and indeed we are waiting at this stage for a choice from
-Alice.
-
-If Alice and Bob make different choices we then see
+The remaining part of the contract is the repayment: if we select this action by the *Borrower* 
+we see that the contract has completed.
 
 .. image:: images/simulation3.png
    :alt: Simulation step 3
 
-and at this point in the evolution of the contract we are awaiting a
-choice from Carol to arbitrate the outcome.
+The log on the right hand side of the screen now gives a complete list of the actions undertaken 
+by the participants and by the contract itself. One final note: we chose not to advance the slot at any time: this is consistent with the
+contract design; on the other hand we didn’t see any *timeout* actions happening. Why not try 
+this yourself? 
 
 Oracle simulation
 -----------------
@@ -334,10 +346,13 @@ Analysing a contract
 --------------------
 
 The static analysis of a contract is performed by selecting the **Static
-analysis** tab in the pane at the foot of the page.
+analysis** tab in footer at the bottom of the page.
 
 .. image:: images/static-analysis.png
    :alt: Static analysis
+
+In order to analyse a *template* it is necessary to give values to any
+of its parameters, as you can see in the screenshot.
 
 Clicking the **Analyse for warnings** button results in the current
 contract *in the current state* being analysed. The result is either to
@@ -351,12 +366,11 @@ are given in the section on
 The **Analyse reachability** button will check whether any parts of a
 contract will never be executed, however participants interact with it.
 
-Use the Marlowe Playground to interact with the ``escrow`` contract in
-the various scenarios discussed in the tutorial on :ref:`using
-Marlowe <using-marlowe>`.
+The **Analyse for refunds on Close** will check whether it is possible for
+any of the ``Close`` constructs to refund funds, or whether at every ``Close`` all
+the funds in the contract have already been refunded.
 
-Explore making some changes to the contract and interactions with those
-modified contracts.
+Use the Marlowe Playground to interact with the example contracts and, in
+particular try the contracts with different parameter values, and also modify them in 
+various ways to see how contracts can fail to meet the analysis.
 
-Use the Marlowe Playground to explore the other examples presented in
-there: the deposit incentive contract, and the crowd-funding example.
