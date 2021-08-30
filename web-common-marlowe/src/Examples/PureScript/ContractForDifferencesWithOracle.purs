@@ -5,7 +5,7 @@ module Examples.PureScript.ContractForDifferencesWithOracle
   ) where
 
 import Prelude
-import Data.BigInteger (BigInteger, fromInt)
+import Data.BigInteger (fromInt)
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Observation(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
