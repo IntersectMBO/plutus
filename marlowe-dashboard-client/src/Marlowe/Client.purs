@@ -20,6 +20,13 @@ import Marlowe.Semantics (Input, MarloweData, MarloweParams, Slot, TransactionEr
 import Plutus.Contract.StateMachine (InvalidTransition, SMContractError)
 import Wallet.Types (ContractError)
 
+-- These are the endpoints of the main marlowe (control) contract.
+-- TODO: provide encoding for these and use that with the `invokeEndpoint` call in Capability.Marlowe
+data MarloweAppEndpoint
+  = Create
+  | ApplyInputs
+  | Redeem
+
 -- This is the state of the main marlowe (control) contract. Its purpose is to provide feedback if
 -- anything goes wrong when we try to create a contract or apply inputs.
 data LastResult

@@ -12,7 +12,7 @@ import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
-import Marlowe.Client (ContractHistory)
+import Marlowe.Client (ContractHistory, MarloweAppEndpoint)
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (MarloweData, MarloweParams, Slot)
@@ -30,6 +30,12 @@ type State
     , contractFilter :: ContractFilter
     , selectedContractFollowerAppId :: Maybe PlutusAppId
     , templateState :: Template.State
+    -- The Marlowe app (a PAB contract) stores the status (OK or SomeError) of the last thing the
+    -- user asked it to do in its observable state. But we can't deduce from that what the last
+    -- thing the user asked it to do actually was. So here we keep a record of what what was, using
+    -- this both to prevent the user from doing anything else until we've heard back from the PAB
+    -- what the result was, and also to match that result up with the action that produced it.
+    , lastMarloweAppEndpointCall :: Maybe MarloweAppEndpoint
     }
 
 data Card
@@ -68,6 +74,7 @@ data Action
   | TemplateAction Template.Action
   | ContractAction PlutusAppId Contract.Action
   | SetContactForRole String WalletNickname
+  | SetLastMarloweAppEndpointCall (Maybe MarloweAppEndpoint)
 
 -- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
@@ -86,3 +93,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction _ contractAction) = toEvent contractAction
   toEvent (SetContactForRole _ _) = Nothing
+  toEvent (SetLastMarloweAppEndpointCall _) = Nothing

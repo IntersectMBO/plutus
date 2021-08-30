@@ -8,7 +8,7 @@ import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _lastMarloweAppEndpointCall, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State, Input)
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
@@ -49,6 +49,8 @@ dashboardScreen { currentSlot, tzOffset } state =
 
     walletDetails = state ^. _walletDetails
 
+    lastMarloweAppEndpointCall = state ^. _lastMarloweAppEndpointCall
+
     menuOpen = state ^. _menuOpen
 
     card = state ^. _card
@@ -77,7 +79,7 @@ dashboardScreen { currentSlot, tzOffset } state =
                     [ renderSubmodule
                         _selectedContract
                         (ContractAction followerAppId)
-                        (contractScreen { currentSlot, tzOffset, walletDetails, followerAppId })
+                        (contractScreen { currentSlot, tzOffset, walletDetails, followerAppId, lastMarloweAppEndpointCall })
                         state
                     ]
                   _ -> [ contractsScreen currentSlot state ]

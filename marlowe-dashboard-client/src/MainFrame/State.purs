@@ -9,7 +9,7 @@ import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_contracts, _walletDetails)
+import Dashboard.Lenses (_contracts, _lastMarloweAppEndpointCall, _walletDetails)
 import Dashboard.State (dummyState, handleAction, mkInitialState) as Dashboard
 import Dashboard.Types (Action(..), State) as Dashboard
 import Data.Either (Either(..))
@@ -34,7 +34,7 @@ import Humanize (getTimezoneOffset)
 import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _tzOffset, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.Client (LastResult(..), MarloweError(..))
+import Marlowe.Client (LastResult(..), MarloweAppEndpoint(..), MarloweError(..))
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import Toast.State (defaultState, handleAction) as Toast
@@ -148,13 +148,22 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               -- if this is the wallet's MarloweApp...
               if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right lastResult -> case lastResult of
-                  -- FIXME: unpack these updates properly and respond appropriately in each case
-                  OK -> addToast $ successToast "all okay"
-                  SomeError marloweError -> do
-                    traceM marloweError
-                    addToast $ errorToast "something went wrong" Nothing
-                  Unknown -> pure unit
+                Right lastResult -> do
+                  let
+                    lastMarloweAppEndpointCall = view _lastMarloweAppEndpointCall dashboardState
+                  handleAction $ DashboardAction $ Dashboard.SetLastMarloweAppEndpointCall Nothing
+                  case lastResult of
+                    OK -> case lastMarloweAppEndpointCall of
+                      Just Create -> addToast $ successToast "Contract initialised."
+                      Just ApplyInputs -> addToast $ successToast "Contract update applied."
+                      _ -> pure unit
+                    SomeError marloweError -> do
+                      traceM marloweError
+                      case lastMarloweAppEndpointCall of
+                        Just Create -> addToast $ errorToast "Failed to initialise contract." Nothing
+                        Just ApplyInputs -> addToast $ errorToast "Failed to update contract." Nothing
+                        _ -> pure unit
+                    Unknown -> pure unit
               -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError

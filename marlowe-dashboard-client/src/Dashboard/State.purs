@@ -17,7 +17,7 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDataState, _walletDetails)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _lastMarloweAppEndpointCall, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDataState, _walletDetails)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State)
 import Data.Array (elem)
 import Data.Either (Either(..))
@@ -39,7 +39,7 @@ import InputField.Lenses (_value)
 import InputField.Types (Action(..)) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Client (ContractHistory, _chHistory, _chParams)
+import Marlowe.Client (ContractHistory, MarloweAppEndpoint(..), _chHistory, _chParams)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_metaData)
@@ -79,6 +79,7 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     , contractFilter: Running
     , selectedContractFollowerAppId: Nothing
     , templateState: Template.dummyState
+    , lastMarloweAppEndpointCall: Nothing
     }
 
 handleAction ::
@@ -253,24 +254,32 @@ handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory
 -- redeemed again anyway the next time the user picks up the wallet. Since these duplicate requests
 -- will happen anyway, therefore, this extra complication doesn't seem worth the bother.
 handleAction input (RedeemPayments followerAppId) = do
-  walletDetails <- use _walletDetails
-  contracts <- use _contracts
-  for_ (lookup followerAppId contracts) \{ executionState, mMarloweParams, userParties } ->
-    for_ mMarloweParams \marloweParams ->
-      let
-        payments = getAllPayments executionState
-
-        isToParty party (Payment _ payee _) = case payee of
-          Party p -> p == party
-          _ -> false
-      in
-        for (List.fromFoldable userParties) \party ->
+  lastMarloweAppEndpointCall <- use _lastMarloweAppEndpointCall
+  case lastMarloweAppEndpointCall of
+    Nothing -> do
+      walletDetails <- use _walletDetails
+      contracts <- use _contracts
+      for_ (lookup followerAppId contracts) \{ executionState, mMarloweParams, userParties } ->
+        for_ mMarloweParams \marloweParams ->
           let
-            paymentsToParty = List.filter (isToParty party) payments
+            payments = getAllPayments executionState
+
+            isToParty party (Payment _ payee _) = case payee of
+              Party p -> p == party
+              _ -> false
           in
-            for paymentsToParty \payment -> case payment of
-              Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
-              _ -> pure unit
+            for (List.fromFoldable userParties) \party ->
+              let
+                paymentsToParty = List.filter (isToParty party) payments
+              in
+                for paymentsToParty \payment -> case payment of
+                  Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
+                  _ -> pure unit
+    Just _ -> do
+      -- in this case we don't want to show an error to the user, since they won't have triggered
+      -- this action manually themselves - if there's a pending action when this is called, we'll
+      -- just have to wait for it to be called again later
+      pure unit
 
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
@@ -297,38 +306,43 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
       $ set _card (Just $ WalletDataCard)
       <<< set (_walletDataState <<< _cardSection) (NewWallet $ Just tokenName)
   Template.StartContract -> do
-    templateState <- use _templateState
-    case instantiateExtendedContract currentSlot templateState of
-      Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
-      Just contract -> do
-        -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
-        walletDetails <- use _walletDetails
-        walletLibrary <- use (_walletDataState <<< _walletLibrary)
-        roleWalletInputs <- use (_templateState <<< _roleWalletInputs)
-        let
-          roleWallets = map (view _value) roleWalletInputs
+    lastMarloweAppEndpointCall <- use _lastMarloweAppEndpointCall
+    case lastMarloweAppEndpointCall of
+      Nothing -> do
+        templateState <- use _templateState
+        case instantiateExtendedContract currentSlot templateState of
+          Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
+          Just contract -> do
+            -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
+            walletDetails <- use _walletDetails
+            walletLibrary <- use (_walletDataState <<< _walletLibrary)
+            roleWalletInputs <- use (_templateState <<< _roleWalletInputs)
+            let
+              roleWallets = map (view _value) roleWalletInputs
 
-          roles = mapMaybe (\walletNickname -> view (_walletInfo <<< _pubKeyHash) <$> lookup walletNickname walletLibrary) roleWallets
-        ajaxCreateContract <- createContract walletDetails roles contract
-        case ajaxCreateContract of
-          -- TODO: make this error message more informative
-          Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
-          _ -> do
-            -- We create a follower app now with no MarloweParams; when the next notification of a new contract
-            -- notification comes in, a follower app with no MarloweParams but the right metadata will be used.
-            ajaxPendingFollowerApp <- createPendingFollowerApp walletDetails
-            case ajaxPendingFollowerApp of
+              roles = mapMaybe (\walletNickname -> view (_walletInfo <<< _pubKeyHash) <$> lookup walletNickname walletLibrary) roleWallets
+            assign _lastMarloweAppEndpointCall $ Just Create
+            ajaxCreateContract <- createContract walletDetails roles contract
+            case ajaxCreateContract of
+              -- TODO: make this error message more informative
               Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
-              Right followerAppId -> do
-                contractNickname <- use (_templateState <<< _contractNicknameInput <<< _value)
-                insertIntoContractNicknames followerAppId contractNickname
-                metaData <- use (_templateState <<< _contractTemplate <<< _metaData)
-                modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState contractNickname metaData contract
-                handleAction input CloseCard
-                addToast $ successToast "The request to initialise this contract has been submitted."
-                { dataProvider } <- ask
-                when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
-                assign _templateState Template.initialState
+              _ -> do
+                -- We create a follower app now with no MarloweParams; when the next notification of a new contract
+                -- notification comes in, a follower app with no MarloweParams but the right metadata will be used.
+                ajaxPendingFollowerApp <- createPendingFollowerApp walletDetails
+                case ajaxPendingFollowerApp of
+                  Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
+                  Right followerAppId -> do
+                    contractNickname <- use (_templateState <<< _contractNicknameInput <<< _value)
+                    insertIntoContractNicknames followerAppId contractNickname
+                    metaData <- use (_templateState <<< _contractTemplate <<< _metaData)
+                    modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState contractNickname metaData contract
+                    handleAction input CloseCard
+                    addToast $ successToast "The request to initialise this contract has been submitted."
+                    { dataProvider } <- ask
+                    when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
+                    assign _templateState Template.initialState
+      Just _ -> addToast $ errorToast "Application busy. Please try again in a moment." $ Just "We are still waiting to hear back from the previous action you submitted. Once you see a notification about that action, you can try to initialise a new contract again."
   _ -> do
     walletLibrary <- use (_walletDataState <<< _walletLibrary)
     toTemplate $ Template.handleAction { currentSlot, walletLibrary } templateAction
@@ -343,10 +357,13 @@ handleAction input (SetContactForRole tokenName walletNickname) = do
   -- cards - we just want to switch instantly back to this card
   assign _card $ Just ContractTemplateCard
 
+handleAction input (SetLastMarloweAppEndpointCall lastMarloweAppEndpointCall) = assign _lastMarloweAppEndpointCall lastMarloweAppEndpointCall
+
 handleAction input@{ currentSlot, tzOffset } (ContractAction followerAppId contractAction) = do
   walletDetails <- use _walletDetails
+  lastMarloweAppEndpointCall <- use _lastMarloweAppEndpointCall
   let
-    contractInput = { currentSlot, walletDetails, followerAppId, tzOffset }
+    contractInput = { currentSlot, walletDetails, followerAppId, tzOffset, lastMarloweAppEndpointCall }
   case contractAction of
     Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard followerAppId action
     Contract.ConfirmAction action -> do

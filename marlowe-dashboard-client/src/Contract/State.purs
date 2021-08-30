@@ -61,10 +61,10 @@ import Marlowe.Execution.Types (NamedAction(..), PastAction(..))
 import Marlowe.Execution.Types (PastState, State, TimeoutInfo) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.Client (ContractHistory, _chHistory, _chParams)
+import Marlowe.Client (ContractHistory, MarloweAppEndpoint(..), _chHistory, _chParams)
 import Marlowe.Semantics (Contract(..), MarloweParams(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _marloweContract, _marloweState, _minSlot, _rolesCurrency)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
-import Toast.Types (ajaxErrorToast, successToast)
+import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken)
 import WalletData.Types (WalletDetails, WalletNickname)
@@ -244,25 +244,29 @@ handleAction { followerAppId } (SetNickname nickname) = do
   assign _nickname nickname
   insertIntoContractNicknames followerAppId nickname
 
-handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
-  executionState <- use _executionState
-  mMarloweParams <- use _mMarloweParams
-  for_ mMarloweParams \marloweParams -> do
-    let
-      contractInput = toInput namedAction
+handleAction input@{ currentSlot, walletDetails, lastMarloweAppEndpointCall } (ConfirmAction namedAction) = do
+  case lastMarloweAppEndpointCall of
+    Nothing -> do
+      executionState <- use _executionState
+      mMarloweParams <- use _mMarloweParams
+      for_ mMarloweParams \marloweParams -> do
+        let
+          contractInput = toInput namedAction
 
-      txInput = mkTx currentSlot (executionState ^. _contract) (Unfoldable.fromMaybe contractInput)
-    ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
-    case ajaxApplyInputs of
-      Left ajaxError -> do
-        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
-        addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
-      Right _ -> do
-        assign _pendingTransaction $ Just txInput
-        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Right "")
-        addToast $ successToast "Transaction submitted, awating confirmation."
-        { dataProvider } <- ask
-        when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)
+          txInput = mkTx currentSlot (executionState ^. _contract) (Unfoldable.fromMaybe contractInput)
+        callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SetLastMarloweAppEndpointCall $ Just ApplyInputs
+        ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
+        case ajaxApplyInputs of
+          Left ajaxError -> do
+            void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+            addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+          Right _ -> do
+            assign _pendingTransaction $ Just txInput
+            void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Right "")
+            addToast $ successToast "Transaction submitted, awating confirmation."
+            { dataProvider } <- ask
+            when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)
+    Just _ -> addToast $ errorToast "Application busy. Please try again in a moment." $ Just "We are still waiting to hear back from the previous action you submitted. Once you see a notification about that action, you can try to update this contract again."
 
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying (_namedActions <<< traversed <<< _2 <<< traversed) changeChoice
   where

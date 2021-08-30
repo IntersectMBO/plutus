@@ -10,6 +10,7 @@ module Dashboard.Lenses
   , _selectedContractFollowerAppId
   , _selectedContract
   , _templateState
+  , _lastMarloweAppEndpointCall
   ) where
 
 import Prelude
@@ -22,6 +23,7 @@ import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Marlowe.Client (MarloweAppEndpoint)
 import Marlowe.PAB (PlutusAppId)
 import Template.Types (State) as Template
 import WalletData.Types (State) as WalletData
@@ -68,3 +70,6 @@ _selectedContract =
 
 _templateState :: Lens' State Template.State
 _templateState = prop (SProxy :: SProxy "templateState")
+
+_lastMarloweAppEndpointCall :: Lens' State (Maybe MarloweAppEndpoint)
+_lastMarloweAppEndpointCall = prop (SProxy :: SProxy "lastMarloweAppEndpointCall")
