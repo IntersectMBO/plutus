@@ -36,7 +36,9 @@ module Ledger.Index(
     Api.ExBudget(..),
     Api.ExCPU(..),
     Api.ExMemory(..),
-    Api.SatInt
+    Api.SatInt,
+    ValidatorMode(..),
+    getScript
     ) where
 
 import           Prelude                          hiding (lookup)
@@ -444,3 +446,14 @@ mpsValidationEvent ctx mps red result =
         , sveRedeemer = red
         , sveType = MintingPolicyScript mps
         }
+
+data ValidatorMode = FullyAppliedValidators | UnappliedValidators
+    deriving (Eq, Ord, Show)
+
+-- | Get the script from a @ScriptValidationEvent@ in either fully applied or unapplied form.
+getScript :: ValidatorMode -> ScriptValidationEvent -> Script
+getScript FullyAppliedValidators ScriptValidationEvent{sveScript} = sveScript
+getScript UnappliedValidators ScriptValidationEvent{sveType} =
+    case sveType of
+        ValidatorScript (Validator script) _    -> script
+        MintingPolicyScript (MintingPolicy mps) -> mps
