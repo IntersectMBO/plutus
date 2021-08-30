@@ -26,10 +26,13 @@ import qualified PlutusCore.Default      as PLC
 import           Data.Proxy
 import           Data.Text               (Text)
 
-
 profiling :: TestNested
 profiling = testNested "Profiling" [
-  goldenUEvalProfile "fib4" [ toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+  goldenUEvalProfile "fib" [toUPlc fibTest]
+  , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "addInt" [toUPlc addIntTest]
+  , goldenUEvalProfile "id" [toUPlc idTest, toUPlc $ plc (Proxy @"1") (1::Integer)]
+  , goldenUEvalProfile "swap" [toUPlc swapTest]
   ]
 
 fib :: Integer -> Integer
@@ -43,3 +46,20 @@ fibTest :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
 fibTest = plc (Proxy @"fib") fib
 
+addInt :: Integer -> Integer -> Integer
+addInt x = Builtins.addInteger x
+
+addIntTest :: CompiledCode (Integer -> Integer -> Integer)
+addIntTest = plc (Proxy @"addInt") addInt
+
+idForAll :: a -> a
+idForAll a = a
+
+idTest :: CompiledCode (a -> a)
+idTest = plc (Proxy @"id") idForAll
+
+swap :: (a,b) -> (b,a)
+swap (a,b) = (b,a)
+
+swapTest :: CompiledCode ((a,b) -> (b,a))
+swapTest = plc (Proxy @"swap") swap

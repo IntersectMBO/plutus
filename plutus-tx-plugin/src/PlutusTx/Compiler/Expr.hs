@@ -32,7 +32,8 @@ import qualified PrelNames                     as GHC
 
 import qualified PlutusIR                      as PIR
 import qualified PlutusIR.Compiler.Definitions as PIR
-import           PlutusIR.Compiler.Names
+import           PlutusIR.Compiler.Names       (safeFreshName)
+import           PlutusIR.Core.Type            (Term (..))
 import qualified PlutusIR.MkPir                as PIR
 import qualified PlutusIR.Purity               as PIR
 
@@ -407,14 +408,11 @@ hoistExpr var t =
                 CompileContext {ccOpts=profileOpts} <- ask
                 t' <- do
                     if coProfile profileOpts==All then do
-                        let ty = PLC.varDeclType var'
+                        let ty = PLC._varDeclType var'
+                            varName = T.pack $ show $ PLC._varDeclName var'
                         t'' <- compileExpr t
-                        let tInText = T.pack (show t'')
                         return $
-                            mkTrace
-                                ty
-                                ("entering" <> tInText)
-                                ((\() -> mkTrace ty ("exiting"<> tInText) t'') ())
+                            traceInside varName t'' ty
                     else compileExpr t
 
                 -- See Note [Non-strict let-bindings]
@@ -443,6 +441,21 @@ mkTrace ty str v =
         ()
         (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
         [PLC.mkConstant () str, v]
+
+traceInside ::
+    T.Text
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+    -> PLC.Type PLC.TyName PLC.DefaultUni ()
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+traceInside varName (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+    LamAbs () n t (traceInside varName body cod)
+traceInside _ LamAbs{} _ =
+    error "traceInside: type mismatched. It should be a function type."
+traceInside varName e ty =
+    mkTrace
+        ty
+        ("entering " <> varName)
+        ((\() -> mkTrace ty ("exiting "<>varName) e) ())
 
 -- Expressions
 
