@@ -16,13 +16,13 @@ main = do
 
   pamTests <- testCasesFromFile ["pam25"] $ p ++ "actus-tests-pam.json" -- pam25: dates include hours, minutes, second
   lamTests <- testCasesFromFile ["lam18"] $ p ++ "actus-tests-lam.json" -- lam18: dates include hours, minutes, second
-  namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
+  -- namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
 
   defaultMain $ testGroup "ACTUS Contracts"
     [
       Spec.Marlowe.Actus.tests "PAM" pamTests
     , Spec.Marlowe.Actus.tests "LAM" lamTests
-    , Spec.Marlowe.Actus.tests "NAM" namTests
+    -- , Spec.Marlowe.Actus.tests "NAM" namTests
     ]
 
 testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
@@ -32,4 +32,4 @@ testCasesFromFile excludedTestCases fileName = do
     (Just decodedTests) -> return
                               $ filter (\TestCase{..} -> notElem identifier excludedTestCases)
                               $ fmap snd (toList decodedTests)
-    Nothing             -> assertFailure "Cannot parse test specification" >> return []
+    Nothing             -> assertFailure ("Cannot parse test specification from file: " ++ fileName) >> return []
