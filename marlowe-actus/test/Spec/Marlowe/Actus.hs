@@ -7,6 +7,7 @@ where
 
 import           Language.Marlowe.ACTUS.Analysis                  (genProjectedCashflows)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms hiding (Assertion)
+import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Spec.Marlowe.Util
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -20,4 +21,5 @@ runTest tc@TestCase{..} =
       contract = setDefaultContractTermValues testcase
       observed = parseObservedValues dataObserved
       cashFlows = genProjectedCashflows observed contract
-  in assertTestResults cashFlows results identifier
+      cashFlowsTo = maybe cashFlows (\d -> filter (\cf -> cashCalculationDay cf <= d) cashFlows) (parseDate to)
+  in assertTestResults cashFlowsTo results identifier

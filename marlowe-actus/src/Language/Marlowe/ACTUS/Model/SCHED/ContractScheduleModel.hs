@@ -6,6 +6,7 @@ module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
 import           Data.Time                                              (Day)
+import           Data.Time.Calendar                                     (addDays)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (Cycle (..), IPCB (IPCB_NTL), PPEF (..),
                                                                          PYTP (..), SCEF (..), ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
@@ -253,3 +254,9 @@ _SCHED_RR_NAM = _SCHED_RR_PAM
 _SCHED_RRF_NAM = _SCHED_RRF_PAM
 
 _SCHED_SC_NAM = _SCHED_SC_PAM
+
+_SCHED_PRF_ANN :: Maybe Day -> Maybe Double -> Maybe Day -> Maybe ShiftedSchedule
+_SCHED_PRF_ANN _PRANX _PRNXT _IED =
+  let result | isJust _PRANX && isNothing _PRNXT && _PRANX > _IED = let previousDay = addDays (-1) $ fromJust _PRANX in Just [ShiftedDay previousDay previousDay]
+             | otherwise                                          = Nothing
+  in result

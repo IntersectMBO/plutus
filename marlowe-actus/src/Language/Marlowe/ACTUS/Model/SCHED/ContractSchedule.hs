@@ -2,15 +2,17 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
 
-import           Data.Maybe                                                 (fromJust, fromMaybe)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IED, IP, IPCB, IPCI, MD, PP, PR, PRD, PY, RR, RRF, SC, TD))
+import           Control.Applicative                                        (Alternative ((<|>)))
+import           Data.Maybe                                                 (fromJust, fromMaybe, isJust)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (LAM, NAM, PAM), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..), n)
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM, _INIT_NAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
-
+import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity          (maturity)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, plusCycle, sup)
+import           Language.Marlowe.ACTUS.Model.Utility.YearFraction          (yearFraction)
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
 schedule ev
@@ -53,12 +55,12 @@ schedule ev
             -- Also cannot call initializeState directly without cyclical imports
             t0                 = ct_SD
             fpSchedule         = schedule FP ct
-            tfp_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< fpSchedule)
-            tfp_plus           = fromMaybe t0 $ calculationDay <$> ((\sc -> inf sc t0) =<< fpSchedule)
+            tfp_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< fpSchedule)
+            tfp_plus           = maybe t0 calculationDay ((\sc -> inf sc t0) =<< fpSchedule)
             ipSchedule         = schedule IP ct
-            tminus             = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< ipSchedule)
+            tminus             = maybe t0 calculationDay ((\sc -> sup sc t0) =<< ipSchedule)
             prSchedule         = schedule PR ct
-            tpr_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< prSchedule)
+            tpr_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< prSchedule)
             _tmd = tmd $ _INIT_LAM ct_SD tminus tpr_minus tfp_minus tfp_plus ct
           in case ev of
             IED  -> _SCHED_IED_LAM scfg ct_IED'
@@ -82,12 +84,12 @@ schedule ev
           let
             t0                 = ct_SD
             fpSchedule         = schedule FP ct
-            tfp_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< fpSchedule)
-            tfp_plus           = fromMaybe t0 $ calculationDay <$> ((\sc -> inf sc t0) =<< fpSchedule)
+            tfp_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< fpSchedule)
+            tfp_plus           = maybe t0 calculationDay ((\sc -> inf sc t0) =<< fpSchedule)
             ipSchedule         = schedule IP ct
-            tminus             = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< ipSchedule)
+            tminus             = maybe t0 calculationDay ((\sc -> sup sc t0) =<< ipSchedule)
             prSchedule         = schedule PR ct
-            tpr_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< prSchedule)
+            tpr_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< prSchedule)
             _tmd = tmd $ _INIT_NAM ct_SD tminus tpr_minus tfp_minus tfp_plus ct
           in case ev of
             IED  -> _SCHED_IED_NAM scfg ct_IED'
@@ -104,4 +106,29 @@ schedule ev
             RR   -> _SCHED_RR_NAM scfg ct_IED' ct_SD ct_RRANX ct_RRCL ct_RRNXT _tmd
             RRF  -> _SCHED_RRF_NAM scfg ct_IED' ct_RRANX ct_RRCL ct_RRNXT _tmd ct_SD
             SC   -> _SCHED_SC_NAM scfg ct_IED' ct_SCEF' ct_SCANX ct_SCCL _tmd
+            _    -> Nothing
+
+        ANN ->
+          let mat = maturity ct
+              _tmd = ct_AD <|> mat
+
+          in case ev of
+            IED  -> _SCHED_IED_PAM scfg ct_IED'
+            PR   -> _tmd >>= _SCHED_PR_LAM scfg ct_PRCL ct_IED' ct_PRANX
+            MD   -> ct_MD <|> _tmd >>= _SCHED_MD_PAM scfg
+            PP   -> _tmd >>= _SCHED_PP_PAM scfg ct_PPEF' ct_OPCL ct_IED' ct_OPANX
+            PY   -> _tmd >>= _SCHED_PY_PAM scfg ct_PYTP' ct_PPEF' ct_OPCL ct_IED' ct_OPANX
+            FP   -> _tmd >>= _SCHED_FP_PAM scfg ct_FER' ct_FECL ct_IED' ct_FEANX
+            PRD  -> _SCHED_PRD_PAM scfg ct_PRD
+            TD   -> _SCHED_TD_PAM scfg ct_TD
+            IP   -> ct_MD <|> _tmd >>= _SCHED_IP_NAM scfg ct_IED' ct_PRCL ct_PRANX ct_IPCED ct_IPANX ct_IPCL
+            IPCI -> _tmd >>= \t -> _SCHED_IPCI_PAM scfg ct_IED' ct_IPANX ct_IPCL ct_IPCED t ct_IPNR
+            IPCB -> _tmd >>= _SCHED_IPCB_LAM scfg ct_IED' ct_IPCB ct_IPCBCL ct_IPCBANX
+            RR   -> _tmd >>= _SCHED_RR_PAM scfg ct_IED' ct_SD ct_RRANX ct_RRCL ct_RRNXT
+            RRF  -> _tmd >>= \t -> _SCHED_RRF_PAM scfg ct_IED' ct_RRANX ct_RRCL ct_RRNXT t ct_SD
+            SC   -> _tmd >>= _SCHED_SC_PAM scfg ct_IED' ct_SCEF' ct_SCANX ct_SCCL
+            PRF  -> let prf = _SCHED_PRF_ANN ct_PRANX ct_PRNXT ct_IED
+                        rr  = _tmd >>= _SCHED_RR_PAM scfg ct_IED' ct_SD ct_RRANX ct_RRCL ct_RRNXT
+                        rrf = _tmd >>= \t -> _SCHED_RRF_PAM scfg ct_IED' ct_RRANX ct_RRCL ct_RRNXT t ct_SD
+                    in Just $ fromMaybe [] prf ++ fromMaybe [] rr ++ fromMaybe [] rrf
             _    -> Nothing

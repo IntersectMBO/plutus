@@ -75,7 +75,7 @@ _POF_IED_NAM = _POF_IED_PAM
 _POF_PR_NAM :: (RoleSignOps a, ActusNum a, ActusOps a) => a -> CR -> a -> a -> a -> a -> a -> a -> a -> a
 _POF_PR_NAM o_rf_CURS _CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt =
   let ra = prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
-      r = ra - (_max _zero (ra - (_abs nt)))
+      r = ra - _max _zero (ra - _abs nt)
    in o_rf_CURS * _r _CNTRL * nsc * r
 
 _POF_MD_NAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a

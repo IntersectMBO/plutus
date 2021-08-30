@@ -36,11 +36,11 @@ minimumMaybe xs = Just $ minimum xs
 
 inf :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 inf set threshold =
-  minimumMaybe [t | t <- set, calculationDay t >= threshold]
+  minimumMaybe [t | t <- set, calculationDay t > threshold]
 
 sup :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 sup set threshold =
-  maximumMaybe [t | t <- set, calculationDay t <= threshold]
+  maximumMaybe [t | t <- set, calculationDay t < threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)

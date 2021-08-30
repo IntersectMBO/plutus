@@ -11,11 +11,14 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, Con
                                                                          SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM),
                                                                          ScheduleConfig (..), n)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
+import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign  (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (applyEOMC,
                                                                          generateRecurrentScheduleWithCorrections,
                                                                          minusCycle, plusCycle)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
+
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 _S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 _S = generateRecurrentScheduleWithCorrections
@@ -203,3 +206,50 @@ _INIT_NAM t0 tminus _ tfp_minus tfp_plus
 
     -- All is same as PAM except PRNXT and TMD, IPCB same as LAM
     in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
+
+_INIT_ANN :: Day -> Day -> Day -> Day -> Day -> [Double] -> ContractTerms -> ContractStatePoly Double Day
+_INIT_ANN t0 tminus tpr_minus tfp_minus tfp_plus ti
+  terms@ContractTerms{..} =
+    let
+        _IED   = fromJust ct_IED
+        _DCC   = fromJust ct_DCC
+
+        -- TMD
+        maybeTMinus
+                    | isJust ct_PRANX && (fromJust ct_PRANX >= t0) = ct_PRANX
+                    | (_IED `plusCycle` fromJust ct_PRCL) >= t0    = Just $ _IED `plusCycle` fromJust ct_PRCL
+                    | otherwise                                    = Just tpr_minus
+
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
+
+        -- PRNXT
+        nt
+                | _IED > t0                     = 0.0
+                | otherwise                     = r ct_CNTRL * fromJust ct_NT
+        ipnr
+                | _IED > t0                     = 0.0
+                | otherwise                     = fromMaybe 0.0 ct_IPNR
+        ipac
+                | isNothing ct_IPNR             = 0.0
+                | isJust ct_IPAC                = fromJust ct_IPAC
+                | otherwise                     = y _DCC tminus t0 ct_MD * nt * ipnr
+
+        prnxt
+              -- | isJust ct_PRNXT = r ct_CNTRL * fromJust ct_PRNXT
+              | isJust ct_PRNXT = fromJust ct_PRNXT
+              | otherwise = let scale = fromJust ct_NT + ipac
+                                frac = annuity ipnr ti
+                             in frac * scale
+
+        tmd
+                | isJust ct_MD = fromJust ct_MD
+                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ceiling(fromJust ct_NT / (prnxt - fromJust ct_NT  * y _DCC tminus (tminus `plusCycle` fromJust ct_PRCL) ct_MD * fromJust ct_IPNR))}
+
+        -- IPCB
+        ipcb
+                | t0 < _IED                    = 0.0
+                | fromJust ct_IPCB == IPCB_NT  = r ct_CNTRL * fromJust ct_NT
+                | otherwise                    = r ct_CNTRL * fromJust ct_IPCBA
+    -- All is same as PAM except PRNXT and TMD, IPCB same as LAM
+    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
+

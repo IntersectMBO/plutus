@@ -92,3 +92,5 @@ validateTerms t =
             _NN ct_PRNXT t "periodic payment amount" <*
             _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t, isJust $ ct_SCCDD t] t ["scaling effect", "scaling index at status date", "scaling index at contract deal date"] <*
             _X_I_1 [isJust $ ct_PYRT t, isJust $ ct_PYTP t] [isJust $ ct_PPEF t] t ["penalty rate", "penalty type"] ["prepayment effect"]
+        ANN ->
+            Success t

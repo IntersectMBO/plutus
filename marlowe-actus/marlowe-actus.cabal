@@ -73,6 +73,8 @@ library
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
     Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
     Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
+    Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
+    Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction

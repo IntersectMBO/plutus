@@ -6,10 +6,10 @@ import           Data.Maybe                                       (fromJust, fro
 import           Language.Marlowe.ACTUS.Definitions.ContractState (ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (CR, FEB (FEB_N), IPCB (..),
                                                                    SCEF (SE_00M, SE_0N0, SE_0NM, SE_I00))
+import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity (annuity)
 import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (..), DateOps (_lt),
                                                                    RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
-
 
 -- Principal at Maturity
 _STF_AD_PAM :: ActusNum a => ContractStatePoly a b -> b -> a -> ContractStatePoly a b
@@ -339,3 +339,69 @@ _STF_SC_NAM = _STF_SC_LAM
 
 _STF_CE_NAM :: ActusNum a => ContractStatePoly a b -> b -> a -> ContractStatePoly a b
 _STF_CE_NAM = _STF_AD_PAM
+
+-- Annuity (ANN)
+
+_STF_RR_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> [a] -> ContractStatePoly a b
+_STF_RR_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO ti =
+  let ipac' = ipac + y_sd_t * ipnr * ipcb
+
+      feac' = case _FEB of
+        Just FEB_N -> feac + y_sd_t * nt * _FER
+        _          -> y_tfpminus_t / y_tfpminus_tfpplus * _r _CNTRL * _FER
+
+      delta_r = _min (_max (o_rf_RRMO * _RRMLT + _RRSP - ipnr) _RRPF) _RRPC
+
+      ipnr' = _min (_max (ipnr + delta_r) _RRLF) _RRLC
+
+      prnxt' = annuity ipnr' ti
+
+   in st
+        { ipac = ipac',
+          feac = feac',
+          ipnr = ipnr',
+          prnxt = prnxt',
+          sd = t
+        }
+
+_STF_RRF_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> [a] -> ContractStatePoly a b
+_STF_RRF_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT ti =
+  let ipac' = ipac + y_sd_t * ipnr * ipcb
+
+      feac' = case _FEB of
+        Just FEB_N -> feac + y_sd_t * nt * _FER
+        _          -> y_tfpminus_t / y_tfpminus_tfpplus * _r _CNTRL * _FER
+
+
+      ipnr' = _RRNXT
+
+      prnxt' = annuity ipnr' ti
+
+   in st
+        { ipac = ipac',
+          feac = feac',
+          ipnr = ipnr',
+          prnxt = prnxt',
+          sd = t
+        }
+
+_STF_PRF_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a-> a-> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> a -> [a] -> ContractStatePoly a b
+_STF_PRF_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _ _ _FEB _FER _CNTRL _RRNXT y_t ti =
+  let accruedInterest = ipac + y_sd_t * ipnr * ipcb
+
+      feeAccrued = case _FEB of
+        Just FEB_N -> feac + y_sd_t * nt * _FER
+        _          -> y_tfpminus_t / y_tfpminus_tfpplus * _r _CNTRL * _FER
+
+      scale = nt + accruedInterest + y_t*ipnr*nt
+      frac = annuity ipnr ti
+
+      nextPrincipalRedemptionPayment = _r _CNTRL * frac * scale
+      statusDate = t
+
+   in st
+        { ipac = accruedInterest,
+          feac = feeAccrued,
+          prnxt = nextPrincipalRedemptionPayment,
+          sd = statusDate
+        }

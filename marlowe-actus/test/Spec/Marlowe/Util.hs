@@ -128,6 +128,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_NT            = readMaybe $ Map.lookup "notionalPrincipal" terms' :: Maybe Double
      , ct_PDIED         = readMaybe $ Map.lookup "premiumDiscountAtIED" terms' :: Maybe Double
      , ct_MD            = parseMaybeDate $ Map.lookup "maturityDate" terms'
+     , ct_AD            = parseMaybeDate $ Map.lookup "amortizationDate" terms'
      , ct_PRANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfPrincipalRedemption" terms'
      , ct_PRCL          = parseMaybeCycle $ Map.lookup "cycleOfPrincipalRedemption" terms'
      , ct_PRNXT         = readMaybe $ Map.lookup "nextPrincipalRedemptionPayment" terms' :: Maybe Double

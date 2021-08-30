@@ -13,6 +13,7 @@ import           GHC.Generics     (Generic)
 data CT = PAM -- principal at maturity
         | LAM -- linear amortizer
         | NAM -- negative amortizer
+        | ANN -- annuity
         deriving stock (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- ContractRole
@@ -216,6 +217,7 @@ data ContractTerms = ContractTerms
   , ct_NT            :: Maybe Double   -- Notional Principal
   , ct_PDIED         :: Maybe Double   -- Premium Discount At IED
   , ct_MD            :: Maybe Day      -- Maturity Date
+  , ct_AD            :: Maybe Day      -- Amortization Date
   , ct_PRANX         :: Maybe Day      -- Cycle Anchor Date Of Principal Redemption
   , ct_PRCL          :: Maybe Cycle    -- Cycle Of Principal Redemption
   , ct_PRNXT         :: Maybe Double   -- Next Principal Redemption Payment
@@ -355,6 +357,27 @@ setDefaultContractTermValues ct@ContractTerms{..} =
             }
 
           NAM ->
+            ct {
+              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
+            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
+
+            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
+            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
+
+            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
+            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
+            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
+            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
+
+            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
+            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
+            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
+            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
+
+            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
+            }
+
+          ANN ->
             ct {
               ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
             , ct_FER           = Just $ fromMaybe 0.0 ct_FER

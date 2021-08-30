@@ -100,6 +100,7 @@ contractTermsGen = do
     nextPrincipalRedemption <- mightbe largeamount
     purchaseDate <- mightbe date
     maturityDate <- mightbe date
+    amortizationDate <- mightbe date
     terminationDate <- mightbe date
     priceAtTerminationDate <- mightbe smallamount
     priceAtPurchaseDate <- mightbe smallamount
@@ -137,6 +138,7 @@ contractTermsGen = do
         , ct_IED       = Just ied
         , ct_SD        = sd
         , ct_MD        = maturityDate
+        , ct_AD        = amortizationDate
         , ct_TD        = terminationDate
         , ct_PRNXT     = nextPrincipalRedemption
         , ct_PRD       = purchaseDate

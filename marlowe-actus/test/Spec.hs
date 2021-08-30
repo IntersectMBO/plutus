@@ -16,13 +16,19 @@ main = do
 
   pamTests <- testCasesFromFile ["pam25"] $ p ++ "actus-tests-pam.json" -- pam25: dates include hours, minutes, second
   lamTests <- testCasesFromFile ["lam18"] $ p ++ "actus-tests-lam.json" -- lam18: dates include hours, minutes, second
-  -- namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
+  namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
+  annTests <- testCasesFromFile [
+      "ann09" -- ann09: currently unsupported, see also actus-core AnnuityTest.java
+    , "ann19" -- ann19: dates include hours, minutes, second
+    , "ann26" -- ann26: dates include hours, minutes, second
+    ] $ p ++ "actus-tests-ann.json"
 
   defaultMain $ testGroup "ACTUS Contracts"
     [
       Spec.Marlowe.Actus.tests "PAM" pamTests
     , Spec.Marlowe.Actus.tests "LAM" lamTests
-    -- , Spec.Marlowe.Actus.tests "NAM" namTests
+    , Spec.Marlowe.Actus.tests "NAM" namTests
+    , Spec.Marlowe.Actus.tests "ANN" annTests
     ]
 
 testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
