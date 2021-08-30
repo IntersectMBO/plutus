@@ -120,7 +120,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           when (currentWallet == toFront wallet)
             $ assign (_dashboardState <<< _walletDetails <<< _assets) (toFront value)
       -- update the state when a contract instance changes
-      -- note: we should be subsribed to updates from all (and only) the current wallet's contract
+      -- note: we should be subscribed to updates from all (and only) the current wallet's contract
       -- instances, including its wallet companion contract
       InstanceUpdate contractInstanceId instanceStatusToClient -> case instanceStatusToClient of
         NewObservableState rawJson -> do
@@ -203,6 +203,7 @@ handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
     followerAppIds = Set.toUnfoldable $ keys followerApps
   unsubscribeFromWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
   unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
+  unsubscribeFromPlutusApp dataProvider $ view _marloweAppId walletDetails
   for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
   assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
@@ -218,6 +219,7 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
         followerAppIds = Set.toUnfoldable $ keys followerApps
       subscribeToWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
       subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
+      subscribeToPlutusApp dataProvider $ view _marloweAppId walletDetails
       for_ followerAppIds $ subscribeToPlutusApp dataProvider
       contractNicknames <- getContractNicknames
       assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot
