@@ -23,8 +23,9 @@ import           Control.Monad.Freer.Error    (Error, throwError)
 import           Control.Monad.Freer.Reader   (Reader, ask)
 import           Control.Monad.IO.Class       (MonadIO (..))
 import           Data.Proxy                   (Proxy (..))
-import           Ledger                       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
-                                               StakeValidatorHash, TxId, Validator, ValidatorHash)
+import           Ledger                       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer,
+                                               RedeemerHash, StakeValidator, StakeValidatorHash, TxId, Validator,
+                                               ValidatorHash)
 import           Ledger.Credential            (Credential)
 import           Ledger.Tx                    (ChainIndexTxOut, TxOutRef)
 import           Network.HTTP.Types.Status    (Status (..))
@@ -43,6 +44,7 @@ getDatum :: DatumHash -> ClientM Datum
 getValidator :: ValidatorHash -> ClientM Validator
 getMintingPolicy :: MintingPolicyHash -> ClientM MintingPolicy
 getStakeValidator :: StakeValidatorHash -> ClientM StakeValidator
+getRedeemer :: RedeemerHash -> ClientM Redeemer
 
 getTxOut :: TxOutRef -> ClientM ChainIndexTxOut
 getTx :: TxId -> ClientM ChainIndexTx
@@ -50,10 +52,10 @@ getIsUtxo :: TxOutRef -> ClientM (Tip, Bool)
 getUtxoAtAddress :: Credential -> ClientM (Tip, Page TxOutRef)
 getTip :: ClientM Tip
 
-(healthCheck, (getDatum, getValidator, getMintingPolicy, getStakeValidator), getTxOut, getTx, getIsUtxo, getUtxoAtAddress, getTip) =
-    (healthCheck_, (getDatum_, getValidator_, getMintingPolicy_, getStakeValidator_), getTxOut_, getTx_, getIsUtxo_, getUtxoAtAddress_, getTip_) where
+(healthCheck, (getDatum, getValidator, getMintingPolicy, getStakeValidator, getRedeemer), getTxOut, getTx, getIsUtxo, getUtxoAtAddress, getTip) =
+    (healthCheck_, (getDatum_, getValidator_, getMintingPolicy_, getStakeValidator_, getRedeemer_), getTxOut_, getTx_, getIsUtxo_, getUtxoAtAddress_, getTip_) where
         healthCheck_
-            :<|> (getDatum_ :<|> getValidator_ :<|> getMintingPolicy_ :<|> getStakeValidator_)
+            :<|> (getDatum_ :<|> getValidator_ :<|> getMintingPolicy_ :<|> getStakeValidator_ :<|> getRedeemer_)
             :<|> getTxOut_
             :<|> getTx_
             :<|> getIsUtxo_
@@ -90,6 +92,7 @@ handleChainIndexClient event = do
         ValidatorFromHash d      -> runClientMaybe (getValidator d)
         MintingPolicyFromHash d  -> runClientMaybe (getMintingPolicy d)
         StakeValidatorFromHash d -> runClientMaybe (getStakeValidator d)
+        RedeemerFromHash d       -> runClientMaybe (getRedeemer d)
         TxOutFromRef r           -> runClientMaybe (getTxOut r)
         TxFromTxId t             -> runClientMaybe (getTx t)
         UtxoSetMembership r      -> runClient (getIsUtxo r)

@@ -13,6 +13,7 @@ module Plutus.ChainIndex.Emulator.DiskState(
     , validatorMap
     , mintingPolicyMap
     , stakeValidatorMap
+    , redeemerMap
     , txMap
     , addressMap
     , fromTx
@@ -30,11 +31,11 @@ import qualified Data.Set               as Set
 import           GHC.Generics           (Generic)
 import           Ledger                 (Address (..), TxOut (..), TxOutRef)
 import           Ledger.Credential      (Credential)
-import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
-                                         StakeValidatorHash, Validator, ValidatorHash)
+import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
+                                         StakeValidator, StakeValidatorHash, Validator, ValidatorHash)
 import           Ledger.TxId            (TxId)
-import           Plutus.ChainIndex.Tx   (ChainIndexTx (..), citxData, citxMintingPolicies, citxStakeValidators,
-                                         citxTxId, citxValidators, txOutsWithRef)
+import           Plutus.ChainIndex.Tx   (ChainIndexTx (..), citxData, citxMintingPolicies, citxRedeemers,
+                                         citxStakeValidators, citxTxId, citxValidators, txOutsWithRef)
 
 -- | Set of transaction output references for each address.
 newtype CredentialMap = CredentialMap { _unCredentialMap :: Map Credential (Set TxOutRef) }
@@ -74,6 +75,7 @@ data DiskState =
         , _ValidatorMap      :: Map ValidatorHash Validator
         , _MintingPolicyMap  :: Map MintingPolicyHash MintingPolicy
         , _StakeValidatorMap :: Map StakeValidatorHash StakeValidator
+        , _RedeemerMap       :: Map RedeemerHash Redeemer
         , _TxMap             :: Map TxId ChainIndexTx
         , _AddressMap        :: CredentialMap
         }
@@ -91,5 +93,6 @@ fromTx tx =
         , _MintingPolicyMap = view citxMintingPolicies tx
         , _StakeValidatorMap = view citxStakeValidators tx
         , _TxMap = Map.singleton (view citxTxId tx) tx
+        , _RedeemerMap = view citxRedeemers tx
         , _AddressMap = txCredentialMap tx
         }

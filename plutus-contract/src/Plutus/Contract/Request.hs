@@ -30,6 +30,7 @@ module Plutus.Contract.Request(
     , validatorFromHash
     , mintingPolicyFromHash
     , stakeValidatorFromHash
+    , redeemerFromHash
     , txOutFromRef
     , txFromTxId
     , utxoRefMembership
@@ -98,9 +99,10 @@ import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
-                                              MintingPolicyHash, POSIXTime, PubKey, Slot, StakeValidator,
-                                              StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId), Validator,
-                                              ValidatorHash, Value, addressCredential, fromMilliSeconds, txId)
+                                              MintingPolicyHash, POSIXTime, PubKey, Redeemer, RedeemerHash, Slot,
+                                              StakeValidator, StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId),
+                                              Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds,
+                                              txId)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
 import qualified Ledger.Constraints.OffChain as Constraints
@@ -279,6 +281,19 @@ stakeValidatorFromHash h = do
     E.StakeValidatorHashResponse r -> pure r
     _ -> throwError $ review _OtherError
                     $ Text.pack "Could not request StakeValidatorFromHash from the chain index"
+
+redeemerFromHash ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => RedeemerHash
+    -> Contract w s e (Maybe Redeemer)
+redeemerFromHash h = do
+  cir <- pabReq (ChainIndexQueryReq $ E.RedeemerFromHash h) E._ChainIndexQueryResp
+  case cir of
+    E.RedeemerHashResponse r -> pure r
+    _ -> throwError $ review _OtherError
+                    $ Text.pack "Could not request RedeemerFromHash from the chain index"
 
 txOutFromRef ::
     forall w s e.

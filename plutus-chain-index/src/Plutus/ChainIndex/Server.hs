@@ -86,6 +86,7 @@ serveFromHashApi =
     :<|> (E.validatorFromHash >=> fromMaybe)
     :<|> (E.mintingPolicyFromHash >=> fromMaybe)
     :<|> (E.stakeValidatorFromHash >=> fromMaybe)
+    :<|> (E.redeemerFromHash >=> fromMaybe)
 
 -- | Return the value of throw a 404 error
 fromMaybe :: forall effs. Member (Error ServerError) effs => Maybe ~> Eff effs
