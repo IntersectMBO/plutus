@@ -41,7 +41,7 @@ mkEnvironment = do
   pure
     { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
     , contractStepCarouselSubscription
-    , dataProvider: MarlowePAB
+    , dataProvider: LocalStorage
     }
 
 main :: Effect Unit
