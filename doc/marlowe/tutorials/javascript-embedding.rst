@@ -75,10 +75,10 @@ example, the function ``AvailableMoney`` is defined as follows:
                     "in_account": accountId };
        };
 
-When you click the **Compile button** in the JS editor of the Marlowe
+When you click the **Compile** button in the JS editor of the Marlowe
 Playground, the code in the body of the tab is executed, and the JSON
 object returned by the function during the execution is parsed into an
-actual Marlowe contract. Once that is successful it is possible to **Send to simulator**; how this works is
+actual Marlowe contract. Once that is successful it is possible to **Send to Simulator**; how this works is
 described in the next section.
 
 
