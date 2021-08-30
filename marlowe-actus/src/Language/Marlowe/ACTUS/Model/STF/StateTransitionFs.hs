@@ -84,7 +84,7 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         LAM ->
             addComment $ stateTransitionMarlowe ev t continue $ \event st ->
                 case event of
-                    AD   -> _STF_AD_LAM st time y_sd_t
+                    AD   -> _STF_AD_PAM st time y_sd_t
                     IED  -> _STF_IED_LAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT __IPCB __IPCBA
                     PR   -> _STF_PR_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
                     MD   -> _STF_MD_LAM st time
@@ -92,32 +92,32 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
                     PY   -> _STF_PY_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
                     FP   -> _STF_FP_LAM st time y_sd_t
                     PRD  -> _STF_PRD_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
-                    TD   -> _STF_TD_LAM st time
-                    IP   -> _STF_IP_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    TD   -> _STF_TD_PAM st time
+                    IP   -> _STF_IP_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
                     IPCI -> _STF_IPCI_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
                     IPCB -> _STF_IPCB_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
                     RR   -> _STF_RR_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRLF __RRLC __RRPC __RRPF __RRMLT __RRSP __o_rf_RRMO
                     RRF  -> _STF_RRF_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRNXT
                     SC   -> _STF_SC_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL (fromJust ct_SCEF) __o_rf_SCMO __SCIED
-                    CE   -> _STF_CE_LAM st time y_sd_t
+                    CE   -> _STF_CE_PAM st time y_sd_t
                     _    -> st
         NAM ->
             addComment $ stateTransitionMarlowe ev t continue $ \event st ->
                 case event of
-                    AD   -> _STF_AD_NAM st time y_sd_t
-                    IED  -> _STF_IED_NAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT __IPCB __IPCBA
+                    AD   -> _STF_AD_PAM st time y_sd_t
+                    IED  -> _STF_IED_LAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT __IPCB __IPCBA
                     PR   -> _STF_PR_NAM st time __pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
-                    MD   -> _STF_MD_NAM st time
-                    PP   -> _STF_PP_NAM st time __pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
-                    PY   -> _STF_PY_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
-                    FP   -> _STF_FP_NAM st time y_sd_t
-                    PRD  -> _STF_PRD_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
-                    TD   -> _STF_TD_NAM st time
-                    IP   -> _STF_IP_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
-                    IPCI -> _STF_IPCI_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
-                    IPCB -> _STF_IPCB_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
-                    RR   -> _STF_RR_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRLF __RRLC __RRPC __RRPF __RRMLT __RRSP __o_rf_RRMO
-                    RRF  -> _STF_RRF_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRNXT
-                    SC   -> _STF_SC_NAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL (fromJust ct_SCEF) __o_rf_SCMO __SCIED
-                    CE   -> _STF_AD_NAM st time y_sd_t
+                    MD   -> _STF_MD_LAM st time
+                    PP   -> _STF_PP_LAM st time __pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
+                    PY   -> _STF_PY_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    FP   -> _STF_FP_LAM st time y_sd_t
+                    PRD  -> _STF_PRD_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    TD   -> _STF_TD_PAM st time
+                    IP   -> _STF_IP_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    IPCI -> _STF_IPCI_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __IPCB
+                    IPCB -> _STF_IPCB_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL
+                    RR   -> _STF_RR_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRLF __RRLC __RRPC __RRPF __RRMLT __RRSP __o_rf_RRMO
+                    RRF  -> _STF_RRF_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL __RRNXT
+                    SC   -> _STF_SC_LAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL (fromJust ct_SCEF) __o_rf_SCMO __SCIED
+                    CE   -> _STF_AD_PAM st time y_sd_t
                     _    -> st

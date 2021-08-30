@@ -50,25 +50,25 @@ payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
                 IP  -> Just $ _POF_IP_PAM __o_rf_CURS __isc __ipac __ipnr __nt y_sd_t
                 _   -> Nothing
             LAM -> case ev of
-                IED -> Just $ _POF_IED_LAM __o_rf_CURS ct_CNTRL __NT __PDIED
+                IED -> Just $ _POF_IED_PAM __o_rf_CURS ct_CNTRL __NT __PDIED
                 PR  -> Just $ _POF_PR_LAM __o_rf_CURS ct_CNTRL __nt __nsc __prnxt
-                MD  -> Just $ _POF_MD_LAM __o_rf_CURS __nsc __nt __isc __ipac __feac
-                PP  -> Just $ _POF_PP_LAM __o_rf_CURS __pp_payoff
-                PY  -> Just $ _POF_PY_LAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
-                FP  -> Just $ _POF_FP_LAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
+                MD  -> Just $ _POF_MD_PAM __o_rf_CURS __nsc __nt __isc __ipac __feac
+                PP  -> Just $ _POF_PP_PAM __o_rf_CURS __pp_payoff
+                PY  -> Just $ _POF_PY_PAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
+                FP  -> Just $ _POF_FP_PAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
                 PRD -> Just $ _POF_PRD_LAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
                 TD  -> Just $ _POF_TD_LAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
                 IP  -> Just $ _POF_IP_LAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
                 _   -> Nothing
             NAM -> case ev of
-                IED -> Just $ _POF_IED_NAM  __o_rf_CURS ct_CNTRL __NT __PDIED
+                IED -> Just $ _POF_IED_PAM  __o_rf_CURS ct_CNTRL __NT __PDIED
                 PR  -> Just $ _POF_PR_NAM __o_rf_CURS ct_CNTRL __nsc __prnxt __ipac y_sd_t __ipnr __ipcb __nt
-                MD  -> Just $ _POF_MD_NAM __o_rf_CURS __nsc __nt __isc __ipac __feac
-                PP  -> Just $ _POF_PP_NAM __o_rf_CURS __pp_payoff
-                PY  -> Just $ _POF_PY_NAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
-                FP  -> Just $ _POF_FP_NAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
-                PRD -> Just $ _POF_PRD_NAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
-                TD  -> Just $ _POF_TD_NAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
-                IP  -> Just $ _POF_IP_NAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
+                MD  -> Just $ _POF_MD_PAM __o_rf_CURS __nsc __nt __isc __ipac __feac
+                PP  -> Just $ _POF_PP_PAM __o_rf_CURS __pp_payoff
+                PY  -> Just $ _POF_PY_PAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
+                FP  -> Just $ _POF_FP_PAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
+                PRD -> Just $ _POF_PRD_LAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
+                TD  -> Just $ _POF_TD_LAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
+                IP  -> Just $ _POF_IP_LAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
                 _   -> Nothing
     in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
