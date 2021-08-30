@@ -215,7 +215,7 @@ riskAtTGen = RiskFactors <$> percentage <*> percentage <*> percentage <*> smalla
 
 riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGen ct = do
-    let days = cashCalculationDay <$> genProjectedCashflows (M.empty) ct
+    let days = cashCalculationDay <$> genProjectedCashflows M.empty ct
     rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
 

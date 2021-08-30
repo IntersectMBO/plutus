@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections   #-}
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
 import           Control.Applicative
@@ -28,48 +29,48 @@ import           Prelude                                               hiding (F
 
 
 genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
-genProjectedCashflows dataObserved = sampleCashflows dataObserved
+genProjectedCashflows = sampleCashflows
 
 postProcessSchedule :: ContractTerms -> [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
 postProcessSchedule ct =
     let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
         prioritised = [IED, FP, PR, PD, PY, PP, IP, IPCI, CE, RRF, RR, PRF, DV, PRD, MR, TD, SC, IPCB, MD, XD, STD, AD]
+
         priority :: (EventType, ShiftedDay) -> Integer
         priority (event, _) = fromJust $ M.lookup event $ M.fromList (zip prioritised [1..])
-        simillarity (_, l) (_, r) = calculationDay l == calculationDay r
-        regroup = L.groupBy simillarity
+
+        similarity (_, l) (_, r) = calculationDay l == calculationDay r
+        regroup = L.groupBy similarity
+
         overwrite = map (sortOn priority) . regroup
     in concat . (overwrite . trim)
 
 
 sampleCashflows :: DataObserved -> ContractTerms -> [CashFlow]
-sampleCashflows dataObserved terms =
+sampleCashflows dataObserved ct@ContractTerms{..} =
     let
+        -- schedule
+        scheduleEvent e = maybe [] (fmap (e,)) (schedule e ct)
+
+        -- events
         eventTypes   = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
-        analysisDate = ct_SD terms
 
-        preserveDate e d = (e, d)
-        getSchedule e = fromMaybe [] $ schedule e terms
-        scheduleEvent e = preserveDate e <$> getSchedule e
-        events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
-        events' = postProcessSchedule terms events
+        events   = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
+        events'  = postProcessSchedule ct events
+        events'' = filterEvents ct events'
 
-        events'' = filterEvents terms events'
-
+        -- states
         applyStateTransition (st, ev, date) (ev', date') =
-            (stateTransition ev ((getRiskFactors dataObserved ev (calculationDay date) terms)) terms st (calculationDay date), ev', date')
-        calculatePayoff (st, ev, date) =
-            payoff ev ((getRiskFactors dataObserved ev (calculationDay date) terms)) terms st (calculationDay date)
+            (stateTransition ev (getRiskFactors dataObserved ev (calculationDay date) ct) ct st (calculationDay date), ev', date')
 
-        initialState =
-            ( inititializeState terms
-            , AD
-            , ShiftedDay analysisDate analysisDate
-            )
+        initialState = (inititializeState ct ,AD ,ShiftedDay ct_SD ct_SD)
+
         states  = L.tail $ L.scanl applyStateTransition initialState events''
+        states' = filterStates ct states
 
-        states' = filterStates terms states
-
+        -- payoff
+        calculatePayoff (st, ev, date) =
+            payoff ev (getRiskFactors dataObserved ev (calculationDay date) ct) ct st (calculationDay date)
         payoffs = calculatePayoff <$> states'
 
         genCashflow ((_, ev, d), pff) = CashFlow
@@ -91,22 +92,22 @@ filterEvents terms@ContractTerms{ contractType = contractType } events =
   case contractType of
     PAM ->
       if isJust (ct_TD terms) then
-        L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
+        L.filter (\(_, ShiftedDay{..}) -> calculationDay <= fromJust (ct_TD terms)) events
       else
         events
     LAM ->
       if isJust (ct_TD terms) then
-        L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
+        L.filter (\(_, ShiftedDay{..}) -> calculationDay <= fromJust (ct_TD terms)) events
       else
         events
     NAM ->
       if isJust (ct_TD terms) then
-        L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
+        L.filter (\(_, ShiftedDay{..}) -> calculationDay <= fromJust (ct_TD terms)) events
       else
         events
     ANN ->
       if isJust (ct_TD terms) then
-        L.filter (\(_, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay <= fromJust (ct_TD terms)) events
+        L.filter (\(_, ShiftedDay{..}) -> calculationDay <= fromJust (ct_TD terms)) events
       else
         events
 
@@ -115,22 +116,22 @@ filterStates ct@ContractTerms{..} states =
   case contractType of
     PAM ->
       if isJust ct_PRD then
-        L.filter (\(_, _, (ShiftedDay{ calculationDay = calculationDay })) -> calculationDay >= fromJust ct_PRD) states
+        L.filter (\(_, _, ShiftedDay{..}) -> calculationDay >= fromJust ct_PRD) states
       else
         states
     LAM ->
       if isJust ct_PRD then
-        L.filter (\(_, eventType, (ShiftedDay{ calculationDay = calculationDay })) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
+        L.filter (\(_, eventType, ShiftedDay{..}) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
       else
         states
     NAM ->
       if isJust ct_PRD then
-        L.filter (\(_, eventType, (ShiftedDay{ calculationDay = calculationDay })) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
+        L.filter (\(_, eventType, ShiftedDay{..}) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
       else
         states
     ANN ->
       let states' = if isJust ct_PRD then
-                      L.filter (\(_, eventType, (ShiftedDay{ calculationDay = calculationDay })) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
+                      L.filter (\(_, eventType, ShiftedDay{..}) -> eventType == PRD || calculationDay > fromJust ct_PRD) states
                       else states
       in
         let m = ct_MD <|> ct_AD <|> maturity ct
@@ -141,18 +142,18 @@ filterStates ct@ContractTerms{..} states =
 genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
 genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue =
     let
-        cfs = genProjectedCashflows (M.empty) terms
+        cfs = genProjectedCashflows M.empty terms
 
         dateToYearFraction :: Day -> Double
         dateToYearFraction dt = _y (fromJust ct_DCC) ct_SD dt ct_MD
 
-        dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** (dateToYearFraction dt)
+        dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** dateToYearFraction dt
 
-        accumulateAndDiscount :: (Value Observation) -> (CashFlow, Integer) ->  (Value Observation)
+        accumulateAndDiscount :: Value Observation -> (CashFlow, Integer) ->  Value Observation
         accumulateAndDiscount acc (cf, t) =
             let discountFactor = dateToDiscountFactor $ cashCalculationDay cf
-                sign x = if (amount cf < 0.0) then (NegValue x) else x
-            in (constnt discountFactor) * (sign $ useval "payoff" t) + acc
+                sign x = if amount cf < 0.0 then NegValue x else x
+            in constnt discountFactor * (sign $ useval "payoff" t) + acc
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
     in Assert (ValueLT (constnt expectedNpv) npv) continue
 

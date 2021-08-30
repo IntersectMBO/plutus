@@ -90,10 +90,10 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
 generateRecurrentScheduleWithCorrections :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
   = generateRecurrentSchedule cycle anchorDate endDate &
-      ((correction cycle anchorDate endDate) >>>
+      (correction cycle anchorDate endDate >>>
       (fmap $ applyEOMC anchorDate cycle (fromJust eomc)) >>>
       (fmap $ applyBDC (fromJust bdc) (fromJust calendar)) >>>
-      (addEndDay (includeEndDay cycle) endDate))
+      addEndDay (includeEndDay cycle) endDate)
 
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)

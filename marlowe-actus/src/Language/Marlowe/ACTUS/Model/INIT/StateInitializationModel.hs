@@ -67,7 +67,7 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
         ipac
                 | isNothing ct_IPNR             = 0.0
                 | isJust ct_IPAC                = r ct_CNTRL * fromJust ct_IPAC
-                | otherwise                     = (y _DCC tminus t0 ct_MD) * nt * ipnr
+                | otherwise                     = y _DCC tminus t0 ct_MD * nt * ipnr
         feac
                 | isNothing ct_FER              = 0.0
                 | isJust ct_FEAC                = fromJust ct_FEAC
@@ -112,16 +112,16 @@ _INIT_LAM t0 tminus _ tfp_minus tfp_plus
                 if isJust ct_PRANX && fromJust ct_PRANX < ct_SD then
                   let
                     previousEvents   = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
-                    previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay > (minusCycle ct_SD (fromJust ct_IPCL))) (fromMaybe [] previousEvents)
+                    previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay > minusCycle ct_SD (fromJust ct_IPCL)) (fromMaybe [] previousEvents)
                     previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
                     ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
                   in
-                    (lastEventCalcDay, (fromJust ct_NT) / (fromJust ct_PRNXT))
+                    (lastEventCalcDay, fromJust ct_NT / fromJust ct_PRNXT)
                 else
                   -- TODO: check applicability for PRANX
-                  (fromJust ct_PRANX, (fromJust ct_NT) / (fromJust ct_PRNXT) - 1)
+                  (fromJust ct_PRANX, fromJust ct_NT / fromJust ct_PRNXT - 1)
               c@Cycle{ n = n } = fromJust ct_PRCL
-              maturity = plusCycle lastEvent c { n = n * (round remainingPeriods) :: Integer}
+              maturity = plusCycle lastEvent c { n = n * round remainingPeriods :: Integer}
             in
               applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
 
@@ -140,7 +140,7 @@ _INIT_LAM t0 tminus _ tfp_minus tfp_plus
                 -}
 
                 -- Java implementation
-                | otherwise = (fromJust ct_NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust ct_PRCL){ includeEndDay = True } tmd scfg ) <$> ct_PRANX)))
+                | otherwise = fromJust ct_NT / fromIntegral (length $ fromJust ((\s -> _S s (fromJust ct_PRCL){ includeEndDay = True } tmd scfg ) <$> ct_PRANX))
         -- IPCB
         ipcb
                 | t0 < _IED'                    = 0.0
@@ -169,22 +169,21 @@ _INIT_NAM t0 tminus _ tfp_minus tfp_plus
                 | isJust ct_MD = fromJust ct_MD
                 | otherwise =
                   let
-                    lastEvent =
-                      if isJust ct_PRANX && (fromJust ct_PRANX) >= ct_SD then
-                        fromJust ct_PRANX
-                      else
-                        if _IED `plusCycle` (fromJust ct_PRCL) >= ct_SD then
-                          _IED `plusCycle` (fromJust ct_PRCL)
-                        else
-                          let previousEvents  = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
-                              previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= ct_SD ) (fromMaybe [] previousEvents)
-                              previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
-                              ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
-                          in
-                              lastEventCalcDay
-                    yLastEventPlusPRCL = (y _DCC lastEvent (lastEvent `plusCycle` (fromJust ct_PRCL)) ct_MD)
-                    redemptionPerCycle = _PRNXT - (yLastEventPlusPRCL * (fromJust ct_IPNR) * (fromJust ct_NT))
-                    remainingPeriods = (ceiling ((fromJust ct_NT) / redemptionPerCycle)) - 1
+                    lastEvent
+                      | isJust ct_PRANX && fromJust ct_PRANX >= ct_SD =
+                      fromJust ct_PRANX
+                      | _IED `plusCycle` fromJust ct_PRCL >= ct_SD =
+                      _IED `plusCycle` fromJust ct_PRCL
+                      | otherwise =
+                      let previousEvents  = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
+                          previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= ct_SD ) (fromMaybe [] previousEvents)
+                          previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
+                          ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
+                      in
+                          lastEventCalcDay
+                    yLastEventPlusPRCL = y _DCC lastEvent (lastEvent `plusCycle` fromJust ct_PRCL) ct_MD
+                    redemptionPerCycle = _PRNXT - (yLastEventPlusPRCL * fromJust ct_IPNR * fromJust ct_NT)
+                    remainingPeriods = ceiling (fromJust ct_NT / redemptionPerCycle) - 1
                     c@Cycle{ n = n } = fromJust ct_PRCL
                     maturity = plusCycle lastEvent c { n = n * remainingPeriods}
                   in

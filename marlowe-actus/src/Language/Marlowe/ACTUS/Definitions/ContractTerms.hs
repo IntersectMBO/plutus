@@ -282,133 +282,58 @@ defaultRRMLT = 1.0
 infinity :: Double
 infinity = 1/0 :: Double
 
+applyDefault :: a -> Maybe a -> Maybe a
+applyDefault v = Just . fromMaybe v
+
 setDefaultContractTermValues :: ContractTerms -> ContractTerms
 setDefaultContractTermValues ct@ContractTerms{..} =
-  let
-      ScheduleConfig{..} = scfg
-
-      eomc'     = Just $ fromMaybe EOMC_SD eomc
-
-      bdc'      = Just $ fromMaybe BDC_NULL bdc
-
-      calendar' = Just $ fromMaybe CLDR_NC calendar
-
-      ct_PRF'   = Just $ fromMaybe PRF_PF ct_PRF
-
-      ct_IPCB'  = Just $ fromMaybe IPCB_NT ct_IPCB
-
-      ct_SCIP'  = Just $ fromMaybe defaultSCIP ct_SCIP
-
-      ct_PDIED' = Just $ fromMaybe defaultPDIED ct_PDIED
-
-      ct_SCNT'  = Just $ fromMaybe defaultSCNT ct_SCNT
-
-      ct_SCEF'  = Just $ fromMaybe SE_000 ct_SCEF
-
-      ct_PYRT'  = Just $ fromMaybe defaultPYRT ct_PYRT
-
-      ct_PYTP'  = Just $ fromMaybe PYTP_O ct_PYTP
-
-      ct_PPEF'  = Just $ fromMaybe PPEF_N ct_PPEF
-
-      ct_RRSP'  = Just $ fromMaybe defaultRRSP ct_RRSP
-
-      ct_RRMLT' = Just $ fromMaybe defaultRRMLT ct_RRMLT
-
-      ct' =
-        case contractType of
-          PAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-            }
-
-          LAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-
-            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
-            }
-
-          NAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-
-            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
-            }
-
-          ANN ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-
-            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
-            }
+  let ScheduleConfig{..} = scfg
+      eomc'     = applyDefault EOMC_SD eomc
+      bdc'      = applyDefault BDC_NULL bdc
+      calendar' = applyDefault CLDR_NC calendar
+      _PRF      = applyDefault PRF_PF ct_PRF
+      _IPCB     = applyDefault IPCB_NT ct_IPCB
+      _PDIED    = applyDefault defaultPDIED ct_PDIED
+      _SCEF     = applyDefault SE_000 ct_SCEF
+      _PYRT     = applyDefault defaultPYRT ct_PYRT
+      _PYTP     = applyDefault PYTP_O ct_PYTP
+      _PPEF     = applyDefault PPEF_N ct_PPEF
+      _RRSP     = applyDefault defaultRRSP ct_RRSP
+      _RRMLT    = applyDefault defaultRRMLT ct_RRMLT
+      _FEAC     = applyDefault 0.0 ct_FEAC
+      _FER      = applyDefault 0.0 ct_FER
+      _IPAC     = applyDefault 0.0 ct_IPAC
+      _IPNR     = applyDefault 0.0 ct_IPNR
+      _PPRD     = applyDefault 0.0 ct_PPRD
+      _PTD      = applyDefault 0.0 ct_PTD
+      _SCCDD    = applyDefault 0.0 ct_SCCDD
+      _RRPF     = applyDefault (-infinity) ct_RRPF
+      _RRPC     = applyDefault infinity ct_RRPC
+      _RRLC     = applyDefault infinity ct_RRLC
+      _RRLF     = applyDefault (-infinity) ct_RRLF
+      _IPCBA    = applyDefault 0.0 ct_IPCBA
   in
-    ct' {
+    ct {
       scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' }
-    , ct_PRF   = ct_PRF'
-    , ct_IPCB  = ct_IPCB'
-    , ct_SCIP  = ct_SCIP'
-    , ct_PDIED = ct_PDIED'
-    , ct_SCNT  = ct_SCNT'
-    , ct_SCEF  = ct_SCEF'
-    , ct_PYRT  = ct_PYRT'
-    , ct_PYTP  = ct_PYTP'
-    , ct_PPEF  = ct_PPEF'
-    , ct_RRSP  = ct_RRSP'
-    , ct_RRMLT = ct_RRMLT'
+    , ct_PRF   = _PRF
+    , ct_IPCB  = _IPCB
+    , ct_PDIED = _PDIED
+    , ct_SCEF  = _SCEF
+    , ct_PYRT  = _PYRT
+    , ct_PYTP  = _PYTP
+    , ct_PPEF  = _PPEF
+    , ct_RRSP  = _RRSP
+    , ct_RRMLT = _RRMLT
+    , ct_FEAC  = _FEAC
+    , ct_FER   = _FER
+    , ct_IPAC  = _IPAC
+    , ct_IPNR  = _IPNR
+    , ct_PPRD  = _PPRD
+    , ct_PTD   = _PTD
+    , ct_SCCDD = _SCCDD
+    , ct_RRPF  = _RRPF
+    , ct_RRPC  = _RRPC
+    , ct_RRLC  = _RRLC
+    , ct_RRLF  = _RRLF
+    , ct_IPCBA = _IPCBA
     }

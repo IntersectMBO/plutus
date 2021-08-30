@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+
 module Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
   (annuity)
 where

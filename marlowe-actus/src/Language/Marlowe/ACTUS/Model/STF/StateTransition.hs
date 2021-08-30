@@ -37,11 +37,11 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
         fpSchedule         = schedule FP terms
         prSchedule         = schedule PR terms
 
-        tfp_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< fpSchedule)
-        tfp_plus           = fromMaybe t $ calculationDay <$> ((\sc -> inf sc t) =<< fpSchedule)
+        tfp_minus          = maybe t calculationDay ((\sc -> sup sc t) =<< fpSchedule)
+        tfp_plus           = maybe t calculationDay ((\sc -> inf sc t) =<< fpSchedule)
 
-        tpr_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< prSchedule)
-        tpr_plus           = fromMaybe t $ calculationDay <$> ((\sc -> inf sc t) =<< prSchedule)
+        tpr_minus          = maybe t calculationDay ((\sc -> sup sc t) =<< prSchedule)
+        tpr_plus           = maybe t calculationDay ((\sc -> inf sc t) =<< prSchedule)
 
         y_sd_t             = _y ct_DCC' sd t ct_MD
         y_tfpminus_t       = _y ct_DCC' tfp_minus t ct_MD

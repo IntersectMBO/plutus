@@ -27,7 +27,7 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         __IPNR  = constnt <$> ct_IPNR
         __IPAC  = constnt <$> ct_IPAC
         __NT    = constnt (fromJust ct_NT)
-        __FEB   = enum (ct_FEB)
+        __FEB   = enum ct_FEB
         __FER   = constnt (fromJust ct_FER)
         __IPCB  = enum <$> ct_IPCB
         __IPCBA = constnt <$> ct_IPCBA
@@ -46,10 +46,10 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         __pp_payoff        = useval "pp_payoff" t
 
         -- dates:
-        time               = marloweDate $ curDate
+        time               = marloweDate curDate
         fpSchedule         = schedule FP terms
-        tfp_minus          = fromMaybe curDate $ calculationDay <$> ((\sc -> sup sc curDate) =<< fpSchedule)
-        tfp_plus           = fromMaybe curDate $ calculationDay <$> ((\sc -> inf sc curDate) =<< fpSchedule)
+        tfp_minus          = maybe curDate calculationDay ((\sc -> sup sc curDate) =<< fpSchedule)
+        tfp_plus           = maybe curDate calculationDay ((\sc -> inf sc curDate) =<< fpSchedule)
         y_tfpminus_t       = constnt $ _y (fromJust ct_DCC) tfp_minus curDate ct_MD
         y_tfpminus_tfpplus = constnt $ _y (fromJust ct_DCC) tfp_minus tfp_plus ct_MD
         y_ipanx_t          = constnt $ _y (fromJust ct_DCC) (fromJust ct_IPANX) curDate ct_MD
@@ -58,9 +58,9 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         addComment cont    = case ev of
             IED -> letval "IED" t (constnt 0) cont
             MD  -> letval "MD" t (constnt 0) cont
-            IP  -> letval ("IP:" ++ (show curDate) ++ (show prevDate)) t (constnt 0) cont
-            RR  -> letval ("RR:" ++ (show curDate)) t (constnt 0) cont
-            FP  -> letval ("FP:" ++ (show curDate)) t (constnt 0) cont
+            IP  -> letval ("IP:" ++ show curDate ++ show prevDate) t (constnt 0) cont
+            RR  -> letval ("RR:" ++ show curDate) t (constnt 0) cont
+            FP  -> letval ("FP:" ++ show curDate) t (constnt 0) cont
             _   -> cont
     in case contractType of
         PAM ->

@@ -43,7 +43,7 @@ _POF_IED_LAM = _POF_IED_PAM
 
 _POF_PR_LAM :: (ActusNum a, RoleSignOps a, ActusOps a) => a -> CR -> a -> a -> a -> a
 _POF_PR_LAM o_rf_CURS _CNTRL nt nsc prnxt =
-  let redemption = prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt)))
+  let redemption = prnxt - _r _CNTRL * _max _zero (_abs prnxt - _abs nt)
    in o_rf_CURS * _r _CNTRL * nsc * redemption
 
 _POF_MD_LAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a

@@ -50,7 +50,7 @@ _STF_PY_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
 
         feac' = case _FEB of
             Just FEB_N -> feac + y_sd_t * nt * _FER
-            _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
+            _          -> _max _zero (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
 
     in st {ipac = ipac', feac = feac', sd = t}
 
@@ -102,7 +102,7 @@ _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
 
         delta_r = _min (_max (o_rf_RRMO * _RRMLT + _RRSP - ipnr) _RRPF) _RRPC
 
-        ipnr' = (_min (_max (ipnr + delta_r) _RRLF) _RRLC)
+        ipnr' = _min (_max (ipnr + delta_r) _RRLF) _RRLC
     in st' {ipac = ipac', feac = feac', ipnr = ipnr', sd = t}
 
 _STF_RRF_PAM :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> ContractStatePoly a b
@@ -143,8 +143,8 @@ _STF_IED_LAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
         nt'                         = _r _CNTRL * _NT
         ipnr'                       = fromJust _IPNR
 
-        ipcb' | (fromJust _IPCB) == IPCB_NT = nt'
-              | otherwise                   = _r _CNTRL * (fromJust _IPCBA)
+        ipcb' | fromJust _IPCB == IPCB_NT = nt'
+              | otherwise                   = _r _CNTRL * fromJust _IPCBA
 
         ipac' | isJust _IPAC        = _r _CNTRL * fromJust _IPAC
               {-
@@ -158,14 +158,14 @@ _STF_IED_LAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
 _STF_PR_LAM :: (ActusNum a, ActusOps a, RoleSignOps a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
 _STF_PR_LAM st@ContractStatePoly{..} t y_sd_t _ _ _FEB _FER _CNTRL _IPCB =
     let
-        nt' = nt - _r _CNTRL * (prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt))))
+        nt' = nt - _r _CNTRL * (prnxt - _r _CNTRL * _max _zero (_abs prnxt - _abs nt))
 
         -- feac' = case _FEB of
         --     Just FEB_N -> feac + y_sd_t * nt * _FER
         --     _          -> (_max _zero (y_tfpminus_t / y_tfpminus_tfpplus)) * _r _CNTRL * _FER
         feac' = feac + y_sd_t * nt * _FER
 
-        ipcb' = case (fromJust _IPCB) of
+        ipcb' = case fromJust _IPCB of
             IPCB_NTL -> ipcb
             _        -> nt'
 
@@ -288,11 +288,11 @@ _STF_PR_NAM st@ContractStatePoly{..} t _ y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
     let
       st'@ContractStatePoly{ ipac = ipac' } = _STF_PR_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB
       ra  = prnxt - _r _CNTRL * ipac'
-      r   = ra - (_max _zero (ra - (_abs nt)))
+      r   = ra - _max _zero (ra - _abs nt)
       nt' = nt - _r _CNTRL * r
 
       -- ACTUS implementation
-      ipcb' = case (fromJust _IPCB) of
+      ipcb' = case fromJust _IPCB of
           IPCB_NT -> nt'
           _       -> ipcb
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitialization where
 
-import           Data.Maybe                                                 (fromJust, fromMaybe, maybeToList)
+import           Data.Maybe                                                 (fromJust, maybeToList)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP, PR))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
@@ -17,13 +17,15 @@ inititializeState terms@ContractTerms {..} =
     let t0         = ct_SD
         -- PAM
         fpSchedule         = schedule FP terms
-        tfp_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< fpSchedule)
-        tfp_plus           = fromMaybe t0 $ calculationDay <$> ((\sc -> inf sc t0) =<< fpSchedule)
+        tfp_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< fpSchedule)
+        tfp_plus           = maybe t0 calculationDay ((\sc -> inf sc t0) =<< fpSchedule)
         ipSchedule         = schedule IP terms
-        tminus             = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< ipSchedule)
-        -- LAM, NAM
+        tminus             = maybe t0 calculationDay ((\sc -> sup sc t0) =<< ipSchedule)
+
+        -- LAM, NAM, ANN
         prSchedule         = schedule PR terms
-        tpr_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< prSchedule)
+        tpr_minus          = maybe t0 calculationDay ((\sc -> sup sc t0) =<< prSchedule)
+
     in  case contractType of
         PAM -> _INIT_PAM t0 tminus tfp_minus tfp_plus terms
         LAM -> _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus terms

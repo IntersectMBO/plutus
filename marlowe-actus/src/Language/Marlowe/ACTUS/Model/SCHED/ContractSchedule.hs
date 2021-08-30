@@ -3,16 +3,15 @@
 module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
 
 import           Control.Applicative                                        (Alternative ((<|>)))
-import           Data.Maybe                                                 (fromJust, fromMaybe, isJust)
+import           Data.Maybe                                                 (fromJust, fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..), n)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM, _INIT_NAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity          (maturity)
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, plusCycle, sup)
-import           Language.Marlowe.ACTUS.Model.Utility.YearFraction          (yearFraction)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
 schedule ev

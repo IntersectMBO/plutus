@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
@@ -107,7 +108,7 @@ _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _RRNXT _MD _SD =
                 | otherwise                           = tt
     in
       if isJust _RRNXT then
-        fmap (\d -> [d]) (L.find (\(ShiftedDay{ calculationDay = calculationDay }) -> calculationDay > _SD) (fromMaybe [] result))
+        fmap (:[]) (L.find (\ShiftedDay{..} -> calculationDay > _SD) (fromMaybe [] result))
       else
         Nothing
 
@@ -165,7 +166,7 @@ _SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
                 | isNothing _IPCBANX                      = Just $ _IED `plusCycle` fromJust _IPCBCL
                 | otherwise                               = _IPCBANX
 
-        result  | (fromJust _IPCB) /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
+        result  | fromJust _IPCB /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
                 | otherwise                          = (\s -> _S s (fromJust _IPCBCL){ includeEndDay = False } _MD scfg) <$> maybeS
     in result
 
@@ -214,9 +215,9 @@ _SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
 
         v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
 
-        result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+        result  = Just $ nub (fromMaybe [] u ++ fromMaybe [] v)
 
-        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) > fromJust _IPCED) $ fromJust result
+        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> calculationDay ss > fromJust _IPCED) $ fromJust result
                 | otherwise = result
     in
         result'
@@ -239,9 +240,9 @@ _SCHED_IPCI_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
 
       v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
 
-      result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+      result  = Just $ nub (fromMaybe [] u ++ fromMaybe [] v)
 
-      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) <= fromJust _IPCED) $ fromJust result
+      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> calculationDay ss <= fromJust _IPCED) $ fromJust result
               | otherwise = Nothing
   in
       result'

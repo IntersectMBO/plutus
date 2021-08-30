@@ -3,7 +3,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE NamedFieldPuns        #-}
+
 {-# LANGUAGE OverloadedStrings     #-}
 
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
