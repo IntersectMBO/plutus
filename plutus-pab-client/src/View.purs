@@ -3,13 +3,8 @@ module View (render) where
 import Prelude hiding (div)
 import Bootstrap (col12_, col5_, container_, row_)
 import Chain.Types as Chain
-import Data.Array as Array
-import Data.Foldable (findMap)
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
-import Data.Map (Map)
-import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
 import Halogen.HTML.Properties (class_, classes)
@@ -62,14 +57,14 @@ tabs =
     , title: "Contracts"
     , help: "See available and active contracts."
     }
-  , { link: Blockchain
+  {-, { link: Blockchain
     , title: "Blockchain"
     , help: "See the current state of the chain."
     }
   , { link: EventLog
     , title: "Event Log"
     , help: "View the history of system events."
-    }
+    }-}
   ]
 
 webSocketStatusIcon :: forall p i. WebSocketStatus -> HTML p i
