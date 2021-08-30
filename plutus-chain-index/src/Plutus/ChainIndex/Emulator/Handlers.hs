@@ -39,7 +39,7 @@ import           Ledger                               (Address (addressCredentia
                                                        TxOut (txOutAddress), TxOutRef (..), txOutDatumHash, txOutValue)
 import           Ledger.Tx                            (ChainIndexTxOut (ScriptChainIndexTxOut))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap,
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap, redeemerMap,
                                                        stakeValidatorMap, txMap, validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
@@ -116,6 +116,7 @@ handleQuery = \case
     MintingPolicyFromHash h -> gets (view $ diskState . mintingPolicyMap . at h)
     StakeValidatorFromHash h -> gets (view $ diskState . stakeValidatorMap . at h)
     TxOutFromRef ref -> getTxOutFromRef ref
+    RedeemerFromHash h -> gets (view $ diskState . redeemerMap . at h)
     TxFromTxId i -> getTxFromTxId i
     UtxoSetMembership r -> do
         utxoState <- gets (measure . view utxoIndex)
