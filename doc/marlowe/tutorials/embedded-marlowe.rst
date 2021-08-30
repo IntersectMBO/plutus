@@ -62,7 +62,7 @@ should ``arbitrate`` between them:
            100
            Close
 
-Within these contracts we are also using simple abbreviations such as
+Within these contracts we are also using simple abbreviations such as:
 
 .. code:: haskell
 
@@ -205,4 +205,4 @@ Note
 ~~~~
 
 A number of other examples of using Haskell to build Marlowe contracts can be found in the Marlowe Playground,
-where it is also possible to build Haskell-embedded Marlowe contracts too.
+where it is also possible to build Haskell-embedded Marlowe contracts.
