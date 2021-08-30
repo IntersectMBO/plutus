@@ -7,12 +7,9 @@ exports._postMessage = function (message, targetOrigin, window) {
 };
 
 exports._matchMedia = function (query, window) {
-  console.log("calling matchmedia", query);
   return window.matchMedia(query);
 };
 
 exports._matches = function (mediaQueryList) {
-  console.log("calling matches");
-
   return mediaQueryList.matches;
 };

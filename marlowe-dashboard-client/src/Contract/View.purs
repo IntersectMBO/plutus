@@ -342,7 +342,7 @@ renderContractCard stepNumber state currentTab cardBody =
       --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "filter", "mb-3" ]
+      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "mb-3" ]
         <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
             [ "-mx-4", "shadow-sm", "md:shadow", "scale-77" ]
@@ -1032,7 +1032,7 @@ renderBalances stepNumber state stepBalance =
           , span [ classNames [ "font-semibold" ] ] [ text "Balances of contract accounts" ]
           , hint [ "relative", "-top-1" ] ("balances-" <> show stepNumber) Auto
               -- FIXME: Revisit copy
-              
+
               $ div_ [ text "This tab shows the amount of tokens that each role has in the contract account. A deposit is needed to get tokens from a wallet into the contract account, and a payment is needed to redeem tokens from the contract account into a user's wallet" ]
           ]
       , div [ classNames [ "px-4" ] ]
