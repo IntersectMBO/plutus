@@ -10,28 +10,14 @@
 module Main(main, ExportTx(..)) where
 
 import qualified Cardano.Api                    as C
-import qualified Cardano.Api.Shelley            as C
-import qualified Control.Foldl                  as L
-import           Control.Monad.Freer            (run)
-import qualified Data.Aeson                     as Aeson
-import           Data.Aeson.Encode.Pretty       (encodePretty)
-import qualified Data.ByteString.Lazy           as BSL
 import           Data.Default                   (Default (..))
-import           Data.Foldable                  (traverse_)
-import           Data.Int                       (Int64)
 import           Data.Monoid                    (Sum (..))
-import           Data.Text.Prettyprint.Doc      (Pretty (..))
-import           Flat                           (flat)
-import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
-import           Ledger.Index                   (ScriptValidationEvent (..), ValidatorMode (..), getScript)
+import           Ledger.Index                   (ValidatorMode (..))
 import           Options.Applicative
-import           Plutus.Contract.Wallet         (ExportTx (..), export)
+import           Plutus.Contract.Wallet         (ExportTx (..))
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
 import qualified Plutus.Contracts.Uniswap.Trace as Uniswap
-import           Plutus.Trace.Emulator          (EmulatorConfig, EmulatorTrace)
-import qualified Plutus.Trace.Emulator          as Trace
-import           Plutus.V1.Ledger.Api           (ExBudget (..))
-import           Plutus.V1.Ledger.Scripts       (Script (..))
+import           Plutus.Trace                   (Command (..), ScriptsConfig (..), showStats, writeScriptsTo)
 import qualified Spec.Auction                   as Auction
 import qualified Spec.Currency                  as Currency
 import qualified Spec.Escrow                    as Escrow
@@ -45,17 +31,6 @@ import qualified Spec.PubKey                    as PubKey
 import qualified Spec.Stablecoin                as Stablecoin
 import qualified Spec.TokenAccount              as TokenAccount
 import qualified Spec.Vesting                   as Vesting
-import qualified Streaming.Prelude              as S
-import           System.Directory               (createDirectoryIfMissing)
-import           System.FilePath                ((</>))
-import           Text.Printf                    (printf)
-import qualified Wallet.Emulator.Folds          as Folds
-import           Wallet.Emulator.Stream         (foldEmulatorStreamM)
-
-data Command =
-    Scripts{ unappliedValidators :: ValidatorMode }
-    | Transactions{ networkId :: C.NetworkId, protocolParamsJSON :: FilePath }
-    deriving stock (Show, Eq)
 
 writeWhat :: Command -> String
 writeWhat (Scripts FullyAppliedValidators) = "scripts (fully applied)"
@@ -90,12 +65,6 @@ transactionsParser =
         (Transactions <$> networkIdParser <*> protocolParamsParser)
         (fullDesc <> progDesc "Write partial transactions")
 
-data ScriptsConfig =
-    ScriptsConfig
-        { scPath    :: FilePath
-        , scCommand :: Command
-        }
-
 progParser :: ParserInfo ScriptsConfig
 progParser =
     let p = ScriptsConfig <$> pathParser <*> commandParser
@@ -103,7 +72,7 @@ progParser =
         (p <**> helper)
         (fullDesc
         <> progDesc "Run a number of emulator traces and write all validator scripts and/or partial transactions to SCRIPT_PATH"
-        <> header "plutus-use-cases-scripts - extract applied validators and partial transactions from emulator traces"
+        <> header "plutus-use-cases-scripts - extract validators and partial transactions from emulator traces"
         )
 
 main :: IO ()
@@ -142,67 +111,6 @@ writeScripts config = do
         putStrLn $ "Total " <> showStats size exBudget
     else pure ()
 
-{-| Run an emulator trace and write the applied scripts to a file in Flat format
-    using the name as a prefix.
--}
-writeScriptsTo
-    :: ScriptsConfig
-    -> String
-    -> EmulatorTrace a
-    -> EmulatorConfig
-    -> IO (Sum Int64, ExBudget)
-writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
-    let stream = Trace.runEmulatorStream emulatorCfg trace
-        getEvents :: Folds.EmulatorEventFold a -> a
-        getEvents theFold = S.fst' $ run $ foldEmulatorStreamM (L.generalize theFold) stream
-    createDirectoryIfMissing True scPath
-    case scCommand of
-        Scripts mode -> do
-            foldMap (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] $ getEvents Folds.scriptEvents)
-        Transactions{networkId, protocolParamsJSON} -> do
-            bs <- BSL.readFile protocolParamsJSON
-            case Aeson.eitherDecode bs of
-                Left err -> putStrLn err
-                Right params ->
-                    traverse_
-                        (uncurry $ writeTransaction params networkId scPath prefix)
-                        (zip [1::Int ..] $ getEvents Folds.walletTxBalanceEvents)
-            pure mempty
-
-{- There's an instance of Codec.Serialise for
-    Script in Scripts.hs (see Note [Using Flat inside CBOR instance of Script]),
-    which wraps Flat-encoded bytestings in CBOR, but that's not used here: we
-    just use unwrapped Flat because that's more convenient for use with the
-    `plc` command, for example.
--}
-writeScript :: FilePath -> String -> ValidatorMode -> Int -> ScriptValidationEvent -> IO (Sum Int64, ExBudget)
-writeScript fp prefix mode idx event@ScriptValidationEvent{sveResult} = do
-    let filename = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat"
-        bytes = BSL.fromStrict . flat . unScript . getScript mode $ event
-        byteSize = BSL.length bytes
-    putStrLn $ "Writing script: " <> filename <> " (" <> either show (showStats byteSize . fst) sveResult <> ")"
-    BSL.writeFile filename bytes
-    pure (Sum byteSize, foldMap fst sveResult)
-
-showStats :: Int64 -> ExBudget -> String
-showStats byteSize (ExBudget exCPU exMemory) = "Size: " <> size <> "kB, Cost: " <> show exCPU <> ", " <> show exMemory
-    where
-        size = printf ("%.1f"::String) (fromIntegral byteSize / 1024.0 :: Double)
-
-writeTransaction :: C.ProtocolParameters -> C.NetworkId -> FilePath -> String -> Int -> UnbalancedTx -> IO ()
-writeTransaction params networkId fp prefix idx tx = do
-    let filename1 = fp </> prefix <> "-" <> show idx <> ".json"
-    case export params networkId tx of
-        Left err ->
-            putStrLn $ "Export tx failed for " <> filename1 <> ". Reason: " <> show (pretty err)
-        Right exportTx -> do
-            putStrLn $ "Writing partial transaction JSON: " <> filename1
-            BSL.writeFile filename1 $ encodePretty exportTx
-
 -- | `uncurry3` converts a curried function to a function on triples.
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
-
-filenameSuffix :: ValidatorMode -> String
-filenameSuffix FullyAppliedValidators = ""
-filenameSuffix UnappliedValidators    = "-unapplied"
