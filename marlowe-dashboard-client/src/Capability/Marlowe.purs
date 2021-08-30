@@ -37,6 +37,8 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Int (floor)
+import Data.Json.JsonTuple (JsonTuple)
+import Data.Json.JsonTriple (JsonTriple(..))
 import Data.Lens (view)
 import Data.Map (Map, findMin, fromFoldable, lookup, mapMaybeWithKey, singleton, toUnfoldable, values)
 import Data.Map (filter) as Map
@@ -61,6 +63,7 @@ import Marlowe.Semantics (Assets(..), Contract, MarloweData(..), MarloweParams(.
 import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
+import Plutus.V1.Ledger.Slot (Slot) as Back
 import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
@@ -266,8 +269,13 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
       MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
+
+          backSlotInterval :: JsonTuple Back.Slot Back.Slot
+          backSlotInterval = toBack interval
+
+          payload = JsonTriple (marloweParams /\ (Just backSlotInterval) /\ inputs)
         in
-          Contract.invokeEndpoint marloweAppId "apply-inputs" (marloweParams /\ Just interval /\ inputs)
+          Contract.invokeEndpoint marloweAppId "apply-inputs" payload
       LocalStorage -> do
         existingContracts <- getContracts
         -- When we emulate these calls we add a 500ms delay so we give time to the submit button
@@ -287,8 +295,10 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
           marloweAppId = view _marloweAppId walletDetails
 
           pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
+
+          payload = JsonTriple (marloweParams /\ tokenName /\ pubKeyHash)
         in
-          Contract.invokeEndpoint marloweAppId "redeem" (marloweParams /\ tokenName /\ pubKeyHash)
+          Contract.invokeEndpoint marloweAppId "redeem" payload
       LocalStorage -> pure $ Right unit
   -- get the WalletInfo of a wallet given the PlutusAppId of its WalletCompanion
   lookupWalletInfo companionAppId = do
