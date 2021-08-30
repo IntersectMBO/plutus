@@ -47,7 +47,7 @@ The Marlowe model allows for a contract to store assets. All parties
 that participate in the contract implicitly own an account with their
 name. All assets stored in the contract must be in the account of one of
 the parties; this way, when the contract is closed, all assets that
-remain in the contract belong to someonw, and so can be refunded to their respective owners. 
+remain in the contract belong to someone, and so can be refunded to their respective owners. 
 These
 accounts are *local*: they only exist for the duration of the execution of the
 contract, and during that time they are only accessible from within the contract.
