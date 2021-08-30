@@ -1,205 +1,208 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
+import           Control.Applicative
+import           Control.Monad                                          (join, liftM4)
 import           Data.List                                              as L (find, nub)
-import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
+import           Data.Maybe                                             (fromMaybe, isJust, isNothing)
 import           Data.Time                                              (Day)
 import           Data.Time.Calendar                                     (addDays)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (Cycle (..), IPCB (IPCB_NTL), PPEF (..),
-                                                                         PYTP (..), SCEF (..), ScheduleConfig)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), Cycle (..),
+                                                                         IPCB (IPCB_NTL), PPEF (..), PYTP (..),
+                                                                         SCEF (..), ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
-_S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-_S = generateRecurrentScheduleWithCorrections
+_S :: Maybe Day -> Maybe Cycle -> Maybe Day -> Maybe ScheduleConfig -> Maybe ShiftedSchedule
+_S = liftM4 generateRecurrentScheduleWithCorrections
 
 shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 -- Principal at Maturity (PAM)
 
-_SCHED_IED_PAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_IED_PAM scfg _IED = Just [shift scfg _IED]
+_SCHED_IED_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_IED_PAM ContractTerms{..} = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_IED
 
-_SCHED_MD_PAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_MD_PAM scfg tmd = Just [shift scfg tmd]
+_SCHED_MD_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_MD_PAM ContractTerms{..} = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_MD
 
-_SCHED_PP_PAM :: ScheduleConfig -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PP_PAM _    PPEF_N _OPCL _IED _OPANX _MD = Nothing
-_SCHED_PP_PAM scfg _PREF  _OPCL _IED _OPANX _MD =
-    let maybeS  | isNothing _OPANX && isNothing _OPCL = Nothing
-                | isNothing _OPANX                    = Just $ _IED `plusCycle` fromJust _OPCL
-                | otherwise                           = _OPANX
-    in (\s -> _S s (fromJust _OPCL) _MD scfg) <$> maybeS
+_SCHED_PP_PAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_PP_PAM ContractTerms{..} | ct_PPEF == Just PPEF_N = Nothing
+_SCHED_PP_PAM ContractTerms{..} =
+  let s | isNothing ct_OPANX && isNothing ct_OPCL = Nothing
+        | isNothing ct_OPANX                      = liftA2 plusCycle ct_IED ct_OPCL
+        | otherwise                               = ct_OPANX
+   in _S s ct_OPCL ct_MD (Just scfg)
 
-_SCHED_PY_PAM :: ScheduleConfig -> PYTP -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PY_PAM _    PYTP_O _PREF _OPCL _IED _OPANX _MD = Nothing
-_SCHED_PY_PAM scfg _PYTP  _PREF _OPCL _IED _OPANX _MD = _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
+_SCHED_PY_PAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_PY_PAM ContractTerms{..} | ct_PYTP == Just PYTP_O = Nothing
+_SCHED_PY_PAM ct                                         = _SCHED_PP_PAM ct
 
-_SCHED_FP_PAM :: (Eq a, Fractional a) => ScheduleConfig -> a -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD =
-    let maybeS  | isNothing _FEANX && isNothing _FECL = Nothing
-                | isNothing _FEANX                    = Just $ _IED `plusCycle` fromJust _FECL
-                | otherwise                           = _FEANX
+_SCHED_FP_PAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_FP_PAM ContractTerms{..} =
+    let s | isNothing ct_FEANX && isNothing ct_FECL = Nothing
+          | isNothing ct_FEANX                      = liftA2 plusCycle ct_IED ct_FECL
+          | otherwise                               = ct_FEANX
 
-        result  | _FER == 0.0                         = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _FECL){ includeEndDay = True } _MD scfg) <$> maybeS
-    in result
+        r | ct_FER == Just 0.0                      = Nothing
+          | otherwise                               = _S s ((\c -> c {includeEndDay = True}) <$> ct_FECL) ct_MD (Just scfg)
+    in r
 
-_SCHED_PRD_PAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_PRD_PAM scfg (Just _PRD) = Just [shift scfg _PRD]
-_SCHED_PRD_PAM _ _              = Nothing
+_SCHED_PRD_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_PRD_PAM ContractTerms{..} | isJust ct_PRD = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_PRD
+_SCHED_PRD_PAM _                                 = Nothing
 
-_SCHED_TD_PAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_TD_PAM scfg (Just _TD) = Just [shift scfg _TD]
-_SCHED_TD_PAM _    _          = Nothing
+_SCHED_TD_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_TD_PAM ContractTerms{..} | isJust ct_TD = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_TD
+_SCHED_TD_PAM _                                = Nothing
 
-_SCHED_IP_PAM :: ScheduleConfig -> Maybe a -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe [ShiftedDay]
-_SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
-    let maybeS  | isNothing _IPANX && isNothing _IPCL = Nothing
-                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise                           = _IPANX
+_SCHED_IP_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_IP_PAM ContractTerms{..} =
+    let s | isNothing ct_IPANX && isNothing ct_IPCL = Nothing
+          | isNothing ct_IPANX                      = liftA2 plusCycle ct_IED ct_IPCL
+          | otherwise                               = ct_IPANX
 
-        result  | isNothing _IPNR                     = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> maybeS
+        result | isNothing ct_IPNR                 = Nothing
+               | otherwise                         = _S s ((\c -> c {includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
-        result' | isJust result && isJust _IPCED      = Just $ filter (\ss -> calculationDay ss > fromJust _IPCED) $ fromJust result
-                | otherwise                           = result
+        result' | isJust result && isJust ct_IPCED  = filter (\d -> Just (calculationDay d) > ct_IPCED) <$> result
+                | otherwise                         = result
     in result'
 
-_SCHED_IPCI_PAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe a -> Maybe [ShiftedDay]
-_SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED _MD _IPNR =
-    -- calculate IP sched:
-    let maybeS  | isNothing _IPANX && isNothing _IPCL = Nothing
-                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise                           = _IPANX
+_SCHED_IPCI_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_IPCI_PAM ContractTerms{..} =
+    let s | isNothing ct_IPANX && isNothing ct_IPCL = Nothing
+          | isNothing ct_IPANX                      = liftA2 plusCycle ct_IED ct_IPCL
+          | otherwise                               = ct_IPANX
 
-        schedIP | isNothing _IPNR                     = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> maybeS
+        schedIP | isNothing ct_IPNR                 = Nothing
+                | otherwise                         = _S s ((\c -> c { includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
-        result  | isJust _IPCL && isJust _IPCED       = Just $ filter (\s -> calculationDay s < fromJust _IPCED) (fromJust schedIP) ++ [shift scfg $ fromJust _IPCED]
-                | otherwise = Nothing
+        result | isJust ct_IPCL && isJust ct_IPCED = let a = filter (\d -> Just (calculationDay d) < ct_IPCED) <$> schedIP
+                                                         b = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_IPCED
+                                                      in liftA2 (++) a b
+               | otherwise = Nothing
     in result
 
-_SCHED_RR_PAM :: ScheduleConfig -> Day -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Maybe [ShiftedDay]
-_SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD =
-    let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
-                | otherwise                           = _RRANX
+_SCHED_RR_PAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_RR_PAM ContractTerms{..} =
+    let s | isNothing ct_RRANX = liftA2 plusCycle ct_IED ct_RRCL
+          | otherwise          = ct_RRANX
 
-        tt      = (\s -> _S s (fromJust _RRCL){ includeEndDay = False } _MD scfg) <$> maybeS
-        trry    = fromJust $ inf (fromJust tt) _SD
+        tt   = _S s ((\c -> c { includeEndDay = False }) <$> ct_RRCL) ct_MD (Just scfg)
+        trry = join $ liftA2 inf tt (Just ct_SD)
 
-        result  | isNothing _RRANX && isNothing _RRCL = Nothing
-                | isJust _RRNXT                       = remove trry <$> tt
-                | otherwise                           = tt
+        result | isNothing ct_RRANX && isNothing ct_RRCL = Nothing
+               | isJust ct_RRNXT                         = liftA2 remove trry tt
+               | otherwise                               = tt
     in result
 
--- ACTUS techspec implementation
-_SCHED_RRF_PAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Day -> Maybe [ShiftedDay]
-_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _RRNXT _MD _SD =
-    let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
-                | otherwise                           = _RRANX
+_SCHED_RRF_PAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_RRF_PAM ContractTerms {..} =
+    let s | isNothing ct_RRANX = liftA2 plusCycle ct_IED ct_RRCL
+          | otherwise          = ct_RRANX
 
-        tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
+        tt = _S s ct_RRCL ct_MD (Just scfg)
 
-        result  | isNothing _RRANX && isNothing _RRCL = Nothing
-                | otherwise                           = tt
+        result | isNothing ct_RRANX && isNothing ct_RRCL = Nothing
+               | otherwise                               = tt
     in
-      if isJust _RRNXT then
-        fmap (:[]) (L.find (\ShiftedDay{..} -> calculationDay > _SD) (fromMaybe [] result))
+      if isJust ct_RRNXT then
+        fmap (:[]) (L.find (\ShiftedDay{..} -> calculationDay > ct_SD) (fromMaybe [] result))
       else
         Nothing
 
-_SCHED_SC_PAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
-_SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
-    let maybeS  | isNothing _SCANX && isNothing _SCCL = Nothing
-                | isNothing _SCANX                    = Just $ _IED `plusCycle` fromJust _SCCL
-                | otherwise                           = _SCANX
+_SCHED_SC_PAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_SC_PAM ContractTerms{..} =
+    let s | isNothing ct_SCANX && isNothing ct_SCCL = Nothing
+          | isNothing ct_SCANX                      = liftA2 plusCycle ct_IED ct_SCCL
+          | otherwise                               = ct_SCANX
 
-        tt      = (\s -> _S s (fromJust _SCCL){ includeEndDay = False } _MD scfg) <$> maybeS
+        tt = _S s ((\c -> c { includeEndDay = False }) <$> ct_SCCL) ct_MD (Just scfg)
 
-        result  | _SCEF == SE_000                     = Nothing
-                | otherwise                           = tt
+        result | ct_SCEF == Just SE_000 = Nothing
+               | otherwise              = tt
     in result
 
 -- Linear Amortizer (LAM)
 
-_SCHED_PR_LAM :: ScheduleConfig -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
-    let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
-                | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
-                | otherwise                          = _PRANX
-    in (\s -> _S s (fromJust _PRCL){ includeEndDay = False } _MD scfg ) <$> maybeS
+_SCHED_PR_LAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_PR_LAM ContractTerms{..} =
+    let s | isNothing ct_PRANX && isNothing ct_PRCL = Nothing
+          | isNothing ct_PRANX                      = liftA2 plusCycle ct_IED ct_PRCL
+          | otherwise                               = ct_PRANX
+     in _S s ((\c -> c { includeEndDay = False }) <$> ct_PRCL) ct_MD (Just scfg)
 
-_SCHED_MD_LAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
+_SCHED_MD_LAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_MD_LAM ContractTerms{..} = (:[]) <$> liftA2 applyBDCWithCfg (Just scfg) ct_MD
 
-_SCHED_IPCB_LAM :: ScheduleConfig -> Day -> Maybe IPCB -> Maybe Cycle -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
-    let maybeS  | isNothing _IPCBANX && isNothing _IPCBCL = Nothing
-                | isNothing _IPCBANX                      = Just $ _IED `plusCycle` fromJust _IPCBCL
-                | otherwise                               = _IPCBANX
+_SCHED_IPCB_LAM :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_IPCB_LAM ContractTerms{..} =
+    let s | isNothing ct_IPCBANX && isNothing ct_IPCBCL = Nothing
+          | isNothing ct_IPCBANX                        = liftA2 plusCycle ct_IED ct_IPCBCL
+          | otherwise                                   = ct_IPCBANX
 
-        result  | fromJust _IPCB /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
-                | otherwise                          = (\s -> _S s (fromJust _IPCBCL){ includeEndDay = False } _MD scfg) <$> maybeS
+        result | ct_IPCB /= Just IPCB_NTL = Nothing -- This means that IPCB != 'NTL', since there is no cycle
+          | otherwise                = _S s ((\c -> c { includeEndDay = False }) <$> ct_IPCBCL) ct_MD (Just scfg)
     in result
 
 -- Negative Amortizer (NAM)
 
-_SCHED_IP_NAM :: ScheduleConfig -> Day -> Maybe Cycle -> Maybe Day -> Maybe Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe [ShiftedDay]
-_SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
-    let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
-                | otherwise        = _PRANX
+_SCHED_IP_NAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_IP_NAM ContractTerms{..} =
+    let s | isNothing ct_PRANX = liftA2 plusCycle ct_IED ct_PRCL
+          | otherwise          = ct_PRANX
 
-        _T      = fromJust maybeS `minusCycle` fromJust _PRCL
+        _T = liftA2 minusCycle s ct_PRCL
 
-        r       | isJust _IPANX = _IPANX
-                | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise     = Nothing
+        r | isJust ct_IPANX = ct_IPANX
+          | isJust ct_IPCL  = liftA2 plusCycle ct_IED ct_IPCL
+          | otherwise       = Nothing
 
-        u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-                | isJust _IPCED && fromJust _IPCED > _T  = Nothing
-                | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
+        u | isNothing ct_IPANX && isNothing ct_IPCL                        = Nothing
+          | isJust ct_IPCED    && fromMaybe False (liftA2 (>) ct_IPCED _T) = Nothing
+          | otherwise                                                      = _S r ((\c -> c { includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
-        v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
+        v = _S s ct_PRCL ct_MD (Just scfg)
 
-        result  = Just $ nub (fromMaybe [] u ++ fromMaybe [] v)
+        result = nub <$> liftA2 (++) u v
 
-        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> calculationDay ss > fromJust _IPCED) $ fromJust result
+        result' | isJust result && isJust ct_IPCED = filter (\ShiftedDay{..} -> Just calculationDay > ct_IPCED) <$> result
                 | otherwise = result
     in
         result'
 
-_SCHED_IPCI_NAM :: ScheduleConfig -> Day -> Maybe Cycle -> Maybe Day -> Maybe Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe [ShiftedDay]
-_SCHED_IPCI_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
-  let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
-              | otherwise        = _PRANX
+_SCHED_IPCI_NAM :: ContractTerms -> Maybe [ShiftedDay]
+_SCHED_IPCI_NAM ContractTerms{..} =
+  let s | isNothing ct_PRANX = liftA2 plusCycle ct_IED ct_PRCL
+          | otherwise          = ct_PRANX
 
-      _T      = fromJust maybeS `minusCycle` fromJust _PRCL
+      _T = liftA2 minusCycle s ct_PRCL
 
-      r       | isJust _IPCED = _IPCED
-              | isJust _IPANX = _IPANX
-              | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
-              | otherwise     = Nothing
+      r | isJust ct_IPCED = ct_IPCED
+        | isJust ct_IPANX = ct_IPANX
+        | isJust ct_IPCL  = liftA2 plusCycle ct_IED ct_IPCL
+        | otherwise       = Nothing
 
-      u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-              | isJust _IPCED && fromJust _IPCED > _T  = Nothing
-              | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
+      u | isNothing ct_IPANX && isNothing ct_IPCL                        = Nothing
+        | isJust ct_IPCED    && fromMaybe False (liftA2 (>) ct_IPCED _T) = Nothing
+        | otherwise                                                      = _S r ((\c -> c { includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
-      v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
+      v = _S s ct_PRCL ct_MD (Just scfg)
 
       result  = Just $ nub (fromMaybe [] u ++ fromMaybe [] v)
 
-      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> calculationDay ss <= fromJust _IPCED) $ fromJust result
+      result' | isJust result && isJust ct_IPCED = filter (\ShiftedDay{..} -> Just calculationDay <= ct_IPCED) <$> result
               | otherwise = Nothing
   in
       result'
 
 -- Annuity (ANN)
 
-_SCHED_PRF_ANN :: Maybe Day -> Maybe Double -> Maybe Day -> Maybe ShiftedSchedule
-_SCHED_PRF_ANN _PRANX _PRNXT _IED =
-  let result | isJust _PRANX && isNothing _PRNXT && _PRANX > _IED = let previousDay = addDays (-1) $ fromJust _PRANX in Just [ShiftedDay previousDay previousDay]
-             | otherwise                                          = Nothing
+_SCHED_PRF_ANN :: ContractTerms -> Maybe ShiftedSchedule
+_SCHED_PRF_ANN ContractTerms{..} =
+  let result | isJust ct_PRANX && isNothing ct_PRNXT && ct_PRANX > ct_IED = ct_PRANX >>= (\p -> Just [ShiftedDay p p]) . addDays (-1)
+             | otherwise                                                  = Nothing
   in result
