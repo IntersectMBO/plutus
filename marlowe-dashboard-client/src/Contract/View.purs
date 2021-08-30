@@ -133,7 +133,7 @@ contractScreen viewInput state =
     paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element", "h-full" ] ] [] ]
   in
     div
-      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full", "w-screen", "relative" ] ]
+      [ classNames [ "flex", "flex-col", "items-center", "pt-3", "h-full", "w-screen", "relative" ] ]
       [ lifeCycleSlot "carousel-lifecycle" case _ of
           OnInit -> Just CarouselOpened
           OnFinalize -> Just CarouselClosed
@@ -148,7 +148,7 @@ contractScreen viewInput state =
               (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
           ]
       , cardNavigationButtons state
-      , div [ classNames [ "absolute", "font-bold", "bottom-4", "right-4" ] ] [ text $ statusIndicatorMessage state ]
+      , div [ classNames [ "self-end", "pb-4", "pr-4", "font-bold" ] ] [ text $ statusIndicatorMessage state ]
       ]
 
 statusIndicatorMessage :: State -> String
@@ -207,10 +207,12 @@ cardNavigationButtons state =
       , tooltip "Next step" (RefId "nextStepButton") Bottom
       ]
   in
-    div [ classNames [ "mb-6", "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
-      $ leftButton
-      <> [ icon Icon.Info [ "px-4", "invisible" ] ]
-      <> rightButton
+    div [ classNames [ "flex-grow" ] ]
+      [ div [ classNames [ "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
+          $ leftButton
+          <> [ icon Icon.Info [ "px-4", "invisible" ] ]
+          <> rightButton
+      ]
 
 -- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
 actionConfirmationCard ::
@@ -329,10 +331,10 @@ renderContractCard :: forall p. Int -> State -> Tab -> Array (HTML p Action) -> 
 renderContractCard stepNumber state currentTab cardBody =
   let
     tabSelector isActive =
-      [ "flex-grow", "text-center", "py-2", "trapesodial-card-selector", "text-sm", "font-semibold" ]
+      [ "flex-grow", "text-center", "py-2", "text-sm", "font-semibold" ]
         <> case isActive of
-            true -> [ "active" ]
-            false -> []
+            true -> [ "bg-white" ]
+            false -> [ "bg-gray" ]
 
     contractCardCss =
       -- NOTE: The cards that are not selected gets scaled down to 77 percent of the original size. But when you scale down
@@ -340,16 +342,16 @@ renderContractCard stepNumber state currentTab cardBody =
       --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "mb-8", "filter" ]
+      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "filter", "mb-3" ]
         <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
-            [ "drop-shadow", "scale-77", "-mx-4" ]
+            [ "-mx-4", "shadow-sm", "md:shadow", "scale-77" ]
           else
             -- Selected card modifiers
-            [ "drop-shadow-lg", "mx-2" ]
+            [ "mx-2", "shadow-sm", "md:shadow-lg" ]
   in
     div [ classNames contractCardCss ]
-      [ div [ classNames [ "flex", "select-none" ] ]
+      [ div [ classNames [ "flex", "select-none", "rounded-t", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
               , onClick_ $ SelectTab stepNumber Tasks
