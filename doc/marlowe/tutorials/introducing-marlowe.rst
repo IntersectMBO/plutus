@@ -142,26 +142,17 @@ using *static analysis*. We can also use logic tools to *formally prove
 properties* of Marlowe contracts, giving users the highest level of
 assurance that their contracts behave as intended.
 
-Finding out more
-----------------
+Research-based
+--------------
 
-Systems 
-
--  `The Marlowe Playground <https://alpha.marlowe.iohkdev.io/>`_ an
-   in-browser development, analysis and simulation environment.
-
--  `Marlowe Run <https://run.marlowe-finance.io>`_ the end-user client for downloading and running
-   Marlowe contracts on the Cardano blockchain; currently in prototype.
-
--  `The Marlowe github
-   repository <https://github.com/input-output-hk/marlowe>`_ from which
-   you can download Marlowe.
-
--  `The Marlowe Website <https://hernan.marlowe-web.iohkdev.io/#>`_ landing page for all things Marlowe.
+Marlowe is based on original, peer reviewed, research conducted by the 
+Marlowe team, initially at the University of Kent supported by a research grant 
+from IOHK, and latterly as an internal engineering team in the company. We are also
+working jointly with Wyoming Advanced Blockchain R&D Laboratory (WABL) at the University of Wyoming.
+If you are interested in working with us, please get in touch.
 
 
-
-Papers   
+Our research work is reported in these published papers.
 
 -  `Marlowe: financial contracts on
    blockchain <https://iohk.io/en/research/library/papers/marlowefinancial-contracts-on-blockchain/>`_
@@ -182,6 +173,30 @@ Papers
 
 -  `Standardized crypto-loans on the Cardano blockchain <https://iohk.io/en/research/library/papers/standardized-crypto-loans-on-the-cardano-blockchain/>`_
    In this paper we explore a smart contract framework for building standardized crypto-loans using Marlowe, with the ACTUS standard at its core.
+
+and in this eprints survey paper.
+
+- `Scripting smart contracts for distributed ledger 
+  technology <https://iohk.io/en/research/library/papers/scripting-smart-contracts-for-distributed-ledger-technology/>`_
+  Here we give an overview of the scripting languages used in existing cryptocurrencies.
+
+Finding out more
+----------------
+
+Systems 
+
+-  `The Marlowe Playground <https://alpha.marlowe.iohkdev.io/>`_ an
+   in-browser development, analysis and simulation environment.
+
+-  `Marlowe Run <https://run.marlowe-finance.io>`_ the end-user client for downloading and running
+   Marlowe contracts on the Cardano blockchain; currently in prototype.
+
+-  `The Marlowe github
+   repository <https://github.com/input-output-hk/marlowe>`_ from which
+   you can download Marlowe.
+
+-  `The Marlowe Website <https://hernan.marlowe-web.iohkdev.io/#>`_ landing page for all things Marlowe.
+
 
 Videos
 
