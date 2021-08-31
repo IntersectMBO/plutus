@@ -40,7 +40,7 @@ import           Ledger.Slot                 (Slot (..))
 import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), TxOutRef (..))
 import           Ledger.TxId                 (TxId (..))
 import           Ledger.Value                (Value)
-import           Plutus.ChainIndex.Tx        (ChainIndexTx (..))
+import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..))
 import           Plutus.ChainIndex.Types     (BlockId (..), Tip (..))
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..), fromTx)
 import qualified PlutusTx.Prelude            as PlutusTx
@@ -148,7 +148,7 @@ genTx = do
     ChainIndexTx
         <$> nextTxId
         <*> pure (Set.fromList $ fmap (flip TxIn Nothing) allInputs)
-        <*> pure ((\(addr, vl) -> TxOut addr vl Nothing) <$> newOutputs)
+        <*> pure (ValidTx $ (\(addr, vl) -> TxOut addr vl Nothing) <$> newOutputs)
         <*> pure Interval.always
 
         -- TODO: generate datums, scripts, etc.

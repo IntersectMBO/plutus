@@ -201,9 +201,9 @@ retrieveFundsC vesting payment = mapError (review _VestingError) $ do
     let inst = typedValidator vesting
         addr = Scripts.validatorAddress inst
     nextTime <- awaitTime 0
-    unspentOutputs <- utxoAt addr
+    unspentOutputs <- utxosAt addr
     let
-        currentlyLocked = foldMap (Validation.txOutValue . Tx.txOutTxOut . snd) (Map.toList unspentOutputs)
+        currentlyLocked = foldMap (view Tx.ciTxOutValue) (Map.elems unspentOutputs)
         remainingValue = currentlyLocked - payment
         mustRemainLocked = totalAmount vesting - availableAt vesting nextTime
         maxPayment = currentlyLocked - mustRemainLocked

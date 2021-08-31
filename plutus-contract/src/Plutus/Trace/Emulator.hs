@@ -50,7 +50,6 @@ module Plutus.Trace.Emulator(
     , EmulatorControl.agentState
     , Wallet.ownPrivateKey
     , Wallet.nodeClient
-    , Wallet.chainIndex
     , Wallet.signingProcess
     -- * Throwing errors
     , throwError
@@ -226,7 +225,6 @@ defaultShowEvent = \case
   InstanceEvent (ContractInstanceLog (HandledRequest _)           _ _) -> Nothing
   InstanceEvent (ContractInstanceLog (CurrentRequests _)          _ _) -> Nothing
   SchedulerEvent _                                                     -> Nothing
-  ChainIndexEvent _ _                                                  -> Nothing
   WalletEvent _ _                                                      -> Nothing
   ev                                                                   -> Just . renderString . layoutPretty defaultLayoutOptions . pretty $ ev
 
@@ -242,7 +240,6 @@ runEmulatorTrace cfg trace =
     $ runReader ((initialDist . _initialChainState) cfg)
     $ foldEmulatorStreamM (generalize list)
     $ runEmulatorStream cfg trace
-
 
 -- | Run the emulator trace returning an effect that can be evaluated by
 -- interpreting the 'PrintEffect's.

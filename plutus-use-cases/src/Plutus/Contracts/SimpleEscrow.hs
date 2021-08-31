@@ -18,7 +18,7 @@
 module Plutus.Contracts.SimpleEscrow
   where
 
-import           Control.Lens             (makeClassyPrisms)
+import           Control.Lens             (makeClassyPrisms, view)
 import           Control.Monad            (void)
 import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
@@ -139,9 +139,9 @@ redeemEp = endpoint @"redeem" redeem
     redeem params = do
       time <- currentTime
       pk <- ownPubKey
-      unspentOutputs <- utxoAt escrowAddress
+      unspentOutputs <- utxosAt escrowAddress
 
-      let value = foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs
+      let value = foldMap (view Tx.ciTxOutValue) unspentOutputs
           tx = Typed.collectFromScript unspentOutputs Redeem
                       <> Constraints.mustValidateIn (Interval.to (Haskell.pred $ deadline params))
                       -- Pay me the output of this script
@@ -158,7 +158,7 @@ refundEp :: Promise () EscrowSchema EscrowError RefundSuccess
 refundEp = endpoint @"refund" refund
   where
     refund params = do
-      unspentOutputs <- utxoAt escrowAddress
+      unspentOutputs <- utxosAt escrowAddress
 
       let tx = Typed.collectFromScript unspentOutputs Refund
                   <> Constraints.mustValidateIn (Interval.from (deadline params))

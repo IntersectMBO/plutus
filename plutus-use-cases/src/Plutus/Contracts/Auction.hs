@@ -49,7 +49,6 @@ import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                          as Haskell
 
-
 -- | Definition of an auction
 data AuctionParams
     = AuctionParams
@@ -264,25 +263,43 @@ data BuyerEvent =
 waitForChange :: SlotConfig -> AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
 waitForChange slotCfg AuctionParams{apEndTime} client lastHighestBid = do
     t <- currentTime
+
+    let targetTime = TimeSlot.slotToBeginPOSIXTime slotCfg
+               $ Haskell.succ
+               -- FIXME Without the additional `succ`, the contract will
+               -- always response with `NoChange` and the highestBid will
+               -- always be 0
+               $ Haskell.succ
+               $ TimeSlot.posixTimeToEnclosingSlot slotCfg t
+    -- Create a Promise that waits for either an update to the state machine's
+    -- on chain state, or after the equivalent of 2 slots.
+    smUpdatePromise <- SM.waitForUpdateTimeout client (isTime targetTime)
+
     let
         auctionOver = AuctionIsOver lastHighestBid Haskell.<$ isTime apEndTime
         submitOwnBid = endpoint @"bid" $ pure . SubmitOwnBid
         otherBid = do
-            let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
-                targetTime = TimeSlot.slotToBeginPOSIXTime slotCfg
-                           $ Haskell.succ
-                           $ TimeSlot.posixTimeToEnclosingSlot slotCfg t
             promiseBind
-                (addressChangeRequest
-                    AddressChangeRequest
-                    { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
-                    , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
-                    , acreqAddress = address
-                    })
-                $ \AddressChangeResponse{acrTxns} ->
-                    case acrTxns of
-                        [] -> pure (NoChange lastHighestBid)
-                        _  -> maybe (AuctionIsOver lastHighestBid) OtherBid <$> currentState client
+                smUpdatePromise
+                $ \case
+                  -- If the state machine instance ended, then the auction is over.
+                  -- In this case match, 'currentState client' should always be
+                  -- 'Nothing'.
+                  ContractEnded {} -> maybe (AuctionIsOver lastHighestBid) OtherBid <$> currentState client
+                  -- The state machine transitionned to a new state
+                  Transition {} -> do
+                    highestBidMaybe <- currentState client
+                    case highestBidMaybe of
+                      -- If there is no current state, then the auction is over.
+                      Nothing -> pure $ AuctionIsOver lastHighestBid
+                      -- If the next state transition contains a new state,
+                      -- there is either no change to the current bid, or there
+                      -- is a new bid emitted by another wallet.
+                      Just highestBid -> do
+                        if highestBid Haskell.== lastHighestBid
+                           then pure (NoChange highestBid)
+                           else pure (OtherBid highestBid)
+                  _ -> pure (NoChange lastHighestBid)
 
     -- see note [Buyer client]
     selectList [auctionOver, submitOwnBid, otherBid]

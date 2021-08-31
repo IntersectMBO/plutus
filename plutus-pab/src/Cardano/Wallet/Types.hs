@@ -1,17 +1,16 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE KindSignatures     #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE StrictData         #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Cardano.Wallet.Types (
      -- * effect type for the mock wallet
@@ -52,15 +51,15 @@ import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
 import           GHC.Generics                       (Generic)
 import           Ledger                             (PubKey, PubKeyHash)
+import           Plutus.ChainIndex                  (ChainIndexQueryEffect)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant                            (ServerError (..))
 import           Servant.Client                     (BaseUrl (..), ClientError, Scheme (..))
 import           Servant.Client.Internal.HttpClient (ClientEnv)
-import           Wallet.Effects                     (ChainIndexEffect, NodeClientEffect, WalletEffect)
+import           Wallet.Effects                     (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
 import           Wallet.Emulator.Wallet             (Wallet (..), WalletState)
-
 
 -- | Information about an emulated wallet.
 data WalletInfo =
@@ -79,10 +78,9 @@ data MultiWalletEffect r where
     MultiWallet :: Wallet -> Eff '[WalletEffect] a -> MultiWalletEffect a
 makeEffect ''MultiWalletEffect
 
-
 type WalletEffects m = '[ MultiWalletEffect
                         , NodeClientEffect
-                        , ChainIndexEffect
+                        , ChainIndexQueryEffect
                         , State Wallets
                         , LogMsg Text
                         , Error WalletAPIError
@@ -101,10 +99,9 @@ newtype Port = Port Int
     deriving (Show)
     deriving (Eq, Num, ToJSON, FromJSON, Pretty) via Int
 
-data WalletConfig =
+newtype WalletConfig =
     WalletConfig
         { baseUrl :: WalletUrl
-        , wallet  :: Wallet
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -114,7 +111,6 @@ defaultWalletConfig =
   WalletConfig
     -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
     { baseUrl = WalletUrl $ BaseUrl Http "127.0.0.1" 9081 ""
-    , wallet  = Wallet 1
     }
 
 instance Default WalletConfig where

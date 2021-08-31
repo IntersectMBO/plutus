@@ -12,27 +12,32 @@ Defines the system threads. One thread for each simulated agent, and a block
 maker thread for the blockchain / network.
 
 -}
-module Plutus.Trace.Emulator.System(
-    launchSystemThreads
-    ) where
+module Plutus.Trace.Emulator.System
+  ( launchSystemThreads
+  , appendNewTipBlock
+  ) where
 
 import           Control.Monad                 (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine
 import           Data.Foldable                 (traverse_)
 import           Data.Maybe                    (maybeToList)
-import           Wallet.Effects                (startWatching)
+import qualified Data.Text                     as Text
+import qualified Data.Text.Encoding            as Text
 import           Wallet.Emulator.Chain         (ChainControlEffect, modifySlot, processBlock)
 import           Wallet.Emulator.MultiAgent    (MultiAgentControlEffect, MultiAgentEffect, walletAction,
                                                 walletControlAction)
 
+import           Data.Hashable                 (hash)
 import           Data.String                   (IsString (..))
+import           Ledger                        (Block, Slot, TxId (..), eitherTx, txId)
+import           Plutus.ChainIndex             (BlockId (..), ChainIndexControlEffect, Tip (Tip, TipAtGenesis),
+                                                appendBlock, fromOnChainTx, getTip)
 import           Plutus.Trace.Emulator.Types   (EmulatorMessage (..))
 import           Plutus.Trace.Scheduler        (EmSystemCall, MessageCall (..), Priority (..), Tag, fork, mkSysCall,
                                                 sleep)
-import           Wallet.Emulator.ChainIndex    (chainIndexNotify)
 import           Wallet.Emulator.NodeClient    (ChainClientNotification (..), clientNotify)
-import           Wallet.Emulator.Wallet        (Wallet (..), walletAddress)
+import           Wallet.Emulator.Wallet        (Wallet (..))
 
 {- Note [Simulator Time]
 
@@ -110,16 +115,39 @@ agentThread :: forall effs effs2.
     )
     => Wallet
     -> Eff effs2 ()
-agentThread wllt = walletAction wllt (startWatching $ walletAddress wllt) >> go where
+agentThread wllt = go where
     go = do
         e <- sleep @effs @EmulatorMessage Sleeping
-        let notis = maybeToList e >>= \case
+        let clientNotis = maybeToList e >>= \case
                 NewSlot blocks slot -> fmap BlockValidated blocks ++ [SlotChanged slot]
                 _                   -> []
+        forM_ clientNotis $ \n -> walletControlAction wllt $ clientNotify n
 
-        forM_ notis $ \n ->
-            walletControlAction wllt $ do
-                clientNotify n
-                chainIndexNotify n
+        currentTip <- walletAction wllt getTip
+        walletControlAction wllt $ do
+          case e of
+            Just (NewSlot blocks slot) -> do
+              appendNewTipBlock currentTip (concat blocks) slot
+            _ -> return ()
+
         go
 
+-- | Append a block to the chain index for a specific slot.
+appendNewTipBlock ::
+    ( Member ChainIndexControlEffect effs
+    )
+    => Tip -- ^ Most recent tip
+    -> Block -- ^ List of transactions
+    -> Slot -- ^ Next slot to append the block
+    -> Eff effs ()
+appendNewTipBlock lastTip block newSlot = do
+  let nextBlockNo = case lastTip of TipAtGenesis -> 0
+                                    Tip _ _ n    -> n + 1
+
+  -- To calculate the hast of a block, we concat the tx ids, and
+  -- apply 'hash' to the resulting string.
+  let blockId = BlockId
+              $ (Text.encodeUtf8 . Text.pack . show . hash)
+              $ foldMap (getTxId . eitherTx txId txId) block
+  let newTip = Tip newSlot blockId nextBlockNo
+  appendBlock newTip (fmap fromOnChainTx block)
