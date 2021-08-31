@@ -28,7 +28,11 @@
               [ (lam a (type) (fun a (con integer))) a ]
               (fun
                 [ (lam a (type) (fun a (con integer))) b ]
-                (fun [ [ Tuple2 a ] b ] (con integer))))))
+                (fun [ [ Tuple2 a ] b ] (con integer))
+              )
+            )
+          )
+        )
       )
       (abs
         a
@@ -71,7 +75,11 @@
               [ (lam a (type) (fun a (con integer))) a ]
               (fun
                 [ (lam a (type) (fun a (con integer))) b ]
-                [ (lam a (type) (fun a (con integer))) [ [ Tuple2 a ] b ] ]))))
+                [ (lam a (type) (fun a (con integer))) [ [ Tuple2 a ] b ] ]
+              )
+            )
+          )
+        )
       )
       csize
     )
@@ -108,8 +116,8 @@
         (all
           a
           (type)
-          (fun
-            [ (lam a (type) (fun a (con integer))) a ] (fun a (con integer))))
+          (fun [ (lam a (type) (fun a (con integer))) a ] (fun a (con integer)))
+        )
       )
       (abs a (type) (lam v [ (lam a (type) (fun a (con integer))) a ] v))
     )

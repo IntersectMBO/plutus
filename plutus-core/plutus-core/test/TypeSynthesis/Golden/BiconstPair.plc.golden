@@ -2,6 +2,6 @@
   a
   (type)
   (all
-    b
-    (type)
-    (fun a (fun b (fun [ [ (con pair) a ] b ] [ [ (con pair) a ] b ])))))
+    b (type) (fun a (fun b (fun [ [ (con pair) a ] b ] [ [ (con pair) a ] b ])))
+  )
+)

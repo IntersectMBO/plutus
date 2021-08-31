@@ -29,26 +29,26 @@ instance
         ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
     prettyBy config = \case
         Var ann n ->
-            vsep' (consAnnIf config ann [prettyBy config n])
+            sep (consAnnIf config ann [prettyBy config n])
         LamAbs ann n t ->
-            parens' ("lam" </> vsep' (consAnnIf config ann
-                [prettyBy config n, prettyBy config t]))
+            sexp "lam" (consAnnIf config ann
+                [prettyBy config n, prettyBy config t])
         Apply ann t1 t2 ->
-            brackets' (vsep' (consAnnIf config ann
+            brackets' (sep (consAnnIf config ann
                 [prettyBy config t1, prettyBy config t2]))
         Constant ann c ->
-            parens' ("con" </> vsep' (consAnnIf config ann [prettyTypeOf c]) </> pretty c)
+            sexp "con" (consAnnIf config ann [prettyTypeOf c, pretty c])
         Builtin ann bi ->
-            parens' ("builtin" </> vsep' (consAnnIf config ann
-                [pretty bi]))
+            sexp "builtin" (consAnnIf config ann
+                [pretty bi])
         Error ann ->
-            parens' ("error" <> vsep' (consAnnIf config ann []))
+            sexp "error" (consAnnIf config ann [])
         Delay ann term ->
-            parens' ("delay" </> vsep' (consAnnIf config ann
-                [prettyBy config term]))
+            sexp "delay" (consAnnIf config ann
+                [prettyBy config term])
         Force ann term ->
-            parens' ("force" </> vsep' (consAnnIf config ann
-                [prettyBy config term]))
+            sexp "force" (consAnnIf config ann
+                [prettyBy config term])
       where
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
@@ -56,4 +56,4 @@ instance
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where
     prettyBy config (Program ann version term) =
-        parens' $ "program" <+> vsep' (consAnnIf config ann [pretty version]) <//> prettyBy config term
+        sexp "program" (consAnnIf config ann [pretty version, prettyBy config term])
