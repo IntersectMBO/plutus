@@ -16,7 +16,7 @@ infix 4 _⊢Ne⋆_
 open import Utils
 open import Type
 open import Type.RenamingSubstitution
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆_) as Syn
 
 
 open import Relation.Binary.PropositionalEquality
@@ -36,7 +36,7 @@ pi types, function types, lambdas or neutral terms.
 \begin{code}
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆_) as Nf
 
 data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
   ` : Φ ∋⋆ J
@@ -67,7 +67,7 @@ data _⊢Nf⋆_ where
        --------
      → Φ ⊢Nf⋆ K
 
-  con : Nf.TyCon Φ → Φ ⊢Nf⋆ *
+  con : Nf.TyCon Φ * → Φ ⊢Nf⋆ *
 
   μ : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *
     → Φ ⊢Nf⋆ K
@@ -86,7 +86,7 @@ RenNf : Ctx⋆ → Ctx⋆ → Set
 RenNf Φ Ψ = ∀{J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J
 
 RenNfTyCon : Ctx⋆ → Ctx⋆ → Set 
-RenNfTyCon Φ Ψ = Nf.TyCon Φ → Nf.TyCon Ψ
+RenNfTyCon Φ Ψ = ∀{K} → Nf.TyCon Φ K → Nf.TyCon Ψ K
 
 
 RenNe : Ctx⋆ → Ctx⋆ → Set 
@@ -110,8 +110,9 @@ renNfTyCon ρ Nf.bytestring = Nf.bytestring
 renNfTyCon ρ Nf.string     = Nf.string
 renNfTyCon ρ Nf.unit       = Nf.unit
 renNfTyCon ρ Nf.bool       = Nf.bool
-renNfTyCon ρ (Nf.list A)   = Nf.list (renNf ρ A)
-renNfTyCon ρ (Nf.pair A B) = Nf.pair (renNf ρ A) (renNf ρ B)
+renNfTyCon ρ Nf.protolist = Nf.protolist
+renNfTyCon ρ Nf.protopair = Nf.protopair
+renNfTyCon ρ (Nf.apply A B) = Nf.apply (renNfTyCon ρ A) (renNfTyCon ρ B)
 renNfTyCon ρ Nf.Data       = Nf.Data
 
 renNf ρ (Π A)     = Π (renNf (ext ρ) A)
@@ -137,15 +138,16 @@ Embedding normal forms back into terms
 \begin{code}
 embNf : ∀{Φ K} → Φ ⊢Nf⋆ K → Φ ⊢⋆ K
 embNe : ∀{Φ K} → Φ ⊢Ne⋆ K → Φ ⊢⋆ K
-embNfTyCon : ∀{Φ} → Nf.TyCon Φ → Syn.TyCon Φ
+embNfTyCon : ∀{Φ K} → Nf.TyCon Φ K → Syn.TyCon Φ K
 
 embNfTyCon Nf.integer = Syn.integer
 embNfTyCon Nf.bytestring = Syn.bytestring
 embNfTyCon Nf.string = Syn.string
 embNfTyCon Nf.unit = Syn.unit
 embNfTyCon Nf.bool = Syn.bool
-embNfTyCon (Nf.list A) = Syn.list (embNf A)
-embNfTyCon (Nf.pair A B) = Syn.pair (embNf A) (embNf B)
+embNfTyCon Nf.protolist = Syn.protolist
+embNfTyCon Nf.protopair = Syn.protopair
+embNfTyCon (Nf.apply A B) = Syn.apply (embNfTyCon A) (embNfTyCon B)
 embNfTyCon Nf.Data = Syn.Data
 
 embNf (Π B)   = Π (embNf B)
@@ -167,7 +169,7 @@ ren-embNf : (ρ : Ren Φ Ψ)
           → embNf (renNf ρ n) ≡ ren ρ (embNf n)
 
 renTyCon-embNf : (ρ : Ren Φ Ψ)
-               → (c : Nf.TyCon Φ)
+               → ∀{K}(c : Nf.TyCon Φ K)
                  -----------------------------------
                → embNfTyCon (renNfTyCon ρ c) ≡ renTyCon ρ (embNfTyCon c)
 
@@ -176,8 +178,9 @@ renTyCon-embNf ρ Nf.bytestring = refl
 renTyCon-embNf ρ Nf.string = refl
 renTyCon-embNf ρ Nf.unit = refl
 renTyCon-embNf ρ Nf.bool = refl
-renTyCon-embNf ρ (Nf.list A) = cong Syn.list (ren-embNf ρ A)
-renTyCon-embNf ρ (Nf.pair A B) = cong₂ Syn.pair (ren-embNf ρ A) (ren-embNf ρ B)
+renTyCon-embNf ρ Nf.protolist = refl
+renTyCon-embNf ρ Nf.protopair = refl
+renTyCon-embNf ρ (Nf.apply A B) = cong₂ Syn.apply (renTyCon-embNf ρ A) (renTyCon-embNf ρ B)
 renTyCon-embNf ρ Nf.Data = refl
 
 ren-embNe : (ρ : Ren Φ Ψ)

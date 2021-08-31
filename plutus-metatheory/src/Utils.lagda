@@ -191,6 +191,9 @@ postulate ByteString : Set
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 data DATA : Set where
+  constrDATA : I.ℤ → List DATA → DATA
+  mapDATA : List (DATA × DATA) → DATA
+  listDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 

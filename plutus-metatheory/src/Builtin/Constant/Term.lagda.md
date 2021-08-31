@@ -5,10 +5,9 @@ open import Utils hiding (TermCon)
 
 ```
 module Builtin.Constant.Term
-  (Ctx⋆ Kind : Set)
-  (* : Kind)
+  (Ctx⋆ : Set)
   (_⊢⋆_ : Ctx⋆ → Kind → Set)
-  (con : ∀{Φ} → TyCon Ctx⋆ (_⊢⋆ *) Φ → Φ ⊢⋆ *)
+  (con : ∀{Φ} → TyCon Ctx⋆ (_⊢⋆_) Φ * → Φ ⊢⋆ *)
   where
 
 open import Builtin

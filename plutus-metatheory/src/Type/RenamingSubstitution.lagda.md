@@ -12,7 +12,7 @@ module Type.RenamingSubstitution where
 ```
 open import Utils
 open import Type
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆_)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
@@ -51,15 +51,17 @@ ren : Ren Φ Ψ
 
 renTyCon : Ren Φ Ψ
             -----------------------
-          → TyCon Φ → TyCon Ψ
+          → ∀{K} → TyCon Φ K → TyCon Ψ K
           
 renTyCon ρ integer    = integer
 renTyCon ρ bytestring = bytestring
 renTyCon ρ string     = string
 renTyCon ρ unit       = unit
 renTyCon ρ bool       = bool
-renTyCon ρ (list A)   = list (ren ρ A)
-renTyCon ρ (pair A B) = pair (ren ρ A) (ren ρ B)
+renTyCon ρ protolist  = protolist
+renTyCon ρ protopair  = protopair
+renTyCon ρ (apply f a) = apply (renTyCon ρ f) (renTyCon ρ a)
+
 renTyCon ρ Data       = Data
 
 ren ρ (` α)       = ` (ρ α)
@@ -117,18 +119,20 @@ ren-cong : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
          → ren ρ A ≡ ren ρ' A
 
 renTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
-              → (c : TyCon Φ)
+              → ∀{K}(c : TyCon Φ K)
                 --------------------------------
               → renTyCon ρ c ≡ renTyCon ρ' c
 
-renTyCon-cong p integer    = refl
-renTyCon-cong p bytestring = refl
-renTyCon-cong p string     = refl
-renTyCon-cong p unit       = refl
-renTyCon-cong p bool       = refl
-renTyCon-cong p (list A)   = cong list (ren-cong p A)
-renTyCon-cong p (pair A B) = cong₂ pair (ren-cong p A) (ren-cong p B)
-renTyCon-cong p Data       = refl
+renTyCon-cong p integer     = refl
+renTyCon-cong p bytestring  = refl
+renTyCon-cong p string      = refl
+renTyCon-cong p unit        = refl
+renTyCon-cong p bool        = refl
+renTyCon-cong p protolist   = refl
+renTyCon-cong p protopair   = refl
+renTyCon-cong p (apply A B) =
+  cong₂ apply (renTyCon-cong p A) (renTyCon-cong p B)
+renTyCon-cong p Data        = refl
 
 ren-cong p (` α)   = cong ` (p α)
 ren-cong p (Π A)   = cong Π (ren-cong (ext-cong p) A)
@@ -146,17 +150,18 @@ ren-id : (A : Φ ⊢⋆ J)
          ------------
        → ren id A ≡ A
 
-renTyCon-id : (c : TyCon Φ)
+renTyCon-id : (c : TyCon Φ K)
               -----------------
             → renTyCon id c ≡ c
-renTyCon-id integer    = refl
-renTyCon-id bytestring = refl
-renTyCon-id string     = refl
-renTyCon-id unit       = refl
-renTyCon-id bool       = refl
-renTyCon-id (list A)   = cong list (ren-id A)
-renTyCon-id (pair A B) = cong₂ pair (ren-id A) (ren-id B)
-renTyCon-id Data       = refl
+renTyCon-id integer     = refl
+renTyCon-id bytestring  = refl
+renTyCon-id string      = refl
+renTyCon-id unit        = refl
+renTyCon-id bool        = refl
+renTyCon-id protolist   = refl
+renTyCon-id protopair   = refl
+renTyCon-id (apply A B) = cong₂ apply (renTyCon-id A) (renTyCon-id B)
+renTyCon-id Data        = refl
 
 ren-id (` α)   = refl
 ren-id (Π A)   = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -184,18 +189,21 @@ ren-comp : ∀{J}(A : Φ ⊢⋆ J)
            ---------------------------------
          → ren (ρ ∘ ρ') A ≡ ren ρ (ren ρ' A)
 
-renTyCon-comp : (c : TyCon Φ)
+renTyCon-comp : (c : TyCon Φ K)
                 -------------------------------------------
               → renTyCon (ρ ∘ ρ') c ≡ renTyCon ρ (renTyCon ρ' c)
 
-renTyCon-comp integer    = refl
-renTyCon-comp bytestring = refl
-renTyCon-comp string     = refl
-renTyCon-comp unit       = refl
-renTyCon-comp bool       = refl
-renTyCon-comp (list A)   = cong list (ren-comp A)
-renTyCon-comp (pair A B) = cong₂ pair (ren-comp A) (ren-comp B)
-renTyCon-comp Data       = refl
+renTyCon-comp integer     = refl
+renTyCon-comp bytestring  = refl
+renTyCon-comp string      = refl
+renTyCon-comp unit        = refl
+renTyCon-comp bool        = refl
+renTyCon-comp protolist   = refl 
+renTyCon-comp protopair   = refl
+renTyCon-comp {ρ = ρ}{ρ'} (apply A B) =
+  cong₂ apply (renTyCon-comp {ρ = ρ}{ρ'} A) (renTyCon-comp {ρ = ρ}{ρ'} B)
+renTyCon-comp Data        = refl
+
 
 ren-comp (` x)   = refl
 ren-comp (Π A)   = cong Π (trans (ren-cong ext-comp A) (ren-comp A))
@@ -203,7 +211,7 @@ ren-comp (A ⇒ B) = cong₂ _⇒_ (ren-comp A) (ren-comp B)
 ren-comp (ƛ A)   = cong ƛ (trans (ren-cong ext-comp A) (ren-comp A))
 ren-comp (A · B) = cong₂ _·_ (ren-comp A) (ren-comp B)
 ren-comp (μ A B) = cong₂ μ (ren-comp A) (ren-comp B)
-ren-comp (con c) = cong con (renTyCon-comp c)
+ren-comp {ρ = ρ}{ρ'} (con c) = cong con (renTyCon-comp {ρ = ρ}{ρ'} c)
 ```
 
 ## Type substitution
@@ -240,16 +248,17 @@ sub : Sub Φ Ψ
 
 subTyCon : Sub Φ Ψ
            -----------------------
-         → TyCon Φ → TyCon Ψ
+         → ∀{K} → TyCon Φ K → TyCon Ψ K
 
-subTyCon σ integer    = integer
-subTyCon σ bytestring = bytestring
-subTyCon σ string     = string
-subTyCon σ unit       = unit
-subTyCon σ bool       = bool
-subTyCon σ (list A)   = list (sub σ A)
-subTyCon σ (pair A B) = pair (sub σ A) (sub σ B)
-subTyCon σ Data       = Data
+subTyCon σ integer     = integer
+subTyCon σ bytestring  = bytestring
+subTyCon σ string      = string
+subTyCon σ unit        = unit
+subTyCon σ bool        = bool
+subTyCon σ protolist   = protolist
+subTyCon σ protopair   = protopair
+subTyCon σ (apply A B) = apply (subTyCon σ A) (subTyCon σ B)
+subTyCon σ Data        = Data
 
 sub σ (` α)   = σ α
 sub σ (Π B)   = Π (sub (exts σ) B)
@@ -313,7 +322,7 @@ sub-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
          → sub σ A ≡ sub σ' A
 
 subTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
-         → (c : TyCon Φ)
+         → ∀{K}(c : TyCon Φ K)
            --------------------------------
          → subTyCon σ c ≡ subTyCon σ' c
 subTyCon-cong p integer    = refl
@@ -321,8 +330,10 @@ subTyCon-cong p bytestring = refl
 subTyCon-cong p string     = refl
 subTyCon-cong p unit       = refl
 subTyCon-cong p bool       = refl
-subTyCon-cong p (list A)   = cong list (sub-cong p A)
-subTyCon-cong p (pair A B) = cong₂ pair (sub-cong p A) (sub-cong p B)
+subTyCon-cong p protolist = refl
+subTyCon-cong p protopair = refl
+subTyCon-cong p (apply A B) =
+  cong₂ apply (subTyCon-cong p A) (subTyCon-cong p B)
 subTyCon-cong p Data       = refl
 
 sub-cong p (` α)   = p α
@@ -341,7 +352,7 @@ sub-id : (A : Φ ⊢⋆ J)
          ------------
        → sub ` A ≡ A
 
-subTyCon-id : (c : TyCon Φ)
+subTyCon-id : ∀{K}(c : TyCon Φ K)
               ------------
             → subTyCon ` c ≡ c
 
@@ -350,8 +361,9 @@ subTyCon-id bytestring = refl
 subTyCon-id string     = refl
 subTyCon-id unit       = refl
 subTyCon-id bool       = refl
-subTyCon-id (list A)   = cong  list (sub-id A)
-subTyCon-id (pair A B) = cong₂ pair (sub-id A) (sub-id B)
+subTyCon-id protolist = refl
+subTyCon-id protopair = refl
+subTyCon-id (apply A B) = cong₂ apply (subTyCon-id A) (subTyCon-id B)
 subTyCon-id Data       = refl
 
 sub-id (` α)      = refl
@@ -380,7 +392,7 @@ sub-ren : ∀{J}(A : Φ ⊢⋆ J)
           -------------------------------
         → sub (σ ∘ ρ) A ≡ sub σ (ren ρ A)
 
-subTyCon-renTyCon : (c : TyCon Φ)
+subTyCon-renTyCon : (c : TyCon Φ K)
                     ----------------------------------------------
                   → subTyCon (σ ∘ ρ) c ≡ subTyCon σ (renTyCon ρ c)
 
@@ -389,8 +401,10 @@ subTyCon-renTyCon bytestring = refl
 subTyCon-renTyCon string     = refl
 subTyCon-renTyCon unit       = refl
 subTyCon-renTyCon bool       = refl
-subTyCon-renTyCon (list A)   = cong list (sub-ren A)
-subTyCon-renTyCon (pair A B) = cong₂ pair (sub-ren A) (sub-ren B)
+subTyCon-renTyCon protolist = refl
+subTyCon-renTyCon protopair = refl
+subTyCon-renTyCon {σ = σ}{ρ} (apply A B) =
+  cong₂ apply (subTyCon-renTyCon {σ = σ}{ρ} A) (subTyCon-renTyCon {σ = σ}{ρ} B)
 subTyCon-renTyCon Data       = refl
 
 sub-ren (` α)   = refl
@@ -399,7 +413,7 @@ sub-ren (A ⇒ B) = cong₂ _⇒_ (sub-ren A) (sub-ren B)
 sub-ren (ƛ A)   = cong ƛ (trans (sub-cong exts-ext A) (sub-ren A))
 sub-ren (A · B) = cong₂ _·_ (sub-ren A) (sub-ren B)
 sub-ren (μ A B) = cong₂ μ (sub-ren A) (sub-ren B)
-sub-ren (con c) = cong con (subTyCon-renTyCon c)
+sub-ren {σ = σ}{ρ}(con c) = cong con (subTyCon-renTyCon {σ = σ}{ρ} c)
 ```
 
 Fusion for `exts` and `ext`
@@ -419,7 +433,7 @@ ren-sub : ∀{J}(A : Φ ⊢⋆ J)
           -----------------------------------
         → sub (ren ρ ∘ σ) A ≡ ren ρ (sub σ A)
 
-renTyCon-subTyCon : (c : TyCon Φ)
+renTyCon-subTyCon : (c : TyCon Φ K)
                     -----------------------------------
                   → subTyCon (ren ρ ∘ σ) c ≡ renTyCon ρ (subTyCon σ c)
 
@@ -428,8 +442,9 @@ renTyCon-subTyCon bytestring = refl
 renTyCon-subTyCon string     = refl
 renTyCon-subTyCon unit       = refl
 renTyCon-subTyCon bool       = refl
-renTyCon-subTyCon (list A)   = cong list (ren-sub A)
-renTyCon-subTyCon (pair A B) = cong₂ pair (ren-sub A) (ren-sub B) 
+renTyCon-subTyCon protolist = refl
+renTyCon-subTyCon protopair = refl
+renTyCon-subTyCon {ρ = ρ}{σ} (apply A B) = cong₂ apply (renTyCon-subTyCon {ρ = ρ}{σ} A) (renTyCon-subTyCon {ρ = ρ}{σ} B) 
 renTyCon-subTyCon Data       = refl
 
 ren-sub (` α)   = refl
@@ -438,7 +453,7 @@ ren-sub (A ⇒ B) = cong₂ _⇒_ (ren-sub A) (ren-sub B)
 ren-sub (ƛ A)   = cong ƛ (trans (sub-cong ren-ext-exts A) (ren-sub A))
 ren-sub (A · B) = cong₂ _·_ (ren-sub A) (ren-sub B)
 ren-sub (μ A B) = cong₂ μ (ren-sub A) (ren-sub B)
-ren-sub (con c) = cong con (renTyCon-subTyCon c)
+ren-sub {ρ = ρ}{σ} (con c) = cong con (renTyCon-subTyCon {ρ = ρ}{σ} c)
 ```
 
 Fusion of two `exts`
@@ -458,7 +473,7 @@ sub-comp : ∀{J}(A : Φ ⊢⋆ J)
            -------------------------------------
          → sub (sub σ ∘ σ') A ≡ sub σ (sub σ' A)
 
-subTyCon-comp : (c : TyCon Φ)
+subTyCon-comp : (c : TyCon Φ K)
                 ----------------------------------------------------
               → subTyCon (sub σ ∘ σ') c ≡ subTyCon σ (subTyCon σ' c)
 
@@ -467,8 +482,10 @@ subTyCon-comp bytestring = refl
 subTyCon-comp string     = refl
 subTyCon-comp unit       = refl
 subTyCon-comp bool       = refl
-subTyCon-comp (list A)   = cong list (sub-comp A)
-subTyCon-comp (pair A B) = cong₂ pair (sub-comp A) (sub-comp B)
+subTyCon-comp protolist = refl
+subTyCon-comp protopair = refl
+subTyCon-comp {σ = σ}{σ'} (apply A B) =
+  cong₂ apply (subTyCon-comp {σ = σ}{σ'} A) (subTyCon-comp {σ = σ}{σ'} B)
 subTyCon-comp Data       = refl
 
 sub-comp (` x)   = refl
@@ -477,7 +494,7 @@ sub-comp (A ⇒ B) = cong₂ _⇒_ (sub-comp A) (sub-comp B)
 sub-comp (ƛ A)   = cong ƛ (trans (sub-cong extscomp A) (sub-comp A))
 sub-comp (A · B) = cong₂ _·_ (sub-comp A) (sub-comp B)
 sub-comp (μ A B) = cong₂ μ (sub-comp A) (sub-comp B)
-sub-comp (con c) = cong con (subTyCon-comp c) 
+sub-comp {σ = σ}{σ'} (con c) = cong con (subTyCon-comp {σ = σ}{σ'} c) 
 ```
 
 Commuting `sub-cons` and `ren`
@@ -553,4 +570,5 @@ sub-Π : ∀(A : Φ ⊢⋆ K)(B : Φ ,⋆ K ⊢⋆ J)(σ : Sub Φ Ψ)
       → sub (exts σ) B [ sub σ A ] ≡ sub σ (B [ A ])
 sub-Π A B σ =
   trans (sym (sub-comp B)) (trans (sub-cong (sub-sub-cons σ A) B) (sub-comp B))
+-- -}
 ```

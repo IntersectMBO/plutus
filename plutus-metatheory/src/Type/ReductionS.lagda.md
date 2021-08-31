@@ -22,7 +22,7 @@ version does full normalisation.
 open import Utils
 open import Type
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆_)
 open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
@@ -53,7 +53,7 @@ data Value⋆ : ∅ ⊢⋆ J → Set where
         -----------------
       → Value⋆ (ƛ N)
 
-  V-con : (tcn : TyCon ∅)
+  V-con : (tcn : TyCon ∅ *)
           ----------------
         → Value⋆ (con tcn)
 

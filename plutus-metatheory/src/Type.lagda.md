@@ -85,7 +85,7 @@ open import Data.String
 
 data _⊢⋆_ : Ctx⋆ → Kind → Set
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆_)
 
 data _⊢⋆_ where
   ` : Φ ∋⋆ J
@@ -115,7 +115,7 @@ data _⊢⋆_ where
       ---------------------
     → Φ ⊢⋆ *
 
-  con : TyCon Φ
+  con : TyCon Φ *
         ------
       → Φ ⊢⋆ *
 ```

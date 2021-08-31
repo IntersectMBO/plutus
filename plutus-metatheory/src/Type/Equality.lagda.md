@@ -19,7 +19,7 @@ infix  1 _≡β_
 open import Utils
 open import Type
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆_)
 
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym)
@@ -38,19 +38,17 @@ application.
 
 ```
 data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set
-data _≡βTyCon_ : TyCon Φ → TyCon Φ → Set where
-  refl≡β : (c : TyCon Φ)
+data _≡βTyCon_ : ∀{K} → TyCon Φ K → TyCon Φ K → Set where
+  refl≡β : (c : TyCon Φ K)
            ------------
          → c ≡βTyCon c
 
-  list≡β : A ≡β A'
+  apply≡β : ∀{Φ K J}{A A' : TyCon Φ (K ⇒ J)}
+         → A ≡βTyCon A'
+         → {B B' : TyCon Φ K}
+         → B ≡βTyCon B'
            ----------------------
-         → list A ≡βTyCon list A'
-
-  pair≡β : A ≡β A'
-         → B ≡β B'
-           ----------------------
-         → pair A B ≡βTyCon pair A' B'
+         → apply A B ≡βTyCon apply A' B'
 
 data _≡β_ where
 
@@ -96,7 +94,7 @@ data _≡β_ where
         ----------------
       → μ A B ≡β μ A' B'
 
-  con≡β : ∀{c c' : TyCon Φ}
+  con≡β : ∀{c c' : TyCon Φ *}
         → c ≡βTyCon c'
           -----------
         → con c ≡β con c'
@@ -124,13 +122,12 @@ ren≡β : (ρ : Ren Φ Ψ)
       → ren ρ A ≡β ren ρ B
 
 ren≡βTyCon : (ρ : Ren Φ Ψ)
-      → ∀{c c'}
+      → ∀{c c' : TyCon Φ K}
       → c ≡βTyCon c'
         ------------------
       → renTyCon ρ c ≡βTyCon renTyCon ρ c'
 ren≡βTyCon ρ (refl≡β _)   = refl≡β _
-ren≡βTyCon ρ (list≡β p)   = list≡β (ren≡β ρ p)
-ren≡βTyCon ρ (pair≡β p q) = pair≡β (ren≡β ρ p) (ren≡β ρ q)
+ren≡βTyCon ρ (apply≡β p q) = apply≡β (ren≡βTyCon ρ p) (ren≡βTyCon ρ q)
 
 ren≡β ρ (refl≡β A)    = refl≡β (ren ρ A)
 ren≡β ρ (sym≡β p)     = sym≡β (ren≡β ρ p)
@@ -157,13 +154,12 @@ sub≡β : (σ : Sub Φ Ψ)
       → sub σ A ≡β sub σ B
 
 sub≡βTyCon : (σ : Sub Φ Ψ)
-      → ∀{c c'}
+      → ∀{c c' : TyCon Φ K}
       → c ≡βTyCon c'
         ------------------
       → subTyCon σ c ≡βTyCon subTyCon σ c'
 sub≡βTyCon σ (refl≡β _)   = refl≡β _
-sub≡βTyCon σ (list≡β p)   = list≡β (sub≡β σ p)
-sub≡βTyCon σ (pair≡β p q) = pair≡β (sub≡β σ p) (sub≡β σ q)
+sub≡βTyCon σ (apply≡β p q) = apply≡β (sub≡βTyCon σ p) (sub≡βTyCon σ q)
 
 sub≡β σ (refl≡β A)    = refl≡β (sub σ A)
 sub≡β σ (sym≡β p)     = sym≡β (sub≡β σ p)
@@ -178,6 +174,6 @@ sub≡β σ (β≡β B A)     = trans≡β
   (≡2β (trans (trans (sym (sub-comp B))
                      (sub-cong (sub-sub-cons σ A) B))
               (sub-comp B)))
-sub≡β ρ (con≡β p) = con≡β (sub≡βTyCon ρ p)       
+sub≡β ρ (con≡β p) = con≡β (sub≡βTyCon ρ p)
 ```
 
