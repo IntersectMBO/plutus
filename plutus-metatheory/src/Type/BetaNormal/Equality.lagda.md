@@ -8,7 +8,7 @@ open import Type
 open import Type.Equality
 open import Type.BetaNormal
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆_)
 
 open import Function
 open import Relation.Binary.PropositionalEquality
@@ -23,7 +23,7 @@ renNf-cong : {f g : Ren Φ Ψ}
 
 renNfTyCon-cong : {f g : Ren Φ Ψ}
                 → (∀ {J}(α : Φ ∋⋆ J) → f α ≡ g α)
-                → (c : TyCon Φ)
+                → ∀{K}(c : TyCon Φ K)
                   -------------------------------
                 → renNfTyCon f c ≡ renNfTyCon g c
 renNfTyCon-cong p integer    = refl
@@ -31,8 +31,9 @@ renNfTyCon-cong p bytestring = refl
 renNfTyCon-cong p string     = refl
 renNfTyCon-cong p unit       = refl
 renNfTyCon-cong p bool       = refl
-renNfTyCon-cong p (list A)   = cong list (renNf-cong p A) 
-renNfTyCon-cong p (pair A B) = cong₂ pair (renNf-cong p A) (renNf-cong p B)
+renNfTyCon-cong p protolist  = refl 
+renNfTyCon-cong p protopair  = refl
+renNfTyCon-cong p (apply A B) = cong₂ apply (renNfTyCon-cong p A) (renNfTyCon-cong p B)
 renNfTyCon-cong p Data       = refl
 
 
@@ -58,7 +59,7 @@ renNf-id : (n : Φ ⊢Nf⋆ J)
            --------------
          → renNf id n ≡ n
 
-renNfTyCon-id : (c : TyCon Φ)
+renNfTyCon-id : ∀{K}(c : TyCon Φ K)
            --------------
          → renNfTyCon id c ≡ c
 renNfTyCon-id integer    = refl
@@ -66,8 +67,9 @@ renNfTyCon-id bytestring = refl
 renNfTyCon-id string     = refl
 renNfTyCon-id unit       = refl
 renNfTyCon-id bool       = refl
-renNfTyCon-id (list A)   = cong list (renNf-id A) 
-renNfTyCon-id (pair A B) = cong₂ pair (renNf-id A) (renNf-id B)
+renNfTyCon-id protolist  = refl
+renNfTyCon-id protopair  = refl
+renNfTyCon-id (apply A B) = cong₂ apply (renNfTyCon-id A) (renNfTyCon-id B)
 renNfTyCon-id Data       = refl
 
 renNe-id : (n : Φ ⊢Ne⋆ J)
@@ -94,7 +96,7 @@ renNf-comp : {g : Ren Φ Ψ}
 
 renNfTyCon-comp : {g : Ren Φ Ψ}
                 → {f : Ren Ψ Θ}
-                → (c : TyCon Φ)
+                → ∀{K}(c : TyCon Φ K)
                   -------------------------------------
                 → renNfTyCon (f ∘ g) c ≡ renNfTyCon f (renNfTyCon g c)
 renNfTyCon-comp integer    = refl
@@ -102,8 +104,9 @@ renNfTyCon-comp bytestring = refl
 renNfTyCon-comp string     = refl
 renNfTyCon-comp unit       = refl
 renNfTyCon-comp bool       = refl
-renNfTyCon-comp (list A)   = cong list (renNf-comp A) 
-renNfTyCon-comp (pair A B) = cong₂ pair (renNf-comp A) (renNf-comp B)
+renNfTyCon-comp protolist  = refl
+renNfTyCon-comp protopair  = refl --
+renNfTyCon-comp {g = g}{f}(apply A B) = cong₂ apply (renNfTyCon-comp {g = g}{f} A) (renNfTyCon-comp {g = g}{f} B)
 renNfTyCon-comp Data       = refl
 
 renNe-comp : {g : Ren Φ Ψ}
@@ -116,9 +119,8 @@ renNf-comp (Π B)   = cong Π (trans (renNf-cong ext-comp B) (renNf-comp B))
 renNf-comp (A ⇒ B) = cong₂ _⇒_ (renNf-comp A) (renNf-comp B)
 renNf-comp (ƛ A)   = cong ƛ (trans (renNf-cong ext-comp A) (renNf-comp A))
 renNf-comp (ne A)  = cong ne (renNe-comp A)
-renNf-comp (con c) = cong con (renNfTyCon-comp c)
+renNf-comp {g = g}{f}(con c) = cong con (renNfTyCon-comp {g = g}{f} c)
 renNf-comp (μ A B) = cong₂ μ (renNf-comp A) (renNf-comp B)
-
 renNe-comp (` x)   = refl
 renNe-comp (A · B) = cong₂ _·_ (renNe-comp A) (renNf-comp B)
 ```

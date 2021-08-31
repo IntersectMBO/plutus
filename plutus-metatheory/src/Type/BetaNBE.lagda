@@ -10,8 +10,8 @@ open import Type
 open import Type.BetaNormal
 open import Type.RenamingSubstitution
 open import Type.Equality
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆_) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆_) as Nf
 
 open import Function
 open import Data.Sum
@@ -126,16 +126,17 @@ reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
-evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
+evalTyCon : ∀{K Φ Ψ} → Syn.TyCon Ψ K → Env Ψ Φ → Nf.TyCon Φ K
 
-evalTyCon Syn.integer    η = Nf.integer
-evalTyCon Syn.bytestring η = Nf.bytestring
-evalTyCon Syn.string     η = Nf.string
-evalTyCon Syn.unit       η = Nf.unit
-evalTyCon Syn.bool       η = Nf.bool
-evalTyCon (Syn.list A)   η = Nf.list (eval A η)
-evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
-evalTyCon Syn.Data       η = Nf.Data
+evalTyCon Syn.integer     η = Nf.integer
+evalTyCon Syn.bytestring  η = Nf.bytestring
+evalTyCon Syn.string      η = Nf.string
+evalTyCon Syn.unit        η = Nf.unit
+evalTyCon Syn.bool        η = Nf.bool
+evalTyCon Syn.protolist   η = Nf.protolist
+evalTyCon Syn.protopair   η = Nf.protopair
+evalTyCon Syn.Data        η = Nf.Data
+evalTyCon (Syn.apply A B) η = Nf.apply (evalTyCon A η) (evalTyCon B η)
 
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))
