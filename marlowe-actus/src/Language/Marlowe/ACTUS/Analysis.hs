@@ -18,9 +18,8 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule           (CashFlow
                                                                         paymentDay)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization (initializeState)
 import           Language.Marlowe.ACTUS.Model.POF.Payoff               (payoff)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule   (schedule)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule   (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransition      (stateTransition)
-import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity     (maturity)
 
 genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
 genProjectedCashflows dataObserved ct@ContractTerms {..} =
@@ -42,7 +41,7 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
 
       states =
         let initialState = (initializeState ct, AD, ShiftedDay ct_SD ct_SD)
-         in filter filtersStates $ L.tail $ L.scanl applyStateTransition initialState events
+         in filter filtersStates . L.tail $ L.scanl applyStateTransition initialState events
 
       -- payoff
       calculatePayoff (st, ev, date) =
@@ -116,6 +115,7 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
             ValuesObserved {values = values} <- M.lookup k dataObserved
             ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
             return valueObserved
+
        in case ev of
             RR -> riskFactors {o_rf_RRMO = value}
             SC -> riskFactors {o_rf_SCMO = value}

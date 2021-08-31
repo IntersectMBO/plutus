@@ -7,8 +7,7 @@ import           Language.Marlowe.ACTUS.Definitions.ContractState           (Con
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_ANN, _INIT_LAM, _INIT_NAM, _INIT_PAM)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
-import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity          (maturity)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                                 (YearFractionOps (_y))
 

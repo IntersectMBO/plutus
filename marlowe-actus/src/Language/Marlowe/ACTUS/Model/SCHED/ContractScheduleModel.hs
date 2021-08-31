@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
-import           Control.Applicative
+import           Control.Applicative                                    (liftA2)
 import           Control.Monad                                          (join, liftM4)
 import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromMaybe, isJust, isNothing)
@@ -14,6 +14,7 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule            (Shifted
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
+
 _S :: Maybe Day -> Maybe Cycle -> Maybe Day -> Maybe ScheduleConfig -> Maybe ShiftedSchedule
 _S = liftM4 generateRecurrentScheduleWithCorrections
 
@@ -202,7 +203,9 @@ _SCHED_IPCI_NAM ContractTerms{..} =
 -- Annuity (ANN)
 
 _SCHED_PRF_ANN :: ContractTerms -> Maybe ShiftedSchedule
-_SCHED_PRF_ANN ContractTerms{..} =
-  let result | isJust ct_PRANX && isNothing ct_PRNXT && ct_PRANX > ct_IED = ct_PRANX >>= (\p -> Just [ShiftedDay p p]) . addDays (-1)
-             | otherwise                                                  = Nothing
-  in result
+_SCHED_PRF_ANN ct@ContractTerms{..} =
+  let prf | isJust ct_PRANX && isNothing ct_PRNXT && ct_PRANX > ct_IED = ct_PRANX >>= (\p -> Just [ShiftedDay p p]) . addDays (-1)
+          | otherwise                                                  = Nothing
+      rr  = _SCHED_RR_PAM ct
+      rrf = _SCHED_RRF_PAM ct
+  in Just $ fromMaybe [] prf ++ fromMaybe [] rr ++ fromMaybe [] rrf

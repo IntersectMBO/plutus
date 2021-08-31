@@ -2,15 +2,14 @@
 
 module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 
-import           Data.Maybe                                             (fromJust, fromMaybe, maybeToList)
+import           Data.Maybe                                             (fromJust, maybeToList)
 import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..), ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
-import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity      (maturity)
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
@@ -110,9 +109,9 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
                 _    -> st
 
         ANN ->
-          let prDates            = maybe [] (map calculationDay) prSchedule ++ maybeToList (maturity terms)
-              prDatesAfterSd     = filter (\d -> d > sd) prDates
-              ti                 = zipWith (\tn tm -> _y (fromJust ct_DCC) tn tm ct_MD) prDatesAfterSd (tail prDatesAfterSd)
+          let prDates        = maybe [] (map calculationDay) prSchedule ++ maybeToList (maturity terms)
+              prDatesAfterSd = filter (\d -> d > sd) prDates
+              ti             = zipWith (\tn tm -> _y (fromJust ct_DCC) tn tm ct_MD) prDatesAfterSd (tail prDatesAfterSd)
           in
             case ev of
                 AD   -> _STF_AD_PAM st t y_sd_t
