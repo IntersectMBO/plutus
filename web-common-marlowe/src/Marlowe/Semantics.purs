@@ -1299,7 +1299,7 @@ _marloweState = _Newtype <<< prop (SProxy :: SProxy "marloweState")
 newtype MarloweParams
   = MarloweParams
   { rolePayoutValidatorHash :: ValidatorHash
-  , rolesCurrency :: CurrencySymbol
+  , rolesCurrency :: { unCurrencySymbol :: CurrencySymbol } -- this is to ensure the serialisation matches the backend
   }
 
 derive instance eqMarloweParams :: Eq MarloweParams
@@ -1320,7 +1320,7 @@ _rolePayoutValidatorHash :: Lens' MarloweParams ValidatorHash
 _rolePayoutValidatorHash = _Newtype <<< prop (SProxy :: SProxy "rolePayoutValidatorHash")
 
 _rolesCurrency :: Lens' MarloweParams CurrencySymbol
-_rolesCurrency = _Newtype <<< prop (SProxy :: SProxy "rolesCurrency")
+_rolesCurrency = _Newtype <<< prop (SProxy :: SProxy "rolesCurrency") <<< prop (SProxy :: SProxy "unCurrencySymbol")
 
 type ValidatorHash
   = String
