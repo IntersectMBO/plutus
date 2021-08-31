@@ -6,6 +6,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TupleSections     #-}
+
 {-| The chain index' version of a transaction
 -}
 module Plutus.ChainIndex.Tx(
@@ -26,6 +27,7 @@ module Plutus.ChainIndex.Tx(
     , citxMintingPolicies
     , citxStakeValidators
     , citxValidators
+    , citxCardanoTx
     , _InvalidTx
     , _ValidTx
     ) where
@@ -40,10 +42,10 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Tuple                (swap)
 import           GHC.Generics              (Generic)
 import           Ledger                    (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, OnChainTx (..),
-                                            Redeemer (..), RedeemerHash, SlotRange, StakeValidator, StakeValidatorHash,
-                                            Tx (..), TxId, TxIn (txInType), TxInType (..), TxOut (txOutAddress),
-                                            TxOutRef (..), Validator, ValidatorHash, datumHash, mintingPolicyHash,
-                                            redeemerHash, txId, validatorHash)
+                                            Redeemer (..), RedeemerHash, SlotRange, SomeCardanoApiTx, StakeValidator,
+                                            StakeValidatorHash, Tx (..), TxId, TxIn (txInType), TxInType (..),
+                                            TxOut (txOutAddress), TxOutRef (..), Validator, ValidatorHash, datumHash,
+                                            mintingPolicyHash, redeemerHash, txId, validatorHash)
 
 -- | List of outputs of a transaction. There are no outputs if the transaction
 -- is invalid.
@@ -70,7 +72,8 @@ data ChainIndexTx = ChainIndexTx {
     _citxMintingPolicies :: Map MintingPolicyHash MintingPolicy,
     -- ^ The scripts used to check minting conditions.
     _citxStakeValidators :: Map StakeValidatorHash StakeValidator,
-    _citxValidators      :: Map ValidatorHash Validator
+    _citxValidators      :: Map ValidatorHash Validator,
+    _citxCardanoTx       :: Maybe SomeCardanoApiTx -- Might be Nothing if we are in the emulator
     } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 makeLenses ''ChainIndexTx
@@ -135,6 +138,7 @@ fromOnChainTx = \case
             , _citxMintingPolicies = mintingPolicies txMintScripts
             , _citxStakeValidators = mempty
             , _citxValidators = validatorHashes
+            , _citxCardanoTx = Nothing
             }
     Invalid tx@Tx{txCollateral, txValidRange, txData, txInputs, txMintScripts} ->
         let (validatorHashes, otherDataHashes, redeemers) = validators txInputs in
@@ -148,6 +152,7 @@ fromOnChainTx = \case
             , _citxMintingPolicies = mintingPolicies txMintScripts
             , _citxStakeValidators = mempty
             , _citxValidators = validatorHashes
+            , _citxCardanoTx = Nothing
             }
 
 mintingPolicies :: Set MintingPolicy -> Map MintingPolicyHash MintingPolicy

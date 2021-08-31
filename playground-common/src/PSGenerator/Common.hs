@@ -177,9 +177,15 @@ exBudgetBridge = do
     typeModule ^== "PlutusCore.Evaluation.Machine.ExBudget"
     pure psJson
 
+someCardanoApiTxBridge :: BridgePart
+someCardanoApiTxBridge = do
+    typeName ^== "SomeCardanoApiTx"
+    typeModule ^== "Ledger.Tx"
+    pure psJson
+
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 
