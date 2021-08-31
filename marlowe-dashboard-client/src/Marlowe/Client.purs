@@ -16,7 +16,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Marlowe.Semantics (Input, MarloweData, MarloweParams, Slot, TransactionError, TransactionInput)
+import Marlowe.Semantics (Input, MarloweData, MarloweParams, Slot, TransactionError, TransactionInput, aesonCompatibleOptions)
 import Plutus.Contract.StateMachine (InvalidTransition, SMContractError)
 import Wallet.Types (ContractError)
 
@@ -85,10 +85,10 @@ derive instance eqContractHistory :: Eq ContractHistory
 derive instance genericContractHistory :: Generic ContractHistory _
 
 instance encodeContractHistory :: Encode ContractHistory where
-  encode a = genericEncode defaultOptions a
+  encode a = genericEncode aesonCompatibleOptions a
 
 instance decodeContractHistory :: Decode ContractHistory where
-  decode a = genericDecode defaultOptions a
+  decode a = genericDecode aesonCompatibleOptions a
 
 _chParams :: Lens' ContractHistory (Maybe (Tuple MarloweParams MarloweData))
 _chParams = _Newtype <<< prop (SProxy :: SProxy "chParams")

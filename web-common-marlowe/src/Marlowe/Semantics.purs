@@ -1285,10 +1285,10 @@ derive instance newtypeMarloweData :: Newtype MarloweData _
 derive instance genericMarloweData :: Generic MarloweData _
 
 instance encodeMarloweData :: Encode MarloweData where
-  encode a = genericEncode defaultOptions a
+  encode a = genericEncode aesonCompatibleOptions a
 
 instance decodeMarloweData :: Decode MarloweData where
-  decode a = genericDecode defaultOptions a
+  decode a = genericDecode aesonCompatibleOptions a
 
 _marloweContract :: Lens' MarloweData Contract
 _marloweContract = _Newtype <<< prop (SProxy :: SProxy "marloweContract")
@@ -1311,10 +1311,10 @@ derive instance newtypeMarloweParams :: Newtype MarloweParams _
 derive instance genericMarloweParams :: Generic MarloweParams _
 
 instance encodeMarloweParams :: Encode MarloweParams where
-  encode a = genericEncode defaultOptions a
+  encode a = genericEncode aesonCompatibleOptions a
 
 instance decodeMarloweParams :: Decode MarloweParams where
-  decode a = genericDecode defaultOptions a
+  decode a = genericDecode aesonCompatibleOptions a
 
 _rolePayoutValidatorHash :: Lens' MarloweParams ValidatorHash
 _rolePayoutValidatorHash = _Newtype <<< prop (SProxy :: SProxy "rolePayoutValidatorHash")
