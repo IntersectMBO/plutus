@@ -12,11 +12,9 @@ import API.Wallet as API
 import AppM (AppM)
 import Bridge (toBack, toFront)
 import Control.Monad.Except (lift, runExceptT)
-import Data.Json.JsonTuple (JsonTuple)
-import Data.Map (Map)
 import Halogen (HalogenM)
-import Marlowe.Semantics (Assets, Slot)
-import Plutus.V1.Ledger.Tx (Tx, TxOutRef, TxOutTx)
+import Marlowe.Semantics (Assets)
+import Plutus.V1.Ledger.Tx (Tx)
 import Types (AjaxResponse)
 import WalletData.Types (Wallet, WalletInfo)
 
