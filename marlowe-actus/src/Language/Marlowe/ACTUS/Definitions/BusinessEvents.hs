@@ -38,6 +38,8 @@ data EventType =
     | PD   -- Principal Drawing
     deriving (Eq, Show, Read, Ord)
 
+{-| Risk factor observer
+-}
 data RiskFactors = RiskFactors
     { o_rf_CURS :: Double
     , o_rf_RRMO :: Double
@@ -47,6 +49,8 @@ data RiskFactors = RiskFactors
     deriving stock (Generic)
     deriving (Show, ToJSON)
 
+{-| Observed data
+-}
 type DataObserved = Map String ValuesObserved
 
 data ValuesObserved = ValuesObserved

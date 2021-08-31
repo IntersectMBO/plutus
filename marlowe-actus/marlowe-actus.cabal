@@ -67,7 +67,6 @@ library
     Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
     Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-    Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
     Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
     Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
     Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
@@ -105,7 +104,6 @@ executable marlowe-shiny
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
       Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction
@@ -162,7 +160,6 @@ executable marlowe-actus-test-kit
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
       Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction

@@ -12,8 +12,8 @@ import           Language.Marlowe.ACTUS.Model.Utility.ANN.Maturity          (mat
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                                 (YearFractionOps (_y))
 
-inititializeState :: ContractTerms -> ContractState
-inititializeState terms@ContractTerms {..} =
+initializeState :: ContractTerms -> ContractState
+initializeState terms@ContractTerms {..} =
     let t0         = ct_SD
         -- PAM
         fpSchedule         = schedule FP terms
