@@ -1032,7 +1032,7 @@ renderBalances stepNumber state stepBalance =
           , span [ classNames [ "font-semibold" ] ] [ text "Balances of contract accounts" ]
           , hint [ "relative", "-top-1" ] ("balances-" <> show stepNumber) Auto
               -- FIXME: Revisit copy
-
+              
               $ div_ [ text "This tab shows the amount of tokens that each role has in the contract account. A deposit is needed to get tokens from a wallet into the contract account, and a payment is needed to redeem tokens from the contract account into a user's wallet" ]
           ]
       , div [ classNames [ "px-4" ] ]
