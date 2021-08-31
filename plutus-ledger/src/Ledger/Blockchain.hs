@@ -43,7 +43,7 @@ import qualified Data.Map                  as Map
 import           Data.Monoid               (First (..))
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
-import           Data.Text.Encoding        (decodeUtf8)
+import           Data.Text.Encoding        (decodeUtf8')
 import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           GHC.Generics              (Generic)
 import           Ledger.Tx                 (TxOutTx (..), spentOutputs, txId, unspentOutputsTx, updateUtxo,
@@ -70,7 +70,7 @@ instance FromJSON BlockId where
     parseJSON v = BlockId <$> JSON.decodeByteString v
 
 instance Pretty BlockId where
-    pretty (BlockId blockId) = "BlockId(" <> pretty (decodeUtf8 blockId) <> ")"
+    pretty (BlockId blockId) = "BlockId(" <> pretty (either (const $ JSON.encodeByteString blockId) id $ decodeUtf8' blockId) <> ")"
 
 -- | A transaction on the blockchain.
 -- Invalid transactions are still put on the chain to be able to collect fees.
