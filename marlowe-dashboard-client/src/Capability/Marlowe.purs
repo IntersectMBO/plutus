@@ -241,7 +241,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
           marloweParams =
             MarloweParams
               { rolePayoutValidatorHash: toString uuid
-              , rolesCurrency: toString uuid
+              , rolesCurrency: { unCurrencySymbol: toString uuid }
               }
 
           marloweData =
