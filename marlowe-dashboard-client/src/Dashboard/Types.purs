@@ -32,9 +32,9 @@ type State
     , templateState :: Template.State
     -- The Marlowe app (a PAB contract) stores the status (OK or SomeError) of the last thing the
     -- user asked it to do in its observable state. But we can't deduce from that what the last
-    -- thing the user asked it to do actually was. So here we keep a record of what what was, using
-    -- this both to prevent the user from doing anything else until we've heard back from the PAB
-    -- what the result was, and also to match that result up with the action that produced it.
+    -- thing the user asked it to do actually was. So here we keep a record of what it was, using
+    -- this both to prevent the user from doing anything else until we've heard back from the PAB,
+    -- and also to match up that response with the action that produced it.
     , lastMarloweAppEndpointCall :: Maybe MarloweAppEndpoint
     }
 
