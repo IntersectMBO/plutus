@@ -100,23 +100,11 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show pubKey
       ]
-  pretty (UtxoAtResp utxoAtAddress) =
-    span_
-      [ text "UtxoAtResponse:"
-      , nbsp
-      , text $ show utxoAtAddress
-      ]
   pretty (ChainIndexQueryResp chainIndexQueryResponse) =
     span_
       [ text "ChainIndexQueryResponse:"
       , nbsp
       , text $ show chainIndexQueryResponse
-      ]
-  pretty (AddressChangeResp addressChangeResponse) =
-    span_
-      [ text "AddressChangedAtResponse:"
-      , nbsp
-      , text $ show addressChangeResponse
       ]
   pretty (BalanceTxResp balanceTxResponse) =
     span_
@@ -194,23 +182,11 @@ instance prettyContractPABRequest :: Pretty PABReq where
     span_
       [ text "OwnPubkeyRequest"
       ]
-  pretty (UtxoAtReq utxoAtAddress) =
-    span_
-      [ text "UtxoAtRequest:"
-      , nbsp
-      , text $ show utxoAtAddress
-      ]
   pretty (ChainIndexQueryReq chainIndexQueryRequest) =
     span_
       [ text "ChainIndexQueryRequest:"
       , nbsp
       , text $ show chainIndexQueryRequest
-      ]
-  pretty (AddressChangeReq addressChangeRequest) =
-    span_
-      [ text "AddressChangedAtRequest:"
-      , nbsp
-      , text $ show addressChangeRequest
       ]
   pretty (BalanceTxReq balanceTxRequest) =
     span_

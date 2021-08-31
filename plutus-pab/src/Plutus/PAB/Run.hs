@@ -74,7 +74,7 @@ runWithOpts :: forall a.
     -> Maybe Config -- ^ Optional config override to use in preference to the one in AppOpts
     -> AppOpts
     -> IO ()
-runWithOpts userContractHandler mc (AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath, storageBackend }) = do
+runWithOpts userContractHandler mc AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath, storageBackend } = do
 
     -- Parse config files and initialize logging
     logConfig <- maybe defaultConfig loadConfig logConfigPath

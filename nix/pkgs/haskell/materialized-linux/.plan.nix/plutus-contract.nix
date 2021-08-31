@@ -119,8 +119,6 @@
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
           "Wallet/Emulator/Chain"
-          "Wallet/Emulator/ChainIndex"
-          "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"

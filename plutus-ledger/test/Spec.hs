@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Main(main) where
@@ -18,6 +17,7 @@ import           Data.Either                 (isLeft, isRight)
 import           Data.Foldable               (fold, foldl', traverse_)
 import           Data.List                   (sort)
 import qualified Data.Map                    as Map
+import           Data.Maybe                  (fromJust)
 import           Data.Monoid                 (Sum (..))
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
@@ -38,6 +38,7 @@ import qualified Ledger.Interval             as Interval
 import qualified Ledger.Scripts              as Scripts
 import           Ledger.TimeSlot             (SlotConfig (..))
 import qualified Ledger.TimeSlot             as TimeSlot
+import qualified Ledger.Tx                   as Tx
 import           Ledger.Value                (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                as Value
 import qualified PlutusCore.Default          as PLC
@@ -95,6 +96,9 @@ tests = testGroup "all tests" [
                 in byteStringJson vlJson vlValue)),
     testGroup "Constraints" [
         testProperty "missing value spent" missingValueSpentProp
+        ],
+    testGroup "Tx" [
+        testProperty "TxOut fromTxOut/toTxOut" ciTxOutRoundTrip
         ],
     testGroup "Fee" [
         testProperty "calcFees" calcFeesTest
@@ -247,6 +251,7 @@ missingValueSpentProp = property $ do
     forM_ smaller $ \smaller' ->
         Hedgehog.assert (not (OC.vbsRequired balances `Value.leq` (actual <> smaller')))
 
+
 -- | Reduce one of the elements in a 'Value' by one.
 --   Returns 'Nothing' if the value contains no positive
 --   elements.
@@ -272,6 +277,13 @@ nonNegativeValue =
         <*> Gen.element tokenNames
         <*> Gen.integral (Range.linear 0 10000)
 
+-- | Validate inverse property between 'fromTxOut' and 'toTxOut given a 'TxOut'.
+ciTxOutRoundTrip :: Property
+ciTxOutRoundTrip = property $ do
+  txOuts <- Map.elems . Gen.mockchainUtxo <$> forAll Gen.genMockchain
+  forM_ txOuts $ \txOut -> do
+    Hedgehog.assert $ Tx.toTxOut (fromJust $ Tx.fromTxOut txOut) == txOut
+
 calcFeesTest :: Property
 calcFeesTest = property $ do
     let feeCfg = FeeConfig 10 0.3
@@ -281,7 +293,7 @@ calcFeesTest = property $ do
 -- is 'Slot 0' and the time after that is 'Slot 1'.
 initialSlotToTimeProp :: Property
 initialSlotToTimeProp = property $ do
-    sc <- forAll slotConfigGen
+    sc <- forAll Gen.genSlotConfig
     n <- forAll $ Gen.int (fromInteger <$> Range.linear 0 (fromIntegral $ scSlotLength sc))
     let diff = DiffMilliSeconds $ toInteger n
     let time = TimeSlot.scSlotZeroTime sc + fromMilliSeconds diff
@@ -293,7 +305,7 @@ initialSlotToTimeProp = property $ do
 -- 'scSlotZeroTime + scSlotLength - 1'
 initialTimeToSlotProp :: Property
 initialTimeToSlotProp = property $ do
-    sc <- forAll slotConfigGen
+    sc <- forAll Gen.genSlotConfig
     let beginTime = TimeSlot.scSlotZeroTime sc
         endTime = TimeSlot.scSlotZeroTime sc + fromIntegral (TimeSlot.scSlotLength sc) - 1
         expectedTimeRange = interval beginTime endTime
@@ -303,16 +315,16 @@ initialTimeToSlotProp = property $ do
 -- slot number.
 slotIsPositiveProp :: Property
 slotIsPositiveProp = property $ do
-    sc <- forAll slotConfigGen
-    posixTime <- forAll $ posixTimeGen sc
+    sc <- forAll Gen.genSlotConfig
+    posixTime <- forAll $ Gen.genPOSIXTime sc
     Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc posixTime >= 0
 
 -- | Inverse property between 'slotRangeToPOSIXTimeRange' and
 -- 'posixTimeRangeToContainedSlotRange' from a 'SlotRange'.
 slotToTimeInverseProp :: Property
 slotToTimeInverseProp = property $ do
-    sc <- forAll slotConfigGen
-    slotRange <- forAll slotRangeGen
+    sc <- forAll Gen.genSlotConfig
+    slotRange <- forAll Gen.genSlotRange
     let slotRange' = TimeSlot.posixTimeRangeToContainedSlotRange sc (TimeSlot.slotRangeToPOSIXTimeRange sc slotRange)
     Hedgehog.footnoteShow (slotRange, slotRange')
     Hedgehog.assert $ slotRange == slotRange'
@@ -321,8 +333,8 @@ slotToTimeInverseProp = property $ do
 -- 'slotRangeToPOSIXTimeRange' from a 'POSIXTimeRange'.
 timeToSlotInverseProp :: Property
 timeToSlotInverseProp = property $ do
-    sc <- forAll slotConfigGen
-    timeRange <- forAll $ timeRangeGen sc
+    sc <- forAll Gen.genSlotConfig
+    timeRange <- forAll $ Gen.genTimeRange sc
     Hedgehog.assert $
         Interval.contains
             timeRange
@@ -331,8 +343,8 @@ timeToSlotInverseProp = property $ do
 -- | 'POSIXTimeRange' from 'Slot' should have lower bound lower or equal than upper bound
 slotToTimeRangeHasLowerAndUpperBoundsProp :: Property
 slotToTimeRangeHasLowerAndUpperBoundsProp = property $ do
-    sc <- forAll slotConfigGen
-    slot <- forAll slotGen
+    sc <- forAll Gen.genSlotConfig
+    slot <- forAll Gen.genSlot
     let (Interval (LowerBound t1 _) (UpperBound t2 _)) = TimeSlot.slotToPOSIXTimeRange sc slot
     Hedgehog.assert $ t1 <= t2
 
@@ -343,45 +355,8 @@ slotToTimeRangeHasLowerAndUpperBoundsProp = property $ do
 -- 'posixTimeSlot b == s'.
 slotToTimeRangeBoundsInverseProp :: Property
 slotToTimeRangeBoundsInverseProp = property $ do
-    sc <- forAll slotConfigGen
-    slot <- forAll slotGen
+    sc <- forAll Gen.genSlotConfig
+    slot <- forAll Gen.genSlot
     let slotRange = PlutusTx.fmap (TimeSlot.posixTimeToEnclosingSlot sc)
                                   (TimeSlot.slotToPOSIXTimeRange sc slot)
     Hedgehog.assert $ interval slot slot == slotRange
-
--- | Generate an 'Interval where the lower bound if less or equal than the
--- upper bound.
-intervalGen :: (MonadFail m, Hedgehog.MonadGen m, Ord a)
-            => m a
-            -> m (Interval a)
-intervalGen gen = do
-    [b, e] <- sort <$> replicateM 2 gen
-    return $ Interval.interval b e
-
--- | Generate a 'SlotRange' where the lower bound if less or equal than the
--- upper bound.
-slotRangeGen :: (MonadFail m, Hedgehog.MonadGen m) => m SlotRange
-slotRangeGen = intervalGen slotGen
-
--- | Generate a 'POSIXTimeRange' where the lower bound if less or equal than the
--- upper bound.
-timeRangeGen :: (MonadFail m, Hedgehog.MonadGen m) => SlotConfig -> m POSIXTimeRange
-timeRangeGen sc = intervalGen $ posixTimeGen sc
-
--- | Generate a 'Slot' where the lowest slot number is 0.
-slotGen :: (Hedgehog.MonadGen m) => m Slot
-slotGen = Slot <$> Gen.integral (fromIntegral <$> Range.linear 0 10000)
-
--- | Generate a 'POSIXTime' where the lowest value is 'scSlotZeroTime' given a
--- 'SlotConfig'.
-posixTimeGen :: (Hedgehog.MonadGen m) => SlotConfig -> m POSIXTime
-posixTimeGen sc = do
-    let beginTime = getPOSIXTime $ TimeSlot.scSlotZeroTime sc
-    POSIXTime <$> Gen.integral (Range.linear beginTime (beginTime + 10000000))
-
--- | Generate a 'SlotConfig' where the slot length goes from 1 to 100000
--- ms and the time of Slot 0 is the default 'scSlotZeroTime'.
-slotConfigGen :: Hedgehog.MonadGen m => m SlotConfig
-slotConfigGen = do
-    sl <- Gen.integral (Range.linear 1 1000000)
-    return $ def { TimeSlot.scSlotLength = sl }

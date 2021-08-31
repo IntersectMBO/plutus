@@ -13,18 +13,19 @@ import           Ledger.Constraints.TxConstraints (addTxIn)
 import           Data.Foldable                    (foldl')
 import qualified Data.Map                         as Map
 
-import           Ledger                           (TxOutRef, TxOutTx)
+import           Ledger                           (TxOutRef)
+import           Ledger.Tx                        (ChainIndexTxOut)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that match a predicate, using the 'RedeemerValue'.
 collectFromScriptFilter ::
     forall i o
-    .  (TxOutRef -> TxOutTx -> Bool)
-    -> Map.Map TxOutRef TxOutTx
+    .  (TxOutRef -> ChainIndexTxOut -> Bool)
+    -> Map.Map TxOutRef ChainIndexTxOut
     -> i
     -> TxConstraints i o
 collectFromScriptFilter flt utxo red =
-    let ourUtxo :: Map.Map TxOutRef TxOutTx
+    let ourUtxo :: Map.Map TxOutRef ChainIndexTxOut
         ourUtxo = Map.filterWithKey flt utxo
     in collectFromScript ourUtxo red
 
@@ -32,7 +33,7 @@ collectFromScriptFilter flt utxo red =
 --   at the address
 collectFromScript ::
     forall i o
-    .  Map.Map TxOutRef TxOutTx
+    .  Map.Map TxOutRef ChainIndexTxOut
     -> i
     -> TxConstraints i o
 collectFromScript utxo redeemer =

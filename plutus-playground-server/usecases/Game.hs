@@ -26,12 +26,14 @@ module Game where
 -- If it isn't, the funds stay locked.
 import           Control.Monad         (void)
 import qualified Data.ByteString.Char8 as C
+import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Maybe            (catMaybes)
-import           Ledger                (Address, Datum (Datum), ScriptContext, TxOutTx, Validator, Value)
+import           Ledger                (Address, Datum (Datum), ScriptContext, Validator, Value)
 import qualified Ledger
 import qualified Ledger.Ada            as Ada
 import qualified Ledger.Constraints    as Constraints
+import           Ledger.Tx             (ChainIndexTxOut (..))
 import qualified Ledger.Typed.Scripts  as Scripts
 import           Playground.Contract
 import           Plutus.Contract
@@ -135,15 +137,14 @@ guess = endpoint @"guess" @GuessParams $ \(GuessParams theGuess) -> do
     void (submitTxConstraintsSpending gameInstance utxos tx)
 
 -- | Find the secret word in the Datum of the UTxOs
-findSecretWordValue :: UtxoMap -> Maybe HashedString
+findSecretWordValue :: Map TxOutRef ChainIndexTxOut -> Maybe HashedString
 findSecretWordValue =
   listToMaybe . catMaybes . Map.elems . Map.map secretWordValue
 
 -- | Extract the secret word in the Datum of a given transaction output is possible
-secretWordValue :: TxOutTx -> Maybe HashedString
+secretWordValue :: ChainIndexTxOut -> Maybe HashedString
 secretWordValue o = do
-  dh <- Ledger.txOutDatum $ Ledger.txOutTxOut o
-  Datum d <- Map.lookup dh $ Ledger.txData $ Ledger.txOutTxTx o
+  Datum d <- either (const Nothing) Just (_ciTxOutDatum o)
   PlutusTx.fromBuiltinData d
 
 game :: AsContractError e => Contract () GameSchema e ()

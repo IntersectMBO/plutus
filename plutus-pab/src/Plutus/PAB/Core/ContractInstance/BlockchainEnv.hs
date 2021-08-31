@@ -1,11 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
 -- |
 module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   startNodeClient
@@ -21,7 +18,7 @@ import           Cardano.Protocol.Socket.Client         (ChainSyncEvent (..))
 import qualified Cardano.Protocol.Socket.Client         as Client
 import qualified Cardano.Protocol.Socket.Mock.Client    as MockClient
 import qualified Data.Map                               as Map
-import           Ledger                                 (Block, OnChainTx, Slot, TxId (..), eitherTx, txId)
+import           Ledger                                 (Block, OnChainTx, Slot, TxId (..))
 import           Ledger.AddressMap                      (AddressMap)
 import qualified Ledger.AddressMap                      as AddressMap
 import           Plutus.Contract.Effects                (TxStatus (..), TxValidity (..), increaseDepth)
@@ -39,8 +36,8 @@ import           Control.Monad                          (foldM, forM_, unless, v
 import           Data.Foldable                          (foldl')
 import           Data.Map                               (Map)
 import           Ledger.TimeSlot                        (SlotConfig)
-import           Wallet.Emulator.ChainIndex.Index       (ChainIndex, ChainIndexItem (..))
-import qualified Wallet.Emulator.ChainIndex.Index       as Index
+import           Plutus.ChainIndex                      (ChainIndexTx (..), ChainIndexTxOutputs (..), citxTxId,
+                                                         fromOnChainTx)
 
 -- | Connect to the node and write node updates to the blockchain
 --   env.
@@ -87,8 +84,11 @@ fromCardanoTxId :: C.TxId -> TxId
 fromCardanoTxId = TxId . toBuiltin . C.serialiseToRawBytes
 
 -- | Get transaction ID and validity from an emulator transaction
-txMockEvent :: OnChainTx -> (TxId, TxValidity)
-txMockEvent = eitherTx (\t -> (txId t, TxValid)) (\t -> (txId t, TxInvalid))
+txMockEvent :: ChainIndexTx -> (TxId, TxValidity)
+txMockEvent tx =
+  let validity = case tx of ChainIndexTx { _citxOutputs = ValidTx _ } -> TxValid
+                            ChainIndexTx { _citxOutputs = InvalidTx } -> TxInvalid
+   in (view citxTxId tx, validity)
 
 -- | Update the blockchain env. with changes from a new block of cardano
 --   transactions in any era
@@ -109,7 +109,7 @@ insertNewTx oldMap (txi, txValidity) = do
 -- | Go through the transactions in a block, updating the 'BlockchainEnv'
 --   when any interesting addresses or transactions have changed.
 processMockBlock :: InstancesState -> BlockchainEnv -> Block -> Slot -> STM ()
-processMockBlock instancesState BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot, beTxIndex} transactions slot = do
+processMockBlock instancesState BlockchainEnv{beAddressMap, beTxChanges, beCurrentSlot} transactions slot = do
   changes <- STM.readTVar beTxChanges
   forM_ changes $ \tv -> STM.modifyTVar tv increaseDepth
   lastSlot <- STM.readTVar beCurrentSlot
@@ -117,24 +117,19 @@ processMockBlock instancesState BlockchainEnv{beAddressMap, beTxChanges, beCurre
     STM.writeTVar beCurrentSlot slot
   unless (null transactions) $ do
     addressMap <- STM.readTVar beAddressMap
-    chainIndex <- STM.readTVar beTxIndex
-    let (addressMap', chainIndex') = foldl' (processTx slot) (addressMap, chainIndex) transactions
+    let addressMap' = foldl' (processTx slot) addressMap transactions
     STM.writeTVar beAddressMap addressMap'
-    STM.writeTVar beTxIndex chainIndex'
 
     txStatusMap <- STM.readTVar beTxChanges
-    txStatusMap' <- foldM insertNewTx txStatusMap (txMockEvent <$> transactions)
+    txStatusMap' <- foldM insertNewTx txStatusMap (txMockEvent <$> fmap fromOnChainTx transactions)
     STM.writeTVar beTxChanges txStatusMap'
 
     instEnv <- S.instancesClientEnv instancesState
-    updateInstances (indexBlock transactions) instEnv
+    updateInstances (indexBlock $ fmap fromOnChainTx transactions) instEnv
 
-processTx :: Slot -> (AddressMap, ChainIndex) -> OnChainTx -> (AddressMap, ChainIndex)
-processTx currentSlot (addressMap, chainIndex) tx = (addressMap', chainIndex') where
-  tid = eitherTx txId txId tx
+processTx :: Slot -> AddressMap -> OnChainTx -> AddressMap
+processTx _ addressMap tx = addressMap' where
+  -- TODO: Will be removed in a future issue
   addressMap' = AddressMap.updateAllAddresses tx addressMap
-  chainIndex' =
-    let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = tid } in
-    Index.insert addressMap' itm chainIndex
   -- TODO: updateInstances
   -- We need to switch to using 'ChainIndexTx' everyhwere first, though.

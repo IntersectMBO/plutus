@@ -66,6 +66,7 @@ stateMachineClient threadToken =
   let machine = stateMachine threadToken
       inst = typedValidator threadToken
    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
+
 -- * Minimal test runner for repro
 
 contract :: Contract () EmptySchema String ()
