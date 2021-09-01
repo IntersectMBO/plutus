@@ -40,6 +40,7 @@ library
         PlutusTx.Prelude
         PlutusTx.Evaluation
         PlutusTx.Applicative
+        PlutusTx.Arbitrary
         PlutusTx.Bool
         PlutusTx.IsData
         PlutusTx.IsData.Class
@@ -54,6 +55,13 @@ library
         PlutusTx.Maybe
         PlutusTx.Monoid
         PlutusTx.Numeric
+        PlutusTx.Numeric.Class
+        PlutusTx.Natural
+        PlutusTx.Natural.Internal
+        PlutusTx.Natural.TH
+        PlutusTx.NatRatio
+        PlutusTx.NatRatio.Internal
+        PlutusTx.NatRatio.TH
         PlutusTx.Ratio
         PlutusTx.Semigroup
         PlutusTx.Sqrt
@@ -81,6 +89,9 @@ library
         template-haskell >=2.13.0.0,
         th-abstraction -any,
         prettyprinter -any,
+        QuickCheck -any,
+        quickcheck-instances -any,
+        generic-arbitrary -any,
         text -any,
         mtl -any,
         containers -any,
@@ -100,6 +111,10 @@ test-suite plutus-tx-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
+    other-modules:
+        Suites.Set 
+        Suites.Natural
+        Suites.UniqueMap
     build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
