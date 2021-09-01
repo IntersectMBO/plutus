@@ -132,6 +132,9 @@ lookupType
     -> Maybe (Type tyname uni a)
 lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
+isTypeEmpty :: Subst tyname name uni fun a -> Bool
+isTypeEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
+
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname
@@ -197,7 +200,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> forMOf termSubterms t processTerm
     applyTypeSubstitution :: Type tyname uni a -> Inlining tyname name uni fun a (Type tyname uni a)
-    applyTypeSubstitution = typeSubstTyNamesM substTyName
+    applyTypeSubstitution t = gets isTypeEmpty >>= \case
+        True -> pure t
+        _    -> typeSubstTyNamesM substTyName t
     -- See Note [Renaming strategy]
     substTyName :: tyname -> Inlining tyname name uni fun a (Maybe (Type tyname uni a))
     substTyName tyname = gets (lookupType tyname) >>= traverse PLC.rename
