@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -62,7 +63,8 @@ import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumH
                                          ValidatorHash, Value)
 import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
-import qualified PlutusTx.Prelude       as P
+import qualified PlutusTx.Builtins      as P
+import qualified PlutusTx.Natural       as P
 import qualified PlutusTx.Ratio         as P
 import           Wallet.Emulator.Wallet (Wallet)
 import           Wallet.Types           (ContractInstanceId)
@@ -256,6 +258,9 @@ instance {-# OVERLAPPABLE #-} (ToSchema a, ToArgument a) => ToArgument [a] where
     toArgument xs = Fix $ FormArrayF (toSchema @a) (toArgument <$> xs)
 
 instance ToSchema AssetClass
+
+deriving via Integer instance ToSchema P.Natural
+deriving via Integer instance ToArgument P.Natural
 
 ------------------------------------------------------------
 class GenericToSchema f where
