@@ -187,7 +187,7 @@ ownInputValue :: ScriptContext -> Value
 ownInputValue ctx =
   maybe zero (txOutValue . txInInfoResolved) $ findOwnInput ctx
 
--- {-# INLINEABLE valueFromScript #-}
+{-# INLINEABLE valueFromScript #-}
 
 -- | Get the total value locked by the script with the specified ValidatorHash
 valueFromScript :: TxInfo -> ValidatorHash -> Value
@@ -204,9 +204,9 @@ valueFromScript TxInfo {txInfoInputs = txInfoInputs} script =
 
 {-# INLINEABLE getOutputDatum #-}
 
--- {- | Get the datum attached to the transaction output with the specified datumHash
---   This is useful to extract full Datums from the 'txOutDatumHash' provided by the TxOut record
--- -}
+{- | Get the datum attached to the transaction output with the specified datumHash
+  This is useful to extract full Datums from the 'txOutDatumHash' provided by the TxOut record
+-}
 getOutputDatum :: forall a. PlutusTx.FromData a => TxInfo -> DatumHash -> Maybe a
 getOutputDatum txInfo datumHash =
   findDatum datumHash txInfo
@@ -464,6 +464,8 @@ runsValidator TxInfo {txInfoInputs} vHash =
   any (inputFromValidator vHash) txInfoInputs
 
 {-# INLINEABLE inputFromValidator #-}
+
+-- | Checks that a validator hash is run by a transaction
 inputFromValidator :: ValidatorHash -> TxInInfo -> Bool
 inputFromValidator
   vhash
