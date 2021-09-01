@@ -9,10 +9,7 @@ import           PlutusCore
 import           PlutusCore.Data
 
 import           Criterion.Main
-import qualified Hedgehog                as H
-import qualified Hedgehog.Internal.Gen   as G
-import qualified Hedgehog.Internal.Range as R
-import           System.Random           (StdGen)
+import           System.Random         (StdGen)
 
 {- | Benchmarks for builtins operating on Data.  Recall that Data is defined by
 

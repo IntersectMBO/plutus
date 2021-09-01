@@ -20,13 +20,6 @@ import           Criterion.Main
 import qualified Data.ByteString                                 as BS
 import           Data.Ix                                         (Ix)
 import           Data.Typeable                                   (Typeable)
-import           System.Random                                   (StdGen, randomR)
-
-
-import qualified Hedgehog                                        as H
-import qualified Hedgehog.Internal.Gen                           as G
-import qualified Hedgehog.Internal.Range                         as R
-import qualified Hedgehog.Internal.Tree                          as T
 
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
 
