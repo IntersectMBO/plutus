@@ -38,12 +38,25 @@ module Plutus.V1.Ledger.Contexts
     -- ** Transactions
     , pubKeyOutput
     , scriptOutputsAt
+    , scriptInputsAt
     , pubKeyOutputsAt
     , valueLockedBy
     , valuePaidTo
     , adaLockedBy
     , signsTransaction
     , spendsOutput
+    , ownInputValue
+    , valueFromScript
+    , getOutputDatum
+    , findDatumAt
+    , findDatumAtOutput
+    , findDatumAtInput
+    , allDatumsAt
+    , allDatumsAtOutput
+    , allDatumsAtInput
+    , runsValidator
+    , inputFromValidator
+    , firstInputOfValidator
     , valueSpent
     , valueProduced
     , ownCurrencySymbol
@@ -60,6 +73,7 @@ import           PlutusTx.Prelude
 import           Plutus.V1.Ledger.Ada        (Ada)
 import qualified Plutus.V1.Ledger.Ada        as Ada
 import           Plutus.V1.Ledger.Address    (Address (..), toPubKeyHash)
+import qualified Plutus.V1.Ledger.Address    as Address
 import           Plutus.V1.Ledger.Bytes      (LedgerBytes (..))
 import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
 import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..))
@@ -69,6 +83,7 @@ import           Plutus.V1.Ledger.Time       (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx         (TxOut (..), TxOutRef (..))
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value      (CurrencySymbol (..), Value)
+import qualified PlutusTx.Foldable           as Foldable
 import qualified Prelude                     as Haskell
 
 {- Note [Script types in pending transactions]
@@ -163,6 +178,41 @@ instance Pretty ScriptContext where
             , nest 2 $ vsep ["TxInfo:", pretty scriptContextTxInfo]
             ]
 
+{-# INLINEABLE ownInputValue #-}
+
+{- | Gets the Value locked by the input currently being validated
+ returns zero in the case of ill-typed ScriptContext
+-}
+ownInputValue :: ScriptContext -> Value
+ownInputValue ctx =
+  maybe zero (txOutValue . txInInfoResolved) $ findOwnInput ctx
+
+-- {-# INLINEABLE valueFromScript #-}
+
+-- | Get the total value locked by the script with the specified ValidatorHash
+valueFromScript :: TxInfo -> ValidatorHash -> Value
+valueFromScript TxInfo {txInfoInputs = txInfoInputs} script =
+  foldMap (valueAddr . txInInfoResolved) txInfoInputs
+  where
+    valueAddr :: TxOut -> Value
+    valueAddr
+      TxOut
+        { txOutAddress = Address.toValidatorHash -> Just addr
+        , txOutValue = txOutValue
+        } | addr == script = txOutValue
+    valueAddr _ = mempty
+
+{-# INLINEABLE getOutputDatum #-}
+
+-- {- | Get the datum attached to the transaction output with the specified datumHash
+--   This is useful to extract full Datums from the 'txOutDatumHash' provided by the TxOut record
+-- -}
+getOutputDatum :: forall a. PlutusTx.FromData a => TxInfo -> DatumHash -> Maybe a
+getOutputDatum txInfo datumHash =
+  findDatum datumHash txInfo
+    >>= PlutusTx.fromBuiltinData @a . getDatum
+
+
 {-# INLINABLE findOwnInput #-}
 -- | Find the input currently being validated.
 findOwnInput :: ScriptContext -> Maybe TxInInfo
@@ -185,6 +235,49 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
     where
         f (_, ds') = ds' == ds
 
+
+{- | Find the given datum type from the inputs or outputs at the address
+     Use findDatumAtOutputs or findDatumAtInputs instead of this function!
+-}
+{-# INLINEABLE findDatumAt #-}
+findDatumAt
+  :: forall datum.
+     PlutusTx.FromData datum
+  => Bool
+  -> TxInfo
+  -> ValidatorHash
+  -> Maybe datum
+findDatumAt
+  isOutput
+  txInfo@TxInfo {txInfoInputs = txInfoInputs, txInfoOutputs = txInfoOutputs}
+  script = firstJust findDatumFromTxOut outputs
+    where
+      outputs :: [TxOut]
+      outputs =
+        if isOutput
+          then txInfoOutputs
+          else txInInfoResolved <$> txInfoInputs
+
+      findDatumFromTxOut :: TxOut -> Maybe datum
+      findDatumFromTxOut
+        TxOut
+          { txOutAddress = Address.toValidatorHash -> Just scriptHash
+          , txOutDatumHash = Just dhash
+          }
+          | scriptHash == script =
+            findDatum dhash txInfo >>= PlutusTx.fromBuiltinData @datum . getDatum
+      findDatumFromTxOut _ = Nothing
+
+-- | Find the given datum type from the outputs at the address
+{-# INLINEABLE findDatumAtOutput #-}
+findDatumAtOutput :: FromData datum => TxInfo -> ValidatorHash -> Maybe datum
+findDatumAtOutput = findDatumAt True
+
+-- | Find the given datum type from the inputs at the address
+{-# INLINEABLE findDatumAtInput #-}
+findDatumAtInput :: PlutusTx.FromData datum => TxInfo -> ValidatorHash -> Maybe datum
+findDatumAtInput = findDatumAt False
+
 {-# INLINABLE findTxInByTxOutRef #-}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
@@ -204,6 +297,50 @@ getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 getContinuingOutputs _ = traceError "Lf" -- "Can't get any continuing outputs"
+
+
+{-# INLINEABLE allDatumsAt #-}
+
+{- | Find all the Datums of a given type at the input/output of a script
+     Use allDatumsAtOutput or allDatumsAtInput instead of this function!
+-}
+allDatumsAt
+  :: forall datum.
+     PlutusTx.FromData datum
+  => Bool
+  -> TxInfo
+  -> ValidatorHash
+  -> [datum]
+allDatumsAt
+  isOutput
+  txInfo@TxInfo {txInfoInputs, txInfoOutputs}
+  script = mapMaybe findDatumInTxOut outputs
+    where
+      outputs :: [TxOut]
+      outputs =
+        if isOutput
+          then txInfoOutputs
+          else txInInfoResolved <$> txInfoInputs
+
+      findDatumInTxOut :: TxOut -> Maybe datum
+      findDatumInTxOut
+        TxOut
+          { txOutAddress = Address.toValidatorHash -> Just scriptHash
+          , txOutDatumHash = Just dhash
+          }
+          | scriptHash == script =
+            findDatum dhash txInfo >>= PlutusTx.fromBuiltinData @datum . getDatum
+      findDatumInTxOut _ = Nothing
+
+-- | Find all the Datums of a given type at the output of a script
+{-# INLINEABLE allDatumsAtOutput #-}
+allDatumsAtOutput :: PlutusTx.FromData datum => TxInfo -> ValidatorHash -> [datum]
+allDatumsAtOutput = allDatumsAt True
+
+-- | Find all the Datums of a given type at the input of a script
+{-# INLINEABLE allDatumsAtInput #-}
+allDatumsAtInput :: PlutusTx.FromData datum => TxInfo -> ValidatorHash -> [datum]
+allDatumsAtInput = allDatumsAt False
 
 {- Note [Hashes in validator scripts]
 
@@ -266,6 +403,26 @@ scriptOutputsAt h p =
         flt _ = Nothing
     in mapMaybe flt (txInfoOutputs p)
 
+
+{-# INLINEABLE scriptInputsAt #-}
+
+-- | Get the DatumHashes and Values from the transaction inputs from the given script
+scriptInputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
+scriptInputsAt script TxInfo {txInfoInputs} =
+  mapMaybe scriptInput txInfoInputs
+  where
+    scriptInput :: TxInInfo -> Maybe (DatumHash, Value)
+    scriptInput
+      TxInInfo
+        { txInInfoResolved =
+          TxOut
+            { txOutAddress = Address.toValidatorHash -> Just script'
+            , txOutValue = value
+            , txOutDatumHash = Just hash
+            }
+        } | script == script' = Just (hash, value)
+    scriptInput _ = Nothing
+
 {-# INLINABLE valueLockedBy #-}
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: TxInfo -> ValidatorHash -> Value
@@ -298,6 +455,23 @@ signsTransaction :: Signature -> PubKey -> TxInfo -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) TxInfo{txInfoId=TxId h} =
     verifySignature pk h sig
 
+
+{-# INLINEABLE runsValidator #-}
+
+-- | Checks that a validator is run by a transaction
+runsValidator :: TxInfo -> ValidatorHash -> Bool
+runsValidator TxInfo {txInfoInputs} vHash =
+  any (inputFromValidator vHash) txInfoInputs
+
+{-# INLINEABLE inputFromValidator #-}
+inputFromValidator :: ValidatorHash -> TxInInfo -> Bool
+inputFromValidator
+  vhash
+  TxInInfo
+    { txInInfoResolved = TxOut {txOutAddress = Address.toValidatorHash -> Just vhash'}
+    } = vhash == vhash'
+inputFromValidator _ _ = False
+
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
@@ -326,6 +500,16 @@ spendsOutput p h i =
                 && i == txOutRefIdx outRef
 
     in any spendsOutRef (txInfoInputs p)
+
+-- | Returns True if the current input is the first input of the validator
+firstInputOfValidator :: ScriptContext -> Bool
+firstInputOfValidator
+  ctx@ScriptContext
+    { scriptContextTxInfo =
+      _txInfo@TxInfo {txInfoInputs}
+    } =
+    (txInInfoResolved <$> Foldable.find (inputFromValidator $ ownHash ctx) txInfoInputs)
+      == (txInInfoResolved <$> findOwnInput ctx)
 
 makeLift ''TxInInfo
 makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
