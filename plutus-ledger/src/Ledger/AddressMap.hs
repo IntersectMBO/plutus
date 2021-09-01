@@ -18,6 +18,7 @@ module Ledger.AddressMap(
     values,
     traverseWithKey,
     singleton,
+    utxoMapValue,
     fromTxOutputs,
     knownAddresses,
     updateAddresses,
@@ -41,6 +42,7 @@ import           Data.Maybe               (mapMaybe)
 import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
 
+import qualified Data.Foldable            as Foldable
 import           Ledger.Blockchain
 import           Ledger.Tx                (txId)
 import           Plutus.V1.Ledger.Address (Address (..))
@@ -134,6 +136,10 @@ fromTxOutputs (Valid tx) =
     mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) (TxOutTx tx t))
     h = txId tx
 fromTxOutputs (Invalid _) = mempty
+
+-- | Get all 'Value' in 'UTXOMap'
+utxoMapValue :: UtxoMap -> Value
+utxoMapValue = Foldable.foldMap (txOutValue . txOutTxOut)
 
 -- | Create a map of unspent transaction outputs to their addresses (the
 -- "inverse" of an 'AddressMap', without the values)
