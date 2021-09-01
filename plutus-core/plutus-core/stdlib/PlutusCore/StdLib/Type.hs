@@ -542,9 +542,9 @@ getToSpine ann = do
     dat <- freshTyName "dat"
 
     return $ \args ->
-          TyLam ann dat (argKindsToDataKindN ann $ map tyDeclKind args)
+          TyLam ann dat (argKindsToDataKindN ann $ map _tyDeclKind args)
         . mkIterTyApp ann (TyVar ann dat)
-        $ map tyDeclType args
+        $ map _tyDeclType args
 
 -- | Pack a list of 'TyDecl's as a spine using the CPS trick.
 --
@@ -612,7 +612,7 @@ type FromDataPieces uni ann a
 -- >                 spine (patN (withSpine rec))
 packPatternFunctorBodyN :: FromDataPieces uni ann (Type TyName uni ann)
 packPatternFunctorBodyN ann dataName argVars patBodyN = do
-    let dataKind  = argKindsToDataKindN ann $ map tyVarDeclKind argVars
+    let dataKind  = argKindsToDataKindN ann $ map _tyVarDeclKind argVars
         spineKind = dataKindToSpineKind ann dataKind
         recKind   = spineKindToRecKind  ann spineKind
         vDat = TyVarDecl ann dataName dataKind
@@ -650,7 +650,7 @@ getPackedWrap :: FromDataPieces uni ann (PolyWrap uni fun ann)
 getPackedWrap ann dataName argVars patBodyN = do
     pat1 <- packPatternFunctorBodyN ann dataName argVars patBodyN
     toSpine <- getToSpine ann
-    let instVar v ty = TyDecl ann ty $ tyVarDeclKind v
+    let instVar v ty = TyDecl ann ty $ _tyVarDeclKind v
     return $ PolyWrap $ \args ->
         let argVarsLen = length argVars
             argsLen = length args
@@ -742,8 +742,8 @@ makeRecursiveType1
     -> Type TyName uni ann   -- ^ The body of the pattern functor.
     -> Quote (RecursiveType uni fun ann)
 makeRecursiveType1 ann dataName argVar patBody1 = do
-    let varName = tyVarDeclName argVar
-        varKind = tyVarDeclKind argVar
+    let varName = _tyVarDeclName argVar
+        varKind = _tyVarDeclKind argVar
         recKind = KindArrow ann varKind $ Type ann
         pat1 = TyLam ann dataName recKind $ TyLam ann varName varKind patBody1
         -- recType = \(v :: k) -> ifix (\(dataName :: k -> *) (v :: k) -> patBody1) v

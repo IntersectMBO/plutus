@@ -47,10 +47,10 @@ data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl
     deriving (Functor, Show, Generic)
 
 varDeclNameString :: VarDecl tyname Name uni fun a -> String
-varDeclNameString = T.unpack . PLC.nameString . varDeclName
+varDeclNameString = T.unpack . PLC.nameString . _varDeclName
 
 tyVarDeclNameString :: TyVarDecl TyName a -> String
-tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
+tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . _tyVarDeclName
 
 datatypeNameString :: Datatype TyName Name uni fun a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
