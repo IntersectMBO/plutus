@@ -28,6 +28,7 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
 import           Test.Tasty.HUnit                                  (assertBool)
 
+
 data TestResult = TestResult{
     eventDate           :: String
   , eventType           :: String
@@ -88,7 +89,7 @@ assertTestResult
   CashFlow{cashPaymentDay = date, cashEvent = event, amount = payoff}
   testResult@TestResult{eventDate = testDate, eventType = testEvent, payoff = testPayoff} identifier = do
     assertBool ("[" ++ show identifier ++ "] Generated event and test event types should be the same: actual " ++ show event ++ ", expected for " ++ show testResult) $ event == (read testEvent :: EventType)
-    assertBool ("Generated date and test date should be the same: expected " ++ show testDate ++ ", actual " ++ show date ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
+    assertBool ("Generated date and test date should be the same: actual " ++ show date ++ ", expected for " ++ show testResult ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
     assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (realToFrac testPayoff :: Float)
 
 testToContractTerms :: TestCase -> ContractTerms
@@ -123,6 +124,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_IPCB          = readMaybe (maybeConcatPrefix "IPCB_" (Map.lookup "interestCalculationBase" terms')) :: Maybe IPCB
      , ct_IPCBA         = readMaybe $ Map.lookup "interestCalculationBaseAmount" terms' :: Maybe Double
      , ct_IPNR          = readMaybe $ Map.lookup "nominalInterestRate" terms' :: Maybe Double
+     , ct_SCIP          = readMaybe $ Map.lookup "interestScalingMultiplier" terms' :: Maybe Double
      , ct_NT            = readMaybe $ Map.lookup "notionalPrincipal" terms' :: Maybe Double
      , ct_PDIED         = readMaybe $ Map.lookup "premiumDiscountAtIED" terms' :: Maybe Double
      , ct_MD            = parseMaybeDate $ Map.lookup "maturityDate" terms'
@@ -139,6 +141,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
      , ct_SCCDD         = readMaybe $ Map.lookup "scalingIndexAtContractDealDate" terms' :: Maybe Double
      , ct_SCMO          = Map.lookup "marketObjectCodeOfScalingIndex" terms'
+     , ct_SCNT          = readMaybe $ Map.lookup "notionalScalingMultiplier" terms' :: Maybe Double
      , ct_OPCL          = parseMaybeCycle $ Map.lookup "cycleOfOptionality" terms'
      , ct_OPANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfOptionality" terms'
      , ct_PYRT          = readMaybe $ Map.lookup "penaltyRate" terms' :: Maybe Double

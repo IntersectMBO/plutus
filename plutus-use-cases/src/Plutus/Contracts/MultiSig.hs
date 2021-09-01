@@ -86,7 +86,7 @@ lock = endpoint @"lock" $ \(ms, vl) -> do
 unlock :: AsContractError e => Promise () MultiSigSchema e ()
 unlock = endpoint @"unlock" $ \(ms, pks) -> do
     let inst = typedValidator ms
-    utx <- utxoAt (Scripts.validatorAddress inst)
+    utx <- utxosAt (Scripts.validatorAddress inst)
     let tx = Tx.collectFromScript utx ()
                 <> foldMap (Constraints.mustBeSignedBy . pubKeyHash) pks
         lookups = Constraints.typedValidatorLookups inst

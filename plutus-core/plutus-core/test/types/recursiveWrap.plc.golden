@@ -5,5 +5,8 @@
     (lam
       list
       (fun (type) (type))
-      (lam a (type) (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r)))))
-    a))
+      (lam a (type) (all r (type) (fun r (fun (fun a (fun [ list a ] r)) r))))
+    )
+    a
+  )
+)

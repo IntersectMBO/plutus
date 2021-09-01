@@ -24,7 +24,8 @@
         (vardecl
           CConsAdditiveMonoid
           (fun
-            [ (lam a (type) (fun a (fun a a))) a ] (fun a [ AdditiveMonoid a ]))
+            [ (lam a (type) (fun a (fun a a))) a ] (fun a [ AdditiveMonoid a ])
+          )
         )
       )
     )
@@ -105,9 +106,9 @@
                 m
                 (type)
                 (all
-                  a
-                  (type)
-                  (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -122,7 +123,8 @@
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
                       )
                       [ { p1Monoid m } dMonoid ]
                     )
@@ -189,7 +191,10 @@
                       (all
                         a
                         (type)
-                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                      )
+                    )
+                  )
                   List
                 ]
               )
@@ -203,8 +208,9 @@
                   a
                   (type)
                   (fun
-                    (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                    [ List a ]))
+                    (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                  )
+                )
               )
               (abs
                 a
@@ -224,8 +230,9 @@
                   a
                   (type)
                   (fun
-                    [ AdditiveMonoid a ]
-                    [ (lam a (type) (fun a (fun a a))) a ]))
+                    [ AdditiveMonoid a ] [ (lam a (type) (fun a (fun a a))) a ]
+                  )
+                )
               )
               (abs
                 a
@@ -266,7 +273,8 @@
                 (all
                   a
                   (type)
-                  (fun [ AdditiveMonoid a ] [ Monoid [ (lam a (type) a) a ] ]))
+                  (fun [ AdditiveMonoid a ] [ Monoid [ (lam a (type) a) a ] ])
+                )
               )
               (abs
                 a
@@ -313,11 +321,16 @@
                             (all
                               a
                               (type)
-                              (fun
-                                [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                              (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                            )
+                          )
+                        )
                         t
                       ]
-                      (fun [ AdditiveMonoid a ] (fun [ t a ] a)))))
+                      (fun [ AdditiveMonoid a ] (fun [ t a ] a))
+                    )
+                  )
+                )
               )
               (abs
                 t
@@ -337,8 +350,10 @@
                           (all
                             a
                             (type)
-                            (fun
-                              [ Monoid m ] (fun (fun a m) (fun [ t a ] m))))))
+                            (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                          )
+                        )
+                      )
                       t
                     ]
                     (lam

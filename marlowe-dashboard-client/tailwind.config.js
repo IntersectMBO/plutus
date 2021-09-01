@@ -70,6 +70,7 @@ module.exports = {
       animation: {
         "from-below": "from-below 250ms ease-out 1",
         "to-bottom": "to-bottom 250ms ease-out 1",
+        grow: "grow 1s ease-in-out infinite",
       },
       transitionProperty: {
         width: "width",
@@ -88,6 +89,10 @@ module.exports = {
         "to-bottom": {
           "0%": { transform: "translateY(0px)", opacity: 1 },
           "100%": { transform: "translateY(20px)", opacity: 0 },
+        },
+        grow: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
         },
       },
       gridTemplateRows: {

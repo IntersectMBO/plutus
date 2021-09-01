@@ -47,7 +47,8 @@
           CConsPersonLike
           (fun
             (fun a (con integer))
-            (fun (fun a (fun Animal Bool)) [ PersonLike a ]))
+            (fun (fun a (fun Animal Bool)) [ PersonLike a ])
+          )
         )
       )
     )

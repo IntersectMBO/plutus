@@ -16,8 +16,8 @@
         (all
           a
           (type)
-          (all
-            b (type) (fun [ Maybe (fun a b) ] (fun [ Maybe a ] [ Maybe b ]))))
+          (all b (type) (fun [ Maybe (fun a b) ] (fun [ Maybe a ] [ Maybe b ])))
+        )
       )
       (abs
         a
@@ -78,7 +78,8 @@
       (vardecl
         fFunctorMaybe_cfmap
         (all
-          a (type) (all b (type) (fun (fun a b) (fun [ Maybe a ] [ Maybe b ]))))
+          a (type) (all b (type) (fun (fun a b) (fun [ Maybe a ] [ Maybe b ])))
+        )
       )
       (abs
         a
@@ -120,9 +121,9 @@
                 f
                 (fun (type) (type))
                 (all
-                  a
-                  (type)
-                  (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                  a (type) (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                )
+              )
               f
             ]
             (fun
@@ -131,8 +132,12 @@
                 (all
                   a
                   (type)
-                  (all b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))
-                [ Applicative f ])))
+                  (all b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ])))
+                )
+                [ Applicative f ]
+              )
+            )
+          )
         )
       )
     )
@@ -213,9 +218,9 @@
                 m
                 (type)
                 (all
-                  a
-                  (type)
-                  (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -230,7 +235,8 @@
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
                       )
                       [ { p1Monoid m } dMonoid ]
                     )
@@ -290,7 +296,8 @@
                 (all
                   a
                   (type)
-                  (all b (type) (fun (fun a b) (fun [ List a ] [ List b ]))))
+                  (all b (type) (fun (fun a b) (fun [ List a ] [ List b ])))
+                )
               )
               (abs
                 a
@@ -354,10 +361,13 @@
                           (all
                             a
                             (type)
-                            (all
-                              b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
                         f
-                      ]))
+                      ]
+                    )
+                  )
                 )
                 (abs
                   f
@@ -376,9 +386,10 @@
                               a
                               (type)
                               (all
-                                b
-                                (type)
-                                (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
                           f
                         ]
                       }
@@ -392,9 +403,10 @@
                               a
                               (type)
                               (all
-                                b
-                                (type)
-                                (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
                           f
                         ]
                         (lam
@@ -408,7 +420,9 @@
                               (all
                                 b
                                 (type)
-                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -430,9 +444,11 @@
                         a
                         (type)
                         (all
-                          b
-                          (type)
-                          (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))))
+                          b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                        )
+                      )
+                    )
+                  )
                 )
                 (abs
                   f
@@ -447,9 +463,9 @@
                           a
                           (type)
                           (all
-                            b
-                            (type)
-                            (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))
+                            b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                          )
+                        )
                       }
                       (lam
                         v
@@ -461,9 +477,10 @@
                               a
                               (type)
                               (all
-                                b
-                                (type)
-                                (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
                           f
                         ]
                         (lam
@@ -477,7 +494,9 @@
                               (all
                                 b
                                 (type)
-                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -493,7 +512,8 @@
                   (all
                     f
                     (fun (type) (type))
-                    (fun [ Applicative f ] (all a (type) (fun a [ f a ]))))
+                    (fun [ Applicative f ] (all a (type) (fun a [ f a ])))
+                  )
                 )
                 (abs
                   f
@@ -516,9 +536,10 @@
                               a
                               (type)
                               (all
-                                b
-                                (type)
-                                (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
                           f
                         ]
                         (lam
@@ -532,7 +553,9 @@
                               (all
                                 b
                                 (type)
-                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))))
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -559,8 +582,12 @@
                           (fun
                             [ Applicative f ]
                             (fun
-                              (fun a [ f b ])
-                              (fun [ List a ] [ f [ List b ] ]))))))
+                              (fun a [ f b ]) (fun [ List a ] [ f [ List b ] ])
+                            )
+                          )
+                        )
+                      )
+                    )
                   )
                   (abs
                     f
@@ -684,9 +711,10 @@
                                 a
                                 (type)
                                 (all
-                                  b
-                                  (type)
-                                  (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                  b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                                )
+                              )
+                            )
                             t
                           ]
                           (fun
@@ -702,7 +730,11 @@
                                     (type)
                                     (fun
                                       [ Monoid m ]
-                                      (fun (fun a m) (fun [ t a ] m))))))
+                                      (fun (fun a m) (fun [ t a ] m))
+                                    )
+                                  )
+                                )
+                              )
                               t
                             ]
                             (fun
@@ -719,8 +751,16 @@
                                       [ Applicative f ]
                                       (fun
                                         (fun a [ f b ])
-                                        (fun [ t a ] [ f [ t b ] ]))))))
-                              [ Traversable t ])))
+                                        (fun [ t a ] [ f [ t b ] ])
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                              [ Traversable t ]
+                            )
+                          )
+                        )
                       )
                     )
                   )
@@ -744,7 +784,9 @@
                         (type)
                         (fun
                           (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                          [ List a ]))
+                          [ List a ]
+                        )
+                      )
                     )
                     (abs
                       a
@@ -782,8 +824,14 @@
                                 (fun
                                   [ Applicative f ]
                                   (fun
-                                    (fun a [ f b ])
-                                    (fun [ t a ] [ f [ t b ] ]))))))))
+                                    (fun a [ f b ]) (fun [ t a ] [ f [ t b ] ])
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     (abs
                       t
@@ -807,7 +855,12 @@
                                     [ Applicative f ]
                                     (fun
                                       (fun a [ f b ])
-                                      (fun [ t a ] [ f [ t b ] ]))))))
+                                      (fun [ t a ] [ f [ t b ] ])
+                                    )
+                                  )
+                                )
+                              )
+                            )
                           }
                           (lam
                             v
@@ -821,7 +874,10 @@
                                   (all
                                     b
                                     (type)
-                                    (fun (fun a b) (fun [ f a ] [ f b ])))))
+                                    (fun (fun a b) (fun [ f a ] [ f b ]))
+                                  )
+                                )
+                              )
                               t
                             ]
                             (lam
@@ -838,7 +894,11 @@
                                       (type)
                                       (fun
                                         [ Monoid m ]
-                                        (fun (fun a m) (fun [ t a ] m))))))
+                                        (fun (fun a m) (fun [ t a ] m))
+                                      )
+                                    )
+                                  )
+                                )
                                 t
                               ]
                               (lam
@@ -856,7 +916,12 @@
                                         [ Applicative f ]
                                         (fun
                                           (fun a [ f b ])
-                                          (fun [ t a ] [ f [ t b ] ]))))))
+                                          (fun [ t a ] [ f [ t b ] ])
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
                                 v
                               )
                             )
@@ -882,7 +947,12 @@
                               [ Traversable t ]
                               (fun
                                 [ Applicative f ]
-                                (fun [ t [ f a ] ] [ f [ t a ] ]))))))
+                                (fun [ t [ f a ] ] [ f [ t a ] ])
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     (abs
                       t
@@ -935,7 +1005,12 @@
                               [ Traversable t ]
                               (fun
                                 [ Applicative f ]
-                                (fun [ t [ f a ] ] [ f [ t a ] ]))))))
+                                (fun [ t [ f a ] ] [ f [ t a ] ])
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     sequenceA
                   )

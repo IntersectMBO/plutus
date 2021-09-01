@@ -2,25 +2,32 @@ module MonadApp where
 
 import Prelude
 import Types (HAction, Output(..), State, WebData, _contractInstanceIdString)
+import Affjax (Request, Response, defaultRequest)
+import Affjax.RequestBody (string)
 import Animation (class MonadAnimate, animate)
 import Clipboard (class MonadClipboard, copy)
+import Control.Monad.Error.Class (class MonadError)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans)
-import Data.Lens (view)
-import Data.Maybe (Maybe)
+import Data.HTTP.Method (fromString)
+import Data.Lens (Lens', view)
+import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
-import Data.RawJson (RawJson)
+import Data.RawJson (RawJson(..))
+import Data.Symbol (SProxy(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Effect.Console as Console
+import Foreign.Class (class Decode, decode)
 import Halogen (HalogenM, liftEffect, raise)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
-import Plutus.PAB.Webserver (SPParams_, getApiContractInstanceByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractInstanceByContractinstanceidEndpointByEndpointname)
-import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, CombinedWSStreamToServer, ContractActivationArgs)
-import Servant.PureScript.Ajax (AjaxError)
+import Plutus.PAB.Webserver (SPParams_, getApiFullreport, getApiContractInstances, getApiContractDefinitions, postApiContractActivate, getApiContractInstanceByContractinstanceidStatus)
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState, ContractSignatureResponse, FullReport, CombinedWSStreamToServer, ContractActivationArgs)
+import Servant.PureScript.Ajax (AjaxError, ajax)
 import Servant.PureScript.Settings (SPSettings_)
 import Wallet.Types (EndpointDescription, ContractInstanceId)
 import ContractExample (ExampleContracts)
@@ -28,9 +35,11 @@ import ContractExample (ExampleContracts)
 class
   Monad m <= MonadApp m where
   getFullReport :: m (WebData (FullReport ExampleContracts))
-  getContractSignature :: ContractInstanceId -> m (WebData (ContractSignatureResponse ExampleContracts))
+  getContractInstanceStatus :: ContractInstanceId -> m (WebData (ContractInstanceClientState ExampleContracts))
+  getContractInstances :: m (WebData (Array (ContractInstanceClientState ExampleContracts)))
+  getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ExampleContracts)))
   invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData Unit)
-  activateContract :: ContractActivationArgs ExampleContracts -> m Unit
+  activateContract :: ContractActivationArgs ExampleContracts -> m (WebData ContractInstanceId)
   sendWebSocketMessage :: CombinedWSStreamToServer -> m Unit
   log :: String -> m Unit
 
@@ -71,16 +80,43 @@ runHalogenApp = unwrap
 
 instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) => MonadApp (HalogenApp m) where
   getFullReport = runAjax getApiFullreport
-  getContractSignature csContract = runAjax $ getApiContractInstanceByContractinstanceidSchema $ view _contractInstanceIdString csContract
+  getContractInstanceStatus contractInstanceId =
+    runAjax
+      $ getApiContractInstanceByContractinstanceidStatus
+          (view _contractInstanceIdString contractInstanceId)
+  getContractInstances = runAjax getApiContractInstances
+  getContractDefinitions = runAjax getApiContractDefinitions
   invokeEndpoint payload contractInstanceId endpointDescription =
     runAjax
       $ postApiContractInstanceByContractinstanceidEndpointByEndpointname
           payload
           (view _contractInstanceIdString contractInstanceId)
           (view _getEndpointDescription endpointDescription)
-  activateContract contract = void $ runAjax $ postApiContractActivate contract
+  activateContract contract = runAjax $ postApiContractActivate contract
   sendWebSocketMessage msg = HalogenApp $ raise $ SendWebSocketMessage msg
   log str = liftEffect $ Console.log str
 
 runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+-- Not using the generated purescript function to avoid double encoding of RawJson which results always as a JSON String
+postApiContractInstanceByContractinstanceidEndpointByEndpointname :: forall m. MonadError AjaxError m => MonadAff m => RawJson -> String -> String -> m Unit
+postApiContractInstanceByContractinstanceidEndpointByEndpointname (RawJson jsonString) contractInstanceId endpoint =
+  perform
+    $ defaultRequest
+        { method = fromString "POST"
+        , url = "/api/contract/instance/" <> contractInstanceId <> "/endpoint/" <> endpoint
+        , headers = defaultRequest.headers
+        , content = Just $ string jsonString
+        }
+
+perform ::
+  forall m d.
+  MonadError AjaxError m =>
+  MonadAff m =>
+  Decode d =>
+  Request Unit -> m d
+perform request = map (view _body) (ajax decode request)
+  where
+  _body :: forall a. Lens' (Response a) a
+  _body = prop (SProxy :: SProxy "body")

@@ -22,7 +22,6 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
-    coDoSimplifierRemoveDeadBindings,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -95,7 +94,6 @@ availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
-    , Pass "remove dead bindings" (onOption coDoSimplifierRemoveDeadBindings) DeadCode.removeDeadBindings
     ]
 
 -- | Actual simplifier
@@ -108,7 +106,7 @@ simplify = foldl' (>=>) pure (map applyPass availablePasses)
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ DeadCode.removeDeadBindings >=> simplify'
+simplifyTerm = runIfOpts $ simplify'
     -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -157,6 +155,8 @@ compileToReadable =
     >=> (<$ logVerbose "  !!! rename")
     >=> PLC.rename
     >=> through typeCheckTerm
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! floatTerm")
@@ -195,6 +195,8 @@ compileReadableToPlc =
     -- NOTE: There was a bug in renamer handling non-rec terms, so we need to
     -- rename again.
     -- https://jira.iohk.io/browse/SCP-2156
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! compileLets Types")

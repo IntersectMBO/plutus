@@ -184,7 +184,7 @@ printType
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
-printType bs = runQuoteT $ displayPlcDef <$> do
+printType bs = runQuoteT $ T.pack . show . pretty <$> do
     scoped <- parseScoped bs
     config <- getDefTypeCheckConfig topAlexPosn
     inferTypeOfProgram config scoped

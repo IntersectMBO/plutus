@@ -61,8 +61,8 @@ import Marlowe.Execution.Types (NamedAction(..), PastAction(..))
 import Marlowe.Execution.Types (PastState, State, TimeoutInfo) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.PAB (ContractHistory, MarloweParams)
-import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _minSlot)
+import Marlowe.Client (ContractHistory, _chHistory, _chParams)
+import Marlowe.Semantics (Contract(..), MarloweParams(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _marloweContract, _marloweState, _minSlot, _rolesCurrency)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
@@ -118,39 +118,44 @@ mkPlaceholderState nickname metaData contract =
 -- contract is given a role in it, and gets the MarloweParams at the same time as they hear about
 -- everything else
 mkInitialState :: WalletDetails -> Slot -> String -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot nickname { chParams, chHistory } =
-  bind chParams \(marloweParams /\ marloweData) ->
-    let
-      contract = marloweData.marloweContract
+mkInitialState walletDetails currentSlot nickname contractHistory =
+  let
+    chParams = view _chParams contractHistory
+  in
+    bind chParams \(marloweParams /\ marloweData) ->
+      let
+        chHistory = view _chHistory contractHistory
 
-      mTemplate = findTemplate contract
+        contract = view _marloweContract marloweData
 
-      minSlot = view _minSlot marloweData.marloweState
+        mTemplate = findTemplate contract
 
-      initialExecutionState = Execution.mkInitialState minSlot contract
-    in
-      flip map mTemplate \template ->
-        let
-          initialState =
-            { nickname
-            , tab: Tasks
-            , executionState: initialExecutionState
-            , pendingTransaction: Nothing
-            , previousSteps: mempty
-            , mMarloweParams: Just marloweParams
-            , selectedStep: 0
-            , metadata: template.metaData
-            , participants: getParticipants contract
-            , userParties: getUserParties walletDetails marloweParams
-            , namedActions: mempty
-            }
+        minSlot = view (_marloweState <<< _minSlot) marloweData
 
-          updateExecutionState = over _executionState (applyTransactionInputs chHistory)
-        in
-          initialState
-            # updateExecutionState
-            # regenerateStepCards currentSlot
-            # selectLastStep
+        initialExecutionState = Execution.mkInitialState minSlot contract
+      in
+        flip map mTemplate \template ->
+          let
+            initialState =
+              { nickname
+              , tab: Tasks
+              , executionState: initialExecutionState
+              , pendingTransaction: Nothing
+              , previousSteps: mempty
+              , mMarloweParams: Just marloweParams
+              , selectedStep: 0
+              , metadata: template.metaData
+              , participants: getParticipants contract
+              , userParties: getUserParties walletDetails marloweParams
+              , namedActions: mempty
+              }
+
+            updateExecutionState = over _executionState (applyTransactionInputs chHistory)
+          in
+            initialState
+              # updateExecutionState
+              # regenerateStepCards currentSlot
+              # selectLastStep
 
 -- Note 1: We filter out PK parties from the participants of the contract. This is because
 -- we don't have a design for displaying them anywhere, and because we are currently only
@@ -216,9 +221,9 @@ getUserParties walletDetails marloweParams =
 
     assets = view _assets walletDetails
 
-    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
+    rolesCurrency = view _rolesCurrency marloweParams
 
-    mCurrencyTokens = Map.lookup currencySymbolString (unwrap assets)
+    mCurrencyTokens = Map.lookup rolesCurrency (unwrap assets)
 
     roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
   in

@@ -25,8 +25,7 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleTimeToSlotConversions
     , handleUnbalancedTransactions
     , handlePendingTransactions
-    , handleUtxoQueries
-    , handleAddressChangedAtQueries
+    , handleChainIndexQueries
     , handleOwnInstanceIdQueries
     ) where
 
@@ -40,28 +39,24 @@ import qualified Control.Monad.Freer.Error      as Eff
 import           Control.Monad.Freer.NonDet     (NonDet)
 import qualified Control.Monad.Freer.NonDet     as NonDet
 import           Control.Monad.Freer.Reader     (Reader, ask)
-import           Data.Foldable                  (traverse_)
-import qualified Data.Map                       as Map
 import           Data.Monoid                    (Alt (..), Ap (..))
 import           Data.Text                      (Text)
-import qualified Ledger.AddressMap              as AM
 
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, POSIXTimeRange, PubKey, Slot,
-                                                 SlotRange, Tx)
-import           Ledger.AddressMap              (AddressMap (..))
+import           Ledger                         (POSIXTime, POSIXTimeRange, PubKey, Slot, SlotRange, Tx)
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
-import           Plutus.Contract.Effects        (UtxoAtAddress (..))
+import           Plutus.ChainIndex              (ChainIndexQueryEffect)
+import qualified Plutus.ChainIndex.Effects      as ChainIndexEff
+import           Plutus.Contract.Effects        (ChainIndexQuery (..), ChainIndexResponse (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
-import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect)
+import           Wallet.Effects                 (NodeClientEffect, WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..))
-import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,
-                                                 slotRange, targetSlot)
+import           Wallet.Types                   (ContractInstanceId)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -208,54 +203,33 @@ handlePendingTransactions ::
     ( Member WalletEffect effs
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member ChainIndexEffect effs
     )
     => RequestHandler effs Tx (Either WalletAPIError Tx)
 handlePendingTransactions =
     RequestHandler $ \tx ->
         surroundDebug @Text "handlePendingTransactions" $ do
-        logDebug StartWatchingContractAddresses
-        wa <- Wallet.Effects.watchedAddresses
-        traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (Valid tx))
-        (Right <$> Wallet.signTxAndSubmit tx) `Eff.handleError` (\err -> logWarn (HandleTxFailed err) >> pure (Left err))
+        Eff.handleError (Right <$> Wallet.signTxAndSubmit tx)
+                        (\err -> logWarn (HandleTxFailed err) >> pure (Left err))
 
-handleUtxoQueries ::
+handleChainIndexQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member ChainIndexEffect effs
+    , Member ChainIndexQueryEffect effs
     )
-    => RequestHandler effs Address UtxoAtAddress
-handleUtxoQueries = RequestHandler $ \addr ->
+    => RequestHandler effs ChainIndexQuery ChainIndexResponse
+handleChainIndexQueries = RequestHandler $ \chainIndexQuery ->
     surroundDebug @Text "handleUtxoQueries" $ do
-        Wallet.Effects.startWatching addr
-        AddressMap utxoSet <- Wallet.Effects.watchedAddresses
-        case Map.lookup addr utxoSet of
-            Nothing -> do
-                logWarn $ UtxoAtFailed addr
-                empty
-            Just s  -> pure (UtxoAtAddress addr s)
-
-handleAddressChangedAtQueries ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member ChainIndexEffect effs
-    , Member NodeClientEffect effs
-    )
-    => RequestHandler effs AddressChangeRequest AddressChangeResponse
-handleAddressChangedAtQueries = RequestHandler $ \req ->
-    surroundDebug @Text "handleAddressChangedAtQueries" $ do
-        current <- Wallet.Effects.getClientSlot
-        let target = targetSlot req
-        logDebug $ HandleAddressChangedAt current (slotRange req)
-        -- If we ask the chain index for transactions that were confirmed in
-        -- the current slot, we always get an empty list, because the chain
-        -- index only learns about those transactions at the beginning of the
-        -- next slot. So we need to make sure that we are past the current
-        -- slot.
-        guard (current >= target)
-        Wallet.Effects.addressChanged req
+      case chainIndexQuery of
+        DatumFromHash h            -> DatumHashResponse <$> ChainIndexEff.datumFromHash h
+        ValidatorFromHash h        -> ValidatorHashResponse <$> ChainIndexEff.validatorFromHash h
+        MintingPolicyFromHash h    -> MintingPolicyHashResponse <$> ChainIndexEff.mintingPolicyFromHash h
+        StakeValidatorFromHash h   -> StakeValidatorHashResponse <$> ChainIndexEff.stakeValidatorFromHash h
+        RedeemerFromHash h         -> RedeemerHashResponse <$> ChainIndexEff.redeemerFromHash h
+        TxOutFromRef txOutRef      -> TxOutRefResponse <$> ChainIndexEff.txOutFromRef txOutRef
+        TxFromTxId txid            -> TxIdResponse <$> ChainIndexEff.txFromTxId txid
+        UtxoSetMembership txOutRef -> UtxoSetMembershipResponse <$> ChainIndexEff.utxoSetMembership txOutRef
+        UtxoSetAtAddress c         -> UtxoSetAtResponse <$> ChainIndexEff.utxoSetAtAddress c
+        GetTip                     -> GetTipResponse <$> ChainIndexEff.getTip
 
 handleOwnInstanceIdQueries ::
     forall effs a.

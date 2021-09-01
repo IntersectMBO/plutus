@@ -15,7 +15,6 @@ data ContractStatePoly a b = ContractStatePoly
   , ipnr  :: a    -- Nominal Interest Rate (IPNR) : The applicable nominal rate
   , ipac  :: a    -- Accrued Interest (IPAC): The current value of accrued interest
   , feac  :: a    -- Fee Accrued (FEAC): The current value of accrued fees
-  , fac   :: a    -- TODO: feac vs. fac?
   , nsc   :: a    -- Notional Scaling Multiplier (SCNT): The multiplier being applied to principal cash flows
   , isc   :: a    -- InterestScalingMultiplier (SCIP): The multiplier being applied to interest cash flows
   , prf   :: PRF  -- Contract Performance (PRF)
@@ -23,4 +22,3 @@ data ContractStatePoly a b = ContractStatePoly
   , prnxt :: a    -- Next Principal Redemption Payment (PRNXT): The value at which principal is being repaid
   , ipcb  :: a    -- Interest Calculation Base (IPCB)
   } deriving (Show)
-

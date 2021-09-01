@@ -960,6 +960,8 @@ actusContractToTerms raw = do
         , ct_IPCL: interestRateCycle
         , ct_IPANX: interestRateAnchor >>= identity
         , ct_IPNR: interestRate
+        , ct_SCIP: Nothing
+        , ct_SCNT: Nothing
         , ct_IPAC: Nothing
         , ct_PRCL: principalRedemptionCycle
         , ct_PRANX: principalRedemptionAnchor >>= identity

@@ -11,7 +11,8 @@
     )
     (termbind
       (strict)
-      (vardecl WStrictPattern (all a (type) (fun a (fun a [ StrictPattern a ])))
+      (vardecl
+        WStrictPattern (all a (type) (fun a (fun a [ StrictPattern a ])))
       )
       (abs
         a

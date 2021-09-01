@@ -16,7 +16,7 @@ data EventType =
       AD   -- Monitoring
     | IED  -- Initial Exchange
     | PR   -- Principal Redemption
-    | PI   -- ?
+    | PI   -- Principal Increase
     | PRF  -- Principal Payment Amount Fixing
     | PY   -- Penalty Payment
     | FP   -- Fee Payment
@@ -35,6 +35,7 @@ data EventType =
     | DV   -- Dividend Payment
     | XD   -- Exercise
     | MR   -- Margin Call
+    | PD   -- Principal Drawing
     deriving (Eq, Show, Read, Ord)
 
 data RiskFactors = RiskFactors

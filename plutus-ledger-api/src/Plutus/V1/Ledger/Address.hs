@@ -42,7 +42,7 @@ data Address = Address{ addressCredential :: Credential, addressStakingCredentia
 instance Pretty Address where
     pretty (Address cred stakingCred) =
         let staking = maybe "no staking credential" pretty stakingCred in
-        "addressed to" <+> pretty cred <+> parens staking
+        pretty cred <+> parens staking
 
 instance PlutusTx.Eq Address where
     {-# INLINABLE (==) #-}

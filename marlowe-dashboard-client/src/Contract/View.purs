@@ -27,7 +27,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4_, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, id_, placeholder, ref, target, type_, value)
@@ -49,6 +49,7 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
 import Popper (Placement(..))
 import Tooltip.State (tooltip)
+import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
@@ -720,9 +721,23 @@ renderTasks state =
         $ namedActions
         <#> uncurry (renderPartyTasks state)
     else
-      div
-        [ classNames [ "p-4" ] ]
-        [ text "There are no tasks to perform at this step. The contract will progress automatically when the timeout has passed." ]
+      noPossibleActions
+
+noPossibleActions :: forall p a. HTML p a
+noPossibleActions =
+  let
+    purpleDot extraCss = div [ classNames $ [ "rounded-full", "bg-lightpurple", "w-3", "h-3", "animate-grow" ] <> extraCss ] []
+  in
+    div
+      [ classNames [ "p-4", "text-xs", "flex", "flex-col", "h-full" ] ]
+      [ h4 [ classNames [ "font-semibold" ] ] [ text "Please wait…" ]
+      , p [ classNames [ "mt-2" ] ] [ text "There are no tasks to complete at this step. The contract will progress automatically when the timeout passes." ]
+      , div [ classNames [ "flex-grow", "flex", "justify-center", "items-center" ] ]
+          [ purpleDot [ "mr-2" ]
+          , purpleDot [ "animate-delay-150" ]
+          , purpleDot [ "ml-2", "animate-delay-300" ]
+          ]
+      ]
 
 participantWithNickname :: State -> Party -> String
 participantWithNickname state party =
@@ -1057,7 +1072,7 @@ shortDescription :: forall p a. Boolean -> String -> HTML p a
 shortDescription isActiveParticipant description =
   div [ classNames ([ "text-xs" ] <> applyWhen (not isActiveParticipant) [ "opacity-50" ]) ]
     [ span [ classNames [ "font-semibold" ] ] [ text "Short description: " ]
-    , span_ [ text description ]
+    , span_ $ markdownToHTML description
     ]
 
 getParty :: S.Input -> Maybe Party

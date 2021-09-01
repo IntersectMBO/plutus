@@ -12,9 +12,10 @@ import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
+import Marlowe.Client (ContractHistory)
 import Marlowe.Execution.Types (NamedAction)
-import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId)
-import Marlowe.Semantics (Slot)
+import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (MarloweData, MarloweParams, Slot)
 import Template.Types (Action, State) as Template
 import WalletData.Types (Action, State) as WalletData
 import WalletData.Types (WalletDetails, WalletNickname)

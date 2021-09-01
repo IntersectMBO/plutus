@@ -168,7 +168,7 @@ tests =
                 Trace.waitNSlots 1
             )
 
-        , let theContract :: Contract () Schema ContractError () = void (utxoAt (walletAddress w1) >>= awaitUtxoSpent . fst . head . Map.toList)
+        , let theContract :: Contract () Schema ContractError () = void (utxosAt (walletAddress w1) >>= awaitUtxoSpent . fst . head . Map.toList)
           in run 2 "await txout spent"
             (assertDone theContract tag (const True) "should receive a notification")
             (void $ do
@@ -211,7 +211,6 @@ tests =
                   case _cilMessage . EM._eteEvent <$> lgs of
                             [ Started, ContractLog "waiting for endpoint 1", CurrentRequests [_], ReceiveEndpointCall{}, ContractLog "Received value: 27", HandledRequest _, CurrentRequests [], StoppedNoError ] -> True
                             _ -> False
-
           in run 1 "contract logs"
                 (assertInstanceLog tag matchLogs)
                 (void $ activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 27)
@@ -222,7 +221,6 @@ tests =
                   case EM._eteEvent <$> lgs of
                             [ UserLog "Received contract state", UserLog "Final state: Right Nothing"] -> True
                             _                                                                          -> False
-
           in run 4 "contract state"
                 (assertUserLog matchLogs)
                 $ do
@@ -231,7 +229,6 @@ tests =
                     ContractInstanceState{instContractState=ResumableResult{_finalState}} <- Trace.getContractState hdl
                     Log.logInfo @String "Received contract state"
                     Log.logInfo @String $ "Final state: " <> show _finalState
-
         ]
 
 w1 :: EM.Wallet

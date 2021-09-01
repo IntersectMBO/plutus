@@ -65,8 +65,6 @@ library
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Chain
-        Wallet.Emulator.ChainIndex
-        Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
@@ -91,6 +89,7 @@ library
         Plutus.Trace.Effects.Waiting
         Plutus.Trace.Emulator
         Plutus.Trace.Emulator.ContractInstance
+        Plutus.Trace.Emulator.Extract
         Plutus.Trace.Emulator.System
         Plutus.Trace.Emulator.Types
         Plutus.Trace.Playground
@@ -123,7 +122,10 @@ library
         cryptonite >=0.25,
         data-default -any,
         deepseq -any,
+        directory -any,
+        filepath -any,
         fingertree -any,
+        flat -any,
         foldl -any,
         freer-simple -any,
         hashable -any,

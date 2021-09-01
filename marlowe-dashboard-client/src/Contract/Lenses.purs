@@ -25,8 +25,7 @@ import Data.Tuple (Tuple)
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (MarloweParams)
-import Marlowe.Semantics (Party, Payment, TransactionInput)
+import Marlowe.Semantics (MarloweParams, Party, Payment, TransactionInput)
 import WalletData.Types (WalletNickname)
 
 _nickname :: Lens' State String

@@ -10,7 +10,8 @@
           (con integer)
           (let
             (nonrec)
-            (termbind (strict) (vardecl err (con integer)) (error (con integer))
+            (termbind
+              (strict) (vardecl err (con integer)) (error (con integer))
             )
             err
           )

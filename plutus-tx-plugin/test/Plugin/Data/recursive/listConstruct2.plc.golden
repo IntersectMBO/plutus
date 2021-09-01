@@ -19,7 +19,8 @@
           (all
             a
             (type)
-            (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]))
+            (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ])
+          )
         )
         (abs
           a

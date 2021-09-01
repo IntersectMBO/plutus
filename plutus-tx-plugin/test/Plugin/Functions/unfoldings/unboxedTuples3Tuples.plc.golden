@@ -14,7 +14,8 @@
         (tyvardecl
           UTuple5
           (fun
-            (type) (fun (type) (fun (type) (fun (type) (fun (type) (type))))))
+            (type) (fun (type) (fun (type) (fun (type) (fun (type) (type)))))
+          )
         )
         (tyvardecl a (type))
         (tyvardecl b (type))
@@ -27,7 +28,9 @@
           (fun
             a
             (fun
-              b (fun c (fun d (fun e [ [ [ [ [ UTuple5 a ] b ] c ] d ] e ])))))
+              b (fun c (fun d (fun e [ [ [ [ [ UTuple5 a ] b ] c ] d ] e ])))
+            )
+          )
         )
       )
     )
@@ -53,7 +56,8 @@
             ]
             (con integer)
           ]
-          (con integer))
+          (con integer)
+        )
       )
       (lam
         ds
@@ -152,7 +156,8 @@
               (con integer)
             ]
           ]
-          (con integer))
+          (con integer)
+        )
       )
       (lam
         ds
