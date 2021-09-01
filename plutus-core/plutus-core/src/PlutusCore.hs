@@ -57,6 +57,15 @@ module PlutusCore
     , toTerm
     , termAnn
     , typeAnn
+    , tyVarDeclAnn
+    , tyVarDeclName
+    , tyVarDeclKind
+    , varDeclAnn
+    , varDeclName
+    , varDeclType
+    , tyDeclAnn
+    , tyDeclType
+    , tyDeclKind
     , mapFun
     -- * DeBruijn representation
     , DeBruijn (..)

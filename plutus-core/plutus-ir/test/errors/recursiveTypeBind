@@ -1,6 +1,6 @@
 (let
   (rec)
-  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
+  (typebind (tyvardecl unit (type)) (all a (type) (fun unit unit)))
   (let
     (nonrec)
     (termbind (strict)

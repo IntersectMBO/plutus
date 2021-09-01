@@ -9,8 +9,9 @@ import           PlutusIR
 import           PlutusIR.Subst
 
 import qualified Algebra.Graph.AdjacencyMap           as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM
+import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM hiding (isAcyclic)
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap  as AMN
+import           Algebra.Graph.ToGraph                (isAcyclic)
 import           Control.Lens
 import           Data.Either
 import           Data.Foldable                        (foldl')
@@ -19,8 +20,15 @@ import qualified Data.List.NonEmpty                   as NE
 import qualified Data.Map                             as M
 import           Data.Semigroup.Foldable
 import qualified Data.Set                             as S
+import           PlutusIR.MkPir                       (mkLet)
 
 {- Note [LetRec splitting pass]
+
+This pass can achieve two things:
+
+- turn recursive let-bindings which are not really recursive into non-recursive let-bindings.
+- break down letrec groups into smaller ones, based on the dependencies of the group's bindings.
+
 This pass examines a single letrec group at a time
 and maybe splits the group into sub-letgroups (rec or nonrec).
 
@@ -40,76 +48,102 @@ The created sub-letgroups will either be
 (a) let-rec with 2 or more bindings
 (b) let-nonrec with a single binding
 
-Because of (b), it is advised to run the LetMerge pass *AFTER* this RecSplit pass, to group adjacent let-nonrecs.
-
-This pass has the side-effect of demoting "fake" rec let-bindings into "true" nonrec let-bindings.
-This gives an extra motivation to run the LetMerge pass *AFTER* this RecSplit pass.
-
 Currently the implementation relies on 'Unique's, so there is the assumption of global uniqueness of the input term.
 However, the algorithm could be changed to work without this assumption (has not been tested).
+-}
+
+{- NOTE [Principal id]
+The algorihtm identifies & stores bindings and their corresponding rhs'es in some intermediate tables.
+To identify/store each binding to such tables, we need to "key" them by a single unique identifier.
+
+For term bindings and type bindings this is easily achieved by using the single introduced name or tyname as "the key" (principal id).
+
+Datatype bindings, however, introduce multiple names and tynames (i.e. type-constructor, type args, destructor, data-constructors)
+and the 'principal' function arbitrarily chooses between one of these introduced names/tynames of the databind
+to represent the "principal" id of the whole datatype binding so it can be used as "the key".
 -}
 
 {-|
 Apply letrec splitting, recursively in bottom-up fashion.
 -}
 recSplit :: forall uni fun a name tyname.
-           (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique,
-            PLC.HasUnique name PLC.TermUnique)
+           (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
          => Term tyname name uni fun a
          -> Term tyname name uni fun a
 recSplit = transformOf termSubterms recSplitStep
-  where
-    recSplitStep :: Term tyname name uni fun a -> Term tyname name uni fun a
-    recSplitStep = \case
-        -- See Note [LetRec splitting pass]
-        Let a Rec bs t ->
-            let
-                -- a table from principal id to the its corresponding whole let-binding
-                bindingsTable :: M.Map PLC.Unique (Binding tyname name uni fun a)
-                bindingsTable = M.fromList . NE.toList $ fmap (\ b -> (principal b, b)) bs
-                hereSccs =
-                           -- TODO: use error infrastructure
-                           fromRight (error "Cycle detected in the scc-graph. This shouldn't happen in the first place.")
-                           -- we take the topological sort (for the correct order)
-                           -- from the SCCs (for the correct grouping) of the local dep-graph
-                           . AM.topSort . AM.scc $ buildLocalDepGraph bs
-            in foldl' (\ acc scc ->
-                          Let a
-                          (if AM.isAcyclic $ AMN.fromNonEmpty scc then NonRec else Rec)
-                          (NE.fromList . M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
-                          acc) t hereSccs
-        t  -> t
-
 
 {-|
-It constructs a dependency graph between the introduced bindings of the currently-examined let,
-and takes
+Apply splitting for a single letrec group.
+-}
+recSplitStep :: forall uni fun a name tyname.
+               (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+             => Term tyname name uni fun a -> Term tyname name uni fun a
+recSplitStep = \case
+    -- See Note [LetRec splitting pass]
+    Let a Rec bs t ->
+        let -- a table from principal id to the its corresponding 'Binding'
+            bindingsTable :: M.Map PLC.Unique (Binding tyname name uni fun a)
+            bindingsTable = M.fromList . NE.toList $ fmap (\ b -> (principal b, b)) bs
+            hereSccs =
+                       fromRight (error "Cycle detected in the scc-graph. This shouldn't happen in the first place.")
+                       -- we take the topological sort (for the correct order)
+                       -- from the SCCs (for the correct grouping) of the local dep-graph
+                       . AM.topSort . AM.scc $ buildLocalDepGraph bs
+
+            genLetFromScc acc scc = mkLet a
+                (if isAcyclic scc then NonRec else Rec)
+                (M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
+                acc
+        in foldl' genLetFromScc t hereSccs
+    t  -> t
+
+{-|
+It constructs a dependency graph for the currently-examined let-group.
+
+The vertices of this graph are the bindings of this let-group, and the edges,
+dependencies between those bindings.
+
+This local graph may contain loops:
+- A "self-edge" indicates a self-recursive binding.
+- Any other loop indicates mutual-recursive bindings.
 -}
 buildLocalDepGraph :: forall uni fun a name tyname.
                      (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
                    => NE.NonEmpty (Binding tyname name uni fun a) -> AM.AdjacencyMap PLC.Unique
-buildLocalDepGraph bs = AM.overlays . NE.toList $ fmap bindingSubGraph bs
+buildLocalDepGraph bs =
+    -- join together
+    AM.overlays . NE.toList $ fmap bindingSubGraph bs
     where
-      -- a map of a all introduced binding ids to their belonging principal id
+      -- a map of a all introduced binding ids of this letgroup to their belonging principal id
       idTable :: M.Map PLC.Unique PLC.Unique
       idTable = foldMap1 (\ b -> M.fromList (fmap (,principal b) $ b^..bindingIds)) bs
 
+      -- Given a binding, it intersects the free uniques of the binding,
+      -- with the introduced uniques of the current let group (all bindings).
+      -- The result of this intersection is the "local" dependencies of the binding to other
+      -- "sibling" bindings of this let group or to itself (if self-recursive).
+      -- It returns a graph which connects this binding to all of its calculated "local" dependencies.
       bindingSubGraph :: Binding tyname name uni fun a -> AM.AdjacencyMap PLC.Unique
       bindingSubGraph b =
+          -- the free uniques (variables or tyvariables) that occur inside this binding
           let freeUniques = S.map (^.PLC.theUnique) (fvBinding b)
-                            -- why NonRec: if it is a datatype-binding we treat it as non-recursive
-                            -- to reveal if it depends on itself,
-                            -- i.e. the typeconstructor is free at the domain-part of any of its dataconstructor types
+                            -- Special case for datatype bindings:
+                            -- To find out if the binding is self-recursive,
+                            -- we treat it like it was originally belonging to a let-nonrec (`ftvBinding NonRec`).
+                            -- Then, if it the datatype is indeed self-recursive, the call to `ftvBinding NonRec` will return
+                            -- its typeconstructor as free.
                             <> S.map (^.PLC.theUnique) (ftvBinding NonRec b)
+              -- the "local" dependencies
               occursIds = M.keysSet idTable `S.intersection` freeUniques
+              -- maps the ids of the "local" dependencies to their principal uniques.
+              -- See Note [Principal id]
               occursPrincipals = nub $ M.elems $ idTable `M.restrictKeys` occursIds
           in AM.connect (AM.vertex $ principal b) (AM.vertices occursPrincipals)
 
 
 {-|
 A function that returns a single 'Unique' for a particular binding.
-We need this because let-datatypes introduce multiple identifiers,
-but in our local dep. graph (buildSccs) we use a single Unique as 'the vertex' of the binding.
+See Note [Principal id]
 -}
 principal :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
             => Binding tyname name uni fun a

@@ -17,5 +17,10 @@
       (vardecl Cons (fun [ Tree a ] (fun [ Forest a ] [ Forest a ])))
     )
   )
-  { Nil (all a (type) (fun a a)) }
+  (let
+    (rec)
+    (typebind (tyvardecl unit (type)) unit_)
+    (typebind (tyvardecl unit_ (type)) unit)
+    { Nil (all a (type) (fun a a)) }
+  )
 )

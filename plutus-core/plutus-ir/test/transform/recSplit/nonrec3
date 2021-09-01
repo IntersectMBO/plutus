@@ -1,6 +1,0 @@
-(lam x (con integer)
-(let (nonrec)
-     (termbind (strict) (vardecl i (con integer))
-      [(lam y (con integer) [(builtin addInteger) y x]) (con integer 1)])
-     i
- ))
