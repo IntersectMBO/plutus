@@ -119,8 +119,6 @@ library
         cardano-crypto -any,
         cardano-crypto-class -any,
         deepseq -any,
-        freer-simple -any,
-        semigroups -any,
         openapi3
 
     ghc-options: -fprint-potential-instances
