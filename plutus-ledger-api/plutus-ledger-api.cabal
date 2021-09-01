@@ -49,6 +49,7 @@ library
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Orphans
         Plutus.V1.Ledger.Scripts
+        Plutus.V1.Ledger.Arbitrary
         Plutus.V1.Ledger.Slot
         Plutus.V1.Ledger.Tx
         Plutus.V1.Ledger.TxId
@@ -63,6 +64,8 @@ library
         flat -any,
         hashable -any,
         plutus-core -any,
+        generic-arbitrary -any,
+        quickcheck-instances -any,
         memory -any,
         mtl -any,
         plutus-tx -any,
@@ -90,6 +93,7 @@ test-suite plutus-ledger-api-test
         base >=4.9 && <5,
         aeson -any,
         plutus-ledger-api -any,
+        plutus-tx -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
