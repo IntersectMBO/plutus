@@ -29,26 +29,25 @@ module PlutusTx.Ratio(
     , divMod
     , quotRem
     , gcd
-    , abs
     , reduce
     ) where
 
-import qualified PlutusTx.Bool     as P
-import qualified PlutusTx.Eq       as P
-import qualified PlutusTx.IsData   as P
-import qualified PlutusTx.Lift     as P
-import qualified PlutusTx.Numeric  as P
-import qualified PlutusTx.Ord      as P
-import qualified PlutusTx.Trace    as P
+import qualified PlutusTx.Bool          as P
+import qualified PlutusTx.Eq            as P
+import qualified PlutusTx.IsData        as P
+import qualified PlutusTx.Lift          as P
+import qualified PlutusTx.Ord           as P
+import qualified PlutusTx.Trace         as P
 
-import qualified PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins      as Builtins
 
-import           Data.Aeson        (FromJSON, ToJSON)
-import           GHC.Generics      (Generic)
-import qualified GHC.Real          as Ratio
-import           Prelude           (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), otherwise, showParen,
-                                    showString, (*))
-import qualified Prelude           as Haskell
+import           Data.Aeson             (FromJSON, ToJSON)
+import           GHC.Generics           (Generic)
+import qualified GHC.Real               as Ratio
+import qualified PlutusTx.Numeric.Class as P
+import           Prelude                (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), otherwise, showParen,
+                                         showString, (*))
+import qualified Prelude                as Haskell
 
 data Ratio a = a :% a
     deriving stock (Eq,Generic)
@@ -152,7 +151,7 @@ https://core.ac.uk/download/pdf/187613369.pdf)
 
 type Rational = Ratio Integer
 
-instance  (Integral a)  => Ord (Ratio a)  where
+instance (Integral a)  => Ord (Ratio a)  where
     (x:%y) <= (x':%y')  =  x * y' <= x' * y
     (x:%y) <  (x':%y')  =  x * y' <  x' * y
 
@@ -180,6 +179,12 @@ instance P.MultiplicativeMonoid (Ratio Integer) where
     {-# INLINABLE one #-}
     one = 1 :% 1
 
+instance P.MultiplicativeGroup Rational where
+  {-# INLINEABLE (/) #-}
+  x / y = x P.* recip y
+  {-# INLINEABLE reciprocal #-}
+  reciprocal = recip
+
 instance P.Ord (Ratio Integer) where
     {-# INLINABLE (<=) #-}
     (x :% y) <= (x' :% y') = x P.* y' P.<= (x' P.* y)
@@ -188,11 +193,11 @@ infixl 7 %
 {-# INLINABLE (%) #-}
 -- | Forms the ratio of two integral numbers.
 (%) :: Integer -> Integer -> Ratio Integer
-x % y = reduce (x P.* signum y) (abs y)
+x % y = reduce (x P.* signum y) (P.natAbs y)
 
 -- | Reciprocal fraction
 recip :: Ratio Integer -> Ratio Integer
-recip (x :% y) = ((y P.* signum x) :% abs x)
+recip (x :% y) = ((y P.* signum x) :% P.natAbs x)
 
 -- | Convert an 'Interger' to a 'Rational'
 fromInteger :: Integer -> Ratio Integer
@@ -224,7 +229,7 @@ denominator (_ :% d) = d
 -- every common factor of @x@ and @y@ is also a factor; for example
 -- @'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@.
 gcd :: Integer -> Integer -> Integer
-gcd a b = gcd' (abs a) (abs b) where
+gcd a b = gcd' (P.natAbs a) (P.natAbs b) where
     gcd' a' b'
         | b' P.== P.zero = a'
         | True           = gcd' b' (a' `Builtins.remainderInteger` b')
@@ -285,9 +290,6 @@ reduce x y
         let d = gcd x y in
         (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
 
-{-# INLINABLE abs #-}
-abs :: (P.Ord n, P.AdditiveGroup n) => n -> n
-abs x = if x P.< P.zero then P.negate x else x
 
 {-# INLINABLE signumR #-}
 signumR :: Rational -> Rational
@@ -317,7 +319,7 @@ round x
     | otherwise               = P.traceError "Pf" {-"round default defn: Bad value"-}
     where (n, r) = properFraction x
           m      = if r P.< P.zero then n P.- P.one else n P.+ P.one
-          sig    = signumR (abs r P.- half)
+          sig    = signumR (P.natAbs r P.- half)
 
 P.makeLift ''Ratio
 P.makeIsDataIndexed ''Ratio [('(:%),0)]

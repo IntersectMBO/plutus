@@ -54,6 +54,7 @@ library
         PlutusTx.Maybe
         PlutusTx.Monoid
         PlutusTx.Numeric
+        PlutusTx.Numeric.Class
         PlutusTx.Ratio
         PlutusTx.Semigroup
         PlutusTx.Sqrt
