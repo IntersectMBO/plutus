@@ -77,8 +77,7 @@ package cardano-api
 -- when decoding invalid (e.g. malicious) text literals.
 source-repository-package
   type: git
-  -- location: https://github.com/Quid2/flat.git
-  location: https://github.com/michaelpj/flat.git
+  location: https://github.com/Quid2/flat.git
   tag: ee59880f47ab835dbd73bea0847dab7869fc20d8
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
