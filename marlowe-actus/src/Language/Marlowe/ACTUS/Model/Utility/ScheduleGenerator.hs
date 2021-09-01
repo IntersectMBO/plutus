@@ -5,6 +5,8 @@ module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
   , plusCycle
   , minusCycle
+  , (<+>)
+  , (<->)
   , sup
   , inf
   , remove
@@ -100,6 +102,12 @@ plusCycle date cycle = shiftDate date (n cycle) (p cycle)
 
 minusCycle :: Day -> Cycle -> Day
 minusCycle date cycle = shiftDate date (-n cycle) (p cycle)
+
+(<+>) :: Day -> Cycle -> Day
+(<+>) = plusCycle
+
+(<->) :: Day -> Cycle -> Day
+(<->) = minusCycle
 
 shiftDate :: Day -> Integer -> Period -> Day
 shiftDate date n p = case p of
