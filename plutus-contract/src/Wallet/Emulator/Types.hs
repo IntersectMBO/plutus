@@ -15,10 +15,15 @@ module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
     WalletId(..),
+    Crypto.XPrv,
+    Crypto.XPub,
     walletPubKey,
     addSignature,
     knownWallets,
     knownWallet,
+    WalletNumber(..),
+    toWalletNumber,
+    fromWalletNumber,
     TxPool,
     -- * Emulator
     EmulatorEffs,
@@ -58,6 +63,7 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
+import qualified Cardano.Crypto.Wallet          as Crypto
 import           Control.Lens                   hiding (index)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error)

@@ -49,7 +49,7 @@ import           Plutus.Trace.Scheduler                    (Priority, SchedulerL
 import           Plutus.Trace.Tag                          (Tag)
 import           Schema                                    (FormArgumentF, FormSchema)
 import           Wallet.API                                (WalletAPIError)
-import qualified Wallet.Emulator.Wallet                    as EM
+import qualified Wallet.Emulator.Types                     as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
 import           Wallet.Types                              (AddressChangeRequest, AddressChangeResponse, AssertionError,
@@ -150,12 +150,6 @@ bultinByteStringBridge = do
     typeModule ^== "PlutusTx.Builtins.Internal"
     pure psString
 
-walletIdBridge :: BridgePart
-walletIdBridge = do
-    typeName ^== "WalletId"
-    typeModule ^== "Wallet.Emulator.Wallet"
-    pure psBigInteger
-
 scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
@@ -183,7 +177,7 @@ exBudgetBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> walletIdBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
 
 ------------------------------------------------------------
 
@@ -259,6 +253,18 @@ ledgerBytesBridge = do
     typeModule ^== "Plutus.V1.Ledger.Bytes"
     pure psString
 
+xPrvBridge :: BridgePart
+xPrvBridge = do
+    typeName ^== "XPrv"
+    typeModule ^== "Cardano.Crypto.Wallet"
+    pure psString
+
+xPubBridge :: BridgePart
+xPubBridge = do
+    typeName ^== "XPub"
+    typeModule ^== "Cardano.Crypto.Wallet"
+    pure psString
+
 ledgerBridge :: BridgePart
 ledgerBridge =
         scriptBridge
@@ -269,6 +275,8 @@ ledgerBridge =
     <|> mpsHashBridge
     <|> stakeValidatorHashBridge
     <|> ledgerBytesBridge
+    <|> xPrvBridge
+    <|> xPubBridge
 
 ------------------------------------------------------------
 headersBridge :: BridgePart
@@ -390,6 +398,8 @@ walletTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.Wallet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletAPIError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)

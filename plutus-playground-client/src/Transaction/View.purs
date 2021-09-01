@@ -123,6 +123,7 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot " <> show slot.getSlot ]
 
+-- TODO: convert Wallet back to WalletNumber?
 emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Message from wallet " <> show walletId.getWalletId <> ": " <> logMessageText ]

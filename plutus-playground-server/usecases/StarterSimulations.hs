@@ -11,13 +11,13 @@ import           Playground.Types      (ContractCall (AddBlocks, PayToWallet), S
                                         simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Starter               (registeredKnownCurrencies)
-import           Wallet.Emulator.Types (Wallet, knownWallet)
+import           Wallet.Emulator.Types (WalletNumber (..))
 
 simulations :: [Simulation]
 simulations = [publishRedeem, payToWallet]
   where
-    wallet1 = knownWallet 1
-    wallet2 = knownWallet 2
+    wallet1 = WalletNumber 1
+    wallet2 = WalletNumber 2
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100_000_000 <$> [wallet1, wallet2]
     publishRedeem =
@@ -47,8 +47,8 @@ simulations = [publishRedeem, payToWallet]
                   ]
             }
 
-publish :: Wallet -> (Integer, Value) -> SimulatorAction
+publish :: WalletNumber -> (Integer, Value) -> SimulatorAction
 publish caller = callEndpoint caller "publish"
 
-redeem :: Wallet -> Integer -> SimulatorAction
+redeem :: WalletNumber -> Integer -> SimulatorAction
 redeem caller = callEndpoint caller "redeem"

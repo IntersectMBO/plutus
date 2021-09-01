@@ -8,13 +8,13 @@ import           HelloWorld            (registeredKnownCurrencies)
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), simulationActions,
                                         simulationId, simulationName, simulationWallets)
 import           SimulationUtils       (simulatorWallet)
-import           Wallet.Emulator.Types (knownWallet)
+import           Wallet.Emulator.Types (WalletNumber (..))
 
 simulations :: [Simulation]
 simulations = [helloWorld]
   where
-    wallet1 = knownWallet 1
-    wallet2 = knownWallet 2
+    wallet1 = WalletNumber 1
+    wallet2 = WalletNumber 2
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100 <$>
         [wallet1, wallet2]

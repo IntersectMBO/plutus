@@ -22,7 +22,7 @@ import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)
-import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Emulator.Wallet (WalletNumber(..))
 import Wallet.Lenses (_simulatorWalletWallet)
 
 walletsPane :: forall p. Signatures -> Value -> Array SimulatorWallet -> HTML p HAction
@@ -67,10 +67,10 @@ walletPane signatures initialValue walletIndex simulatorWallet@(SimulatorWallet 
         ]
 
 -- this function is exported so that action panes can show their associated wallet
-walletIdPane :: forall p i. Wallet -> HTML p i
-walletIdPane wallet@(Wallet { getWalletId }) =
+walletIdPane :: forall p i. WalletNumber -> HTML p i
+walletIdPane wallet@(WalletNumber { getWallet }) =
   span [ class_ $ ClassName "wallet-id" ]
-    [ text $ "Wallet " <> show getWalletId ]
+    [ text $ "Wallet " <> show getWallet ]
 
 addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =

@@ -46,7 +46,8 @@ import           Language.Haskell.Interpreter               (CompilationError, I
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                             equal, genericShow, mkSumType, order, writePSTypesWith)
+                                                             equal, genericShow, mkSumType, order, typeModule, typeName,
+                                                             writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
@@ -94,6 +95,7 @@ myBridge =
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
+    walletIdBridge <|>
     defaultBridge
 
 data MyBridge
@@ -104,6 +106,12 @@ myBridgeProxy = Proxy
 instance HasBridge MyBridge where
     languageBridge _ = buildBridge myBridge
 
+walletIdBridge :: BridgePart
+walletIdBridge = do
+    typeName ^== "WalletId"
+    typeModule ^== "Wallet.Emulator.Wallet"
+    pure PSGenerator.Common.psBigInteger
+
 myTypes :: [SumType 'Haskell]
 myTypes =
     PSGenerator.Common.ledgerTypes <>
@@ -111,7 +119,8 @@ myTypes =
     [ (genericShow <*> (equal <*> mkSumType)) (Proxy @CompilationResult)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Warning)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SourceCode)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EM.Wallet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.Wallet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletNumber)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Simulation)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)

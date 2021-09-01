@@ -64,7 +64,7 @@ import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
 import qualified PlutusTx.Ratio         as P
-import           Wallet.Emulator.Wallet (Wallet, WalletId)
+import           Wallet.Emulator.Wallet (Wallet, WalletId, WalletNumber)
 import           Wallet.Types           (ContractInstanceId)
 
 import           Text.Show.Deriving     (deriveShow1)
@@ -406,10 +406,14 @@ deriving anyclass instance ToSchema ValidatorHash
 
 deriving anyclass instance ToSchema Wallet
 
+deriving anyclass instance ToSchema WalletNumber
+
 
 deriving anyclass instance ToArgument Ada
 
 deriving anyclass instance ToArgument Wallet
+
+deriving anyclass instance ToArgument WalletNumber
 
 instance ToArgument WalletId where
     toArgument = Fix . FormStringF . Just . show

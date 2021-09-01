@@ -34,6 +34,7 @@ import           Data.Bifunctor
 import qualified Data.ByteString                as BS
 import           Data.Foldable
 import           Data.Hashable                  (Hashable (..))
+import           Data.List                      (findIndex)
 import qualified Data.Map                       as Map
 import           Data.Maybe
 import           Data.Ord
@@ -149,13 +150,17 @@ knownWallets = Wallet . MockWallet <$> knownPrivateKeys
 knownWallet :: Integer -> Wallet
 knownWallet = (knownWallets !!) . pred . fromInteger
 
--- | Wrapper for config files
+-- | Wrapper for config files and APIs
 newtype WalletNumber = WalletNumber { getWallet :: Integer }
-    deriving (Show, Eq, Generic)
+    deriving (Show, Eq, Ord, Generic)
+    deriving newtype (ToHttpApiData, FromHttpApiData)
     deriving anyclass (FromJSON, ToJSON)
 
-configWallet :: WalletNumber -> Wallet
-configWallet (WalletNumber i) = knownWallet i
+fromWalletNumber :: WalletNumber -> Wallet
+fromWalletNumber (WalletNumber i) = knownWallet i
+
+toWalletNumber :: Wallet -> WalletNumber
+toWalletNumber w = maybe (WalletNumber 8) (WalletNumber . toInteger . succ) $ findIndex (== w) knownWallets
 
 data WalletEvent =
     GenericLog T.Text

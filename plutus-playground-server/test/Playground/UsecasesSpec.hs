@@ -44,12 +44,11 @@ import           Playground.Types             (CompilationResult (CompilationRes
                                                resultRollup, simulatorWalletBalance, simulatorWalletWallet, sourceCode,
                                                walletKeys, wallets)
 import           Playground.Usecases          (crowdFunding, errorHandling, game, vesting)
-import           Plutus.Contract.Test         (w1, w2, w3, w4, w5)
 import           Schema                       (FormSchema (FormSchemaUnit, FormSchemaValue))
 import           System.Environment           (lookupEnv)
 import           Test.Tasty                   (TestTree, testGroup)
 import           Test.Tasty.HUnit             (Assertion, assertBool, assertEqual, assertFailure, testCase)
-import           Wallet.Emulator.Types        (Wallet (Wallet))
+import           Wallet.Emulator.Types        (WalletNumber (..), fromWalletNumber)
 import           Wallet.Rollup.Render         (showBlockchain)
 import           Wallet.Rollup.Types          (AnnotatedTx (..))
 import           Wallet.Types                 (EndpointDescription (EndpointDescription))
@@ -69,7 +68,18 @@ tests =
 maxInterpretationTime :: Minute
 maxInterpretationTime = 2
 
-mkSimulatorWallet :: Wallet -> Value -> SimulatorWallet
+w1, w2, w3, w4, w5 :: WalletNumber
+w1 = WalletNumber 1
+
+w2 = WalletNumber 2
+
+w3 = WalletNumber 3
+
+w4 = WalletNumber 4
+
+w5 = WalletNumber 5
+
+mkSimulatorWallet :: WalletNumber -> Value -> SimulatorWallet
 mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
     SimulatorWallet {..}
 
@@ -230,7 +240,9 @@ hasFundsDistribution requiredDistribution (Right InterpreterResult {result = Eva
     let noFeesDistribution = zipWith addFees fundsDistribution feesDistribution
     unless (requiredDistribution == noFeesDistribution) $ do
         Text.putStrLn $
-            either id id $ showBlockchain walletKeys $ fmap (fmap (\AnnotatedTx {tx, valid} -> if valid then Valid tx else Invalid tx)) resultRollup
+            either id id $ showBlockchain
+                (fmap (fmap fromWalletNumber) walletKeys)
+                (fmap (fmap (\AnnotatedTx {tx, valid} -> if valid then Valid tx else Invalid tx)) resultRollup)
         traverse_ print $ reverse emulatorLog
     assertEqual "" requiredDistribution noFeesDistribution
 
@@ -341,7 +353,7 @@ compilationChecks source =
 toJSONString :: ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
 
-callEndpoint :: ToJSON a => EndpointDescription -> Wallet -> a -> Expression
+callEndpoint :: ToJSON a => EndpointDescription -> WalletNumber -> a -> Expression
 callEndpoint endpointDescription caller param =
     CallEndpoint
         { caller

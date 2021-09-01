@@ -27,7 +27,6 @@ module Plutus.PAB.Webserver.WebSocket
     , observableStateChange
     ) where
 
-import qualified Cardano.Wallet.Mock                     as Mock
 import           Control.Concurrent.Async                (Async, async, waitAnyCancel)
 import           Control.Concurrent.STM                  (STM)
 import qualified Control.Concurrent.STM                  as STM

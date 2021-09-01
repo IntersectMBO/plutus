@@ -13,16 +13,16 @@ module SchemaSpec
 import           Data.Functor.Foldable (Fix (Fix))
 import           Data.Text             (Text)
 import           GHC.Generics          (Generic)
--- import           Ledger.Ada            (lovelaceValueOf)
--- import           Ledger.Value          (Value)
--- import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
+import           Ledger.Ada            (lovelaceValueOf)
+import           Ledger.Value          (Value)
+import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
 import           Schema                (FormArgument,
-                                        FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormIntegerF, FormObjectF, FormRadioF, FormStringF),
+                                        FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormIntegerF, FormObjectF, FormRadioF, FormStringF, FormValueF),
                                         FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaInteger, FormSchemaMaybe, FormSchemaObject, FormSchemaRadio, FormSchemaString, FormSchemaTuple),
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Tasty            (TestTree, testGroup)
 import           Test.Tasty.HUnit      (assertEqual, testCase)
--- import           Wallet.Emulator.Types (knownWallet)
+import           Wallet.Emulator.Types (WalletNumber (WalletNumber))
 
 tests :: TestTree
 tests = testGroup "Schema" [toSchemaTests, toArgumentTests]
@@ -96,15 +96,15 @@ toArgumentTests =
                   "Size"
                   (toArgument Medium)
                   (formRadioF ["Small", "Medium", "Large"] (Just "Medium"))
-            --   let payTo = knownWallet 1
-            --       value = lovelaceValueOf 20
-            --   assertEqual
-            --       "PayToWalletParams"
-            --       (toArgument PayToWalletParams {payTo, value})
-            --       (formObjectF
-            --            [ ("payTo", formObjectF [("getWallet", formIntegerF 1)])
-            --            , ("value", formValueF value)
-            --            ])
+              let payTo = WalletNumber 1
+                  value = lovelaceValueOf 20
+              assertEqual
+                  "PayToWalletParams"
+                  (toArgument PayToWalletParams {payTo, value})
+                  (formObjectF
+                       [ ("payTo", formObjectF [("getWallet", formIntegerF 1)])
+                       , ("value", formValueF value)
+                       ])
         ]
 
 data User =
@@ -136,8 +136,8 @@ formBoolF = Fix . FormBoolF
 formStringF :: String -> FormArgument
 formStringF = Fix . FormStringF . Just
 
--- formValueF :: Value -> FormArgument
--- formValueF = Fix . FormValueF
+formValueF :: Value -> FormArgument
+formValueF = Fix . FormValueF
 
 formRadioF :: [String] -> Maybe String -> FormArgument
 formRadioF options selection = Fix $ FormRadioF options selection

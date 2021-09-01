@@ -9,15 +9,15 @@ import qualified Ledger.Ada            as Ada
 import           Playground.Types      (ContractCall (AddBlocksUntil), Simulation (Simulation), SimulatorAction,
                                         simulationActions, simulationId, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
-import           Wallet.Emulator.Types (Wallet, knownWallet)
+import           Wallet.Emulator.Types (WalletNumber (..))
 
 simulations :: [Simulation]
 simulations = [basicCrowdfunding]
   where
-    wallet1 = knownWallet 1
-    wallet2 = knownWallet 2
-    wallet3 = knownWallet 3
-    wallet4 = knownWallet 4
+    wallet1 = WalletNumber 1
+    wallet2 = WalletNumber 2
+    wallet3 = WalletNumber 3
+    wallet4 = WalletNumber 4
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100_000_000 <$>
         [wallet1, wallet2, wallet3, wallet4]
@@ -35,10 +35,10 @@ simulations = [basicCrowdfunding]
                   ]
             }
 
-scheduleCollection :: Wallet -> SimulatorAction
+scheduleCollection :: WalletNumber -> SimulatorAction
 scheduleCollection caller = callEndpoint caller "schedule collection" ()
 
-contribute :: Wallet -> Integer -> SimulatorAction
+contribute :: WalletNumber -> Integer -> SimulatorAction
 contribute caller lovelace =
     callEndpoint
         caller

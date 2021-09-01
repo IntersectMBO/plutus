@@ -95,4 +95,4 @@ main trace WalletConfig { baseUrl, wallet } feeCfg serverSocket slotCfg (ChainIn
              $ flip handleError (error . show @ClientError)
              $ runReader env
              $ reinterpret2 ChainIndexClient.handleChainIndexClient
-             $ startWatching (Wallet.walletAddress . Wallet.configWallet $ wallet)
+             $ startWatching (Wallet.walletAddress . Wallet.fromWalletNumber $ wallet)
