@@ -4,10 +4,10 @@ module Language.Marlowe.ACTUS.Analysis
   (genProjectedCashflows)
 where
 
-import           Control.Applicative                                   (Alternative ((<|>)))
-import qualified Data.List                                             as L (dropWhile, find, groupBy, scanl, tail, zip)
-import qualified Data.Map                                              as M (fromList, lookup)
-import           Data.Maybe                                            (fromJust, fromMaybe, isNothing)
+import           Control.Applicative                                   ((<|>))
+import qualified Data.List                                             as L (find, groupBy)
+import qualified Data.Map                                              as M (lookup)
+import           Data.Maybe                                            (fromMaybe, isNothing)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents     (DataObserved, EventType (..), RiskFactors (..),
@@ -41,7 +41,7 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
 
       states =
         let initialState = (initializeState ct, AD, ShiftedDay ct_SD ct_SD)
-         in filter filtersStates . L.tail $ L.scanl applyStateTransition initialState events
+         in filter filtersStates . tail $ scanl applyStateTransition initialState events
 
       -- payoff
       calculatePayoff (st, ev, date) =
@@ -64,7 +64,7 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
             currency = "ada"
           }
 
-   in sortOn cashPaymentDay $ genCashflow <$> L.zip states payoffs
+   in sortOn cashPaymentDay $ genCashflow <$> zip states payoffs
 
   where
 
@@ -84,17 +84,16 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
 
     postProcessSchedule :: [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
     postProcessSchedule =
-      let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD)
-          prioritised = [IED, FP, PR, PD, PY, PP, IP, IPCI, CE, RRF, RR, PRF, DV, PRD, MR, TD, SC, IPCB, MD, XD, STD, AD]
+      let trim = dropWhile (\(_, d) -> calculationDay d < ct_SD)
 
-          priority :: (EventType, ShiftedDay) -> Integer
-          priority (event, _) = fromJust $ M.lookup event $ M.fromList (zip prioritised [1 ..])
+          priority :: (EventType, ShiftedDay) -> Int
+          priority (event, _) = fromEnum event
 
           similarity (_, l) (_, r) = calculationDay l == calculationDay r
           regroup = L.groupBy similarity
 
           overwrite = map (sortOn priority) . regroup
-       in concat . (overwrite . trim)
+       in concat . overwrite . trim
 
     getRiskFactors :: EventType -> Day -> RiskFactors
     getRiskFactors ev date =
