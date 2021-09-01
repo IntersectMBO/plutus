@@ -1,7 +1,9 @@
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-|
 
 Interface to the transaction types from 'cardano-api'
@@ -36,11 +38,16 @@ module Plutus.Contract.CardanoAPI(
   , toCardanoPaymentKeyHash
   , toCardanoScriptHash
   , ToCardanoError(..)
+  , FromCardanoError(..)
 ) where
 
 import qualified Cardano.Api                    as C
+import qualified Cardano.Api.Byron              as C
 import qualified Cardano.Api.Shelley            as C
+import           Cardano.BM.Data.Tracer         (ToObject (..))
+import           Cardano.Chain.Common           (addrToBase58)
 import qualified Codec.Serialise                as Codec
+import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Bifunctor                 (first)
 import           Data.ByteString                as BS
 import qualified Data.ByteString.Lazy           as BSL
@@ -48,6 +55,7 @@ import           Data.ByteString.Short          as BSS
 import qualified Data.Map                       as Map
 import qualified Data.Set                       as Set
 import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, (<+>))
+import           GHC.Generics                   (Generic)
 import qualified Ledger                         as P
 import qualified Ledger.Ada                     as Ada
 import           Plutus.Contract.CardanoAPITemp (makeTransactionBody')
@@ -184,7 +192,16 @@ toCardanoTxOut networkId (P.TxOut addr value datumHash) =
             <*> toCardanoTxOutDatumHash datumHash
 
 fromCardanoAddress :: C.AddressInEra era -> Either FromCardanoError P.Address
-fromCardanoAddress (C.AddressInEra C.ByronAddressInAnyEra _) = Left ByronAddressesNotSupported
+fromCardanoAddress (C.AddressInEra C.ByronAddressInAnyEra (C.ByronAddress address)) =
+    Right $ P.Address plutusCredential Nothing
+    where
+      plutusCredential :: Credential.Credential
+      plutusCredential =
+          Credential.PubKeyCredential
+        $ P.PubKeyHash
+        $ PlutusTx.toBuiltin
+        $ addrToBase58 address
+
 fromCardanoAddress (C.AddressInEra _ (C.ShelleyAddress _ paymentCredential stakeAddressReference)) =
     P.Address (fromCardanoPaymentCredential (C.fromShelleyPaymentCredential paymentCredential))
         <$> fromCardanoStakeAddressReference (C.fromShelleyStakeReference stakeAddressReference)
@@ -388,12 +405,12 @@ tag s = first (Tag s)
 
 data FromCardanoError
     = SimpleScriptsNotSupported
-    | ByronAddressesNotSupported
     | StakeAddressPointersNotSupported
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON, ToObject)
 
 instance Pretty FromCardanoError where
     pretty SimpleScriptsNotSupported        = "Simple scripts are not supported"
-    pretty ByronAddressesNotSupported       = "Byron era addresses are not supported"
     pretty StakeAddressPointersNotSupported = "Stake address pointers are not supported"
 
 data ToCardanoError
