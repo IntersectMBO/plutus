@@ -35,6 +35,7 @@ module Plutus.Contract.Request(
     , watchAddressUntilSlot
     , watchAddressUntilTime
     , awaitUtxoSpent
+    , withTimeout
     , utxoIsSpent
     , awaitUtxoProduced
     , utxoIsProduced
@@ -180,6 +181,24 @@ awaitTime ::
     => POSIXTime
     -> Contract w s e POSIXTime
 awaitTime s = pabReq (AwaitTimeReq s) E._AwaitTimeResp
+
+
+-- | Await a promise, or throw an error after timeout
+withTimeout
+  :: forall w endpoints err a.
+     AsContractError err
+  => -- | Timeout duration to wait for. Note: this will round to Slot time
+     POSIXTime
+  -> -- | Error thrown on timeout
+     err
+  -> Promise w endpoints err a
+  -> Contract w endpoints err a
+withTimeout len err promise = do
+  time <- currentTime
+  result <-
+    awaitPromise $
+      promise `selectEither` isTime (time + len)
+  either pure (const $ throwError err) result
 
 -- | Wait until the slot where the given time falls into and return latest time
 -- we know has passed.
