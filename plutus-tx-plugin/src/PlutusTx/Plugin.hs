@@ -367,7 +367,6 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierRemoveDeadBindings) (poDoSimplifierRemoveDeadBindings opts)
 
 
     -- GHC.Core -> Pir translation.
