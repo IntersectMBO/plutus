@@ -121,9 +121,11 @@ test-suite plutus-tx-test
         bytestring -any,
         plutus-core -any,
         plutus-tx -any,
+        QuickCheck -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
+        tasty-quickcheck -any,
         serialise -any,
         cborg -any

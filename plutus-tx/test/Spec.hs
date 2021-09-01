@@ -22,6 +22,10 @@ import           Test.Tasty
 import           Test.Tasty.HUnit    (testCase, (@?=))
 import           Test.Tasty.Hedgehog (testProperty)
 
+import qualified Suites.Natural      as Natural
+import qualified Suites.Set          as Set
+import qualified Suites.UniqueMap    as UniqueMap
+
 main :: IO ()
 main = defaultMain tests
 
@@ -32,6 +36,9 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
+    , testGroup "Natural" Natural.tests
+    , testGroup "Set" Set.tests
+    , testGroup "UniqueMap" UniqueMap.tests
     ]
 
 sqrtTests :: TestTree
