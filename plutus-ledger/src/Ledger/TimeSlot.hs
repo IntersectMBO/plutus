@@ -22,9 +22,13 @@ module Ledger.TimeSlot(
 , posixTimeRangeToContainedSlotRange
 , posixTimeToEnclosingSlot
 , currentSlot
+, mkTimeRangeWidth
+, roundSlotStart
+, roundSlotEnd
 ) where
 
 import           Codec.Serialise           (Serialise)
+import           Control.Arrow             ((>>>))
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Default              (Default (def))
@@ -34,6 +38,7 @@ import qualified Data.Time.Clock.POSIX     as Time
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Interval (Extended (..), Interval (Interval), LowerBound (..), UpperBound (..),
                                             interval, member)
+import qualified Plutus.V1.Ledger.Interval as Interval
 import           Plutus.V1.Ledger.Slot     (Slot (Slot), SlotRange)
 import           Plutus.V1.Ledger.Time     (POSIXTime (POSIXTime, getPOSIXTime), POSIXTimeRange)
 import           PlutusTx.Lift             (makeLift)
@@ -144,4 +149,42 @@ currentSlot sc = timeToSlot <$> Time.getPOSIXTime
                  . (* 1000) -- Convert to ms
                  . Haskell.floor
                  . Time.nominalDiffTimeToSeconds
+
+{- | Construct a POSIXTimeRange, from a given `POSIXTime` and a max width,
+ rounding to the equivalent `Slot` times which will be passed on-chain.
+-}
+mkTimeRangeWidth
+  :: SlotConfig
+  -> POSIXTime
+  -> POSIXTime
+  -> POSIXTimeRange
+mkTimeRangeWidth
+  cfg@SlotConfig {scSlotLength}
+  from
+  width@(POSIXTime w) =
+    Interval
+      (Interval.lowerBound $ roundSlotStart cfg from)
+      (Interval.strictUpperBound end)
+    where
+      end :: POSIXTime
+      end =
+        if w <= scSlotLength
+          then roundSlotEnd cfg from
+          else roundSlotStart cfg (from + width) - 1
+
+-- | Round POSIXTime to the start of the enclosing slot
+roundSlotStart
+  :: SlotConfig
+  -> POSIXTime
+  -> POSIXTime
+roundSlotStart cfg =
+  posixTimeToEnclosingSlot cfg >>> slotToBeginPOSIXTime cfg
+
+-- | Round POSIXTime to the end of the enclosing slot
+roundSlotEnd
+  :: SlotConfig
+  -> POSIXTime
+  -> POSIXTime
+roundSlotEnd cfg =
+  posixTimeToEnclosingSlot cfg >>> slotToEndPOSIXTime cfg
 
