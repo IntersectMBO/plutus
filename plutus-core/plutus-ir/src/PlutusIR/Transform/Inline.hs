@@ -102,12 +102,13 @@ type ExternalConstraints tyname name uni fun m =
     , MonadQuote m
     )
 
-type Inlining tyname name uni fun a m =
-    ( MonadState (Subst tyname name uni fun a) m
-    , MonadReader Deps.StrictnessMap m
-    , MonadQuote m
-    , ExternalConstraints tyname name uni fun m
+type InliningConstraints tyname name uni fun =
+    ( HasUnique name TermUnique
+    , HasUnique tyname TypeUnique
+    , PLC.ToBuiltinMeaning uni fun
     )
+
+type Inlining tyname name uni fun a = ReaderT Deps.StrictnessMap (StateT (Subst tyname name uni fun a) Quote)
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -159,7 +160,7 @@ inline t =
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps t
-    in flip runReaderT (snd deps) $ flip evalStateT mempty $ processTerm t
+    in liftQuote $ flip evalStateT mempty $ flip runReaderT (snd deps) $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
@@ -174,11 +175,11 @@ This might mean reinventing GHC's OccAnal...
 -}
 
 processTerm
-    :: forall tyname name uni fun a m. Inlining tyname name uni fun a m
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Term tyname name uni fun a
-    -> m (Term tyname name uni fun a)
+    -> Inlining tyname name uni fun a (Term tyname name uni fun a)
 processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
-    handleTerm :: Term tyname name uni fun a -> m (Term tyname name uni fun a)
+    handleTerm :: Term tyname name uni fun a -> Inlining tyname name uni fun a (Term tyname name uni fun a)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
         Let a NonRec bs t -> do
@@ -195,16 +196,16 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             pure $ mkLet a NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> forMOf termSubterms t processTerm
-    applyTypeSubstitution :: Type tyname uni a -> m (Type tyname uni a)
+    applyTypeSubstitution :: Type tyname uni a -> Inlining tyname name uni fun a (Type tyname uni a)
     applyTypeSubstitution = typeSubstTyNamesM substTyName
     -- See Note [Renaming strategy]
-    substTyName :: tyname -> m (Maybe (Type tyname uni a))
+    substTyName :: tyname -> Inlining tyname name uni fun a (Maybe (Type tyname uni a))
     substTyName tyname = gets (lookupType tyname) >>= traverse PLC.rename
     -- See Note [Renaming strategy]
-    substName :: name -> m (Maybe (Term tyname name uni fun a))
+    substName :: name -> Inlining tyname name uni fun a (Maybe (Term tyname name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-    renameTerm :: InlineTerm tyname name uni fun a -> m (Term tyname name uni fun a)
+    renameTerm :: InlineTerm tyname name uni fun a -> Inlining tyname name uni fun a (Term tyname name uni fun a)
     renameTerm = \case
         -- Already processed term, just rename and put it in, don't do any
         -- further optimization here.
@@ -231,9 +232,9 @@ We rename both terms and types as both may have binders in them.
 -}
 
 processSingleBinding
-    :: Inlining tyname name uni fun a m
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Binding tyname name uni fun a
-    -> m (Maybe (Binding tyname name uni fun a))
+    -> Inlining tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding = \case
     -- See Note [Inlining various kinds of binding]
     TermBind a s v@(VarDecl _ n _) rhs -> do
@@ -247,11 +248,11 @@ processSingleBinding = \case
     b -> Just <$> forMOf bindingSubterms b processTerm
 
 maybeAddSubst
-    :: Inlining tyname name uni fun a m
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Strictness
     -> name
     -> Term tyname name uni fun a
-    -> m (Maybe (Term tyname name uni fun a))
+    -> Inlining tyname name uni fun a (Maybe (Term tyname name uni fun a))
 maybeAddSubst s n rhs = do
     -- Only do PostInlineUnconditional
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -284,7 +285,9 @@ unconditionally.
 
 -- | Should we inline? Should only inline things that won't duplicate work or code.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-postInlineUnconditional :: Inlining tyname name uni fun a m => Strictness -> Term tyname name uni fun a -> m Bool
+postInlineUnconditional
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    => Strictness -> Term tyname name uni fun a -> Inlining tyname name uni fun a Bool
 postInlineUnconditional s t = do
     strictnessMap <- ask
     let -- See Note [Inlining criteria]
