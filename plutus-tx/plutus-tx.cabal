@@ -40,6 +40,7 @@ library
         PlutusTx.Prelude
         PlutusTx.Evaluation
         PlutusTx.Applicative
+        PlutusTx.Arbitrary
         PlutusTx.Bool
         PlutusTx.IsData
         PlutusTx.IsData.Class
