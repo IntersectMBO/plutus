@@ -1,5 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
+module PlutusTx.Functor
+    ( Functor(..)
+    , (<$>)
+    , (<$)
+    , ($>)
+    , const
+    , id
+    ) where
 
 import           Control.Applicative   (Const (..))
 import           Data.Functor.Identity (Identity (..))
@@ -26,6 +33,12 @@ infixl 4 <$
 -- | Plutus Tx version of '(Data.Functor.<$)'.
 (<$) :: Functor f => a -> f b -> f a
 (<$) a fb = fmap (const a) fb
+
+infixl 4 $>
+{-# INLINEABLE ($>) #-}
+-- | Flipped version of '<$'.
+($>) :: Functor f => f a -> b -> f b
+f $> x = x <$ f
 
 instance Functor [] where
     {-# INLINABLE fmap #-}
