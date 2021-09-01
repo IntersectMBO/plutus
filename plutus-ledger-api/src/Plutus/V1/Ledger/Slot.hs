@@ -17,7 +17,7 @@
 module Plutus.V1.Ledger.Slot(
       Slot(..)
     , SlotRange
-    , width
+    , slotWidth
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
@@ -33,7 +33,7 @@ import qualified PlutusTx                  as PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Interval
+import           Plutus.V1.Ledger.Interval hiding (slotWidth)
 
 {- HLINT ignore "Redundant if" -}
 
@@ -53,16 +53,16 @@ instance Pretty Slot where
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
 
-{-# INLINABLE width #-}
--- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.
-width :: SlotRange -> Maybe Integer
-width (Interval (LowerBound (Finite (Slot s1)) in1) (UpperBound (Finite (Slot s2)) in2)) =
+{-# INLINABLE slotWidth #-}
+-- | Number of 'Slot's covered by the interval, if finite. @slotWidth (from x) == Nothing@.
+slotWidth :: SlotRange -> Maybe Integer
+slotWidth (Interval (LowerBound (Finite (Slot s1)) in1) (UpperBound (Finite (Slot s2)) in2)) =
     let lowestValue = if in1 then s1 else s1 + 1
         highestValue = if in2 then s2 else s2 - 1
     in if lowestValue <= highestValue
-    -- +1 avoids fencepost error: width of [2,4] is 3.
+    -- +1 avoids fencepost error: slotWidth of [2,4] is 3.
     then Just $ (highestValue - lowestValue) + 1
     -- low > high, i.e. empty interval
     else Nothing
 -- Infinity is involved!
-width _ = Nothing
+slotWidth _ = Nothing
