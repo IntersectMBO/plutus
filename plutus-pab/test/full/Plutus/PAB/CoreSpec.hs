@@ -12,14 +12,14 @@
 module Plutus.PAB.CoreSpec
     ( tests
     , stopContractInstanceTest
-    , walletFundsChangeTest
+    , valueAtTest
     , observableStateChangeTest
     , runScenario
     , assertEqual
     ) where
 
 import           Control.Concurrent.STM.Extras.Stream     (readN, readOne)
-import           Control.Lens                             ((&), (+~), (^.))
+import           Control.Lens                             (view, (&), (+~), (^.))
 import           Control.Monad                            (unless, void)
 import           Control.Monad.Freer                      (Eff, Member, Members)
 import           Control.Monad.Freer.Error                (Error, throwError)
@@ -31,10 +31,11 @@ import           Control.Monad.IO.Class                   (MonadIO (..))
 import qualified Data.Aeson                               as JSON
 import           Data.Foldable                            (fold, traverse_)
 
+import qualified Cardano.Wallet.Mock                      as Mock
 import qualified Data.Aeson.Types                         as JSON
 import           Data.Either                              (isRight)
 import qualified Data.Map                                 as Map
-import           Data.Maybe                               (isJust)
+import           Data.Maybe                               (catMaybes, isJust)
 import qualified Data.Monoid                              as M
 import           Data.Proxy                               (Proxy (..))
 import           Data.Semigroup                           (Last (..))
@@ -42,11 +43,13 @@ import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
-import           Ledger                                   (pubKeyAddress)
+import           Ledger                                   (addressCredential, ciTxOutValue, pubKeyAddress,
+                                                           pubKeyHashAddress, txId)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import qualified Ledger.Ada                               as Ada
 import qualified Ledger.AddressMap                        as AM
 import           Ledger.Value                             (valueOf)
+import qualified Plutus.ChainIndex                        as ChainIndex
 import           Plutus.Contract.State                    (ContractResponse (..))
 import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
@@ -71,7 +74,7 @@ import           Test.Tasty.HUnit                         (testCase)
 import           Wallet.API                               (WalletAPIError, ownPubKey)
 import qualified Wallet.API                               as WAPI
 import qualified Wallet.Emulator.Chain                    as Chain
-import           Wallet.Emulator.Wallet                   (Wallet, knownWallet)
+import           Wallet.Emulator.Wallet                   (Wallet (..), knownWallet)
 import           Wallet.Rollup                            (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                      (DereferencedInput, dereferencedInputs, isFound)
 import           Wallet.Types                             (ContractInstanceId)
@@ -114,7 +117,7 @@ executionTests =
         , testCase "wait for update" waitForUpdateTest
         , testCase "stop contract instance" stopContractInstanceTest
         , testCase "can subscribe to slot updates" slotChangeTest
-        , testCase "can subscribe to wallet funds changes" walletFundsChangeTest
+        , testCase "can query wallet funds" valueAtTest
         , testCase "can subscribe to observable state changes" observableStateChangeTest
         ]
 
@@ -156,25 +159,23 @@ slotChangeTest = runScenario $ do
     ns <- liftIO (readN 5 stream)
     assertEqual "Should wait for five slots" 5 (length ns)
 
-walletFundsChangeTest :: IO ()
-walletFundsChangeTest = runScenario $ do
+valueAtTest :: IO ()
+valueAtTest = runScenario $ do
     let initialBalance = lovelaceValueOf 10_000_000_000
         payment = lovelaceValueOf 50
         fee     = lovelaceValueOf 10 -- TODO: Calculate the fee from the tx
 
-    env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
-    let stream = WS.walletFundsChange defaultWallet env
-    (initialValue, next) <- liftIO (readOne stream)
+    initialValue <- Core.valueAt defaultWallet
     (wllt, pk) <- Simulator.addWallet
-    _ <- Simulator.payToPublicKey defaultWallet pk payment
-    nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
-    (finalValue, _) <- liftIO (readOne nextStream)
+    tx <- Simulator.payToPublicKey defaultWallet pk payment
+    -- Waiting for the tx to be confirmed
+    _ <- Core.waitForTxStatusChange $ txId tx
+    finalValue <- Core.valueAt defaultWallet
     let difference = initialValue <> inv finalValue
     assertEqual "defaultWallet should make a payment" difference (payment <> fee)
 
     -- Check that the funds are correctly registered in the newly created wallet
-    let stream2 = WS.walletFundsChange wllt env
-    vl2 <- liftIO (readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    vl2 <- Core.valueAt wllt
     assertEqual "generated wallet should receive a payment" (initialBalance <> payment) vl2
 
 observableStateChangeTest :: IO ()

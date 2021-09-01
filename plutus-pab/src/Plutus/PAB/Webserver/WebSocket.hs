@@ -1,12 +1,10 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-
@@ -21,7 +19,6 @@ module Plutus.PAB.Webserver.WebSocket
     -- * Reports
     , getContractReport
     -- ** Streams of PAB events
-    , walletFundsChange
     , openEndpoints
     , slotChange
     , observableStateChange
@@ -45,7 +42,6 @@ import           Data.Set                                (Set)
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.Text                               as Text
-import qualified Ledger
 import           Ledger.Slot                             (Slot)
 import qualified Network.WebSockets                      as WS
 import           Network.WebSockets.Connection           (Connection, PendingConnection)
@@ -63,7 +59,6 @@ import           Plutus.PAB.Webserver.Types              (CombinedWSStreamToClie
                                                           InstanceStatusToClient (..))
 import           Servant                                 ((:<|>) ((:<|>)))
 import           Wallet.Emulator.Wallet                  (Wallet (..))
-import qualified Wallet.Emulator.Wallet                  as Wallet
 import           Wallet.Types                            (ContractInstanceId (..))
 
 getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
@@ -95,12 +90,10 @@ instancesAndWallets WSState{wsInstances, wsWallets} =
 
 combinedWSStreamToClient :: WSState -> BlockchainEnv -> InstancesState -> STMStream CombinedWSStreamToClient
 combinedWSStreamToClient wsState blockchainEnv instancesState = do
-    (instances, wallets) <- instancesAndWallets wsState
-    let mkWalletStream wallet = WalletFundsChange wallet <$> walletFundsChange wallet blockchainEnv
-        mkInstanceStream instanceId = InstanceUpdate instanceId <$> instanceUpdates instanceId instancesState
+    (instances, _) <- instancesAndWallets wsState
+    let mkInstanceStream instanceId = InstanceUpdate instanceId <$> instanceUpdates instanceId instancesState
     fold
         [ SlotChange <$> slotChange blockchainEnv
-        , foldMap mkWalletStream wallets
         , foldMap mkInstanceStream instances
         ]
 
@@ -110,10 +103,10 @@ initialWSState = WSState <$> STM.newTVar mempty <*> STM.newTVar mempty
 slotChange :: BlockchainEnv -> STMStream Slot
 slotChange = unfold . Instances.currentSlot
 
-walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
--- TODO: Change from 'Wallet' to 'Address' (see SCP-2208)
-walletFundsChange wallet blockchainEnv =
-    unfold (Instances.valueAt (Wallet.walletAddress wallet) blockchainEnv)
+-- walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
+-- -- TODO: Change from 'Wallet' to 'Address' (see SCP-2208)
+-- walletFundsChange wallet blockchainEnv =
+--     unfold (Instances.valueAt (Wallet.walletAddress wallet) blockchainEnv)
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
 observableStateChange contractInstanceId instancesState =

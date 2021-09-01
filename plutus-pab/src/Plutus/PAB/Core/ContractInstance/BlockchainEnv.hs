@@ -20,9 +20,7 @@ import qualified Cardano.Protocol.Socket.Mock.Client    as MockClient
 import           Data.FingerTree                        (Measured (..))
 import qualified Data.Map                               as Map
 import           Data.Monoid                            (Last (..), Sum (..))
-import           Ledger                                 (Block, OnChainTx, Slot, TxId (..))
-import           Ledger.AddressMap                      (AddressMap)
-import qualified Ledger.AddressMap                      as AddressMap
+import           Ledger                                 (Block, Slot, TxId (..))
 import           Plutus.PAB.Core.ContractInstance.STM   (BlockchainEnv (..), InstanceClientEnv (..), InstancesState,
                                                          OpenTxOutProducedRequest (..), OpenTxOutSpentRequest (..),
                                                          emptyBlockchainEnv)
@@ -151,14 +149,11 @@ insertNewTx blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, txValidity) 
 -- | Go through the transactions in a block, updating the 'BlockchainEnv'
 --   when any interesting addresses or transactions have changed.
 processMockBlock :: InstancesState -> BlockchainEnv -> Block -> Slot -> STM ()
-processMockBlock instancesState env@BlockchainEnv{beAddressMap, beCurrentSlot, beCurrentBlock} transactions slot = do
+processMockBlock instancesState env@BlockchainEnv{beCurrentSlot, beCurrentBlock} transactions slot = do
   lastSlot <- STM.readTVar beCurrentSlot
   when (slot > lastSlot) $ do
     STM.writeTVar beCurrentSlot slot
   unless (null transactions) $ do
-    addressMap <- STM.readTVar beAddressMap
-    let addressMap' = foldl' (processTx slot) addressMap transactions
-    STM.writeTVar beAddressMap addressMap'
     blockNumber <- STM.readTVar beCurrentBlock
 
     let tip = Tip { tipSlot = slot
@@ -170,10 +165,3 @@ processMockBlock instancesState env@BlockchainEnv{beAddressMap, beCurrentSlot, b
 
     instEnv <- S.instancesClientEnv instancesState
     updateInstances (indexBlock $ fmap fromOnChainTx transactions) instEnv
-
-processTx :: Slot -> AddressMap -> OnChainTx -> AddressMap
-processTx _ addressMap tx = addressMap' where
-  -- TODO: Will be removed in a future issue
-  addressMap' = AddressMap.updateAllAddresses tx addressMap
-  -- TODO: updateInstances
-  -- We need to switch to using 'ChainIndexTx' everyhwere first, though.
