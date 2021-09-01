@@ -280,6 +280,7 @@
           "PlutusIR/Transform/Inline"
           "PlutusIR/Transform/LetFloat"
           "PlutusIR/Transform/LetMerge"
+          "PlutusIR/Transform/RecSplit"
           "PlutusIR/Transform/NonStrict"
           "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/Substitute"

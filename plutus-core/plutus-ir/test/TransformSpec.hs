@@ -20,6 +20,7 @@ import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.LetMerge        as LetMerge
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
+import qualified PlutusIR.Transform.RecSplit        as RecSplit
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 import qualified PlutusIR.Transform.Unwrap          as Unwrap
@@ -32,6 +33,7 @@ transform = testNested "transform" [
     thunkRecursions
     , nonStrict
     , letFloat
+    , recSplit
     , inline
     , beta
     , unwrapCancel
@@ -87,6 +89,20 @@ letFloat =
   ,"strictNonValueDeep"
   ,"regression1"
   ]
+
+recSplit :: TestNested
+recSplit =
+    testNested "recSplit"
+    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+  [
+    "truenonrec"
+  , "mutuallyRecursiveTypes"
+  , "mutuallyRecursiveValues"
+  , "selfrecursive"
+  , "small"
+  , "big"
+  ]
+
 
 instance Semigroup SourcePos where
   p1 <> _ = p1

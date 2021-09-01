@@ -61,10 +61,10 @@ instance name ~ Name => Reference Name (Binding tyname name uni fun) where
     referenceVia _ _ datatypeBind@DatatypeBind{} = datatypeBind
 
 instance Reference tyname t => Reference (TyVarDecl tyname ann) t where
-    referenceVia reg = referenceVia reg . tyVarDeclName
+    referenceVia reg = referenceVia reg . _tyVarDeclName
 
 instance Reference name t => Reference (VarDecl tyname name uni fun ann) t where
-    referenceVia reg = referenceVia reg . varDeclName
+    referenceVia reg = referenceVia reg . _varDeclName
 
 instance (Reference TyName t, Reference Name t) => Reference (Datatype TyName Name uni fun ann) t where
     referenceVia reg (Datatype _ dataDecl params matchName constrs)
