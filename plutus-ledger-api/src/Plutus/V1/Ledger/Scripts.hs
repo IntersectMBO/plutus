@@ -346,15 +346,15 @@ newtype RedeemerHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData, OpenApi.ToSchema)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype StakeValidatorHash =
@@ -362,7 +362,7 @@ newtype StakeValidatorHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey)
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
