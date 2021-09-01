@@ -61,6 +61,7 @@ library
         Ledger.TimeSlot
         Ledger.Tokens
         Ledger.Tx
+        Ledger.Arbitrary
         Ledger.Typed.Scripts
         Ledger.Typed.Scripts.MonetaryPolicies
         Ledger.Typed.Scripts.StakeValidators
@@ -79,7 +80,8 @@ library
         Plutus.V1.Ledger.Slot as Ledger.Slot,
         Plutus.V1.Ledger.TxId as Ledger.TxId,
         Plutus.V1.Ledger.Time as Ledger.Time,
-        Plutus.V1.Ledger.Value as Ledger.Value
+        Plutus.V1.Ledger.Value as Ledger.Value,
+        Plutus.V1.Ledger.Arbitrary as Ledger.V1.Arbitrary
         -- The rest of the plutus-ledger-api modules are reexported from within
         -- the Haskell modules and not in the current cabal file.
         -- For example: Plutus.V1.Ledger.Address is reexported by Ledger.Address
@@ -93,6 +95,7 @@ library
         containers -any,
         cryptonite >=0.25,
         data-default -any,
+        generic-arbitrary -any,
         flat -any,
         hashable -any,
         hedgehog -any,
