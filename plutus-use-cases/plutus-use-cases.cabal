@@ -213,6 +213,7 @@ executable plutus-use-cases-scripts
         plutus-ledger-api -any,
         plutus-tx -any,
         plutus-contract -any,
+        plutus-chain-index -any,
         plutus-ledger -any,
         plutus-use-cases -any,
         optparse-applicative -any,

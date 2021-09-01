@@ -1,14 +1,15 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect'
     in the emulator
 -}
@@ -22,6 +23,7 @@ module Plutus.ChainIndex.Emulator.Handlers(
     , ChainIndexLog(..)
     ) where
 
+import           Cardano.BM.Data.Tracer               (ToObject (..))
 import           Control.Lens                         (at, ix, makeLenses, over, preview, set, to, view, (&))
 import           Control.Monad.Freer                  (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error            (Error, throwError)
@@ -47,6 +49,7 @@ import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoPosition, InsertUtxoSuccess (..), RollbackResult (..),
                                                        UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
+import           Plutus.Contract.CardanoAPI           (FromCardanoError (..))
 import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
 import           Prettyprinter                        (Pretty (..), colon, (<+>))
 
@@ -194,6 +197,7 @@ instance Pretty ChainIndexError where
 
 data ChainIndexLog =
     InsertionSuccess Tip InsertUtxoPosition
+    | ConversionFailed FromCardanoError
     | RollbackSuccess Tip
     | Err ChainIndexError
     | TxNotFound TxId
@@ -201,7 +205,7 @@ data ChainIndexLog =
     | TipIsGenesis
     | NoDatumScriptAddr TxOut
     deriving stock (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, ToObject)
 
 instance Pretty ChainIndexLog where
   pretty = \case
@@ -213,6 +217,7 @@ instance Pretty ChainIndexLog where
       <> "."
       <+> pretty p
     RollbackSuccess t -> "RollbackSuccess: New tip is" <+> pretty t
+    ConversionFailed cvError -> "Conversion failed: " <+> pretty cvError
     Err ciError -> "ChainIndexError:" <+> pretty ciError
     TxNotFound txid -> "TxNotFound:" <+> pretty txid
     TxOutNotFound ref -> "TxOut not found with:" <+> pretty ref

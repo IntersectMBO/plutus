@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -54,6 +55,7 @@ data TxUtxoBalance =
         , _tubUnmatchedSpentInputs :: Set TxOutRef -- ^ Outputs spent by the transaction(s)
         }
         deriving stock (Eq, Show, Generic)
+        deriving anyclass (FromJSON, ToJSON)
 
 makeLenses ''TxUtxoBalance
 
@@ -77,6 +79,7 @@ data UtxoState =
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid UtxoState)
+        deriving anyclass (FromJSON, ToJSON)
 
 makeLenses ''UtxoState
 
