@@ -29,15 +29,15 @@ seconds.to.milliseconds <- function(x) { x * 1e6 }
 #
 ## This should only be used on data which can reasonably be assumed to be
 ## relatively evenly distributed, and this depends on how the benchmarking data
-## was generated. Currently the inputs for integer builtins are OK, but the
-## inputs for bytestring builtins grow exponentially, so there's a big variation
-## of scales in the results and there's a danger of throwing away sensible
-## results.  The bytestring buitlins seem to behave pretty regularly, so we
-## still get good models.  However, we're looking at a much narrower range of
-## input sizes for integers ("only" up to 31 words) and there outliers do cause
-## problems.  A warning will be issued by discard.upper.outliers if more than
-## 10% of the datapoints are discarded, which whould reduce the danger of using
-## the function on inappropriate data.
+## was generated. Currently the inputs for all of our builtins are quite
+## uniformly distributed, but if we ever have a case where there's a big
+## variation of scales in the results (for instance if sizes grow exponentially)
+## then there would be a danger of throwing away sensible results.  When we have
+## a narrow range of input sizes (eg, for integer buitlins where sizes "only" go
+## up to 31 words) outliers do occur and could cause problems. A warning will be
+## issued by discard.upper.outliers if more than 10% of the datapoints are
+## discarded, which whould reduce the danger of using the function on
+## inappropriate data.
 #
 upper.outlier.cutoff <- function(v) {
     q1 <- quantile(v,0.25)
@@ -126,6 +126,7 @@ adjustModel <- function (m, fname) {
     m
 }
 
+
 modelFun <- function(path) {
     data <- get.bench.data(path)
 
@@ -153,6 +154,15 @@ modelFun <- function(path) {
             return (0)
         }
         return (r)
+    }
+
+    constantModel <- function (fname, overhead, data) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (overhead)
+        m <- lm(Mean ~ 1, data=filtered)
+        adjustModel (m,fname)
     }
 
     one.arg.overhead    <- get.mean.time("Nop1")
@@ -260,15 +270,7 @@ modelFun <- function(path) {
 
     consByteStringModel  <- 0
 
-    sliceByteStringModel <- 0
-    {
-        fname <- "SliceByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-             discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)   ## FIX THIS!!!
-        adjustModel(m,fname)
-    }
+    sliceByteStringModel <- constantModel ("SliceByteString", two.args.overhead, data)
 
     lengthOfByteStringModel <- 0
     indexByteStringModel    <- 0
@@ -353,7 +355,7 @@ modelFun <- function(path) {
     }
 
     decodeUtf8Model <- {
-        fname <- "decodeUtf8"
+        fname <- "DecodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.upper.outliers(fname) %>%
@@ -363,7 +365,7 @@ modelFun <- function(path) {
     }
     
     encodeUtf8Model <- {
-        fname <- "encodeUtf8"
+        fname <- "DecodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.upper.outliers(fname) %>%
@@ -380,20 +382,12 @@ modelFun <- function(path) {
 
     ##### Unit #####
 
-    chooseUnitModel <- {
-        fname <- "chooseUnit"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,fname)
-    }
+    chooseUnitModel <- constantModel ("ChooseUnit", two.args.overhead, data)
     
 
     ##### Tracing #####
 
-    traceModel <- 0
+    traceModel <- constantModel ("Trace", two.args.overhead, data)
 
 
     ##### Pairs #####

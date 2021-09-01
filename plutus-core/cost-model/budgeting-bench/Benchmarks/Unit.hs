@@ -8,6 +8,7 @@ import           PlutusCore
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Benchmarks.Common
+import           Benchmarks.Generators
 
 import           Criterion.Main
 import           System.Random                          (StdGen)

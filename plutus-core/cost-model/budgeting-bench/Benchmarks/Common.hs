@@ -177,9 +177,6 @@ mkApp6 name tys x y z t u v =
    cause trouble elsewhere.
  -}
 
-integerPower :: Integer -> Integer -> Integer
-integerPower = (^) -- Just to avoid some type ascriptions later
-
 {- | Given a builtin function f of type a -> _ together with a lists xs, create a
    collection of benchmarks which run f on all elements of xs. -}
 createOneTermBuiltinBench
@@ -229,46 +226,3 @@ createTwoTermBuiltinBenchElementwise name tys xs ys =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
--- Generate a random n-word (ie, 64n-bit) integer
-{- In principle a random 5-word integer (for example) might only occupy 4 or
-   fewer words, but we're generating uniformly distributed values so the
-   probability of that happening should be at most 1 in 2^64. -}
-randNwords :: StdGen -> Int -> (Integer, StdGen)
-randNwords gen n = randomR (lb,ub) gen
-    where lb = 2^(64*(n-1))
-          ub = 2^(64*n) - 1
-
-{- TODO: we're using Hedgehog for some things and System.Random for others.  We
-   should rationalise this.  Pehaps Hedgehog is more future-proof since it can
-   produce random instances of a wide variety of types.  On the other hand, you
-   have to be careful with Hedgehog Ranges since they don't necessarily do what
-   you might expect.  It might be a bit tricky to use Hedgehog everywhere
-   because we'd need a lot of monadic code to take care of generator states. -}
-genSample :: H.Seed -> G.Gen a -> a
-genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (H.Size 1) seed gen
-
-
----------------- Creating things of a given size ----------------
-
-seedA :: H.Seed
-seedA = H.Seed 42 43
-
-seedB :: H.Seed
-seedB = H.Seed 44 45
-
--- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
-makeSizedIntegers :: StdGen -> [Int] -> ([Integer], StdGen)
-makeSizedIntegers g [] = ([], g)
-makeSizedIntegers g (n:ns) =
-    let (m,g1) = randNwords g n
-        (ms,g2) = makeSizedIntegers g1 ns
-    in (m:ms,g2)
-
--- Create a bytestring whose memory usage is n.  Since we measure memory usage
--- in 64-bit words we have to create a bytestring containing 8*n bytes.
-makeSizedByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8*n)))
-
--- FIXME: this is terrible
-makeSizedByteStrings :: H.Seed -> [Int] -> [BS.ByteString]
-makeSizedByteStrings seed l = map (makeSizedByteString seed) l

@@ -3,9 +3,10 @@ module Benchmarks.Tracing (makeBenchmarks) where
 import           PlutusCore
 
 import           Benchmarks.Common
-import           Benchmarks.Strings (makeSizedTextStrings)
+import           Benchmarks.Generators
+
 import           Criterion.Main
-import           System.Random      (StdGen)
+import           System.Random         (StdGen)
 
 
 -- We expect tracing (with a null emitter) to be constant time, but generate

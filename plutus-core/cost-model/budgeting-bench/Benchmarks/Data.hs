@@ -1,6 +1,9 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Benchmarks.Data (makeBenchmarks) where
 
 import           Benchmarks.Common
+import           Benchmarks.Generators
 
 import           PlutusCore
 import           PlutusCore.Data
@@ -10,42 +13,6 @@ import qualified Hedgehog                as H
 import qualified Hedgehog.Internal.Gen   as G
 import qualified Hedgehog.Internal.Range as R
 import           System.Random           (StdGen)
-
-{- Recall:
-
-   data Data =
-         Constr Integer [Data]
-       | Map [(Data, Data)]
-       | List [Data]
-       | I Integer
-       | B BS.ByteString
--}
-
--- TODO: probably do this manually
-
-genDataList :: H.MonadGen m => m [Data]
-genDataList =
-    G.list (R.constant 1 10) genData
-
-genDataPair :: H.MonadGen m => m (Data, Data)
-genDataPair =
-    (,) <$> genData <*> genData
-
-genData :: H.MonadGen m => m Data
-genData =
-    G.recursive G.choice
-         [
-           I <$> G.integral (R.constant 1 1234567890)
-         , B <$> G.bytes (R.constant 1 100)
-         ]
-         [
-           Constr <$> G.integral (R.constant 1 1000) <*> G.list (R.constant 1 10) genData
-         , Map <$> G.list (R.constant 1 10) genDataPair
-         , List <$> G.list (R.constant 1 10) genData
-         ]
-
-genDataSample :: Int -> [Data]
-genDataSample n = genSample seedA (G.list (R.singleton n) genData)
 
 benchChooseData :: StdGen -> Benchmark
 benchChooseData gen = bgroup "UNIMPLEMENTED: ChooseData" []
@@ -98,7 +65,7 @@ benchUnBData gen = bgroup "UNIMPLEMENTED: UnBData" []
 benchEqualsData :: Benchmark
 benchEqualsData =
     createTwoTermBuiltinBenchElementwise EqualsData [] args1 args2
-        where args1 = genDataSample 200
+        where args1 = undefined :: [Data] -- genDataSample 200
               args2 = fmap copyData args1
 
 

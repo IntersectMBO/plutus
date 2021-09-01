@@ -3,17 +3,14 @@
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
 import           Benchmarks.Common
+import           Benchmarks.Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import           Data.ByteString       as BS
 import qualified Data.Text             as T
 import           System.Random         (StdGen)
 
-import qualified Hedgehog              as H
-import qualified Hedgehog.Internal.Gen as G
-import qualified Hedgehog.Range        as R
 
 {- The memory usage of a string is defined to be four bytes per character.  Plutus
  strings are implemented as Text objects, which are UTF-16 encoded sequences of
@@ -75,75 +72,10 @@ in 0x00-0x7F need one byte in UTF-8, those in 0x80-0xFF require two, so the
 average number of bytes per character is 3/2).
 -}
 
-
-oneArgumentSizes :: [Integer]
-oneArgumentSizes = [0, 100..10000] -- 101 entries
-
-twoArgumentSizes :: [Integer]
-twoArgumentSizes = [0, 250..5000]  -- 21 entries
-
-{- This makes a Text string containing n unicode characters.  We use the unicode
- generator since that mostly produces 4 bytes per character, which is the worst
- case. If we were to use the ascii generator that would give us two bytes per
- character.  See Note [Choosing the inputs for costing benchmarks] below.-}
-makeSizedTextString :: H.Seed -> Int -> T.Text
-makeSizedTextString seed n = genSample seed (G.text (R.singleton (2*n)) G.unicode)
-
-makeSizedTextStrings :: H.Seed -> [Integer] -> [T.Text]
-makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
-
-benchOneTextString :: DefaultFun -> Benchmark
-benchOneTextString name =
-    createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
-
-
-{- | Generate a valid UTF-8 bytestring with memory usage approximately n for
-   benchmarking decodeUtf8.  We use the 'unicode' generator beacuse that gives
-   the worst-case behaviour: see Note [Choosing the inputs for costing
-   benchmarks] below).-}
-makeSizedUtf8ByteString :: H.Seed -> Int -> BS.ByteString
-makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2*n)) G.unicode)
-
-makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [BS.ByteString]
-makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
-
-{- This is for benchmarking DecodeUtf8.  That fails if the encoded data is
-   invalid, so we make sure that the input data is valid data for it by using
-   data produced by G.utf8 (see above). -}
-benchOneUtf8ByteString :: DefaultFun -> Benchmark
-benchOneUtf8ByteString name =
-    createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
-
-benchTwoTextStrings :: DefaultFun -> Benchmark
-benchTwoTextStrings name =
-    let s1 = makeSizedTextStrings seedA twoArgumentSizes
-        s2 = makeSizedTextStrings seedB twoArgumentSizes
-    in createTwoTermBuiltinBench name [] s1 s2
-
-
-{- Unused?
-benchTextStringNoArgOperations :: DefaultFun -> Benchmark
-benchTextStringNoArgOperations name =
-    bgroup (show name) $
-        fmap (\x -> benchDefault (showMemoryUsage x) $ mkApp1 name x) oneArgumentSizes
--}
-
--- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
-benchSameTwoTextStrings :: DefaultFun -> Benchmark
-benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
-                               where inputs = makeSizedTextStrings seedA oneArgumentSizes
-
-makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
-                      , benchOneUtf8ByteString DecodeUtf8
-                      , benchTwoTextStrings AppendString
-                      , benchSameTwoTextStrings EqualsString
-                      ]
-
 {- Note [Choosing the inputs for costing benchmarks].  We carried out some
    preliminary benchmarking to determine the execution times for encodeUtf8 and
    decodeUtf8 with different kinds of input to check which gave the worst case,
-   and we use the worsrt-case inputs for the costing benchmarks above.
+   and we use the worst-case inputs for the costing benchmarks above.
 
 
    encodeUtf8: we looked at two different types of input, both containing n
@@ -191,3 +123,40 @@ makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
    equalsString (applied to strings with identical contents) was linear in the
    input size.
 -}
+
+oneArgumentSizes :: [Integer]
+oneArgumentSizes = [0, 100..10000] -- 101 entries
+
+twoArgumentSizes :: [Integer]
+twoArgumentSizes = [0, 250..5000]  -- 21 entries
+
+{- This is for benchmarking DecodeUtf8.  That fails if the encoded data is
+   invalid, so we make sure that the input data is valid data for it by using
+   data produced by G.utf8 (see above). -}
+benchOneUtf8ByteString :: DefaultFun -> Benchmark
+benchOneUtf8ByteString name =
+    createOneTermBuiltinBench name [] $ makeSizedUtf8ByteStrings seedA oneArgumentSizes
+
+benchOneTextString :: DefaultFun -> Benchmark
+benchOneTextString name =
+    createOneTermBuiltinBench name [] $ makeSizedTextStrings seedA oneArgumentSizes
+
+benchTwoTextStrings :: DefaultFun -> Benchmark
+benchTwoTextStrings name =
+    let s1 = makeSizedTextStrings seedA twoArgumentSizes
+        s2 = makeSizedTextStrings seedB twoArgumentSizes
+    in createTwoTermBuiltinBench name [] s1 s2
+
+
+-- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
+benchSameTwoTextStrings :: DefaultFun -> Benchmark
+benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
+                               where inputs = makeSizedTextStrings seedA oneArgumentSizes
+
+makeBenchmarks :: StdGen -> [Benchmark]
+makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
+                      , benchOneUtf8ByteString DecodeUtf8
+                      , benchTwoTextStrings AppendString
+                      , benchSameTwoTextStrings EqualsString
+                      ]
+
