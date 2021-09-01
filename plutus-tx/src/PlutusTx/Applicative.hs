@@ -4,6 +4,7 @@ module PlutusTx.Applicative where
 
 import           Control.Applicative   (Const (..))
 import           Data.Functor.Identity (Identity (..))
+import           PlutusTx.Bool         (not)
 import           PlutusTx.Functor
 import           PlutusTx.Monoid       (Monoid (..), mappend)
 import           Prelude               (Bool, Either (..), Maybe (..))
@@ -38,8 +39,13 @@ a1 *> a2 = (id <$ a1) <*> a2
 
 {-# INLINABLE unless #-}
 -- | Plutus Tx version of 'Control.Monad.unless'.
-unless :: (Applicative f) => Bool -> f () -> f ()
+unless :: Applicative f => Bool -> f () -> f ()
 unless p s = if p then pure () else s
+
+{-# INLINEABLE when #-}
+-- | Plutus Tx version of 'Control.Monad.when'.
+when :: Applicative f => Bool -> f () -> f ()
+when p a = unless (not p) a
 
 instance Applicative Maybe where
     {-# INLINABLE pure #-}

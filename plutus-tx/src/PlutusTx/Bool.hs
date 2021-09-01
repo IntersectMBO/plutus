@@ -1,5 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Bool (Bool(..), (&&), (||), not) where
+
+module PlutusTx.Bool
+  ( Bool(..)
+  , (&&)
+  , (||)
+  , (==>)
+  , not
+  ) where
 
 import           Prelude hiding (not, (&&), (||))
 
@@ -33,3 +40,13 @@ infixr 2 ||
 --
 not :: Bool -> Bool
 not a = if a then False else True
+
+{-# INLINEABLE (==>) #-}
+-- | Boolean implication
+--
+--   >>> False ==> True
+--   False
+infixr 0 ==>
+(==>) :: Bool -> Bool -> Bool
+True ==> y = y
+_ ==> _    = True
