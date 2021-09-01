@@ -33,7 +33,7 @@ import qualified PlutusTx                  as PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Interval hiding (slotWidth)
+import           Plutus.V1.Ledger.Interval
 
 {- HLINT ignore "Redundant if" -}
 

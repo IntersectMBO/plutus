@@ -30,6 +30,7 @@ module Plutus.V1.Ledger.Value(
     -- * Asset classes
     , AssetClass(..)
     , assetClass
+    , assetClasses
     , assetClassValue
     , assetClassValueOf
     -- ** Value
@@ -48,6 +49,10 @@ module Plutus.V1.Ledger.Value(
     , split
     , unionWith
     , flattenValue
+    , filterValueClass
+    , filterValue
+    , valueIntersectEq
+    , valueSubsetOf
     ) where
 
 import qualified Prelude                          as Haskell
@@ -73,7 +78,9 @@ import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
 import           Plutus.V1.Ledger.Orphans         ()
 import           Plutus.V1.Ledger.Scripts
 import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx.AssocMap                as AssocMap
 import qualified PlutusTx.AssocMap                as Map
+import           PlutusTx.Function
 import           PlutusTx.Lift                    (makeLift)
 import qualified PlutusTx.Ord                     as Ord
 import           PlutusTx.Prelude                 as PlutusTx
@@ -102,8 +109,6 @@ instance FromJSON CurrencySymbol where
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
       Haskell.pure $ CurrencySymbol $ PlutusTx.toBuiltin bytes
-
-makeLift ''CurrencySymbol
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
@@ -180,8 +185,6 @@ instance FromJSON TokenName where
                 "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
 
-makeLift ''TokenName
-
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
@@ -193,7 +196,10 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
-makeLift ''AssetClass
+{-# INLINEABLE assetClasses #-}
+assetClasses :: Value -> [AssetClass]
+assetClasses val =
+  (\(a, b, _) -> AssetClass (a, b)) <$> flattenValue val
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -241,8 +247,6 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
-
-makeLift ''Value
 
 instance Haskell.Eq Value where
     (==) = eq
@@ -440,3 +444,34 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+{-# INLINABLE filterValueClass #-}
+-- | Variant of 'assetClassValueOf' returning 'Value' instead of 'Integer'.
+filterValueClass :: Value -> AssetClass -> Value
+filterValueClass val asset =
+  assetClassValue asset $ assetClassValueOf val asset
+
+{-# INLINEABLE filterValue #-}
+-- | Filter Value with a predicate.
+filterValue :: (CurrencySymbol -> TokenName -> Integer -> Bool) -> Value -> Value
+filterValue predicate v =
+  filter (uncurry3 predicate) (flattenValue v)
+    & foldMap (uncurry3 singleton)
+
+{-# INLINEABLE valueIntersectEq #-}
+-- | Returns True when the intersection of two `Value`s is equal.
+valueIntersectEq :: Value -> Value -> Bool
+valueIntersectEq (Value x) (Value y) =
+  AssocMap.all (these (const True) (const True) (==)) $ x `AssocMap.union` y
+
+{-# INLINEABLE valueSubsetOf #-}
+-- | Returns True when the left value is a subset of the right value.
+valueSubsetOf :: Value -> Value -> Bool
+valueSubsetOf (Value x) (Value y) =
+  AssocMap.all (these (const True) (const False) (==)) $ x `AssocMap.union` y
+
+makeLift ''Value
+makeLift ''CurrencySymbol
+makeLift ''AssetClass
+makeLift ''TokenName
+
