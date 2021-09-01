@@ -40,7 +40,7 @@ module Wallet.API(
     Interval(..),
     Slot,
     SlotRange,
-    width,
+    intervalWidth,
     defaultSlotRange,
     interval,
     singleton,
