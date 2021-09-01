@@ -20,7 +20,7 @@ createChooseUnitBench
     -> [a]
     -> Benchmark
 createChooseUnitBench ty xs =
-    bgroup (show name) $ [bgroup (showMemoryUsage ()) [mkBM x | x <- xs]]
+    bgroup (show name) [bgroup (showMemoryUsage ()) [mkBM x | x <- xs]]
         where name = ChooseUnit
               mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
 
