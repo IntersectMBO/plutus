@@ -9,3 +9,4 @@ Explanations
    ledger
    plutus-foundation
    pab
+   chain-index

@@ -16,6 +16,7 @@ let
     sphinxemoji
     ps.sphinxcontrib_plantuml
     ps.sphinxcontrib-bibtex
+    ps.sphinxcontrib-openapi
     ps.sphinx
     ps.sphinx_rtd_theme
     ps.recommonmark

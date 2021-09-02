@@ -52,6 +52,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     'sphinxcontrib.plantuml',
     'sphinxcontrib.bibtex',
+    'sphinxcontrib.openapi',
     'hs_domain',
 ]
 

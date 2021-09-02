@@ -1,0 +1,91 @@
+openapi: "3.0.0"
+info:
+  title: Chain index API overview
+  version: 1.0.0
+paths:
+  /healthcheck:
+    get:
+      summary: Check whether the service is operational
+      responses:
+        '200':
+          description: |-
+            200 response
+          content:
+            application/json
+  /from-hash/datum:
+    post:
+      description: Get the value of the datum hash
+      responses:
+        "200":
+          description: Datum response
+        "404":
+          description: Datum not found
+  /from-hash/validator:
+    post:
+      description: Get the validator of the validator hash
+      responses:
+        "200":
+          description: Validator response
+        "404":
+          description: Validator not found
+  /from-hash/minting-policy:
+    post:
+      description: Get the minting policy of the minting policy hash
+      responses:
+        "200":
+          description: Minting policy response
+        "404":
+          description: Minting policy not found
+  /from-hash/stake-validator:
+    post:
+      description: Get the stake validator of the stake validator hash
+      responses:
+        "200":
+          description: Stake validator response
+        "404":
+          description: Stake validator not found
+  /from-hash/redeemer:
+    post:
+      description: Get the redeemer of the redeemer hash
+      responses:
+        "200":
+          description: Redeemer response
+        "404":
+          description: Redeemer not found
+  /tx-out:
+    post:
+      description: Get the transaction output
+      responses:
+        "200":
+          description: Transaction output response
+        "404":
+          description: Transaction output not found
+  /tx:
+    post:
+      description: Get the transaction
+      responses:
+        "200":
+          description: Transaction response
+        "404":
+          description: Transaction not found
+  /is-utxo:
+    post:
+      description: Ask whether a transaction output is unspent
+      responses:
+        "200":
+          description: Transaction output status
+        "404":
+          description: Transaction not found
+  /utxo-at-address:
+    post:
+      description: Ask for unspent transaction outputs at an address
+      responses:
+        "200":
+          description: Utxo
+  /tip:
+    post:
+      description: Get the current tip from the chain index
+      responses:
+        "200":
+          description: Tip
+

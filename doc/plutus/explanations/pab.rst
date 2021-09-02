@@ -12,11 +12,6 @@ It is the PAB's task to deal with requests from running ``Contract`` instances, 
 The ``plutus-pab`` cabal package in the Plutus repository defines a ``plutus-pab`` Haskell library.
 Application developers use this library to build the actual PAB executable, specialised to one or more of their ``Contract`` s.
 
-.. note::
-    In an older version of the PAB, each ``Contract`` was compiled to a separate executable, and there was a single PAB that knew about all the locally available excutable contracts.
-    This approach is not supported anymore.
-
-
 Client interface
 ----------------
 
@@ -31,18 +26,10 @@ In addition to the PAB itself, the following components are required.
 
 .. _pab_chain_index:
 
-Chain index
-~~~~~~~~~~~
+:ref:`Chain index<what_is_the_chain_index>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The chain index is a database of data gathered from Cardano transactions.
-It uses the Cardano node's chain sync protocol.
-Therefore it needs to be co-located with a Cardano node.
-The chain index is a read-only component for the PAB.
-Multiple instances of the PAB can therefore share a single instance of the chain index.
-
-The expressiveness of queries supported by the chain index lies somewhere between that of the node, which answers queries related to the ledger state, and that of ``db-sync``, which has a full history of all transactions and an expressive database schema for staking and other information.
-
-All chain index queries are served over an HTTP API.
+The PAB gets information about the ledger state and about the inverse of hash values from the chain index.
 
 Alonzo node
 ~~~~~~~~~~~

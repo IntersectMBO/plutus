@@ -1,7 +1,7 @@
 { stdenv, lib, pythonPackages, sphinxcontrib-domaintools, sphinxcontrib-haddock, sphinx-markdown-tables, sphinxemoji, combined-haddock, ... }:
 stdenv.mkDerivation {
   name = "plutus-docs";
-  src = lib.sourceFilesBySuffices ./. [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
+  src = lib.sourceFilesBySuffices ./. [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ".yaml" ];
   buildInputs = with pythonPackages; [
     sphinx
     sphinx_rtd_theme
@@ -9,6 +9,7 @@ stdenv.mkDerivation {
     sphinxcontrib-haddock
     sphinx-markdown-tables
     sphinxcontrib_plantuml
+    sphinxcontrib-openapi
     sphinxcontrib-bibtex
     sphinxemoji
     recommonmark
