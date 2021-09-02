@@ -76,7 +76,7 @@ seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
 buyer :: ThreadToken -> Contract AuctionOutput BuyerSchema AuctionError ()
-buyer cur = auctionBuyer slotCfg cur params
+buyer cur = auctionBuyer cur params
 
 w1, w2, w3 :: Wallet
 w1 = Wallet 1
