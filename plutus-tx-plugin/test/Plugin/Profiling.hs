@@ -31,9 +31,12 @@ profiling = testNested "Profiling" [
   goldenUEvalProfile "fib" [toUPlc fibTest]
   , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "addInt" [toUPlc addIntTest]
+  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  -- , goldenUEvalProfile "id" [toUPlc idTest, toUPlc $ plc (Proxy @"1") (1::Integer)]
-  -- , goldenUEvalProfile "swap" [toUPlc swapTest]
+  , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  -- ghc does the function application
+  , goldenUEvalProfile "id" [toUPlc idTest]
+  , goldenUEvalProfile "swap" [toUPlc swapTest]
   ]
 
 fib :: Integer -> Integer
@@ -53,24 +56,28 @@ addInt x = Builtins.addInteger x
 addIntTest :: CompiledCode (Integer -> Integer -> Integer)
 addIntTest = plc (Proxy @"addInt") addInt
 
--- GHC actually turns this into a lambda for us, try and make one that stays a let
+-- \x y -> let f z = z + 1 in f x + f y
 letInFunTest :: CompiledCode (Integer -> Integer -> Integer)
 letInFunTest =
   plc
     (Proxy @"letInFun")
     (\(x::Integer) (y::Integer)
-      -> let f z = Builtins.addInteger z 1 in Builtins.addInteger (f 1) (f 2))
+      -> let f z = Builtins.addInteger z 1 in Builtins.addInteger (f x) (f y))
 
-{- TODO
-idForAll :: a -> a
-idForAll a = a
+-- \x y z -> let f n = n + 1 in z * (f x + f y)
+letInFunMoreArgTest :: CompiledCode (Integer -> Integer -> Integer -> Integer)
+letInFunMoreArgTest =
+  plc
+    (Proxy @"letInFun")
+    (\(x::Integer) (y::Integer) (z::Integer)
+      -> let f n = Builtins.addInteger n 1 in
+        Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y)))
 
-idTest :: CompiledCode (a -> a)
-idTest = plc (Proxy @"id") idForAll
+idTest :: CompiledCode Integer
+idTest = plc (Proxy @"id") (id (1::Integer))
 
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 
-swapTest :: CompiledCode ((a,b) -> (b,a))
-swapTest = plc (Proxy @"swap") swap
- -}
+swapTest :: CompiledCode (Integer,Bool)
+swapTest = plc (Proxy @"swap") (swap (True,1))
