@@ -81,13 +81,7 @@ benchWith
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark
-benchWith params name term = env
-    (do
-        (_result, budget) <-
-          pure $ (unsafeEvaluateCek noEmitter params) term            -- <--------------- AAAAAAAAAAAAAAAHHHHHHHH
-        pure budget
-        )
-    $ \_ -> bench name $ whnf (unsafeEvaluateCek noEmitter params) term
+benchWith params name term = bench name $ whnf (unsafeEvaluateCek noEmitter params) term
 
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith defaultCekParameters
