@@ -70,18 +70,19 @@ copyData =
 
 ---------------- Creating benchmarks ----------------
 
--- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
--- produce data that will be supplied to the things being benchmarked.  Here
--- we've got a term and we evaluate it to get back the budget consumed, but then
--- we throw that away and evaluate the term again.  This may have the effect of
--- avoiding warmup, which could be a good thing.  Let's look into that.
 benchWith
-    :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
+    :: (Ix fun, Pretty fun, Typeable fun)
     => MachineParameters CekMachineCosts CekValue DefaultUni fun
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark
-benchWith params name term = bench name $ whnf (unsafeEvaluateCek noEmitter params) term
+benchWith params name term = bench name $ whnf (unsafeEvaluateCekNoEmit params) term
+{- ^ Note that to get sensible results with whnf, we must use an evaluation
+   function that looks at the result, so eg unsafeEvaluateCek won't work
+   properly because it returns a pair whose components won't be evaluated by
+   whnf.  We can't use nf because it does too much work: for instance if it gets
+   back a 'Data' value it'll traverse all of it.
+-}
 
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith defaultCekParameters
