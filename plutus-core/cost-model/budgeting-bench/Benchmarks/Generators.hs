@@ -164,3 +164,29 @@ genDataSample :: [(Int, Int, Int, Int)] -> [Data]
 genDataSample l =
     unsafePerformIO $ concat <$> mapM gen1 l
         where gen1 (count, imem, bmem, size) = replicateM count . generate $ genBoundedData imem bmem size
+
+
+-- A list of parameters for genDataSample
+dataParams :: [(Int, Int, Int, Int)]
+dataParams = [ (10, 10, 10,  1)
+             , (10,  5, 10,  2)
+             , (10,100,100,  2)
+             , (10,  1,  1,  3)
+             , (10,  2,  4,  4)
+             , (30, 10,  7,  5)
+             , (20,  1,  1, 10)
+             , (20, 30, 30, 10)
+             , (10,  4,  6, 15)
+             , (10,  5,  5, 20)
+             , (10,  1, 10, 25)
+             ] -- 150 entries in all
+
+-- We want a list of random data, but for benchmarking purposes we also want to
+-- be able to filter out sublists for various constructors.  To do this we
+-- generate a large number of samples and always take some sublist for the
+-- inputs to the benchmarks.
+dataSample :: [Data]
+dataSample = genDataSample (take 500 $ cycle dataParams)
+
+
+

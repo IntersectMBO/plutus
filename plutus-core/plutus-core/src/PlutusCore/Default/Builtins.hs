@@ -103,7 +103,8 @@ data DefaultFun
     | EqualsData
     -- Misc constructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
+    -- constructors are often problematic (See note [Representable built-in
+    -- functions over polymorphic built-in types])
     | MkPairData
     | MkNilData
     | MkNilPairData
