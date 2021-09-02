@@ -10,12 +10,13 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 import           Benchmarks.Common
 import           Benchmarks.Generators
 
+import           Control.DeepSeq                        (NFData)
 import           Criterion.Main
 import           System.Random                          (StdGen)
 
 
 createChooseUnitBench
-    :: (DefaultUni `Includes` a, ExMemoryUsage a)
+    :: (DefaultUni `Includes` a, ExMemoryUsage a, NFData a)
     => Type TyName DefaultUni ()
     -> [a]
     -> Benchmark

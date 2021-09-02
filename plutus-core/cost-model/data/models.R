@@ -470,5 +470,4 @@ modelFun <- function(path) {
         unBDataModel                  = unBDataModel,
         equalsDataModel               = equalsDataModel
     )
-
 }

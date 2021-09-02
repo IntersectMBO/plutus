@@ -1,7 +1,9 @@
+{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE ViewPatterns     #-}
 
 module Benchmarks.Common
 where
@@ -15,7 +17,7 @@ import           PlutusCore.Pretty                               (Pretty)
 import           UntypedPlutusCore                               as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.DeepSeq                                 (NFData)
+import           Control.DeepSeq                                 (NFData, force)
 import           Criterion.Main
 import qualified Data.ByteString                                 as BS
 import           Data.Ix                                         (Ix)
@@ -85,7 +87,7 @@ benchWith params name term = env
           pure $ (unsafeEvaluateCek noEmitter params) term            -- <--------------- AAAAAAAAAAAAAAAHHHHHHHH
         pure budget
         )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter params) term
+    $ \_ -> bench name $ whnf (unsafeEvaluateCek noEmitter params) term
 
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith defaultCekParameters
@@ -103,26 +105,26 @@ bytestring = mkTyBuiltin @_ @BS.ByteString ()
 -- To make monomorhpic terms, make tys equal to [] in the mkApp functions
 
 -- Create a term instantiating a builtin and applying it to one argument
-mkApp1 :: (uni `Includes` a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
-mkApp1 name tys x =
+mkApp1 :: (uni `Includes` a, NFData a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
+mkApp1 !name !tys (force -> !x) =
     erase $ mkIterApp () instantiated [mkConstant () x]
     where instantiated = mkIterInst () (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to two arguments
 mkApp2
-    :: (uni `Includes` a, uni `Includes` b)
+    :: (uni `Includes` a, uni `Includes` b, NFData a, NFData b)
     =>  fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
-mkApp2 name tys x y =
+mkApp2 !name !tys (force -> !x) (force -> !y) =
     erase $ mkIterApp () instantiated [mkConstant () x,  mkConstant () y]
     where instantiated = mkIterInst () (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to three arguments
 mkApp3
-    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c)
+    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c, NFData a, NFData b, NFData c)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
-mkApp3 name tys x y z =
+mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
     erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
     where instantiated = mkIterInst () (builtin () name) tys
 
@@ -130,9 +132,10 @@ mkApp3 name tys x y z =
 -- Create a term instantiating a builtin and applying it to four arguments
 mkApp4
     :: (uni `Includes` a, uni `Includes` b,
-        uni `Includes` c, uni `Includes` d)
+        uni `Includes` c, uni `Includes` d,
+        NFData a, NFData b, NFData c, NFData d)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
-mkApp4 name tys x y z t =
+mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
     erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y
                                       , mkConstant () z, mkConstant () t ]
     where instantiated = mkIterInst () (builtin () name) tys
@@ -141,9 +144,10 @@ mkApp4 name tys x y z t =
 -- Create a term instantiating a builtin and applying it to five arguments
 mkApp5
     :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
-        uni `Includes` d, uni `Includes` e)
+        uni `Includes` d, uni `Includes` e,
+        NFData a, NFData b, NFData c, NFData d, NFData e)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
-mkApp5 name tys x y z t u =
+mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
     erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
                                       , mkConstant () t, mkConstant () u ]
     where instantiated = mkIterInst () (builtin () name) tys
@@ -152,9 +156,10 @@ mkApp5 name tys x y z t u =
 -- Create a term instantiating a builtin and applying it to six arguments
 mkApp6
     :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
-        uni `Includes` d, uni `Includes` e, uni `Includes` f)
+        uni `Includes` d, uni `Includes` e, uni `Includes` f,
+        NFData a, NFData b, NFData c, NFData d, NFData e, NFData f)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
-mkApp6 name tys x y z t u v =
+mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v) =
     erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]
     where instantiated = mkIterInst () (builtin () name) tys
@@ -173,7 +178,7 @@ mkApp6 name tys x y z t u v =
 {- | Given a builtin function f of type a -> _ together with a lists xs, create a
    collection of benchmarks which run f on all elements of xs. -}
 createOneTermBuiltinBench
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, ExMemoryUsage a)
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, ExMemoryUsage a, NFData a)
     => fun
     -> [Type tyname uni ()]
     -> [a]
@@ -186,7 +191,8 @@ createOneTermBuiltinBench name tys xs =
    ys::[b], create a collection of benchmarks which run f on all pairs in
    {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, DefaultUni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, DefaultUni `Includes` b,
+        ExMemoryUsage a, ExMemoryUsage b, NFData a, NFData b)
     => fun
     -> [Type tyname uni ()]
     -> [a]
@@ -207,7 +213,8 @@ createTwoTermBuiltinBench name tys xs ys =
    that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, ExMemoryUsage a, ExMemoryUsage b)
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b,
+            ExMemoryUsage a, ExMemoryUsage b, NFData a, NFData b)
     => fun
     -> [Type tyname uni ()]
     -> [a]
