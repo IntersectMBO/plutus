@@ -29,7 +29,7 @@ import           Ledger                  (Datum, DatumHash, MintingPolicy, Minti
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
-import           Plutus.ChainIndex.Types (Page, Tip)
+import           Plutus.ChainIndex.Types (Page, Point, Tip)
 
 data ChainIndexQueryEffect r where
 
@@ -75,7 +75,7 @@ data ChainIndexControlEffect r where
     AppendBlock :: Tip -> [ChainIndexTx] -> ChainIndexControlEffect ()
 
     -- | Roll back to a previous state (previous tip)
-    Rollback    :: Tip -> ChainIndexControlEffect ()
+    Rollback    :: Point -> ChainIndexControlEffect ()
 
     -- | Delete all data that is not covered by current UTxOs.
     CollectGarbage :: ChainIndexControlEffect ()

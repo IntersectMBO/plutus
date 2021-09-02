@@ -45,7 +45,7 @@ import qualified Data.Set                as Set
 import           GHC.Generics            (Generic)
 import           Ledger                  (TxIn (txInRef), TxOutRef (..))
 import           Plutus.ChainIndex.Tx    (ChainIndexTx (..), citxInputs, txOutsWithRef)
-import           Plutus.ChainIndex.Types (Tip (..))
+import           Plutus.ChainIndex.Types (Point (..), Tip (..), pointsToTip)
 import           Prettyprinter           (Pretty (..), (<+>))
 
 -- | The effect of a transaction (or a number of them) on the utxo set.
@@ -166,21 +166,21 @@ insert s@UtxoState{_usTip=thisTip} ix =
 -- | Reason why the 'rollback' operation failed
 data RollbackFailed =
     RollbackNoTip  -- ^ Rollback failed because the utxo index had no tip (not synchronised)
-    | TipMismatch { foundTip :: Tip, targetTip :: Tip } -- ^ Unable to roll back to 'expectedTip' because the tip at that position was different
-    | OldTipNotFound Tip -- ^ Unable to find the old tip
+    | TipMismatch { foundTip :: Tip, targetPoint :: Point } -- ^ Unable to roll back to 'expectedTip' because the tip at that position was different
+    | OldPointNotFound Point -- ^ Unable to find the old tip
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty RollbackFailed where
   pretty = \case
     RollbackNoTip -> "UTxO index had no tip (not synchronised)"
-    TipMismatch foundTip targetTip ->
+    TipMismatch foundTip targetPoint ->
           "Unable to rollback to"
-      <+> pretty targetTip
+      <+> pretty targetPoint
       <+> "because the tip at that position"
       <+> pretty foundTip
       <+> "was different"
-    OldTipNotFound t -> "Unable to find the old tip" <+> pretty t
+    OldPointNotFound t -> "Unable to find the old tip" <+> pretty t
 
 data RollbackResult =
     RollbackResult
@@ -192,15 +192,23 @@ viewTip :: UtxoIndex -> Tip
 viewTip = tip . measure
 
 -- | Perform a rollback on the utxo index
-rollback :: Tip -> UtxoIndex -> Either RollbackFailed RollbackResult
-rollback _             (viewTip -> TipAtGenesis) = Left RollbackNoTip
-rollback targetTip idx@(viewTip -> currentTip)
+rollback :: Point -> UtxoIndex -> Either RollbackFailed RollbackResult
+rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
+rollback targetPoint idx@(viewTip -> currentTip)
     -- The rollback happened sometime after the current tip.
-    | currentTip < targetTip = Left TipMismatch{foundTip=currentTip, targetTip}
+    | not (targetPoint `pointLessThanTip` currentTip) =
+        Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
-        let (before, _) = FT.split ((> targetTip) . tip) idx
+        let (before, _) = FT.split (pointLessThanTip targetPoint . tip) idx
 
         case tip (measure before) of
-            TipAtGenesis -> Left $ OldTipNotFound targetTip
-            oldTip | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
-                   | otherwise           -> Left  TipMismatch{foundTip=oldTip, targetTip}
+            TipAtGenesis -> Left $ OldPointNotFound targetPoint
+            oldTip | targetPoint `pointsToTip` oldTip ->
+                       Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
+                   | otherwise                        ->
+                       Left  TipMismatch{foundTip=oldTip, targetPoint=targetPoint}
+    where
+      pointLessThanTip :: Point -> Tip -> Bool
+      pointLessThanTip PointAtGenesis  _               = True
+      pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
+      pointLessThanTip _               TipAtGenesis    = False

@@ -10,6 +10,9 @@ module Plutus.ChainIndex.Types(
     , PageSize(..)
     , pageOf
     , Tip(..)
+    , Point(..)
+    , pointsToTip
+    , tipAsPoint
     ) where
 
 import           Data.Aeson        (FromJSON, ToJSON)
@@ -59,6 +62,45 @@ data Tip =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | When performing a rollback the chain sync protocol does not provide a block
+--   number where to resume from.
+data Point =
+      PointAtGenesis
+    | Point
+        { pointSlot    :: Slot -- ^ Slot number
+        , pointBlockId :: BlockId -- ^ Block number
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Ord Point where
+  PointAtGenesis <= _              = True
+  _              <= PointAtGenesis = False
+  (Point ls _)   <= (Point rs _)   = ls <= rs
+
+instance Pretty Point where
+    pretty PointAtGenesis = "PointAtGenesis"
+    pretty Point {pointSlot, pointBlockId} =
+            "Tip(slot="
+        <+> pretty pointSlot
+        <>  ", blockId="
+        <+> pretty pointBlockId
+        <>  ")"
+
+tipAsPoint :: Tip -> Point
+tipAsPoint TipAtGenesis = PointAtGenesis
+tipAsPoint (Tip tSlot tBlockId _) =
+    Point { pointSlot = tSlot
+          , pointBlockId = tBlockId
+          }
+
+pointsToTip :: Point -> Tip -> Bool
+pointsToTip PointAtGenesis TipAtGenesis = True
+pointsToTip (Point pSlot pBlockId)
+            (Tip   tSlot tBlockId _)
+  | tSlot == pSlot && tBlockId == pBlockId = True
+pointsToTip _ _ = False
+
 -- | This mirrors the previously defined Tip which used the Last monoid definition.
 instance Semigroup Tip where
     t <> TipAtGenesis = t
@@ -70,7 +112,7 @@ instance Monoid Tip where
 instance Ord Tip where
     TipAtGenesis <= _            = True
     _            <= TipAtGenesis = False
-    (Tip _ _ ln) <= (Tip _ _ rn) = ln <= rn
+    (Tip ls _ _) <= (Tip rs _ _) = ls <= rs
 
 instance Pretty Tip where
     pretty TipAtGenesis = "TipAtGenesis"

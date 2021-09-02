@@ -20,7 +20,7 @@ import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (txOutsWithRef)
-import           Plutus.ChainIndex.Types              (Tip (..))
+import           Plutus.ChainIndex.Types              (Tip (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Test.Tasty
@@ -118,7 +118,7 @@ rollback = property $ do
         InsertUtxoSuccess{newIndex=ix3} <- liftInsert $ UtxoState.insert (uncurry UtxoState.fromBlock block3) ix2
 
         let tip1 = fst block1
-        RollbackResult{rolledBackIndex=ix1'} <- liftRollback $ UtxoState.rollback tip1 ix3
+        RollbackResult{rolledBackIndex=ix1'} <- liftRollback $ UtxoState.rollback (tipAsPoint tip1) ix3
         sendM $ UtxoState.unspentOutputs (UtxoState.utxoState ix1) === UtxoState.unspentOutputs (UtxoState.utxoState ix1')
         sendM $ UtxoState.tip (UtxoState.utxoState ix1') === tip1
 
