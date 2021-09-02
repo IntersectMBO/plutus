@@ -163,7 +163,7 @@ _SCHED_IP_NAM ContractTerms{..} =
           | otherwise       = Nothing
 
         u | isNothing ct_IPANX && isNothing ct_IPCL                        = Nothing
-          | isJust ct_IPCED    && fromMaybe False (liftA2 (>) ct_IPCED _T) = Nothing
+          | isJust ct_IPCED    && Just True == liftA2 (>) ct_IPCED _T = Nothing
           | otherwise                                                      = _S r ((\c -> c { includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
         v = _S s ct_PRCL ct_MD (Just scfg)
@@ -188,7 +188,7 @@ _SCHED_IPCI_NAM ContractTerms{..} =
         | otherwise       = Nothing
 
       u | isNothing ct_IPANX && isNothing ct_IPCL                        = Nothing
-        | isJust ct_IPCED    && fromMaybe False (liftA2 (>) ct_IPCED _T) = Nothing
+        | isJust ct_IPCED    && Just True == liftA2 (>) ct_IPCED _T = Nothing
         | otherwise                                                      = _S r ((\c -> c { includeEndDay = True }) <$> ct_IPCL) ct_MD (Just scfg)
 
       v = _S s ct_PRCL ct_MD (Just scfg)

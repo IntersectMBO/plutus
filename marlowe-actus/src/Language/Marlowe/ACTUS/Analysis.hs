@@ -1,8 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 module Language.Marlowe.ACTUS.Analysis
-  (genProjectedCashflows)
+  ( genProjectedCashflows )
 where
+
+{-| = ACTUS Analysis
+
+Given an ACTUS contract cashflows can be projected.
+
+-}
 
 import           Control.Applicative                                        ((<|>))
 import qualified Data.List                                                  as L (find, groupBy)
@@ -22,6 +28,8 @@ import           Language.Marlowe.ACTUS.Model.POF.Payoff                    (pay
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (stateTransition)
 
+-- |genProjectedCashflows generates a list of projected cashflows for
+-- given contract terms together with the observed data
 genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
 genProjectedCashflows dataObserved ct@ContractTerms {..} = fromMaybe [] $
   do

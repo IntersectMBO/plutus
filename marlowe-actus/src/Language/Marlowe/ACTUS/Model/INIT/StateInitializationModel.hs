@@ -1,4 +1,3 @@
-
 {-# LANGUAGE RecordWildCards #-}
 
 {-| = ACTUS contract state initialization per t0
@@ -8,7 +7,9 @@ Note: initial states rely also on some schedules (and vice versa)
 
 -}
 
-module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
+module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
+  ( initialize )
+where
 
 import           Data.Maybe                                             (isJust, isNothing, maybeToList)
 import           Data.Time.Calendar                                     (Day)

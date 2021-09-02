@@ -1,6 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
+{-| = ACTUS contract schedules
+
+The implementation is a transliteration of the ACTUS specification v1.1
+
+-}
+
+module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
+  ( schedule
+  , maturity
+  )
+where
 
 import           Control.Applicative                                      (Alternative ((<|>)))
 import           Data.Ord                                                 (Down (..))

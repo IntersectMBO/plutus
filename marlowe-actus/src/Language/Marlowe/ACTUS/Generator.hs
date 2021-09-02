@@ -1,9 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 
-{- This module contains templates for Marlowe constructs required by ACTUS logic -}
+{-| = ACTUS Generator
+
+This module contains templates for Marlowe constructs required by ACTUS logic
+
+-}
+
 module Language.Marlowe.ACTUS.Generator
-    (
-      genStaticContract
+    ( genStaticContract
     , genFsContract
     )
 where
@@ -38,19 +42,20 @@ import           Language.Marlowe.ACTUS.Ops                                 as O
 import           Ledger.Value                                               (TokenName (TokenName))
 import           Prelude                                                    as P hiding (Fractional, Num, (*), (+), (/))
 
-receiveCollateral :: String -> Integer -> Integer -> Contract -> Contract
-receiveCollateral from amount timeout continue =
-    if amount == 0
-        then continue
-        else
-            let party = Role $ TokenName $ fromString from
-            in  When
-                    [ Case
-                        (Deposit party party ada (Constant amount))
-                            continue
-                    ]
-                    (Slot timeout)
-                    Close
+-- receiveCollateral :: String -> Integer -> Integer -> Contract -> Contract
+-- Any collateral-related code is commented out, until implemented properly
+-- receiveCollateral from amount timeout continue =
+--    if amount == 0
+--        then continue
+--        else
+--            let party = Role $ TokenName $ fromString from
+--            in  When
+--                    [ Case
+--                        (Deposit party party ada (Constant amount))
+--                            continue
+--                    ]
+--                    (Slot timeout)
+--                    Close
 
 -- Any collateral-related code is commented out, until implemented properly
 -- invoice :: String -> String -> Value Observation -> Value Observation -> Slot -> Contract -> Contract
@@ -211,8 +216,9 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                     where pof = payoffFs ev terms' t (t P.- 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
-                withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont
-            in withCollateral $ initializeStateFs terms' scheduleAcc
+                -- withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont
+            -- in withCollateral $ initializeStateFs terms' scheduleAcc
+            in initializeStateFs terms' scheduleAcc
 
         initializeStateFs :: ContractTerms -> Contract -> Contract
         initializeStateFs ct cont = maybe cont (flip stateInitialisation cont) (initialize ct)
@@ -236,4 +242,3 @@ genZeroRiskAssertions terms@ContractTerms{ct_DCC = Just dcc, ..} NpvAssertionAga
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
     in Assert (ValueLT (constnt expectedNpv) npv) continue
 genZeroRiskAssertions _ _ c = c
-
