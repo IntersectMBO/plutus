@@ -26,6 +26,7 @@ module PlutusCore.Name
     , lookupNameIndex
     , mapNameString
     , mapTyNameString
+    , isEmpty
     ) where
 
 import           PlutusPrelude
@@ -162,3 +163,7 @@ lookupNameIndex
     :: (HasUnique name unique1, Coercible unique2 Unique)
     => name -> UniqueMap unique2 a -> Maybe a
 lookupNameIndex = lookupUnique . coerce . view unique
+
+{-# INLINE isEmpty #-}
+isEmpty :: UniqueMap unique a -> Bool
+isEmpty (UniqueMap m) = IM.null m
