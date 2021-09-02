@@ -93,4 +93,5 @@ test-suite plutus-ledger-api-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        tasty-quickcheck -any
