@@ -6,7 +6,6 @@ module Language.Marlowe.ACTUS.Model.Utility.DateShift
   )
 where
 
-import           Data.Maybe                                       (fromJust)
 import           Data.Time                                        (Day, addDays, toGregorian)
 import           Data.Time.Calendar.WeekDate                      (toWeekDate)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (BDC (..), Calendar (..), ScheduleConfig (..))
@@ -15,7 +14,13 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (.
 {- Business Day Convention -}
 
 applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
-applyBDCWithCfg ScheduleConfig {..} = applyBDC (fromJust bdc) (fromJust calendar)
+applyBDCWithCfg
+  ScheduleConfig
+    { bdc = Just bdc',
+      calendar = Just calendar'
+    }
+  d = applyBDC bdc' calendar' d
+applyBDCWithCfg _ date = ShiftedDay {paymentDay = date, calculationDay = date}
 
 applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
 applyBDC BDC_NULL _ date =

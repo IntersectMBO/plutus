@@ -8,35 +8,35 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                                as L (foldl', zip6)
-import           Data.Map                                                 as M (empty)
-import           Data.Maybe                                               (fromJust, fromMaybe, isNothing, maybeToList)
-import           Data.Monoid                                              (Endo (Endo, appEndo))
-import           Data.String                                              (IsString (fromString))
-import           Data.Time                                                (Day)
-import           Data.Validation                                          (Validation (..))
-import           Language.Marlowe                                         (Action (..), Bound (..), Case (..),
-                                                                           ChoiceId (..), Contract (..),
-                                                                           Observation (..), Party (..), Payee (..),
-                                                                           Slot (..), Value (..), ValueId (ValueId),
-                                                                           ada)
-import           Language.Marlowe.ACTUS.Analysis                          (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (Assertion (..), AssertionContext (..),
-                                                                           Assertions (..), ContractTerms (..),
-                                                                           TermValidationError (..),
-                                                                           setDefaultContractTermValues)
-import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                     (constnt, dayToSlotNumber,
-                                                                           stateInitialisation, toMarloweFixedPoint,
-                                                                           useval)
-import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability (validateTerms)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization    (initializeState)
-import           Language.Marlowe.ACTUS.Model.POF.PayoffFs                (payoffFs)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs       (stateTransitionFs)
-import           Language.Marlowe.ACTUS.Ops                               as O (ActusNum (..), YearFractionOps (_y))
-import           Ledger.Value                                             (TokenName (TokenName))
-import           Prelude                                                  as P hiding (Fractional, Num, (*), (+), (/))
+import qualified Data.List                                                  as L (foldl', zip6)
+import           Data.Map                                                   as M (empty)
+import           Data.Maybe                                                 (fromMaybe, isNothing, maybeToList)
+import           Data.Monoid                                                (Endo (Endo, appEndo))
+import           Data.String                                                (IsString (fromString))
+import           Data.Time                                                  (Day)
+import           Data.Validation                                            (Validation (..))
+import           Language.Marlowe                                           (Action (..), Bound (..), Case (..),
+                                                                             ChoiceId (..), Contract (..),
+                                                                             Observation (..), Party (..), Payee (..),
+                                                                             Slot (..), Value (..), ValueId (ValueId),
+                                                                             ada)
+import           Language.Marlowe.ACTUS.Analysis                            (genProjectedCashflows)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
+                                                                             Assertions (..), ContractTerms (..),
+                                                                             TermValidationError (..),
+                                                                             setDefaultContractTermValues)
+import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
+import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, dayToSlotNumber,
+                                                                             stateInitialisation, toMarloweFixedPoint,
+                                                                             useval)
+import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability   (validateTerms)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
+import           Language.Marlowe.ACTUS.Model.POF.PayoffFs                  (payoffFs)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs         (stateTransitionFs)
+import           Language.Marlowe.ACTUS.Ops                                 as O (ActusNum (..), YearFractionOps (_y))
+import           Ledger.Value                                               (TokenName (TokenName))
+import           Prelude                                                    as P hiding (Fractional, Num, (*), (+), (/))
 
 receiveCollateral :: String -> Integer -> Integer -> Contract -> Contract
 receiveCollateral from amount timeout continue =
@@ -215,15 +215,15 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
             in withCollateral $ initializeStateFs terms' scheduleAcc
 
         initializeStateFs :: ContractTerms -> Contract -> Contract
-        initializeStateFs ct cont = let s = initializeState ct in stateInitialisation s cont
+        initializeStateFs ct cont = maybe cont (flip stateInitialisation cont) (initialize ct)
 
 genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
-genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue =
+genZeroRiskAssertions terms@ContractTerms{ct_DCC = Just dcc, ..} NpvAssertionAgainstZeroRiskBond{..} continue =
     let
         cfs = genProjectedCashflows M.empty terms
 
         dateToYearFraction :: Day -> Double
-        dateToYearFraction dt = _y (fromJust ct_DCC) ct_SD dt ct_MD
+        dateToYearFraction dt = _y dcc ct_SD dt ct_MD
 
         dateToDiscountFactor dt =  (1 O.- zeroRiskInterest) ** dateToYearFraction dt
 
@@ -235,3 +235,5 @@ genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..
 
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
     in Assert (ValueLT (constnt expectedNpv) npv) continue
+genZeroRiskAssertions _ _ c = c
+

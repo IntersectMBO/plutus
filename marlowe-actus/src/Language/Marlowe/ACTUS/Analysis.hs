@@ -4,70 +4,71 @@ module Language.Marlowe.ACTUS.Analysis
   (genProjectedCashflows)
 where
 
-import           Control.Applicative                                   ((<|>))
-import qualified Data.List                                             as L (find, groupBy)
-import qualified Data.Map                                              as M (lookup)
-import           Data.Maybe                                            (fromMaybe, isNothing)
-import           Data.Sort                                             (sortOn)
-import           Data.Time                                             (Day)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents     (DataObserved, EventType (..), RiskFactors (..),
-                                                                        ValueObserved (..), ValuesObserved (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractState      (ContractState)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (CT (..), ContractTerms (..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule           (CashFlow (..), ShiftedDay (..), calculationDay,
-                                                                        paymentDay)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization (initializeState)
-import           Language.Marlowe.ACTUS.Model.POF.Payoff               (payoff)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule   (maturity, schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransition      (stateTransition)
+import           Control.Applicative                                        ((<|>))
+import qualified Data.List                                                  as L (find, groupBy)
+import qualified Data.Map                                                   as M (lookup)
+import           Data.Maybe                                                 (fromMaybe, isNothing)
+import           Data.Sort                                                  (sortOn)
+import           Data.Time                                                  (Day)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (DataObserved, EventType (..),
+                                                                             RiskFactors (..), ValueObserved (..),
+                                                                             ValuesObserved (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
+                                                                             calculationDay, paymentDay)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
+import           Language.Marlowe.ACTUS.Model.POF.Payoff                    (payoff)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (maturity, schedule)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (stateTransition)
 
 genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
-genProjectedCashflows dataObserved ct@ContractTerms {..} =
-  let -- schedule
-      scheduleEvent e = maybe [] (fmap (e,)) (schedule e ct)
+genProjectedCashflows dataObserved ct@ContractTerms {..} = fromMaybe [] $
+  do
+    st0 <- initialize ct
+    return $
+      let -- schedule
+          scheduleEvent e = maybe [] (fmap (e,)) (schedule e ct)
 
-      -- events
-      eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
+          -- events
+          eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
 
-      events =
-        let e = concatMap scheduleEvent eventTypes
-         in filter filtersEvents . postProcessSchedule . sortOn (paymentDay . snd) $ e
+          events =
+            let e = concatMap scheduleEvent eventTypes
+             in filter filtersEvents . postProcessSchedule . sortOn (paymentDay . snd) $ e
 
-      -- states
-      applyStateTransition (st, ev, date) (ev', date') =
-        let t = calculationDay date
-            rf = getRiskFactors ev t
-         in (stateTransition ev rf ct st t, ev', date')
+          -- states
+          applyStateTransition (st, ev, date) (ev', date') =
+            let t = calculationDay date
+                rf = getRiskFactors ev t
+             in (stateTransition ev rf ct st t, ev', date')
 
-      states =
-        let initialState = (initializeState ct, AD, ShiftedDay ct_SD ct_SD)
-         in filter filtersStates . tail $ scanl applyStateTransition initialState events
+          states =
+            let initialState = (st0, AD, ShiftedDay ct_SD ct_SD)
+             in filter filtersStates . tail $ scanl applyStateTransition initialState events
 
-      -- payoff
-      calculatePayoff (st, ev, date) =
-        let t = calculationDay date
-            rf = getRiskFactors ev t
-         in payoff ev rf ct st t
+          -- payoff
+          calculatePayoff (st, ev, date) =
+            let t = calculationDay date
+                rf = getRiskFactors ev t
+             in payoff ev rf ct st t
 
-      payoffs = calculatePayoff <$> states
+          payoffs = calculatePayoff <$> states
 
-      genCashflow ((_, ev, d), pff) =
-        CashFlow
-          { tick = 0,
-            cashContractId = "0",
-            cashParty = "party",
-            cashCounterParty = "counterparty",
-            cashPaymentDay = paymentDay d,
-            cashCalculationDay = calculationDay d,
-            cashEvent = ev,
-            amount = pff,
-            currency = "ada"
-          }
-
-   in sortOn cashPaymentDay $ genCashflow <$> zip states payoffs
-
+          genCashflow ((_, ev, d), pff) =
+            CashFlow
+              { tick = 0,
+                cashContractId = "0",
+                cashParty = "party",
+                cashCounterParty = "counterparty",
+                cashPaymentDay = paymentDay d,
+                cashCalculationDay = calculationDay d,
+                cashEvent = ev,
+                amount = pff,
+                currency = "ada"
+              }
+       in sortOn cashPaymentDay $ genCashflow <$> zip states payoffs
   where
-
     filtersEvents :: (EventType, ShiftedDay) -> Bool
     filtersEvents (_, ShiftedDay {..}) = isNothing ct_TD || Just calculationDay <= ct_TD
 
@@ -114,7 +115,6 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} =
             ValuesObserved {values = values} <- M.lookup k dataObserved
             ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
             return valueObserved
-
        in case ev of
             RR -> riskFactors {o_rf_RRMO = value}
             SC -> riskFactors {o_rf_SCMO = value}
