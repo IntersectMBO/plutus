@@ -38,6 +38,7 @@ library
         Plutus.ChainIndex.Client
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
+        Plutus.ChainIndex.TxIdState
         Plutus.ChainIndex.Types
         Plutus.ChainIndex.UtxoState
         Plutus.Monitoring.Util
@@ -122,6 +123,7 @@ test-suite plutus-chain-index-test
         containers -any,
         serialise -any,
         bytestring -any,
+        fingertree -any,
         freer-simple -any,
         lens -any
 

@@ -19,14 +19,20 @@ module Generators(
     genTxUtxoBalance,
     genTx,
     genNonEmptyBlock,
-    evalUtxoGenState
+    evalUtxoGenState,
+    genTxIdState,
+    evalTxIdGenState,
+    execTxIdGenState,
+    txgsBlocks,
+    txgsNumTransactions,
+    genTxIdStateTipAndTxId
     ) where
 
 import           Codec.Serialise             (serialise)
 import           Control.Lens                (makeLenses, over, view)
 import           Control.Monad               (replicateM)
 import           Control.Monad.Freer         (Eff, LastMember, Member, runM, sendM, type (~>))
-import           Control.Monad.Freer.State   (State, evalState, gets, modify)
+import           Control.Monad.Freer.State   (State, evalState, execState, gets, modify)
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.Set                    (Set)
 import qualified Data.Set                    as Set
@@ -42,6 +48,7 @@ import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), Tx
 import           Ledger.TxId                 (TxId (..))
 import           Ledger.Value                (Value)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..))
+import qualified Plutus.ChainIndex.TxIdState as TxIdState
 import           Plutus.ChainIndex.Types     (BlockId (..), Tip (..))
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..), fromTx)
 import qualified PlutusTx.Prelude            as PlutusTx
@@ -90,6 +97,26 @@ data UtxoGenState =
 
 makeLenses ''UtxoGenState
 
+data TxIdGenState =
+        TxIdGenState
+            { _txgsBlocks          :: [[TxId]]
+            , _txgsNumTransactions :: Int
+            }
+            deriving Show
+
+makeLenses ''TxIdGenState
+
+txIdStateTip :: TxIdGenState -> Tip
+txIdStateTip TxIdGenState {_txgsBlocks, _txgsNumTransactions} =
+    Tip
+        { tipSlot    = Slot (fromIntegral numBlocks) -- Because in every slot we have one block.
+        , tipBlockId = BlockId $ BSL.toStrict $ serialise numBlocks
+        , tipBlockNo = numBlocks
+        }
+  where
+    numBlocks = length _txgsBlocks
+
+
 genStateTip :: UtxoGenState -> Tip
 genStateTip UtxoGenState{_uxUtxoSet, _uxNumTransactions, _uxNumBlocks} =
     Tip
@@ -112,6 +139,13 @@ nextTxId = do
     lastIdx <- gets (view uxNumTransactions)
     let newId = txIdFromInt lastIdx
     modify (over uxNumTransactions succ)
+    pure newId
+
+nextTxId' :: forall effs. Member (State TxIdGenState) effs => Eff effs TxId
+nextTxId' = do
+    lastIdx <- gets (view txgsNumTransactions)
+    let newId = txIdFromInt lastIdx
+    modify (over txgsNumTransactions succ)
     pure newId
 
 availableInputs :: forall effs. Member (State UtxoGenState) effs => Eff effs [TxOutRef]
@@ -164,6 +198,28 @@ genTx = do
         -- 'SomeCardanoTx', or vis-versa. And then put it here.
         <*> pure Nothing
 
+genTxIdStateTx ::
+    forall effs.
+    ( Member (State TxIdGenState) effs
+    )
+    => Eff effs ChainIndexTx
+genTxIdStateTx = do
+  txId <- nextTxId'
+  tx <- ChainIndexTx
+        <$> pure txId
+        <*> pure mempty
+        <*> pure (ValidTx [])
+        <*> pure Interval.always
+        <*> pure mempty
+        <*> pure mempty
+        <*> pure mempty
+        <*> pure mempty
+        <*> pure mempty
+        <*> pure Nothing
+
+  modify (over txgsBlocks ((:) [txId]))
+  pure tx
+
 -- | Generate a 'TxUtxoBalance' based on the state of utxo changes produced so
 --   far. Ensures that tx outputs are created before they are spent, and that
 --   tx IDs are unique.
@@ -176,6 +232,26 @@ genTxUtxoBalance ::
 genTxUtxoBalance = sendM genChainAction >>= \case
     DoNothing -> pure mempty
     AddTx     -> fromTx <$> genTx
+
+genTxIdState ::
+  forall m effs.
+  ( Member (State TxIdGenState) effs
+  , LastMember m effs
+  , MonadGen m
+  ) => Eff effs TxIdState.TxIdState
+genTxIdState = sendM genChainAction >>= \case
+    DoNothing -> pure mempty
+    AddTx     -> do
+      blockNumber <- length <$> gets (view txgsBlocks)
+      TxIdState.fromTx (TxIdState.BlockNumber blockNumber) <$> genTxIdStateTx
+
+execTxIdGenState :: forall m a. Monad m => Eff '[State TxIdGenState, m] a -> m TxIdGenState
+execTxIdGenState = runM . execState state
+  where state = TxIdGenState [] 0
+
+evalTxIdGenState :: forall m. Monad m => Eff '[State TxIdGenState, m] ~> m
+evalTxIdGenState = runM . evalState state
+  where state = TxIdGenState [] 0
 
 genNonEmptyBlock ::
     forall m effs.
@@ -190,6 +266,16 @@ genNonEmptyBlock = do
     modify (over uxNumBlocks succ)
     tp <- gets genStateTip
     pure (tp, theBlock)
+
+genTxIdStateTipAndTxId ::
+    forall effs.
+    ( Member (State TxIdGenState) effs
+    )
+    => Eff effs (Tip, ChainIndexTx)
+genTxIdStateTipAndTxId = do
+  chainIndexTx <- genTxIdStateTx
+  tip <- gets txIdStateTip
+  pure (tip, chainIndexTx)
 
 evalUtxoGenState :: forall m. Monad m => Eff '[State UtxoGenState, m] ~> m
 evalUtxoGenState = runM . evalState initialState

@@ -68,25 +68,23 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     WriteBalancedTxResponse(..),
     writeBalancedTxResponse,
     ActiveEndpoint(..),
-    TxValidity(..),
-    TxStatus(..),
-    Depth(..),
-    isConfirmed,
-    increaseDepth,
-    initialStatus
     ) where
 
+import           Cardano.Api                      (ChainPoint)
 import           Control.Lens                     (Iso', Prism', iso, makePrisms, prism')
 import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
+import           Data.FingerTree                  (FingerTree, Measured (..))
+import qualified Data.FingerTree                  as FT
 import           Data.List.NonEmpty               (NonEmpty)
+import qualified Data.Map                         as Map
+import           Data.Semigroup                   (Last (..), Sum (..))
 import           Data.Text.Prettyprint.Doc        (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
-                                                   OnChainTx, PubKey, Redeemer, RedeemerHash, StakeValidator,
-                                                   StakeValidatorHash, Tx, TxId, TxOutRef, ValidatorHash, eitherTx,
-                                                   txId)
+import           Ledger                           (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKey,
+                                                   Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash, Tx, TxId,
+                                                   TxOutRef, ValidatorHash, txId)
 import           Ledger.Constraints.OffChain      (UnbalancedTx)
 import           Ledger.Credential                (Credential)
 import           Ledger.Scripts                   (Validator)
@@ -96,8 +94,7 @@ import           Ledger.TimeSlot                  (SlotConversionError)
 import           Ledger.Tx                        (ChainIndexTxOut)
 import           Plutus.ChainIndex                (Tip)
 import           Plutus.ChainIndex.Tx             (ChainIndexTx (_citxTxId))
-import           Plutus.ChainIndex.Types          (Page (pageItems))
-import           PlutusTx.Lattice                 (MeetSemiLattice (..))
+import           Plutus.ChainIndex.Types          (Page (pageItems), Tip (..))
 import           Wallet.API                       (WalletAPIError)
 import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue)
 
@@ -275,85 +272,35 @@ instance Pretty ChainIndexResponse where
             <+> hsep (fmap pretty $ pageItems txOutRefPage)
         GetTipResponse tip -> "Chain index get tip response:" <+> pretty tip
 
--- | Validity of a transaction that has been added to the ledger
-data TxValidity = TxValid | TxInvalid | UnknownValidity
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via (PrettyShow TxValidity)
-
-instance MeetSemiLattice TxValidity where
-  TxValid /\ TxValid     = TxValid
-  TxInvalid /\ TxInvalid = TxInvalid
-  _ /\ _                 = UnknownValidity
-
-{- Note [TxStatus state machine]
-
-The status of a transaction is described by the following state machine.
-
-Current state | Next state(s)
------------------------------------------------------
-Unknown       | OnChain
-OnChain       | OnChain, Unknown, Committed
-Committed     | -
-
-The initial state after submitting the transaction is Unknown.
-
--}
-
--- | How many blocks deep the tx is on the chain
-newtype Depth = Depth Int
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
-
-instance MeetSemiLattice Depth where
-  Depth a /\ Depth b = Depth (max a b)
-
--- | The status of a Cardano transaction
-data TxStatus =
-  Unknown -- ^ The transaction is not on the chain. That's all we can say.
-  | TentativelyConfirmed Depth TxValidity -- ^ The transaction is on the chain, n blocks deep. It can still be rolled back.
-  | Committed TxValidity -- ^ The transaction is on the chain. It cannot be rolled back anymore.
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via (PrettyShow TxStatus)
-
-instance MeetSemiLattice TxStatus where
-  Unknown /\ a                                             = a
-  a /\ Unknown                                             = a
-  TentativelyConfirmed d1 v1 /\ TentativelyConfirmed d2 v2 = TentativelyConfirmed (d1 /\ d2) (v1 /\ v2)
-  TentativelyConfirmed _ v1 /\ Committed v2                = Committed (v1 /\ v2)
-  Committed v1 /\ TentativelyConfirmed _ v2                = Committed (v1 /\ v2)
-  Committed v1 /\ Committed v2                             = Committed (v1 /\ v2)
-
--- | The 'TxStatus' of a transaction right after it was added to the chain
-initialStatus :: OnChainTx -> TxStatus
-initialStatus =
-  TentativelyConfirmed 0 . eitherTx (const TxInvalid) (const TxValid)
-
--- | Whether a 'TxStatus' counts as confirmed given the minimum depth
-isConfirmed :: Depth -> TxStatus -> Bool
-isConfirmed minDepth = \case
-    TentativelyConfirmed d _ | d >= minDepth -> True
-    Committed{}                              -> True
-    _                                        -> False
-
--- | Increase the depth of a tentatively confirmed transaction
-increaseDepth :: TxStatus -> TxStatus
-increaseDepth (TentativelyConfirmed d s)
-  | d < succ chainConstant = TentativelyConfirmed (d + 1) s
-  | otherwise              = Committed s
-increaseDepth e                        = e
-
--- TODO: Configurable!
--- | The depth (in blocks) after which a transaction cannot be rolled back anymore
-chainConstant :: Depth
-chainConstant = Depth 8
-
 data BalanceTxResponse =
   BalanceTxFailed WalletAPIError
   | BalanceTxSuccess Tx
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
+
+
+
+-- deleteBlock :: TxIdState -> TxIdState
+-- deleteBlock TxIdState{txnsConfirmed} =
+--   TxIdState mempty (Map.map (\_ -> Sum 1) txnsConfirmed)
+
+
+
+
+-- rollback :: Tip -> Txns -> Either RollbackFailed RollbackResult
+-- rollback = undefined
+-- rollback targetTip idx@(viewTip -> currentType)
+--   | currentTip < targetTip = Left TipMismatch{foundTip, targetTip}
+--   | otherwise = do
+--     let (before, deleted) = FT.split ((> targetTip) . tip) idx
+
+--     case tip (measure before) of
+--       TipAtGenesis -> Lef $ OldTipNotFound targetTip
+--       oldTIp | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before |> deleteBlock deleted}
+--              | otherwise           -> Left TipMismatch{foundTip=oldTip, targetTip}
+
+--
+-- ================================================================================
 
 instance Pretty BalanceTxResponse where
   pretty = \case

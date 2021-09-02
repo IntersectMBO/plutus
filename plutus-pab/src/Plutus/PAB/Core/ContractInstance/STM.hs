@@ -154,8 +154,13 @@ data BlockchainEnv =
     BlockchainEnv
         { beCurrentSlot :: TVar Slot -- ^ Current slot
         , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
-        , beTxChanges   :: TVar (Map TxId (TVar TxStatus)) -- ^ Map of transaction IDs to statuses
+        , beTxChanges   :: TVar (Map TxId TxStatus) -- ^ Map of transaction IDs to statuses
         }
+
+data TxStatusMap = TxStatusMap
+  { txmChainPoint :: ChainPoint
+  , txmState      :: TxIdState
+  }
 
 -- | Initialise an empty 'BlockchainEnv' value
 emptyBlockchainEnv :: STM BlockchainEnv
@@ -419,8 +424,7 @@ waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges} = do
     idx <- STM.readTVar beTxChanges
     case Map.lookup tx idx of
         Nothing -> empty -- TODO: should be an error?
-        Just tv' -> do
-            newStatus <- STM.readTVar tv'
+        Just newStatus -> do
             guard $ oldStatus /= newStatus
             pure newStatus
 
