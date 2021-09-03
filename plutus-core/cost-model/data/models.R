@@ -56,6 +56,58 @@ discard.upper.outliers <- function(fr,name) {
     new.fr
 }
 
+arity <- function(name) {
+    switch (name,
+        "AddInteger" = 2,
+        "SubtractInteger" = 2,
+        "MultiplyInteger" = 2,
+        "DivideInteger" = 2,
+        "QuotientInteger" = 2,
+        "RemainderInteger" = 2,
+        "ModInteger" = 2,
+        "EqualsInteger" = 2,
+        "LessThanInteger" = 2,
+        "LessThanEqualsInteger" = 2,
+        "AppendByteString" = 2,
+        "ConsByteString" = 2,
+        "SliceByteString" = 3,
+        "LengthOfByteString" = 1,
+        "IndexByteString" = 2,
+        "EqualsByteString" = 2,
+        "LessThanByteString" = 2,
+        "LessThanEqualsByteString" = 2,
+        "Sha2_256" = 1,
+        "Sha3_256" = 1,
+        "Blake2b_256" = 1,
+        "VerifySignature" = 3,
+        "AppendString" = 2,
+        "EqualsString" = 2,
+        "EncodeUtf8" = 1,
+        "DecodeUtf8" = 1,
+        "IfThenElse" = 3,
+        "ChooseUnit" = 2,
+        "Trace" = 2,
+        "FstPair" = 1,
+        "SndPair" = 1,
+        "ChooseList" = 3,
+        "MkCons" = 2,
+        "HeadList" = 1,
+        "TailList" = 1,
+        "NullList" = 1,
+        "ChooseData" = 6,
+        "ConstrData" = 2,
+        "MapData" = 1,
+        "ListData" = 1,
+        "IData" = 1,
+        "BData" = 1,
+        "UnConstrData" = 1,
+        "UnMapData" = 1,
+        "UnListData" = 1,
+        "UnIData" = 1,
+        "UnBData" = 1,
+        "EqualsData" = 2)
+}
+            
 
 ## Read a file containing Criterion CSV output and convert it to a frame
 get.bench.data <- function(path) {
@@ -72,7 +124,9 @@ get.bench.data <- function(path) {
 
     ## FIXME: the benchmarks for Nop4, Nop5, and Nop6 do have more than three
     ## arguments, but we're not paying any attention to the extra ones because
-    ## the cost is constant.
+    ## the cost is constant.  ChooseData takes six arguments, but we only record
+    ## the size of the first one because the others are terms (and the time is
+    ## constant anyway).
 
     numbercols = c("x_mem", "y_mem", "z_mem")
 
@@ -102,10 +156,6 @@ filter.and.check.nonempty <- function (frame, name) {
 
 }
 
-
-discard.overhead <- function(frame, overhead) {
-    mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x-overhead }))
-}
 
 adjustModel <- function (m, fname) {
     ## Given a linear model, check its coefficients and if any is negative then
@@ -160,18 +210,36 @@ modelFun <- function(path) {
         return (r)
     }
 
-    constantModel <- function (fname, overhead, data) {
+    nops <- c("Nop1", "Nop2", "Nop3", "Nop4", "Nop5", "Nop6")
+    overhead <- sapply(nops, get.mean.time)
+
+    print (overhead)
+    
+    discard.overhead <- function(frame, name) {
+        args.overhead <- overhead[arity(name)]
+        if (mean(frame$Mean) > args.overhead) {
+            mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
+        }
+        else {
+            warning ("* NOTE: mean time for",
+                     name,
+                     " (",
+                     mean(frame$Mean),
+                     ") was less than overhead (",
+                     args.overhead,
+                     "): data was not adjusted");
+            frame  ## ... or set the time to zero?
+        }
+    }
+
+    constantModel <- function (fname) {
         filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
-            discard.overhead (overhead)
+            filter.and.check.nonempty (fname) %>%
+            discard.upper.outliers (fname) %>%
+            discard.overhead (fname)
         m <- lm(Mean ~ 1, data=filtered)
         adjustModel (m,fname)
     }
-
-    one.arg.overhead    <- get.mean.time("Nop1")
-    two.args.overhead   <- get.mean.time("Nop2")
-    three.args.overhead <- get.mean.time("Nop3")
 
     ## filtered leaks from one model to the next, so make sure you don't mistype!
 
@@ -180,9 +248,9 @@ modelFun <- function(path) {
     addIntegerModel <- {
         fname <- "AddInteger"
         filtered <- data %>%
-            filter.and.check.nonempty(fname)  %>%
-            discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            filter.and.check.nonempty (fname)  %>%
+            discard.upper.outliers (fname) %>%
+            discard.overhead (fname)
         m <- lm(Mean ~ pmax(x_mem, y_mem), filtered)
         adjustModel (m, fname)
     }
@@ -193,9 +261,9 @@ modelFun <- function(path) {
         fname <- "MultiplyInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)  %>%
-            filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem + y_mem), filtered)
         adjustModel (m, fname)
     }
@@ -211,10 +279,10 @@ modelFun <- function(path) {
         fname <- "DivideInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)    %>%
-            filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.upper.outliers(fname)   %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
     }
@@ -228,9 +296,9 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            filter (x_mem != 0) %>%
+            filter (x_mem > 0) %>%
             discard.upper.outliers("EqualsInteger") %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -240,9 +308,9 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            filter (x_mem != 0) %>%
+            filter (x_mem > 0) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -252,9 +320,9 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            filter (x_mem != 0) %>%
+            filter (x_mem > 0) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -266,25 +334,38 @@ modelFun <- function(path) {
         fname <- "AppendByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
         adjustModel(m,fname)
     }
-    ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
+    ## Note that this is symmetrical in the arguments: a new bytestring is
+    ## created and the contents of both arguments are copied into it.
 
-    consByteStringModel  <- 0
+    consByteStringModel  <- {
+        fname <- "ConsByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (fname)
+        m <- lm(Mean ~ y_mem, data=filtered)
+        adjustModel(m,fname)
+    }
+    ## Depends on the size of the second argument, which has to be copied into
+    ## the destination.
 
-    sliceByteStringModel <- constantModel ("SliceByteString", two.args.overhead, data)
+    sliceByteStringModel <- constantModel ("SliceByteString")
+    ## Bytetrings are immutable arrays with a pointer to the start and a length.
+    ## This just adjusts the pointer and length.
 
-    lengthOfByteStringModel <- 0
-    indexByteStringModel    <- 0
-
-    equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
+    lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
+    indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
+    
+    equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially. ## FIXME
         fname <- "EqualsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -293,7 +374,7 @@ modelFun <- function(path) {
         fname <- "LessThanByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -306,7 +387,7 @@ modelFun <- function(path) {
         fname <- "Sha2_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (one.arg.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -316,19 +397,27 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (one.arg.overhead)
+            discard.overhead (fname)
       m <- lm(Mean ~ x_mem, data=filtered)
       adjustModel(m,fname)
     }
 
-    blake2bModel <- sha2_256Model    ## TODO: Fix this
+    blake2bModel <- {
+        fname <- "Blake2b_256"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers(fname) %>%
+            discard.overhead (fname)
+      m <- lm(Mean ~ x_mem, data=filtered)
+      adjustModel(m,fname)
+    }
 
     ## This appears to be kind of random, even up to size 120000
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (three.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -336,13 +425,13 @@ modelFun <- function(path) {
 
     ##### Strings #####
 
-    appendByteStringModel <- {
+    appendStringModel <- {
         fname <- "AppendString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            filter (x_mem > 0 & ymem > 0)    %>%
+            filter (x_mem > 0 & y_mem > 0)    %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -353,7 +442,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (two.args.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -363,7 +452,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (one.arg.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -373,56 +462,57 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.upper.outliers(fname) %>%
-            discard.overhead (one.arg.overhead)
+            discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
 
-##### Bool #####
+    ##### Bool #####
 
-    ifThenElseModel <- 0
+    ifThenElseModel <- 0  ## MISSING
 
 
     ##### Unit #####
 
-    chooseUnitModel <- constantModel ("ChooseUnit", two.args.overhead, data)
+    chooseUnitModel <- constantModel ("ChooseUnit")
 
 
     ##### Tracing #####
 
-    traceModel <- constantModel ("Trace", two.args.overhead, data)
+    traceModel <- constantModel ("Trace")
 
 
     ##### Pairs #####
 
-    fstPairModel <- 0
-    sndPairModel <- 0
+    fstPairModel <- constantModel ("FstPair")
+    sndPairModel <- constantModel ("SndPair")
 
 
     ##### Lists #####
 
-    chooseListModel <- 0
-    mkConsModel     <- 0
-    headListModel   <- 0
-    tailListModel   <- 0
-    nullListModel   <- 0
+    chooseListModel <- constantModel ("ChooseList")
+    mkConsModel     <- constantModel ("MkCons")
+    headListModel   <- constantModel ("HeadList")
+    tailListModel   <- constantModel ("TailList")
+    nullListModel   <- constantModel ("NullList")
 
 
     ##### Data #####
 
-    chooseDataModel   <- 0
-    constrDataModel   <- 0
-    mapDataModel      <- 0
-    listDataModel     <- 0
-    iDataModel        <- 0
-    bDataModel        <- 0
-    unConstrDataModel <- 0
-    unMapDataModel    <- 0
-    unListDataModel   <- 0
-    unIDataModel      <- 0
-    unBDataModel      <- 0
-    equalsDataModel   <- 0
+    chooseDataModel   <- constantModel ("ChooseData")
+    constrDataModel   <- constantModel ("ConstrData")
+    mapDataModel      <- constantModel ("MapData" )
+    listDataModel     <- constantModel ("ListData")
+    iDataModel        <- constantModel ("IData")
+    bDataModel        <- constantModel ("BData")
+    unConstrDataModel <- constantModel ("UnConstrData")
+    unMapDataModel    <- constantModel ("UnMapData")
+    unListDataModel   <- constantModel ("UnListData")
+    unIDataModel      <- constantModel ("UnIData")
+    unBDataModel      <- constantModel ("UnBData")
+
+    equalsDataModel   <- 0   ## MISSING
 
     list(
         addIntegerModel               = addIntegerModel,
