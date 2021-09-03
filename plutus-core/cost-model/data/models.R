@@ -217,16 +217,17 @@ modelFun <- function(path) {
     
     discard.overhead <- function(frame, name) {
         args.overhead <- overhead[arity(name)]
-        if (mean(frame$Mean) > args.overhead) {
+        mean.time <- mean(frame$Mean) 
+        if (mean.time > args.overhead) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
         }
         else {
             warning ("* NOTE: mean time for",
                      name,
-                     " (",
-                     mean(frame$Mean),
-                     ") was less than overhead (",
-                     args.overhead,
+                     " was less than overhead (",
+                     sprintf ("%.3f ms", mean.time),
+                     " < ",
+                     sprintf ("%.3f ms", args.overhead),
                      "): data was not adjusted");
             frame  ## ... or set the time to zero?
         }
