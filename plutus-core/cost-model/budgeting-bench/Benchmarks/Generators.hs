@@ -189,4 +189,9 @@ dataSample :: [Data]
 dataSample = genDataSample (take 500 $ cycle dataParams)
 
 
+-- A list of data for EqualsData, which is difficult to cost. We want some very
+-- small objects in here to give us an idea of what the intercept of regression
+-- line should be.  We also exclude really large objects.
+dataSampleForEq :: [Data]
+dataSampleForEq = take 400 $ filter (\d -> memoryUsage d < 1e6) $ genDataSample (cycle ([20,1,1,1]:dataParams))
 
