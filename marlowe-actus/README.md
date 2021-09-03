@@ -12,7 +12,7 @@ The following contract types are implemented in Haskell and Marlowe.
 
 #### Amortizing loans
 
-An amortizing loan is a loan that requires periodic payments where a payement consists of the interest payment and the principal.
+An amortizing loan is a loan that requires periodic payments where a payment consists of the interest payment and the principal.
 
 ##### Principal at maturity (PAM)
 
@@ -20,7 +20,7 @@ Principal at maturity only defines periodic interest payments, the full principa
 
 ##### Linear Amortizer (LAM)
 
-Regular princial repayments over time, the interest payments decrease linearly.
+Regular principal repayments over time, the interest payments decrease linearly.
 
 ##### Negative Amortizer (NAM)
 
@@ -28,7 +28,7 @@ Negative amortization means that the payments per period are smaller the interes
 
 ##### Annuity (ANN)
 
-The annuity amortization consists of regular payments of equal aomounts over the lifetime of the loan.
+The annuity amortization consists of regular payments of equal amounts over the lifetime of the loan.
 
 ## Test cases
 
