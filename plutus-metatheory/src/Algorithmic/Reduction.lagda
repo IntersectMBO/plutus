@@ -208,26 +208,6 @@ IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
 IBUILTIN appendByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bytestring (concat b b')))
-IBUILTIN lessThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B< b b')))
-IBUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
-IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
-IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
-IBUILTIN blake2b-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (BLAKE2B-256 b)))
-IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
-... | just b = _ ,, inj₁ (V-con (bool b))
-... | nothing = _ ,, inj₂ E-error -- not sure what this is for
-IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (equals b b')))
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
-  _ ,, inj₁ (proj₂ f)
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
-  _ ,, inj₁ (proj₂ t)
-IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
-  _ ,, inj₁ (V-con (string (primStringAppend s s')))
-IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
-IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
-  _ ,, inj₁ (V-con (Data (iDATA i)))
-IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
-  _ ,, inj₁ (V-con (Data (bDATA b)))
 IBUILTIN consByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (cons i b)))
 IBUILTIN sliceByteString σ (((tt ,, _ ,, V-con (integer st)) ,, _ ,, V-con (integer n)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (slice st n b)))
 IBUILTIN lengthOfByteString σ (tt ,, _ ,, V-con (bytestring b)) =
@@ -237,12 +217,32 @@ IBUILTIN indexByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (in
 ... | yes _ with i <? length b
 ... | no _ =  _ ,, inj₂ E-error
 ... | yes _ = _ ,, inj₁ (V-con (integer (index b i)))
+IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (equals b b')))
+IBUILTIN lessThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B< b b')))
+IBUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
+IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
+IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
+IBUILTIN blake2b-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (BLAKE2B-256 b)))
+IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
+... | just b = _ ,, inj₁ (V-con (bool b))
+... | nothing = _ ,, inj₂ E-error -- not sure what this is for
+IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
+  _ ,, inj₁ (V-con (string (primStringAppend s s')))
 IBUILTIN equalsString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = _ ,, inj₁ (V-con (bool (primStringEquality s s')))
 IBUILTIN encodeUtf8 σ (tt ,, _ ,, V-con (string s)) =
   _ ,, inj₁ (V-con (bytestring (ENCODEUTF8 s)))
 IBUILTIN decodeUtf8 σ (tt ,, _ ,, V-con (bytestring b)) with DECODEUTF8 b
 ... | nothing = _ ,, inj₂ E-error
 ... | just s  = _ ,, inj₁ (V-con (string s))
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
+  _ ,, inj₁ (proj₂ f)
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
+  _ ,, inj₁ (proj₂ t)
+IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
+IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
+  _ ,, inj₁ (V-con (Data (iDATA i)))
+IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
+  _ ,, inj₁ (V-con (Data (bDATA b)))
 IBUILTIN unIData σ (tt ,, _ ,, V-con (Data (iDATA i))) =
   _ ,, inj₁ (V-con (integer i))
 IBUILTIN unBData σ (tt ,, _ ,, V-con (Data (bDATA b))) =
