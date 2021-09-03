@@ -71,30 +71,39 @@ txIdStateTests =
       ]
   , testGroup "operations"
       [ testProperty "transaction depth increases" transactionDepthIncreases
-      , testProperty "rollback" rollbackTxIdState
+      , testProperty "rollback changes tx state" rollbackTxIdState
       ]
   ]
 
 rollbackTxIdState :: Property
 rollbackTxIdState = property $ do
-  ((tipA, txA), (tipB, txB), (tipC, txC)) <- forAll $ Gen.evalTxIdGenState
-                      $ (,,)
+  ((tipA, txA), (tipB, txB)) <- forAll $ Gen.evalTxIdGenState
+                      $ (,)
                       <$> Gen.genTxIdStateTipAndTxId
                           <*> Gen.genTxIdStateTipAndTxId
-                          <*> Gen.genTxIdStateTipAndTxId
 
-  let Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
-      Right s2 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 1) txB) tipB) f1
-      Right s3 = TxIdState.rollback (tipAsPoint tipA) f2
+  let getState = UtxoState._usTxUtxoData . measure
+
+      Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
       f1 = newIndex s1
+
+      Right s2 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 1) txB) tipB) f1
       f2 = newIndex s2
+
+      Right s3 = TxIdState.rollback (tipAsPoint tipA) f2
       f3 = rolledBackIndex s3
 
-      status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txB ^. citxTxId)
-      status3 = transactionStatus (BlockNumber 2) (UtxoState._usTxUtxoData (measure f3)) (txB ^. citxTxId)
+      -- Add it back again.
+      Right s4 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 2) txB) tipB) f3
+      f4 = newIndex s4
+
+      status2 = transactionStatus (BlockNumber 1) (getState f2) (txB ^. citxTxId)
+      status3 = transactionStatus (BlockNumber 2) (getState f3) (txB ^. citxTxId)
+      status4 = transactionStatus (BlockNumber 3) (getState f4) (txB ^. citxTxId)
 
   status2 === TentativelyConfirmed (TxIdState.Depth 0) TxValid
   status3 === Unknown
+  status4 === TentativelyConfirmed (TxIdState.Depth 1) TxValid
 
 transactionDepthIncreases :: Property
 transactionDepthIncreases = property $ do
@@ -102,15 +111,18 @@ transactionDepthIncreases = property $ do
                                  $ Gen.evalTxIdGenState
                                  $ (,) <$> Gen.genTxIdStateTipAndTxId <*> Gen.genTxIdStateTipAndTxId
 
-  let Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
+  let TxIdState.Depth d = TxIdState.chainConstant
+      Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
       Right s2 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 1) txB) tipB) f1
       f1 = newIndex s1
       f2 = newIndex s2
 
   let status1 = transactionStatus (BlockNumber 0) (UtxoState._usTxUtxoData (measure f1)) (txA ^. citxTxId)
       status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
+      status3 = transactionStatus (BlockNumber (1 + d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
 
   status2 === increaseDepth status1
+  status3 === Committed TxValid
 
 uniqueTransactionIds :: Property
 uniqueTransactionIds = property $ do

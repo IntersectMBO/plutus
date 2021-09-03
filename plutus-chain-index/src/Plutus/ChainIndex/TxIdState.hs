@@ -24,6 +24,7 @@ module Plutus.ChainIndex.TxIdState(
     fromBlock,
     rollback,
     BlockNumber(..),
+    chainConstant,
     ) where
 
 import           Control.Lens                     (makeLenses, view, (^.))
