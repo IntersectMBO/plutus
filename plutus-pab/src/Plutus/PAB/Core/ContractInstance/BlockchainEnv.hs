@@ -21,7 +21,7 @@ import qualified Data.Map                               as Map
 import           Ledger                                 (Block, OnChainTx, Slot, TxId (..))
 import           Ledger.AddressMap                      (AddressMap)
 import qualified Ledger.AddressMap                      as AddressMap
-import           Plutus.Contract.Effects                (TxStatus (..), TxValidity (..), increaseDepth)
+import           Plutus.ChainIndex.TxIdState            (increaseDepth)
 import           Plutus.PAB.Core.ContractInstance.STM   (BlockchainEnv (..), InstanceClientEnv (..), InstancesState,
                                                          OpenTxOutProducedRequest (..), OpenTxOutSpentRequest (..),
                                                          emptyBlockchainEnv)
@@ -36,8 +36,8 @@ import           Control.Monad                          (forM_, unless, void, wh
 import           Data.Foldable                          (foldl')
 import           Data.Map                               (Map)
 import           Ledger.TimeSlot                        (SlotConfig)
-import           Plutus.ChainIndex                      (ChainIndexTx (..), ChainIndexTxOutputs (..), citxTxId,
-                                                         fromOnChainTx)
+import           Plutus.ChainIndex                      (ChainIndexTx (..), ChainIndexTxOutputs (..), TxStatus (..),
+                                                         TxValidity (..), citxTxId, fromOnChainTx)
 
 -- | Connect to the node and write node updates to the blockchain
 --   env.

@@ -38,13 +38,13 @@ import           Ledger.Value                              (AssetClass, Currency
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.ChainIndex.Emulator.Handlers       (ChainIndexError, ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (Page, PageSize, Point, Tip)
+import           Plutus.ChainIndex.Types                   (Depth, Page, PageSize, Tip, TxStatus, TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
 import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, ChainIndexQuery,
-                                                            ChainIndexResponse, Depth, PABReq, PABResp, TxStatus,
-                                                            TxValidity, WriteBalancedTxResponse)
+                                                            ChainIndexResponse, PABReq, PABResp,
+                                                            WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)

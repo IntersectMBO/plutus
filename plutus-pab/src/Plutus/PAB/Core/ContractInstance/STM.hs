@@ -71,8 +71,8 @@ import qualified Ledger.AddressMap         as AM
 import           Ledger.Time               (POSIXTime (..))
 import qualified Ledger.TimeSlot           as TimeSlot
 import qualified Ledger.Value              as Value
-import           Plutus.ChainIndex         (ChainIndexTx)
-import           Plutus.Contract.Effects   (ActiveEndpoint (..), TxStatus (..))
+import           Plutus.ChainIndex         (ChainIndexTx, TxStatus (..))
+import           Plutus.Contract.Effects   (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable (IterationID, Request (..), RequestID)
 import           Wallet.Types              (ContractInstanceId, EndpointDescription, EndpointValue (..),
                                             NotificationError (..))
@@ -157,10 +157,10 @@ data BlockchainEnv =
         , beTxChanges   :: TVar (Map TxId TxStatus) -- ^ Map of transaction IDs to statuses
         }
 
-data TxStatusMap = TxStatusMap
-  { txmChainPoint :: ChainPoint
-  , txmState      :: TxIdState
-  }
+-- data TxStatusMap = TxStatusMap
+--   { txmChainPoint :: ChainPoint
+--   , txmState      :: TxIdState
+--   }
 
 -- | Initialise an empty 'BlockchainEnv' value
 emptyBlockchainEnv :: STM BlockchainEnv

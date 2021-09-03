@@ -109,9 +109,9 @@ import           Ledger.TimeSlot                                (SlotConfig)
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.ChainIndex                              (ChainIndexControlEffect, ChainIndexEmulatorState,
                                                                  ChainIndexError, ChainIndexLog,
-                                                                 ChainIndexQueryEffect (..), getTip)
+                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
+                                                                 TxStatus, getTip)
 import qualified Plutus.ChainIndex                              as ChainIndex
-import           Plutus.Contract.Effects                        (TxStatus)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
