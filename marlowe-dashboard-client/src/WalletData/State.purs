@@ -31,10 +31,10 @@ import Data.String.CodeUnits (toCharArray)
 import Data.UUID (emptyUUID, parseUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
-import Halogen (HalogenM)
+import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Query.HalogenM (mapAction)
-import InputField.Lenses (_value)
+import InputField.Lenses (_pristine, _value)
 import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
@@ -120,8 +120,18 @@ handleAction (SaveWallet mTokenName) = do
       modifying _walletLibrary (insert walletNickname walletDetails)
       insertIntoWalletLibrary walletDetails
       newWalletLibrary <- use _walletLibrary
-      -- if a tokenName was also passed, we need to update the contract setup data
-      for_ mTokenName \tokenName -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SetContactForRole tokenName walletNickname
+      addToast $ successToast "Contact added"
+      case mTokenName of
+        -- if a tokenName was also passed, we are inside a template contract and we need to update role
+        Just tokenName -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SetContactForRole tokenName walletNickname
+        -- If we don't have a tokenName, then we added the contact from the contact dialog and we should close the panel
+        Nothing -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
+      -- We reset the form after adding the contact
+      modify_
+        $ set (_walletNicknameInput <<< _value) ""
+        <<< set (_walletNicknameInput <<< _pristine) true
+        <<< set (_walletIdInput <<< _value) ""
+        <<< set (_walletIdInput <<< _pristine) true
     -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
     -- the button to save a new wallet should be disabled in this case)
     _, _ -> pure unit
