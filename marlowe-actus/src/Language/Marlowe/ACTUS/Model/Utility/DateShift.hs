@@ -26,68 +26,68 @@ applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
 applyBDC BDC_NULL _ date =
   ShiftedDay { paymentDay = date, calculationDay = date }
 
-applyBDC BDC_SCF calendar date = ShiftedDay
-  { paymentDay     = getFollowingBusinessDay date calendar
-  , calculationDay = getFollowingBusinessDay date calendar
+applyBDC BDC_SCF cal date = ShiftedDay
+  { paymentDay     = getFollowingBusinessDay date cal
+  , calculationDay = getFollowingBusinessDay date cal
   }
 
-applyBDC BDC_SCMF calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedFollowing date calendar
-  , calculationDay = shiftModifiedFollowing date calendar
+applyBDC BDC_SCMF cal date = ShiftedDay
+  { paymentDay     = shiftModifiedFollowing date cal
+  , calculationDay = shiftModifiedFollowing date cal
   }
 
-applyBDC BDC_CSF calendar date = ShiftedDay
-  { paymentDay     = getFollowingBusinessDay date calendar
+applyBDC BDC_CSF cal date = ShiftedDay
+  { paymentDay     = getFollowingBusinessDay date cal
   , calculationDay = date
   }
 
-applyBDC BDC_CSMF calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedFollowing date calendar
+applyBDC BDC_CSMF cal date = ShiftedDay
+  { paymentDay     = shiftModifiedFollowing date cal
   , calculationDay = date
   }
 
-applyBDC BDC_SCP calendar date = ShiftedDay
-  { paymentDay     = getPreceedingBusinessDay date calendar
-  , calculationDay = getPreceedingBusinessDay date calendar
+applyBDC BDC_SCP cal date = ShiftedDay
+  { paymentDay     = getPreceedingBusinessDay date cal
+  , calculationDay = getPreceedingBusinessDay date cal
   }
 
-applyBDC BDC_SCMP calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedPreceeding date calendar
-  , calculationDay = shiftModifiedPreceeding date calendar
+applyBDC BDC_SCMP cal date = ShiftedDay
+  { paymentDay     = shiftModifiedPreceeding date cal
+  , calculationDay = shiftModifiedPreceeding date cal
   }
 
-applyBDC BDC_CSP calendar date = ShiftedDay
-  { paymentDay     = getPreceedingBusinessDay date calendar
+applyBDC BDC_CSP cal date = ShiftedDay
+  { paymentDay     = getPreceedingBusinessDay date cal
   , calculationDay = date
   }
 
-applyBDC BDC_CSMP calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedPreceeding date calendar
+applyBDC BDC_CSMP cal date = ShiftedDay
+  { paymentDay     = shiftModifiedPreceeding date cal
   , calculationDay = date
   }
 
 
 shiftModifiedFollowing :: Day -> Calendar -> Day
-shiftModifiedFollowing date calendar =
+shiftModifiedFollowing date cal =
   let (_, month, _)        = toGregorian date
-      shiftedFollowing     = getFollowingBusinessDay date calendar
+      shiftedFollowing     = getFollowingBusinessDay date cal
       (_, shiftedMonth, _) = toGregorian shiftedFollowing
   in  if month == shiftedMonth
         then shiftedFollowing
-        else getPreceedingBusinessDay date calendar
+        else getPreceedingBusinessDay date cal
 
 shiftModifiedPreceeding :: Day -> Calendar -> Day
-shiftModifiedPreceeding date calendar =
+shiftModifiedPreceeding date cal =
   let (_, month, _)        = toGregorian date
-      shiftedPreceeding    = getPreceedingBusinessDay date calendar
+      shiftedPreceeding    = getPreceedingBusinessDay date cal
       (_, shiftedMonth, _) = toGregorian shiftedPreceeding
   in  if month == shiftedMonth
         then shiftedPreceeding
-        else getFollowingBusinessDay date calendar
+        else getFollowingBusinessDay date cal
 
 getFollowingBusinessDay :: Day -> Calendar -> Day
-getFollowingBusinessDay date calendarType =
-  case calendarType of
+getFollowingBusinessDay date cal =
+  case cal of
     CLDR_MF ->
       case toWeekDate date of
         (_, _, 6) ->
@@ -100,8 +100,8 @@ getFollowingBusinessDay date calendarType =
       date
 
 getPreceedingBusinessDay :: Day -> Calendar -> Day
-getPreceedingBusinessDay date calendarType =
-  case calendarType of
+getPreceedingBusinessDay date cal =
+  case cal of
     CLDR_MF ->
       case toWeekDate date of
         (_, _, 6) ->
