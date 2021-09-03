@@ -91,6 +91,7 @@
           "Plutus/ChainIndex/Client"
           "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"
+          "Plutus/ChainIndex/TxIdState"
           "Plutus/ChainIndex/Types"
           "Plutus/ChainIndex/UtxoState"
           "Plutus/Monitoring/Util"
@@ -144,6 +145,7 @@
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             ];

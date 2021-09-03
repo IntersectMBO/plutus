@@ -48,6 +48,7 @@ import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), Tx
 import           Ledger.TxId                 (TxId (..))
 import           Ledger.Value                (Value)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..))
+import           Plutus.ChainIndex.TxIdState (TxIdState)
 import qualified Plutus.ChainIndex.TxIdState as TxIdState
 import           Plutus.ChainIndex.Types     (BlockId (..), Tip (..))
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..), fromTx)
@@ -238,7 +239,7 @@ genTxIdState ::
   ( Member (State TxIdGenState) effs
   , LastMember m effs
   , MonadGen m
-  ) => Eff effs TxIdState.TxIdState
+  ) => Eff effs TxIdState
 genTxIdState = sendM genChainAction >>= \case
     DoNothing -> pure mempty
     AddTx     -> do
