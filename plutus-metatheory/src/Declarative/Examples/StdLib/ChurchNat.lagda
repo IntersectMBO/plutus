@@ -7,7 +7,7 @@ open import Utils
 open import Type
 open import Declarative
 open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ _⊢⋆_ con
 
 open import Data.Unit
 \end{code}

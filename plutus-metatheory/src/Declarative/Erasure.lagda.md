@@ -22,7 +22,7 @@ open import Type
 open import Declarative
 open import Builtin hiding (length)
 open import Utils
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ _⊢⋆_ con
   renaming (TermCon to TyTermCon)
 
 open import Data.Nat.Properties

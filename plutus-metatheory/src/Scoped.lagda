@@ -94,15 +94,24 @@ open import Type
 
 data ScopedTy (n : ℕ) : Set
 
-import Builtin.Constant.Type ℕ ScopedTy as S
-
+data ScopedTyCon (n : ℕ) : Set where
+  integer : ScopedTyCon n  
+  bytestring : ScopedTyCon n  
+  string : ScopedTyCon n  
+  unit : ScopedTyCon n  
+  bool : ScopedTyCon n
+  protolist : ScopedTyCon n
+  protopair : ScopedTyCon n
+  apply : ScopedTyCon n → ScopedTyCon n → ScopedTyCon n  
+  Data : ScopedTyCon n
+  
 data ScopedTy n where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
   Π    : Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
-  con  : S.TyCon n → ScopedTy n
+  con  : ScopedTyCon n → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
 
@@ -293,19 +302,20 @@ data ScopeError : Set where
   return (T i)
 
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
-scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
+scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (ScopedTyCon n)
 
-scopeCheckTyCon integer    = inj₂ S.integer
-scopeCheckTyCon bytestring = inj₂ S.bytestring
-scopeCheckTyCon string     = inj₂ S.string
-scopeCheckTyCon unit       = inj₂ S.unit
-scopeCheckTyCon bool       = inj₂ S.bool
-scopeCheckTyCon (list A)   = fmap S.list (scopeCheckTy A)
-scopeCheckTyCon (pair A B) = do
-  A ← scopeCheckTy A
-  B ← scopeCheckTy B
-  return (S.pair A B)
-scopeCheckTyCon Data       = inj₂ S.Data
+scopeCheckTyCon integer    = inj₂ integer
+scopeCheckTyCon bytestring = inj₂ bytestring
+scopeCheckTyCon string     = inj₂ string
+scopeCheckTyCon unit       = inj₂ unit
+scopeCheckTyCon bool       = inj₂ bool
+scopeCheckTyCon protolist  = inj₂ protolist
+scopeCheckTyCon protopair  = inj₂ protopair
+scopeCheckTyCon (apply A B) = do
+  A ← scopeCheckTyCon A
+  B ← scopeCheckTyCon B
+  return (apply A B)
+scopeCheckTyCon Data       = inj₂ Data
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -361,18 +371,19 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 
 \begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
+extricateTyCon : ∀{n} → ScopedTyCon n → RawTyCon
 
-extricateTyCon S.integer    = integer
-extricateTyCon S.bytestring = bytestring
-extricateTyCon S.string     = string
-extricateTyCon S.unit       = unit
-extricateTyCon S.bool       = bool
-extricateTyCon (S.list A)   = list (extricateScopeTy A)
-extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
-extricateTyCon S.Data       = Data
+extricateTyCon integer     = integer
+extricateTyCon bytestring  = bytestring
+extricateTyCon string      = string
+extricateTyCon unit        = unit
+extricateTyCon bool        = bool
+extricateTyCon protolist   = protolist
+extricateTyCon protopair   = protopair
+extricateTyCon (apply A B) = apply (extricateTyCon A) (extricateTyCon B)
+extricateTyCon Data        = Data
 
-extricateScopeTy (` x) = ` (toℕ x)
+extricateScopeTy (` x)   = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
 extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
 extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
@@ -437,4 +448,5 @@ ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
+-- -}
 \end{code}
