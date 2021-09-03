@@ -16,16 +16,20 @@ import           System.Random         (StdGen)
    fact probably only occupy one word).  We still need to guard against denial
    of service, and we may need to impose penalties for *really* large inputs. -}
 makeDefaultIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31]
--- ###  Try just the relevant builtins with bigger numbers. ###
+makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31] -- 16 entries
+
+{- The default arguments give a constant costing function for addition and subtraction.
+   These ones give us data where the linear trend is clear. -}
+makeLargeIntegerArgs :: StdGen -> ([Integer], StdGen)
+makeLargeIntegerArgs gen = makeSizedIntegers gen [1, 70..1000] -- 15 entries
 
 
-benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
-benchTwoIntegers gen builtinName =
+benchTwoIntegers :: StdGen -> (StdGen -> ([Integer], StdGen)) -> DefaultFun -> Benchmark
+benchTwoIntegers gen makeArgs builtinName =
     createTwoTermBuiltinBench builtinName [] inputs inputs'
     where
-      (inputs,gen') = makeDefaultIntegerArgs gen
-      (inputs', _)  = makeDefaultIntegerArgs gen'
+      (inputs,gen') = makeArgs gen
+      (inputs', _)  = makeArgs gen'
 
 {- Some larger inputs for cases where we're using the same number for both
    arguments.  (A) If we're not examining all NxN pairs then we can eaxmine
@@ -44,13 +48,12 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-    (benchTwoIntegers gen <$>
-                          [ AddInteger      -- SubtractInteger behaves identically.
-                          , MultiplyInteger
-                          , DivideInteger   -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
-                          ])
-    <> (benchSameTwoIntegers gen <$>
-                                 [ EqualsInteger
-                                 , LessThanInteger
-                                 , LessThanEqualsInteger])
+       [benchTwoIntegers gen makeLargeIntegerArgs AddInteger]      -- SubtractInteger behaves identically.
+    <> (benchTwoIntegers gen makeDefaultIntegerArgs <$> [MultiplyInteger, DivideInteger])
+           -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
+    <> (benchSameTwoIntegers gen <$> [ EqualsInteger
+                                     , LessThanInteger
+                                     , LessThanEqualsInteger
+                                     ])
+
 
