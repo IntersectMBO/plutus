@@ -70,33 +70,26 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     ActiveEndpoint(..),
     ) where
 
-import           Cardano.Api                      (ChainPoint)
-import           Control.Lens                     (Iso', Prism', iso, makePrisms, prism')
-import           Data.Aeson                       (FromJSON, ToJSON)
-import qualified Data.Aeson                       as JSON
-import           Data.FingerTree                  (FingerTree, Measured (..))
-import qualified Data.FingerTree                  as FT
-import           Data.List.NonEmpty               (NonEmpty)
-import qualified Data.Map                         as Map
-import           Data.Semigroup                   (Last (..), Sum (..))
-import           Data.Text.Prettyprint.Doc        (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
-import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
-import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKey,
-                                                   Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash, Tx, TxId,
-                                                   TxOutRef, ValidatorHash, txId)
-import           Ledger.Constraints.OffChain      (UnbalancedTx)
-import           Ledger.Credential                (Credential)
-import           Ledger.Scripts                   (Validator)
-import           Ledger.Slot                      (Slot (..), SlotRange)
-import           Ledger.Time                      (POSIXTime (..), POSIXTimeRange)
-import           Ledger.TimeSlot                  (SlotConversionError)
-import           Ledger.Tx                        (ChainIndexTxOut)
-import           Plutus.ChainIndex                (Tip)
-import           Plutus.ChainIndex.Tx             (ChainIndexTx (_citxTxId))
-import           Plutus.ChainIndex.Types          (Page (pageItems), Tip (..))
-import           Wallet.API                       (WalletAPIError)
-import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue)
+import           Control.Lens                (Iso', Prism', iso, makePrisms, prism')
+import           Data.Aeson                  (FromJSON, ToJSON)
+import qualified Data.Aeson                  as JSON
+import           Data.List.NonEmpty          (NonEmpty)
+import           Data.Text.Prettyprint.Doc   (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
+import           GHC.Generics                (Generic)
+import           Ledger                      (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKey,
+                                              Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash, Tx, TxId,
+                                              TxOutRef, ValidatorHash, txId)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Ledger.Credential           (Credential)
+import           Ledger.Scripts              (Validator)
+import           Ledger.Slot                 (Slot (..), SlotRange)
+import           Ledger.Time                 (POSIXTime (..), POSIXTimeRange)
+import           Ledger.TimeSlot             (SlotConversionError)
+import           Ledger.Tx                   (ChainIndexTxOut)
+import           Plutus.ChainIndex.Tx        (ChainIndexTx (_citxTxId))
+import           Plutus.ChainIndex.Types     (Page (pageItems), Tip (..), TxStatus (..))
+import           Wallet.API                  (WalletAPIError)
+import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue)
 
 -- | Requests that 'Contract's can make
 data PABReq =
@@ -277,30 +270,6 @@ data BalanceTxResponse =
   | BalanceTxSuccess Tx
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
-
-
-
--- deleteBlock :: TxIdState -> TxIdState
--- deleteBlock TxIdState{txnsConfirmed} =
---   TxIdState mempty (Map.map (\_ -> Sum 1) txnsConfirmed)
-
-
-
-
--- rollback :: Tip -> Txns -> Either RollbackFailed RollbackResult
--- rollback = undefined
--- rollback targetTip idx@(viewTip -> currentType)
---   | currentTip < targetTip = Left TipMismatch{foundTip, targetTip}
---   | otherwise = do
---     let (before, deleted) = FT.split ((> targetTip) . tip) idx
-
---     case tip (measure before) of
---       TipAtGenesis -> Lef $ OldTipNotFound targetTip
---       oldTIp | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before |> deleteBlock deleted}
---              | otherwise           -> Left TipMismatch{foundTip=oldTip, targetTip}
-
---
--- ================================================================================
 
 instance Pretty BalanceTxResponse where
   pretty = \case

@@ -112,12 +112,13 @@ import qualified Ledger.Value                as V
 import           Plutus.Contract.Util        (loopM)
 import qualified PlutusTx
 
-import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), PABResp (..), TxStatus (..))
+import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), PABResp (..))
 import qualified Plutus.Contract.Effects     as E
 import           Plutus.Contract.Schema      (Input, Output)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription (..), EndpointValue (..))
 
-import           Plutus.ChainIndex           (ChainIndexTx, Page (pageItems), Tip, txOutRefs)
+import           Plutus.ChainIndex           (ChainIndexTx, Page (pageItems), txOutRefs)
+import           Plutus.ChainIndex.Types     (Tip, TxStatus (..))
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Types
 
