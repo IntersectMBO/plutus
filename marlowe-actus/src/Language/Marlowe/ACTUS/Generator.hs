@@ -13,7 +13,6 @@ module Language.Marlowe.ACTUS.Generator
 where
 
 import qualified Data.List                                                  as L (foldl', zip6)
-import           Data.Map                                                   as M (empty)
 import           Data.Maybe                                                 (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid                                                (Endo (Endo, appEndo))
 import           Data.String                                                (IsString (fromString))
@@ -25,7 +24,7 @@ import           Language.Marlowe                                           (Act
                                                                              Slot (..), Value (..), ValueId (ValueId),
                                                                              ada)
 import           Language.Marlowe.ACTUS.Analysis                            (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
                                                                              Assertions (..), ContractTerms (..),
                                                                              TermValidationError (..),
@@ -133,13 +132,22 @@ inquiryFs ev ct timePosfix date oracle context continue =
     in
         riskFactorsInquiryEv ev continue
 
+defaultRiskFactors :: EventType -> Day -> RiskFactors
+defaultRiskFactors _ _ =
+  RiskFactors
+    { o_rf_CURS = 1.0,
+      o_rf_RRMO = 1.0,
+      o_rf_SCMO = 1.0,
+      pp_payoff = 0.0
+    }
+
 genStaticContract :: ContractTerms -> Validation [TermValidationError] Contract
 genStaticContract terms = genContract . setDefaultContractTermValues <$> validateTerms terms
     where
         genContract :: ContractTerms -> Contract
         genContract t =
             let
-                cfs = genProjectedCashflows M.empty t
+                cfs = genProjectedCashflows defaultRiskFactors t
                 gen CashFlow {..}
                     | amount == 0.0 = id
                     | amount > 0.0
@@ -182,7 +190,7 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                     in compose toAssert cont
 
                 payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
-                schedCfs = genProjectedCashflows M.empty terms'
+                schedCfs = genProjectedCashflows defaultRiskFactors terms'
                 schedEvents = cashEvent <$> schedCfs
                 schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
                 previousDates = ct_SD terms' : (cashCalculationDay <$> schedCfs)
@@ -226,7 +234,7 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
 genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
 genZeroRiskAssertions terms@ContractTerms{ct_DCC = Just dcc, ..} NpvAssertionAgainstZeroRiskBond{..} continue =
     let
-        cfs = genProjectedCashflows M.empty terms
+        cfs = genProjectedCashflows defaultRiskFactors terms
 
         dateToYearFraction :: Day -> Double
         dateToYearFraction dt = _y dcc ct_SD dt ct_MD

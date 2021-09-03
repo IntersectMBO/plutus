@@ -11,14 +11,11 @@ Given an ACTUS contract cashflows can be projected.
 -}
 
 import           Control.Applicative                                        ((<|>))
-import qualified Data.List                                                  as L (find, groupBy)
-import qualified Data.Map                                                   as M (lookup)
+import qualified Data.List                                                  as L (groupBy)
 import           Data.Maybe                                                 (fromMaybe, isNothing)
 import           Data.Sort                                                  (sortOn)
 import           Data.Time                                                  (Day)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (DataObserved, EventType (..),
-                                                                             RiskFactors (..), ValueObserved (..),
-                                                                             ValuesObserved (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
@@ -30,8 +27,8 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (sta
 
 -- |genProjectedCashflows generates a list of projected cashflows for
 -- given contract terms together with the observed data
-genProjectedCashflows :: DataObserved -> ContractTerms -> [CashFlow]
-genProjectedCashflows dataObserved ct@ContractTerms {..} = fromMaybe [] $
+genProjectedCashflows :: (EventType -> Day -> RiskFactors) -> ContractTerms -> [CashFlow]
+genProjectedCashflows getRiskFactors ct@ContractTerms {..} = fromMaybe [] $
   do
     st0 <- initialize ct
     return $
@@ -104,26 +101,3 @@ genProjectedCashflows dataObserved ct@ContractTerms {..} = fromMaybe [] $
           overwrite = map (sortOn priority) . regroup
        in concat . overwrite . trim
 
-    getRiskFactors :: EventType -> Day -> RiskFactors
-    getRiskFactors ev date =
-      let riskFactors =
-            RiskFactors
-              { o_rf_CURS = 1.0,
-                o_rf_RRMO = 1.0,
-                o_rf_SCMO = 1.0,
-                pp_payoff = 0.0
-              }
-
-          observedKey RR = ct_RRMO
-          observedKey SC = ct_SCMO
-          observedKey _  = ct_CURS
-
-          value = fromMaybe 1.0 $ do
-            k <- observedKey ev
-            ValuesObserved {values = values} <- M.lookup k dataObserved
-            ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
-            return valueObserved
-       in case ev of
-            RR -> riskFactors {o_rf_RRMO = value}
-            SC -> riskFactors {o_rf_SCMO = value}
-            _  -> riskFactors {o_rf_CURS = value}

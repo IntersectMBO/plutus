@@ -21,13 +21,24 @@ import           Data.Text                                         (unpack)
 import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
 import           Data.Vector                                       as Vector (map, toList)
 import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (DataObserved, EventType,
-                                                                    ValueObserved (ValueObserved, timestamp, value),
-                                                                    ValuesObserved (ValuesObserved, identifier, values))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
 import           Test.Tasty.HUnit                                  (assertBool)
 
+type DataObserved = Map String ValuesObserved
+
+data ValuesObserved = ValuesObserved
+  { identifier :: String
+  , values     :: [ValueObserved]
+  }
+  deriving (Show)
+
+data ValueObserved = ValueObserved
+  { timestamp :: Day
+  , value     :: Double
+  }
+  deriving (Show)
 
 data TestResult = TestResult{
     eventDate           :: String
