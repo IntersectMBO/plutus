@@ -14,7 +14,7 @@ import           System.Random         (StdGen)
 benchIfThenElse :: Benchmark
 benchIfThenElse =
     let name = IfThenElse
-        resultSizes = [100, 500, 1500, 3000, 5000]
+        resultSizes = [100, 500, 1000, 2000, 5000, 10000, 20000]
         results1 = makeSizedByteStrings seedA resultSizes
         results2 = makeSizedByteStrings seedB resultSizes
         mkBMs ty b = [ bgroup (showMemoryUsage r1)
@@ -22,6 +22,6 @@ benchIfThenElse =
                        | r2 <- results2 ]
                      | r1 <- results1 ]
     in bgroup (show name) (mkBMs [bytestring] True ++ mkBMs [bytestring] False)
-
+       -- This gives 98 datapoints (2*7*7).
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen = [benchIfThenElse]
