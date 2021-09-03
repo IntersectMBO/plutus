@@ -12,19 +12,15 @@
 {-# LANGUAGE ViewPatterns          #-}
 
 module Plutus.ChainIndex.TxIdState(
-    TxIdState(..),
-    TxValidity(..),
-    TxStatus(..),
-    Depth(..),
-    isConfirmed,
-    increaseDepth,
-    initialStatus,
-    transactionStatus,
-    fromTx,
-    fromBlock,
-    rollback,
-    BlockNumber(..),
-    chainConstant,
+    TxIdState(..)
+    , isConfirmed
+    , increaseDepth
+    , initialStatus
+    , transactionStatus
+    , fromTx
+    , fromBlock
+    , rollback
+    , chainConstant
     ) where
 
 import           Control.Lens                     (makeLenses, view, (^.))
@@ -42,63 +38,42 @@ import           GHC.Generics                     (Generic)
 import           Ledger                           (OnChainTx, Slot, TxId, TxIn (txInRef), TxOutRef (..), eitherTx)
 import           Plutus.ChainIndex.Tx             (ChainIndexTx (..), ChainIndexTxOutputs (..), citxInputs, citxOutputs,
                                                    citxTxId, txOutsWithRef)
-import           Plutus.ChainIndex.Types          (Point (..), Tip (..), pointsToTip)
+import           Plutus.ChainIndex.Types          (Point (..), Tip (..), pointsToTip, BlockNumber (..), Depth (..), TxStatus (..), TxValidity (..))
 import           Plutus.ChainIndex.UtxoState      (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..),
                                                    tip, viewTip)
 import           PlutusTx.Lattice                 (MeetSemiLattice (..))
 import           Prettyprinter                    (Pretty (..), (<+>))
 
+data TxIdState = TxIdState
+  { txnsConfirmed :: Map TxId TxConfirmedState
+  -- ^ Number of times this transaction has been added; and the slot when
+  -- it was first added.
+  , txnsDeleted   :: Map TxId (Sum Int)
+  -- ^ Number of times this transaction has been deleted.
+  }
+  deriving stock (Eq, Generic, Show)
 
--- | Validity of a transaction that has been added to the ledger
-data TxValidity = TxValid | TxInvalid | UnknownValidity
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via (PrettyShow TxValidity)
+instance Monoid TxIdState where
+    mappend = (<>)
+    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
 
-instance MeetSemiLattice TxValidity where
-  TxValid /\ TxValid     = TxValid
-  TxInvalid /\ TxInvalid = TxInvalid
-  _ /\ _                 = UnknownValidity
+data TxConfirmedState =
+  TxConfirmedState
+    { timesConfirmed :: Sum Int
+    , blockAdded     :: Last BlockNumber
+    , validity       :: Last TxValidity
+    }
+    deriving stock (Eq, Generic, Show)
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid TxConfirmedState)
 
-{- Note [TxStatus state machine]
 
-The status of a transaction is described by the following state machine.
-
-Current state | Next state(s)
------------------------------------------------------
-Unknown       | OnChain
-OnChain       | OnChain, Unknown, Committed
-Committed     | -
-
-The initial state after submitting the transaction is Unknown.
-
--}
-
--- | How many blocks deep the tx is on the chain
-newtype Depth = Depth Int
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
-
-instance MeetSemiLattice Depth where
-  Depth a /\ Depth b = Depth (max a b)
-
--- | The status of a Cardano transaction
-data TxStatus =
-  Unknown -- ^ The transaction is not on the chain. That's all we can say.
-  | TentativelyConfirmed Depth TxValidity -- ^ The transaction is on the chain, n blocks deep. It can still be rolled back.
-  | Committed TxValidity -- ^ The transaction is on the chain. It cannot be rolled back anymore.
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via (PrettyShow TxStatus)
-
-instance MeetSemiLattice TxStatus where
-  Unknown /\ a                                             = a
-  a /\ Unknown                                             = a
-  TentativelyConfirmed d1 v1 /\ TentativelyConfirmed d2 v2 = TentativelyConfirmed (d1 /\ d2) (v1 /\ v2)
-  TentativelyConfirmed _ v1 /\ Committed v2                = Committed (v1 /\ v2)
-  Committed v1 /\ TentativelyConfirmed _ v2                = Committed (v1 /\ v2)
-  Committed v1 /\ Committed v2                             = Committed (v1 /\ v2)
-
+-- A semigroup instance that merges the two maps, instead of taking the
+-- leftmost one.
+instance Semigroup TxIdState where
+  TxIdState{txnsConfirmed=c, txnsDeleted=d} <> TxIdState{txnsConfirmed=c', txnsDeleted=d'}
+    = TxIdState { txnsConfirmed = Map.unionWith (<>) c c'
+                , txnsDeleted   = Map.unionWith (<>) d d'
+                }
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
 initialStatus :: OnChainTx -> TxStatus
@@ -123,39 +98,6 @@ increaseDepth e            = e
 -- | The depth (in blocks) after which a transaction cannot be rolled back anymore
 chainConstant :: Depth
 chainConstant = Depth 8
-
-data TxConfirmedState =
-  TxConfirmedState
-    { timesConfirmed :: Sum Int
-    , blockAdded     :: Last BlockNumber
-    , validity       :: Last TxValidity
-    }
-    deriving stock (Eq, Generic, Show)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid TxConfirmedState)
-
-
-data TxIdState = TxIdState
-  { txnsConfirmed :: Map TxId TxConfirmedState
-  -- ^ Number of times this transaction has been added; and the slot when
-  -- it was first added.
-  , txnsDeleted   :: Map TxId (Sum Int)
-  -- ^ Number of times this transaction has been deleted.
-  }
-  deriving stock (Eq, Generic, Show)
-
-instance Semigroup TxIdState where
-  TxIdState{txnsConfirmed=c, txnsDeleted=d} <> TxIdState{txnsConfirmed=c', txnsDeleted=d'}
-    = TxIdState { txnsConfirmed = Map.unionWith (<>) c c'
-                , txnsDeleted = Map.unionWith (<>) d d'
-                }
-
-instance Monoid TxIdState where
-    mappend = (<>)
-    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
-
-newtype BlockNumber = BlockNumber Int
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
 
 -- | Given the current block, compute the status for the given transaction by
 -- checking to see if it has been deleted.
@@ -207,9 +149,6 @@ fromTx blockAdded tx =
                             , validity = Last . Just $ validityFromChainIndex tx })
     , txnsDeleted = mempty
     }
-
-instance Measured (UtxoState TxIdState) (UtxoState TxIdState) where
-    measure = id
 
 rollback :: Point
          -> UtxoIndex TxIdState

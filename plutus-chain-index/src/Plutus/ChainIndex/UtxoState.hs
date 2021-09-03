@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -95,7 +96,7 @@ fromTx tx =
         }
 
 type UtxoIndex a = FingerTree (UtxoState a) (UtxoState a)
-instance Measured (UtxoState TxUtxoBalance) (UtxoState TxUtxoBalance) where
+instance Monoid a => Measured (UtxoState a) (UtxoState a) where
     measure = id
 
 utxoState :: Measured (UtxoState a) (UtxoState a)

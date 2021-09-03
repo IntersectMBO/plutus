@@ -22,10 +22,10 @@ import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (citxTxId, txOutsWithRef)
-import           Plutus.ChainIndex.TxIdState          (BlockNumber (..), TxStatus (..), TxValidity (..), increaseDepth,
-                                                       transactionStatus)
+import           Plutus.ChainIndex.TxIdState          (increaseDepth, transactionStatus)
 import qualified Plutus.ChainIndex.TxIdState          as TxIdState
-import           Plutus.ChainIndex.Types              (Tip (..), tipAsPoint)
+import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), Tip (..), TxStatus (..),
+                                                       TxValidity (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Test.Tasty
@@ -101,9 +101,9 @@ rollbackTxIdState = property $ do
       status3 = transactionStatus (BlockNumber 2) (getState f3) (txB ^. citxTxId)
       status4 = transactionStatus (BlockNumber 3) (getState f4) (txB ^. citxTxId)
 
-  status2 === TentativelyConfirmed (TxIdState.Depth 0) TxValid
+  status2 === TentativelyConfirmed (Depth 0) TxValid
   status3 === Unknown
-  status4 === TentativelyConfirmed (TxIdState.Depth 1) TxValid
+  status4 === TentativelyConfirmed (Depth 1) TxValid
 
 transactionDepthIncreases :: Property
 transactionDepthIncreases = property $ do
@@ -111,7 +111,7 @@ transactionDepthIncreases = property $ do
                                  $ Gen.evalTxIdGenState
                                  $ (,) <$> Gen.genTxIdStateTipAndTxId <*> Gen.genTxIdStateTipAndTxId
 
-  let TxIdState.Depth d = TxIdState.chainConstant
+  let Depth d = TxIdState.chainConstant
       Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
       Right s2 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 1) txB) tipB) f1
       f1 = newIndex s1
