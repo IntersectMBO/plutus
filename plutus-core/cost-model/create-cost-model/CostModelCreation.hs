@@ -486,8 +486,8 @@ decodeUtf8 cpuModelR = do
 -- ## TODO: get model from R
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse cpuModelR = do
-  let cpuModel = ModelThreeArgumentsConstantCost 1
-      memModel = ModelThreeArgumentsConstantCost 1
+  cpuModel <- ModelThreeArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelThreeArgumentsConstantCost 1
   pure $ CostingFun cpuModel memModel
 
 ---------------- Unit ----------------

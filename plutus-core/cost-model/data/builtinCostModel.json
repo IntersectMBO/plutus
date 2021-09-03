@@ -61,7 +61,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1,
+            "arguments": 991972,
             "type": "constant_cost"
         }
     },
@@ -385,7 +385,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1063687,
+            "arguments": 864031,
             "type": "constant_cost"
         }
     },

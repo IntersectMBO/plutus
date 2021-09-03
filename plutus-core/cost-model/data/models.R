@@ -227,7 +227,7 @@ modelFun <- function(path) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
         }
         else {
-            warning ("* NOTE: mean time for",
+            warning ("* NOTE: mean time for ",
                      name,
                      " was less than overhead (",
                      sprintf ("%.3f ms", mean.time),
@@ -477,7 +477,7 @@ modelFun <- function(path) {
 
     ##### Bool #####
 
-    ifThenElseModel <- 0  ## MISSING
+    ifThenElseModel <- constantModel ("IfThenElse")
 
 
     ##### Unit #####
@@ -536,7 +536,7 @@ modelFun <- function(path) {
 
     mkPairDataModel     <- constantModel ("MkPairData")
     mkNilDataModel      <- constantModel ("MkNilData")
-    mkNilPairDataModel  <- constantModel ("MkPairData")
+    mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
     warnings() ## 
 
