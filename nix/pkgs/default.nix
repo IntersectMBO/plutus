@@ -30,6 +30,10 @@ let
   stylish-haskell = exeFromExtras "stylish-haskell";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
+  haskell-language-server-wrapper = pkgs.writeScriptBin "haskell-language-server-wrapper" ''
+    #!/usr/bin/env sh
+    haskell-language-server "$@"
+  '';
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
 
@@ -210,7 +214,7 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios cardano-cli cardano-node;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios cardano-cli cardano-node;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateClientDeps;
   inherit web-ghc;
