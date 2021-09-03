@@ -7,10 +7,9 @@ import           Benchmarks.Generators
 
 import           PlutusCore
 import           PlutusCore.Data
-import           PlutusCore.Evaluation.Machine.ExMemory (memoryUsage)
 
 import           Criterion.Main
-import           System.Random                          (StdGen)
+import           System.Random         (StdGen)
 
 {- | Benchmarks for builtins operating on Data.  Recall that Data is defined by
 

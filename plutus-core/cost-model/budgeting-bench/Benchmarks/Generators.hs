@@ -3,23 +3,24 @@
 module Benchmarks.Generators where
 
 import           PlutusCore.Data
+import           PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage (..))
 
 import           Control.Monad
 import           Data.Bits
-import           Data.ByteString                      (ByteString)
-import           Data.Int                             (Int64)
-import           Data.List                            (foldl')
-import           Data.Text                            (Text)
-import           Data.Word                            (Word64)
+import           Data.ByteString                        (ByteString)
+import           Data.Int                               (Int64)
+import           Data.List                              (foldl')
+import           Data.Text                              (Text)
+import           Data.Word                              (Word64)
 
-import qualified Hedgehog                             as H
-import qualified Hedgehog.Internal.Gen                as G
-import qualified Hedgehog.Internal.Range              as R
-import qualified Hedgehog.Internal.Tree               as T
-import           System.IO.Unsafe                     (unsafePerformIO)
-import           System.Random                        (StdGen, randomR)
+import qualified Hedgehog                               as H
+import qualified Hedgehog.Internal.Gen                  as G
+import qualified Hedgehog.Internal.Range                as R
+import qualified Hedgehog.Internal.Tree                 as T
+import           System.IO.Unsafe                       (unsafePerformIO)
+import           System.Random                          (StdGen, randomR)
 import           Test.QuickCheck
-import           Test.QuickCheck.Instances.ByteString ()
+import           Test.QuickCheck.Instances.ByteString   ()
 
 
 {- TODO: we're using Hedgehog for some things, QuickCheck for others, and
@@ -193,5 +194,5 @@ dataSample = genDataSample (take 500 $ cycle dataParams)
 -- small objects in here to give us an idea of what the intercept of regression
 -- line should be.  We also exclude really large objects.
 dataSampleForEq :: [Data]
-dataSampleForEq = take 400 $ filter (\d -> memoryUsage d < 1e6) $ genDataSample (cycle ([20,1,1,1]:dataParams))
+dataSampleForEq = take 400 $ filter (\d -> memoryUsage d < 1000000) $ genDataSample (cycle ((20,1,1,1):dataParams))
 
