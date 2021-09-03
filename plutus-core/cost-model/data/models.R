@@ -70,6 +70,10 @@ get.bench.data <- function(path) {
     ## and up to three numbers, returning "NA" for any that are missing.  If we ever have builtins
     ## with more than three arguments we'lll need to extend this and add names for the new arguments.
 
+    ## FIXME: the benchmarks for Nop4, Nop5, and Nop6 do have more than three
+    ## arguments, but we're not paying any attention to the extra ones because
+    ## the cost is constant.
+
     numbercols = c("x_mem", "y_mem", "z_mem")
 
     benchmark_name_to_numbers <- function(name) {
@@ -172,7 +176,7 @@ modelFun <- function(path) {
     ## filtered leaks from one model to the next, so make sure you don't mistype!
 
     ##### Integers #####
-    
+
     addIntegerModel <- {
         fname <- "AddInteger"
         filtered <- data %>%
@@ -274,7 +278,7 @@ modelFun <- function(path) {
 
     lengthOfByteStringModel <- 0
     indexByteStringModel    <- 0
-    
+
     equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
         fname <- "EqualsByteString"
         filtered <- data %>%
@@ -363,7 +367,7 @@ modelFun <- function(path) {
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
-    
+
     encodeUtf8Model <- {
         fname <- "DecodeUtf8"
         filtered <- data %>%
@@ -374,7 +378,7 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    
+
 ##### Bool #####
 
     ifThenElseModel <- 0
@@ -383,7 +387,7 @@ modelFun <- function(path) {
     ##### Unit #####
 
     chooseUnitModel <- constantModel ("ChooseUnit", two.args.overhead, data)
-    
+
 
     ##### Tracing #####
 
@@ -406,7 +410,7 @@ modelFun <- function(path) {
 
 
     ##### Data #####
-    
+
     chooseDataModel   <- 0
     constrDataModel   <- 0
     mapDataModel      <- 0
