@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -52,47 +53,47 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramEqualsInteger            = "equalsIntegerModel"
   , paramLessThanInteger          = "lessThanIntegerModel"
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
-  , paramAppendByteString         =  "appendByteStringModel"
-  , paramConsByteString           =  "consByteStringModel"
-  , paramSliceByteString          =  "sliceByteStringModel"
-  , paramLengthOfByteString       =  "lengthOfByteStringModel"
-  , paramIndexByteString          =  "indexByteStringModel"
-  , paramEqualsByteString         =  "equalsByteStringModel"
-  , paramLessThanByteString       =  "lessThanByteStringModel"
-  , paramLessThanEqualsByteString =  "lessThanEqualsByteStringModel"
-  , paramSha2_256                 =  "sha2_256Model"
-  , paramSha3_256                 =  "sha3_256Model"
-  , paramBlake2b                  =  "blake2bModel"
-  , paramVerifySignature          =  "verifySignatureModel"
-  , paramAppendString             =  "appendStringModel"
-  , paramEqualsString             =  "equalsStringModel"
-  , paramEncodeUtf8               =  "encodeUtf8Model"
-  , paramDecodeUtf8               =  "decodeUtf8Model"
-  , paramIfThenElse               =  "ifThenElseModel"
-  , paramChooseUnit               =  "chooseUnitModel"
-  , paramTrace                    =  "traceModel"
-  , paramFstPair                  =  "fstPairModel"
-  , paramSndPair                  =  "sndPairModel"
-  , paramChooseList               =  "chooseListModel"
-  , paramMkCons                   =  "mkConsModel"
-  , paramHeadList                 =  "headListModel"
-  , paramTailList                 =  "tailListModel"
-  , paramNullList                 =  "nullListModel"
-  , paramChooseData               =  "chooseDataModel"
-  , paramConstrData               =  "constrDataModel"
-  , paramMapData                  =  "mapDataModel"
-  , paramListData                 =  "listDataModel"
-  , paramIData                    =  "iDataModel"
-  , paramBData                    =  "bDataModel"
-  , paramUnConstrData             =  "unConstrDataModel"
-  , paramUnMapData                =  "unMapDataModel"
-  , paramUnListData               =  "unListDataModel"
-  , paramUnIData                  =  "unIDataModel"
-  , paramUnBData                  =  "unBDataModel"
-  , paramEqualsData               =  "equalsDataModel"
-  , paramMkPairData               =  "mkPairDataModel"
-  , paramMkNilData                =  "mkNilDataModel"
-  , paramMkNilPairData            =  "mkNilPairDataModel"
+  , paramAppendByteString         = "appendByteStringModel"
+  , paramConsByteString           = "consByteStringModel"
+  , paramSliceByteString          = "sliceByteStringModel"
+  , paramLengthOfByteString       = "lengthOfByteStringModel"
+  , paramIndexByteString          = "indexByteStringModel"
+  , paramEqualsByteString         = "equalsByteStringModel"
+  , paramLessThanByteString       = "lessThanByteStringModel"
+  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
+  , paramSha2_256                 = "sha2_256Model"
+  , paramSha3_256                 = "sha3_256Model"
+  , paramBlake2b                  = "blake2bModel"
+  , paramVerifySignature          = "verifySignatureModel"
+  , paramAppendString             = "appendStringModel"
+  , paramEqualsString             = "equalsStringModel"
+  , paramEncodeUtf8               = "encodeUtf8Model"
+  , paramDecodeUtf8               = "decodeUtf8Model"
+  , paramIfThenElse               = "ifThenElseModel"
+  , paramChooseUnit               = "chooseUnitModel"
+  , paramTrace                    = "traceModel"
+  , paramFstPair                  = "fstPairModel"
+  , paramSndPair                  = "sndPairModel"
+  , paramChooseList               = "chooseListModel"
+  , paramMkCons                   = "mkConsModel"
+  , paramHeadList                 = "headListModel"
+  , paramTailList                 = "tailListModel"
+  , paramNullList                 = "nullListModel"
+  , paramChooseData               = "chooseDataModel"
+  , paramConstrData               = "constrDataModel"
+  , paramMapData                  = "mapDataModel"
+  , paramListData                 = "listDataModel"
+  , paramIData                    = "iDataModel"
+  , paramBData                    = "bDataModel"
+  , paramUnConstrData             = "unConstrDataModel"
+  , paramUnMapData                = "unMapDataModel"
+  , paramUnListData               = "unListDataModel"
+  , paramUnIData                  = "unIDataModel"
+  , paramUnBData                  = "unBDataModel"
+  , paramEqualsData               = "equalsDataModel"
+  , paramMkPairData               = "mkPairDataModel"
+  , paramMkNilData                = "mkNilDataModel"
+  , paramMkNilPairData            = "mkNilPairDataModel"
   }
 
 -- Loads the models from R
@@ -258,8 +259,11 @@ readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsaf
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
 
-readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
+readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
+readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
+
+readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
+readModelLinearInY model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently
 -- only benchmark and model the linear part, so here we read in the model from R
@@ -281,27 +285,27 @@ memoryUsageAsCostingInteger x = coerce $ memoryUsage x
 
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
-  cpuModel <- readModelMaxSize cpuModelR
+  cpuModel <- ModelTwoArgumentsMaxSize <$> readModelMaxSize cpuModelR
   -- The worst case is adding e.g. `maxBound :: Int` + `maxBound :: Int`, which increases the memory usage by one.
   -- (max x y) + 1
   let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 1
-  pure $ CostingFun (ModelTwoArgumentsMaxSize cpuModel) memModel
+  pure $ CostingFun (cpuModel) memModel
 
 subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 subtractInteger cpuModelR = do
-  cpuModel <- readModelMaxSize cpuModelR
+  cpuModel <- ModelTwoArgumentsMaxSize <$> readModelMaxSize cpuModelR
   -- The worst case is subtracting e.g. `minBound :: Int` - `maxBound :: Int`, which increases the memory usage by one.
   -- (max x y) + 1
   let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 1
-  pure $ CostingFun (ModelTwoArgumentsMaxSize cpuModel) memModel
+  pure $ CostingFun (cpuModel) memModel
 
 multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 multiplyInteger cpuModelR = do
-  cpuModel <- readModelAddedSizes cpuModelR
+  cpuModel <- ModelTwoArgumentsAddedSizes <$> readModelAddedSizes cpuModelR
   -- GMP requires multiplication (mpn_mul) to have x + y space.
   -- x + y
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
-  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
+  pure $ CostingFun (cpuModel) memModel
 
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger cpuModelR = do
@@ -335,40 +339,39 @@ modInteger = divideInteger
 
 equalsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsInteger cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
+  pure $ CostingFun (cpuModel) boolMemModel
 
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
+  pure $ CostingFun (cpuModel) boolMemModel
 
 lessThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsInteger cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
+  pure $ CostingFun cpuModel boolMemModel
 
 
 ---------------- Bytestrings ----------------
 
 appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 appendByteString cpuModelR = do
-  cpuModel <- readModelAddedSizes cpuModelR
-  -- The buffer gets reallocated
+  cpuModel <- ModelTwoArgumentsAddedSizes <$> readModelAddedSizes cpuModelR
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
-  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 
 -- The things marked with ### comments below are plausible guesses at the form
 -- of the model to get it fixed for the HF.  Later we'll have to add benchmarks
 -- to get data and R code to fit models for all of them.
 
--- ### TODO: get model from R ###
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-consByteString _ = do
-      let cpuModel = ModelTwoArgumentsLinearInY $ ModelLinearSize 150000 1000 -- ### Get this from R
-      let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
-      pure $ CostingFun cpuModel memModel
+consByteString cpuModelR = do
+  m <- readModelLinearInY cpuModelR
+  let cpuModel = ModelTwoArgumentsLinearInY m
+      memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun cpuModel memModel
 
 
 {- | Return a substring of a bytestring with a specified start point and length.
@@ -377,40 +380,41 @@ consByteString _ = do
    pointer into that and a length.  The sliceBytestring function is implemented
    using 'take' and 'drop', and these work by modifying the pointer and length;
    no bytes are copied so sliceByteString requires constant time and a constant
-   memory overhead.  Nevertheless we use linear costing functions here to leave
-   some room for future flexibility.
+   memory overhead.  There's a mismatch here because the Haskell model which we
+   defined for SliceByteString is linear in the length of the bytestring;
+   however we can still use that to model the constant cost inferred in the R
+   code.
 -}
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-sliceByteString _ = do
-  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 150000 0
-  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 0 20
+sliceByteString cpuModelR = do
+  c <- readModelConstantCost cpuModelR
+  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize c 0
+  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 4 0
   pure $ CostingFun cpuModel memModel
 
-
--- ### TODO: get model from R ###
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-lengthOfByteString _ = do
-      let cpuModel = ModelOneArgumentConstantCost 150000
-      let memModel = ModelOneArgumentConstantCost 10
-      pure $ CostingFun cpuModel memModel
+lengthOfByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 10
+  pure $ CostingFun cpuModel memModel
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-indexByteString _ = do
-      let cpuModel = ModelTwoArgumentsConstantCost 150000
-      let memModel = ModelTwoArgumentsConstantCost 4
-      pure $ CostingFun cpuModel memModel
+indexByteString cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost 4
+  pure $ CostingFun cpuModel memModel
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
-  cpuModelOnDiagonal <- readModelLinear cpuModelR
+  cpuModelOnDiagonal <- readModelLinearInX cpuModelR
   let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ ModelConstantOrLinear 150000
                  (modelLinearSizeIntercept cpuModelOnDiagonal) (modelLinearSizeSlope cpuModelOnDiagonal)
   pure $ CostingFun cpuModel boolMemModel
 
 lessThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanByteString cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
+  pure $ CostingFun (cpuModel) boolMemModel
 
 lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsByteString = lessThanByteString
@@ -420,29 +424,30 @@ lessThanEqualsByteString = lessThanByteString
 
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
-  cpuModel <- readModelLinear cpuModelR
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
-  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
-  cpuModel <- readModelLinear cpuModelR
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
-  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 blake2b :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 blake2b cpuModelR = do
-  cpuModel <- readModelLinear cpuModelR
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "")
-  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 -- NB: the R model is based purely on the size of the third argument (since the
 -- first two are constant size), so we have to rearrange things a bit to get it to work with
--- a three-argument costing funtion.
+-- a three-argument costing function.
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 verifySignature cpuModelR = do
-  cpuModel <- readModelLinear cpuModelR
-  pure $ CostingFun (ModelThreeArgumentsLinearInZ cpuModel) (ModelThreeArgumentsConstantCost 1)
+  cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInX cpuModelR
+  let memModel =  ModelThreeArgumentsConstantCost 10
+  pure $ CostingFun cpuModel memModel
 
 
 ---------------- Strings ----------------
@@ -463,7 +468,7 @@ equalsString cpuModelR = do
 
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 encodeUtf8 cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinear cpuModelR
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
                  -- In the worst case two UTF-16 bytes encode to three UTF-8
                  -- bytes, so two output words per input word should cover that.
@@ -471,22 +476,24 @@ encodeUtf8 cpuModelR = do
 
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 decodeUtf8 cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinear cpuModelR
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
                  -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
   pure $ CostingFun cpuModel memModel
 
 
 ---------------- Bool ----------------
-
+-- ## TODO: get model from R
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-ifThenElse _ =
-    pure $ CostingFun (ModelThreeArgumentsConstantCost 1) (ModelThreeArgumentsConstantCost 1)
+ifThenElse cpuModelR = do
+  let cpuModel = ModelThreeArgumentsConstantCost 1
+      memModel = ModelThreeArgumentsConstantCost 1
+  pure $ CostingFun cpuModel memModel
 
 ---------------- Unit ----------------
 
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-chooseUnit _ = do
+chooseUnit cpuModelR = do
     cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
     let memModel = ModelTwoArgumentsConstantCost 4
     pure $ CostingFun cpuModel memModel
@@ -494,128 +501,148 @@ chooseUnit _ = do
 
 ---------------- Tracing ----------------
 
--- ### TODO: get model from R ###
 trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-trace _ = pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
+trace cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost 32
+  pure $ CostingFun  cpuModel memModel
 
 ---------------- Pairs ----------------
 
--- ### TODO: get model from R ###
 fstPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-fstPair _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+fstPair cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- (x,_) -> x; but with lots of Some's etc.
 
--- ### TODO: get model from R ###
 sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sndPair _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+sndPair cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- (_,y) -> y; but with lots of Some's etc.
 
 
 ---------------- Lists ----------------
 
--- ### TODO: get model from R ###
 chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-chooseList _ =
-    pure $ CostingFun (ModelThreeArgumentsConstantCost 150000) (ModelThreeArgumentsConstantCost 32)
+chooseList cpuModelR = do
+  cpuModel <- ModelThreeArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelThreeArgumentsConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- xs a b -> a if xs == [], b otherwise
 
--- ### TODO: get model from R ###
 mkCons :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-mkCons _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
+mkCons cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- x xs -> x:xs, but with a dynamic type check
 
--- ### TODO: get model from R ###
 headList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-headList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+headList cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- x:_ -> x, [] -> failure.  Successful case has fromConstant $ someValueOf etc.
 
--- ### TODO: get model from R ###
 tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-tailList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+tailList cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Like headList
 
--- ### TODO: get model from R ###
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-nullList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+nullList cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- x::[a] -> Bool
 
 ---------------- Data ----------------
 
--- ### TODO: get model from R ###
 chooseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelSixArguments)
-chooseData _ =
-      pure $ CostingFun (ModelSixArgumentsConstantCost 150000) (ModelSixArgumentsConstantCost 32)
+chooseData cpuModelR = do
+  cpuModel <- ModelSixArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelSixArgumentsConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- chooseData d p q r s t u  returns one of the last six elements according to what d is.
--- Probably cheap
 
--- ### TODO: get model from R ###
 constrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-constrData _ =
-  pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
+constrData cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Just applying Constr
 
--- ### TODO: get model from R ###
 mapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mapData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+mapData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Just applying Map
 
--- ### TODO: get model from R ###
 listData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-listData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+listData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Just applying List
 
--- ### TODO: get model from R ###
 iData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-iData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+iData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Just applying I
 
--- ### TODO: get model from R ###
 bData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-bData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+bData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Just applying B
 
--- ### TODO: get model from R ###
 unConstrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unConstrData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+unConstrData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Constr i ds -> (i,ds);  _ -> fail
 
--- ### TODO: get model from R ###
 unMapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unMapData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+unMapData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- Map es -> es;  _ -> fail
 
--- ### TODO: get model from R ###
 unListData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unListData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+unListData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- List ds -> ds;  _ -> fail
 
--- ### TODO: get model from R ###
 unIData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unIData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+unIData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- I i -> i;  _ -> fail
 
--- ### TODO: get model from R ###
 unBData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unBData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+unBData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- B b -> b;  _ -> fail
 
+-- ### TODO: get model from R ###
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-equalsData _ = do
+equalsData cpuModelR = do
   let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize 150000 10000
   let memModel = ModelTwoArgumentsConstantCost 1
   pure $ CostingFun cpuModel memModel
@@ -628,20 +655,23 @@ equalsData _ = do
 
 ---------------- Misc constructors ----------------
 
--- ### TODO: get model from R ###
 mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-mkPairData _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
+mkPairData cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- a b -> (a,b)
 
--- ### TODO: get model from R ###
 mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+mkNilData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- () -> [] :: [Data]
 
--- ### TODO: get model from R ###
 mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilPairData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
+mkNilPairData cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost 32
+  pure $ CostingFun cpuModel memModel
 -- () -> [] :: [(Data,Data)]

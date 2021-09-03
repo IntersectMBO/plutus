@@ -4,6 +4,9 @@ library(stringr, quietly=TRUE, warn.conflicts=FALSE)
 library(MASS,    quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
+## This causes warnings generated here to be printed out when this code is run from Haskell.
+options (warn=1)
+
 ## See Note [Creation of the Cost Model]
 
 ## This R code is used to analyse the data in `benching.csv` produced by
@@ -105,9 +108,13 @@ arity <- function(name) {
         "UnListData" = 1,
         "UnIData" = 1,
         "UnBData" = 1,
-        "EqualsData" = 2)
+        "EqualsData" = 2,
+        "MkPairData" = 2,
+        "MkNilData" = 1,
+        "MkNilPairData" = 1
+        )
 }
-            
+
 
 ## Read a file containing Criterion CSV output and convert it to a frame
 get.bench.data <- function(path) {
@@ -149,7 +156,7 @@ get.bench.data <- function(path) {
 
 filter.and.check.nonempty <- function (frame, name) {
     filtered <- filter (frame, BuiltinName == name)
-    cat (sprintf ("Reading data for %s\n", name))
+##    cat (sprintf ("Reading data for %s\n", name))
     if (nrow(filtered) == 0) {
         stop ("No data found for ", name)
     } else filtered
@@ -213,11 +220,9 @@ modelFun <- function(path) {
     nops <- c("Nop1", "Nop2", "Nop3", "Nop4", "Nop5", "Nop6")
     overhead <- sapply(nops, get.mean.time)
 
-    print (overhead)
-    
     discard.overhead <- function(frame, name) {
         args.overhead <- overhead[arity(name)]
-        mean.time <- mean(frame$Mean) 
+        mean.time <- mean(frame$Mean)
         if (mean.time > args.overhead) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
         }
@@ -360,11 +365,12 @@ modelFun <- function(path) {
 
     lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
-    
-    equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially. ## FIXME
+
+    equalsByteStringModel <- {
         fname <- "EqualsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
+            discard.upper.outliers (fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
@@ -433,7 +439,7 @@ modelFun <- function(path) {
             filter (x_mem > 0 & y_mem > 0)    %>%
             discard.upper.outliers(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
+        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)  ## Both strings are copied in full
         adjustModel(m,fname)
     }
 
@@ -513,7 +519,26 @@ modelFun <- function(path) {
     unIDataModel      <- constantModel ("UnIData")
     unBDataModel      <- constantModel ("UnBData")
 
+
+    ## equalsData is tricky because it uses the Eq instance for Data, which
+    ## can't call costing functions for embedded Integers and Text objects.  We
+    ## only have one number to measure the memory usage of a Data object and it
+    ## can't disinguish between an object with lots of nodes and not much atomic
+    ## data and an object with a small number of nodes each containing e.g. a
+    ## large bytestring, and the comaprison times for these are likely to be
+    ## different.  Experiments with randomly generated heterogeneous data shows
+    ## that if you plot time taken against memory usage then you get a fan
+    ## shape, with all of the data lying below a particular straight line.  We
+    ## want to identify that line here and return it as an upper bound for
+    ## execution time.
+
     equalsDataModel   <- 0   ## MISSING
+
+    mkPairDataModel     <- constantModel ("MkPairData")
+    mkNilDataModel      <- constantModel ("MkNilData")
+    mkNilPairDataModel  <- constantModel ("MkPairData")
+
+    warnings() ## 
 
     list(
         addIntegerModel               = addIntegerModel,
@@ -563,6 +588,9 @@ modelFun <- function(path) {
         unListDataModel               = unListDataModel,
         unIDataModel                  = unIDataModel,
         unBDataModel                  = unBDataModel,
-        equalsDataModel               = equalsDataModel
+        equalsDataModel               = equalsDataModel,
+        mkPairDataModel               = mkPairDataModel,
+        mkNilDataModel                = mkNilDataModel,
+        mkNilPairDataModel            = mkNilPairDataModel
     )
 }
