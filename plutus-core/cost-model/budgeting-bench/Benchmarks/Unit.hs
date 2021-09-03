@@ -23,7 +23,7 @@ createChooseUnitBench
 createChooseUnitBench ty xs =
     bgroup (show name) [bgroup (showMemoryUsage ()) [mkBM x | x <- xs]]
         where name = ChooseUnit
-              mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
+              mkBM x = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] () x
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ createChooseUnitBench integer numbers

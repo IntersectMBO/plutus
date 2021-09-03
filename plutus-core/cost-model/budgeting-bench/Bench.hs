@@ -56,15 +56,6 @@ main = do
   csvExists <- doesFileExist DFP.benchingResultsFile
   if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  -- Run the nop benchmarks with a large time limit (30 seconds) in an attempt
-  -- to get accurate results.  Criterion doesn't expose the functions that would
-  -- let us run benchmarks with different time limits and put all the results in
-  -- the same file, so we have to use two different CSV files.
-  criterionMainWith
-       True
-       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
-       Benchmarks.Nops.makeBenchmarks gen
-
   criterionMainWith
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
@@ -79,3 +70,12 @@ main = do
         <>  Benchmarks.Strings.makeBenchmarks         gen
         <>  Benchmarks.Tracing.makeBenchmarks         gen
         <>  Benchmarks.Unit.makeBenchmarks            gen
+
+  {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
+     get accurate results.  Note that we can't select these from the commnad
+     line: that only works for the main benchmarks above. -}
+  criterionMainWith
+       True
+       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
+       Benchmarks.Nops.makeBenchmarks gen
+

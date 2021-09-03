@@ -6,7 +6,6 @@ import           Benchmarks.Generators
 import           PlutusCore
 
 import           Criterion.Main
-import           Data.ByteString       (ByteString)
 import           System.Random         (StdGen)
 
 

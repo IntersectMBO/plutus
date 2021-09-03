@@ -17,6 +17,8 @@ import           System.Random         (StdGen)
    of service, and we may need to impose penalties for *really* large inputs. -}
 makeDefaultIntegerArgs :: StdGen -> ([Integer], StdGen)
 makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31]
+-- ###  Try just the relevant builtins with bigger numbers. ###
+
 
 benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchTwoIntegers gen builtinName =

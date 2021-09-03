@@ -15,8 +15,6 @@ import qualified Hedgehog                as H
 import qualified Hedgehog.Internal.Gen   as G
 import qualified Hedgehog.Internal.Range as R
 
-import qualified Debug.Trace             as T
-
 byteStringSizes :: [Int]
 byteStringSizes = fmap (100*) [0..100]
 
@@ -52,7 +50,6 @@ sig = genSample seedB (G.bytes (R.singleton 64))
 -- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
-    T.trace (show $ BS.length pubKey) $ T.trace (show $ BS.length sig) $
     bgroup (show name) $ fmap mkBM (bigByteStrings seedA)
            where name = VerifySignature
                  mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name [] pubKey b sig
