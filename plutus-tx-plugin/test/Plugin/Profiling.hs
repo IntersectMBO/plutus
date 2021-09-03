@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -9,22 +10,28 @@
 
 module Plugin.Profiling where
 import           Common
-import           Lib                     (goldenPir)
-import           PlcTestUtils            (ToUPlc (toUPlc), goldenUEvalProfile)
+import           Lib                       (goldenPir)
+import           PlcTestUtils              (ToUPlc (toUPlc), goldenUEvalProfile, rethrow, runUPlcProfile)
 import           Plugin.Basic.Spec
-import           Plugin.Lib              (MyExternalRecord (myExternal), andExternal, evenDirect)
+import           Plugin.Lib                (MyExternalRecord (myExternal), andExternal, evenDirect)
 
 import           Plugin.Data.Spec
-import           Plugin.Functions.Spec   hiding (fib, recursiveFunctions)
+import           Plugin.Functions.Spec     hiding (fib, recursiveFunctions)
 import           Plugin.Typeclasses.Spec
-import qualified PlutusTx.Builtins       as Builtins
-import           PlutusTx.Code           (CompiledCode)
-import           PlutusTx.Plugin         (plc)
+import qualified PlutusTx.Builtins         as Builtins
+import           PlutusTx.Code             (CompiledCode)
+import           PlutusTx.Plugin           (plc)
 
-import qualified PlutusCore.Default      as PLC
+import qualified PlutusCore.Default        as PLC
 
+import           Control.Lens.Combinators  (_2)
+import           Control.Lens.Getter       (view)
 import           Data.Proxy
-import           Data.Text               (Text)
+import           Data.Text                 (Text)
+import           Prettyprinter.Internal    (pretty)
+import           Prettyprinter.Render.Text (hPutDoc)
+import           System.IO                 (IOMode (WriteMode), withFile)
+
 
 profiling :: TestNested
 profiling = testNested "Profiling" [
@@ -81,3 +88,14 @@ swap (a,b) = (b,a)
 
 swapTest :: CompiledCode (Integer,Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))
+
+-- writeLogToFile :: IO ()
+writeLogToFile fileName values = do
+  log <- pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+  withFile fileName WriteMode (\h -> hPutDoc h log)
+
+main :: IO ()
+main = do
+  writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+
+

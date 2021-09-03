@@ -31,6 +31,7 @@ module PlcTestUtils (
     noRename,
     BrokenRenameT(..),
     runBrokenRenameT,
+    runUPlcProfile,
     brokenRename,
     prop_scopingFor,
     test_scopingGood,
