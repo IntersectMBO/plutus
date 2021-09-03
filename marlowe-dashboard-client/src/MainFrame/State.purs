@@ -22,6 +22,7 @@ import Data.Newtype (unwrap)
 import Data.Set (toUnfoldable) as Set
 import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
+import Debug.Trace (traceM)
 import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
 import Foreign.Generic (decodeJSON)
@@ -150,7 +151,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                 Right lastResult -> case lastResult of
                   -- FIXME: unpack these updates properly and respond appropriately in each case
                   OK -> addToast $ successToast "all okay"
-                  SomeError marloweError -> addToast $ errorToast "something went wrong" Nothing
+                  SomeError marloweError -> do
+                    traceM marloweError
+                    addToast $ errorToast "something went wrong" Nothing
                   Unknown -> pure unit
               -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
