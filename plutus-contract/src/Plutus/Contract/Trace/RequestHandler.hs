@@ -218,7 +218,7 @@ handleChainIndexQueries ::
     )
     => RequestHandler effs ChainIndexQuery ChainIndexResponse
 handleChainIndexQueries = RequestHandler $ \chainIndexQuery ->
-    surroundDebug @Text "handleUtxoQueries" $ do
+    surroundDebug @Text "handleChainIndexQueries" $ do
       case chainIndexQuery of
         DatumFromHash h            -> DatumHashResponse <$> ChainIndexEff.datumFromHash h
         ValidatorFromHash h        -> ValidatorHashResponse <$> ChainIndexEff.validatorFromHash h

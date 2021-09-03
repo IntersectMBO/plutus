@@ -113,6 +113,9 @@ tests = testGroup "all tests" [
           slotToTimeRangeBoundsInverseProp,
         testProperty "slot to time range has lower bound <= upper bound"
           slotToTimeRangeHasLowerAndUpperBoundsProp
+        ],
+    testGroup "SomeCardanoApiTx" [
+        testProperty "Value ToJSON/FromJSON" (jsonRoundTrip Gen.genSomeCardanoApiTx)
         ]
     ]
 

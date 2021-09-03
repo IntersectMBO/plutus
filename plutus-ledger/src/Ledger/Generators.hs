@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Ledger.Generators(
     -- * Mockchain
@@ -26,6 +27,7 @@ module Ledger.Generators(
     genPOSIXTime,
     genSlotConfig,
     -- * Etc.
+    genSomeCardanoApiTx,
     genAda,
     genValue,
     genValueNonNegative,
@@ -37,11 +39,13 @@ module Ledger.Generators(
     signAll
     ) where
 
+import qualified Cardano.Api               as C
 import           Control.Monad             (replicateM)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString           as BS
 import           Data.Default              (Default (def))
 import           Data.Foldable             (fold, foldl')
+import           Data.Functor.Identity     (Identity)
 import           Data.List                 (sort)
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
@@ -49,6 +53,7 @@ import           Data.Maybe                (isNothing)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import           GHC.Stack                 (HasCallStack)
+import qualified Gen.Cardano.Api.Typed     as Gen
 import           Hedgehog
 import qualified Hedgehog.Gen              as Gen
 import qualified Hedgehog.Range            as Range
@@ -229,6 +234,41 @@ genSlotConfig :: Hedgehog.MonadGen m => m SlotConfig
 genSlotConfig = do
     sl <- Gen.integral (Range.linear 1 1000000)
     return $ def { TimeSlot.scSlotLength = sl }
+
+-- TODO Unfortunately, there's no way to get a warning if another era has been
+-- added to EraInMode. Alternative way?
+genSomeCardanoApiTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genSomeCardanoApiTx = Gen.choice [ genByronEraInCardanoModeTx
+                                 , genShelleyEraInCardanoModeTx
+                                 , genAllegraEraInCardanoModeTx
+                                 , genMaryEraInCardanoModeTx
+                                 , genAlonzoEraInCardanoModeTx
+                                 ]
+
+genByronEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genByronEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.ByronEra
+  pure $ SomeTx tx C.ByronEraInCardanoMode
+
+genShelleyEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genShelleyEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.ShelleyEra
+  pure $ SomeTx tx C.ShelleyEraInCardanoMode
+
+genAllegraEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genAllegraEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.AllegraEra
+  pure $ SomeTx tx C.AllegraEraInCardanoMode
+
+genMaryEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genMaryEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.MaryEra
+  pure $ SomeTx tx C.MaryEraInCardanoMode
+
+genAlonzoEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genAlonzoEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.AlonzoEra
+  pure $ SomeTx tx C.AlonzoEraInCardanoMode
 
 genAda :: MonadGen m => m Ada
 genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))
