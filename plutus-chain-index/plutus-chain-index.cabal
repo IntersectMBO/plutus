@@ -119,7 +119,6 @@ test-suite plutus-chain-index-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-hunit -any,
         containers -any,
         serialise -any,
         bytestring -any,

@@ -351,7 +351,6 @@ executable plutus-pab-test-psgenerator
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,
-        tasty-hunit -any,
         smallcheck -any,
         tasty-smallcheck -any,
         tasty-quickcheck -any,
