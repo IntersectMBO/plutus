@@ -8,7 +8,9 @@ import qualified Spec.ErrorHandling
 import qualified Spec.Escrow
 import qualified Spec.Future
 import qualified Spec.GameStateMachine
+import qualified Spec.GameStateMachineWithSecretArguments
 import qualified Spec.Governance
+import qualified Spec.SealedBidAuction
 import qualified Spec.SimpleEscrow
 -- import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
@@ -22,7 +24,7 @@ import qualified Spec.Uniswap
 import qualified Spec.Vesting
 
 import           Test.Tasty
-import           Test.Tasty.Hedgehog       (HedgehogTestLimit (..))
+import           Test.Tasty.Hedgehog                      (HedgehogTestLimit (..))
 
 main :: IO ()
 main = defaultMain tests
@@ -48,12 +50,14 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Escrow.tests,
     Spec.SimpleEscrow.tests,
     Spec.GameStateMachine.tests,
+    Spec.GameStateMachineWithSecretArguments.tests,
     Spec.Rollup.tests,
     Spec.TokenAccount.tests,
     Spec.PingPong.tests,
     Spec.Prism.tests,
     Spec.Stablecoin.tests,
     Spec.Auction.tests,
+    Spec.SealedBidAuction.tests,
     Spec.Governance.tests,
     Spec.Uniswap.tests
     ]

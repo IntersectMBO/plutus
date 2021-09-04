@@ -27,6 +27,7 @@ library
     exposed-modules:
         Plutus.Contracts
         Plutus.Contracts.Auction
+        Plutus.Contracts.SealedBidAuction
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
@@ -35,6 +36,7 @@ library
         Plutus.Contracts.SimpleEscrow
         Plutus.Contracts.Future
         Plutus.Contracts.GameStateMachine
+        Plutus.Contracts.GameStateMachineWithSecretArguments
         Plutus.Contracts.Governance
         Plutus.Contracts.MultiSig
         Plutus.Contracts.MultiSigStateMachine
@@ -100,6 +102,7 @@ test-suite plutus-use-cases-test
     hs-source-dirs: test
     other-modules:
         Spec.Auction
+        Spec.SealedBidAuction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling
@@ -107,6 +110,7 @@ test-suite plutus-use-cases-test
         Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
+        Spec.GameStateMachineWithSecretArguments
         Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
