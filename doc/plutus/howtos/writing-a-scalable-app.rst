@@ -108,11 +108,6 @@ What does this mean for the state of our distributed application?
 We need to minimise the number of transactions that are trying to spend the same script output.
 At the same time, we should design the system so that the access patterns which require relatively high throughput can be realised exclusively by producing script outputs, not by spending script outputs.
 
-.. note::
-
-    No matter how well our Plutus app is designed, we will not be able to overcome the fact that the Cardano blockchain is a highly distributed system, which means a lot of resources are dedicated to establishing consensus between a large number of nodes.
-    Applications that require higher throughput should consider a layer 2 solution such as Hydra.
-
 Minting Policy Scripts
 ~~~~~~~~~~~~~~~~~~~~~~
 
