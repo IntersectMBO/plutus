@@ -216,12 +216,14 @@ modelFun <- function(path) {
         mean.time <- mean(frame$Mean)
         if (mean.time > args.overhead) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
+            frame
         }
         else {
             cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
                               name, mean.time, args.overhead));
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x/1000 }))
             ## FIXME.  Don't understand this: putting function(x){0} causes a failure when the model is read from R.
+            frame
         }
     }
 
