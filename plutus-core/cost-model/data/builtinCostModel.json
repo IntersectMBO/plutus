@@ -18,7 +18,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 881105,
+            "arguments": 882,
             "type": "constant_cost"
         }
     },
@@ -28,7 +28,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1082593,
+            "arguments": 1083,
             "type": "constant_cost"
         }
     },
@@ -61,7 +61,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 984690,
+            "arguments": 985,
             "type": "constant_cost"
         }
     },
@@ -71,7 +71,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 899659,
+            "arguments": 900,
             "type": "constant_cost"
         }
     },
@@ -81,7 +81,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 879742,
+            "arguments": 880,
             "type": "constant_cost"
         }
     },
@@ -130,7 +130,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 866473,
+            "arguments": 867,
             "type": "constant_cost"
         }
     },
@@ -293,7 +293,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 912478,
+            "arguments": 913,
             "type": "constant_cost"
         }
     },
@@ -316,7 +316,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1097894,
+            "arguments": 1098,
             "type": "constant_cost"
         }
     },
@@ -342,7 +342,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 875179,
+            "arguments": 876,
             "type": "constant_cost"
         }
     },
@@ -352,7 +352,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1176360,
+            "arguments": 1177,
             "type": "constant_cost"
         }
     },
@@ -385,7 +385,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 881789,
+            "arguments": 882,
             "type": "constant_cost"
         }
     },
@@ -450,7 +450,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 850987,
+            "arguments": 851,
             "type": "constant_cost"
         }
     },
@@ -460,7 +460,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 893698,
+            "arguments": 894,
             "type": "constant_cost"
         }
     },
@@ -484,7 +484,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 1287997,
+            "arguments": 1288,
             "type": "constant_cost"
         }
     },
@@ -544,7 +544,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 932050,
+            "arguments": 933,
             "type": "constant_cost"
         }
     },
@@ -606,7 +606,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 871576,
+            "arguments": 872,
             "type": "constant_cost"
         }
     },
@@ -616,7 +616,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 871348,
+            "arguments": 872,
             "type": "constant_cost"
         }
     },
@@ -649,7 +649,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 886424,
+            "arguments": 887,
             "type": "constant_cost"
         }
     }

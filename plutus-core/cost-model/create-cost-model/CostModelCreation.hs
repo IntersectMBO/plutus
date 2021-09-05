@@ -30,6 +30,8 @@ import           Foreign.R
 import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
 
+import qualified Debug.Trace                                    as Tr
+
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 msToPs :: Double -> CostingInteger
@@ -215,7 +217,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
 -- t = ax+c
 unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
 unsafeReadModelFromR formula rmodel = do
-  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+  j <- Tr.trace formula $ [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
   let m = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
@@ -229,7 +231,7 @@ unsafeReadModelFromR formula rmodel = do
 -- t = ax+by+c
 unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
-  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+  j <- Tr.trace (formula1 Prelude.++ " / " Prelude.++ formula2) $ [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
   let m = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
