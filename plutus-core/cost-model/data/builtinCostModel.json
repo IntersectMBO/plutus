@@ -6,8 +6,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 859,
-                "intercept": 144863
+                "slope": 702,
+                "intercept": 164382
             },
             "type": "min_size"
         }
@@ -95,7 +95,7 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 11802,
+                "slope": 12215,
                 "intercept": 0
             },
             "type": "added_sizes"
@@ -147,8 +147,8 @@
             "arguments": {
                 "model": {
                     "arguments": {
-                        "slope": 149,
-                        "intercept": 423585
+                        "slope": 153,
+                        "intercept": 425273
                     },
                     "type": "multiplied_sizes"
                 },
@@ -184,8 +184,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 505,
-                "intercept": 178018
+                "slope": 559,
+                "intercept": 178891
             },
             "type": "min_size"
         }
@@ -200,8 +200,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 595,
-                "intercept": 132069
+                "slope": 597,
+                "intercept": 125354
             },
             "type": "added_sizes"
         }
@@ -216,8 +216,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 506,
-                "intercept": 172967
+                "slope": 513,
+                "intercept": 178352
             },
             "type": "linear_in_y"
         }
@@ -255,8 +255,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 68,
-                "intercept": 192275
+                "slope": 0,
+                "intercept": 209833
             },
             "type": "min_size"
         }
@@ -369,8 +369,8 @@
             "arguments": {
                 "model": {
                     "arguments": {
-                        "slope": 149,
-                        "intercept": 423585
+                        "slope": 153,
+                        "intercept": 425273
                     },
                     "type": "multiplied_sizes"
                 },
@@ -399,8 +399,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 707,
-                "intercept": 165434
+                "slope": 702,
+                "intercept": 179887
             },
             "type": "max_size"
         }
@@ -425,8 +425,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 707,
-                "intercept": 165434
+                "slope": 702,
+                "intercept": 179887
             },
             "type": "max_size"
         }
@@ -501,8 +501,8 @@
             "arguments": {
                 "model": {
                     "arguments": {
-                        "slope": 149,
-                        "intercept": 423585
+                        "slope": 153,
+                        "intercept": 425273
                     },
                     "type": "multiplied_sizes"
                 },
@@ -633,8 +633,8 @@
             "arguments": {
                 "model": {
                     "arguments": {
-                        "slope": 149,
-                        "intercept": 423585
+                        "slope": 153,
+                        "intercept": 425273
                     },
                     "type": "multiplied_sizes"
                 },

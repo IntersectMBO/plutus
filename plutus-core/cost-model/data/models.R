@@ -28,16 +28,10 @@ seconds.to.milliseconds <- function(x) { x * 1e6 }
 ## models off and discarding the outliers helps to get a reasonable model
 #
 ## This should only be used on data which can reasonably be assumed to be
-## relatively evenly distributed, and this depends on how the benchmarking data
-## was generated. Currently the inputs for all of our builtins are quite
-## uniformly distributed, but if we ever have a case where there's a big
-## variation of scales in the results (for instance if sizes grow exponentially)
-## then there would be a danger of throwing away sensible results.  When we have
-## a narrow range of input sizes (eg, for integer buitlins where sizes "only" go
-## up to 31 words) outliers do occur and could cause problems. A warning will be
-## issued by discard.upper.outliers if more than 10% of the datapoints are
-## discarded, which whould reduce the danger of using the function on
-## inappropriate data.
+## relatively uniformly distributed., and this depends on how the benchmarking
+## data was generated.  A warning will be issued by discard.upper.outliers if
+## more than 10% of the datapoints are discarded, which whould reduce the danger
+## of using the function on inappropriate data.
 #
 upper.outlier.cutoff <- function(v) {
     q1 <- quantile(v,0.25)
@@ -247,7 +241,6 @@ modelFun <- function(path) {
         fname <- "AddInteger"
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
-            discard.upper.outliers (fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ pmax(x_mem, y_mem), filtered)
         adjustModel (m, fname)
@@ -260,7 +253,6 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem + y_mem), filtered)
         adjustModel (m, fname)
@@ -279,7 +271,6 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)    %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
-            discard.upper.outliers(fname)   %>%
             discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
@@ -295,7 +286,6 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.upper.outliers("EqualsInteger") %>%
             discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
@@ -307,7 +297,6 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
@@ -319,7 +308,6 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
@@ -343,7 +331,6 @@ modelFun <- function(path) {
         fname <- "ConsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ y_mem, data=filtered)
         adjustModel(m,fname)
@@ -362,7 +349,6 @@ modelFun <- function(path) {
         fname <- "EqualsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers (fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
@@ -395,7 +381,6 @@ modelFun <- function(path) {
         fname <- "Sha3_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
       m <- lm(Mean ~ x_mem, data=filtered)
       adjustModel(m,fname)
@@ -405,7 +390,6 @@ modelFun <- function(path) {
         fname <- "Blake2b_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
       m <- lm(Mean ~ x_mem, data=filtered)
       adjustModel(m,fname)
@@ -429,7 +413,6 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter (x_mem > 0 & y_mem > 0)    %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)  ## Both strings are copied in full
         adjustModel(m,fname)
@@ -440,7 +423,6 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
@@ -450,7 +432,6 @@ modelFun <- function(path) {
         fname <- "DecodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
@@ -460,7 +441,6 @@ modelFun <- function(path) {
         fname <- "DecodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.upper.outliers(fname) %>%
             discard.overhead (fname)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
@@ -545,14 +525,13 @@ modelFun <- function(path) {
         min.x <- min(f$x_mem)
         min.t <- mean (f$Mean[f$x_mem==min.x])
         m <- lm(f$Mean - min.t ~ I(f$x_mem - min.x) + 0)
-        cat (m$coefficients, "\n")
         s <- coef(m)[1]  ## Not 2: we've used +0, so the intercept doesn't appear in the model
         v <- c(min.t-s*min.x, s) ## ie, f(x) = min.t +s(x-min.x)
         names(v) <- c("(Intercept)", "x_mem")  ## Make it look like what the Haskell code's expecting.
         pr <- function(x) { v[1] + v[2]*x }  ## What this model predicts.
-        errors = (pr(f$x)-f$Mean)/f$Mean  ## Residuals as fraction of observed values.
-        over = errors[errors>0]     ## Overpredictions - good, or at least acceptable.
-        under = -errors[errors<=0]  ## Underpredictions - bad
+        errors = (f$Mean-pr(f$x))/f$Mean  ## Residuals as fraction of observed values.
+        over = -errors[errors<0]   ## Overpredictions (observed value < prediction) - good, or at least acceptable.
+        under = errors[errors>=0]  ## Underpredictions (observed value >= prediction) - bad
         cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
            (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
         cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
