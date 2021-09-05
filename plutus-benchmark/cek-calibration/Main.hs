@@ -27,26 +27,10 @@ import           Data.ByteString.Lazy                     as BSL
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
 
-{-
--- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
--- produce data that will be supplied to the things being benchmarked.  Here
--- we've got a term and we evaluate it to get back the budget consumed, but then
--- we throw that away and evaluate the term again.  This may have the effect of
--- avoiding warmup, which could be a good thing.  Let's look into that.
-runTermBench :: Haskell.String -> PlainTerm -> Benchmark
-runTermBench name term = env
-    (do
-        (_result, budget) <-
-          pure $ (unsafeEvaluateCek defaultCekParameters) term
-        pure budget
-        )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek defaultCekParameters) term
--}
-
 benchCek :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @UPLC.FreeVariableError $ runQuoteT $ UPLC.unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek defaultCekParameters) t'
+    Right t' -> nf (unsafeEvaluateCekNoEmit defaultCekParameters) t'
 
 
 {-# INLINABLE rev #-}
