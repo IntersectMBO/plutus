@@ -166,3 +166,22 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-hunit -any
       , tasty-quickcheck -any
       , mtl -any
+
+benchmark cek-calibration
+    import: lang
+    type: exitcode-stdio-1.0
+    default-language: Haskell2010
+    main-is: Main.hs
+    hs-source-dirs:
+       cek-calibration
+    build-depends:
+        base -any
+      , bytestring -any
+      , plutus-core -any
+      , plutus-tx -any
+      , plutus-tx-plugin -any
+      , criterion >= 1.5.9.0
+      , mtl -any
+      , random >= 1.2.0
+      , containers -any
+      
