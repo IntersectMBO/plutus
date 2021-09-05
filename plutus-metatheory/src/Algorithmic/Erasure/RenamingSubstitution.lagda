@@ -25,10 +25,8 @@ open import Algorithmic.Erasure
 open import Untyped
 import Untyped.RenamingSubstitution as U
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-  as AS
 \end{code}
 
 \begin{code}
@@ -111,13 +109,14 @@ conv⊢-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}
 conv⊢-erase refl t = refl
 
 renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → (ρ : A.Ren ρ⋆ Γ Δ){tc : TyCon}(c : AB.TermCon (con tc))
+  → (ρ : A.Ren ρ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
   → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
 renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
 renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
 renTermCon-erase ρ⋆ ρ AB.unit           = refl
+renTermCon-erase ρ⋆ ρ (AB.Data d)       = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : Fin (len Γ))
@@ -205,13 +204,14 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
 subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon}(c : AB.TermCon (con tc))
+  → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
   → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
 subTermCon-erase σ⋆ σ (AB.integer i)    = refl
 subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
 subTermCon-erase σ⋆ σ (AB.string s)     = refl
 subTermCon-erase σ⋆ σ (AB.bool b)       = refl
 subTermCon-erase σ⋆ σ AB.unit           = refl
+subTermCon-erase σ⋆ σ (AB.Data d)       = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

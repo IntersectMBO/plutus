@@ -25,7 +25,7 @@ sellerCollateralTimeout = SlotParam "Collateral deposit by seller timeout"
 buyerCollateralTimeout = SlotParam "Deposit of collateral by buyer timeout"
 depositTimeout = SlotParam "Deposit of price by buyer timeout"
 disputeTimeout = SlotParam "Dispute by buyer timeout"
-answerTimeout = SlotParam "Seller's response timeout"
+answerTimeout = SlotParam "Complaint deadline"
 
 depositCollateral :: Party -> Timeout -> Contract -> Contract -> Contract
 depositCollateral party timeout timeoutContinuation continuation =

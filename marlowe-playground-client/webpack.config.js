@@ -119,11 +119,12 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: "./static/index.html",
+            template: "web-common/static/index.html",
             favicon: "static/favicon.ico",
             title: "Marlowe Playground",
             productName: "marlowe-playground",
-            googleAnalyticsId: isWebpackDevServer ? "UA-XXXXXXXXX-X" : "UA-119953429-16"
+            googleAnalyticsId: isWebpackDevServer ? "UA-XXXXXXXXX-X" : "G-G06CGG33D4",
+            segmentAnalyticsId: isWebpackDevServer ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" : "RMh20hw83CbQY1CXanru5hnwkFWZOzL0",
         }),
         new MonacoWebpackPlugin({
             // note that you have to include typescript if you want javascript to work!

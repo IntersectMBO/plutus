@@ -176,7 +176,7 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
                       action <- buildPABAction @a @(App.AppEnv a) s cid args
                       liftIO . async $ Core.runPAB' env action
                       pure ()
-                    logInfo @(LM.PABMultiAgentMsg (Builtin a)) LM.PABStateRestored
+                    logInfo @(LM.PABMultiAgentMsg (Builtin a)) (LM.PABStateRestored $ length ts)
 
               -- then, actually start the server.
               let walletClientEnv = App.walletClientEnv (Core.appEnv env)
@@ -204,13 +204,12 @@ runConfigCommand contractHandler c@ConfigCommandArgs{ccaAvailability} (ForkComma
       pure asyncId
 
 -- Run the chain-index service
-runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config {nodeServerConfig, chainIndexConfig}, ccaAvailability} ChainIndex =
+runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config { nodeServerConfig, chainIndexConfig }} ChainIndex =
     ChainIndex.main
         (toChainIndexLog ccaTrace)
         chainIndexConfig
         (mscSocketPath nodeServerConfig)
         (mscSlotConfig nodeServerConfig)
-        ccaAvailability
 
 -- Get the state of a contract
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ContractState contractInstanceId) = do
@@ -262,8 +261,9 @@ runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (R
             let State.ContractResponse{State.newState=State{record}} = Contract.serialisableState (Proxy @(Builtin a)) s
             traverse_ logStep (responses record)
             drainLog
-                where
-                    logStep response = logInfo @(LM.AppMsg (Builtin a)) $ LM.ContractHistoryItem contractInstanceId (snd <$> response)
+  where
+      logStep response = logInfo @(LM.AppMsg (Builtin a)) $
+          LM.ContractHistoryItem contractInstanceId (snd <$> response)
 
 runConfigCommand _ _ PSApiGenerator {psApiGenOutputDir} = do
     PSGenerator.generateAPIModule (Proxy @a) psApiGenOutputDir
@@ -304,6 +304,5 @@ buildPABAction currentState cid ContractActivationArgs{caWallet, caID} = do
     void $ runReader stmState $ updateState @IO r
 
     -- Squish it into a PAB action which we will run
-    let action = Core.activateContract' @(Builtin a) (ContractInstanceState currentState (pure stmState)) cid caWallet caID
-
-    pure action
+    let ciState = ContractInstanceState currentState (pure stmState)
+    pure $ Core.activateContract' @(Builtin a) ciState cid caWallet caID

@@ -39,11 +39,12 @@ import InputField.Lenses (_value)
 import InputField.Types (Action(..)) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.Client (ContractHistory, _chHistory, _chParams)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_metaData)
-import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId)
-import Marlowe.Semantics (Party(..), Payee(..), Payment(..), Slot(..))
+import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (MarloweData, MarloweParams, Party(..), Payee(..), Payment(..), Slot(..), _marloweContract)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs)
 import Template.State (dummyState, handleAction, initialState) as Template
 import Template.State (instantiateExtendedContract)
@@ -165,7 +166,7 @@ handleAction input (UpdateFollowerApps companionAppState) = do
   void
     $ for newContractsArray \(marloweParams /\ marloweData) -> do
         let
-          mTemplate = findTemplate marloweData.marloweContract
+          mTemplate = findTemplate $ view _marloweContract marloweData
 
           hasRightMetaData :: Contract.State -> Boolean
           hasRightMetaData { mMarloweParams, metadata } = case mMarloweParams, mTemplate of
@@ -220,22 +221,27 @@ handleAction input (UpdateFollowerApps companionAppState) = do
                   insertIntoContractNicknames followerAppId value.nickname
 
 -- this handler updates the state of an individual contract
-handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory@{ chParams, chHistory }) =
-  -- if the chParams have not yet been set, we can't do anything; that's fine though, we'll get
-  -- another notification through the websocket as soon as they are set
-  for_ chParams \(marloweParams /\ marloweData) -> do
-    walletDetails <- use _walletDetails
-    contracts <- use _contracts
-    case lookup followerAppId contracts of
-      Just contractState -> do
-        selectedStep <- peruse $ _selectedContract <<< _selectedStep
-        modifying _contracts $ insert followerAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
-        -- if the modification changed the currently selected step, that means the card for the contract
-        -- that was changed is currently open, so we need to realign the step cards
-        selectedStep' <- peruse $ _selectedContract <<< _selectedStep
-        when (selectedStep /= selectedStep')
-          $ for_ selectedStep' (handleAction input <<< ContractAction followerAppId <<< Contract.MoveToStep)
-      Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot mempty contractHistory) (modifying _contracts <<< insert followerAppId)
+handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory) =
+  let
+    chParams = view _chParams contractHistory
+  in
+    -- if the chParams have not yet been set, we can't do anything; that's fine though, we'll get
+    -- another notification through the websocket as soon as they are set
+    for_ chParams \(marloweParams /\ marloweData) -> do
+      walletDetails <- use _walletDetails
+      contracts <- use _contracts
+      case lookup followerAppId contracts of
+        Just contractState -> do
+          let
+            chHistory = view _chHistory contractHistory
+          selectedStep <- peruse $ _selectedContract <<< _selectedStep
+          modifying _contracts $ insert followerAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
+          -- if the modification changed the currently selected step, that means the card for the contract
+          -- that was changed is currently open, so we need to realign the step cards
+          selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+          when (selectedStep /= selectedStep')
+            $ for_ selectedStep' (handleAction input <<< ContractAction followerAppId <<< Contract.MoveToStep)
+        Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot mempty contractHistory) (modifying _contracts <<< insert followerAppId)
 
 -- This handler looks, in the given contract, for any payments to roles for which the current
 -- wallet holds the token, and then calls the "redeem" endpoint of the main marlowe app for each

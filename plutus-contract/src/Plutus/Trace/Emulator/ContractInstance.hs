@@ -50,8 +50,10 @@ import qualified Data.Map                             as Map
 import           Data.Maybe                           (listToMaybe, mapMaybe)
 import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
-import           Ledger.Blockchain                    (OnChainTx (..), consumableInputs, outputsProduced)
+import           Ledger.Blockchain                    (OnChainTx (..))
 import           Ledger.Tx                            (Address, TxIn (..), TxOut (..), TxOutRef, txId)
+import           Plutus.ChainIndex                    (ChainIndexQueryEffect, ChainIndexTx, _ValidTx, citxInputs,
+                                                       citxOutputs, fromOnChainTx)
 import           Plutus.Contract                      (Contract (..))
 import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
                                                        matches)
@@ -72,7 +74,7 @@ import           Plutus.Trace.Emulator.Types          (ContractConstraints, Cont
                                                        toInstanceState)
 import           Plutus.Trace.Scheduler               (MessageCall (..), Priority (..), ThreadId, mkAgentSysCall)
 import qualified Wallet.API                           as WAPI
-import           Wallet.Effects                       (ChainIndexEffect, NodeClientEffect, WalletEffect)
+import           Wallet.Effects                       (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages          (TxBalanceMsg)
 import           Wallet.Types                         (ContractInstanceId)
 
@@ -263,7 +265,7 @@ processNewTransactions ::
 processNewTransactions txns = do
     updateTxStatus @w @s @e txns
 
-    let blck = indexBlock txns
+    let blck = indexBlock $ fmap fromOnChainTx txns
     updateTxOutSpent @w @s @e blck
     updateTxOutProduced @w @s @e blck
 
@@ -382,7 +384,7 @@ respondToRequest :: forall w s e effs.
     => Bool -- ^ Flag on whether to log 'NoRequestsHandled' messages.
     -> RequestHandler (Reader ContractInstanceId ': EmulatedWalletEffects) PABReq PABResp
     -- ^ How to respond to the requests.
-    ->  Eff effs (Maybe (Response PABResp))
+    -> Eff effs (Maybe (Response PABResp))
 respondToRequest isLogShowed f = do
     hks <- getHooks @w @s @e
     let hdl :: (Eff (Reader ContractInstanceId ': EmulatedWalletEffects) (Maybe (Response PABResp))) = tryHandler (wrapHandler f) hks
@@ -393,7 +395,7 @@ respondToRequest isLogShowed f = do
                     $ subsume @(LogMsg TxBalanceMsg)
                     $ subsume @(LogMsg RequestHandlerLogMsg)
                     $ subsume @(LogObserve (LogMessage T.Text))
-                    $ subsume @ChainIndexEffect
+                    $ subsume @ChainIndexQueryEffect
                     $ subsume @NodeClientEffect
                     $ subsume @(Error WAPI.WalletAPIError)
                     $ subsume @WalletEffect
@@ -444,8 +446,8 @@ logNewMessages = do
 --   addresses on which new outputs are produced
 data IndexedBlock =
   IndexedBlock
-    { ibUtxoSpent    :: Map TxOutRef OnChainTx
-    , ibUtxoProduced :: Map Address (NonEmpty OnChainTx)
+    { ibUtxoSpent    :: Map TxOutRef ChainIndexTx
+    , ibUtxoProduced :: Map Address (NonEmpty ChainIndexTx)
     }
 
 instance Semigroup IndexedBlock where
@@ -458,10 +460,10 @@ instance Semigroup IndexedBlock where
 instance Monoid IndexedBlock where
   mempty = IndexedBlock mempty mempty
 
-indexBlock :: [OnChainTx] -> IndexedBlock
+indexBlock :: [ChainIndexTx] -> IndexedBlock
 indexBlock = foldMap indexTx where
   indexTx otx =
     IndexedBlock
-      { ibUtxoSpent = Map.fromSet (const otx) $ Set.map txInRef $ consumableInputs otx
-      , ibUtxoProduced = Map.fromListWith (<>) $ outputsProduced otx >>= (\TxOut{txOutAddress} -> [(txOutAddress, otx :| [])])
+      { ibUtxoSpent = Map.fromSet (const otx) $ Set.map txInRef $ view citxInputs otx
+      , ibUtxoProduced = Map.fromListWith (<>) $ view (citxOutputs . _ValidTx) otx >>= (\TxOut{txOutAddress} -> [(txOutAddress, otx :| [])])
       }

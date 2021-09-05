@@ -354,6 +354,7 @@ instance Pretty TxOut where
                 hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
 
 instance PlutusTx.Eq TxOut where
+    {-# INLINABLE (==) #-}
     l == r =
         txOutAddress l PlutusTx.== txOutAddress r
         PlutusTx.&& txOutValue l PlutusTx.== txOutValue r

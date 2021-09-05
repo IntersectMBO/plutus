@@ -2,8 +2,8 @@
   "name": "marlowe-website",
   "version": "1.0.0",
   "scripts": {
-    "webpack:server": "webpack serve --mode=development",
-    "start": "npm run webpack:server",
+    "webpack:server": "webpack serve --mode=development --node-env=development",
+    "start": "npm install && npm run webpack:server",
     "build": "NODE_ENV=production webpack --mode=production"
   },
   "private": true,
@@ -25,5 +25,8 @@
     "webpack-cli": "^4.6.0",
     "nunjucks": "^3.2.3",
     "webpack-dev-server": "^3.11.2"
+  },
+  "dependencies": {
+    "jquery": "^3.6.0"
   }
 }

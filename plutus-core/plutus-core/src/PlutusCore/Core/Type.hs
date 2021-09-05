@@ -6,18 +6,23 @@
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Core.Type
-    ( Kind(..)
-    , Type(..)
-    , Term(..)
-    , Version(..)
-    , Program(..)
+    ( Kind (..)
+    , Type (..)
+    , Term (..)
+    , Version (..)
+    , Program (..)
     , UniOf
-    , Normalized(..)
+    , Normalized (..)
+    , TyVarDecl (..)
+    , VarDecl (..)
+    , TyDecl (..)
+    , tyDeclVar
     , HasUniques
     , KnownKind (..)
     , ToKind (..)
@@ -29,6 +34,15 @@ module PlutusCore.Core.Type
     , termAnn
     , typeAnn
     , mapFun
+    , tyVarDeclAnn
+    , tyVarDeclName
+    , tyVarDeclKind
+    , varDeclAnn
+    , varDeclName
+    , varDeclType
+    , tyDeclAnn
+    , tyDeclType
+    , tyDeclKind
     )
 where
 
@@ -93,6 +107,41 @@ data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname na
 type family UniOf a :: GHC.Type -> GHC.Type
 
 type instance UniOf (Term tyname name uni fun ann) = uni
+
+-- | A "type variable declaration", i.e. a name and a kind for a type variable.
+data TyVarDecl tyname ann = TyVarDecl
+    { _tyVarDeclAnn  :: ann
+    , _tyVarDeclName :: tyname
+    , _tyVarDeclKind :: Kind ann
+    } deriving (Functor, Show, Generic)
+makeLenses ''TyVarDecl
+
+-- | A "variable declaration", i.e. a name and a type for a variable.
+data VarDecl tyname name uni fun ann = VarDecl
+    { _varDeclAnn  :: ann
+    , _varDeclName :: name
+    , _varDeclType :: Type tyname uni ann
+    } deriving (Functor, Show, Generic)
+makeLenses ''VarDecl
+
+-- | A "type declaration", i.e. a kind for a type.
+data TyDecl tyname uni ann = TyDecl
+    { _tyDeclAnn  :: ann
+    , _tyDeclType :: Type tyname uni ann
+    , _tyDeclKind :: Kind ann
+    } deriving (Functor, Show, Generic)
+makeLenses ''TyDecl
+
+tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname uni ann
+tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind
+
+instance HasUnique tyname TypeUnique => HasUnique (TyVarDecl tyname ann) TypeUnique where
+    unique f (TyVarDecl ann tyname kind) =
+        unique f tyname <&> \tyname' -> TyVarDecl ann tyname' kind
+
+instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni fun ann) TermUnique where
+    unique f (VarDecl ann name ty) =
+        unique f name <&> \name' -> VarDecl ann name' ty
 
 newtype Normalized a = Normalized
     { unNormalized :: a
@@ -181,4 +230,3 @@ mapFun f = go where
 -- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
 -- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
 newtype Binder name = Binder { unBinder :: name }
-

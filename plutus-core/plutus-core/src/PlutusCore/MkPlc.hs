@@ -46,12 +46,11 @@ module PlutusCore.MkPlc
     , mkIterKindArrow
     ) where
 
+import           PlutusPrelude
 import           Prelude         hiding (error)
 
 import           PlutusCore.Core
 
-import           Data.List       (foldl')
-import           GHC.Generics    (Generic)
 import           Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
@@ -123,37 +122,13 @@ embed = \case
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
--- | A "variable declaration", i.e. a name and a type for a variable.
-data VarDecl tyname name uni fun ann = VarDecl
-    { varDeclAnn  :: ann
-    , varDeclName :: name
-    , varDeclType :: Type tyname uni ann
-    } deriving (Functor, Show, Generic)
-
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni fun ann -> term ann
-mkVar ann = var ann . varDeclName
-
--- | A "type variable declaration", i.e. a name and a kind for a type variable.
-data TyVarDecl tyname ann = TyVarDecl
-    { tyVarDeclAnn  :: ann
-    , tyVarDeclName :: tyname
-    , tyVarDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
+mkVar ann = var ann . _varDeclName
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname uni ann
-mkTyVar ann = TyVar ann . tyVarDeclName
-
--- | A "type declaration", i.e. a kind for a type.
-data TyDecl tyname uni ann = TyDecl
-    { tyDeclAnn  :: ann
-    , tyDeclType :: Type tyname uni ann
-    , tyDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
-
-tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname uni ann
-tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind
+mkTyVar ann = TyVar ann . _tyVarDeclName
 
 -- | A definition. Pretty much just a pair with more descriptive names.
 data Def var val = Def

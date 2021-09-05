@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+
+error () {
+    echo "$*" >&2
+    exit 1
+}
+
+readonly ops_repo="input-output-hk/plutus-ops"
+readonly plutus_rev="${GITHUB_SHA:-}"
+if [ -z "${plutus_rev}" ]
+then
+    error "GITHUB_SHA environment variable not set!"
+fi
+
+### Argument parsing
+
+if [ "$#" -ne 1 ]
+then
+    error "USAGE: $0 OPS_BRANCH"
+fi
+
+readonly ops_branch="$1"
+
+### Set up scratch space
+
+tmp=/var/lib/empty
+
+cleanup () {
+    if [ "${tmp}" != "/var/lib/empty" ]
+    then
+        rm -fR "${tmp}"
+    fi
+}
+trap cleanup EXIT
+
+tmp="$(mktemp -d)"
+
+declare -r tmp
+
+### Write the new plutus-rev.cue
+
+cat > "${tmp}/plutus-rev.cue" <<EOF
+package bitte
+
+plutusRev: "${plutus_rev}"
+EOF
+
+
+
+### Get the old plutus-rev.cue, exit if it's unchanged
+hub api -XGET -F ref="${ops_branch}" "/repos/${ops_repo}/contents/plutus-rev.cue" > "${tmp}/plutus-rev.cue-contents.json"
+prev_hash="$(jq --join-output '.sha' < "${tmp}/plutus-rev.cue-contents.json")"
+jq --join-output '.content' < "${tmp}/plutus-rev.cue-contents.json" | base64 -d > "${tmp}/plutus-rev-old.cue"
+if diff -q "${tmp}/plutus-rev.cue" "${tmp}/plutus-rev-old.cue" >/dev/null
+then
+    exit 0
+fi
+
+### Commit the new plutus-rev.cue
+base64 "${tmp}/plutus-rev.cue" > "${tmp}/plutus-rev.cue-encoded"
+echo "Automatic update: Bump plutus to ${plutus_rev}" > "${tmp}/commit-message"
+hub api -XPUT \
+    -F message=@"${tmp}/commit-message" \
+    -F content=@"${tmp}/plutus-rev.cue-encoded" \
+    -F sha="${prev_hash}" \
+    -F branch="${ops_branch}" \
+    "/repos/${ops_repo}/contents/plutus-rev.cue"

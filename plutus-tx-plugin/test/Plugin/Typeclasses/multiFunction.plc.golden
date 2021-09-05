@@ -45,19 +45,22 @@
         PersonLike_match
         (vardecl
           CConsPersonLike
-          (fun (fun a (con integer)) (fun (fun a (fun Animal Bool)) [PersonLike a]))
+          (fun
+            (fun a (con integer))
+            (fun (fun a (fun Animal Bool)) [ PersonLike a ])
+          )
         )
       )
     )
     (termbind
       (strict)
-      (vardecl age (all a (type) (fun [PersonLike a] (fun a (con integer)))))
+      (vardecl age (all a (type) (fun [ PersonLike a ] (fun a (con integer)))))
       (abs
         a
         (type)
         (lam
           v
-          [PersonLike a]
+          [ PersonLike a ]
           [
             { [ { PersonLike_match a } v ] (fun a (con integer)) }
             (lam v (fun a (con integer)) (lam v (fun a (fun Animal Bool)) v))
@@ -94,14 +97,14 @@
       (strict)
       (vardecl
         likesAnimal
-        (all a (type) (fun [PersonLike a] (fun a (fun Animal Bool))))
+        (all a (type) (fun [ PersonLike a ] (fun a (fun Animal Bool))))
       )
       (abs
         a
         (type)
         (lam
           v
-          [PersonLike a]
+          [ PersonLike a ]
           [
             { [ { PersonLike_match a } v ] (fun a (fun Animal Bool)) }
             (lam v (fun a (con integer)) (lam v (fun a (fun Animal Bool)) v))
@@ -111,13 +114,13 @@
     )
     (termbind
       (strict)
-      (vardecl predicate (all p (type) (fun [PersonLike p] (fun p Bool))))
+      (vardecl predicate (all p (type) (fun [ PersonLike p ] (fun p Bool))))
       (abs
         p
         (type)
         (lam
           dPersonLike
-          [PersonLike p]
+          [ PersonLike p ]
           (lam
             p
             p
@@ -189,7 +192,7 @@
     )
     (termbind
       (nonstrict)
-      (vardecl fPersonLikePerson [PersonLike Person])
+      (vardecl fPersonLikePerson [ PersonLike Person ])
       [ [ { CConsPersonLike Person } cage ] clikesAnimal ]
     )
     (lam ds Person [ [ { predicate Person } fPersonLikePerson ] ds ])

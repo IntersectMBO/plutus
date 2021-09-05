@@ -111,6 +111,10 @@ library
         PlutusCore.Subst
 
         PlutusIR
+        PlutusIR.Analysis.RetainedSize
+        PlutusIR.Compiler
+        PlutusIR.Compiler.Definitions
+        PlutusIR.Compiler.Names
         PlutusIR.Core
         PlutusIR.Core.Instance
         PlutusIR.Core.Instance.Flat
@@ -118,25 +122,23 @@ library
         PlutusIR.Core.Instance.Scoping
         PlutusIR.Core.Plated
         PlutusIR.Core.Type
-        PlutusIR.Compiler
-        PlutusIR.Compiler.Names
-        PlutusIR.Compiler.Definitions
         PlutusIR.Error
         PlutusIR.Generators.AST
-        PlutusIR.Parser
         PlutusIR.Mark
         PlutusIR.MkPir
+        PlutusIR.Parser
         PlutusIR.Purity
         PlutusIR.Subst
+        PlutusIR.Transform.Beta
         PlutusIR.Transform.DeadCode
-        PlutusIR.Transform.Substitute
-        PlutusIR.Transform.ThunkRecursions
-        PlutusIR.Transform.Rename
-        PlutusIR.Transform.NonStrict
+        PlutusIR.Transform.Inline
         PlutusIR.Transform.LetFloat
         PlutusIR.Transform.LetMerge
-        PlutusIR.Transform.Inline
-        PlutusIR.Transform.Beta
+        PlutusIR.Transform.RecSplit
+        PlutusIR.Transform.NonStrict
+        PlutusIR.Transform.Rename
+        PlutusIR.Transform.Substitute
+        PlutusIR.Transform.ThunkRecursions
         PlutusIR.Transform.Unwrap
         PlutusIR.TypeCheck
 
@@ -214,6 +216,7 @@ library
         PlutusCore.TypeCheck.Internal
 
         PlutusIR.Analysis.Dependencies
+        PlutusIR.Analysis.Size
         PlutusIR.Analysis.Usages
         PlutusIR.Compiler.Datatype
         PlutusIR.Compiler.Error
@@ -273,6 +276,7 @@ library
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
         dlist -any,
+        dom-lt -any,
         exceptions -any,
         extra -any,
         filepath -any,

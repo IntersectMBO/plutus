@@ -6,60 +6,58 @@ module MainFrame
   ) where
 
 import Prelude hiding (div)
-import Animation (class MonadAnimate)
---import Chain.State (handleAction) as Chain
---import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
+import Animation (class MonadAnimate, animate)
+import Chain.State (handleAction) as Chain
+import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
---import Clipboard as Clipboard
+import Clipboard as Clipboard
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
---import Control.Monad.State.Extra (zoomStateT)
---import Data.Array (filter, find)
+import Control.Monad.State.Extra (zoomStateT)
+import Data.Array (filter, find)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
---import Data.Foldable (foldr)
-import Data.Lens (assign)
---import Data.Lens (_1, _2, assign, modifying, to, use, view)
---import Data.Lens.At (at)
---import Data.Lens.Extra (peruse, toSetOf)
---import Data.Lens.Index (ix)
-import Data.Map (Map)
+import Data.Lens (Lens', _1, _2, assign, modifying, to, use, view, preview)
+import Data.Lens.At (at)
+import Data.Lens.Extra (peruse, toSetOf)
+import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
---import Data.RawJson (RawJson(..))
---import Data.Set (Set)
---import Data.Set as Set
---import Data.Traversable (for_, sequence, traverse_)
---import Data.Tuple (Tuple(..))
+import Data.Maybe (Maybe(..), maybe)
+import Data.RawJson (RawJson(..))
+import Data.Set (Set)
+import Data.Set as Set
+import Data.Traversable (for_, sequence, traverse_)
+import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
---import Foreign.Generic (encodeJSON)
+import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
 import Ledger.Extra (adaToValue)
-import MonadApp (class MonadApp, runHalogenApp)
---import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
+import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, runHalogenApp, getContractDefinitions, getContractInstances, getContractInstanceStatus)
 import Network.RemoteData (RemoteData(..))
---import Network.RemoteData as RemoteData
+import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
---import Playground.Lenses (_endpointDescription, _schema)
---import Playground.Types (FunctionSchema(..), _FunctionSchema)
---import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
+import Playground.Lenses (_endpointDescription, _schema)
+import Playground.Types (FunctionSchema(..), _FunctionSchema)
+import Plutus.Contract.Effects (ActiveEndpoint)
+import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver (SPParams_(..))
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
---import Plutus.PAB.Webserver.Types (ContractSignatureResponse(..), CombinedWSStreamToClient(..))
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..), ContractSignatureResponse(..), CombinedWSStreamToClient, ContractActivationArgs(..))
 import Plutus.V1.Ledger.Ada (Ada(..))
 import Plutus.V1.Ledger.Value (Value)
---import Prim.TypeError (class Warn, Text)
---import Schema (FormSchema)
---import Schema.Types (formArgumentToJson, toArgument)
---import Schema.Types as Schema
+import Prim.TypeError (class Warn, Text)
+import Schema (FormSchema)
+import Schema.Types (formArgumentToJson, toArgument)
+import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), _webSocketMessage, _webSocketStatus)
---import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
---import Validation (_argument)
+import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), ContractSignatures(..), EndpointForm, WebStreamData, _webSocketMessage, _webSocketStatus, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractSignatures, _contractStates, _currentView, _csContract, _csCurrentState, fromWebData)
+import Validation (_argument)
 import View as View
---import Wallet.Types (EndpointDescription)
+import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Types (EndpointDescription)
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
 import ContractExample (ExampleContracts)
@@ -151,31 +149,43 @@ handleAction ::
   MonadClipboard m =>
   MonadState (State ExampleContracts) m =>
   (HAction ExampleContracts) -> m Unit
-handleAction _ = pure unit
-
-{-handleAction Init = handleAction LoadFullReport
+handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = do
   assign _currentView view
 
 handleAction (ActivateContract contract) = do
   modifying _contractSignatures Stream.refreshing
-  activateContract contract
+  let
+    defWallet = Wallet { getWallet: BigInteger.fromInt 1 }
+  contractInstanceId <- activateContract $ ContractActivationArgs { caID: contract, caWallet: defWallet }
+  for_ (preview RemoteData._Success contractInstanceId)
+    $ \cid -> do
+        clientState <- map fromWebData $ getContractInstanceStatus cid
+        contractSignatures :: WebStreamData (ContractSignatures ExampleContracts) <- use _contractSignatures
+        let
+          loadFormFromClientState cs =
+            let
+              newForms = sequence $ createNewEndpointForms <$> contractSignatures <*> pure cs
+            in
+              cs /\ maybe [] (view Stream._Refreshing) newForms
+        modifying _contractStates $ (<>) $ Map.singleton cid $ map loadFormFromClientState clientState
+        traverse_ updateFormsForContractInstance clientState
   modifying _contractSignatures Stream.refreshed
 
 handleAction LoadFullReport = do
   assignFullReportData Loading
+  contractdefs <- getContractDefinitions
+  assign _contractSignatures (map (\a -> ContractSignatures { unContractSignatures: a }) $ fromWebData contractdefs)
+  contractInstances <- view (RemoteData._Success) <$> getContractInstances
+  traverse_ updateFormsForContractInstance contractInstances
   fullReportResult <- getFullReport
   assignFullReportData fullReportResult
-  traverse_ updateFormsForContractInstance
-    (view (_Success <<< _contractReport <<< _crActiveContractStates) fullReportResult)
   where
   assignFullReportData value = do
-    assign _contractSignatures
-      (fromWebData (view (_contractReport <<< _crAvailableContracts) <$> value))
     assign _chainReport (view _chainReport <$> value)
-    assign _events (view _events <$> value)
 
+-- assign _events (view _events <$> value)
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
     peruse (_chainReport <<< RemoteData._Success <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
@@ -184,7 +194,7 @@ handleAction (ChainAction subaction) = do
       Warn (Text "The question, 'Should we animate this?' feels like it belongs in the Chain module. Not here.") =>
       m Unit -> m Unit
     wrapper = case subaction of
-      (FocusTx _) -> animate (_chainState <<< _chainFocusAppearing)
+      (FocusTx _) -> animate (_chainState <<< _chainFocusAppearing :: Lens' (State ExampleContracts) Boolean)
       _ -> identity
   wrapper
     $ zoomStateT _chainState
@@ -217,20 +227,21 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 
 updateFormsForContractInstance ::
   forall m.
-  MonadState State m =>
-  PartiallyDecodedResponse ContractPABRequest -> m Unit
+  MonadState (State ExampleContracts) m =>
+  ContractInstanceClientState ExampleContracts -> m Unit
 updateFormsForContractInstance newContractInstance = do
   let
     csContractId = view _csContract newContractInstance
-  oldContractInstance :: Maybe (PartiallyDecodedResponse ContractPABRequest) <-
+  oldContractInstance :: Maybe (PartiallyDecodedResponse ActiveEndpoint) <-
     peruse
       ( _contractStates
           <<< ix csContractId
           <<< Stream._Success
           <<< _1
+          <<< _csCurrentState
       )
-  when (oldContractInstance /= Just newContractInstance) do
-    contractSignatures :: WebStreamData ContractSignatures <- use _contractSignatures
+  when (oldContractInstance /= Just (view _csCurrentState newContractInstance)) do
+    contractSignatures :: WebStreamData (ContractSignatures ExampleContracts) <- use _contractSignatures
     let
       newForms :: Maybe (WebStreamData (Array EndpointForm))
       newForms = sequence $ createNewEndpointForms <$> contractSignatures <*> pure newContractInstance
@@ -238,17 +249,17 @@ updateFormsForContractInstance newContractInstance = do
       (map (Tuple newContractInstance) <$> newForms)
 
 createNewEndpointForms ::
-  ContractSignatures ->
-  PartiallyDecodedResponse ContractPABRequest ->
+  ContractSignatures ExampleContracts ->
+  ContractInstanceClientState ExampleContracts ->
   Maybe (Array EndpointForm)
 createNewEndpointForms contractSignatures instanceState = createEndpointForms instanceState <$> matchingSignature
   where
-  matchingSignature :: Maybe (ContractSignatureResponse ContractExe)
+  matchingSignature :: Maybe (ContractSignatureResponse ExampleContracts)
   matchingSignature = getMatchingSignature instanceState contractSignatures
 
 createEndpointForms ::
   forall t.
-  ContractInstanceState t ->
+  ContractInstanceClientState t ->
   ContractSignatureResponse t ->
   Array EndpointForm
 createEndpointForms contractState = signatureToForms
@@ -274,12 +285,11 @@ createEndpointForms contractState = signatureToForms
     }
 
 getMatchingSignature ::
-  forall t.
-  Eq t =>
-  ContractInstanceState t ->
-  Array (ContractSignatureResponse t) ->
-  Maybe (ContractSignatureResponse t)
-getMatchingSignature (ContractInstanceState { csContractDefinition }) = find isMatch
+  forall a.
+  Eq a =>
+  ContractInstanceClientState a ->
+  ContractSignatures a ->
+  Maybe (ContractSignatureResponse a)
+getMatchingSignature (ContractInstanceClientState { cicDefinition }) (ContractSignatures { unContractSignatures }) = find isMatch unContractSignatures
   where
-  isMatch (ContractSignatureResponse { csrDefinition }) = csrDefinition == csContractDefinition
--}
+  isMatch (ContractSignatureResponse { csrDefinition }) = csrDefinition == cicDefinition

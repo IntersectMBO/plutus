@@ -5,7 +5,8 @@
       (tyvardecl List (fun (type) (type)))
       (tyvardecl a (type))
       match_List
-      (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+      (vardecl Nil [ List a ])
+      (vardecl Cons (fun a (fun [ List a ] [ List a ])))
     )
   )
   (let
@@ -14,7 +15,11 @@
       (nonstrict)
       (vardecl
         foldl
-        (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a)))))
+        (all
+          a
+          (type)
+          (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a))))
+        )
       )
       (lam
         f
@@ -24,10 +29,12 @@
           a
           (lam
             lst
-            [List b]
+            [ List b ]
             [
               [ [ { match_List a } lst ] acc ]
-              (lam x b (lam xs [List b] [ [ [ foldl f ] [ [ f acc ] x ] ] xs ]))
+              (lam
+                x b (lam xs [ List b ] [ [ [ foldl f ] [ [ f acc ] x ] ] xs ])
+              )
             ]
           )
         )

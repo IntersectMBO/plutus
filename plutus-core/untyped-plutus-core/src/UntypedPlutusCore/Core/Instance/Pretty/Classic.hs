@@ -25,23 +25,35 @@ import           Universe
 instance
         ( PrettyClassicBy configName name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
-        ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun a) where
-    prettyBy config = go where
-        go (Constant _ val)     = parens' $ "con" </> prettyTypeOf val </> pretty val  -- NB: actually calls prettyConst
-        go (Builtin _ bi)       = parens' $ "builtin" </> pretty bi
-        go (Var _ name)         = prettyName name
-        go (LamAbs _ name body) = parens' $ "lam" </> vsep' [prettyName name, go body]
-        go (Apply _ fun arg)    = brackets' $ vsep' [go fun, go arg]
-        go (Delay _ term)       = parens' ("delay" </> go term)
-        go (Force _ term)       = parens' ("force" </> go term)
-        go (Error _)            = parens' "error"
-
-        prettyName :: PrettyClassicBy configName n => n -> Doc ann
-        prettyName = prettyBy config
-
-        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
+        , Pretty ann
+        ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
+    prettyBy config = \case
+        Var ann n ->
+            sep (consAnnIf config ann [prettyBy config n])
+        LamAbs ann n t ->
+            sexp "lam" (consAnnIf config ann
+                [prettyBy config n, prettyBy config t])
+        Apply ann t1 t2 ->
+            brackets' (sep (consAnnIf config ann
+                [prettyBy config t1, prettyBy config t2]))
+        Constant ann c ->
+            sexp "con" (consAnnIf config ann [prettyTypeOf c, pretty c])
+        Builtin ann bi ->
+            sexp "builtin" (consAnnIf config ann
+                [pretty bi])
+        Error ann ->
+            sexp "error" (consAnnIf config ann [])
+        Delay ann term ->
+            sexp "delay" (consAnnIf config ann
+                [prettyBy config term])
+        Force ann term ->
+            sexp "force" (consAnnIf config ann
+                [prettyBy config term])
+      where
+        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
-instance PrettyClassicBy configName (Term name uni fun a) =>
-        PrettyBy (PrettyConfigClassic configName) (Program name uni fun a) where
-    prettyBy config (Program _ version term) = parens' $ "program" <+> pretty version <//> prettyBy config term
+instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
+        PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where
+    prettyBy config (Program ann version term) =
+        sexp "program" (consAnnIf config ann [pretty version, prettyBy config term])

@@ -13,6 +13,7 @@ module.exports = {
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
+        host: "0.0.0.0",
         port: 8009,
         https: true,
         stats: "errors-warnings",
@@ -110,11 +111,12 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: "./static/index.html",
+            template: "web-common/static/index.html",
             favicon: "static/favicon.ico",
             title: "Marlowe Run",
             productName: "marlowe-dashboard",
-            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "UA-119953429-16",
+            googleAnalyticsId: isDevelopment ? "UA-XXXXXXXXX-X" : "G-4PKSS5QCMJ",
+            segmentAnalyticsId: isDevelopment ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" : "LCDRr9g7ED1yCaSCxv08QuEZ8eIEx0Ke",
         }),
         new MiniCssExtractPlugin({
             filename: "[name].[contenthash].css",

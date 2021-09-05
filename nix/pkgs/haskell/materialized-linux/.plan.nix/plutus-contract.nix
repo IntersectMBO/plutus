@@ -49,7 +49,10 @@
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+          (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
@@ -77,7 +80,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."IntervalMap" or (errorHandler.buildDepError "IntervalMap"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))) ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
+          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))) ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs || system.isWindows)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
@@ -88,7 +91,6 @@
           "Data/Text/Extras"
           "Data/UUID/Extras"
           "Plutus/Contract"
-          "Plutus/Contract/CardanoAPI"
           "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
@@ -110,8 +112,6 @@
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
           "Wallet/Emulator/Chain"
-          "Wallet/Emulator/ChainIndex"
-          "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
@@ -136,12 +136,13 @@
           "Plutus/Trace/Effects/Waiting"
           "Plutus/Trace/Emulator"
           "Plutus/Trace/Emulator/ContractInstance"
+          "Plutus/Trace/Emulator/Extract"
           "Plutus/Trace/Emulator/System"
           "Plutus/Trace/Emulator/Types"
           "Plutus/Trace/Playground"
           "Plutus/Trace/Scheduler"
           "Plutus/Trace/Tag"
-          ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
+          ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs || system.isWindows)) [
           "Plutus/Contract/Test"
           "Plutus/Contract/Test/ContractModel"
           ];

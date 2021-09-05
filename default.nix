@@ -11,6 +11,7 @@
 , sourcesOverride ? { }
 , sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
 , haskellNix ? import sources.haskell-nix {
+    pkgs = import sources.nixpkgs { inherit system; };
     sourcesOverride = {
       hackage = sources.hackage-nix;
       stackage = sources.stackage-nix;
@@ -119,4 +120,7 @@ rec {
   inherit (sources) actus-tests;
 
   build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
+
+  # Packages needed for the bitte deployment
+  bitte-packages = import ./bitte { inherit marlowe-playground plutus-playground web-ghc marlowe-pab marlowe-dashboard marlowe-web docs pkgs; };
 }

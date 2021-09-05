@@ -87,6 +87,8 @@ contractTermsGen = do
     scef <- elements [SE_000, SE_0N0, SE_00M, SE_0NM, SE_I00, SE_IN0, SE_I0M, SE_INM]
     sccdd <- oneOr scalingFactor
     scied <- oneOr scalingFactor
+    scip <- oneOr scalingFactor
+    scnt <- oneOr scalingFactor
 
     rrsp <- zeroOr percentage
     rrmlt <- oneOr scalingFactor
@@ -164,6 +166,8 @@ contractTermsGen = do
         , ct_SCCL      = scalingCycle
         , ct_SCANX     = scalingAnchor
         , ct_SCCDD     = Just sccdd
+        , ct_SCIP      = Just scip
+        , ct_SCNT      = Just scnt
         -- Rate Reset
         , ct_RRCL      = rateResetCycle
         , ct_RRANX     = rateResetAnchor

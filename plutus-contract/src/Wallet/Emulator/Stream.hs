@@ -48,6 +48,7 @@ import           Ledger.Blockchain                      (Block, OnChainTx (..))
 import           Ledger.Fee                             (FeeConfig)
 import           Ledger.Slot                            (Slot)
 import           Ledger.Value                           (Value)
+import           Plutus.ChainIndex                      (ChainIndexError)
 import           Streaming                              (Stream)
 import qualified Streaming                              as S
 import           Streaming.Prelude                      (Of)
@@ -128,6 +129,7 @@ runTraceStream conf@EmulatorConfig{_slotConfig, _feeConfig} =
     . reinterpret @_ @(LogMsg EmulatorEvent) (mkTimedLogs @EmulatorEvent')
     . runError
     . wrapError WalletErr
+    . wrapError ChainIndexErr
     . wrapError AssertionErr
     . wrapError InstanceErr
     . EM.processEmulated _slotConfig _feeConfig
@@ -169,6 +171,7 @@ initialState EmulatorConfig{_initialChainState} =
 
 data EmulatorErr =
     WalletErr WalletAPIError
+    | ChainIndexErr ChainIndexError
     | AssertionErr EM.AssertionError
     | InstanceErr EmulatorRuntimeError
     deriving (Show)

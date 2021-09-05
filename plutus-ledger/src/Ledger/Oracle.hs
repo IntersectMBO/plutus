@@ -73,7 +73,7 @@ data Observation a = Observation
     -- ^ The value
     , obsTime  :: POSIXTime
     -- ^ The time at which the value was observed
-    } deriving (Generic, Haskell.Show)
+    } deriving (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq a => Eq (Observation a) where
     l == r =
@@ -92,6 +92,12 @@ data SignedMessage a = SignedMessage
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
+instance Eq a => Eq (SignedMessage a) where
+    l == r =
+        osmSignature l == osmSignature r
+        && osmMessageHash l == osmMessageHash r
+        && osmDatum l == osmDatum r
+
 data SignedMessageCheckError =
     SignatureMismatch Signature PubKey DatumHash
     -- ^ The signature did not match the public key
@@ -100,7 +106,7 @@ data SignedMessageCheckError =
     | DecodingError
     -- ^ The datum had the wrong shape
     | DatumNotEqualToExpected
-    -- ^ The datum that correponds to the hash is wrong
+    -- ^ The datum that corresponds to the hash is wrong
     deriving (Generic, Haskell.Show)
 
 {-# INLINABLE checkSignature #-}
@@ -122,7 +128,7 @@ checkSignature datumHash pubKey signature_ =
         else Left $ SignatureMismatch signature_ pubKey datumHash
 
 {-# INLINABLE checkHashConstraints #-}
--- | Extrat the contents of the message and produce a constraint that checks
+-- | Extract the contents of the message and produce a constraint that checks
 --   that the hash is correct. In off-chain code, where we check the hash
 --   straightforwardly, 'checkHashOffChain' can be used instead of this.
 checkHashConstraints ::

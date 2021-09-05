@@ -5,10 +5,13 @@ module Type.BetaNBE where
 ## Imports
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Type.RenamingSubstitution
 open import Type.Equality
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
 
 open import Function
 open import Data.Sum
@@ -123,13 +126,24 @@ reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
-eval (` α)       η = η α
-eval (Π B)       η = Π (reify (eval B (exte η)))
-eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
-eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
-eval (A · B)     η = eval A η ·V eval B η
-eval (μ A B)     η = μ (reify (eval A η)) (reify (eval B η))
-eval (con tcn)   η = con tcn
+evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
+
+evalTyCon Syn.integer    η = Nf.integer
+evalTyCon Syn.bytestring η = Nf.bytestring
+evalTyCon Syn.string     η = Nf.string
+evalTyCon Syn.unit       η = Nf.unit
+evalTyCon Syn.bool       η = Nf.bool
+evalTyCon (Syn.list A)   η = Nf.list (eval A η)
+evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
+evalTyCon Syn.Data       η = Nf.Data
+
+eval (` α)   η = η α
+eval (Π B)   η = Π (reify (eval B (exte η)))
+eval (A ⇒ B) η = reify (eval A η) ⇒ reify (eval B η)
+eval (ƛ B)   η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
+eval (A · B) η = eval A η ·V eval B η
+eval (μ A B) η = μ (reify (eval A η)) (reify (eval B η))
+eval (con c) η = con (evalTyCon c η)
 \end{code}
 
 Identity environment

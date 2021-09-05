@@ -17,7 +17,15 @@ $ plutus-pab-migrate
 $ marlowe-pab-server
 ```
 
-The first command (`plutus-pab-migrate`) initialises the database needed to run the Marlowe PAB. You should only need to do this once, but you might need to do it again if the PAB code changes in ways that modifications to the database schema.
+The first command (`plutus-pab-migrate`) initialises the database needed to run the Marlowe PAB. You should only need to do this once, but you might need to do it again if the PAB code changes in ways that require modifications to the database schema.
+
+Note that if you have a local `pab-core.db` file already when you run `plutus-pab-migrate`, you may get the following error:
+
+```
+plutus-pab-examples: user error (autoMigrate: Not performing automatic migration due to data loss)
+```
+
+In this case you will first need to delete your local `pab-core.db` file before running `plutus-pab-migrate` again. Obviously this will wipe any data you might have had from your local development instance.
 
 ### Starting the frontend server
 

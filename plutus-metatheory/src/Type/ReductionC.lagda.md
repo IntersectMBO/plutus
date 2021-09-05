@@ -20,9 +20,10 @@ version does full normalisation.
 ## Imports
 
 ```
+open import Utils hiding (lem0)
 open import Type
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
 open import Relation.Nullary
 open import Data.Product hiding (∃!)
 open import Data.Empty
@@ -53,7 +54,7 @@ data Value⋆ : ∅ ⊢⋆ J → Set where
         -----------------
       → Value⋆ (ƛ N)
 
-  V-con : (tcn : TyCon)
+  V-con : (tcn : TyCon ∅)
           ----------------
         → Value⋆ (con tcn)
 
@@ -698,12 +699,6 @@ subst-l·'' : (E : EvalCtx (J ⇒ I) K)(B : ∅ ⊢⋆ J)(B' : ∅ ⊢⋆ J')
   → subst (_⊢⋆_ ∅) p B ≡ B'
   → E l· B ≡ subst (λ J → EvalCtx J K) q E l· B'
 subst-l·'' E B B' refl refl refl = refl
-
-cong₃ : {A : Set}{B : A → Set}{C D : Set}
-      → (f : ∀ a (b : B a) → C → D) → {a a' : A}(p : a ≡ a')
-      → {b : B a}{b' : B a'} → subst B p b ≡ b'
-      → {c c' : C} → c ≡ c' → f a b c ≡ f a' b' c'
-cong₃ f refl refl refl = refl
 
 subst-Val : ∀ {A : ∅ ⊢⋆ K}{A' : ∅ ⊢⋆ K'}
   → (p : K ≡ K') → subst (∅ ⊢⋆_) p A ≡ A' → Value⋆ A' → Value⋆ A

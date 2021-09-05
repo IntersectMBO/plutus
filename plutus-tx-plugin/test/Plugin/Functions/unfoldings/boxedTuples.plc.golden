@@ -1,0 +1,45 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        boxedTuple (fun [[Tuple2 (con integer)] (con integer)] (con integer))
+      )
+      (lam
+        ds
+        [[Tuple2 (con integer)] (con integer)]
+        [
+          {
+            [ { { Tuple2_match (con integer) } (con integer) } ds ]
+            (con integer)
+          }
+          (lam i (con integer) (lam j (con integer) [ [ addInteger i ] j ]))
+        ]
+      )
+    )
+    (lam
+      x
+      (con integer)
+      [ boxedTuple [ [ { { Tuple2 (con integer) } (con integer) } x ] x ] ]
+    )
+  )
+)

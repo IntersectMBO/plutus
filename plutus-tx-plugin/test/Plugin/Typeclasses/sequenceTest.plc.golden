@@ -6,14 +6,18 @@
         (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
         Maybe_match
-        (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
       )
     )
     (termbind
       (strict)
       (vardecl
         fApplicativeMaybe_c
-        (all a (type) (all b (type) (fun [Maybe (fun a b)] (fun [Maybe a] [Maybe b]))))
+        (all
+          a
+          (type)
+          (all b (type) (fun [ Maybe (fun a b) ] (fun [ Maybe a ] [ Maybe b ])))
+        )
       )
       (abs
         a
@@ -23,16 +27,16 @@
           (type)
           (lam
             ds
-            [Maybe (fun a b)]
+            [ Maybe (fun a b) ]
             (lam
               ds
-              [Maybe a]
+              [ Maybe a ]
               {
                 [
                   [
                     {
                       [ { Maybe_match (fun a b) } ds ]
-                      (all dead (type) [Maybe b])
+                      (all dead (type) [ Maybe b ])
                     }
                     (lam
                       ipv
@@ -45,7 +49,7 @@
                             [
                               {
                                 [ { Maybe_match a } ds ]
-                                (all dead (type) [Maybe b])
+                                (all dead (type) [ Maybe b ])
                               }
                               (lam
                                 ipv
@@ -73,7 +77,9 @@
       (strict)
       (vardecl
         fFunctorMaybe_cfmap
-        (all a (type) (all b (type) (fun (fun a b) (fun [Maybe a] [Maybe b]))))
+        (all
+          a (type) (all b (type) (fun (fun a b) (fun [ Maybe a ] [ Maybe b ])))
+        )
       )
       (abs
         a
@@ -86,11 +92,11 @@
             (fun a b)
             (lam
               ds
-              [Maybe a]
+              [ Maybe a ]
               {
                 [
                   [
-                    { [ { Maybe_match a } ds ] (all dead (type) [Maybe b]) }
+                    { [ { Maybe_match a } ds ] (all dead (type) [ Maybe b ]) }
                     (lam a a (abs dead (type) [ { Just b } [ f a ] ]))
                   ]
                   (abs dead (type) { Nothing b })
@@ -109,13 +115,35 @@
         Applicative_match
         (vardecl
           CConsApplicative
-          (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f] (fun (all a (type) (fun a [f a])) (fun (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b])))) [Applicative f])))
+          (fun
+            [
+              (lam
+                f
+                (fun (type) (type))
+                (all
+                  a (type) (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                )
+              )
+              f
+            ]
+            (fun
+              (all a (type) (fun a [ f a ]))
+              (fun
+                (all
+                  a
+                  (type)
+                  (all b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ])))
+                )
+                [ Applicative f ]
+              )
+            )
+          )
         )
       )
     )
     (termbind
       (nonstrict)
-      (vardecl fApplicativeMaybe [Applicative Maybe])
+      (vardecl fApplicativeMaybe [ Applicative Maybe ])
       [
         [ [ { CConsApplicative Maybe } fFunctorMaybe_cfmap ] Just ]
         fApplicativeMaybe_c
@@ -128,7 +156,7 @@
         Monoid_match
         (vardecl
           CConsMonoid
-          (fun [(lam a (type) (fun a (fun a a))) a] (fun a [Monoid a]))
+          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
         )
       )
     )
@@ -136,17 +164,17 @@
       (strict)
       (vardecl
         p1Monoid
-        (all a (type) (fun [Monoid a] [(lam a (type) (fun a (fun a a))) a]))
+        (all a (type) (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
       )
       (abs
         a
         (type)
         (lam
           v
-          [Monoid a]
+          [ Monoid a ]
           [
-            { [ { Monoid_match a } v ] [(lam a (type) (fun a (fun a a))) a] }
-            (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+            { [ { Monoid_match a } v ] [ (lam a (type) (fun a (fun a a))) a ] }
+            (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
           ]
         )
       )
@@ -158,23 +186,24 @@
           (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
           Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
       )
       (let
         (nonrec)
         (termbind
           (strict)
-          (vardecl mempty (all a (type) (fun [Monoid a] a)))
+          (vardecl mempty (all a (type) (fun [ Monoid a ] a)))
           (abs
             a
             (type)
             (lam
               v
-              [Monoid a]
+              [ Monoid a ]
               [
                 { [ { Monoid_match a } v ] a }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
               ]
             )
           )
@@ -185,7 +214,13 @@
             (strict)
             (vardecl
               fFoldableNil_cfoldMap
-              (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
+              (all
+                m
+                (type)
+                (all
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -195,12 +230,14 @@
                 (type)
                 (lam
                   dMonoid
-                  [Monoid m]
+                  [ Monoid m ]
                   (let
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      )
                       [ { p1Monoid m } dMonoid ]
                     )
                     (lam
@@ -208,7 +245,7 @@
                       (fun a m)
                       (lam
                         ds
-                        [List a]
+                        [ List a ]
                         {
                           [
                             [
@@ -220,7 +257,7 @@
                               a
                               (lam
                                 xs
-                                [List a]
+                                [ List a ]
                                 (abs
                                   dead
                                   (type)
@@ -256,7 +293,11 @@
               (strict)
               (vardecl
                 fFunctorNil_cfmap
-                (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                (all
+                  a
+                  (type)
+                  (all b (type) (fun (fun a b) (fun [ List a ] [ List b ])))
+                )
               )
               (abs
                 a
@@ -269,11 +310,13 @@
                     (fun a b)
                     (lam
                       l
-                      [List a]
+                      [ List a ]
                       {
                         [
                           [
-                            { [ { Nil_match a } l ] (all dead (type) [List b]) }
+                            {
+                              [ { Nil_match a } l ] (all dead (type) [ List b ])
+                            }
                             (abs dead (type) { Nil b })
                           ]
                           (lam
@@ -281,7 +324,7 @@
                             a
                             (lam
                               xs
-                              [List a]
+                              [ List a ]
                               (abs
                                 dead
                                 (type)
@@ -306,28 +349,80 @@
                 (strict)
                 (vardecl
                   p1Applicative
-                  (all f (fun (type) (type)) (fun [Applicative f] [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]))
+                  (all
+                    f
+                    (fun (type) (type))
+                    (fun
+                      [ Applicative f ]
+                      [
+                        (lam
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
+                        f
+                      ]
+                    )
+                  )
                 )
                 (abs
                   f
                   (fun (type) (type))
                   (lam
                     v
-                    [Applicative f]
+                    [ Applicative f ]
                     [
                       {
                         [ { Applicative_match f } v ]
-                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                        [
+                          (lam
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
+                          f
+                        ]
                       }
                       (lam
                         v
-                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                        [
+                          (lam
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
+                          f
+                        ]
                         (lam
                           v
-                          (all a (type) (fun a [f a]))
+                          (all a (type) (fun a [ f a ]))
                           (lam
                             v
-                            (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b
+                                (type)
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -340,28 +435,68 @@
                 (strict)
                 (vardecl
                   bad_name
-                  (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))))
+                  (all
+                    f
+                    (fun (type) (type))
+                    (fun
+                      [ Applicative f ]
+                      (all
+                        a
+                        (type)
+                        (all
+                          b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                        )
+                      )
+                    )
+                  )
                 )
                 (abs
                   f
                   (fun (type) (type))
                   (lam
                     v
-                    [Applicative f]
+                    [ Applicative f ]
                     [
                       {
                         [ { Applicative_match f } v ]
-                        (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                        (all
+                          a
+                          (type)
+                          (all
+                            b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                          )
+                        )
                       }
                       (lam
                         v
-                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                        [
+                          (lam
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
+                          f
+                        ]
                         (lam
                           v
-                          (all a (type) (fun a [f a]))
+                          (all a (type) (fun a [ f a ]))
                           (lam
                             v
-                            (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b
+                                (type)
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -374,28 +509,53 @@
                 (strict)
                 (vardecl
                   pure
-                  (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (fun a [f a]))))
+                  (all
+                    f
+                    (fun (type) (type))
+                    (fun [ Applicative f ] (all a (type) (fun a [ f a ])))
+                  )
                 )
                 (abs
                   f
                   (fun (type) (type))
                   (lam
                     v
-                    [Applicative f]
+                    [ Applicative f ]
                     [
                       {
                         [ { Applicative_match f } v ]
-                        (all a (type) (fun a [f a]))
+                        (all a (type) (fun a [ f a ]))
                       }
                       (lam
                         v
-                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                        [
+                          (lam
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
+                          f
+                        ]
                         (lam
                           v
-                          (all a (type) (fun a [f a]))
+                          (all a (type) (fun a [ f a ]))
                           (lam
                             v
-                            (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b
+                                (type)
+                                (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                              )
+                            )
                             v
                           )
                         )
@@ -410,7 +570,24 @@
                   (strict)
                   (vardecl
                     fTraversableNil_ctraverse
-                    (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
+                    (all
+                      f
+                      (fun (type) (type))
+                      (all
+                        a
+                        (type)
+                        (all
+                          b
+                          (type)
+                          (fun
+                            [ Applicative f ]
+                            (fun
+                              (fun a [ f b ]) (fun [ List a ] [ f [ List b ] ])
+                            )
+                          )
+                        )
+                      )
+                    )
                   )
                   (abs
                     f
@@ -423,25 +600,27 @@
                         (type)
                         (lam
                           dApplicative
-                          [Applicative f]
+                          [ Applicative f ]
                           (lam
                             ds
-                            (fun a [f b])
+                            (fun a [ f b ])
                             (lam
                               ds
-                              [List a]
+                              [ List a ]
                               {
                                 [
                                   [
                                     {
                                       [ { Nil_match a } ds ]
-                                      (all dead (type) [f [List b]])
+                                      (all dead (type) [ f [ List b ] ])
                                     }
                                     (abs
                                       dead
                                       (type)
                                       [
-                                        { [ { pure f } dApplicative ] [List b] }
+                                        {
+                                          [ { pure f } dApplicative ] [ List b ]
+                                        }
                                         { Nil b }
                                       ]
                                     )
@@ -451,7 +630,7 @@
                                     a
                                     (lam
                                       xs
-                                      [List a]
+                                      [ List a ]
                                       (abs
                                         dead
                                         (type)
@@ -460,9 +639,9 @@
                                             {
                                               {
                                                 [ { bad_name f } dApplicative ]
-                                                [List b]
+                                                [ List b ]
                                               }
-                                              [List b]
+                                              [ List b ]
                                             }
                                             [
                                               [
@@ -474,7 +653,7 @@
                                                     ]
                                                     b
                                                   }
-                                                  (fun [List b] [List b])
+                                                  (fun [ List b ] [ List b ])
                                                 }
                                                 { Cons b }
                                               ]
@@ -523,13 +702,71 @@
                       Traversable_match
                       (vardecl
                         CConsTraversable
-                        (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t] (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]])))))) [Traversable t])))
+                        (fun
+                          [
+                            (lam
+                              f
+                              (fun (type) (type))
+                              (all
+                                a
+                                (type)
+                                (all
+                                  b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                                )
+                              )
+                            )
+                            t
+                          ]
+                          (fun
+                            [
+                              (lam
+                                t
+                                (fun (type) (type))
+                                (all
+                                  m
+                                  (type)
+                                  (all
+                                    a
+                                    (type)
+                                    (fun
+                                      [ Monoid m ]
+                                      (fun (fun a m) (fun [ t a ] m))
+                                    )
+                                  )
+                                )
+                              )
+                              t
+                            ]
+                            (fun
+                              (all
+                                f
+                                (fun (type) (type))
+                                (all
+                                  a
+                                  (type)
+                                  (all
+                                    b
+                                    (type)
+                                    (fun
+                                      [ Applicative f ]
+                                      (fun
+                                        (fun a [ f b ])
+                                        (fun [ t a ] [ f [ t b ] ])
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                              [ Traversable t ]
+                            )
+                          )
+                        )
                       )
                     )
                   )
                   (termbind
                     (nonstrict)
-                    (vardecl fTraversableNil [Traversable List])
+                    (vardecl fTraversableNil [ Traversable List ])
                     [
                       [
                         [ { CConsTraversable List } fFunctorNil_cfmap ]
@@ -542,7 +779,14 @@
                     (strict)
                     (vardecl
                       build
-                      (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+                      (all
+                        a
+                        (type)
+                        (fun
+                          (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                          [ List a ]
+                        )
+                      )
                     )
                     (abs
                       a
@@ -550,7 +794,7 @@
                       (lam
                         g
                         (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                        [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                        [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
                       )
                     )
                   )
@@ -563,28 +807,121 @@
                     (strict)
                     (vardecl
                       traverse
-                      (all t (fun (type) (type)) (fun [Traversable t] (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))))
+                      (all
+                        t
+                        (fun (type) (type))
+                        (fun
+                          [ Traversable t ]
+                          (all
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b
+                                (type)
+                                (fun
+                                  [ Applicative f ]
+                                  (fun
+                                    (fun a [ f b ]) (fun [ t a ] [ f [ t b ] ])
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     (abs
                       t
                       (fun (type) (type))
                       (lam
                         v
-                        [Traversable t]
+                        [ Traversable t ]
                         [
                           {
                             [ { Traversable_match t } v ]
-                            (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
+                            (all
+                              f
+                              (fun (type) (type))
+                              (all
+                                a
+                                (type)
+                                (all
+                                  b
+                                  (type)
+                                  (fun
+                                    [ Applicative f ]
+                                    (fun
+                                      (fun a [ f b ])
+                                      (fun [ t a ] [ f [ t b ] ])
+                                    )
+                                  )
+                                )
+                              )
+                            )
                           }
                           (lam
                             v
-                            [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) t]
+                            [
+                              (lam
+                                f
+                                (fun (type) (type))
+                                (all
+                                  a
+                                  (type)
+                                  (all
+                                    b
+                                    (type)
+                                    (fun (fun a b) (fun [ f a ] [ f b ]))
+                                  )
+                                )
+                              )
+                              t
+                            ]
                             (lam
                               v
-                              [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
+                              [
+                                (lam
+                                  t
+                                  (fun (type) (type))
+                                  (all
+                                    m
+                                    (type)
+                                    (all
+                                      a
+                                      (type)
+                                      (fun
+                                        [ Monoid m ]
+                                        (fun (fun a m) (fun [ t a ] m))
+                                      )
+                                    )
+                                  )
+                                )
+                                t
+                              ]
                               (lam
                                 v
-                                (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [t a] [f [t b]]))))))
+                                (all
+                                  f
+                                  (fun (type) (type))
+                                  (all
+                                    a
+                                    (type)
+                                    (all
+                                      b
+                                      (type)
+                                      (fun
+                                        [ Applicative f ]
+                                        (fun
+                                          (fun a [ f b ])
+                                          (fun [ t a ] [ f [ t b ] ])
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
                                 v
                               )
                             )
@@ -597,7 +934,25 @@
                     (strict)
                     (vardecl
                       sequenceA
-                      (all t (fun (type) (type)) (all f (fun (type) (type)) (all a (type) (fun [Traversable t] (fun [Applicative f] (fun [t [f a]] [f [t a]]))))))
+                      (all
+                        t
+                        (fun (type) (type))
+                        (all
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (fun
+                              [ Traversable t ]
+                              (fun
+                                [ Applicative f ]
+                                (fun [ t [ f a ] ] [ f [ t a ] ])
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     (abs
                       t
@@ -610,22 +965,22 @@
                           (type)
                           (lam
                             dTraversable
-                            [Traversable t]
+                            [ Traversable t ]
                             (lam
                               dApplicative
-                              [Applicative f]
+                              [ Applicative f ]
                               [
                                 [
                                   {
                                     {
                                       { [ { traverse t } dTraversable ] f }
-                                      [f a]
+                                      [ f a ]
                                     }
                                     a
                                   }
                                   dApplicative
                                 ]
-                                { id [f a] }
+                                { id [ f a ] }
                               ]
                             )
                           )
@@ -637,7 +992,25 @@
                     (nonstrict)
                     (vardecl
                       sequence
-                      (all t (fun (type) (type)) (all f (fun (type) (type)) (all a (type) (fun [Traversable t] (fun [Applicative f] (fun [t [f a]] [f [t a]]))))))
+                      (all
+                        t
+                        (fun (type) (type))
+                        (all
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (fun
+                              [ Traversable t ]
+                              (fun
+                                [ Applicative f ]
+                                (fun [ t [ f a ] ] [ f [ t a ] ])
+                              )
+                            )
+                          )
+                        )
+                      )
                     )
                     sequenceA
                   )
@@ -650,13 +1023,13 @@
                       fApplicativeMaybe
                     ]
                     [
-                      { build [Maybe (con integer)] }
+                      { build [ Maybe (con integer) ] }
                       (abs
                         a
                         (type)
                         (lam
                           c
-                          (fun [Maybe (con integer)] (fun a a))
+                          (fun [ Maybe (con integer) ] (fun a a))
                           (lam
                             n
                             a

@@ -1272,6 +1272,59 @@ derive instance eqTransactionOutput :: Eq TransactionOutput
 instance showTransactionOutput :: Show TransactionOutput where
   show = genericShow
 
+newtype MarloweData
+  = MarloweData
+  { marloweContract :: Contract
+  , marloweState :: State
+  }
+
+derive instance eqMarloweData :: Eq MarloweData
+
+derive instance newtypeMarloweData :: Newtype MarloweData _
+
+derive instance genericMarloweData :: Generic MarloweData _
+
+instance encodeMarloweData :: Encode MarloweData where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeMarloweData :: Decode MarloweData where
+  decode a = genericDecode aesonCompatibleOptions a
+
+_marloweContract :: Lens' MarloweData Contract
+_marloweContract = _Newtype <<< prop (SProxy :: SProxy "marloweContract")
+
+_marloweState :: Lens' MarloweData State
+_marloweState = _Newtype <<< prop (SProxy :: SProxy "marloweState")
+
+newtype MarloweParams
+  = MarloweParams
+  { rolePayoutValidatorHash :: ValidatorHash
+  , rolesCurrency :: { unCurrencySymbol :: CurrencySymbol } -- this is to ensure the serialisation matches the backend
+  }
+
+derive instance eqMarloweParams :: Eq MarloweParams
+
+derive instance ordMarloweParams :: Ord MarloweParams
+
+derive instance newtypeMarloweParams :: Newtype MarloweParams _
+
+derive instance genericMarloweParams :: Generic MarloweParams _
+
+instance encodeMarloweParams :: Encode MarloweParams where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeMarloweParams :: Decode MarloweParams where
+  decode a = genericDecode aesonCompatibleOptions a
+
+_rolePayoutValidatorHash :: Lens' MarloweParams ValidatorHash
+_rolePayoutValidatorHash = _Newtype <<< prop (SProxy :: SProxy "rolePayoutValidatorHash")
+
+_rolesCurrency :: Lens' MarloweParams CurrencySymbol
+_rolesCurrency = _Newtype <<< prop (SProxy :: SProxy "rolesCurrency") <<< prop (SProxy :: SProxy "unCurrencySymbol")
+
+type ValidatorHash
+  = String
+
 emptyState :: Slot -> State
 emptyState sn =
   State
@@ -1406,7 +1459,7 @@ giveMoney accountId payee token@(Token cur tok) amount accounts =
       Party _ -> accounts
       Account accId -> addMoneyToAccount accId token amount accounts
   in
-    Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
+    Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) newAccounts
 
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult

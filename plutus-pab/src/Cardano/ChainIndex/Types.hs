@@ -10,49 +10,37 @@
 
 module Cardano.ChainIndex.Types where
 
-import           Control.Lens                   (makeLenses)
-import           Control.Monad.Freer.Extras.Log (LogMessage)
+import           Control.Lens                  (makeLenses)
 import           Control.Monad.Freer.State
-import           Data.Aeson                     (FromJSON, ToJSON)
-import           Data.Default                   (Default, def)
-import           Data.Sequence                  (Seq)
-import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
-import           GHC.Generics                   (Generic)
-import           Servant.Client                 (BaseUrl (..), Scheme (..))
+import           Data.Aeson                    (FromJSON, ToJSON)
+import           Data.Default                  (Default, def)
+import           Data.Text.Prettyprint.Doc     (Pretty (..), parens, (<+>))
+import           GHC.Generics                  (Generic)
+import           Servant.Client                (BaseUrl (..), Scheme (..))
 
-import           Cardano.BM.Data.Trace          (Trace)
-import           Cardano.BM.Data.Tracer         (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Control.Monad.Freer.Extras     (LogMsg)
-import           Ledger.Address                 (Address)
-import           Wallet.Effects                 (ChainIndexEffect)
-import           Wallet.Emulator.ChainIndex     (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
-
+import           Cardano.BM.Data.Trace         (Trace)
+import           Cardano.BM.Data.Tracer        (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
+import           Control.Monad.Freer.Error     (Error)
+import           Control.Monad.Freer.Extras    (LogMsg)
+import           Plutus.ChainIndex             (ChainIndexControlEffect, ChainIndexEmulatorState, ChainIndexError,
+                                                ChainIndexLog, ChainIndexQueryEffect)
 
 type ChainIndexEffects m
      = '[ ChainIndexControlEffect
-        , ChainIndexEffect
-        , State ChainIndexState
-        , LogMsg ChainIndexEvent
+        , ChainIndexQueryEffect
+        , State ChainIndexEmulatorState
+        , LogMsg ChainIndexLog
+        , Error ChainIndexError
         , m
         ]
 
 newtype ChainIndexUrl = ChainIndexUrl BaseUrl
     deriving (Eq, Show, FromJSON, ToJSON) via BaseUrl
 
-data AppState =
-    AppState
-        { _indexState  :: ChainIndexState
-        , _indexEvents :: Seq (LogMessage ChainIndexEvent)
-        } deriving (Eq, Show)
-
-initialAppState :: AppState
-initialAppState = AppState mempty mempty
-
-data ChainIndexConfig =
+newtype ChainIndexConfig =
     ChainIndexConfig
         { ciBaseUrl          :: ChainIndexUrl
-        , ciWatchedAddresses :: [Address]
         }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -62,13 +50,11 @@ defaultChainIndexConfig =
   ChainIndexConfig
     -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
     { ciBaseUrl = ChainIndexUrl $ BaseUrl Http "127.0.0.1" 9083 ""
-    , ciWatchedAddresses = []
     }
 
 instance Default ChainIndexConfig where
   def = defaultChainIndexConfig
 
-makeLenses ''AppState
 makeLenses ''ChainIndexConfig
 
 -- | Messages from the ChainIndex Server
@@ -82,7 +68,7 @@ data ChainIndexServerMsg =
     | ReceivedBlocksTxns
         Int    -- ^ Blocks
         Int    -- ^ Transactions
-    | ChainEvent ChainIndexEvent
+    | ChainEvent ChainIndexLog
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

@@ -1,6 +1,7 @@
 module Contract.Types
   ( State
   , StepBalance
+  , TimeoutInfo
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
@@ -22,8 +23,8 @@ import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (MarloweParams, PlutusAppId)
-import Marlowe.Semantics (AccountId, Accounts, Value, ChoiceId, ChosenNum, Party, Payment, Slot, Token(..), TransactionInput)
+import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token(..), TransactionInput, Value)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
@@ -66,9 +67,14 @@ type PreviousStep
     , state :: PreviousStepState
     }
 
+type TimeoutInfo
+  = { slot :: Slot
+    , missedActions :: Array (Tuple Party (Array NamedAction))
+    }
+
 data PreviousStepState
   = TransactionStep TransactionInput
-  | TimeoutStep Slot
+  | TimeoutStep TimeoutInfo
 
 data Tab
   = Tasks

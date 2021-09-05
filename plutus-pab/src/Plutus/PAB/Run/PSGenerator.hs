@@ -29,10 +29,12 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
                                                              equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
-import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Language.PureScript.Bridge.TypeParameters  (A, B)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
 import           Plutus.Contract.Resumable                  (Responses)
+import           Plutus.Contract.StateMachine               (InvalidTransition, SMContractError)
+import           Plutus.Contract.StateMachine.OnChain       (State)
 import qualified Plutus.PAB.Effects.Contract                as Contract
 import           Plutus.PAB.Effects.Contract.Builtin        (Builtin)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
@@ -91,6 +93,11 @@ pabTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
+
+    -- Contract error types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(InvalidTransition A B))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @SMContractError)
 
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))

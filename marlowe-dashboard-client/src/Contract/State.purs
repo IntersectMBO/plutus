@@ -57,12 +57,12 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.Lenses (_contract, _semanticState, _history, _pendingTimeouts, _previousTransactions)
 import Marlowe.Execution.State (expandBalances, extractNamedActions, getActionParticipant, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Execution.State (mkInitialState) as Execution
-import Marlowe.Execution.Types (NamedAction(..))
-import Marlowe.Execution.Types (PastState, State) as Execution
+import Marlowe.Execution.Types (NamedAction(..), PastAction(..))
+import Marlowe.Execution.Types (PastState, State, TimeoutInfo) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.PAB (ContractHistory, MarloweParams)
-import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _minSlot)
+import Marlowe.Client (ContractHistory, _chHistory, _chParams)
+import Marlowe.Semantics (Contract(..), MarloweParams(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _marloweContract, _marloweState, _minSlot, _rolesCurrency)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
@@ -118,39 +118,44 @@ mkPlaceholderState nickname metaData contract =
 -- contract is given a role in it, and gets the MarloweParams at the same time as they hear about
 -- everything else
 mkInitialState :: WalletDetails -> Slot -> String -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot nickname { chParams, chHistory } =
-  bind chParams \(marloweParams /\ marloweData) ->
-    let
-      contract = marloweData.marloweContract
+mkInitialState walletDetails currentSlot nickname contractHistory =
+  let
+    chParams = view _chParams contractHistory
+  in
+    bind chParams \(marloweParams /\ marloweData) ->
+      let
+        chHistory = view _chHistory contractHistory
 
-      mTemplate = findTemplate contract
+        contract = view _marloweContract marloweData
 
-      minSlot = view _minSlot marloweData.marloweState
+        mTemplate = findTemplate contract
 
-      initialExecutionState = Execution.mkInitialState minSlot contract
-    in
-      flip map mTemplate \template ->
-        let
-          initialState =
-            { nickname
-            , tab: Tasks
-            , executionState: initialExecutionState
-            , pendingTransaction: Nothing
-            , previousSteps: mempty
-            , mMarloweParams: Just marloweParams
-            , selectedStep: 0
-            , metadata: template.metaData
-            , participants: getParticipants contract
-            , userParties: getUserParties walletDetails marloweParams
-            , namedActions: mempty
-            }
+        minSlot = view (_marloweState <<< _minSlot) marloweData
 
-          updateExecutionState = over _executionState (applyTransactionInputs chHistory)
-        in
-          initialState
-            # updateExecutionState
-            # regenerateStepCards currentSlot
-            # selectLastStep
+        initialExecutionState = Execution.mkInitialState minSlot contract
+      in
+        flip map mTemplate \template ->
+          let
+            initialState =
+              { nickname
+              , tab: Tasks
+              , executionState: initialExecutionState
+              , pendingTransaction: Nothing
+              , previousSteps: mempty
+              , mMarloweParams: Just marloweParams
+              , selectedStep: 0
+              , metadata: template.metaData
+              , participants: getParticipants contract
+              , userParties: getUserParties walletDetails marloweParams
+              , namedActions: mempty
+              }
+
+            updateExecutionState = over _executionState (applyTransactionInputs chHistory)
+          in
+            initialState
+              # updateExecutionState
+              # regenerateStepCards currentSlot
+              # selectLastStep
 
 -- Note 1: We filter out PK parties from the participants of the contract. This is because
 -- we don't have a design for displaying them anywhere, and because we are currently only
@@ -216,9 +221,9 @@ getUserParties walletDetails marloweParams =
 
     assets = view _assets walletDetails
 
-    currencySymbolString = (unwrap marloweParams.rolesCurrency).unCurrencySymbol
+    rolesCurrency = view _rolesCurrency marloweParams
 
-    mCurrencyTokens = Map.lookup currencySymbolString (unwrap assets)
+    mCurrencyTokens = Map.lookup rolesCurrency (unwrap assets)
 
     roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
   in
@@ -357,9 +362,11 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 toInput _ = Nothing
 
 transactionsToStep :: State -> Execution.PastState -> PreviousStep
-transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput, resultingPayments } =
+transactionsToStep state { balancesAtStart, balancesAtEnd, txInput, resultingPayments, action } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
+
+    participants = state ^. _participants
 
     -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
     --       contract, store it in ContractState and pass them here.
@@ -367,14 +374,19 @@ transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput, r
 
     expandedBalancesAtEnd = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtEnd
 
-    stepState =
-      -- For the moment the only way to get an empty transaction is if there was a timeout,
-      -- but later on there could be other reasons to move a contract forward, and we should
-      -- compare with the contract to see the reason.
-      if inputs == mempty then
-        TimeoutStep minSlot
-      else
-        TransactionStep txInput
+    stepState = case action of
+      TimeoutAction act ->
+        let
+          userParties = state ^. _userParties
+
+          missedActions =
+            expandAndGroupByRole
+              userParties
+              (Map.keys participants)
+              act.missedActions
+        in
+          TimeoutStep { slot: act.slot, missedActions }
+      InputAction -> TransactionStep txInput
   in
     { tab: Tasks
     , expandPayments: false
@@ -387,10 +399,14 @@ transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput, r
     , state: stepState
     }
 
-timeoutToStep :: State -> Slot -> PreviousStep
-timeoutToStep { participants, executionState } slot =
+timeoutToStep :: State -> Execution.TimeoutInfo -> PreviousStep
+timeoutToStep state { slot, missedActions } =
   let
-    balances = executionState ^. (_semanticState <<< _accounts)
+    balances = state ^. (_executionState <<< _semanticState <<< _accounts)
+
+    userParties = state ^. _userParties
+
+    participants = state ^. _participants
 
     expandedBalances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balances
   in
@@ -402,13 +418,26 @@ timeoutToStep { participants, executionState } slot =
         { atStart: expandedBalances
         , atEnd: Nothing
         }
-    , state: TimeoutStep slot
+    , state:
+        TimeoutStep
+          { slot
+          , missedActions:
+              expandAndGroupByRole
+                userParties
+                (Map.keys participants)
+                missedActions
+          }
     }
 
 regenerateStepCards :: Slot -> State -> State
 regenerateStepCards currentSlot state =
   -- TODO: This regenerates all the previous step cards, resetting them to their default state (showing
   -- the Tasks tab). If any of them are showing the Balances tab, it would be nice to keep them that way.
+  -- TODO: Performance optimization
+  --  This function is being called for all cotracts whenever any contract change. We should be able to call it
+  --  only for the changed contract. Moreover, we regenerate previous steps for the selected contract card and the
+  --  summary cards in the dashboard, but only the selected contract cares about the previous steps, the dashboard
+  --  only needs the current step and the step number.
   let
     confirmedSteps :: Array PreviousStep
     confirmedSteps = toArrayOf (_executionState <<< _history <<< traversed <<< to (transactionsToStep state)) state

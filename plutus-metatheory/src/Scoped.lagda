@@ -19,7 +19,6 @@ open import Relation.Nullary
 open import Category.Monad
 import Level
 
-open import Builtin.Constant.Type
 open import Builtin
 open import Raw
 open import Utils
@@ -47,27 +46,68 @@ arity equalsByteString = 2
 arity ifThenElse = 3
 arity appendString = 2
 arity trace = 1
+arity equalsString = 2
+arity encodeUtf8 = 1
+arity decodeUtf8 = 1
+arity fstPair = 1
+arity sndPair = 1
+arity nullList = 1
+arity headList = 1
+arity tailList = 1
+arity chooseList = 3
+arity constrData = 2
+arity mapData = 1
+arity listData = 1
+arity iData = 1
+arity bData = 1
+arity unConstrData = 1
+arity unMapData = 1
+arity unListData = 1
+arity unIData = 1
+arity unBData = 1
+arity equalsData = 2
+arity chooseData = 6
+arity chooseUnit = 2
+arity mkPairData = 2
+arity mkNilData = 1
+arity mkNilPairData = 1
+arity mkCons = 2
+arity consByteString = 2
+arity sliceByteString = 3
+arity lengthOfByteString = 1
+arity indexByteString = 2
+arity blake2b-256 = 1
+
 
 arity⋆ : Builtin → ℕ
 arity⋆ ifThenElse = 1
+arity⋆ fstPair = 2
+arity⋆ sndPair = 2
+arity⋆ nullList = 1
+arity⋆ headList = 1
+arity⋆ tailList = 1
+arity⋆ chooseList = 2
+arity⋆ chooseData = 1
+arity⋆ chooseUnit = 1
 arity⋆ _ = 0
-
 open import Type
 
-data ScopedTy (n : ℕ) : Set where
+data ScopedTy (n : ℕ) : Set
+
+import Builtin.Constant.Type ℕ ScopedTy as S
+
+data ScopedTy n where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
   Π    : Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
-  con  : TyCon → ScopedTy n
+  con  : S.TyCon n → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
 
 Tel⋆ : ℕ → ℕ → Set
 Tel⋆ n m = Vec (ScopedTy n) m
-
-open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con
 
 -- contexts
 
@@ -201,14 +241,7 @@ unshifter w (builtin b) = builtin b
 unshifter w (wrap pat arg t) =
   wrap (unshifterTy w pat) (unshifterTy w arg) (unshifter w t)
 unshifter w (unwrap t) = unwrap (unshifter w t)
-
-data TermCon : Set where
-  integer    : (i : ℤ) → TermCon
-  bytestring : (b : ByteString) → TermCon
-  string     : (s : String) → TermCon
-  bool       : (b : Bool) → TermCon
-  unit       : TermCon
-
+  
 Tel : ∀{n} → Weirdℕ n → ℕ → Set
 
 data ScopedTm {n}(w : Weirdℕ n) : Set where
@@ -228,19 +261,6 @@ Tel w n = Vec (ScopedTm w) n
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
-
-deBruijnifyK : RawKind → Kind
-deBruijnifyK * = *
-deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
-
-{-# COMPILE GHC deBruijnifyK as deBruijnifyK #-}
-
-deBruijnifyC : RawTermCon → TermCon
-deBruijnifyC (integer i)    = integer i
-deBruijnifyC (bytestring b) = bytestring b
-deBruijnifyC (string s)     = string s
-deBruijnifyC (bool b)       = bool b
-deBruijnifyC unit           = unit
 
 postulate
   FreeVariableError : Set
@@ -273,18 +293,32 @@ data ScopeError : Set where
   return (T i)
 
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
+scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
+
+scopeCheckTyCon integer    = inj₂ S.integer
+scopeCheckTyCon bytestring = inj₂ S.bytestring
+scopeCheckTyCon string     = inj₂ S.string
+scopeCheckTyCon unit       = inj₂ S.unit
+scopeCheckTyCon bool       = inj₂ S.bool
+scopeCheckTyCon (list A)   = fmap S.list (scopeCheckTy A)
+scopeCheckTyCon (pair A B) = do
+  A ← scopeCheckTy A
+  B ← scopeCheckTy B
+  return (S.pair A B)
+scopeCheckTyCon Data       = inj₂ S.Data
+
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A ⇒ B)
-scopeCheckTy (Π K A) = fmap (Π (deBruijnifyK K)) (scopeCheckTy A)
-scopeCheckTy (ƛ K A) = fmap (ƛ (deBruijnifyK K)) (scopeCheckTy A)
+scopeCheckTy (Π K A) = fmap (Π K) (scopeCheckTy A)
+scopeCheckTy (ƛ K A) = fmap (ƛ K) (scopeCheckTy A)
 scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = inj₂ (con c)
+scopeCheckTy (con c) = fmap con (scopeCheckTyCon c)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -292,7 +326,7 @@ scopeCheckTy (μ A B) = do
 
 scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either ScopeError (ScopedTm w)
 scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
-scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
+scopeCheckTm {n}{w}(Λ K t) = fmap (Λ K) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
   A ← scopeCheckTy A
   t ← scopeCheckTm t
@@ -305,7 +339,7 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = return (con (deBruijnifyC c))
+scopeCheckTm (con c) = return (con c)
 scopeCheckTm (builtin b) = return (ibuiltin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
@@ -314,15 +348,6 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
-\end{code}
-
-\begin{code}
-unDeBruijnifyK : Kind → RawKind
-unDeBruijnifyK * = *
-unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
-
-{-# COMPILE GHC unDeBruijnifyK as unDeBruijnifyK #-}
-
 \end{code}
 
 \begin{code}
@@ -335,32 +360,34 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 \end{code}
 
 \begin{code}
-unDeBruijnifyC : TermCon → RawTermCon
-unDeBruijnifyC (integer i)    = integer i
-unDeBruijnifyC (bytestring b) = bytestring b
-unDeBruijnifyC (string s)     = string s
-unDeBruijnifyC (bool b)       = bool b
-unDeBruijnifyC unit           = unit
-\end{code}
-
-\begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
+extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
+
+extricateTyCon S.integer    = integer
+extricateTyCon S.bytestring = bytestring
+extricateTyCon S.string     = string
+extricateTyCon S.unit       = unit
+extricateTyCon S.bool       = bool
+extricateTyCon (S.list A)   = list (extricateScopeTy A)
+extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
+extricateTyCon S.Data       = Data
+
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
-extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A)
-extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
+extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
+extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
-extricateScopeTy (con c) = con c
+extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
 extricateScopeTy missing = con bool -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)
-extricateScope (Λ K t) = Λ (unDeBruijnifyK K) (extricateScope t)
+extricateScope (Λ K t) = Λ K (extricateScope t)
 extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
 extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
-extricateScope (con c) = con (unDeBruijnifyC c)
+extricateScope (con c) = con c
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (ibuiltin bn) = builtin bn
 extricateScope (wrap pat arg t) =

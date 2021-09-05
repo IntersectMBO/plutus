@@ -35,6 +35,7 @@
         depends = [
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+          (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
@@ -128,9 +129,7 @@
           "Cardano/Api/NetworkId/Extra"
           "Cardano/BM/Data/Tracer/Extras"
           "Cardano/Chain"
-          "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/ChainIndex"
-          "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
           "Cardano/Node/API"
@@ -148,6 +147,8 @@
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
           "Control/Concurrent/Availability"
+          "Control/Concurrent/STM/Extras"
+          "Control/Concurrent/STM/Extras/Stream"
           "Control/Monad/Freer/Delay"
           "Plutus/PAB/App"
           "Plutus/PAB/Arbitrary"
@@ -404,11 +405,14 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            (hsPkgs."async" or (errorHandler.buildDepError "async"))
             ];
           buildable = true;
           modules = [
             "Cardano/Api/NetworkId/ExtraSpec"
             "Cardano/Wallet/ServerSpec"
+            "Control/Concurrent/STM/ExtrasSpec"
             ];
           hsSourceDirs = [ "test/light" ];
           mainPath = [ "Spec.hs" ];

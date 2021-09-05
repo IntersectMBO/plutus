@@ -72,6 +72,7 @@ extra-deps:
 - Unique-0.4.7.8
 - moo-1.2
 - gray-code-0.3.1
+- dom-lt-0.2.2.1@sha256:6b005b64f10a0f73f716898e0f4b4d93a02c31dc8abb155c14afd870e3abf9ac,1778
 - libsystemd-journal-1.4.5@sha256:dc68296f5d874b48ba187dbd0af4de8182ba57cb6ebaa46c05ac61c1b3c6c396,1238
 
 # cabal.project is the source of truth for these pins, they are explained there

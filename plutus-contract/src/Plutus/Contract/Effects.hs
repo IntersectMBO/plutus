@@ -17,9 +17,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _AwaitTxStatusChangeReq,
     _OwnContractInstanceIdReq,
     _OwnPublicKeyReq,
-    _UtxoAtReq,
     _ChainIndexQueryReq,
-    _AddressChangeReq,
     _BalanceTxReq,
     _WriteBalancedTxReq,
     _ExposeEndpointReq,
@@ -28,6 +26,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _DatumFromHash,
     _ValidatorFromHash,
     _MintingPolicyFromHash,
+    _RedeemerFromHash,
     _TxOutFromRef,
     _TxFromTxId,
     _UtxoSetMembership,
@@ -45,9 +44,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _AwaitTxStatusChangeResp',
     _OwnContractInstanceIdResp,
     _OwnPublicKeyResp,
-    _UtxoAtResp,
     _ChainIndexQueryResp,
-    _AddressChangeResp,
     _BalanceTxResp,
     _WriteBalancedTxResp,
     _ExposeEndpointResp,
@@ -56,17 +53,16 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _DatumHashResponse,
     _ValidatorHashResponse,
     _MintingPolicyHashResponse,
+    _RedeemerHashResponse,
     _TxOutRefResponse,
     _TxIdResponse,
     _UtxoSetMembershipResponse,
     _UtxoSetAtResponse,
     _GetTipResponse,
-
     -- * Etc.
     matches,
     ChainIndexQuery(..),
     ChainIndexResponse(..),
-    UtxoAtAddress(..),
     BalanceTxResponse(..),
     balanceTxResponse,
     WriteBalancedTxResponse(..),
@@ -84,28 +80,26 @@ import           Control.Lens                     (Iso', Prism', iso, makePrisms
 import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
 import           Data.List.NonEmpty               (NonEmpty)
-import qualified Data.Map                         as Map
-import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, hsep, indent, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc        (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger                           (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
-                                                   OnChainTx, PubKey, Tx, TxId, TxOutRef, TxOutTx (..), ValidatorHash,
-                                                   eitherTx, txId)
-import           Ledger.AddressMap                (UtxoMap)
+                                                   OnChainTx, PubKey, Redeemer, RedeemerHash, StakeValidator,
+                                                   StakeValidatorHash, Tx, TxId, TxOutRef, ValidatorHash, eitherTx,
+                                                   txId)
 import           Ledger.Constraints.OffChain      (UnbalancedTx)
 import           Ledger.Credential                (Credential)
 import           Ledger.Scripts                   (Validator)
 import           Ledger.Slot                      (Slot (..), SlotRange)
 import           Ledger.Time                      (POSIXTime (..), POSIXTimeRange)
 import           Ledger.TimeSlot                  (SlotConversionError)
-import           Ledger.Tx                        (TxOut)
+import           Ledger.Tx                        (ChainIndexTxOut)
 import           Plutus.ChainIndex                (Tip)
 import           Plutus.ChainIndex.Tx             (ChainIndexTx (_citxTxId))
 import           Plutus.ChainIndex.Types          (Page (pageItems))
 import           PlutusTx.Lattice                 (MeetSemiLattice (..))
 import           Wallet.API                       (WalletAPIError)
-import           Wallet.Types                     (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
-                                                   EndpointDescription, EndpointValue)
+import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue)
 
 -- | Requests that 'Contract's can make
 data PABReq =
@@ -118,9 +112,7 @@ data PABReq =
     | CurrentTimeReq
     | OwnContractInstanceIdReq
     | OwnPublicKeyReq
-    | UtxoAtReq Address
     | ChainIndexQueryReq ChainIndexQuery
-    | AddressChangeReq AddressChangeRequest -- deprecated
     | BalanceTxReq UnbalancedTx
     | WriteBalancedTxReq Tx
     | ExposeEndpointReq ActiveEndpoint
@@ -139,9 +131,7 @@ instance Pretty PABReq where
     AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
     OwnContractInstanceIdReq                -> "Own contract instance ID"
     OwnPublicKeyReq                         -> "Own public key"
-    UtxoAtReq addr                          -> "Utxo at:" <+> pretty addr
     ChainIndexQueryReq q                    -> "Chain index query:" <+> pretty q
-    AddressChangeReq req                    -> "Address change:" <+> pretty req
     BalanceTxReq utx                        -> "Balance tx:" <+> pretty utx
     WriteBalancedTxReq tx                   -> "Write balanced tx:" <+> pretty tx
     ExposeEndpointReq ep                    -> "Expose endpoint:" <+> pretty ep
@@ -151,16 +141,14 @@ instance Pretty PABReq where
 data PABResp =
     AwaitSlotResp Slot
     | AwaitTimeResp POSIXTime
-    | AwaitUtxoSpentResp OnChainTx
-    | AwaitUtxoProducedResp (NonEmpty OnChainTx)
+    | AwaitUtxoSpentResp ChainIndexTx
+    | AwaitUtxoProducedResp (NonEmpty ChainIndexTx)
     | AwaitTxStatusChangeResp TxId TxStatus
     | CurrentSlotResp Slot
     | CurrentTimeResp POSIXTime
     | OwnContractInstanceIdResp ContractInstanceId
     | OwnPublicKeyResp PubKey
-    | UtxoAtResp UtxoAtAddress
     | ChainIndexQueryResp ChainIndexResponse
-    | AddressChangeResp AddressChangeResponse
     | BalanceTxResp BalanceTxResponse
     | WriteBalancedTxResp WriteBalancedTxResponse
     | ExposeEndpointResp EndpointDescription (EndpointValue JSON.Value)
@@ -179,9 +167,7 @@ instance Pretty PABResp where
     AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
     OwnContractInstanceIdResp i              -> "Own contract instance ID:" <+> pretty i
     OwnPublicKeyResp k                       -> "Own public key:" <+> pretty k
-    UtxoAtResp rsp                           -> "Utxo at:" <+> pretty rsp
     ChainIndexQueryResp rsp                  -> pretty rsp
-    AddressChangeResp rsp                    -> "Address change:" <+> pretty rsp
     BalanceTxResp r                          -> "Balance tx:" <+> pretty r
     WriteBalancedTxResp r                    -> "Write balanced tx:" <+> pretty r
     ExposeEndpointResp desc rsp              -> "Call endpoint" <+> pretty desc <+> "with" <+> pretty rsp
@@ -198,9 +184,7 @@ matches a b = case (a, b) of
   (AwaitTxStatusChangeReq i, AwaitTxStatusChangeResp i' _) -> i == i'
   (OwnContractInstanceIdReq, OwnContractInstanceIdResp{})  -> True
   (OwnPublicKeyReq, OwnPublicKeyResp{})                    -> True
-  (UtxoAtReq{}, UtxoAtResp{})                              -> True
   (ChainIndexQueryReq r, ChainIndexQueryResp r')           -> chainIndexMatches r r'
-  (AddressChangeReq{}, AddressChangeResp{})                -> True
   (BalanceTxReq{}, BalanceTxResp{})                        -> True
   (WriteBalancedTxReq{}, WriteBalancedTxResp{})            -> True
   (ExposeEndpointReq ActiveEndpoint{aeDescription}, ExposeEndpointResp desc _)
@@ -210,15 +194,17 @@ matches a b = case (a, b) of
 
 chainIndexMatches :: ChainIndexQuery -> ChainIndexResponse -> Bool
 chainIndexMatches q r = case (q, r) of
-    (DatumFromHash{}, DatumHashResponse{})                 -> True
-    (ValidatorFromHash{}, ValidatorHashResponse{})         -> True
-    (MintingPolicyFromHash{}, MintingPolicyHashResponse{}) -> True
-    (TxOutFromRef{}, TxOutRefResponse{})                   -> True
-    (TxFromTxId{}, TxIdResponse{})                         -> True
-    (UtxoSetMembership{}, UtxoSetMembershipResponse{})     -> True
-    (UtxoSetAtAddress{}, UtxoSetAtResponse{})              -> True
-    (GetTip{}, GetTipResponse{})                           -> True
-    _                                                      -> False
+    (DatumFromHash{}, DatumHashResponse{})                   -> True
+    (ValidatorFromHash{}, ValidatorHashResponse{})           -> True
+    (MintingPolicyFromHash{}, MintingPolicyHashResponse{})   -> True
+    (StakeValidatorFromHash{}, StakeValidatorHashResponse{}) -> True
+    (RedeemerFromHash{}, RedeemerHashResponse{})             -> True
+    (TxOutFromRef{}, TxOutRefResponse{})                     -> True
+    (TxFromTxId{}, TxIdResponse{})                           -> True
+    (UtxoSetMembership{}, UtxoSetMembershipResponse{})       -> True
+    (UtxoSetAtAddress{}, UtxoSetAtResponse{})                -> True
+    (GetTip{}, GetTipResponse{})                             -> True
+    _                                                        -> False
 
 -- | Represents all possible chain index queries. Each constructor contains the
 -- input(s) needed for the query. These possible queries correspond to the
@@ -227,6 +213,8 @@ data ChainIndexQuery =
     DatumFromHash DatumHash
   | ValidatorFromHash ValidatorHash
   | MintingPolicyFromHash MintingPolicyHash
+  | StakeValidatorFromHash StakeValidatorHash
+  | RedeemerFromHash RedeemerHash
   | TxOutFromRef TxOutRef
   | TxFromTxId TxId
   | UtxoSetMembership TxOutRef
@@ -240,6 +228,8 @@ instance Pretty ChainIndexQuery where
         DatumFromHash h            -> "requesting datum from hash" <+> pretty h
         ValidatorFromHash h        -> "requesting validator from hash" <+> pretty h
         MintingPolicyFromHash h    -> "requesting minting policy from hash" <+> pretty h
+        StakeValidatorFromHash h   -> "requesting stake validator from hash" <+> pretty h
+        RedeemerFromHash h         -> "requesting redeemer from hash" <+> pretty h
         TxOutFromRef r             -> "requesting utxo from utxo reference" <+> pretty r
         TxFromTxId i               -> "requesting chain index tx from id" <+> pretty i
         UtxoSetMembership txOutRef -> "whether tx output is part of the utxo set" <+> pretty txOutRef
@@ -253,7 +243,9 @@ data ChainIndexResponse =
     DatumHashResponse (Maybe Datum)
   | ValidatorHashResponse (Maybe Validator)
   | MintingPolicyHashResponse (Maybe MintingPolicy)
-  | TxOutRefResponse (Maybe TxOut)
+  | StakeValidatorHashResponse (Maybe StakeValidator)
+  | TxOutRefResponse (Maybe ChainIndexTxOut)
+  | RedeemerHashResponse (Maybe Redeemer)
   | TxIdResponse (Maybe ChainIndexTx)
   | UtxoSetMembershipResponse (Tip, Bool)
   | UtxoSetAtResponse (Tip, Page TxOutRef)
@@ -266,6 +258,8 @@ instance Pretty ChainIndexResponse where
         DatumHashResponse d -> "Chain index datum from hash response:" <+> pretty d
         ValidatorHashResponse v -> "Chain index validator from hash response:" <+> pretty v
         MintingPolicyHashResponse m -> "Chain index minting policy from hash response:" <+> pretty m
+        StakeValidatorHashResponse m -> "Chain index stake validator from hash response:" <+> pretty m
+        RedeemerHashResponse r -> "Chain index redeemer from hash response:" <+> pretty r
         TxOutRefResponse t -> "Chain index utxo from utxo ref response:" <+> pretty t
         TxIdResponse t -> "Chain index tx from tx id response:" <+> pretty (_citxTxId <$> t)
         UtxoSetMembershipResponse (tip, b) ->
@@ -280,22 +274,6 @@ instance Pretty ChainIndexResponse where
             <+> "and utxo refs are"
             <+> hsep (fmap pretty $ pageItems txOutRefPage)
         GetTipResponse tip -> "Chain index get tip response:" <+> pretty tip
-
-data UtxoAtAddress =
-    UtxoAtAddress
-        { address :: Address
-        , utxo    :: UtxoMap
-        }
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty UtxoAtAddress where
-  pretty UtxoAtAddress{address, utxo} =
-    let
-      prettyTxOutPair (txoutref, TxOutTx{txOutTxOut}) =
-        pretty txoutref <> colon <+> pretty txOutTxOut
-      utxos = vsep $ fmap prettyTxOutPair (Map.toList utxo)
-    in vsep ["Utxo at" <+> pretty address <+> "=", indent 2 utxos]
 
 -- | Validity of a transaction that has been added to the ledger
 data TxValidity = TxValid | TxInvalid | UnknownValidity

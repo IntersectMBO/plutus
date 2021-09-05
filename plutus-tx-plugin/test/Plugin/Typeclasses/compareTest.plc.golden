@@ -260,13 +260,31 @@
         Ord_match
         (vardecl
           CConsOrd
-          (fun [(lam a (type) (fun a (fun a Bool))) a] (fun (fun a (fun a Ordering)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a Bool)) (fun (fun a (fun a a)) (fun (fun a (fun a a)) [Ord a]))))))))
+          (fun
+            [ (lam a (type) (fun a (fun a Bool))) a ]
+            (fun
+              (fun a (fun a Ordering))
+              (fun
+                (fun a (fun a Bool))
+                (fun
+                  (fun a (fun a Bool))
+                  (fun
+                    (fun a (fun a Bool))
+                    (fun
+                      (fun a (fun a Bool))
+                      (fun (fun a (fun a a)) (fun (fun a (fun a a)) [ Ord a ]))
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
     (termbind
       (nonstrict)
-      (vardecl fOrdInteger [Ord (con integer)])
+      (vardecl fOrdInteger [ Ord (con integer) ])
       [
         [
           [
@@ -292,18 +310,18 @@
     )
     (termbind
       (strict)
-      (vardecl compare (all a (type) (fun [Ord a] (fun a (fun a Ordering)))))
+      (vardecl compare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering)))))
       (abs
         a
         (type)
         (lam
           v
-          [Ord a]
+          [ Ord a ]
           [
             { [ { Ord_match a } v ] (fun a (fun a Ordering)) }
             (lam
               v
-              [(lam a (type) (fun a (fun a Bool))) a]
+              [ (lam a (type) (fun a (fun a Bool))) a ]
               (lam
                 v
                 (fun a (fun a Ordering))
@@ -332,13 +350,15 @@
     )
     (termbind
       (strict)
-      (vardecl opCompare (all a (type) (fun [Ord a] (fun a (fun a Ordering)))))
+      (vardecl
+        opCompare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
+      )
       (abs
         a
         (type)
         (lam
           dOrd
-          [Ord a]
+          [ Ord a ]
           (lam
             a
             a

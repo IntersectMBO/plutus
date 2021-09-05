@@ -1,4 +1,6 @@
 import "./index.css";
+import "./carousel.css";
+import $ from "jquery";
 
 function initializeFaqComponent() {
   const faqElements = document.getElementsByClassName("faq");
@@ -7,43 +9,142 @@ function initializeFaqComponent() {
   }
 }
 
-function initializeHeaderComponent() {
-  const header = document.getElementsByTagName("header")[0];
-  const headerHeight = header.getBoundingClientRect().height;
-  const mainTryButtons = document.getElementById("main-try-buttons");
+function initializeBackToTopComponent() {
+  const backToTopComponent = document.getElementById("back-to-top");
 
-  window.onscroll = function () {
-    // The header always have fixed position and as soon as the scroll moves we add
-    // a background to it
-    if (window.scrollY > 0) {
-      header.classList.add("bg-blured");
+  var myScrollFunc = function () {
+    var y = window.scrollY;
+    if (y >= 400) {
+      backToTopComponent.className = "show select-none";
     } else {
-      header.classList.remove("bg-blured");
+      backToTopComponent.className = "hide";
     }
+  };
 
-    // The header "try Run/Build" buttons appear when the same buttons in the main section
-    // are no longer visible
-    const mainButtonBoundingBox = mainTryButtons.getBoundingClientRect();
-    if (headerHeight > mainButtonBoundingBox.y + mainButtonBoundingBox.height) {
-      header.classList.add("with-buttons");
+  window.addEventListener("scroll", myScrollFunc);
+}
+
+// This function adds smooth scrolling for the internal links.
+// It is using some deprecated features from jQuery which adds 80kb to the build.
+// TODO: maybe refactor to use native JS.
+function initializeSmoothScrolling() {
+  // Select all links with hashes
+  $('a[href*="#"]')
+    // Remove links that don't actually link to anything
+    .not('[href="#"]')
+    .not('[href="#0"]')
+    .click(function (event) {
+      // On-page links
+      if (
+        location.pathname.replace(/^\//, "") == this.pathname.replace(/^\//, "") &&
+        location.hostname == this.hostname
+      ) {
+        // Figure out element to scroll to
+        var target = $(this.hash);
+        target = target.length ? target : $("[name=" + this.hash.slice(1) + "]");
+        // Does a scroll target exist?
+        if (target.length) {
+          // Only prevent default if animation is actually gonna happen
+          event.preventDefault();
+          $("html, body").animate(
+            {
+              scrollTop: target.offset().top,
+            },
+            500,
+            function () {
+              // Callback after animation
+              // Must change focus!
+              var $target = $(target);
+              $target.focus();
+              if ($target.is(":focus")) {
+                // Checking if the target was focused
+                return false;
+              } else {
+                $target.attr("tabindex", "-1"); // Adding tabindex for elements not focusable
+                $target.focus(); // Set focus again
+              }
+            }
+          );
+        }
+      }
+    });
+}
+
+function initializeMobileMenu() {
+  const drawer = document.getElementById("menu-drawer");
+  const menu = document.getElementById("mobile-menu");
+  const mobileMenuClose = document.getElementById("mobile-menu-close");
+  function closeOnEscape(evt) {
+    if (evt.key == "Escape") {
+      closeMenu();
     }
-    // and dissapear once the main buttons are fully visible again
-    if (headerHeight <= mainButtonBoundingBox.y) {
-      header.classList.remove("with-buttons");
-    }
+  }
+
+  function openMenu() {
+    menu.classList.remove("hidden");
+    // We need to add this class to the body so that the menu does not
+    // let the user scroll.
+    document.body.classList.add("overflow-hidden");
+    // Allow the menu to be closed with the Escape key.
+    document.addEventListener("keydown", closeOnEscape);
+  }
+
+  function closeMenu() {
+    menu.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+    document.removeEventListener("keydown", closeOnEscape);
+  }
+  drawer.onclick = openMenu;
+  mobileMenuClose.onclick = closeMenu;
+  $("#mobile-menu a").on("click", closeMenu);
+}
+
+function initializeContractCarousel() {
+  const carousel = document.getElementById("contract-carousel");
+
+  const selectors = Array.from(document.getElementById("carousel-selectors").children);
+  const items = Array.from(document.getElementById("carousel-items").children);
+  console.log(items);
+  let selectedItem = 0;
+  function select(index) {
+    selectors[selectedItem].classList.remove("active");
+    selectors[index].classList.add("active");
+    items[selectedItem].classList.remove("active");
+    items[index].classList.add("active");
+    selectedItem = index;
+  }
+
+  selectors.forEach((elm, i) => {
+    elm.onclick = function () {
+      select(i);
+    };
+  });
+
+  function startRotation() {
+    return setInterval(function () {
+      select((selectedItem + 1) % 3);
+    }, 3500);
+  }
+
+  let rotateSubscription = startRotation();
+  carousel.onmouseenter = function () {
+    clearInterval(rotateSubscription);
+  };
+  carousel.onmouseleave = function () {
+    rotateSubscription = startRotation();
   };
 }
 
 function fixCrossLinks() {
-  const env = window.location.hostname.split('.')[0];
+  const env = window.location.hostname.split(".")[0];
 
-  if (env == 'localhost' || env == 'marlowe-finance') {
+  if (env == "localhost" || env == "marlowe-finance") {
     return;
   }
 
   const urls = {
-    'run': 'https://' + env + '.marlowe-dash.iohkdev.io',
-    'play': 'https://' + env + '.marlowe.iohkdev.io'
+    run: "https://" + env + ".marlowe-dash.iohkdev.io",
+    play: "https://" + env + ".marlowe.iohkdev.io",
   };
 
   const crossLinks = document.querySelectorAll("a[data-marlowe-component]");
@@ -54,6 +155,9 @@ function fixCrossLinks() {
 
 window.onload = function () {
   initializeFaqComponent();
-  initializeHeaderComponent();
+  initializeBackToTopComponent();
+  initializeSmoothScrolling();
+  initializeMobileMenu();
+  initializeContractCarousel();
   fixCrossLinks();
 };

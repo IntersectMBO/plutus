@@ -22,7 +22,6 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
-    coDoSimplifierRemoveDeadBindings,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -45,6 +44,7 @@ import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.LetMerge        as LetMerge
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
+import qualified PlutusIR.Transform.RecSplit        as RecSplit
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 import qualified PlutusIR.Transform.Unwrap          as Unwrap
@@ -95,7 +95,6 @@ availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
-    , Pass "remove dead bindings" (onOption coDoSimplifierRemoveDeadBindings) DeadCode.removeDeadBindings
     ]
 
 -- | Actual simplifier
@@ -108,7 +107,7 @@ simplify = foldl' (>=>) pure (map applyPass availablePasses)
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ DeadCode.removeDeadBindings >=> simplify'
+simplifyTerm = runIfOpts $ simplify'
     -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -128,7 +127,7 @@ simplifyTerm = runIfOpts $ DeadCode.removeDeadBindings >=> simplify'
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
 floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-floatTerm = runIfOpts $ pure . LetMerge.letMerge . LetFloat.floatTerm
+floatTerm = runIfOpts $ pure . LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -157,6 +156,8 @@ compileToReadable =
     >=> (<$ logVerbose "  !!! rename")
     >=> PLC.rename
     >=> through typeCheckTerm
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! floatTerm")
@@ -195,6 +196,8 @@ compileReadableToPlc =
     -- NOTE: There was a bug in renamer handling non-rec terms, so we need to
     -- rename again.
     -- https://jira.iohk.io/browse/SCP-2156
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! compileLets Types")

@@ -5,18 +5,20 @@
       (strict)
       (vardecl
         unsafeDataAsConstr
-        (fun (con data) [[(con pair) (con integer)] [(con list) (con data)]])
+        (fun
+          (con data) [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+        )
       )
       (builtin unConstrData)
     )
     (termbind
       (strict)
-      (vardecl snd (all a (type) (all b (type) (fun [[(con pair) a] b] b))))
+      (vardecl snd (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b))))
       (builtin sndPair)
     )
     (termbind
       (strict)
-      (vardecl tail (all a (type) (fun [(con list) a] [(con list) a])))
+      (vardecl tail (all a (type) (fun [ (con list) a ] [ (con list) a ])))
       (builtin tailList)
     )
     (datatypebind
@@ -24,7 +26,7 @@
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
         (tyvardecl a (type)) (tyvardecl b (type))
         Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+        (vardecl Tuple2 (fun a (fun b [ [ Tuple2 a ] b ])))
       )
     )
     (datatypebind
@@ -32,19 +34,19 @@
         (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
         Maybe_match
-        (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
       )
     )
     (termbind
       (strict)
-      (vardecl head (all a (type) (fun [(con list) a] a)))
+      (vardecl head (all a (type) (fun [ (con list) a ] a)))
       (builtin headList)
     )
     (termbind
       (strict)
       (vardecl
         chooseList
-        (all a (type) (all b (type) (fun [(con list) a] (fun b (fun b b)))))
+        (all a (type) (all b (type) (fun [ (con list) a ] (fun b (fun b b)))))
       )
       (builtin chooseList)
     )
@@ -55,7 +57,9 @@
       (strict)
       (vardecl
         chooseData
-        (all a (type) (fun (con data) (fun a (fun a (fun a (fun a (fun a a)))))))
+        (all
+          a (type) (fun (con data) (fun a (fun a (fun a (fun a (fun a a))))))
+        )
       )
       (builtin chooseData)
     )
@@ -66,7 +70,7 @@
     )
     (termbind
       (strict)
-      (vardecl fst (all a (type) (all b (type) (fun [[(con pair) a] b] a))))
+      (vardecl fst (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a))))
       (builtin fstPair)
     )
     (termbind
@@ -79,7 +83,21 @@
       (strict)
       (vardecl
         fFromDataTuple2_cfromBuiltinData
-        (all a (type) (all b (type) (fun [(lam a (type) (fun (con data) [Maybe a])) a] (fun [(lam a (type) (fun (con data) [Maybe a])) b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
+        (all
+          a
+          (type)
+          (all
+            b
+            (type)
+            (fun
+              [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
+              (fun
+                [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
+                (fun (con data) [ Maybe [ [ Tuple2 a ] b ] ])
+              )
+            )
+          )
+        )
       )
       (abs
         a
@@ -89,10 +107,10 @@
           (type)
           (lam
             dFromData
-            [(lam a (type) (fun (con data) [Maybe a])) a]
+            [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
             (lam
               dFromData
-              [(lam a (type) (fun (con data) [Maybe a])) b]
+              [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
               (lam
                 d
                 (con data)
@@ -103,7 +121,11 @@
                         [
                           [
                             [
-                              { chooseData (fun Unit [Maybe [[Tuple2 a] b]]) } d
+                              {
+                                chooseData
+                                (fun Unit [ Maybe [ [ Tuple2 a ] b ] ])
+                              }
+                              d
                             ]
                             (lam
                               ds
@@ -114,29 +136,32 @@
                                   (nonstrict)
                                   (vardecl
                                     tup
-                                    [[(con pair) (con integer)] [(con list) (con data)]]
+                                    [
+                                      [ (con pair) (con integer) ]
+                                      [ (con list) (con data) ]
+                                    ]
                                   )
                                   [ unsafeDataAsConstr d ]
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl l [(con list) (con data)])
+                                  (vardecl l [ (con list) (con data) ])
                                   [
                                     {
                                       { snd (con integer) }
-                                      [(con list) (con data)]
+                                      [ (con list) (con data) ]
                                     }
                                     tup
                                   ]
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl l [(con list) (con data)])
+                                  (vardecl l [ (con list) (con data) ])
                                   [ { tail (con data) } l ]
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl nilCase [Maybe [[Tuple2 a] b]])
+                                  (vardecl nilCase [ Maybe [ [ Tuple2 a ] b ] ])
                                   {
                                     [
                                       [
@@ -148,7 +173,11 @@
                                               [ { head (con data) } l ]
                                             ]
                                           ]
-                                          (all dead (type) [Maybe [[Tuple2 a] b]])
+                                          (all
+                                            dead
+                                            (type)
+                                            [ Maybe [ [ Tuple2 a ] b ] ]
+                                          )
                                         }
                                         (lam
                                           ipv
@@ -169,7 +198,13 @@
                                                         ]
                                                       ]
                                                     ]
-                                                    (all dead (type) [Maybe [[Tuple2 a] b]])
+                                                    (all
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        Maybe [ [ Tuple2 a ] b ]
+                                                      ]
+                                                    )
                                                   }
                                                   (lam
                                                     ipv
@@ -178,7 +213,10 @@
                                                       dead
                                                       (type)
                                                       [
-                                                        { Just [[Tuple2 a] b] }
+                                                        {
+                                                          Just
+                                                          [ [ Tuple2 a ] b ]
+                                                        }
                                                         [
                                                           [
                                                             { { Tuple2 a } b }
@@ -193,7 +231,7 @@
                                                 (abs
                                                   dead
                                                   (type)
-                                                  { Nothing [[Tuple2 a] b] }
+                                                  { Nothing [ [ Tuple2 a ] b ] }
                                                 )
                                               ]
                                               (all dead (type) dead)
@@ -202,7 +240,9 @@
                                         )
                                       ]
                                       (abs
-                                        dead (type) { Nothing [[Tuple2 a] b] }
+                                        dead
+                                        (type)
+                                        { Nothing [ [ Tuple2 a ] b ] }
                                       )
                                     ]
                                     (all dead (type) dead)
@@ -210,38 +250,46 @@
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl lvl [Maybe [[Tuple2 a] b]])
+                                  (vardecl lvl [ Maybe [ [ Tuple2 a ] b ] ])
                                   [
                                     [
                                       [
                                         [
                                           {
                                             { chooseList (con data) }
-                                            (fun Unit [Maybe [[Tuple2 a] b]])
+                                            (fun
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           [ { tail (con data) } l ]
                                         ]
                                         (lam ds Unit nilCase)
                                       ]
-                                      (lam ds Unit { Nothing [[Tuple2 a] b] })
+                                      (lam
+                                        ds Unit { Nothing [ [ Tuple2 a ] b ] }
+                                      )
                                     ]
                                     Unit
                                   ]
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl lvl [Maybe [[Tuple2 a] b]])
+                                  (vardecl lvl [ Maybe [ [ Tuple2 a ] b ] ])
                                   [
                                     [
                                       [
                                         [
                                           {
                                             { chooseList (con data) }
-                                            (fun Unit [Maybe [[Tuple2 a] b]])
+                                            (fun
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           l
                                         ]
-                                        (lam ds Unit { Nothing [[Tuple2 a] b] })
+                                        (lam
+                                          ds Unit { Nothing [ [ Tuple2 a ] b ] }
+                                        )
                                       ]
                                       (lam ds Unit lvl)
                                     ]
@@ -250,18 +298,22 @@
                                 )
                                 (termbind
                                   (nonstrict)
-                                  (vardecl x [Maybe [[Tuple2 a] b]])
+                                  (vardecl x [ Maybe [ [ Tuple2 a ] b ] ])
                                   [
                                     [
                                       [
                                         [
                                           {
                                             { chooseList (con data) }
-                                            (fun Unit [Maybe [[Tuple2 a] b]])
+                                            (fun
+                                              Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
                                           }
                                           l
                                         ]
-                                        (lam ds Unit { Nothing [[Tuple2 a] b] })
+                                        (lam
+                                          ds Unit { Nothing [ [ Tuple2 a ] b ] }
+                                        )
                                       ]
                                       (lam ds Unit lvl)
                                     ]
@@ -274,7 +326,10 @@
                                       [
                                         {
                                           ifThenElse
-                                          (fun (con unit) [Maybe [[Tuple2 a] b]])
+                                          (fun
+                                            (con unit)
+                                            [ Maybe [ [ Tuple2 a ] b ] ]
+                                          )
                                         }
                                         [
                                           [
@@ -282,7 +337,7 @@
                                             [
                                               {
                                                 { fst (con integer) }
-                                                [(con list) (con data)]
+                                                [ (con list) (con data) ]
                                               }
                                               tup
                                             ]
@@ -293,7 +348,9 @@
                                       (lam ds (con unit) x)
                                     ]
                                     (lam
-                                      ds (con unit) { Nothing [[Tuple2 a] b] }
+                                      ds
+                                      (con unit)
+                                      { Nothing [ [ Tuple2 a ] b ] }
                                     )
                                   ]
                                   unitval
@@ -301,13 +358,13 @@
                               )
                             )
                           ]
-                          (lam ds Unit { Nothing [[Tuple2 a] b] })
+                          (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
                         ]
-                        (lam ds Unit { Nothing [[Tuple2 a] b] })
+                        (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
                       ]
-                      (lam ds Unit { Nothing [[Tuple2 a] b] })
+                      (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
                     ]
-                    (lam ds Unit { Nothing [[Tuple2 a] b] })
+                    (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
                   ]
                   Unit
                 ]
@@ -321,7 +378,23 @@
       (nonstrict)
       (vardecl
         fFromDataTuple2
-        (all a (type) (all b (type) (fun [(lam a (type) (fun (con data) [Maybe a])) a] (fun [(lam a (type) (fun (con data) [Maybe a])) b] [(lam a (type) (fun (con data) [Maybe a])) [[Tuple2 a] b]]))))
+        (all
+          a
+          (type)
+          (all
+            b
+            (type)
+            (fun
+              [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
+              (fun
+                [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
+                [
+                  (lam a (type) (fun (con data) [ Maybe a ])) [ [ Tuple2 a ] b ]
+                ]
+              )
+            )
+          )
+        )
       )
       fFromDataTuple2_cfromBuiltinData
     )
@@ -333,7 +406,8 @@
     (termbind
       (strict)
       (vardecl
-        fFromDataInteger_cfromBuiltinData (fun (con data) [Maybe (con integer)])
+        fFromDataInteger_cfromBuiltinData
+        (fun (con data) [ Maybe (con integer) ])
       )
       (lam
         d
@@ -344,7 +418,7 @@
               [
                 [
                   [
-                    [ { chooseData (fun Unit [Maybe (con integer)]) } d ]
+                    [ { chooseData (fun Unit [ Maybe (con integer) ]) } d ]
                     (lam ds Unit { Nothing (con integer) })
                   ]
                   (lam ds Unit { Nothing (con integer) })
@@ -363,7 +437,7 @@
       (nonstrict)
       (vardecl
         fFromDataInteger
-        [(lam a (type) (fun (con data) [Maybe a])) (con integer)]
+        [ (lam a (type) (fun (con data) [ Maybe a ])) (con integer) ]
       )
       fFromDataInteger_cfromBuiltinData
     )
@@ -371,7 +445,10 @@
       (nonstrict)
       (vardecl
         dFromData
-        [(lam a (type) (fun (con data) [Maybe a])) [[Tuple2 (con integer)] (con integer)]]
+        [
+          (lam a (type) (fun (con data) [ Maybe a ]))
+          [ [ Tuple2 (con integer) ] (con integer) ]
+        ]
       )
       [
         [ { { fFromDataTuple2 (con integer) } (con integer) } fFromDataInteger ]
@@ -382,15 +459,25 @@
       (strict)
       (vardecl
         fromBuiltinData
-        (all a (type) (fun [(lam a (type) (fun (con data) [Maybe a])) a] (fun (con data) [Maybe a])))
+        (all
+          a
+          (type)
+          (fun
+            [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
+            (fun (con data) [ Maybe a ])
+          )
+        )
       )
-      (abs a (type) (lam v [(lam a (type) (fun (con data) [Maybe a])) a] v))
+      (abs a (type) (lam v [ (lam a (type) (fun (con data) [ Maybe a ])) a ] v))
     )
     (lam
       ds
       (con data)
       [
-        [ { fromBuiltinData [[Tuple2 (con integer)] (con integer)] } dFromData ]
+        [
+          { fromBuiltinData [ [ Tuple2 (con integer) ] (con integer) ] }
+          dFromData
+        ]
         ds
       ]
     )

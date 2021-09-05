@@ -5,7 +5,7 @@
 
 {-|
 This module re-exports the module 'Plutus.V1.Ledger.Scripts', but with
-additionnal functionality.
+additional functionality.
 
 This module contains orphan instances of 'Cardano.Api.HasTextEnvelope', since
 the Cardano Node CLI expects serialised binary values to be wrapped with a

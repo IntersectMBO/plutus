@@ -2,7 +2,7 @@ module Language.Marlowe.ACTUS.Model.POF.PayoffModel where
 
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (CR (..), FEB (FEB_A, FEB_N),
                                                                    PYTP (PYTP_A, PYTP_I, PYTP_N, PYTP_O))
-import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_max, _zero),
+import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_abs, _max, _zero),
                                                                    RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
 
@@ -41,8 +41,10 @@ _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t = o_rf_CURS * isc * (ipac + y_sd_t
 _POF_IED_LAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a
 _POF_IED_LAM = _POF_IED_PAM
 
-_POF_PR_LAM :: (ActusNum a, RoleSignOps a) => a -> CR -> a -> a -> a
-_POF_PR_LAM o_rf_CURS _CNTRL nsc prnxt = o_rf_CURS * _r _CNTRL * nsc * prnxt
+_POF_PR_LAM :: (ActusNum a, RoleSignOps a, ActusOps a) => a -> CR -> a -> a -> a -> a
+_POF_PR_LAM o_rf_CURS _CNTRL nt nsc prnxt =
+  let redemption = prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt)))
+   in o_rf_CURS * _r _CNTRL * nsc * redemption
 
 _POF_MD_LAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a
 _POF_MD_LAM = _POF_MD_PAM
@@ -70,8 +72,11 @@ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t = o_rf_CURS * isc * (ipac + y_sd
 _POF_IED_NAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a
 _POF_IED_NAM = _POF_IED_PAM
 
-_POF_PR_NAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a -> a
-_POF_PR_NAM o_rf_CURS nsc prnxt ipac y_sd_t ipnr ipcb = o_rf_CURS * nsc * (prnxt - ipac - y_sd_t * ipnr * ipcb)
+_POF_PR_NAM :: (RoleSignOps a, ActusNum a, ActusOps a) => a -> CR -> a -> a -> a -> a -> a -> a -> a -> a
+_POF_PR_NAM o_rf_CURS _CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt =
+  let ra = prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
+      r = ra - (_max _zero (ra - (_abs nt)))
+   in o_rf_CURS * _r _CNTRL * nsc * r
 
 _POF_MD_NAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a
 _POF_MD_NAM = _POF_MD_PAM

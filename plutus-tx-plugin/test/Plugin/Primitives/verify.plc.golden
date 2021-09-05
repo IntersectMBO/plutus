@@ -18,7 +18,10 @@
       (strict)
       (vardecl
         verifySignature
-        (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) (con bool))))
+        (fun
+          (con bytestring)
+          (fun (con bytestring) (fun (con bytestring) (con bool)))
+        )
       )
       (builtin verifySignature)
     )
@@ -26,7 +29,9 @@
       (strict)
       (vardecl
         verifySignature
-        (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
+        (fun
+          (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool))
+        )
       )
       (lam
         pubKey

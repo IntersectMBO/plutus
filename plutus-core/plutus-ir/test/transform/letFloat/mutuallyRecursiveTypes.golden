@@ -5,7 +5,7 @@
       (tyvardecl Tree (fun (type) (type)))
       (tyvardecl a (type))
       match_Tree
-      (vardecl Node (fun a (fun [Forest a] [Tree a])))
+      (vardecl Node (fun a (fun [ Forest a ] [ Tree a ])))
     )
   )
   (datatypebind
@@ -13,8 +13,8 @@
       (tyvardecl Forest (fun (type) (type)))
       (tyvardecl a (type))
       match_Forest
-      (vardecl Nil [Forest a])
-      (vardecl Cons (fun [Tree a] (fun [Forest a] [Forest a])))
+      (vardecl Nil [ Forest a ])
+      (vardecl Cons (fun [ Tree a ] (fun [ Forest a ] [ Forest a ])))
     )
   )
   { Nil (all a (type) (fun a a)) }

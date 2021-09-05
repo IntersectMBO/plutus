@@ -6,12 +6,14 @@
         (tyvardecl StrictPattern (fun (type) (type)))
         (tyvardecl a (type))
         StrictPattern_match
-        (vardecl StrictPattern (fun a (fun a [StrictPattern a])))
+        (vardecl StrictPattern (fun a (fun a [ StrictPattern a ])))
       )
     )
     (termbind
       (strict)
-      (vardecl WStrictPattern (all a (type) (fun a (fun a [StrictPattern a]))))
+      (vardecl
+        WStrictPattern (all a (type) (fun a (fun a [ StrictPattern a ])))
+      )
       (abs
         a
         (type)

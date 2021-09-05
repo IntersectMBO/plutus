@@ -1,5 +1,9 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
+import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
 import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (Cycle (..), IPCB (IPCB_NTL), PPEF (..),
@@ -8,7 +12,6 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule            (Shifted
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
-
 -- Principal at Maturity
 _S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 _S = generateRecurrentScheduleWithCorrections
@@ -92,8 +95,8 @@ _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD =
                 | otherwise                           = tt
     in result
 
-_SCHED_RRF_PAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
-_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD =
+-- ACTUS techspec implementation
+_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _RRNXT _MD _SD =
     let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
                 | otherwise                           = _RRANX
 
@@ -101,7 +104,11 @@ _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD =
 
         result  | isNothing _RRANX && isNothing _RRCL = Nothing
                 | otherwise                           = tt
-    in result
+    in
+      if isJust _RRNXT then
+        fmap (\d -> [d]) (L.find (\(ShiftedDay{ calculationDay = calculationDay }) -> calculationDay > _SD) (fromMaybe [] result))
+      else
+        Nothing
 
 _SCHED_SC_PAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
 _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
@@ -122,9 +129,9 @@ _SCHED_IED_LAM = _SCHED_IED_PAM
 _SCHED_PR_LAM :: ScheduleConfig -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
 _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
     let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
-                | isNothing _PRANX                    = Just $ _IED `plusCycle` fromJust _PRCL
-                | otherwise                           = _PRANX
-    in (\s -> _S s (fromJust _PRCL) _MD scfg ) <$> maybeS
+                | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
+                | otherwise                          = _PRANX
+    in (\s -> _S s (fromJust _PRCL){ includeEndDay = False } _MD scfg ) <$> maybeS
 
 _SCHED_MD_LAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
 _SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
@@ -157,39 +164,33 @@ _SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
                 | isNothing _IPCBANX                      = Just $ _IED `plusCycle` fromJust _IPCBCL
                 | otherwise                               = _IPCBANX
 
-        result  | fromJust _IPCB /= IPCB_NTL              = Nothing -- This means that IPCB != 'NTL', since there is no cycle
-                | otherwise                               = (\s -> _S s (fromJust _IPCBCL) _MD scfg) <$> maybeS
+        result  | (fromJust _IPCB) /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
+                | otherwise                          = (\s -> _S s (fromJust _IPCBCL){ includeEndDay = False } _MD scfg) <$> maybeS
     in result
 
 _SCHED_RR_LAM :: ScheduleConfig -> Day -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Maybe [ShiftedDay]
 _SCHED_RR_LAM = _SCHED_RR_PAM
 
-_SCHED_RRF_LAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
+--_SCHED_RRF_LAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
 _SCHED_RRF_LAM = _SCHED_RRF_PAM
 
 _SCHED_SC_LAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
 _SCHED_SC_LAM = _SCHED_SC_PAM
 
 -- Negative Amortizer
-_SCHED_IED_NAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
 _SCHED_IED_NAM = _SCHED_IED_PAM
 
-_SCHED_PR_NAM :: ScheduleConfig -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
 _SCHED_PR_NAM = _SCHED_PR_LAM
 
-_SCHED_MD_NAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
 _SCHED_MD_NAM = _SCHED_MD_PAM
 
-_SCHED_PP_NAM :: ScheduleConfig -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
 _SCHED_PP_NAM = _SCHED_PP_PAM
 
-_SCHED_PY_NAM :: ScheduleConfig -> PYTP -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
 _SCHED_PY_NAM = _SCHED_PY_PAM
 
 _SCHED_FP_NAM :: (Eq a, Fractional a) => ScheduleConfig -> a -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
 _SCHED_FP_NAM = _SCHED_FP_PAM
 
-_SCHED_PRD_NAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
 _SCHED_PRD_NAM = _SCHED_PRD_PAM
 
 _SCHED_TD_NAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
@@ -202,32 +203,53 @@ _SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
 
         _T      = fromJust maybeS `minusCycle` fromJust _PRCL
 
-        r       | isJust _IPCED = _IPCED
-                | isJust _IPANX = _IPANX
+        r       | isJust _IPANX = _IPANX
                 | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
                 | otherwise     = Nothing
 
         u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-                | isJust _IPCED && fromJust _IPCED >= _T = Nothing
-                | otherwise                              = (\s -> _S s (fromJust _IPCL) _MD scfg) <$> r
+                | isJust _IPCED && fromJust _IPCED > _T  = Nothing
+                | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
 
         v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
 
-        result  = Just (fromMaybe [] u ++ fromMaybe [] v)
+        result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+
+        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) > fromJust _IPCED) $ fromJust result
+                | otherwise = result
     in
-        result
+        result'
 
-_SCHED_IPCI_NAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe a -> Maybe [ShiftedDay]
-_SCHED_IPCI_NAM = _SCHED_IPCI_PAM
 
-_SCHED_IPCB_NAM :: ScheduleConfig -> Day -> Maybe IPCB -> Maybe Cycle -> Maybe Day -> Day -> Maybe ShiftedSchedule
+_SCHED_IPCI_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
+  let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
+              | otherwise        = _PRANX
+
+      _T      = fromJust maybeS `minusCycle` fromJust _PRCL
+
+      r       | isJust _IPCED = _IPCED
+              | isJust _IPANX = _IPANX
+              | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
+              | otherwise     = Nothing
+
+      u       | isNothing _IPANX && isNothing _IPCL    = Nothing
+              | isJust _IPCED && fromJust _IPCED > _T  = Nothing
+              | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
+
+      v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
+
+      result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
+
+      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) <= fromJust _IPCED) $ fromJust result
+              | otherwise = Nothing
+  in
+      result'
+
+
 _SCHED_IPCB_NAM = _SCHED_IPCB_LAM
 
-_SCHED_RR_NAM :: ScheduleConfig -> Day -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Maybe [ShiftedDay]
 _SCHED_RR_NAM = _SCHED_RR_PAM
 
-_SCHED_RRF_NAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
 _SCHED_RRF_NAM = _SCHED_RRF_PAM
 
-_SCHED_SC_NAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
 _SCHED_SC_NAM = _SCHED_SC_PAM

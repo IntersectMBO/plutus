@@ -16,6 +16,7 @@ This includes a variety of useful tools:
 * Agda with the right libraries set up to build our Agda code
 * `stylish-haskell`
 * `haskell-language-server`
+* `purescript-language-server`
 * ... and more
 
 Have a look in `shell.nix` to see what's there.
@@ -97,6 +98,16 @@ The `nix-shell` environment has a `haskell-language-server` binary for the right
 IMPORTANT: this binary is called `haskell-language-server`, rather than `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
 We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
+
+=== How to setup `purescript-language-server`
+The `nix-shell` environment has a `purescript-language-server` executable.
+Follow the instructions for your editor to configure it:
+
+- https://github.com/nwolverson/purescript-language-server
+
+NOTE: you must run your editor from the nix shell, and not from, say, an
+application launcher like spotlight or dmenu for your editor to find it in
+its PATH.
 
 [[update-generated]]
 === How to update the generated Haskell package set

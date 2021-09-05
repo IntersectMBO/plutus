@@ -6,5 +6,6 @@ Reference
    :titlesonly:
 
    examples
+   cost-model-parameters
    glossary
    bibliography

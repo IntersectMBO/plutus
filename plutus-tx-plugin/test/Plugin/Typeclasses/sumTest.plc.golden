@@ -23,13 +23,15 @@
         AdditiveMonoid_match
         (vardecl
           CConsAdditiveMonoid
-          (fun [(lam a (type) (fun a (fun a a))) a] (fun a [AdditiveMonoid a]))
+          (fun
+            [ (lam a (type) (fun a (fun a a))) a ] (fun a [ AdditiveMonoid a ])
+          )
         )
       )
     )
     (termbind
       (nonstrict)
-      (vardecl fAdditiveMonoidInteger [AdditiveMonoid (con integer)])
+      (vardecl fAdditiveMonoidInteger [ AdditiveMonoid (con integer) ])
       [
         [ { CConsAdditiveMonoid (con integer) } addInteger ]
         fAdditiveMonoidInteger_czero
@@ -42,7 +44,7 @@
         Monoid_match
         (vardecl
           CConsMonoid
-          (fun [(lam a (type) (fun a (fun a a))) a] (fun a [Monoid a]))
+          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
         )
       )
     )
@@ -50,17 +52,17 @@
       (strict)
       (vardecl
         p1Monoid
-        (all a (type) (fun [Monoid a] [(lam a (type) (fun a (fun a a))) a]))
+        (all a (type) (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
       )
       (abs
         a
         (type)
         (lam
           v
-          [Monoid a]
+          [ Monoid a ]
           [
-            { [ { Monoid_match a } v ] [(lam a (type) (fun a (fun a a))) a] }
-            (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+            { [ { Monoid_match a } v ] [ (lam a (type) (fun a (fun a a))) a ] }
+            (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
           ]
         )
       )
@@ -72,23 +74,24 @@
           (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
           Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
       )
       (let
         (nonrec)
         (termbind
           (strict)
-          (vardecl mempty (all a (type) (fun [Monoid a] a)))
+          (vardecl mempty (all a (type) (fun [ Monoid a ] a)))
           (abs
             a
             (type)
             (lam
               v
-              [Monoid a]
+              [ Monoid a ]
               [
                 { [ { Monoid_match a } v ] a }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
               ]
             )
           )
@@ -99,7 +102,13 @@
             (strict)
             (vardecl
               fFoldableNil_cfoldMap
-              (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
+              (all
+                m
+                (type)
+                (all
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -109,12 +118,14 @@
                 (type)
                 (lam
                   dMonoid
-                  [Monoid m]
+                  [ Monoid m ]
                   (let
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      )
                       [ { p1Monoid m } dMonoid ]
                     )
                     (lam
@@ -122,7 +133,7 @@
                       (fun a m)
                       (lam
                         ds
-                        [List a]
+                        [ List a ]
                         {
                           [
                             [
@@ -134,7 +145,7 @@
                               a
                               (lam
                                 xs
-                                [List a]
+                                [ List a ]
                                 (abs
                                   dead
                                   (type)
@@ -170,7 +181,22 @@
               (nonstrict)
               (vardecl
                 fFoldableNil
-                [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) List]
+                [
+                  (lam
+                    t
+                    (fun (type) (type))
+                    (all
+                      m
+                      (type)
+                      (all
+                        a
+                        (type)
+                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                      )
+                    )
+                  )
+                  List
+                ]
               )
               fFoldableNil_cfoldMap
             )
@@ -178,7 +204,13 @@
               (strict)
               (vardecl
                 build
-                (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
+                (all
+                  a
+                  (type)
+                  (fun
+                    (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                  )
+                )
               )
               (abs
                 a
@@ -186,7 +218,7 @@
                 (lam
                   g
                   (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                  [ [ { g [List a] } { Cons a } ] { Nil a } ]
+                  [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
                 )
               )
             )
@@ -194,36 +226,42 @@
               (strict)
               (vardecl
                 p1AdditiveMonoid
-                (all a (type) (fun [AdditiveMonoid a] [(lam a (type) (fun a (fun a a))) a]))
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ AdditiveMonoid a ] [ (lam a (type) (fun a (fun a a))) a ]
+                  )
+                )
               )
               (abs
                 a
                 (type)
                 (lam
                   v
-                  [AdditiveMonoid a]
+                  [ AdditiveMonoid a ]
                   [
                     {
                       [ { AdditiveMonoid_match a } v ]
-                      [(lam a (type) (fun a (fun a a))) a]
+                      [ (lam a (type) (fun a (fun a a))) a ]
                     }
-                    (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                    (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
                   ]
                 )
               )
             )
             (termbind
               (strict)
-              (vardecl zero (all a (type) (fun [AdditiveMonoid a] a)))
+              (vardecl zero (all a (type) (fun [ AdditiveMonoid a ] a)))
               (abs
                 a
                 (type)
                 (lam
                   v
-                  [AdditiveMonoid a]
+                  [ AdditiveMonoid a ]
                   [
                     { [ { AdditiveMonoid_match a } v ] a }
-                    (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                    (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
                   ]
                 )
               )
@@ -232,23 +270,27 @@
               (strict)
               (vardecl
                 fMonoidSum
-                (all a (type) (fun [AdditiveMonoid a] [Monoid [(lam a (type) a) a]]))
+                (all
+                  a
+                  (type)
+                  (fun [ AdditiveMonoid a ] [ Monoid [ (lam a (type) a) a ] ])
+                )
               )
               (abs
                 a
                 (type)
                 (lam
                   v
-                  [AdditiveMonoid a]
+                  [ AdditiveMonoid a ]
                   [
                     [
-                      { CConsMonoid [(lam a (type) a) a] }
+                      { CConsMonoid [ (lam a (type) a) a ] }
                       (lam
                         eta
-                        [(lam a (type) a) a]
+                        [ (lam a (type) a) a ]
                         (lam
                           eta
-                          [(lam a (type) a) a]
+                          [ (lam a (type) a) a ]
                           [ [ [ { p1AdditiveMonoid a } v ] eta ] eta ]
                         )
                       )
@@ -262,7 +304,33 @@
               (strict)
               (vardecl
                 sum
-                (all t (fun (type) (type)) (all a (type) (fun [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t] (fun [AdditiveMonoid a] (fun [t a] a)))))
+                (all
+                  t
+                  (fun (type) (type))
+                  (all
+                    a
+                    (type)
+                    (fun
+                      [
+                        (lam
+                          t
+                          (fun (type) (type))
+                          (all
+                            m
+                            (type)
+                            (all
+                              a
+                              (type)
+                              (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                            )
+                          )
+                        )
+                        t
+                      ]
+                      (fun [ AdditiveMonoid a ] (fun [ t a ] a))
+                    )
+                  )
+                )
               )
               (abs
                 t
@@ -272,13 +340,28 @@
                   (type)
                   (lam
                     dFoldable
-                    [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) t]
+                    [
+                      (lam
+                        t
+                        (fun (type) (type))
+                        (all
+                          m
+                          (type)
+                          (all
+                            a
+                            (type)
+                            (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                          )
+                        )
+                      )
+                      t
+                    ]
                     (lam
                       dAdditiveMonoid
-                      [AdditiveMonoid a]
+                      [ AdditiveMonoid a ]
                       [
                         [
-                          { { dFoldable [(lam a (type) a) a] } a }
+                          { { dFoldable [ (lam a (type) a) a ] } a }
                           [ { fMonoidSum a } dAdditiveMonoid ]
                         ]
                         (lam v a v)

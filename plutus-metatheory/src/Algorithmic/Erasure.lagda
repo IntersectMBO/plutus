@@ -11,14 +11,13 @@ open import Untyped.RenamingSubstitution as U
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
+open import Utils
 open import Type
 open import Type.BetaNBE.RenamingSubstitution
 open import Function hiding (_∋_)
 open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con as DS
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con as AS
 open import Type.RenamingSubstitution as T
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -57,6 +56,7 @@ eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
 eraseTC (AC.bool b)       = bool b
 eraseTC AC.unit           = unit
+eraseTC (AC.Data d)       = Data d
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -94,11 +94,6 @@ lenLemma⋆ : ∀ Φ → D.len⋆ Φ ≡ len⋆ Φ
 lenLemma⋆ ∅       = refl
 lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
 
-nfTypeSIG≡₁' : (bn : Builtin)
-  → D.len⋆ (proj₁ (DS.SIG bn)) ≡ len⋆ (proj₁ (AS.SIG bn))
-nfTypeSIG≡₁' b = trans (cong D.len⋆ (nfTypeSIG≡₁ b)) (lenLemma⋆ _)
-
-
 -- these lemmas for each clause of eraseVar and erase below could be
 -- avoided by using with but it would involve doing with on a long
 -- string of arguments, both contexts, equality proof above, and
@@ -121,6 +116,7 @@ sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
 sameTC (DC.bool b)       = refl
 sameTC DC.unit           = refl
+sameTC (DC.Data d)       = refl
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -184,15 +180,6 @@ lem∷ refl t ts = refl
 lem∷' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : A)(ts : Vec A n)
   → t ∷ subst (Vec A) p ts ≡ subst (Vec A) q (t ∷ ts) 
 lem∷' refl refl t ts = refl
-
-lem:< : ∀{m n n'}(p : n ≡ n')(ts : Vec (n ⊢) m)(t : n ⊢)
-  → subst (λ n → Vec (n ⊢) m) p ts :< subst _⊢ p t ≡ subst (λ n → Vec (n ⊢) (suc m)) p (ts :< t) 
-lem:< refl ts t = refl
-
-lem:<' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(ts : Vec A n)(t : A)
-  → subst (Vec A) p ts :< t ≡ subst (Vec A) q (ts :< t) 
-lem:<' refl refl ts t = refl
-
 
 {-
 lemTel : ∀{m n n'}(p : n ≡ n')(bn : Builtin)(ts : Vec (n ⊢) m)
@@ -316,6 +303,7 @@ same'TC (AC.bytestring b) = refl
 same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
 same'TC AC.unit           = refl
+same'TC (AC.Data d)       = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

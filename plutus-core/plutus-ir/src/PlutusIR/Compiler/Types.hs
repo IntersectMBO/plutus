@@ -42,22 +42,21 @@ instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
 data CompilationOpts = CompilationOpts {
-    _coOptimize                         :: Bool
-    , _coPedantic                       :: Bool
-    , _coVerbose                        :: Bool
-    , _coDebug                          :: Bool
-    , _coMaxSimplifierIterations        :: Int
+    _coOptimize                   :: Bool
+    , _coPedantic                 :: Bool
+    , _coVerbose                  :: Bool
+    , _coDebug                    :: Bool
+    , _coMaxSimplifierIterations  :: Int
     -- Simplifier passes
-    , _coDoSimplifierUnwrapCancel       :: Bool
-    , _coDoSimplifierBeta               :: Bool
-    , _coDoSimplifierInline             :: Bool
-    , _coDoSimplifierRemoveDeadBindings :: Bool
+    , _coDoSimplifierUnwrapCancel :: Bool
+    , _coDoSimplifierBeta         :: Bool
+    , _coDoSimplifierInline       :: Bool
     } deriving (Eq, Show)
 
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True False False False 8 True True True True
+defaultCompilationOpts = CompilationOpts True False False False 8 True True True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts
@@ -134,6 +133,7 @@ type Compiling m e uni fun a =
     , PLC.Closed uni
     , PLC.GShow uni
     , uni `PLC.Everywhere` PLC.PrettyConst
+    , PLC.Pretty a
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)
