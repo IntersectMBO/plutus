@@ -4,9 +4,6 @@ library(stringr, quietly=TRUE, warn.conflicts=FALSE)
 library(MASS,    quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
-## This causes warnings generated here to be printed out when this code is run from Haskell.
-options (warn=1)
-
 ## See Note [Creation of the Cost Model]
 
 ## This R code is used to analyse the data in `benching.csv` produced by
@@ -54,7 +51,7 @@ discard.upper.outliers <- function(fr,name) {
     nrows = nrow(fr)
     new.nrows = nrow(new.fr)
     if (new.nrows <= 0.9 * nrows) {
-        warning ("*** WARNING: ", nrows-new.nrows, " outliers have been discarded from ", nrows, " datapoints for ", name );
+        cat (sprintf ("*** WARNING: %d outliers have been discarded from %d datapoints for %s\n", nrows-new.nrows, nrows, name ));
     }
     new.fr
 }
@@ -173,8 +170,8 @@ adjustModel <- function (m, fname) {
 
     ensurePositive <- function(x, name) {
         if (x<0) {
-            warning ("*** WARNING: a negative coefficient ", x, " for ", name,
-                     "\n  *** occurred in the model for ", fname, ". This has been adjusted to zero.");
+            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to zero.\n",
+                         x, name, fname))
             0
         }
         else x
@@ -203,15 +200,15 @@ modelFun <- function(path) {
             r <- t
         }
         else if (len == 0) {
-            warning (sprintf ("*** WARNING: %s not found in input - returning 0", name))
+            cat(sprintf ("* WARNING: %s not found in input - returning 0", name))
             r <- 0
         } else {
-            warning (sprintf ("*** WARNING: multiple entries for %s in input - returning mean value", name))
+            vat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value", name))
             r <- mean(t)
         }
 
         if (r < 0) {
-            warning (sprintf ("*** WARNING: mean time for %s is negative - returning 0", name))
+            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0", name))
             return (0)
         }
         return (r)
@@ -227,13 +224,8 @@ modelFun <- function(path) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
         }
         else {
-            warning ("* NOTE: mean time for ",
-                     name,
-                     " was less than overhead (",
-                     sprintf ("%.3f ms", mean.time),
-                     " < ",
-                     sprintf ("%.3f ms", args.overhead),
-                     "): data was not adjusted");
+            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): data was not adjusted\n",
+                              name, mean.time, args.overhead));
             frame  ## ... or set the time to zero?
         }
     }
@@ -525,20 +517,54 @@ modelFun <- function(path) {
     ## only have one number to measure the memory usage of a Data object and it
     ## can't disinguish between an object with lots of nodes and not much atomic
     ## data and an object with a small number of nodes each containing e.g. a
-    ## large bytestring, and the comaprison times for these are likely to be
-    ## different.  Experiments with randomly generated heterogeneous data shows
-    ## that if you plot time taken against memory usage then you get a fan
-    ## shape, with all of the data lying below a particular straight line.  We
-    ## want to identify that line here and return it as an upper bound for
-    ## execution time.
+    ## large bytestring, and the comparison times for these are likely to be
+    ## different.
 
-    equalsDataModel   <- 0   ## MISSING
+    ## Experiments with randomly generated heterogeneous data shows that if you
+    ## plot time taken against memory usage then you get a fan shape, with all
+    ## of the data lying below a particular straight line.  We want to identify
+    ## that line here and return it as an upper bound for execution time.
+
+    ## Heuristically, the following procedure appears to give good results.
+    ## With the current distribution of input data, about 10% of our 400 data
+    ## points for EqualsData have the smallest possible size (4, for a single
+    ## node containing an empty list).  We calculate the mean time (min.t) for
+    ## data points with this x-coordinate (min.x), then fit a linear model
+    ## constrained to pass through this point and look at its slope, s.  Since
+    ## this is a bit fragile, we print out some information about accuracy.
+
+    ## In the longer term we should try to find a better size estimate for Data.
+    ## This might allow us to get better predicitions, although it's likely that
+    ## the "memoryUsage" value would not represent actual memory usage, but
+    ## rather the cost of processing nodes in a Data tree vis-a-vis the cost
+    ## of processing integers and bytestrings.
+ 
+    equalsDataModel   <- {
+        fname <- "EqualsData"
+        f <- data %>% filter.and.check.nonempty(fname)
+        min.x <- min(f$x_mem)
+        min.t <- mean (f$Mean[f$x_mem==min.x])
+        m <- lm(f$Mean - min.t ~ I(f$x_mem - min.x) + 0)
+        cat (m$coefficients, "\n")
+        s <- coef(m)[1]  ## Not 2: we've used +0, so the intercept doesn't appear in the model
+        v <- c(min.t-s*min.x, s) ## ie, f(x) = min.t +s(x-min.x)
+        names(v) <- c("(Intercept)", "x_mem")  ## Make it look like what the Haskell code's expecting.
+        pr <- function(x) { v[1] + v[2]*x }  ## What this model predicts.
+        errors = (pr(f$x)-f$Mean)/f$Mean  ## Residuals as fraction of observed values.
+        over = errors[errors>0]     ## Overpredictions - good, or at least acceptable.
+        under = -errors[errors<=0]  ## Underpredictions - bad
+        cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
+           (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
+        cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
+        (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
+        m2 <- lm(Mean ~ x_mem, f)  ## A model with the expected structure
+        m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it
+        adjustModel(m2,fname)
+    }
 
     mkPairDataModel     <- constantModel ("MkPairData")
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
-
-    warnings() ## 
 
     list(
         addIntegerModel               = addIntegerModel,

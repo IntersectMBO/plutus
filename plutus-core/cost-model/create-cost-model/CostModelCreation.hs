@@ -184,6 +184,7 @@ createBuiltinCostModel =
     pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
+-- FIXME: we ignore most of this.  Should we just return the vector of coefficients for the model?
 data LinearModelRaw = LinearModelRaw
   { linearModelIndex        :: Integer
   , linearModelRawTerm      :: String
@@ -483,7 +484,6 @@ decodeUtf8 cpuModelR = do
 
 
 ---------------- Bool ----------------
--- ## TODO: get model from R
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse cpuModelR = do
   cpuModel <- ModelThreeArgumentsConstantCost <$> readModelConstantCost cpuModelR
@@ -640,18 +640,24 @@ unBData cpuModelR = do
   pure $ CostingFun cpuModel memModel
 -- B b -> b;  _ -> fail
 
--- ### TODO: get model from R ###
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsData cpuModelR = do
-  let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize 150000 10000
-  let memModel = ModelTwoArgumentsConstantCost 1
+  ModelLinearSize intercept slope <- readModelLinearInX cpuModelR
+  let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize intercept slope
+      memModel = ModelTwoArgumentsConstantCost 1
   pure $ CostingFun cpuModel memModel
   {- The size function for 'Data' counts the total number of nodes, and so is
      potentially expensive.  Luckily laziness in the costing functions ensures
      that it's only called if really necessary, so it'll be called here but not
      in 'unBData' etc.  Doing the full traversal seems to increase validation times
      by one or two percent, but we can't really avoid it here. -}
-
+  {- Another complication is that 'equalsData' will always return False when the
+     arguments are of different size, but it's not clever enough to realise that
+     and return immediately, so it may perform a lot of computation even off the
+     diagonal.  The R model is generated from data on the diagonal, so we read
+     that in here and adjust it to be linear in 'min x_mem y_mem', since in the
+     worst case it may have to examine almost all of the smaller argument before
+     realising that the two arguments are different. -}
 
 ---------------- Misc constructors ----------------
 

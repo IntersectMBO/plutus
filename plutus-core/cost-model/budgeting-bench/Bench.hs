@@ -57,7 +57,7 @@ main = do
   if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
   criterionMainWith
-       False
+       True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
             Benchmarks.Bool.makeBenchmarks            gen
         <>  Benchmarks.ByteStrings.makeBenchmarks     gen
@@ -79,7 +79,7 @@ main = do
   -- data will still be generated and saved in benching.csv).
 
   criterionMainWith
-       True
+       False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen
 
