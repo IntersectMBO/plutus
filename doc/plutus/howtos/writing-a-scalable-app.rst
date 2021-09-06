@@ -14,7 +14,7 @@ We need new design patterns, because the underlying representation of the data i
 In this document we discuss the structure of the UTXO model and its implications for scalability, arriving at a list of :ref:`scalability guidelines <scalability_guidelines>` that can guide the design of distributed applications on Plutus.
 We use the :ref:`example of a decentralised exchange <scalability_example>` to illustrate the pros and cons of the different approaches.
 
-The Building blocks
+The building blocks
 -------------------
 
 Let's look at the building blocks of the ledger's scripting features.
@@ -59,15 +59,15 @@ Every transaction output starts in the **unspent** state, then it may transition
 The transition happens when a transaction that spends the output is appended to the blockchain.
 
 .. note::
-    Reality is slightly more complicated: Since transactions can be rolled back, the state of a transaction output can change back to "unspent" if the spending transaction gets rolled back.
-    Only when a certain number of blocks have been added is the spending transaction firmly committed and the state of the output cannot change back to "unspent" anymore.
-    Rollbacks are reflected in the PAB's APIs for dealing with the status of UTXOs, and they need to be considered when thinking about the business logic of your applications.
+    Reality is slightly more complicated: Since transactions can be rolled back, the state of a transaction output can change back to *unspent* if the spending transaction gets rolled back.
+    Only when a certain number of blocks have been added is the spending transaction firmly committed and the state of the output cannot change back to *unspent* anymore.
+    Rollbacks are reflected in the :ref:`Plutus Application Backend (PAB) <what_is_the_pab>`'s interface for :ref:`dealing with blockchain events <handling_blockchain_events>`, and they need to be considered when thinking about the business logic of your applications.
 
 Changing the state of our app
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's think of the on-chain state of our application as a **set of unspent transactions outputs** (a subset of the global UTXO set that is maintained by the ledger).
-There are no restrictions on how many different outputs or addresses our app can have -- a one-off trade between two parties only needs a single output, while a complex distributed application with governance, tokens and so forth might involve multiple Plutus scripts and a large number of unspent transaction outputs.
+There are no hard restrictions on how many different outputs or addresses our app can have -- a one-off trade between two parties only needs a single output, while a complex distributed application with governance, tokens and so forth might involve multiple Plutus scripts and a large number of unspent transaction outputs.
 
 .. figure:: ./utxos-1.png
 
@@ -123,14 +123,14 @@ Whenever we need to run a Plutus script in our application we should ask ourselv
 
 .. _scalability_guidelines:
 
-Scalability Guidelines
+Scalability guidelines
 ----------------------
 
-The discussion of the UTXO model above can be summarised in two guiding principles for avoiding bottlenecks in your app:
+The discussion of the UTXO model above can be summarised in three guiding principles for avoiding bottlenecks in your app:
 
 1. **Minimise the number of transactions that are trying to spend the same script output.** The number of entities (users) that try to spend a given script output at a single time should be small. It should certainly not grow with the total number of concurrent users of the system. A good distributed app design ensures that the number of UTXOs that make up the application state grows with the number of active users, and that each user interacts with a small subset of the application's UTXOs only.
 2. **Decouple the spending of script outputs from producing script outputs.** Transactions that don't spend script outputs are not liable to UTXO congestion on script outputs.
-3. **Use minting policy scripts and tokens.** Minting policies are Plutus scripts that can be run without spending a script output. Besides being useful for NFTs and other currency-like applications, tokens created by Plutus minting policies can act as *evidence* that some event happened in the past. For example, we could write a state machine that produces a token in its last transition. This token can then be used as proof that the state machine has finished, long after the last output has been spent. In this way, minting policies could be use to implement certain forms of oracles.
+3. **Use minting policy scripts and tokens.** Minting policies are Plutus scripts that can be run without spending a script output. Besides being useful for NFTs and other currency-like applications, tokens created by Plutus minting policies can act as *evidence* that some event happened in the past. For example, we could write a state machine that produces a token in its last transition. This token can then be used as proof that the state machine has finished, long after the last output has been spent. In this way, minting policies could be used to implement certain forms of oracles.
 
 Examples
 --------

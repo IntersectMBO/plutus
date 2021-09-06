@@ -50,6 +50,7 @@ executable doc-doctests
       BasicPolicies
       BasicApps
       GameModel
+      HandlingBlockchainEvents
       HelloWorldApp
     build-depends:
       base >=4.9 && <5,
@@ -70,7 +71,8 @@ executable doc-doctests
       QuickCheck -any,
       random -any,
       text -any,
-      aeson -any
+      aeson -any,
+      plutus-chain-index
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
