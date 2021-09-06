@@ -31,7 +31,7 @@ They differ in the kind of witness that is required to spend them.
 A public key output can be spent by a transaction that carry a signature of the private key that corresponds to the output's public key.
 A script output can be spent by a transaction that carries the validator script which hashes to the script hash, and two pieces of data - the redeemer and the datum.
 The latter must be the value that hashes to the output's datum hash.
-In addition, any transaction spending a script output must meet the requirements set out in the validator script.
+In addition, any transaction attempting to spend a script output must meet the requirements set out in the validator script.
 
 +-------------+-----------+------------------+-----------+
 | Output type | Witness   | Address          | Data      |
@@ -67,6 +67,7 @@ Changing the state of our app
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's think of the on-chain state of our application as a **set of unspent transactions outputs** (a subset of the global UTXO set that is maintained by the ledger).
+There are no restrictions on how many different outputs or addresses our app can have -- a one-off trade between two parties only needs a single output, while a complex distributed application with governance, tokens and so forth might involve multiple Plutus scripts and a large number of unspent transaction outputs.
 
 .. figure:: ./utxos-1.png
 
@@ -80,7 +81,7 @@ Transactions can change our application's set of UTXOs by adding new outputs to 
 
     A block with two transactions, Tx1 and Tx2, both changing the on-chain state of our app. Adding the block to the chain caused outputs (B) and (D) to become spent, and (E), (F), and (G) to be created in the unspent state.
 
-The number of new outputs that can be added to our application state in a single block is ultimately limited by the block size, which is a protocol parameter.
+The number of new outputs that can be added to our application state in a single block is ultimately limited by the block size. The block size is a protocol parameter that can be adapted over time to match the growth in smart contract usage.
 The number of outputs that can be removed from our application state in a block is limited both by the block size *and* by the number of outputs that are currently unspent.
 
 To produce a script output we only need to provide the hashes of the script and the datum, whereas to spend a script output we need to provide the script, datum and redeemer values in full.
@@ -100,6 +101,9 @@ If many users are trying to spend the same output there can quickly arise a situ
 Almost all of them will fail and try again in the next block.
 
 Congestion can happen on any type of output, but the chances of it happening to public key outputs are low, because the private key required to spend the output is usually only known to a single wallet, which can keep track of which outputs it has attempted to spend.
+For example, let's assume the user wants to make a payment and run a Plutus script in two different transactions.
+When the wallet has constructed and submitted the payment transaction, it remembers the public key inputs that were used to fund it.
+Then when the wallet balances the Plutus transaction it knows not to use the same public key inputs again, even if the inputs are still technically unspent at that time (while the payment transaction is in the mempool).
 
 Script outputs are more likely to fall victim to UTXO congestion *if* they can be spent by more than one party.
 To avoid UTXO congestion we should therefore design our system such that the number of simultaneous attempts made to spend the same script output is as low as possible.
@@ -148,6 +152,7 @@ This is an example decoupling the spending of script outputs from producing them
 The basic idea could be extended in many different ways.
 For example, minting policies can be used to enforce payment for market makers or to create governance tokens.
 If the code was open sourced, anyone could run a match making service and earn fees, thus creating incentives for fast settlement.
+This would result in a truly decentralised exchange, because the match making could be performed by anyone without central coordination.
 
 Marlowe
 ~~~~~~~
