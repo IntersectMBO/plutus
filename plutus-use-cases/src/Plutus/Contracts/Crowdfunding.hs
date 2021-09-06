@@ -240,7 +240,7 @@ scheduleCollection cmp = endpoint @"schedule collection" $ \() -> do
     logInfo @Text "Campaign started. Waiting for campaign deadline to collect funds."
 
     _ <- awaitTime $ campaignDeadline cmp
-    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
+    unspentOutputs <- utxosAt (Scripts.validatorAddress inst)
 
     let tx = Typed.collectFromScript unspentOutputs Collect
             <> Constraints.mustValidateIn (collectionRange cmp)

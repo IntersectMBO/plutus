@@ -27,36 +27,35 @@ import           Universe
 instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) where
     prettyBy config = \case
         Type ann           ->
-            parens (vsep' (consAnnIf config ann
+            parens (sep (consAnnIf config ann
                 ["type"]))
         KindArrow ann k k' ->
-            parens ("fun" </> vsep' (consAnnIf config ann
-                [prettyBy config k, prettyBy config k']))
+            sexp "fun" (consAnnIf config ann
+                [prettyBy config k, prettyBy config k'])
 
 instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann) where
     prettyBy config = \case
         TyApp ann t t'     ->
-            brackets' (vsep' (consAnnIf config ann
+            brackets' (sep (consAnnIf config ann
                 [prettyBy config t, prettyBy config t']))
         TyVar ann n        ->
-            vsep' (consAnnIf config ann
+            sep (consAnnIf config ann
                 [prettyBy config n])
         TyFun ann t t'     ->
-            parens ("fun" </> vsep' (consAnnIf config ann
-                [prettyBy config t, prettyBy config t']))
+            sexp "fun" (consAnnIf config ann
+                [prettyBy config t, prettyBy config t'])
         TyIFix ann pat arg ->
-            parens ("ifix" </> vsep' (consAnnIf config ann
-                [prettyBy config pat, prettyBy config arg]))
+            sexp "ifix" (consAnnIf config ann
+                [prettyBy config pat, prettyBy config arg])
         TyForall ann n k t ->
-            parens ("all" </> vsep' (consAnnIf config ann
-                [prettyBy config n, prettyBy config k, prettyBy config t]))
+            sexp "all" (consAnnIf config ann
+                [prettyBy config n, prettyBy config k, prettyBy config t])
         TyBuiltin ann n    ->
-            parens ("con" </> vsep' (consAnnIf config ann
-                [pretty n]))
+            sexp "con" (consAnnIf config ann [pretty n])
         TyLam ann n k t    ->
-            parens ("lam" </> vsep' (consAnnIf config ann
-                [prettyBy config n, prettyBy config k, prettyBy config t]))
+            sexp "lam" (consAnnIf config ann
+                [prettyBy config n, prettyBy config k, prettyBy config t])
 
 instance
         ( PrettyClassicBy configName tyname
@@ -66,33 +65,30 @@ instance
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann) where
     prettyBy config = \case
         Var ann n ->
-            vsep' (consAnnIf config ann [prettyBy config n])
+            sep (consAnnIf config ann [prettyBy config n])
         TyAbs ann tn k t ->
-            parens' ("abs" </> vsep' (consAnnIf config ann
-                [prettyBy config tn, prettyBy config k, prettyBy config t]))
+            sexp "abs" (consAnnIf config ann
+                [prettyBy config tn, prettyBy config k, prettyBy config t])
         LamAbs ann n ty t ->
-            parens' ("lam" </> vsep' (consAnnIf config ann
-                [prettyBy config n, prettyBy config ty, prettyBy config t]))
+            sexp "lam" (consAnnIf config ann
+                [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply ann t1 t2 ->
-            brackets' (vsep' (consAnnIf config ann
+            brackets' (sep (consAnnIf config ann
                 [prettyBy config t1, prettyBy config t2]))
         Constant ann c ->
-            parens' ("con" </> vsep' (consAnnIf config ann [prettyTypeOf c]) </> pretty c)
+            sexp "con" (consAnnIf config ann [prettyTypeOf c, pretty c])
         Builtin ann bi ->
-            parens' ("builtin" </> vsep' (consAnnIf config ann
-                [pretty bi]))
+            sexp "builtin" (consAnnIf config ann [pretty bi])
         TyInst ann t ty ->
-            braces' (vsep' (consAnnIf config ann
+            braces' (sep (consAnnIf config ann
                 [prettyBy config t, prettyBy config ty]))
         Error ann ty ->
-            parens' ("error" </> vsep' (consAnnIf config ann
-                [prettyBy config ty]))
+            sexp "error" (consAnnIf config ann [prettyBy config ty])
         IWrap ann ty1 ty2 t ->
-            parens' ("iwrap" </> vsep' (consAnnIf config ann
-                [prettyBy config ty1, prettyBy config ty2, prettyBy config t]))
+            sexp "iwrap" (consAnnIf config ann
+                [prettyBy config ty1, prettyBy config ty2, prettyBy config t])
         Unwrap ann t ->
-            parens' ("unwrap" </> vsep' (consAnnIf config ann
-                [prettyBy config t]))
+            sexp "unwrap" (consAnnIf config ann [prettyBy config t])
       where
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
@@ -100,4 +96,4 @@ instance
 instance (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun ann) where
     prettyBy config (Program ann version term) =
-        parens' $ "program" <+> vsep' (consAnnIf config ann [pretty version]) <//> prettyBy config term
+        sexp "program" (consAnnIf config ann [pretty version, prettyBy config term])

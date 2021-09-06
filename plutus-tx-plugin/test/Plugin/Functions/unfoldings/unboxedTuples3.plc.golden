@@ -25,7 +25,8 @@
         unboxedTuple
         (fun
           [ [ [ UTuple3 (con integer) ] (con integer) ] (con integer) ]
-          (con integer))
+          (con integer)
+        )
       )
       (lam
         ds

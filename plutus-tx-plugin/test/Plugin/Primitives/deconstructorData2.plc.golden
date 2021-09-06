@@ -22,7 +22,10 @@
             (all
               b
               (type)
-              (fun (fun a b) (fun [ [ Tuple2 c ] a ] [ [ Tuple2 c ] b ])))))
+              (fun (fun a b) (fun [ [ Tuple2 c ] a ] [ [ Tuple2 c ] b ]))
+            )
+          )
+        )
       )
       (abs
         c
@@ -61,9 +64,12 @@
               f
               (fun (type) (type))
               (all
-                a (type) (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                a (type) (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+              )
+            )
             [ Tuple2 c ]
-          ])
+          ]
+        )
       )
       fFunctorTuple2_cfmap
     )
@@ -87,7 +93,8 @@
             (all
               a
               (type)
-              (all b (type) (fun (fun a b) (fun [ List a ] [ List b ]))))
+              (all b (type) (fun (fun a b) (fun [ List a ] [ List b ])))
+            )
           )
           (abs
             a
@@ -144,7 +151,9 @@
                   (all
                     a
                     (type)
-                    (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                    (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                  )
+                )
                 List
               ]
             )
@@ -160,7 +169,9 @@
                 (all
                   c
                   (type)
-                  (all a (type) (fun (fun b c) (fun (fun a b) (fun a c))))))
+                  (all a (type) (fun (fun b c) (fun (fun a b) (fun a c))))
+                )
+              )
             )
             (abs
               b
@@ -191,13 +202,18 @@
                       (all
                         a
                         (type)
-                        (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                        (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                      )
+                    )
                     f
                   ]
                   (all
                     a
                     (type)
-                    (all b (type) (fun (fun a b) (fun [ f a ] [ f b ]))))))
+                    (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                  )
+                )
+              )
             )
             (abs
               f
@@ -211,7 +227,9 @@
                     (all
                       a
                       (type)
-                      (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))))
+                      (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                    )
+                  )
                   f
                 ]
                 v
@@ -224,7 +242,8 @@
               unsafeDataAsConstr
               (fun
                 (con data)
-                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ])
+                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+              )
             )
             (builtin unConstrData)
           )
@@ -247,9 +266,8 @@
             (vardecl
               chooseList
               (all
-                a
-                (type)
-                (all b (type) (fun [ (con list) a ] (fun b (fun b b)))))
+                a (type) (all b (type) (fun [ (con list) a ] (fun b (fun b b))))
+              )
             )
             (builtin chooseList)
           )
@@ -260,7 +278,8 @@
           )
           (termbind
             (strict)
-            (vardecl tail (all a (type) (fun [ (con list) a ] [ (con list) a ]))
+            (vardecl
+              tail (all a (type) (fun [ (con list) a ] [ (con list) a ]))
             )
             (builtin tailList)
           )
@@ -308,7 +327,8 @@
                 (vardecl
                   unsafeDataAsConstr
                   (fun
-                    (con data) [ [ Tuple2 (con integer) ] [ List (con data) ] ])
+                    (con data) [ [ Tuple2 (con integer) ] [ List (con data) ] ]
+                  )
                 )
                 (lam
                   w
@@ -369,7 +389,8 @@
                               [ [ Tuple2 (con integer) ] [ List (con data) ] ]
                               [
                                 [ Tuple2 (con integer) ] [ List (con integer) ]
-                              ])
+                              ]
+                            )
                           }
                           (fun (con data) (con integer))
                         }

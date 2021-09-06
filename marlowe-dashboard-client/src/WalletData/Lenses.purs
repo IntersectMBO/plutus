@@ -23,8 +23,8 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
-import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
-import Marlowe.Semantics (Assets, PubKey)
+import Marlowe.PAB (PlutusAppId)
+import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey)
 import Types (WebData)
 import WalletData.Types (CardSection, PubKeyHash, State, Wallet, WalletIdError, WalletInfo, WalletLibrary, WalletNickname, WalletNicknameError, WalletDetails)
 

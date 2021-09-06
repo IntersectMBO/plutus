@@ -8,6 +8,8 @@ module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   , sup
   , inf
   , remove
+  , applyEOMC
+  , moveToEndOfMonth
   )
 where
 
@@ -50,18 +52,29 @@ correction Cycle{ stub = stub, includeEndDay = includeEndDay} anchorDate endDate
     schedule' = L.init schedule
     schedule'Size = L.length schedule'
     schedule'' =
-      if includeEndDay then
-        schedule' ++ [endDate]
+      -- if includeEndDay then
+      --   schedule' ++ [endDate]
+      -- else
+      --   if endDate == anchorDate then
+      --     L.delete anchorDate schedule'
+      --   else
+      --     schedule'
+      if not includeEndDay && endDate == anchorDate then
+        L.delete anchorDate schedule'
       else
-        if endDate == anchorDate then
-          L.delete anchorDate schedule'
-        else
-          schedule'
+        schedule'
   in
     if stub == LongStub && L.length schedule'' > 2 && endDate /= lastDate then
       L.delete (schedule'' !! (schedule'Size - 1)) schedule''
     else
       schedule''
+
+addEndDay :: Bool -> Day -> ShiftedSchedule -> ShiftedSchedule
+addEndDay includeEndDay endDate schedule =
+  if includeEndDay then
+    schedule ++ [ShiftedDay{ calculationDay = endDate, paymentDay = endDate }]
+  else
+    schedule
 
 generateRecurrentSchedule :: Cycle -> Day -> Day -> [Day]
 generateRecurrentSchedule Cycle {..} anchorDate endDate =
@@ -74,13 +87,13 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
           )
   in  go anchorDate 1 []
 
-generateRecurrentScheduleWithCorrections
-  :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
+generateRecurrentScheduleWithCorrections :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
   = generateRecurrentSchedule cycle anchorDate endDate &
       ((correction cycle anchorDate endDate) >>>
       (fmap $ applyEOMC anchorDate cycle (fromJust eomc)) >>>
-      (fmap $ applyBDC (fromJust bdc) (fromJust calendar)))
+      (fmap $ applyBDC (fromJust bdc) (fromJust calendar)) >>>
+      (addEndDay (includeEndDay cycle) endDate))
 
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)
@@ -111,12 +124,12 @@ applyEOMC s Cycle {..} endOfMonthConvention date
 
 isLastDayOfMonthWithLessThan31Days :: Day -> Bool
 isLastDayOfMonthWithLessThan31Days date =
-  let (day, month, year) = toGregorian date
-      isLastDay = gregorianMonthLength (toInteger year) month == fromInteger day
+  let (year, month, day) = toGregorian date
+      isLastDay = gregorianMonthLength year month == day
   in  day <  31 && isLastDay
 
 moveToEndOfMonth :: Day -> Day
 moveToEndOfMonth date =
-  let (_, month, year) = toGregorian date
-      monthLength      = gregorianMonthLength (toInteger year) month
-  in  fromGregorian (toInteger year) month monthLength
+  let (year, month, _) = toGregorian date
+      monthLength      = gregorianMonthLength year month
+  in  fromGregorian year month monthLength

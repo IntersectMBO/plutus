@@ -42,8 +42,6 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
-        Plutus.Contract.CardanoAPI
-        Plutus.Contract.CardanoAPITemp
         Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
@@ -65,8 +63,6 @@ library
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Chain
-        Wallet.Emulator.ChainIndex
-        Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
@@ -91,6 +87,7 @@ library
         Plutus.Trace.Effects.Waiting
         Plutus.Trace.Emulator
         Plutus.Trace.Emulator.ContractInstance
+        Plutus.Trace.Emulator.Extract
         Plutus.Trace.Emulator.System
         Plutus.Trace.Emulator.Types
         Plutus.Trace.Playground
@@ -108,13 +105,6 @@ library
         cardano-api -any,
         cardano-crypto -any,
         cardano-ledger-core -any,
-    -- Temporary for Plutus.Contract.CardanoAPITemp
-    build-depends:
-        cardano-ledger-alonzo -any,
-        cardano-ledger-shelley-ma -any,
-        ouroboros-consensus-shelley -any,
-        shelley-spec-ledger -any,
-        strict-containers -any,
     build-depends:
         aeson >= 1.5.2,
         aeson-pretty -any,
@@ -124,7 +114,10 @@ library
         cryptonite >=0.25,
         data-default -any,
         deepseq -any,
+        directory -any,
+        filepath -any,
         fingertree -any,
+        flat -any,
         foldl -any,
         freer-simple -any,
         hashable -any,

@@ -10,7 +10,8 @@
           CConsDefaultMethods
           (fun
             (fun a (con integer))
-            (fun (fun a (con integer)) [ DefaultMethods a ]))
+            (fun (fun a (con integer)) [ DefaultMethods a ])
+          )
         )
       )
     )
@@ -34,7 +35,8 @@
     )
     (termbind
       (strict)
-      (vardecl f (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
+      (vardecl
+        f (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
       )
       (abs
         a

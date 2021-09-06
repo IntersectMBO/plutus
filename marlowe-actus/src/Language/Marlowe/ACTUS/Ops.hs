@@ -15,10 +15,11 @@ marloweFixedPoint :: Integer
 marloweFixedPoint = 1000
 
 class ActusOps a where
-    _min :: a -> a -> a
-    _max :: a -> a -> a
+    _min  :: a -> a -> a
+    _max  :: a -> a -> a
+    _abs  :: a -> a
     _zero :: a
-    _one :: a
+    _one  :: a
 
 class ActusNum a where
     (+) :: a -> a -> a
@@ -38,6 +39,7 @@ class RoleSignOps a where
 instance ActusOps Double where
     _min  = min
     _max  = max
+    _abs  = abs
     _zero = 0.0
     _one  = 1.0
 
@@ -59,6 +61,7 @@ instance RoleSignOps Double where
 instance ActusOps (Value Observation) where
     _min a b = Cond (ValueLT a b) a b
     _max a b = Cond (ValueGT a b) a b
+    _abs a = _max a (SubValue _zero a)
     _zero = Constant 0
     _one  = Constant marloweFixedPoint
 

@@ -49,8 +49,8 @@
         (vardecl
           Proposal
           (fun
-            (con bytestring)
-            (fun (con bytestring) (fun (con integer) Proposal)))
+            (con bytestring) (fun (con bytestring) (fun (con integer) Proposal))
+          )
         )
       )
     )
@@ -141,12 +141,18 @@
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           k
                         ]
                         v
                       ]
-                      (con data))))))
+                      (con data)
+                    )
+                  )
+                )
+              )
+            )
           )
           (abs
             k
@@ -165,7 +171,8 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         k
                       ]
                       v
@@ -181,7 +188,8 @@
                             [
                               (con list)
                               [ [ (con pair) (con data) ] (con data) ]
-                            ])
+                            ]
+                          )
                         )
                         (lam
                           ds
@@ -197,7 +205,8 @@
                                     [
                                       (con list)
                                       [ [ (con pair) (con data) ] (con data) ]
-                                    ])
+                                    ]
+                                  )
                                 }
                                 (abs dead (type) fToDataMap)
                               ]
@@ -281,7 +290,9 @@
                     ]
                     Bool
                   ]
-                  Voting))
+                  Voting
+                )
+              )
             )
           )
         )
@@ -355,7 +366,9 @@
               (type)
               (fun
                 [ (lam a (type) (fun a (con data))) a ]
-                (fun [ Maybe a ] (con data))))
+                (fun [ Maybe a ] (con data))
+              )
+            )
           )
           (abs
             a
@@ -412,7 +425,8 @@
               GovState
               (fun
                 (con bytestring)
-                (fun (con bytestring) (fun [ Maybe Voting ] GovState)))
+                (fun (con bytestring) (fun [ Maybe Voting ] GovState))
+              )
             )
           )
         )
@@ -486,7 +500,8 @@
               StakingPtr
               (fun
                 (con integer)
-                (fun (con integer) (fun (con integer) StakingCredential)))
+                (fun (con integer) (fun (con integer) StakingCredential))
+              )
             )
           )
         )
@@ -548,7 +563,8 @@
             (tyvardecl LowerBound (fun (type) (type)))
             (tyvardecl a (type))
             LowerBound_match
-            (vardecl LowerBound (fun [ Extended a ] (fun Bool [ LowerBound a ]))
+            (vardecl
+              LowerBound (fun [ Extended a ] (fun Bool [ LowerBound a ]))
             )
           )
         )
@@ -557,7 +573,8 @@
             (tyvardecl UpperBound (fun (type) (type)))
             (tyvardecl a (type))
             UpperBound_match
-            (vardecl UpperBound (fun [ Extended a ] (fun Bool [ UpperBound a ]))
+            (vardecl
+              UpperBound (fun [ Extended a ] (fun Bool [ UpperBound a ]))
             )
           )
         )
@@ -600,13 +617,16 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  (fun [ Maybe (con bytestring) ] TxOut)))
+                  (fun [ Maybe (con bytestring) ] TxOut)
+                )
+              )
             )
           )
         )
@@ -633,13 +653,15 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         (con integer)
@@ -649,7 +671,8 @@
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         [
@@ -657,7 +680,8 @@
                             (lam
                               k
                               (type)
-                              (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                              (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                            )
                             (con bytestring)
                           ]
                           (con integer)
@@ -678,7 +702,16 @@
                                   List
                                   [ [ Tuple2 (con bytestring) ] (con data) ]
                                 ]
-                                (fun (con bytestring) TxInfo))))))))))
+                                (fun (con bytestring) TxInfo)
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )
@@ -697,7 +730,8 @@
           (vardecl
             mkStateMachine
             (all
-              s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool)))))
+              s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool))))
+            )
           )
           (abs
             s
@@ -733,13 +767,16 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  [ State s ]))
+                  [ State s ]
+                )
+              )
             )
           )
         )
@@ -771,13 +808,16 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  [ OutputConstraint a ]))
+                  [ OutputConstraint a ]
+                )
+              )
             )
           )
         )
@@ -800,7 +840,9 @@
                   (con bytestring)
                   (fun
                     (con data)
-                    (fun (con bytestring) (fun (con integer) TxConstraint))))
+                    (fun (con bytestring) (fun (con integer) TxConstraint))
+                  )
+                )
               )
               (vardecl
                 MustPayToOtherScript
@@ -812,7 +854,8 @@
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         [
@@ -820,13 +863,17 @@
                             (lam
                               k
                               (type)
-                              (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                              (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                            )
                             (con bytestring)
                           ]
                           (con integer)
                         ]
                       ]
-                      TxConstraint)))
+                      TxConstraint
+                    )
+                  )
+                )
               )
               (vardecl
                 MustPayToPubKey
@@ -836,19 +883,23 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         (con integer)
                       ]
                     ]
-                    TxConstraint))
+                    TxConstraint
+                  )
+                )
               )
               (vardecl
                 MustProduceAtLeast
@@ -861,15 +912,18 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  TxConstraint)
+                  TxConstraint
+                )
               )
-              (vardecl MustSatisfyAnyOf (fun [ List TxConstraint ] TxConstraint)
+              (vardecl
+                MustSatisfyAnyOf (fun [ List TxConstraint ] TxConstraint)
               )
               (vardecl
                 MustSpendAtLeast
@@ -882,13 +936,15 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  TxConstraint)
+                  TxConstraint
+                )
               )
               (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
               (vardecl
@@ -915,7 +971,10 @@
                       [ List [ InputConstraint i ] ]
                       (fun
                         [ List [ OutputConstraint o ] ]
-                        [ [ TxConstraints i ] o ])))
+                        [ [ TxConstraints i ] o ]
+                      )
+                    )
+                  )
                 )
               )
             )
@@ -938,12 +997,17 @@
                             [ Tuple2 [ [ TxConstraints Void ] Void ] ]
                             [ State s ]
                           ]
-                        ]))
+                        ]
+                      )
+                    )
                     (fun
                       (fun s Bool)
                       (fun
                         (fun s (fun i (fun ScriptContext Bool)))
-                        (fun [ Maybe ThreadToken ] [ [ StateMachine s ] i ]))))
+                        (fun [ Maybe ThreadToken ] [ [ StateMachine s ] i ])
+                      )
+                    )
+                  )
                 )
               )
             )
@@ -955,8 +1019,9 @@
                   a
                   (type)
                   (fun
-                    (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                    [ List a ]))
+                    (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                  )
+                )
               )
               (abs
                 a
@@ -974,7 +1039,8 @@
                 ownsVotingToken
                 (fun
                   (con bytestring)
-                  (fun (con bytestring) [ [ TxConstraints Void ] Void ]))
+                  (fun (con bytestring) [ [ TxConstraints Void ] Void ])
+                )
               )
               (lam
                 mph
@@ -1018,7 +1084,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -1040,7 +1108,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -1092,9 +1162,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -1126,7 +1196,8 @@
                 (vardecl
                   CConsMonoid
                   (fun
-                    [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
+                    [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ])
+                  )
                 )
               )
             )
@@ -1137,7 +1208,8 @@
                 (all
                   a
                   (type)
-                  (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
+                  (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ])
+                )
               )
               (abs
                 a
@@ -1171,7 +1243,12 @@
                         [ Monoid b ]
                         (fun
                           [ [ Tuple2 a ] b ]
-                          (fun [ [ Tuple2 a ] b ] [ [ Tuple2 a ] b ]))))))
+                          (fun [ [ Tuple2 a ] b ] [ [ Tuple2 a ] b ])
+                        )
+                      )
+                    )
+                  )
+                )
               )
               (abs
                 a
@@ -1259,7 +1336,9 @@
                   (all
                     b
                     (type)
-                    (fun [ Monoid a ] (fun [ Monoid b ] [ [ Tuple2 a ] b ]))))
+                    (fun [ Monoid a ] (fun [ Monoid b ] [ [ Tuple2 a ] b ]))
+                  )
+                )
               )
               (abs
                 a
@@ -1294,7 +1373,10 @@
                     (type)
                     (fun
                       [ Monoid a ]
-                      (fun [ Monoid b ] [ Monoid [ [ Tuple2 a ] b ] ]))))
+                      (fun [ Monoid b ] [ Monoid [ [ Tuple2 a ] b ] ])
+                    )
+                  )
+                )
               )
               (abs
                 a
@@ -1332,7 +1414,9 @@
                     (all
                       b
                       (type)
-                      (fun (fun a (fun b b)) (fun b (fun [ List a ] b)))))
+                      (fun (fun a (fun b b)) (fun b (fun [ List a ] b)))
+                    )
+                  )
                 )
                 (abs
                   a
@@ -1395,8 +1479,11 @@
                         (fun
                           [ [ TxConstraints i ] o ]
                           (fun
-                            [ [ TxConstraints i ] o ]
-                            [ [ TxConstraints i ] o ]))))
+                            [ [ TxConstraints i ] o ] [ [ TxConstraints i ] o ]
+                          )
+                        )
+                      )
+                    )
                   )
                   (abs
                     i
@@ -1613,7 +1700,8 @@
                     (all
                       i
                       (type)
-                      (all o (type) [ Monoid [ [ TxConstraints i ] o ] ]))
+                      (all o (type) [ Monoid [ [ TxConstraints i ] o ] ])
+                    )
                   )
                   (abs
                     i
@@ -1687,7 +1775,8 @@
                       CConsAdditiveMonoid
                       (fun
                         [ (lam a (type) (fun a (fun a a))) a ]
-                        (fun a [ AdditiveMonoid a ]))
+                        (fun a [ AdditiveMonoid a ])
+                      )
                     )
                   )
                 )
@@ -1730,8 +1819,9 @@
                         (all
                           a
                           (type)
-                          (fun
-                            [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
+                          (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                        )
+                      )
                     )
                     (abs
                       m
@@ -1815,9 +1905,9 @@
                           a
                           (type)
                           (all
-                            b
-                            (type)
-                            (fun (fun a b) (fun [ List a ] [ List b ]))))
+                            b (type) (fun (fun a b) (fun [ List a ] [ List b ]))
+                          )
+                        )
                       )
                       (abs
                         a
@@ -1878,7 +1968,9 @@
                             (type)
                             (fun
                               [ AdditiveMonoid a ]
-                              [ (lam a (type) (fun a (fun a a))) a ]))
+                              [ (lam a (type) (fun a (fun a a))) a ]
+                            )
+                          )
                         )
                         (abs
                           a
@@ -1931,7 +2023,9 @@
                             (type)
                             (fun
                               [ AdditiveMonoid a ]
-                              [ Monoid [ (lam a (type) a) a ] ]))
+                              [ Monoid [ (lam a (type) a) a ] ]
+                            )
+                          )
                         )
                         (abs
                           a
@@ -1979,9 +2073,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         k
                                       ]
                                       v
@@ -1995,7 +2089,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           k
                                         ]
                                         r
@@ -2008,11 +2104,19 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           k
                                         ]
                                         [ [ These v ] r ]
-                                      ]))))))
+                                      ]
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
                         )
                         (abs
                           k
@@ -2034,7 +2138,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       k
                                     ]
                                     v
@@ -2047,9 +2153,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         k
                                       ]
                                       r
@@ -2163,7 +2269,8 @@
                                                                                 (lam
                                                                                   a
                                                                                   (type)
-                                                                                  a)
+                                                                                  a
+                                                                                )
                                                                                 Bool
                                                                               ]
                                                                             }
@@ -2239,7 +2346,8 @@
                                                                         ]
                                                                         r
                                                                       ]
-                                                                    ])
+                                                                    ]
+                                                                  )
                                                                 }
                                                                 (abs
                                                                   dead (type) xs
@@ -2267,7 +2375,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -2317,7 +2426,8 @@
                                                             List
                                                             [ [ Tuple2 k ] r ]
                                                           ]
-                                                          [ [ These v ] r ])
+                                                          [ [ These v ] r ]
+                                                        )
                                                       )
                                                       (lam
                                                         ds
@@ -2347,7 +2457,8 @@
                                                                   [
                                                                     [ These v ]
                                                                     r
-                                                                  ])
+                                                                  ]
+                                                                )
                                                               }
                                                               (abs
                                                                 dead
@@ -2424,7 +2535,8 @@
                                                                                       v
                                                                                     ]
                                                                                     r
-                                                                                  ])
+                                                                                  ]
+                                                                                )
                                                                               }
                                                                               (abs
                                                                                 dead
@@ -2456,7 +2568,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            dead)
+                                                                            dead
+                                                                          )
                                                                         }
                                                                       )
                                                                     )
@@ -2505,7 +2618,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -2513,7 +2627,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -2525,7 +2640,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -2533,8 +2649,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -2545,7 +2661,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -2553,13 +2670,15 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [ [ These (con integer) ] (con integer) ]
                                 ]
-                              ]))
+                              ]
+                            )
+                          )
                         )
                         (lam
                           ds
@@ -2568,7 +2687,8 @@
                               (lam
                                 k
                                 (type)
-                                (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                              )
                               (con bytestring)
                             ]
                             [
@@ -2576,7 +2696,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               (con integer)
@@ -2589,7 +2710,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -2597,7 +2719,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -2621,7 +2744,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -2635,7 +2760,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -2651,9 +2778,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [ [ These (con integer) ] (con integer) ]
@@ -2675,7 +2802,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -2689,7 +2818,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -2714,7 +2845,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -2728,9 +2861,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -2749,7 +2882,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -2775,9 +2910,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -2791,7 +2926,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -2811,7 +2948,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 [
@@ -2844,7 +2983,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           (con integer)
@@ -2863,7 +3004,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -2882,7 +3025,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     [
@@ -2904,7 +3049,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -2952,7 +3099,8 @@
                                                                 {
                                                                   Tuple2_match
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 }
                                                                 (con integer)
                                                               }
@@ -2984,16 +3132,19 @@
                                                                     {
                                                                       Tuple2
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     }
                                                                     [
                                                                       [
                                                                         These
                                                                         (con
-                                                                          integer)
+                                                                          integer
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
                                                                   }
                                                                   c
@@ -3003,10 +3154,12 @@
                                                                     {
                                                                       That
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     }
                                                                     (con
-                                                                      integer)
+                                                                      integer
+                                                                    )
                                                                   }
                                                                   a
                                                                 ]
@@ -3033,7 +3186,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -3051,7 +3206,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -3090,7 +3247,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -3164,13 +3323,15 @@
                                                                 {
                                                                   Tuple2
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 }
                                                                 [
                                                                   [
                                                                     These
                                                                     (con
-                                                                      integer)
+                                                                      integer
+                                                                    )
                                                                   ]
                                                                   (con integer)
                                                                 ]
@@ -3217,7 +3378,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -3231,7 +3394,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -3253,14 +3418,16 @@
                           unionWith
                           (fun
                             (fun
-                              (con integer) (fun (con integer) (con integer)))
+                              (con integer) (fun (con integer) (con integer))
+                            )
                             (fun
                               [
                                 [
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -3268,8 +3435,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -3281,8 +3448,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -3291,7 +3458,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -3302,8 +3471,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -3312,12 +3481,17 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
                                   ]
-                                ])))
+                                ]
+                              )
+                            )
+                          )
                         )
                         (lam
                           f
@@ -3329,7 +3503,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -3337,7 +3512,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -3350,7 +3526,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -3358,8 +3535,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -3380,7 +3557,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -3400,7 +3579,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -3419,7 +3600,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -3440,9 +3623,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               [
@@ -3463,7 +3646,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -3483,7 +3668,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -3506,7 +3693,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -3600,10 +3789,12 @@
                                                                       {
                                                                         These_match
                                                                         (con
-                                                                          integer)
+                                                                          integer
+                                                                        )
                                                                       }
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     }
                                                                     a
                                                                   ]
@@ -3617,7 +3808,7 @@
                                                                       f
                                                                       (con
                                                                         integer
-                                                                          0
+                                                                        0
                                                                       )
                                                                     ]
                                                                     b
@@ -3673,7 +3864,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -3681,7 +3873,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -3693,7 +3886,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -3701,8 +3895,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -3713,7 +3907,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -3721,13 +3916,15 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
                                 ]
-                              ]))
+                              ]
+                            )
+                          )
                         )
                         [ unionWith addInteger ]
                       )
@@ -3742,7 +3939,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -3750,7 +3948,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -3767,7 +3966,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -3775,8 +3975,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -3794,7 +3994,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -3817,8 +4018,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -3827,7 +4028,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -3848,8 +4051,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -3858,7 +4061,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -3886,8 +4091,10 @@
                                 (type)
                                 (fun
                                   [ List a ]
-                                  (fun
-                                    [ List b ] [ List [ [ Tuple2 a ] b ] ]))))
+                                  (fun [ List b ] [ List [ [ Tuple2 a ] b ] ])
+                                )
+                              )
+                            )
                           )
                           (abs
                             a
@@ -3909,7 +4116,8 @@
                                           (all
                                             dead
                                             (type)
-                                            [ List [ [ Tuple2 a ] b ] ])
+                                            [ List [ [ Tuple2 a ] b ] ]
+                                          )
                                         }
                                         (abs
                                           dead (type) { Nil [ [ Tuple2 a ] b ] }
@@ -3934,7 +4142,8 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 a ] b ]
-                                                      ])
+                                                      ]
+                                                    )
                                                   }
                                                   (abs
                                                     dead
@@ -4019,7 +4228,9 @@
                                   (con bytestring)
                                   (fun
                                     [ List (con bytestring) ]
-                                    (fun (con integer) Params)))
+                                    (fun (con integer) Params)
+                                  )
+                                )
                               )
                             )
                           )
@@ -4046,7 +4257,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             k
                                           ]
                                           a
@@ -4060,7 +4273,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               k
                                             ]
                                             a
@@ -4073,11 +4288,19 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               k
                                             ]
                                             a
-                                          ]))))))
+                                          ]
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
                             )
                             (abs
                               k
@@ -4101,7 +4324,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           k
                                         ]
                                         a
@@ -4116,7 +4341,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             k
                                           ]
                                           a
@@ -4229,7 +4456,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               k
                                             ]
                                             v
@@ -4242,11 +4471,19 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               k
                                             ]
                                             v
-                                          ]))))))
+                                          ]
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
                             )
                             (abs
                               k
@@ -4273,7 +4510,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             k
                                           ]
                                           v
@@ -4294,7 +4533,8 @@
                                               (lam
                                                 c
                                                 (fun
-                                                  [ [ Tuple2 k ] v ] (fun a a))
+                                                  [ [ Tuple2 k ] v ] (fun a a)
+                                                )
                                                 (lam
                                                   n
                                                   a
@@ -4390,7 +4630,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -4401,13 +4643,19 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
                                         ]
                                       ]
-                                      [ [ TxConstraints i ] o ]))))
+                                      [ [ TxConstraints i ] o ]
+                                    )
+                                  )
+                                )
+                              )
                             )
                             (abs
                               i
@@ -4435,15 +4683,16 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
                                             ]
                                           ]
-                                          [ [ TxConstraints i ] o ])
+                                          [ [ TxConstraints i ] o ]
+                                        )
                                       )
                                       (lam
                                         ds
@@ -4457,7 +4706,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -4481,7 +4732,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -4506,7 +4759,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -4560,7 +4815,8 @@
                                                                 c
                                                                 (fun
                                                                   TxConstraint
-                                                                  (fun a a))
+                                                                  (fun a a)
+                                                                )
                                                                 (lam
                                                                   n
                                                                   a
@@ -4583,24 +4839,29 @@
                                                                                   {
                                                                                     Tuple2_match
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   }
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 }
                                                                                 p
                                                                               ]
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               x
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                               (lam
                                                                                 ds
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                                 x
                                                                               )
                                                                             )
@@ -4613,24 +4874,29 @@
                                                                                 {
                                                                                   Tuple2_match
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 }
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               }
                                                                               p
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           }
                                                                           (lam
                                                                             ds
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                             (lam
                                                                               y
                                                                               (con
-                                                                                integer)
+                                                                                integer
+                                                                              )
                                                                               y
                                                                             )
                                                                           )
@@ -4673,7 +4939,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -4684,7 +4952,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -4711,7 +4981,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -4747,9 +5019,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -4760,13 +5032,18 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
                                       ]
                                     ]
-                                    [ [ TxConstraints i ] o ])))
+                                    [ [ TxConstraints i ] o ]
+                                  )
+                                )
+                              )
                             )
                             (abs
                               i
@@ -4799,7 +5076,10 @@
                                         ]
                                         [ State GovState ]
                                       ]
-                                    ])))
+                                    ]
+                                  )
+                                )
+                              )
                             )
                             (lam
                               ds
@@ -4866,7 +5146,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   [
@@ -4880,7 +5162,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -4945,12 +5229,14 @@
                                                                             GovState
                                                                           ]
                                                                         ]
-                                                                      ])
+                                                                      ]
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     default_arg0
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                     (lam
                                                                       default_arg1
                                                                       Bool
@@ -4989,7 +5275,8 @@
                                                                                         GovState
                                                                                       ]
                                                                                     ]
-                                                                                  ])
+                                                                                  ]
+                                                                                )
                                                                               }
                                                                               (lam
                                                                                 ds
@@ -5045,9 +5332,12 @@
                                                                                                     ]
                                                                                                     v
                                                                                                   ]
-                                                                                                ]))
+                                                                                                ]
+                                                                                              )
+                                                                                            )
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           Bool
                                                                                         ]
@@ -5082,12 +5372,14 @@
                                                                                                             GovState
                                                                                                           ]
                                                                                                         ]
-                                                                                                      ])
+                                                                                                      ]
+                                                                                                    )
                                                                                                   }
                                                                                                   (lam
                                                                                                     tokenName
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                     (lam
                                                                                                       vote
                                                                                                       Bool
@@ -5095,11 +5387,9 @@
                                                                                                         dead
                                                                                                         (type)
                                                                                                         (let
-                                                                                                          (nonrec
-                                                                                                          )
+                                                                                                          (nonrec)
                                                                                                           (termbind
-                                                                                                            (nonstrict
-                                                                                                            )
+                                                                                                            (nonstrict)
                                                                                                             (vardecl
                                                                                                               l
                                                                                                               [
@@ -5239,7 +5529,9 @@
                                                                                                                                           TxConstraint
                                                                                                                                           (fun
                                                                                                                                             a
-                                                                                                                                            a))
+                                                                                                                                            a
+                                                                                                                                          )
+                                                                                                                                        )
                                                                                                                                         (lam
                                                                                                                                           n
                                                                                                                                           a
@@ -5253,19 +5545,22 @@
                                                                                                                                                     {
                                                                                                                                                       Interval
                                                                                                                                                       (con
-                                                                                                                                                        integer)
+                                                                                                                                                        integer
+                                                                                                                                                      )
                                                                                                                                                     }
                                                                                                                                                     [
                                                                                                                                                       [
                                                                                                                                                         {
                                                                                                                                                           LowerBound
                                                                                                                                                           (con
-                                                                                                                                                            integer)
+                                                                                                                                                            integer
+                                                                                                                                                          )
                                                                                                                                                         }
                                                                                                                                                         {
                                                                                                                                                           NegInf
                                                                                                                                                           (con
-                                                                                                                                                            integer)
+                                                                                                                                                            integer
+                                                                                                                                                          )
                                                                                                                                                         }
                                                                                                                                                       ]
                                                                                                                                                       True
@@ -5276,13 +5571,15 @@
                                                                                                                                                       {
                                                                                                                                                         UpperBound
                                                                                                                                                         (con
-                                                                                                                                                          integer)
+                                                                                                                                                          integer
+                                                                                                                                                        )
                                                                                                                                                       }
                                                                                                                                                       [
                                                                                                                                                         {
                                                                                                                                                           Finite
                                                                                                                                                           (con
-                                                                                                                                                            integer)
+                                                                                                                                                            integer
+                                                                                                                                                          )
                                                                                                                                                         }
                                                                                                                                                         [
                                                                                                                                                           {
@@ -5291,20 +5588,24 @@
                                                                                                                                                               p
                                                                                                                                                             ]
                                                                                                                                                             (con
-                                                                                                                                                              integer)
+                                                                                                                                                              integer
+                                                                                                                                                            )
                                                                                                                                                           }
                                                                                                                                                           (lam
                                                                                                                                                             ds
                                                                                                                                                             (con
-                                                                                                                                                              bytestring)
+                                                                                                                                                              bytestring
+                                                                                                                                                            )
                                                                                                                                                             (lam
                                                                                                                                                               ds
                                                                                                                                                               (con
-                                                                                                                                                                bytestring)
+                                                                                                                                                                bytestring
+                                                                                                                                                              )
                                                                                                                                                               (lam
                                                                                                                                                                 ds
                                                                                                                                                                 (con
-                                                                                                                                                                  integer)
+                                                                                                                                                                  integer
+                                                                                                                                                                )
                                                                                                                                                                 ds
                                                                                                                                                               )
                                                                                                                                                             )
@@ -5536,7 +5837,8 @@
                                                                                                                                   {
                                                                                                                                     insert
                                                                                                                                     (con
-                                                                                                                                      bytestring)
+                                                                                                                                      bytestring
+                                                                                                                                    )
                                                                                                                                   }
                                                                                                                                   Bool
                                                                                                                                 }
@@ -5650,16 +5952,19 @@
                                                                                                                                                 (lam
                                                                                                                                                   a
                                                                                                                                                   (type)
-                                                                                                                                                  a)
+                                                                                                                                                  a
+                                                                                                                                                )
                                                                                                                                                 (con
-                                                                                                                                                  integer)
+                                                                                                                                                  integer
+                                                                                                                                                )
                                                                                                                                               ]
                                                                                                                                             }
                                                                                                                                             [
                                                                                                                                               [
                                                                                                                                                 Tuple2
                                                                                                                                                 (con
-                                                                                                                                                  bytestring)
+                                                                                                                                                  bytestring
+                                                                                                                                                )
                                                                                                                                               ]
                                                                                                                                               Bool
                                                                                                                                             ]
@@ -5672,7 +5977,8 @@
                                                                                                                                             [
                                                                                                                                               Tuple2
                                                                                                                                               (con
-                                                                                                                                                bytestring)
+                                                                                                                                                bytestring
+                                                                                                                                              )
                                                                                                                                             ]
                                                                                                                                             Bool
                                                                                                                                           ]
@@ -5683,7 +5989,8 @@
                                                                                                                                                   {
                                                                                                                                                     Tuple2_match
                                                                                                                                                     (con
-                                                                                                                                                      bytestring)
+                                                                                                                                                      bytestring
+                                                                                                                                                    )
                                                                                                                                                   }
                                                                                                                                                   Bool
                                                                                                                                                 }
@@ -5693,15 +6000,18 @@
                                                                                                                                                 (lam
                                                                                                                                                   a
                                                                                                                                                   (type)
-                                                                                                                                                  a)
+                                                                                                                                                  a
+                                                                                                                                                )
                                                                                                                                                 (con
-                                                                                                                                                  integer)
+                                                                                                                                                  integer
+                                                                                                                                                )
                                                                                                                                               ]
                                                                                                                                             }
                                                                                                                                             (lam
                                                                                                                                               ds
                                                                                                                                               (con
-                                                                                                                                                bytestring)
+                                                                                                                                                bytestring
+                                                                                                                                              )
                                                                                                                                               (lam
                                                                                                                                                 a
                                                                                                                                                 Bool
@@ -5716,19 +6026,21 @@
                                                                                                                                                         (lam
                                                                                                                                                           a
                                                                                                                                                           (type)
-                                                                                                                                                          a)
+                                                                                                                                                          a
+                                                                                                                                                        )
                                                                                                                                                         (con
-                                                                                                                                                          integer)
+                                                                                                                                                          integer
+                                                                                                                                                        )
                                                                                                                                                       ]
                                                                                                                                                     }
                                                                                                                                                     (con
                                                                                                                                                       integer
-                                                                                                                                                        1
+                                                                                                                                                      1
                                                                                                                                                     )
                                                                                                                                                   ]
                                                                                                                                                   (con
                                                                                                                                                     integer
-                                                                                                                                                      0
+                                                                                                                                                    0
                                                                                                                                                   )
                                                                                                                                                 ]
                                                                                                                                               )
@@ -5751,7 +6063,9 @@
                                                                                                                           dead
                                                                                                                           (type)
                                                                                                                           (con
-                                                                                                                            bytestring))
+                                                                                                                            bytestring
+                                                                                                                          )
+                                                                                                                        )
                                                                                                                       }
                                                                                                                       (abs
                                                                                                                         dead
@@ -5763,20 +6077,24 @@
                                                                                                                               p
                                                                                                                             ]
                                                                                                                             (con
-                                                                                                                              bytestring)
+                                                                                                                              bytestring
+                                                                                                                            )
                                                                                                                           }
                                                                                                                           (lam
                                                                                                                             ds
                                                                                                                             (con
-                                                                                                                              bytestring)
+                                                                                                                              bytestring
+                                                                                                                            )
                                                                                                                             (lam
                                                                                                                               ds
                                                                                                                               (con
-                                                                                                                                bytestring)
+                                                                                                                                bytestring
+                                                                                                                              )
                                                                                                                               (lam
                                                                                                                                 ds
                                                                                                                                 (con
-                                                                                                                                  integer)
+                                                                                                                                  integer
+                                                                                                                                )
                                                                                                                                 ds
                                                                                                                               )
                                                                                                                             )
@@ -5793,7 +6111,8 @@
                                                                                                                   (all
                                                                                                                     dead
                                                                                                                     (type)
-                                                                                                                    dead)
+                                                                                                                    dead
+                                                                                                                  )
                                                                                                                 }
                                                                                                               ]
                                                                                                               ds
@@ -5815,7 +6134,8 @@
                                                                                                 [
                                                                                                   List
                                                                                                   (con
-                                                                                                    bytestring)
+                                                                                                    bytestring
+                                                                                                  )
                                                                                                 ]
                                                                                                 (abs
                                                                                                   dead
@@ -5873,7 +6193,8 @@
                                                                                           (all
                                                                                             dead
                                                                                             (type)
-                                                                                            dead)
+                                                                                            dead
+                                                                                          )
                                                                                         }
                                                                                       )
                                                                                     )
@@ -5915,12 +6236,14 @@
                                                                                                   GovState
                                                                                                 ]
                                                                                               ]
-                                                                                            ])
+                                                                                            ]
+                                                                                          )
                                                                                         }
                                                                                         (lam
                                                                                           default_arg0
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                           (lam
                                                                                             default_arg1
                                                                                             Bool
@@ -5979,7 +6302,8 @@
                                                                                       [
                                                                                         List
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (abs
                                                                                         dead
@@ -6041,15 +6365,18 @@
                                                                                         (lam
                                                                                           ds
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                           (lam
                                                                                             ds
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                             (lam
                                                                                               ds
                                                                                               (con
-                                                                                                integer)
+                                                                                                integer
+                                                                                              )
                                                                                               [
                                                                                                 {
                                                                                                   Just
@@ -6126,7 +6453,8 @@
                                                                                                                 [
                                                                                                                   Tuple2
                                                                                                                   (con
-                                                                                                                    bytestring)
+                                                                                                                    bytestring
+                                                                                                                  )
                                                                                                                 ]
                                                                                                                 Bool
                                                                                                               ]
@@ -6149,14 +6477,16 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  dead)
+                                                                                  dead
+                                                                                )
                                                                               }
                                                                             )
                                                                           ]
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            dead)
+                                                                            dead
+                                                                          )
                                                                         }
                                                                       )
                                                                     )
@@ -6197,7 +6527,8 @@
                                                                                   GovState
                                                                                 ]
                                                                               ]
-                                                                            ])
+                                                                            ]
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           ds
@@ -6253,9 +6584,12 @@
                                                                                               ]
                                                                                               v
                                                                                             ]
-                                                                                          ]))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     ]
                                                                                     Bool
                                                                                   ]
@@ -6290,12 +6624,14 @@
                                                                                                       GovState
                                                                                                     ]
                                                                                                   ]
-                                                                                                ])
+                                                                                                ]
+                                                                                              )
                                                                                             }
                                                                                             (lam
                                                                                               tokenName
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                               (lam
                                                                                                 vote
                                                                                                 Bool
@@ -6303,11 +6639,9 @@
                                                                                                   dead
                                                                                                   (type)
                                                                                                   (let
-                                                                                                    (nonrec
-                                                                                                    )
+                                                                                                    (nonrec)
                                                                                                     (termbind
-                                                                                                      (nonstrict
-                                                                                                      )
+                                                                                                      (nonstrict)
                                                                                                       (vardecl
                                                                                                         l
                                                                                                         [
@@ -6447,7 +6781,9 @@
                                                                                                                                     TxConstraint
                                                                                                                                     (fun
                                                                                                                                       a
-                                                                                                                                      a))
+                                                                                                                                      a
+                                                                                                                                    )
+                                                                                                                                  )
                                                                                                                                   (lam
                                                                                                                                     n
                                                                                                                                     a
@@ -6461,19 +6797,22 @@
                                                                                                                                               {
                                                                                                                                                 Interval
                                                                                                                                                 (con
-                                                                                                                                                  integer)
+                                                                                                                                                  integer
+                                                                                                                                                )
                                                                                                                                               }
                                                                                                                                               [
                                                                                                                                                 [
                                                                                                                                                   {
                                                                                                                                                     LowerBound
                                                                                                                                                     (con
-                                                                                                                                                      integer)
+                                                                                                                                                      integer
+                                                                                                                                                    )
                                                                                                                                                   }
                                                                                                                                                   {
                                                                                                                                                     NegInf
                                                                                                                                                     (con
-                                                                                                                                                      integer)
+                                                                                                                                                      integer
+                                                                                                                                                    )
                                                                                                                                                   }
                                                                                                                                                 ]
                                                                                                                                                 True
@@ -6484,13 +6823,15 @@
                                                                                                                                                 {
                                                                                                                                                   UpperBound
                                                                                                                                                   (con
-                                                                                                                                                    integer)
+                                                                                                                                                    integer
+                                                                                                                                                  )
                                                                                                                                                 }
                                                                                                                                                 [
                                                                                                                                                   {
                                                                                                                                                     Finite
                                                                                                                                                     (con
-                                                                                                                                                      integer)
+                                                                                                                                                      integer
+                                                                                                                                                    )
                                                                                                                                                   }
                                                                                                                                                   [
                                                                                                                                                     {
@@ -6499,20 +6840,24 @@
                                                                                                                                                         p
                                                                                                                                                       ]
                                                                                                                                                       (con
-                                                                                                                                                        integer)
+                                                                                                                                                        integer
+                                                                                                                                                      )
                                                                                                                                                     }
                                                                                                                                                     (lam
                                                                                                                                                       ds
                                                                                                                                                       (con
-                                                                                                                                                        bytestring)
+                                                                                                                                                        bytestring
+                                                                                                                                                      )
                                                                                                                                                       (lam
                                                                                                                                                         ds
                                                                                                                                                         (con
-                                                                                                                                                          bytestring)
+                                                                                                                                                          bytestring
+                                                                                                                                                        )
                                                                                                                                                         (lam
                                                                                                                                                           ds
                                                                                                                                                           (con
-                                                                                                                                                            integer)
+                                                                                                                                                            integer
+                                                                                                                                                          )
                                                                                                                                                           ds
                                                                                                                                                         )
                                                                                                                                                       )
@@ -6744,7 +7089,8 @@
                                                                                                                             {
                                                                                                                               insert
                                                                                                                               (con
-                                                                                                                                bytestring)
+                                                                                                                                bytestring
+                                                                                                                              )
                                                                                                                             }
                                                                                                                             Bool
                                                                                                                           }
@@ -6858,16 +7204,19 @@
                                                                                                                                           (lam
                                                                                                                                             a
                                                                                                                                             (type)
-                                                                                                                                            a)
+                                                                                                                                            a
+                                                                                                                                          )
                                                                                                                                           (con
-                                                                                                                                            integer)
+                                                                                                                                            integer
+                                                                                                                                          )
                                                                                                                                         ]
                                                                                                                                       }
                                                                                                                                       [
                                                                                                                                         [
                                                                                                                                           Tuple2
                                                                                                                                           (con
-                                                                                                                                            bytestring)
+                                                                                                                                            bytestring
+                                                                                                                                          )
                                                                                                                                         ]
                                                                                                                                         Bool
                                                                                                                                       ]
@@ -6880,7 +7229,8 @@
                                                                                                                                       [
                                                                                                                                         Tuple2
                                                                                                                                         (con
-                                                                                                                                          bytestring)
+                                                                                                                                          bytestring
+                                                                                                                                        )
                                                                                                                                       ]
                                                                                                                                       Bool
                                                                                                                                     ]
@@ -6891,7 +7241,8 @@
                                                                                                                                             {
                                                                                                                                               Tuple2_match
                                                                                                                                               (con
-                                                                                                                                                bytestring)
+                                                                                                                                                bytestring
+                                                                                                                                              )
                                                                                                                                             }
                                                                                                                                             Bool
                                                                                                                                           }
@@ -6901,15 +7252,18 @@
                                                                                                                                           (lam
                                                                                                                                             a
                                                                                                                                             (type)
-                                                                                                                                            a)
+                                                                                                                                            a
+                                                                                                                                          )
                                                                                                                                           (con
-                                                                                                                                            integer)
+                                                                                                                                            integer
+                                                                                                                                          )
                                                                                                                                         ]
                                                                                                                                       }
                                                                                                                                       (lam
                                                                                                                                         ds
                                                                                                                                         (con
-                                                                                                                                          bytestring)
+                                                                                                                                          bytestring
+                                                                                                                                        )
                                                                                                                                         (lam
                                                                                                                                           a
                                                                                                                                           Bool
@@ -6924,19 +7278,21 @@
                                                                                                                                                   (lam
                                                                                                                                                     a
                                                                                                                                                     (type)
-                                                                                                                                                    a)
+                                                                                                                                                    a
+                                                                                                                                                  )
                                                                                                                                                   (con
-                                                                                                                                                    integer)
+                                                                                                                                                    integer
+                                                                                                                                                  )
                                                                                                                                                 ]
                                                                                                                                               }
                                                                                                                                               (con
                                                                                                                                                 integer
-                                                                                                                                                  1
+                                                                                                                                                1
                                                                                                                                               )
                                                                                                                                             ]
                                                                                                                                             (con
                                                                                                                                               integer
-                                                                                                                                                0
+                                                                                                                                              0
                                                                                                                                             )
                                                                                                                                           ]
                                                                                                                                         )
@@ -6959,7 +7315,9 @@
                                                                                                                     dead
                                                                                                                     (type)
                                                                                                                     (con
-                                                                                                                      bytestring))
+                                                                                                                      bytestring
+                                                                                                                    )
+                                                                                                                  )
                                                                                                                 }
                                                                                                                 (abs
                                                                                                                   dead
@@ -6971,20 +7329,24 @@
                                                                                                                         p
                                                                                                                       ]
                                                                                                                       (con
-                                                                                                                        bytestring)
+                                                                                                                        bytestring
+                                                                                                                      )
                                                                                                                     }
                                                                                                                     (lam
                                                                                                                       ds
                                                                                                                       (con
-                                                                                                                        bytestring)
+                                                                                                                        bytestring
+                                                                                                                      )
                                                                                                                       (lam
                                                                                                                         ds
                                                                                                                         (con
-                                                                                                                          bytestring)
+                                                                                                                          bytestring
+                                                                                                                        )
                                                                                                                         (lam
                                                                                                                           ds
                                                                                                                           (con
-                                                                                                                            integer)
+                                                                                                                            integer
+                                                                                                                          )
                                                                                                                           ds
                                                                                                                         )
                                                                                                                       )
@@ -7001,7 +7363,8 @@
                                                                                                             (all
                                                                                                               dead
                                                                                                               (type)
-                                                                                                              dead)
+                                                                                                              dead
+                                                                                                            )
                                                                                                           }
                                                                                                         ]
                                                                                                         ds
@@ -7023,7 +7386,8 @@
                                                                                           [
                                                                                             List
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (abs
                                                                                             dead
@@ -7081,7 +7445,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      dead)
+                                                                                      dead
+                                                                                    )
                                                                                   }
                                                                                 )
                                                                               )
@@ -7123,12 +7488,14 @@
                                                                                             GovState
                                                                                           ]
                                                                                         ]
-                                                                                      ])
+                                                                                      ]
+                                                                                    )
                                                                                   }
                                                                                   (lam
                                                                                     default_arg0
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     (lam
                                                                                       default_arg1
                                                                                       Bool
@@ -7187,7 +7554,8 @@
                                                                                 [
                                                                                   List
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (abs
                                                                                   dead
@@ -7249,15 +7617,18 @@
                                                                                   (lam
                                                                                     ds
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     (lam
                                                                                       ds
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                       (lam
                                                                                         ds
                                                                                         (con
-                                                                                          integer)
+                                                                                          integer
+                                                                                        )
                                                                                         [
                                                                                           {
                                                                                             Just
@@ -7334,7 +7705,8 @@
                                                                                                           [
                                                                                                             Tuple2
                                                                                                             (con
-                                                                                                              bytestring)
+                                                                                                              bytestring
+                                                                                                            )
                                                                                                           ]
                                                                                                           Bool
                                                                                                         ]
@@ -7357,14 +7729,16 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            dead)
+                                                                            dead
+                                                                          )
                                                                         }
                                                                       )
                                                                     ]
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      dead)
+                                                                      dead
+                                                                    )
                                                                   }
                                                                 )
                                                               ]
@@ -7373,7 +7747,8 @@
                                                                 [
                                                                   List
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 (abs
                                                                   dead
@@ -7381,8 +7756,7 @@
                                                                   (let
                                                                     (nonrec)
                                                                     (termbind
-                                                                      (nonstrict
-                                                                      )
+                                                                      (nonstrict)
                                                                       (vardecl
                                                                         ds
                                                                         [
@@ -7405,9 +7779,12 @@
                                                                                         ]
                                                                                         v
                                                                                       ]
-                                                                                    ]))
+                                                                                    ]
+                                                                                  )
+                                                                                )
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               [
                                                                                 [
@@ -7426,12 +7803,16 @@
                                                                                           ]
                                                                                           v
                                                                                         ]
-                                                                                      ]))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                             ]
                                                                           ]
@@ -7470,9 +7851,12 @@
                                                                                                 ]
                                                                                                 v
                                                                                               ]
-                                                                                            ]))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       [
                                                                                         [
@@ -7491,12 +7875,16 @@
                                                                                                   ]
                                                                                                   v
                                                                                                 ]
-                                                                                              ]))
+                                                                                              ]
+                                                                                            )
+                                                                                          )
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                         ]
                                                                                         (con
-                                                                                          integer)
+                                                                                          integer
+                                                                                        )
                                                                                       ]
                                                                                     ]
                                                                                   ]
@@ -7513,10 +7901,12 @@
                                                                                 [
                                                                                   Tuple2
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                             }
                                                                             mkValidator
@@ -7527,10 +7917,12 @@
                                                                               [
                                                                                 Tuple2
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             [
                                                                               {
@@ -7539,10 +7931,12 @@
                                                                                     {
                                                                                       Tuple2_match
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     }
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   }
                                                                                   ds
                                                                                 ]
@@ -7566,9 +7960,12 @@
                                                                                                 ]
                                                                                                 v
                                                                                               ]
-                                                                                            ]))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       [
                                                                                         [
@@ -7587,12 +7984,16 @@
                                                                                                   ]
                                                                                                   v
                                                                                                 ]
-                                                                                              ]))
+                                                                                              ]
+                                                                                            )
+                                                                                          )
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                         ]
                                                                                         (con
-                                                                                          integer)
+                                                                                          integer
+                                                                                        )
                                                                                       ]
                                                                                     ]
                                                                                   ]
@@ -7608,27 +8009,29 @@
                                                                               (lam
                                                                                 pk
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                                 (lam
                                                                                   nm
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   (let
-                                                                                    (nonrec
-                                                                                    )
+                                                                                    (nonrec)
                                                                                     (termbind
-                                                                                      (nonstrict
-                                                                                      )
+                                                                                      (nonstrict)
                                                                                       (vardecl
                                                                                         v
                                                                                         [
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            integer)
+                                                                                            integer
+                                                                                          )
                                                                                         ]
                                                                                       )
                                                                                       [
@@ -7637,22 +8040,23 @@
                                                                                             {
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             }
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           }
                                                                                           nm
                                                                                         ]
                                                                                         (con
                                                                                           integer
-                                                                                            1
+                                                                                          1
                                                                                         )
                                                                                       ]
                                                                                     )
                                                                                     (termbind
-                                                                                      (nonstrict
-                                                                                      )
+                                                                                      (nonstrict)
                                                                                       (vardecl
                                                                                         v
                                                                                         [
@@ -7661,10 +8065,12 @@
                                                                                             [
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           ]
                                                                                         ]
                                                                                       )
@@ -7676,10 +8082,12 @@
                                                                                               [
                                                                                                 Tuple2
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               (con
-                                                                                                integer)
+                                                                                                integer
+                                                                                              )
                                                                                             ]
                                                                                           }
                                                                                           v
@@ -7690,24 +8098,26 @@
                                                                                             [
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           ]
                                                                                         }
                                                                                       ]
                                                                                     )
                                                                                     (termbind
-                                                                                      (nonstrict
-                                                                                      )
+                                                                                      (nonstrict)
                                                                                       (vardecl
                                                                                         v
                                                                                         [
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           [
                                                                                             [
@@ -7726,12 +8136,16 @@
                                                                                                       ]
                                                                                                       v
                                                                                                     ]
-                                                                                                  ]))
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           ]
                                                                                         ]
                                                                                       )
@@ -7741,7 +8155,8 @@
                                                                                             {
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             }
                                                                                             [
                                                                                               [
@@ -7760,12 +8175,16 @@
                                                                                                         ]
                                                                                                         v
                                                                                                       ]
-                                                                                                    ]))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               (con
-                                                                                                integer)
+                                                                                                integer
+                                                                                              )
                                                                                             ]
                                                                                           }
                                                                                           ds
@@ -7774,8 +8193,7 @@
                                                                                       ]
                                                                                     )
                                                                                     (termbind
-                                                                                      (nonstrict
-                                                                                      )
+                                                                                      (nonstrict)
                                                                                       (vardecl
                                                                                         v
                                                                                         [
@@ -7784,7 +8202,8 @@
                                                                                             [
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             [
                                                                                               [
@@ -7803,12 +8222,16 @@
                                                                                                         ]
                                                                                                         v
                                                                                                       ]
-                                                                                                    ]))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               (con
-                                                                                                integer)
+                                                                                                integer
+                                                                                              )
                                                                                             ]
                                                                                           ]
                                                                                         ]
@@ -7821,7 +8244,8 @@
                                                                                               [
                                                                                                 Tuple2
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               [
                                                                                                 [
@@ -7840,12 +8264,16 @@
                                                                                                           ]
                                                                                                           v
                                                                                                         ]
-                                                                                                      ]))
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
                                                                                                   (con
-                                                                                                    bytestring)
+                                                                                                    bytestring
+                                                                                                  )
                                                                                                 ]
                                                                                                 (con
-                                                                                                  integer)
+                                                                                                  integer
+                                                                                                )
                                                                                               ]
                                                                                             ]
                                                                                           }
@@ -7857,7 +8285,8 @@
                                                                                             [
                                                                                               Tuple2
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             [
                                                                                               [
@@ -7876,12 +8305,16 @@
                                                                                                         ]
                                                                                                         v
                                                                                                       ]
-                                                                                                    ]))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               (con
-                                                                                                integer)
+                                                                                                integer
+                                                                                              )
                                                                                             ]
                                                                                           ]
                                                                                         }
@@ -7909,9 +8342,12 @@
                                                                                                         ]
                                                                                                         v
                                                                                                       ]
-                                                                                                    ]))
+                                                                                                    ]
+                                                                                                  )
+                                                                                                )
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                               ]
                                                                                               [
                                                                                                 [
@@ -7930,12 +8366,16 @@
                                                                                                           ]
                                                                                                           v
                                                                                                         ]
-                                                                                                      ]))
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
                                                                                                   (con
-                                                                                                    bytestring)
+                                                                                                    bytestring
+                                                                                                  )
                                                                                                 ]
                                                                                                 (con
-                                                                                                  integer)
+                                                                                                  integer
+                                                                                                )
                                                                                               ]
                                                                                             ]
                                                                                           }
@@ -7973,7 +8413,9 @@
                                                                                                     TxConstraint
                                                                                                     (fun
                                                                                                       a
-                                                                                                      a))
+                                                                                                      a
+                                                                                                    )
+                                                                                                  )
                                                                                                   (lam
                                                                                                     n
                                                                                                     a
@@ -8024,10 +8466,12 @@
                                                                               {
                                                                                 zip
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               }
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             }
                                                                             ds
                                                                           ]
@@ -8105,9 +8549,12 @@
                                                                                                     ]
                                                                                                     v
                                                                                                   ]
-                                                                                                ]))
+                                                                                                ]
+                                                                                              )
+                                                                                            )
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           [
                                                                                             [
@@ -8126,12 +8573,16 @@
                                                                                                       ]
                                                                                                       v
                                                                                                     ]
-                                                                                                  ]))
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           ]
                                                                                         ]
                                                                                       }
@@ -8172,9 +8623,12 @@
                                                                                               ]
                                                                                               v
                                                                                             ]
-                                                                                          ]))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     ]
                                                                                     [
                                                                                       [
@@ -8193,12 +8647,16 @@
                                                                                                 ]
                                                                                                 v
                                                                                               ]
-                                                                                            ]))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        integer)
+                                                                                        integer
+                                                                                      )
                                                                                     ]
                                                                                   ]
                                                                                   (lam
@@ -8246,9 +8704,12 @@
                                                                                                     ]
                                                                                                     v
                                                                                                   ]
-                                                                                                ]))
+                                                                                                ]
+                                                                                              )
+                                                                                            )
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           [
                                                                                             [
@@ -8267,12 +8728,16 @@
                                                                                                       ]
                                                                                                       v
                                                                                                     ]
-                                                                                                  ]))
+                                                                                                  ]
+                                                                                                )
+                                                                                              )
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             ]
                                                                                             (con
-                                                                                              integer)
+                                                                                              integer
+                                                                                            )
                                                                                           ]
                                                                                         ]
                                                                                       }
@@ -8303,9 +8768,12 @@
                                                                                               ]
                                                                                               v
                                                                                             ]
-                                                                                          ]))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     ]
                                                                                     [
                                                                                       [
@@ -8324,12 +8792,16 @@
                                                                                                 ]
                                                                                                 v
                                                                                               ]
-                                                                                            ]))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        integer)
+                                                                                        integer
+                                                                                      )
                                                                                     ]
                                                                                   ]
                                                                                 }
@@ -8352,9 +8824,12 @@
                                                                                               ]
                                                                                               v
                                                                                             ]
-                                                                                          ]))
+                                                                                          ]
+                                                                                        )
+                                                                                      )
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     ]
                                                                                     [
                                                                                       [
@@ -8373,12 +8848,16 @@
                                                                                                 ]
                                                                                                 v
                                                                                               ]
-                                                                                            ]))
+                                                                                            ]
+                                                                                          )
+                                                                                        )
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        integer)
+                                                                                        integer
+                                                                                      )
                                                                                     ]
                                                                                   ]
                                                                                   (lam
@@ -8451,7 +8930,8 @@
                                                                                 GovState
                                                                               ]
                                                                             ]
-                                                                          ])
+                                                                          ]
+                                                                        )
                                                                       }
                                                                       (lam
                                                                         ds
@@ -8507,9 +8987,12 @@
                                                                                             ]
                                                                                             v
                                                                                           ]
-                                                                                        ]))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   Bool
                                                                                 ]
@@ -8544,12 +9027,14 @@
                                                                                                     GovState
                                                                                                   ]
                                                                                                 ]
-                                                                                              ])
+                                                                                              ]
+                                                                                            )
                                                                                           }
                                                                                           (lam
                                                                                             tokenName
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                             (lam
                                                                                               vote
                                                                                               Bool
@@ -8557,11 +9042,9 @@
                                                                                                 dead
                                                                                                 (type)
                                                                                                 (let
-                                                                                                  (nonrec
-                                                                                                  )
+                                                                                                  (nonrec)
                                                                                                   (termbind
-                                                                                                    (nonstrict
-                                                                                                    )
+                                                                                                    (nonstrict)
                                                                                                     (vardecl
                                                                                                       l
                                                                                                       [
@@ -8701,7 +9184,9 @@
                                                                                                                                   TxConstraint
                                                                                                                                   (fun
                                                                                                                                     a
-                                                                                                                                    a))
+                                                                                                                                    a
+                                                                                                                                  )
+                                                                                                                                )
                                                                                                                                 (lam
                                                                                                                                   n
                                                                                                                                   a
@@ -8715,19 +9200,22 @@
                                                                                                                                             {
                                                                                                                                               Interval
                                                                                                                                               (con
-                                                                                                                                                integer)
+                                                                                                                                                integer
+                                                                                                                                              )
                                                                                                                                             }
                                                                                                                                             [
                                                                                                                                               [
                                                                                                                                                 {
                                                                                                                                                   LowerBound
                                                                                                                                                   (con
-                                                                                                                                                    integer)
+                                                                                                                                                    integer
+                                                                                                                                                  )
                                                                                                                                                 }
                                                                                                                                                 {
                                                                                                                                                   NegInf
                                                                                                                                                   (con
-                                                                                                                                                    integer)
+                                                                                                                                                    integer
+                                                                                                                                                  )
                                                                                                                                                 }
                                                                                                                                               ]
                                                                                                                                               True
@@ -8738,13 +9226,15 @@
                                                                                                                                               {
                                                                                                                                                 UpperBound
                                                                                                                                                 (con
-                                                                                                                                                  integer)
+                                                                                                                                                  integer
+                                                                                                                                                )
                                                                                                                                               }
                                                                                                                                               [
                                                                                                                                                 {
                                                                                                                                                   Finite
                                                                                                                                                   (con
-                                                                                                                                                    integer)
+                                                                                                                                                    integer
+                                                                                                                                                  )
                                                                                                                                                 }
                                                                                                                                                 [
                                                                                                                                                   {
@@ -8753,20 +9243,24 @@
                                                                                                                                                       p
                                                                                                                                                     ]
                                                                                                                                                     (con
-                                                                                                                                                      integer)
+                                                                                                                                                      integer
+                                                                                                                                                    )
                                                                                                                                                   }
                                                                                                                                                   (lam
                                                                                                                                                     ds
                                                                                                                                                     (con
-                                                                                                                                                      bytestring)
+                                                                                                                                                      bytestring
+                                                                                                                                                    )
                                                                                                                                                     (lam
                                                                                                                                                       ds
                                                                                                                                                       (con
-                                                                                                                                                        bytestring)
+                                                                                                                                                        bytestring
+                                                                                                                                                      )
                                                                                                                                                       (lam
                                                                                                                                                         ds
                                                                                                                                                         (con
-                                                                                                                                                          integer)
+                                                                                                                                                          integer
+                                                                                                                                                        )
                                                                                                                                                         ds
                                                                                                                                                       )
                                                                                                                                                     )
@@ -8998,7 +9492,8 @@
                                                                                                                           {
                                                                                                                             insert
                                                                                                                             (con
-                                                                                                                              bytestring)
+                                                                                                                              bytestring
+                                                                                                                            )
                                                                                                                           }
                                                                                                                           Bool
                                                                                                                         }
@@ -9112,16 +9607,19 @@
                                                                                                                                         (lam
                                                                                                                                           a
                                                                                                                                           (type)
-                                                                                                                                          a)
+                                                                                                                                          a
+                                                                                                                                        )
                                                                                                                                         (con
-                                                                                                                                          integer)
+                                                                                                                                          integer
+                                                                                                                                        )
                                                                                                                                       ]
                                                                                                                                     }
                                                                                                                                     [
                                                                                                                                       [
                                                                                                                                         Tuple2
                                                                                                                                         (con
-                                                                                                                                          bytestring)
+                                                                                                                                          bytestring
+                                                                                                                                        )
                                                                                                                                       ]
                                                                                                                                       Bool
                                                                                                                                     ]
@@ -9134,7 +9632,8 @@
                                                                                                                                     [
                                                                                                                                       Tuple2
                                                                                                                                       (con
-                                                                                                                                        bytestring)
+                                                                                                                                        bytestring
+                                                                                                                                      )
                                                                                                                                     ]
                                                                                                                                     Bool
                                                                                                                                   ]
@@ -9145,7 +9644,8 @@
                                                                                                                                           {
                                                                                                                                             Tuple2_match
                                                                                                                                             (con
-                                                                                                                                              bytestring)
+                                                                                                                                              bytestring
+                                                                                                                                            )
                                                                                                                                           }
                                                                                                                                           Bool
                                                                                                                                         }
@@ -9155,15 +9655,18 @@
                                                                                                                                         (lam
                                                                                                                                           a
                                                                                                                                           (type)
-                                                                                                                                          a)
+                                                                                                                                          a
+                                                                                                                                        )
                                                                                                                                         (con
-                                                                                                                                          integer)
+                                                                                                                                          integer
+                                                                                                                                        )
                                                                                                                                       ]
                                                                                                                                     }
                                                                                                                                     (lam
                                                                                                                                       ds
                                                                                                                                       (con
-                                                                                                                                        bytestring)
+                                                                                                                                        bytestring
+                                                                                                                                      )
                                                                                                                                       (lam
                                                                                                                                         a
                                                                                                                                         Bool
@@ -9178,19 +9681,21 @@
                                                                                                                                                 (lam
                                                                                                                                                   a
                                                                                                                                                   (type)
-                                                                                                                                                  a)
+                                                                                                                                                  a
+                                                                                                                                                )
                                                                                                                                                 (con
-                                                                                                                                                  integer)
+                                                                                                                                                  integer
+                                                                                                                                                )
                                                                                                                                               ]
                                                                                                                                             }
                                                                                                                                             (con
                                                                                                                                               integer
-                                                                                                                                                1
+                                                                                                                                              1
                                                                                                                                             )
                                                                                                                                           ]
                                                                                                                                           (con
                                                                                                                                             integer
-                                                                                                                                              0
+                                                                                                                                            0
                                                                                                                                           )
                                                                                                                                         ]
                                                                                                                                       )
@@ -9213,7 +9718,9 @@
                                                                                                                   dead
                                                                                                                   (type)
                                                                                                                   (con
-                                                                                                                    bytestring))
+                                                                                                                    bytestring
+                                                                                                                  )
+                                                                                                                )
                                                                                                               }
                                                                                                               (abs
                                                                                                                 dead
@@ -9225,20 +9732,24 @@
                                                                                                                       p
                                                                                                                     ]
                                                                                                                     (con
-                                                                                                                      bytestring)
+                                                                                                                      bytestring
+                                                                                                                    )
                                                                                                                   }
                                                                                                                   (lam
                                                                                                                     ds
                                                                                                                     (con
-                                                                                                                      bytestring)
+                                                                                                                      bytestring
+                                                                                                                    )
                                                                                                                     (lam
                                                                                                                       ds
                                                                                                                       (con
-                                                                                                                        bytestring)
+                                                                                                                        bytestring
+                                                                                                                      )
                                                                                                                       (lam
                                                                                                                         ds
                                                                                                                         (con
-                                                                                                                          integer)
+                                                                                                                          integer
+                                                                                                                        )
                                                                                                                         ds
                                                                                                                       )
                                                                                                                     )
@@ -9255,7 +9766,8 @@
                                                                                                           (all
                                                                                                             dead
                                                                                                             (type)
-                                                                                                            dead)
+                                                                                                            dead
+                                                                                                          )
                                                                                                         }
                                                                                                       ]
                                                                                                       ds
@@ -9277,7 +9789,8 @@
                                                                                         [
                                                                                           List
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                         ]
                                                                                         (abs
                                                                                           dead
@@ -9335,7 +9848,8 @@
                                                                                   (all
                                                                                     dead
                                                                                     (type)
-                                                                                    dead)
+                                                                                    dead
+                                                                                  )
                                                                                 }
                                                                               )
                                                                             )
@@ -9377,12 +9891,14 @@
                                                                                           GovState
                                                                                         ]
                                                                                       ]
-                                                                                    ])
+                                                                                    ]
+                                                                                  )
                                                                                 }
                                                                                 (lam
                                                                                   default_arg0
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   (lam
                                                                                     default_arg1
                                                                                     Bool
@@ -9441,7 +9957,8 @@
                                                                               [
                                                                                 List
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (abs
                                                                                 dead
@@ -9503,15 +10020,18 @@
                                                                                 (lam
                                                                                   ds
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   (lam
                                                                                     ds
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     (lam
                                                                                       ds
                                                                                       (con
-                                                                                        integer)
+                                                                                        integer
+                                                                                      )
                                                                                       [
                                                                                         {
                                                                                           Just
@@ -9588,7 +10108,8 @@
                                                                                                         [
                                                                                                           Tuple2
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         Bool
                                                                                                       ]
@@ -9611,14 +10132,16 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             )
@@ -9645,7 +10168,8 @@
                             (vardecl
                               machine
                               (fun
-                                Params [ [ StateMachine GovState ] GovInput ])
+                                Params [ [ StateMachine GovState ] GovInput ]
+                              )
                             )
                             (lam
                               params
@@ -9709,7 +10233,8 @@
                                                       (lam
                                                         ds
                                                         (con bytestring)
-                                                        (lam ds (con integer) ds
+                                                        (lam
+                                                          ds (con integer) ds
                                                         )
                                                       )
                                                     ]
@@ -9790,8 +10315,9 @@
                                 a
                                 (type)
                                 (fun
-                                  ScriptContext
-                                  (fun [ InputConstraint a ] Bool)))
+                                  ScriptContext (fun [ InputConstraint a ] Bool)
+                                )
+                              )
                             )
                             (abs
                               a
@@ -9844,7 +10370,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         [
@@ -9861,7 +10389,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           (con integer)
@@ -9883,7 +10413,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           [
@@ -9902,7 +10434,9 @@
                                                                       ]
                                                                       v
                                                                     ]
-                                                                  ]))
+                                                                  ]
+                                                                )
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                             (con integer)
@@ -9934,7 +10468,8 @@
                                                                 [
                                                                   List
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 (lam
                                                                   ds
@@ -9944,7 +10479,8 @@
                                                                       [
                                                                         Tuple2
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con data)
                                                                     ]
@@ -9952,7 +10488,8 @@
                                                                   (lam
                                                                     ds
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                     {
                                                                       [
                                                                         [
@@ -9969,7 +10506,8 @@
                                                                                           (lam
                                                                                             a
                                                                                             (type)
-                                                                                            a)
+                                                                                            a
+                                                                                          )
                                                                                           Bool
                                                                                         ]
                                                                                       }
@@ -10018,7 +10556,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              Bool)
+                                                                              Bool
+                                                                            )
                                                                           }
                                                                           (abs
                                                                             dead
@@ -10039,7 +10578,7 @@
                                                                               }
                                                                               (con
                                                                                 string
-                                                                                  "L0"
+                                                                                "L0"
                                                                               )
                                                                             ]
                                                                             False
@@ -10049,7 +10588,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -10083,7 +10623,10 @@
                                   [ (lam a (type) [ Maybe a ]) a ]
                                   (fun
                                     [ (lam a (type) [ Maybe a ]) a ]
-                                    [ (lam a (type) [ Maybe a ]) a ])))
+                                    [ (lam a (type) [ Maybe a ]) a ]
+                                  )
+                                )
+                              )
                             )
                             (abs
                               a
@@ -10102,7 +10645,8 @@
                                           (all
                                             dead
                                             (type)
-                                            [ (lam a (type) [ Maybe a ]) a ])
+                                            [ (lam a (type) [ Maybe a ]) a ]
+                                          )
                                         }
                                         (lam ipv a (abs dead (type) ds))
                                       ]
@@ -10121,7 +10665,8 @@
                               (all
                                 a
                                 (type)
-                                [ Monoid [ (lam a (type) [ Maybe a ]) a ] ])
+                                [ Monoid [ (lam a (type) [ Maybe a ]) a ] ]
+                              )
                             )
                             (abs
                               a
@@ -10143,7 +10688,8 @@
                               findDatumHash
                               (fun
                                 (con data)
-                                (fun TxInfo [ Maybe (con bytestring) ]))
+                                (fun TxInfo [ Maybe (con bytestring) ])
+                              )
                             )
                             (lam
                               ds
@@ -10172,7 +10718,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -10183,7 +10731,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -10199,7 +10749,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -10210,9 +10762,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -10262,7 +10814,8 @@
                                                                     [
                                                                       Tuple2
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     (con data)
                                                                   ]
@@ -10280,15 +10833,18 @@
                                                                               [
                                                                                 Maybe
                                                                                 a
-                                                                              ])
+                                                                              ]
+                                                                            )
                                                                             [
                                                                               [
                                                                                 Tuple2
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             ]
                                                                           ]
                                                                         }
@@ -10296,10 +10852,12 @@
                                                                           [
                                                                             Tuple2
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         ]
                                                                       }
                                                                       {
@@ -10308,10 +10866,12 @@
                                                                           [
                                                                             Tuple2
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         ]
                                                                       }
                                                                     ]
@@ -10321,10 +10881,12 @@
                                                                         [
                                                                           Tuple2
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         (con
-                                                                          data)
+                                                                          data
+                                                                        )
                                                                       ]
                                                                       [
                                                                         {
@@ -10333,10 +10895,12 @@
                                                                               {
                                                                                 Tuple2_match
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               }
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             }
                                                                             x
                                                                           ]
@@ -10346,21 +10910,25 @@
                                                                               [
                                                                                 Tuple2
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             ]
                                                                           ]
                                                                         }
                                                                         (lam
                                                                           ds
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                           (lam
                                                                             ds
                                                                             (con
-                                                                              data)
+                                                                              data
+                                                                            )
                                                                             {
                                                                               [
                                                                                 [
@@ -10400,12 +10968,15 @@
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            data)
+                                                                                            data
+                                                                                          )
                                                                                         ]
-                                                                                      ])
+                                                                                      ]
+                                                                                    )
                                                                                   }
                                                                                   (abs
                                                                                     dead
@@ -10417,10 +10988,12 @@
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            data)
+                                                                                            data
+                                                                                          )
                                                                                         ]
                                                                                       }
                                                                                       x
@@ -10436,10 +11009,12 @@
                                                                                       [
                                                                                         Tuple2
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        data)
+                                                                                        data
+                                                                                      )
                                                                                     ]
                                                                                   }
                                                                                 )
@@ -10447,7 +11022,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                dead)
+                                                                                dead
+                                                                              )
                                                                             }
                                                                           )
                                                                         )
@@ -10463,8 +11039,10 @@
                                                                 [
                                                                   Maybe
                                                                   (con
-                                                                    bytestring)
-                                                                ])
+                                                                    bytestring
+                                                                  )
+                                                                ]
+                                                              )
                                                             }
                                                             (lam
                                                               a
@@ -10472,7 +11050,8 @@
                                                                 [
                                                                   Tuple2
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 (con data)
                                                               ]
@@ -10483,7 +11062,8 @@
                                                                   {
                                                                     Just
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   }
                                                                   [
                                                                     {
@@ -10492,24 +11072,29 @@
                                                                           {
                                                                             Tuple2_match
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           }
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         }
                                                                         a
                                                                       ]
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     }
                                                                     (lam
                                                                       a
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                       (lam
                                                                         ds
                                                                         (con
-                                                                          data)
+                                                                          data
+                                                                        )
                                                                         a
                                                                       )
                                                                     )
@@ -10623,7 +11208,8 @@
                             (vardecl
                               fEqStakingCredential_c
                               (fun
-                                StakingCredential (fun StakingCredential Bool))
+                                StakingCredential (fun StakingCredential Bool)
+                              )
                             )
                             (lam
                               ds
@@ -10754,7 +11340,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  Bool)
+                                                                  Bool
+                                                                )
                                                               }
                                                               (abs
                                                                 dead
@@ -10856,7 +11443,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Bool)
+                                                                    Bool
+                                                                  )
                                                                 }
                                                                 (lam
                                                                   a
@@ -10881,7 +11469,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -10901,9 +11490,8 @@
                                                                 stakingCred
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                Bool)
+                                                                dead (type) Bool
+                                                              )
                                                             }
                                                             (lam
                                                               ipv
@@ -10978,7 +11566,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Bool)
+                                                                    Bool
+                                                                  )
                                                                 }
                                                                 (abs
                                                                   dead (type) j
@@ -10991,7 +11580,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       ]
@@ -11054,13 +11644,13 @@
                                                                 ]
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                Bool)
+                                                                dead (type) Bool
+                                                              )
                                                             }
                                                             (abs dead (type) j)
                                                           ]
-                                                          (abs dead (type) False
+                                                          (abs
+                                                            dead (type) False
                                                           )
                                                         ]
                                                         (all dead (type) dead)
@@ -11121,9 +11711,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               [
@@ -11136,7 +11726,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -11154,7 +11746,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 [
@@ -11168,7 +11762,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -11225,7 +11821,8 @@
                                                                         [
                                                                           Maybe
                                                                           TxInInfo
-                                                                        ])
+                                                                        ]
+                                                                      )
                                                                     }
                                                                     (lam
                                                                       default_arg0
@@ -11243,7 +11840,8 @@
                                                                   (lam
                                                                     default_arg0
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                     (abs
                                                                       dead
                                                                       (type)
@@ -11286,7 +11884,8 @@
                                                                                 [
                                                                                   Maybe
                                                                                   a
-                                                                                ])
+                                                                                ]
+                                                                              )
                                                                               TxInInfo
                                                                             ]
                                                                           }
@@ -11337,7 +11936,8 @@
                                                                                         [
                                                                                           Maybe
                                                                                           TxInInfo
-                                                                                        ])
+                                                                                        ]
+                                                                                      )
                                                                                     }
                                                                                     (abs
                                                                                       dead
@@ -11363,7 +11963,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  dead)
+                                                                                  dead
+                                                                                )
                                                                               }
                                                                             )
                                                                           )
@@ -11376,7 +11977,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -11450,7 +12052,9 @@
                                                             [
                                                               List
                                                               [ [ Tuple2 k ] v ]
-                                                            ]))
+                                                            ]
+                                                          )
+                                                        )
                                                         (con bytestring)
                                                       ]
                                                       [
@@ -11466,7 +12070,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -11524,9 +12130,12 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       [
                                                                         [
@@ -11545,12 +12154,16 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         (con
-                                                                          integer)
+                                                                          integer
+                                                                        )
                                                                       ]
                                                                     ]
                                                                     (lam
@@ -11572,9 +12185,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -11593,12 +12209,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                       (lam
@@ -11617,7 +12237,8 @@
                                                                                 StakingCredential
                                                                               ]
                                                                               (con
-                                                                                integer)
+                                                                                integer
+                                                                              )
                                                                             ]
                                                                           ]
                                                                           (lam
@@ -11625,14 +12246,16 @@
                                                                             [
                                                                               Interval
                                                                               (con
-                                                                                integer)
+                                                                                integer
+                                                                              )
                                                                             ]
                                                                             (lam
                                                                               ds
                                                                               [
                                                                                 List
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (lam
                                                                                 ds
@@ -11642,16 +12265,19 @@
                                                                                     [
                                                                                       Tuple2
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     ]
                                                                                     (con
-                                                                                      data)
+                                                                                      data
+                                                                                    )
                                                                                   ]
                                                                                 ]
                                                                                 (lam
                                                                                   ds
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   [
                                                                                     [
                                                                                       [
@@ -11707,9 +12333,12 @@
                                                                                                               ]
                                                                                                               v
                                                                                                             ]
-                                                                                                          ]))
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
                                                                                                       (con
-                                                                                                        bytestring)
+                                                                                                        bytestring
+                                                                                                      )
                                                                                                     ]
                                                                                                     [
                                                                                                       [
@@ -11728,12 +12357,16 @@
                                                                                                                 ]
                                                                                                                 v
                                                                                                               ]
-                                                                                                            ]))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       ]
                                                                                                       (con
-                                                                                                        integer)
+                                                                                                        integer
+                                                                                                      )
                                                                                                     ]
                                                                                                   ]
                                                                                                   (lam
@@ -11741,7 +12374,8 @@
                                                                                                     [
                                                                                                       Maybe
                                                                                                       (con
-                                                                                                        bytestring)
+                                                                                                        bytestring
+                                                                                                      )
                                                                                                     ]
                                                                                                     {
                                                                                                       [
@@ -11763,7 +12397,8 @@
                                                                                                               [
                                                                                                                 List
                                                                                                                 TxOut
-                                                                                                              ])
+                                                                                                              ]
+                                                                                                            )
                                                                                                           }
                                                                                                           (abs
                                                                                                             dead
@@ -11789,7 +12424,8 @@
                                                                                                       (all
                                                                                                         dead
                                                                                                         (type)
-                                                                                                        dead)
+                                                                                                        dead
+                                                                                                      )
                                                                                                     }
                                                                                                   )
                                                                                                 )
@@ -11868,7 +12504,8 @@
                                 CConsMultiplicativeMonoid
                                 (fun
                                   [ (lam a (type) (fun a (fun a a))) a ]
-                                  (fun a [ MultiplicativeMonoid a ]))
+                                  (fun a [ MultiplicativeMonoid a ])
+                                )
                               )
                             )
                           )
@@ -11881,7 +12518,9 @@
                                 (type)
                                 (fun
                                   [ MultiplicativeMonoid a ]
-                                  [ (lam a (type) (fun a (fun a a))) a ]))
+                                  [ (lam a (type) (fun a (fun a a))) a ]
+                                )
+                              )
                             )
                             (abs
                               a
@@ -11935,7 +12574,9 @@
                                 (type)
                                 (fun
                                   [ MultiplicativeMonoid a ]
-                                  [ Monoid [ (lam a (type) a) a ] ]))
+                                  [ Monoid [ (lam a (type) a) a ] ]
+                                )
+                              )
                             )
                             (abs
                               a
@@ -12008,8 +12649,8 @@
                               checkPred
                               (fun
                                 (fun
-                                  [ [ These (con integer) ] (con integer) ]
-                                  Bool)
+                                  [ [ These (con integer) ] (con integer) ] Bool
+                                )
                                 (fun
                                   [
                                     [
@@ -12017,7 +12658,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -12026,9 +12669,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -12041,9 +12684,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -12054,18 +12697,24 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
                                       ]
                                     ]
-                                    Bool)))
+                                    Bool
+                                  )
+                                )
+                              )
                             )
                             (lam
                               f
                               (fun
-                                [ [ These (con integer) ] (con integer) ] Bool)
+                                [ [ These (con integer) ] (con integer) ] Bool
+                              )
                               (lam
                                 l
                                 [
@@ -12073,8 +12722,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -12083,7 +12732,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -12097,7 +12748,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -12106,9 +12759,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -12147,7 +12800,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 [
@@ -12174,9 +12829,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               [
@@ -12204,7 +12859,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     [
@@ -12233,7 +12890,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   [
@@ -12350,7 +13009,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -12359,9 +13020,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -12374,9 +13035,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -12387,13 +13048,18 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
                                       ]
                                     ]
-                                    Bool)))
+                                    Bool
+                                  )
+                                )
+                              )
                             )
                             (lam
                               f
@@ -12405,8 +13071,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -12415,7 +13081,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -12429,7 +13097,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -12438,9 +13108,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -12513,7 +13183,10 @@
                                   [ (lam a (type) (fun a (con data))) o ]
                                   (fun
                                     ScriptContext
-                                    (fun [ OutputConstraint o ] Bool))))
+                                    (fun [ OutputConstraint o ] Bool)
+                                  )
+                                )
+                              )
                             )
                             (abs
                               o
@@ -12558,7 +13231,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   [
@@ -12572,7 +13247,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -12610,7 +13287,8 @@
                                                                         (lam
                                                                           a
                                                                           (type)
-                                                                          a)
+                                                                          a
+                                                                        )
                                                                         Bool
                                                                       ]
                                                                     }
@@ -12657,9 +13335,12 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           [
                                                                             [
@@ -12678,12 +13359,16 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           ]
                                                                         ]
                                                                         (lam
@@ -12691,7 +13376,8 @@
                                                                           [
                                                                             Maybe
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           {
                                                                             [
@@ -12701,19 +13387,22 @@
                                                                                     {
                                                                                       Maybe_match
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     }
                                                                                     ds
                                                                                   ]
                                                                                   (all
                                                                                     dead
                                                                                     (type)
-                                                                                    Bool)
+                                                                                    Bool
+                                                                                  )
                                                                                 }
                                                                                 (lam
                                                                                   svh
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   (abs
                                                                                     dead
                                                                                     (type)
@@ -12737,7 +13426,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              Bool)
+                                                                                              Bool
+                                                                                            )
                                                                                           }
                                                                                           (abs
                                                                                             dead
@@ -12750,19 +13440,22 @@
                                                                                                       {
                                                                                                         Maybe_match
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       }
                                                                                                       hsh
                                                                                                     ]
                                                                                                     (all
                                                                                                       dead
                                                                                                       (type)
-                                                                                                      Bool)
+                                                                                                      Bool
+                                                                                                    )
                                                                                                   }
                                                                                                   (lam
                                                                                                     a
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                     (abs
                                                                                                       dead
                                                                                                       (type)
@@ -12785,7 +13478,8 @@
                                                                                               (all
                                                                                                 dead
                                                                                                 (type)
-                                                                                                dead)
+                                                                                                dead
+                                                                                              )
                                                                                             }
                                                                                           )
                                                                                         ]
@@ -12798,7 +13492,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        dead)
+                                                                                        dead
+                                                                                      )
                                                                                     }
                                                                                   )
                                                                                 )
@@ -12812,7 +13507,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              dead)
+                                                                              dead
+                                                                            )
                                                                           }
                                                                         )
                                                                       )
@@ -12956,7 +13652,8 @@
                             (vardecl
                               fOrdInteger_cmax
                               (fun
-                                (con integer) (fun (con integer) (con integer)))
+                                (con integer) (fun (con integer) (con integer))
+                              )
                             )
                             (lam
                               x
@@ -13005,7 +13702,8 @@
                             (vardecl
                               fOrdInteger_cmin
                               (fun
-                                (con integer) (fun (con integer) (con integer)))
+                                (con integer) (fun (con integer) (con integer))
+                              )
                             )
                             (lam
                               x
@@ -13147,9 +13845,14 @@
                                             (fun a (fun a Bool))
                                             (fun
                                               (fun a (fun a a))
-                                              (fun
-                                                (fun a (fun a a))
-                                                [ Ord a ]))))))))
+                                              (fun (fun a (fun a a)) [ Ord a ])
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
                               )
                             )
                           )
@@ -13216,7 +13919,8 @@
                               (all
                                 a
                                 (type)
-                                (fun [ Ord a ] (fun a (fun a Ordering))))
+                                (fun [ Ord a ] (fun a (fun a Ordering)))
+                              )
                             )
                             (abs
                               a
@@ -13272,8 +13976,10 @@
                                 (fun
                                   [ Ord a ]
                                   (fun
-                                    [ Extended a ]
-                                    (fun [ Extended a ] Ordering))))
+                                    [ Extended a ] (fun [ Extended a ] Ordering)
+                                  )
+                                )
+                              )
                             )
                             (abs
                               a
@@ -13326,7 +14032,8 @@
                                                             (all
                                                               dead
                                                               (type)
-                                                              Ordering)
+                                                              Ordering
+                                                            )
                                                           }
                                                           (lam
                                                             default_arg0
@@ -13344,15 +14051,16 @@
                                                                       (all
                                                                         a
                                                                         (type)
-                                                                        a)
-                                                                      Ordering)
+                                                                        a
+                                                                      )
+                                                                      Ordering
+                                                                    )
                                                                   )
                                                                   (lam
                                                                     ds
                                                                     (all
-                                                                      a
-                                                                      (type)
-                                                                      a)
+                                                                      a (type) a
+                                                                    )
                                                                     {
                                                                       [
                                                                         [
@@ -13368,7 +14076,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                Ordering)
+                                                                                Ordering
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               default_arg0
@@ -13391,7 +14100,8 @@
                                                                                           (all
                                                                                             dead
                                                                                             (type)
-                                                                                            Ordering)
+                                                                                            Ordering
+                                                                                          )
                                                                                         }
                                                                                         (lam
                                                                                           l
@@ -13414,7 +14124,8 @@
                                                                                                       (all
                                                                                                         dead
                                                                                                         (type)
-                                                                                                        Ordering)
+                                                                                                        Ordering
+                                                                                                      )
                                                                                                     }
                                                                                                     (lam
                                                                                                       r
@@ -13471,7 +14182,8 @@
                                                                                               (all
                                                                                                 dead
                                                                                                 (type)
-                                                                                                dead)
+                                                                                                dead
+                                                                                              )
                                                                                             }
                                                                                           )
                                                                                         )
@@ -13500,7 +14212,8 @@
                                                                                   (all
                                                                                     dead
                                                                                     (type)
-                                                                                    dead)
+                                                                                    dead
+                                                                                  )
                                                                                 }
                                                                               )
                                                                             )
@@ -13523,7 +14236,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        Ordering)
+                                                                                        Ordering
+                                                                                      )
                                                                                     }
                                                                                     (lam
                                                                                       l
@@ -13546,7 +14260,8 @@
                                                                                                   (all
                                                                                                     dead
                                                                                                     (type)
-                                                                                                    Ordering)
+                                                                                                    Ordering
+                                                                                                  )
                                                                                                 }
                                                                                                 (lam
                                                                                                   r
@@ -13603,7 +14318,8 @@
                                                                                           (all
                                                                                             dead
                                                                                             (type)
-                                                                                            dead)
+                                                                                            dead
+                                                                                          )
                                                                                         }
                                                                                       )
                                                                                     )
@@ -13632,7 +14348,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                dead)
+                                                                                dead
+                                                                              )
                                                                             }
                                                                           )
                                                                         ]
@@ -13645,7 +14362,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -13664,7 +14382,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           default_arg0
@@ -13718,7 +14437,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  Ordering)
+                                                                                  Ordering
+                                                                                )
                                                                               }
                                                                               (lam
                                                                                 default_arg0
@@ -13763,14 +14483,16 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             )
@@ -13789,7 +14511,8 @@
                                                               fail
                                                               (fun
                                                                 (all a (type) a)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             )
                                                             (lam
                                                               ds
@@ -13809,7 +14532,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          Ordering)
+                                                                          Ordering
+                                                                        )
                                                                       }
                                                                       (lam
                                                                         default_arg0
@@ -13832,7 +14556,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      Ordering)
+                                                                                      Ordering
+                                                                                    )
                                                                                   }
                                                                                   (lam
                                                                                     l
@@ -13855,7 +14580,8 @@
                                                                                                 (all
                                                                                                   dead
                                                                                                   (type)
-                                                                                                  Ordering)
+                                                                                                  Ordering
+                                                                                                )
                                                                                               }
                                                                                               (lam
                                                                                                 r
@@ -13912,7 +14638,8 @@
                                                                                         (all
                                                                                           dead
                                                                                           (type)
-                                                                                          dead)
+                                                                                          dead
+                                                                                        )
                                                                                       }
                                                                                     )
                                                                                   )
@@ -13941,7 +14668,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              dead)
+                                                                              dead
+                                                                            )
                                                                           }
                                                                         )
                                                                       )
@@ -13964,7 +14692,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  Ordering)
+                                                                                  Ordering
+                                                                                )
                                                                               }
                                                                               (lam
                                                                                 l
@@ -13987,7 +14716,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              Ordering)
+                                                                                              Ordering
+                                                                                            )
                                                                                           }
                                                                                           (lam
                                                                                             r
@@ -14044,7 +14774,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      dead)
+                                                                                      dead
+                                                                                    )
                                                                                   }
                                                                                 )
                                                                               )
@@ -14073,7 +14804,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
@@ -14086,7 +14818,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  dead)
+                                                                  dead
+                                                                )
                                                               }
                                                             )
                                                           )
@@ -14105,7 +14838,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Ordering)
+                                                                      Ordering
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     default_arg0
@@ -14157,7 +14891,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           default_arg0
@@ -14202,12 +14937,14 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -14230,7 +14967,8 @@
                                                           ds
                                                         ]
                                                         (all
-                                                          dead (type) Ordering)
+                                                          dead (type) Ordering
+                                                        )
                                                       }
                                                       (lam
                                                         default_arg0
@@ -14273,7 +15011,8 @@
                                                               fail
                                                               (fun
                                                                 (all a (type) a)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             )
                                                             (lam
                                                               ds
@@ -14293,7 +15032,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          Ordering)
+                                                                          Ordering
+                                                                        )
                                                                       }
                                                                       (lam
                                                                         default_arg0
@@ -14316,7 +15056,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      Ordering)
+                                                                                      Ordering
+                                                                                    )
                                                                                   }
                                                                                   (lam
                                                                                     l
@@ -14339,7 +15080,8 @@
                                                                                                 (all
                                                                                                   dead
                                                                                                   (type)
-                                                                                                  Ordering)
+                                                                                                  Ordering
+                                                                                                )
                                                                                               }
                                                                                               (lam
                                                                                                 r
@@ -14396,7 +15138,8 @@
                                                                                         (all
                                                                                           dead
                                                                                           (type)
-                                                                                          dead)
+                                                                                          dead
+                                                                                        )
                                                                                       }
                                                                                     )
                                                                                   )
@@ -14425,7 +15168,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              dead)
+                                                                              dead
+                                                                            )
                                                                           }
                                                                         )
                                                                       )
@@ -14448,7 +15192,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  Ordering)
+                                                                                  Ordering
+                                                                                )
                                                                               }
                                                                               (lam
                                                                                 l
@@ -14471,7 +15216,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              Ordering)
+                                                                                              Ordering
+                                                                                            )
                                                                                           }
                                                                                           (lam
                                                                                             r
@@ -14528,7 +15274,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      dead)
+                                                                                      dead
+                                                                                    )
                                                                                   }
                                                                                 )
                                                                               )
@@ -14557,7 +15304,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
@@ -14570,7 +15318,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  dead)
+                                                                  dead
+                                                                )
                                                               }
                                                             )
                                                           )
@@ -14589,7 +15338,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Ordering)
+                                                                      Ordering
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     default_arg0
@@ -14641,7 +15391,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           default_arg0
@@ -14686,12 +15437,14 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -14710,7 +15463,8 @@
                                                         fail
                                                         (fun
                                                           (all a (type) a)
-                                                          Ordering)
+                                                          Ordering
+                                                        )
                                                       )
                                                       (lam
                                                         ds
@@ -14730,7 +15484,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Ordering)
+                                                                    Ordering
+                                                                  )
                                                                 }
                                                                 (lam
                                                                   default_arg0
@@ -14753,7 +15508,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                Ordering)
+                                                                                Ordering
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               l
@@ -14776,7 +15532,8 @@
                                                                                           (all
                                                                                             dead
                                                                                             (type)
-                                                                                            Ordering)
+                                                                                            Ordering
+                                                                                          )
                                                                                         }
                                                                                         (lam
                                                                                           r
@@ -14833,7 +15590,8 @@
                                                                                   (all
                                                                                     dead
                                                                                     (type)
-                                                                                    dead)
+                                                                                    dead
+                                                                                  )
                                                                                 }
                                                                               )
                                                                             )
@@ -14862,7 +15620,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -14885,7 +15644,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           l
@@ -14908,7 +15668,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        Ordering)
+                                                                                        Ordering
+                                                                                      )
                                                                                     }
                                                                                     (lam
                                                                                       r
@@ -14965,7 +15726,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                dead)
+                                                                                dead
+                                                                              )
                                                                             }
                                                                           )
                                                                         )
@@ -14994,7 +15756,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             ]
@@ -15019,7 +15782,8 @@
                                                               (all
                                                                 dead
                                                                 (type)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             }
                                                             (lam
                                                               default_arg0
@@ -15069,7 +15833,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Ordering)
+                                                                      Ordering
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     default_arg0
@@ -15108,7 +15873,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       ]
@@ -15139,8 +15905,10 @@
                                 (fun
                                   [ Ord a ]
                                   (fun
-                                    [ UpperBound a ]
-                                    (fun [ UpperBound a ] Bool))))
+                                    [ UpperBound a ] (fun [ UpperBound a ] Bool)
+                                  )
+                                )
+                              )
                             )
                             (abs
                               a
@@ -15209,7 +15977,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Bool)
+                                                                    Bool
+                                                                  )
                                                                 }
                                                                 (abs
                                                                   dead (type) in
@@ -15220,7 +15989,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       ]
@@ -15250,8 +16020,9 @@
                                 (type)
                                 (fun
                                   [ Ord a ]
-                                  (fun
-                                    [ Interval a ] (fun [ Interval a ] Bool))))
+                                  (fun [ Interval a ] (fun [ Interval a ] Bool))
+                                )
+                              )
                             )
                             (abs
                               a
@@ -15332,7 +16103,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        Bool)
+                                                                        Bool
+                                                                      )
                                                                     }
                                                                     (abs
                                                                       dead
@@ -15348,7 +16120,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                Bool)
+                                                                                Bool
+                                                                              )
                                                                             }
                                                                             (abs
                                                                               dead
@@ -15364,7 +16137,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        Bool)
+                                                                                        Bool
+                                                                                      )
                                                                                     }
                                                                                     (abs
                                                                                       dead
@@ -15393,7 +16167,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  dead)
+                                                                                  dead
+                                                                                )
                                                                               }
                                                                             )
                                                                           ]
@@ -15418,7 +16193,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
@@ -15447,9 +16223,8 @@
                                                                 )
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                dead)
+                                                                dead (type) dead
+                                                              )
                                                             }
                                                           )
                                                         )
@@ -15498,7 +16273,8 @@
                               findDatum
                               (fun
                                 (con bytestring)
-                                (fun TxInfo [ Maybe (con data) ]))
+                                (fun TxInfo [ Maybe (con data) ])
+                              )
                             )
                             (lam
                               dsh
@@ -15524,7 +16300,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -15535,7 +16313,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -15551,7 +16331,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -15562,9 +16344,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -15614,7 +16396,8 @@
                                                                     [
                                                                       Tuple2
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     (con data)
                                                                   ]
@@ -15632,15 +16415,18 @@
                                                                               [
                                                                                 Maybe
                                                                                 a
-                                                                              ])
+                                                                              ]
+                                                                            )
                                                                             [
                                                                               [
                                                                                 Tuple2
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             ]
                                                                           ]
                                                                         }
@@ -15648,10 +16434,12 @@
                                                                           [
                                                                             Tuple2
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         ]
                                                                       }
                                                                       {
@@ -15660,10 +16448,12 @@
                                                                           [
                                                                             Tuple2
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         ]
                                                                       }
                                                                     ]
@@ -15673,10 +16463,12 @@
                                                                         [
                                                                           Tuple2
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         (con
-                                                                          data)
+                                                                          data
+                                                                        )
                                                                       ]
                                                                       [
                                                                         {
@@ -15685,10 +16477,12 @@
                                                                               {
                                                                                 Tuple2_match
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               }
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             }
                                                                             x
                                                                           ]
@@ -15698,21 +16492,25 @@
                                                                               [
                                                                                 Tuple2
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                data)
+                                                                                data
+                                                                              )
                                                                             ]
                                                                           ]
                                                                         }
                                                                         (lam
                                                                           dsh
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                           (lam
                                                                             ds
                                                                             (con
-                                                                              data)
+                                                                              data
+                                                                            )
                                                                             {
                                                                               [
                                                                                 [
@@ -15752,12 +16550,15 @@
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            data)
+                                                                                            data
+                                                                                          )
                                                                                         ]
-                                                                                      ])
+                                                                                      ]
+                                                                                    )
                                                                                   }
                                                                                   (abs
                                                                                     dead
@@ -15769,10 +16570,12 @@
                                                                                           [
                                                                                             Tuple2
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            data)
+                                                                                            data
+                                                                                          )
                                                                                         ]
                                                                                       }
                                                                                       x
@@ -15788,10 +16591,12 @@
                                                                                       [
                                                                                         Tuple2
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        data)
+                                                                                        data
+                                                                                      )
                                                                                     ]
                                                                                   }
                                                                                 )
@@ -15799,7 +16604,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                dead)
+                                                                                dead
+                                                                              )
                                                                             }
                                                                           )
                                                                         )
@@ -15815,7 +16621,8 @@
                                                                 [
                                                                   Maybe
                                                                   (con data)
-                                                                ])
+                                                                ]
+                                                              )
                                                             }
                                                             (lam
                                                               a
@@ -15823,7 +16630,8 @@
                                                                 [
                                                                   Tuple2
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 (con data)
                                                               ]
@@ -15842,10 +16650,12 @@
                                                                           {
                                                                             Tuple2_match
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           }
                                                                           (con
-                                                                            data)
+                                                                            data
+                                                                          )
                                                                         }
                                                                         a
                                                                       ]
@@ -15854,11 +16664,13 @@
                                                                     (lam
                                                                       ds
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                       (lam
                                                                         b
                                                                         (con
-                                                                          data)
+                                                                          data
+                                                                        )
                                                                         b
                                                                       )
                                                                     )
@@ -15921,7 +16733,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -15932,7 +16746,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -15948,7 +16764,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -15959,9 +16777,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -16010,7 +16828,8 @@
                                                                   (lam
                                                                     a
                                                                     (type)
-                                                                    [ Maybe a ])
+                                                                    [ Maybe a ]
+                                                                  )
                                                                   TxInInfo
                                                                 ]
                                                               }
@@ -16060,7 +16879,8 @@
                                                                             [
                                                                               Maybe
                                                                               TxInInfo
-                                                                            ])
+                                                                            ]
+                                                                          )
                                                                         }
                                                                         (abs
                                                                           dead
@@ -16086,7 +16906,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      dead)
+                                                                      dead
+                                                                    )
                                                                   }
                                                                 )
                                                               )
@@ -16116,7 +16937,8 @@
                               (all
                                 a
                                 (type)
-                                (all b (type) (fun [ [ Tuple2 a ] b ] b)))
+                                (all b (type) (fun [ [ Tuple2 a ] b ] b))
+                              )
                             )
                             (abs
                               a
@@ -16165,7 +16987,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -16176,7 +17000,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -16192,7 +17018,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -16203,9 +17031,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -16252,7 +17080,8 @@
                                                                 {
                                                                   Maybe_match
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 }
                                                                 [
                                                                   [
@@ -16267,24 +17096,29 @@
                                                                               [
                                                                                 Maybe
                                                                                 a
-                                                                              ])
+                                                                              ]
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                         }
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       }
                                                                       {
                                                                         fMonoidFirst
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       }
                                                                     ]
                                                                     (lam
                                                                       x
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                       {
                                                                         [
                                                                           [
@@ -16321,8 +17155,10 @@
                                                                                 [
                                                                                   Maybe
                                                                                   (con
-                                                                                    bytestring)
-                                                                                ])
+                                                                                    bytestring
+                                                                                  )
+                                                                                ]
+                                                                              )
                                                                             }
                                                                             (abs
                                                                               dead
@@ -16331,7 +17167,8 @@
                                                                                 {
                                                                                   Just
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 }
                                                                                 x
                                                                               ]
@@ -16343,14 +17180,16 @@
                                                                             {
                                                                               Nothing
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             }
                                                                           )
                                                                         ]
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
@@ -16358,9 +17197,8 @@
                                                                 ]
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                Bool)
+                                                                dead (type) Bool
+                                                              )
                                                             }
                                                             (lam
                                                               ds
@@ -16370,7 +17208,8 @@
                                                               )
                                                             )
                                                           ]
-                                                          (abs dead (type) False
+                                                          (abs
+                                                            dead (type) False
                                                           )
                                                         ]
                                                         (all dead (type) dead)
@@ -16399,8 +17238,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -16409,7 +17248,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
@@ -16417,7 +17258,9 @@
                                 ]
                                 (fun
                                   (con bytestring)
-                                  (fun (con bytestring) (con integer))))
+                                  (fun (con bytestring) (con integer))
+                                )
+                              )
                             )
                             (lam
                               ds
@@ -16426,7 +17269,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 [
@@ -16434,8 +17278,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   (con integer)
@@ -16462,12 +17306,15 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
                                           ]
-                                          (con integer))
+                                          (con integer)
+                                        )
                                       )
                                       (lam
                                         i
@@ -16479,7 +17326,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -16498,7 +17347,8 @@
                                                     (con integer)
                                                   ]
                                                 ]
-                                                (con integer))
+                                                (con integer)
+                                              )
                                             )
                                             (lam
                                               ds
@@ -16601,7 +17451,9 @@
                                                                     dead
                                                                     (type)
                                                                     (con
-                                                                      integer))
+                                                                      integer
+                                                                    )
+                                                                  )
                                                                 }
                                                                 (abs
                                                                   dead (type) i
@@ -16614,7 +17466,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -16650,14 +17503,17 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
                                                 ]
                                               ]
                                             ]
-                                            (con integer))
+                                            (con integer)
+                                          )
                                         )
                                         (lam
                                           ds
@@ -16675,7 +17531,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -16705,7 +17563,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -16733,7 +17593,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -16756,7 +17618,9 @@
                                                             [
                                                               List
                                                               [ [ Tuple2 k ] v ]
-                                                            ]))
+                                                            ]
+                                                          )
+                                                        )
                                                         (con bytestring)
                                                       ]
                                                       (con integer)
@@ -16785,7 +17649,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           (con integer)
@@ -16813,7 +17679,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -16851,7 +17719,8 @@
                                                               (all
                                                                 dead
                                                                 (type)
-                                                                (con integer))
+                                                                (con integer)
+                                                              )
                                                             }
                                                             (abs
                                                               dead
@@ -16893,8 +17762,10 @@
                                   b
                                   (type)
                                   (fun
-                                    (fun a (fun b b))
-                                    (fun b (fun [ List a ] b)))))
+                                    (fun a (fun b b)) (fun b (fun [ List a ] b))
+                                  )
+                                )
+                              )
                             )
                             (abs
                               a
@@ -16966,9 +17837,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -16979,13 +17850,17 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
                                       ]
                                     ]
-                                  ]))
+                                  ]
+                                )
+                              )
                             )
                             (lam
                               pk
@@ -17006,7 +17881,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -17017,7 +17894,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -17041,7 +17920,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -17052,7 +17933,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -17068,7 +17951,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -17079,9 +17964,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -17144,9 +18029,12 @@
                                                                             ]
                                                                             v
                                                                           ]
-                                                                        ]))
+                                                                        ]
+                                                                      )
+                                                                    )
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   ]
                                                                   [
                                                                     [
@@ -17165,12 +18053,16 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     (con
-                                                                      integer)
+                                                                      integer
+                                                                    )
                                                                   ]
                                                                 ]
                                                               ]
@@ -17199,9 +18091,12 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     [
                                                                       [
@@ -17220,12 +18115,16 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
                                                                   ]
                                                                 ]
@@ -17254,9 +18153,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -17275,12 +18177,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                     ]
@@ -17307,9 +18213,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -17328,12 +18237,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                       (lam
@@ -17341,7 +18254,8 @@
                                                                         [
                                                                           Maybe
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           {
@@ -17368,9 +18282,12 @@
                                                                                           ]
                                                                                           v
                                                                                         ]
-                                                                                      ]))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 [
                                                                                   [
@@ -17389,12 +18306,16 @@
                                                                                             ]
                                                                                             v
                                                                                           ]
-                                                                                        ]))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 ]
                                                                               ]
                                                                             ]
@@ -17434,9 +18355,12 @@
                                                                                                   ]
                                                                                                   v
                                                                                                 ]
-                                                                                              ]))
+                                                                                              ]
+                                                                                            )
+                                                                                          )
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                         ]
                                                                                         [
                                                                                           [
@@ -17455,12 +18379,16 @@
                                                                                                     ]
                                                                                                     v
                                                                                                   ]
-                                                                                                ]))
+                                                                                                ]
+                                                                                              )
+                                                                                            )
                                                                                             (con
-                                                                                              bytestring)
+                                                                                              bytestring
+                                                                                            )
                                                                                           ]
                                                                                           (con
-                                                                                            integer)
+                                                                                            integer
+                                                                                          )
                                                                                         ]
                                                                                       ]
                                                                                     ]
@@ -17468,7 +18396,8 @@
                                                                                   (lam
                                                                                     pk
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     {
                                                                                       [
                                                                                         [
@@ -17521,9 +18450,12 @@
                                                                                                             ]
                                                                                                             v
                                                                                                           ]
-                                                                                                        ]))
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    )
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                   ]
                                                                                                   [
                                                                                                     [
@@ -17542,15 +18474,20 @@
                                                                                                               ]
                                                                                                               v
                                                                                                             ]
-                                                                                                          ]))
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
                                                                                                       (con
-                                                                                                        bytestring)
+                                                                                                        bytestring
+                                                                                                      )
                                                                                                     ]
                                                                                                     (con
-                                                                                                      integer)
+                                                                                                      integer
+                                                                                                    )
                                                                                                   ]
                                                                                                 ]
-                                                                                              ])
+                                                                                              ]
+                                                                                            )
                                                                                           }
                                                                                           (abs
                                                                                             dead
@@ -17576,9 +18513,12 @@
                                                                                                               ]
                                                                                                               v
                                                                                                             ]
-                                                                                                          ]))
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
                                                                                                       (con
-                                                                                                        bytestring)
+                                                                                                        bytestring
+                                                                                                      )
                                                                                                     ]
                                                                                                     [
                                                                                                       [
@@ -17597,12 +18537,16 @@
                                                                                                                 ]
                                                                                                                 v
                                                                                                               ]
-                                                                                                            ]))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       ]
                                                                                                       (con
-                                                                                                        integer)
+                                                                                                        integer
+                                                                                                      )
                                                                                                     ]
                                                                                                   ]
                                                                                                 }
@@ -17621,14 +18565,16 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        dead)
+                                                                                        dead
+                                                                                      )
                                                                                     }
                                                                                   )
                                                                                 ]
                                                                                 (lam
                                                                                   ipv
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   xs
                                                                                 )
                                                                               ]
@@ -17661,7 +18607,9 @@
                                                                         ]
                                                                         v
                                                                       ]
-                                                                    ]))
+                                                                    ]
+                                                                  )
+                                                                )
                                                                 (con bytestring)
                                                               ]
                                                               [
@@ -17681,9 +18629,12 @@
                                                                           ]
                                                                           v
                                                                         ]
-                                                                      ]))
+                                                                      ]
+                                                                    )
+                                                                  )
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 (con integer)
                                                               ]
@@ -17720,7 +18671,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -17729,14 +18682,16 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
                                     ]
-                                  ]))
+                                  ]
+                                )
+                              )
                             )
                             (lam
                               ptx
@@ -17758,7 +18713,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -17769,9 +18726,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -17786,7 +18743,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -17797,7 +18756,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -17818,7 +18779,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -17842,8 +18805,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -17852,12 +18815,15 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
                                   ]
-                                ])
+                                ]
+                              )
                             )
                             (lam
                               ds
@@ -17871,7 +18837,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -17880,9 +18848,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -17900,9 +18868,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -17913,7 +18881,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -17936,8 +18906,8 @@
                                     (lam
                                       k
                                       (type)
-                                      (lam
-                                        v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                      (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                    )
                                     (con bytestring)
                                   ]
                                   [
@@ -17946,12 +18916,15 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     (con integer)
                                   ]
-                                ])
+                                ]
+                              )
                             )
                             (lam
                               x
@@ -17965,7 +18938,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -17974,9 +18949,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -17999,7 +18974,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -18010,7 +18987,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -18026,7 +19005,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -18037,7 +19018,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -18098,9 +19081,12 @@
                                                                           ]
                                                                           v
                                                                         ]
-                                                                      ]))
+                                                                      ]
+                                                                    )
+                                                                  )
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 [
                                                                   [
@@ -18119,9 +19105,12 @@
                                                                             ]
                                                                             v
                                                                           ]
-                                                                        ]))
+                                                                        ]
+                                                                      )
+                                                                    )
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   ]
                                                                   (con integer)
                                                                 ]
@@ -18195,7 +19184,8 @@
                                                                 (lam
                                                                   pubKey
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                   {
                                                                     [
                                                                       [
@@ -18213,7 +19203,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Bool)
+                                                                            Bool
+                                                                          )
                                                                         }
                                                                         (abs
                                                                           dead
@@ -18234,7 +19225,7 @@
                                                                             }
                                                                             (con
                                                                               string
-                                                                                "L4"
+                                                                              "L4"
                                                                             )
                                                                           ]
                                                                           False
@@ -18244,7 +19235,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      dead)
+                                                                      dead
+                                                                    )
                                                                   }
                                                                 )
                                                               ]
@@ -18257,8 +19249,7 @@
                                                                   (let
                                                                     (nonrec)
                                                                     (termbind
-                                                                      (nonstrict
-                                                                      )
+                                                                      (nonstrict)
                                                                       (vardecl
                                                                         j Bool
                                                                       )
@@ -18272,7 +19263,7 @@
                                                                           }
                                                                           (con
                                                                             string
-                                                                              "Lc"
+                                                                            "Lc"
                                                                           )
                                                                         ]
                                                                         False
@@ -18286,7 +19277,8 @@
                                                                               {
                                                                                 Maybe_match
                                                                                 (con
-                                                                                  data)
+                                                                                  data
+                                                                                )
                                                                               }
                                                                               [
                                                                                 [
@@ -18299,12 +19291,14 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              Bool)
+                                                                              Bool
+                                                                            )
                                                                           }
                                                                           (lam
                                                                             a
                                                                             (con
-                                                                              data)
+                                                                              data
+                                                                            )
                                                                             (abs
                                                                               dead
                                                                               (type)
@@ -18341,7 +19335,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        Bool)
+                                                                                        Bool
+                                                                                      )
                                                                                     }
                                                                                     (abs
                                                                                       dead
@@ -18358,7 +19353,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  dead)
+                                                                                  dead
+                                                                                )
                                                                               }
                                                                             )
                                                                           )
@@ -18372,7 +19368,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -18419,9 +19416,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -18440,12 +19440,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                       (lam
@@ -18467,9 +19471,12 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           [
                                                                             [
@@ -18488,12 +19495,16 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           ]
                                                                         ]
                                                                         (lam
@@ -18512,7 +19523,8 @@
                                                                                   StakingCredential
                                                                                 ]
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                             ]
                                                                             (lam
@@ -18520,14 +19532,16 @@
                                                                               [
                                                                                 Interval
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                               (lam
                                                                                 ds
                                                                                 [
                                                                                   List
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (lam
                                                                                   ds
@@ -18537,16 +19551,19 @@
                                                                                       [
                                                                                         Tuple2
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        data)
+                                                                                        data
+                                                                                      )
                                                                                     ]
                                                                                   ]
                                                                                   (lam
                                                                                     ds
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     {
                                                                                       [
                                                                                         [
@@ -18563,12 +19580,14 @@
                                                                                                           (lam
                                                                                                             a
                                                                                                             (type)
-                                                                                                            a)
+                                                                                                            a
+                                                                                                          )
                                                                                                           Bool
                                                                                                         ]
                                                                                                       }
                                                                                                       (con
-                                                                                                        data)
+                                                                                                        data
+                                                                                                      )
                                                                                                     }
                                                                                                     [
                                                                                                       {
@@ -18592,23 +19611,28 @@
                                                                                                           [
                                                                                                             Tuple2
                                                                                                             (con
-                                                                                                              bytestring)
+                                                                                                              bytestring
+                                                                                                            )
                                                                                                           ]
                                                                                                           (con
-                                                                                                            data)
+                                                                                                            data
+                                                                                                          )
                                                                                                         ]
                                                                                                       }
                                                                                                       (con
-                                                                                                        data)
+                                                                                                        data
+                                                                                                      )
                                                                                                     }
                                                                                                     {
                                                                                                       {
                                                                                                         snd
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       }
                                                                                                       (con
-                                                                                                        data)
+                                                                                                        data
+                                                                                                      )
                                                                                                     }
                                                                                                   ]
                                                                                                   ds
@@ -18618,7 +19642,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              Bool)
+                                                                                              Bool
+                                                                                            )
                                                                                           }
                                                                                           (abs
                                                                                             dead
@@ -18639,7 +19664,7 @@
                                                                                               }
                                                                                               (con
                                                                                                 string
-                                                                                                  "L2"
+                                                                                                "L2"
                                                                                               )
                                                                                             ]
                                                                                             False
@@ -18649,7 +19674,8 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        dead)
+                                                                                        dead
+                                                                                      )
                                                                                     }
                                                                                   )
                                                                                 )
@@ -18723,9 +19749,12 @@
                                                                                                             ]
                                                                                                             v
                                                                                                           ]
-                                                                                                        ]))
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    )
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                   ]
                                                                                                   [
                                                                                                     [
@@ -18744,12 +19773,16 @@
                                                                                                               ]
                                                                                                               v
                                                                                                             ]
-                                                                                                          ]))
+                                                                                                          ]
+                                                                                                        )
+                                                                                                      )
                                                                                                       (con
-                                                                                                        bytestring)
+                                                                                                        bytestring
+                                                                                                      )
                                                                                                     ]
                                                                                                     (con
-                                                                                                      integer)
+                                                                                                      integer
+                                                                                                    )
                                                                                                   ]
                                                                                                 ]
                                                                                               }
@@ -18784,9 +19817,12 @@
                                                                                                                 ]
                                                                                                                 v
                                                                                                               ]
-                                                                                                            ]))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       ]
                                                                                                       [
                                                                                                         [
@@ -18805,12 +19841,16 @@
                                                                                                                   ]
                                                                                                                   v
                                                                                                                 ]
-                                                                                                              ]))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         (con
-                                                                                                          integer)
+                                                                                                          integer
+                                                                                                        )
                                                                                                       ]
                                                                                                     ]
                                                                                                     (lam
@@ -18832,9 +19872,12 @@
                                                                                                                   ]
                                                                                                                   v
                                                                                                                 ]
-                                                                                                              ]))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         [
                                                                                                           [
@@ -18853,12 +19896,16 @@
                                                                                                                     ]
                                                                                                                     v
                                                                                                                   ]
-                                                                                                                ]))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
                                                                                                             (con
-                                                                                                              bytestring)
+                                                                                                              bytestring
+                                                                                                            )
                                                                                                           ]
                                                                                                           (con
-                                                                                                            integer)
+                                                                                                            integer
+                                                                                                          )
                                                                                                         ]
                                                                                                       ]
                                                                                                       (lam
@@ -18877,7 +19924,8 @@
                                                                                                                 StakingCredential
                                                                                                               ]
                                                                                                               (con
-                                                                                                                integer)
+                                                                                                                integer
+                                                                                                              )
                                                                                                             ]
                                                                                                           ]
                                                                                                           (lam
@@ -18885,14 +19933,16 @@
                                                                                                             [
                                                                                                               Interval
                                                                                                               (con
-                                                                                                                integer)
+                                                                                                                integer
+                                                                                                              )
                                                                                                             ]
                                                                                                             (lam
                                                                                                               ds
                                                                                                               [
                                                                                                                 List
                                                                                                                 (con
-                                                                                                                  bytestring)
+                                                                                                                  bytestring
+                                                                                                                )
                                                                                                               ]
                                                                                                               (lam
                                                                                                                 ds
@@ -18902,16 +19952,19 @@
                                                                                                                     [
                                                                                                                       Tuple2
                                                                                                                       (con
-                                                                                                                        bytestring)
+                                                                                                                        bytestring
+                                                                                                                      )
                                                                                                                     ]
                                                                                                                     (con
-                                                                                                                      data)
+                                                                                                                      data
+                                                                                                                    )
                                                                                                                   ]
                                                                                                                 ]
                                                                                                                 (lam
                                                                                                                   ds
                                                                                                                   (con
-                                                                                                                    bytestring)
+                                                                                                                    bytestring
+                                                                                                                  )
                                                                                                                   ds
                                                                                                                 )
                                                                                                               )
@@ -18941,7 +19994,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Bool)
+                                                                            Bool
+                                                                          )
                                                                         }
                                                                         (abs
                                                                           dead
@@ -18962,7 +20016,7 @@
                                                                             }
                                                                             (con
                                                                               string
-                                                                                "L9"
+                                                                              "L9"
                                                                             )
                                                                           ]
                                                                           False
@@ -18972,7 +20026,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      dead)
+                                                                      dead
+                                                                    )
                                                                   }
                                                                 )
                                                               )
@@ -19004,9 +20059,12 @@
                                                                           ]
                                                                           v
                                                                         ]
-                                                                      ]))
+                                                                      ]
+                                                                    )
+                                                                  )
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                                 [
                                                                   [
@@ -19025,9 +20083,12 @@
                                                                             ]
                                                                             v
                                                                           ]
-                                                                        ]))
+                                                                        ]
+                                                                      )
+                                                                    )
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   ]
                                                                   (con integer)
                                                                 ]
@@ -19041,7 +20102,8 @@
                                                                     [
                                                                       Maybe
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                   )
                                                                   [
@@ -19118,9 +20180,12 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           [
                                                                             [
@@ -19139,12 +20204,16 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           ]
                                                                         ]
                                                                         (lam
@@ -19166,9 +20235,12 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             [
                                                                               [
@@ -19187,12 +20259,16 @@
                                                                                         ]
                                                                                         v
                                                                                       ]
-                                                                                    ]))
+                                                                                    ]
+                                                                                  )
+                                                                                )
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               (con
-                                                                                integer)
+                                                                                integer
+                                                                              )
                                                                             ]
                                                                           ]
                                                                           (lam
@@ -19211,7 +20287,8 @@
                                                                                     StakingCredential
                                                                                   ]
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 ]
                                                                               ]
                                                                               (lam
@@ -19219,14 +20296,16 @@
                                                                                 [
                                                                                   Interval
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 ]
                                                                                 (lam
                                                                                   ds
                                                                                   [
                                                                                     List
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   (lam
                                                                                     ds
@@ -19236,16 +20315,19 @@
                                                                                         [
                                                                                           Tuple2
                                                                                           (con
-                                                                                            bytestring)
+                                                                                            bytestring
+                                                                                          )
                                                                                         ]
                                                                                         (con
-                                                                                          data)
+                                                                                          data
+                                                                                        )
                                                                                       ]
                                                                                     ]
                                                                                     (lam
                                                                                       ds
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                       {
                                                                                         [
                                                                                           [
@@ -19262,7 +20344,8 @@
                                                                                                             (lam
                                                                                                               a
                                                                                                               (type)
-                                                                                                              a)
+                                                                                                              a
+                                                                                                            )
                                                                                                             Bool
                                                                                                           ]
                                                                                                         }
@@ -19309,9 +20392,12 @@
                                                                                                                         ]
                                                                                                                         v
                                                                                                                       ]
-                                                                                                                    ]))
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                )
                                                                                                                 (con
-                                                                                                                  bytestring)
+                                                                                                                  bytestring
+                                                                                                                )
                                                                                                               ]
                                                                                                               [
                                                                                                                 [
@@ -19330,12 +20416,16 @@
                                                                                                                           ]
                                                                                                                           v
                                                                                                                         ]
-                                                                                                                      ]))
+                                                                                                                      ]
+                                                                                                                    )
+                                                                                                                  )
                                                                                                                   (con
-                                                                                                                    bytestring)
+                                                                                                                    bytestring
+                                                                                                                  )
                                                                                                                 ]
                                                                                                                 (con
-                                                                                                                  integer)
+                                                                                                                  integer
+                                                                                                                )
                                                                                                               ]
                                                                                                             ]
                                                                                                             (lam
@@ -19343,7 +20433,8 @@
                                                                                                               [
                                                                                                                 Maybe
                                                                                                                 (con
-                                                                                                                  bytestring)
+                                                                                                                  bytestring
+                                                                                                                )
                                                                                                               ]
                                                                                                               {
                                                                                                                 [
@@ -19353,19 +20444,22 @@
                                                                                                                         {
                                                                                                                           Maybe_match
                                                                                                                           (con
-                                                                                                                            bytestring)
+                                                                                                                            bytestring
+                                                                                                                          )
                                                                                                                         }
                                                                                                                         ds
                                                                                                                       ]
                                                                                                                       (all
                                                                                                                         dead
                                                                                                                         (type)
-                                                                                                                        Bool)
+                                                                                                                        Bool
+                                                                                                                      )
                                                                                                                     }
                                                                                                                     (lam
                                                                                                                       svh
                                                                                                                       (con
-                                                                                                                        bytestring)
+                                                                                                                        bytestring
+                                                                                                                      )
                                                                                                                       (abs
                                                                                                                         dead
                                                                                                                         (type)
@@ -19389,7 +20483,8 @@
                                                                                                                                 (all
                                                                                                                                   dead
                                                                                                                                   (type)
-                                                                                                                                  Bool)
+                                                                                                                                  Bool
+                                                                                                                                )
                                                                                                                               }
                                                                                                                               (abs
                                                                                                                                 dead
@@ -19402,19 +20497,22 @@
                                                                                                                                           {
                                                                                                                                             Maybe_match
                                                                                                                                             (con
-                                                                                                                                              bytestring)
+                                                                                                                                              bytestring
+                                                                                                                                            )
                                                                                                                                           }
                                                                                                                                           hsh
                                                                                                                                         ]
                                                                                                                                         (all
                                                                                                                                           dead
                                                                                                                                           (type)
-                                                                                                                                          Bool)
+                                                                                                                                          Bool
+                                                                                                                                        )
                                                                                                                                       }
                                                                                                                                       (lam
                                                                                                                                         a
                                                                                                                                         (con
-                                                                                                                                          bytestring)
+                                                                                                                                          bytestring
+                                                                                                                                        )
                                                                                                                                         (abs
                                                                                                                                           dead
                                                                                                                                           (type)
@@ -19451,7 +20549,8 @@
                                                                                                                                                   (all
                                                                                                                                                     dead
                                                                                                                                                     (type)
-                                                                                                                                                    Bool)
+                                                                                                                                                    Bool
+                                                                                                                                                  )
                                                                                                                                                 }
                                                                                                                                                 (abs
                                                                                                                                                   dead
@@ -19474,7 +20573,8 @@
                                                                                                                                             (all
                                                                                                                                               dead
                                                                                                                                               (type)
-                                                                                                                                              dead)
+                                                                                                                                              dead
+                                                                                                                                            )
                                                                                                                                           }
                                                                                                                                         )
                                                                                                                                       )
@@ -19488,7 +20588,8 @@
                                                                                                                                   (all
                                                                                                                                     dead
                                                                                                                                     (type)
-                                                                                                                                    dead)
+                                                                                                                                    dead
+                                                                                                                                  )
                                                                                                                                 }
                                                                                                                               )
                                                                                                                             ]
@@ -19501,7 +20602,8 @@
                                                                                                                           (all
                                                                                                                             dead
                                                                                                                             (type)
-                                                                                                                            dead)
+                                                                                                                            dead
+                                                                                                                          )
                                                                                                                         }
                                                                                                                       )
                                                                                                                     )
@@ -19515,7 +20617,8 @@
                                                                                                                 (all
                                                                                                                   dead
                                                                                                                   (type)
-                                                                                                                  dead)
+                                                                                                                  dead
+                                                                                                                )
                                                                                                               }
                                                                                                             )
                                                                                                           )
@@ -19529,7 +20632,8 @@
                                                                                               (all
                                                                                                 dead
                                                                                                 (type)
-                                                                                                Bool)
+                                                                                                Bool
+                                                                                              )
                                                                                             }
                                                                                             (abs
                                                                                               dead
@@ -19550,7 +20654,7 @@
                                                                                                 }
                                                                                                 (con
                                                                                                   string
-                                                                                                    "Lb"
+                                                                                                  "Lb"
                                                                                                 )
                                                                                               ]
                                                                                               False
@@ -19560,7 +20664,8 @@
                                                                                         (all
                                                                                           dead
                                                                                           (type)
-                                                                                          dead)
+                                                                                          dead
+                                                                                        )
                                                                                       }
                                                                                     )
                                                                                   )
@@ -19599,7 +20704,9 @@
                                                                       ]
                                                                       v
                                                                     ]
-                                                                  ]))
+                                                                  ]
+                                                                )
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                             [
@@ -19619,7 +20726,9 @@
                                                                         ]
                                                                         v
                                                                       ]
-                                                                    ]))
+                                                                    ]
+                                                                  )
+                                                                )
                                                                 (con bytestring)
                                                               ]
                                                               (con integer)
@@ -19651,7 +20760,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Bool)
+                                                                    Bool
+                                                                  )
                                                                 }
                                                                 (abs
                                                                   dead
@@ -19672,7 +20782,7 @@
                                                                     }
                                                                     (con
                                                                       string
-                                                                        "La"
+                                                                      "La"
                                                                     )
                                                                   ]
                                                                   False
@@ -19680,7 +20790,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -19700,7 +20811,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         [
@@ -19717,7 +20830,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           (con integer)
@@ -19744,9 +20859,8 @@
                                                                 ]
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                Bool)
+                                                                dead (type) Bool
+                                                              )
                                                             }
                                                             (abs
                                                               dead (type) True
@@ -19758,11 +20872,13 @@
                                                             [
                                                               [
                                                                 {
-                                                                  (builtin trace
+                                                                  (builtin
+                                                                    trace
                                                                   )
                                                                   Bool
                                                                 }
-                                                                (con string "L6"
+                                                                (con
+                                                                  string "L6"
                                                                 )
                                                               ]
                                                               False
@@ -19792,7 +20908,8 @@
                                                                           (lam
                                                                             a
                                                                             (type)
-                                                                            a)
+                                                                            a
+                                                                          )
                                                                           Bool
                                                                         ]
                                                                       }
@@ -19815,7 +20932,8 @@
                                                               ]
                                                             ]
                                                             (all
-                                                              dead (type) Bool)
+                                                              dead (type) Bool
+                                                            )
                                                           }
                                                           (abs dead (type) True)
                                                         ]
@@ -19851,7 +20969,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     [
@@ -19865,7 +20985,9 @@
                                                             [
                                                               List
                                                               [ [ Tuple2 k ] v ]
-                                                            ]))
+                                                            ]
+                                                          )
+                                                        )
                                                         (con bytestring)
                                                       ]
                                                       (con integer)
@@ -19908,9 +21030,12 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     [
                                                                       [
@@ -19929,12 +21054,16 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
                                                                   ]
                                                                 }
@@ -19968,9 +21097,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -19989,12 +21121,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                       (lam
@@ -20016,9 +21152,12 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           [
                                                                             [
@@ -20037,12 +21176,16 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           ]
                                                                         ]
                                                                         (lam
@@ -20061,7 +21204,8 @@
                                                                                   StakingCredential
                                                                                 ]
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                             ]
                                                                             (lam
@@ -20069,14 +21213,16 @@
                                                                               [
                                                                                 Interval
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                               (lam
                                                                                 ds
                                                                                 [
                                                                                   List
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (lam
                                                                                   ds
@@ -20086,16 +21232,19 @@
                                                                                       [
                                                                                         Tuple2
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       ]
                                                                                       (con
-                                                                                        data)
+                                                                                        data
+                                                                                      )
                                                                                     ]
                                                                                   ]
                                                                                   (lam
                                                                                     ds
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                     [
                                                                                       [
                                                                                         [
@@ -20119,9 +21268,12 @@
                                                                                                           ]
                                                                                                           v
                                                                                                         ]
-                                                                                                      ]))
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
                                                                                                   (con
-                                                                                                    bytestring)
+                                                                                                    bytestring
+                                                                                                  )
                                                                                                 ]
                                                                                                 [
                                                                                                   [
@@ -20140,12 +21292,16 @@
                                                                                                             ]
                                                                                                             v
                                                                                                           ]
-                                                                                                        ]))
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    )
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                   ]
                                                                                                   (con
-                                                                                                    integer)
+                                                                                                    integer
+                                                                                                  )
                                                                                                 ]
                                                                                               ]
                                                                                             }
@@ -20179,9 +21335,12 @@
                                                                                                           ]
                                                                                                           v
                                                                                                         ]
-                                                                                                      ]))
+                                                                                                      ]
+                                                                                                    )
+                                                                                                  )
                                                                                                   (con
-                                                                                                    bytestring)
+                                                                                                    bytestring
+                                                                                                  )
                                                                                                 ]
                                                                                                 [
                                                                                                   [
@@ -20200,12 +21359,16 @@
                                                                                                             ]
                                                                                                             v
                                                                                                           ]
-                                                                                                        ]))
+                                                                                                        ]
+                                                                                                      )
+                                                                                                    )
                                                                                                     (con
-                                                                                                      bytestring)
+                                                                                                      bytestring
+                                                                                                    )
                                                                                                   ]
                                                                                                   (con
-                                                                                                    integer)
+                                                                                                    integer
+                                                                                                  )
                                                                                                 ]
                                                                                               ]
                                                                                             }
@@ -20238,9 +21401,12 @@
                                                                                                                 ]
                                                                                                                 v
                                                                                                               ]
-                                                                                                            ]))
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        )
                                                                                                         (con
-                                                                                                          bytestring)
+                                                                                                          bytestring
+                                                                                                        )
                                                                                                       ]
                                                                                                       [
                                                                                                         [
@@ -20259,12 +21425,16 @@
                                                                                                                   ]
                                                                                                                   v
                                                                                                                 ]
-                                                                                                              ]))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         (con
-                                                                                                          integer)
+                                                                                                          integer
+                                                                                                        )
                                                                                                       ]
                                                                                                     ]
                                                                                                   }
@@ -20290,9 +21460,12 @@
                                                                                                                   ]
                                                                                                                   v
                                                                                                                 ]
-                                                                                                              ]))
+                                                                                                              ]
+                                                                                                            )
+                                                                                                          )
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         [
                                                                                                           [
@@ -20311,12 +21484,16 @@
                                                                                                                     ]
                                                                                                                     v
                                                                                                                   ]
-                                                                                                                ]))
+                                                                                                                ]
+                                                                                                              )
+                                                                                                            )
                                                                                                             (con
-                                                                                                              bytestring)
+                                                                                                              bytestring
+                                                                                                            )
                                                                                                           ]
                                                                                                           (con
-                                                                                                            integer)
+                                                                                                            integer
+                                                                                                          )
                                                                                                         ]
                                                                                                       ]
                                                                                                       (lam
@@ -20324,7 +21501,8 @@
                                                                                                         [
                                                                                                           Maybe
                                                                                                           (con
-                                                                                                            bytestring)
+                                                                                                            bytestring
+                                                                                                          )
                                                                                                         ]
                                                                                                         ds
                                                                                                       )
@@ -20459,9 +21637,12 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           [
                                                                             [
@@ -20480,12 +21661,16 @@
                                                                                       ]
                                                                                       v
                                                                                     ]
-                                                                                  ]))
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                             ]
                                                                             (con
-                                                                              integer)
+                                                                              integer
+                                                                            )
                                                                           ]
                                                                         ]
                                                                         (lam
@@ -20493,7 +21678,8 @@
                                                                           [
                                                                             Maybe
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           {
                                                                             [
@@ -20503,19 +21689,22 @@
                                                                                     {
                                                                                       Maybe_match
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     }
                                                                                     ds
                                                                                   ]
                                                                                   (all
                                                                                     dead
                                                                                     (type)
-                                                                                    Bool)
+                                                                                    Bool
+                                                                                  )
                                                                                 }
                                                                                 (lam
                                                                                   ds
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                   (abs
                                                                                     dead
                                                                                     (type)
@@ -20532,7 +21721,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              dead)
+                                                                              dead
+                                                                            )
                                                                           }
                                                                         )
                                                                       )
@@ -20653,9 +21843,12 @@
                                                                             ]
                                                                             v
                                                                           ]
-                                                                        ]))
+                                                                        ]
+                                                                      )
+                                                                    )
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   ]
                                                                   [
                                                                     [
@@ -20674,12 +21867,16 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     (con
-                                                                      integer)
+                                                                      integer
+                                                                    )
                                                                   ]
                                                                 ]
                                                                 (lam
@@ -20701,9 +21898,12 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     [
                                                                       [
@@ -20722,12 +21922,16 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
                                                                   ]
                                                                   (lam
@@ -20745,7 +21949,8 @@
                                                                             StakingCredential
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                       (lam
@@ -20753,14 +21958,16 @@
                                                                         [
                                                                           Interval
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                         (lam
                                                                           ds
                                                                           [
                                                                             List
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (lam
                                                                             ds
@@ -20770,16 +21977,19 @@
                                                                                 [
                                                                                   Tuple2
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (con
-                                                                                  data)
+                                                                                  data
+                                                                                )
                                                                               ]
                                                                             ]
                                                                             (lam
                                                                               ds
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                               ds
                                                                             )
                                                                           )
@@ -20836,7 +22046,11 @@
                                         [ (lam a (type) (fun a (con data))) o ]
                                         (fun
                                           [ [ TxConstraints i ] o ]
-                                          (fun ScriptContext Bool)))))
+                                          (fun ScriptContext Bool)
+                                        )
+                                      )
+                                    )
+                                  )
                                 )
                                 (abs
                                   i
@@ -20903,7 +22117,8 @@
                                                                           (lam
                                                                             a
                                                                             (type)
-                                                                            a)
+                                                                            a
+                                                                          )
                                                                           Bool
                                                                         ]
                                                                       }
@@ -20926,7 +22141,8 @@
                                                               ]
                                                             ]
                                                             (all
-                                                              dead (type) Bool)
+                                                              dead (type) Bool
+                                                            )
                                                           }
                                                           (abs
                                                             dead
@@ -20947,7 +22163,8 @@
                                                                                   (lam
                                                                                     a
                                                                                     (type)
-                                                                                    a)
+                                                                                    a
+                                                                                  )
                                                                                   Bool
                                                                                 ]
                                                                               }
@@ -20978,7 +22195,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Bool)
+                                                                      Bool
+                                                                    )
                                                                   }
                                                                   (abs
                                                                     dead
@@ -20999,7 +22217,8 @@
                                                                                           (lam
                                                                                             a
                                                                                             (type)
-                                                                                            a)
+                                                                                            a
+                                                                                          )
                                                                                           Bool
                                                                                         ]
                                                                                       }
@@ -21033,7 +22252,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              Bool)
+                                                                              Bool
+                                                                            )
                                                                           }
                                                                           (abs
                                                                             dead
@@ -21050,7 +22270,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 ]
@@ -21059,9 +22280,8 @@
                                                                 )
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                dead)
+                                                                dead (type) dead
+                                                              )
                                                             }
                                                           )
                                                         ]
@@ -21095,7 +22315,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -21106,7 +22328,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -21120,7 +22344,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -21131,12 +22357,16 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
                                         ]
-                                      ]))
+                                      ]
+                                    )
+                                  )
                                 )
                                 (lam
                                   i
@@ -21149,9 +22379,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -21162,7 +22392,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -21185,7 +22417,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -21202,9 +22436,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -21223,9 +22457,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -21250,7 +22484,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -21271,7 +22507,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -21294,7 +22532,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -21318,7 +22558,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -21363,7 +22605,8 @@
                                                                 {
                                                                   Tuple2_match
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 }
                                                                 (con integer)
                                                               }
@@ -21389,10 +22632,12 @@
                                                                     {
                                                                       Tuple2
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     }
                                                                     (con
-                                                                      integer)
+                                                                      integer
+                                                                    )
                                                                   }
                                                                   c
                                                                 ]
@@ -21435,9 +22680,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       [
@@ -21448,13 +22693,16 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
                                       ]
                                     ]
-                                    Bool)
+                                    Bool
+                                  )
                                 )
                                 (lam
                                   ds
@@ -21464,7 +22712,9 @@
                                         k
                                         (type)
                                         (lam
-                                          v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                          v (type) [ List [ [ Tuple2 k ] v ] ]
+                                        )
+                                      )
                                       (con bytestring)
                                     ]
                                     [
@@ -21473,9 +22723,9 @@
                                           k
                                           (type)
                                           (lam
-                                            v
-                                            (type)
-                                            [ List [ [ Tuple2 k ] v ] ]))
+                                            v (type) [ List [ [ Tuple2 k ] v ] ]
+                                          )
+                                        )
                                         (con bytestring)
                                       ]
                                       (con integer)
@@ -21514,7 +22764,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 (con integer)
@@ -21538,9 +22790,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -21565,7 +22817,9 @@
                                                           [
                                                             List
                                                             [ [ Tuple2 k ] v ]
-                                                          ]))
+                                                          ]
+                                                        )
+                                                      )
                                                       (con bytestring)
                                                     ]
                                                     (con integer)
@@ -21591,7 +22845,9 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
@@ -21665,7 +22921,7 @@
                                                                       )
                                                                       (con
                                                                         integer
-                                                                          0
+                                                                        0
                                                                       )
                                                                     ]
                                                                     a
@@ -21701,7 +22957,8 @@
                                     [
                                       [ Tuple2 (con bytestring) ]
                                       (con bytestring)
-                                    ])
+                                    ]
+                                  )
                                 )
                                 (lam
                                   ds
@@ -21717,7 +22974,8 @@
                                           [
                                             [ Tuple2 (con bytestring) ]
                                             (con bytestring)
-                                          ])
+                                          ]
+                                        )
                                       )
                                       (lam
                                         ds
@@ -21763,7 +23021,8 @@
                                               [
                                                 [ Tuple2 (con bytestring) ]
                                                 (con bytestring)
-                                              ])
+                                              ]
+                                            )
                                           }
                                           (lam
                                             ds
@@ -21817,7 +23076,9 @@
                                                                       ]
                                                                       v
                                                                     ]
-                                                                  ]))
+                                                                  ]
+                                                                )
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                             [
@@ -21837,7 +23098,9 @@
                                                                         ]
                                                                         v
                                                                       ]
-                                                                    ]))
+                                                                    ]
+                                                                  )
+                                                                )
                                                                 (con bytestring)
                                                               ]
                                                               (con integer)
@@ -21859,10 +23122,12 @@
                                                                   [
                                                                     Tuple2
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   ]
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 ]
                                                               }
                                                               (lam
@@ -21885,16 +23150,19 @@
                                                                           [
                                                                             Tuple2
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                       }
                                                                       (lam
                                                                         ipv
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                         [
                                                                           fail
                                                                           (abs
@@ -21910,7 +23178,8 @@
                                                                     (lam
                                                                       s
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                       {
                                                                         [
                                                                           [
@@ -21919,7 +23188,8 @@
                                                                                 {
                                                                                   Maybe_match
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 }
                                                                                 ds
                                                                               ]
@@ -21930,16 +23200,20 @@
                                                                                   [
                                                                                     Tuple2
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   (con
-                                                                                    bytestring)
-                                                                                ])
+                                                                                    bytestring
+                                                                                  )
+                                                                                ]
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               dh
                                                                               (con
-                                                                                bytestring)
+                                                                                bytestring
+                                                                              )
                                                                               (abs
                                                                                 dead
                                                                                 (type)
@@ -21949,10 +23223,12 @@
                                                                                       {
                                                                                         Tuple2
                                                                                         (con
-                                                                                          bytestring)
+                                                                                          bytestring
+                                                                                        )
                                                                                       }
                                                                                       (con
-                                                                                        bytestring)
+                                                                                        bytestring
+                                                                                      )
                                                                                     }
                                                                                     s
                                                                                   ]
@@ -21979,7 +23255,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   ]
@@ -22052,13 +23329,16 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
                                         ]
                                       ]
-                                    ])
+                                    ]
+                                  )
                                 )
                                 (lam
                                   ds
@@ -22075,7 +23355,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         (con integer)
@@ -22100,7 +23382,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -22111,12 +23395,16 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
                                         ]
-                                      ]))
+                                      ]
+                                    )
+                                  )
                                 )
                                 (lam
                                   m
@@ -22141,7 +23429,9 @@
                                                       (type)
                                                       [
                                                         List [ [ Tuple2 k ] v ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (con bytestring)
                                                 ]
                                                 [
@@ -22155,12 +23445,16 @@
                                                         [
                                                           List
                                                           [ [ Tuple2 k ] v ]
-                                                        ]))
+                                                        ]
+                                                      )
+                                                    )
                                                     (con bytestring)
                                                   ]
                                                   (con integer)
                                                 ]
-                                              ]))
+                                              ]
+                                            )
+                                          )
                                         }
                                         (lam
                                           a
@@ -22213,7 +23507,9 @@
                                                                     [ Tuple2 k ]
                                                                     v
                                                                   ]
-                                                                ]))
+                                                                ]
+                                                              )
+                                                            )
                                                             (con bytestring)
                                                           ]
                                                           (con integer)
@@ -22243,7 +23539,9 @@
                                                                       ]
                                                                       v
                                                                     ]
-                                                                  ]))
+                                                                  ]
+                                                                )
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                             (con integer)
@@ -22269,7 +23567,8 @@
                                                                 {
                                                                   Tuple2
                                                                   (con
-                                                                    bytestring)
+                                                                    bytestring
+                                                                  )
                                                                 }
                                                                 (con integer)
                                                               }
@@ -22310,7 +23609,9 @@
                                                                 [
                                                                   [ Tuple2 k ] v
                                                                 ]
-                                                              ]))
+                                                              ]
+                                                            )
+                                                          )
                                                           (con bytestring)
                                                         ]
                                                         (con integer)
@@ -22358,23 +23659,31 @@
                                                   ]
                                                   [ State s ]
                                                 ]
-                                              ]))
+                                              ]
+                                            )
+                                          )
                                           (fun
                                             (fun s Bool)
                                             (fun
                                               (fun
                                                 s
-                                                (fun
-                                                  i (fun ScriptContext Bool)))
+                                                (fun i (fun ScriptContext Bool))
+                                              )
                                               (fun
                                                 [ Maybe ThreadToken ]
                                                 (fun
                                                   s
                                                   (fun
-                                                    i
-                                                    (fun
-                                                      ScriptContext
-                                                      Bool))))))))))
+                                                    i (fun ScriptContext Bool)
+                                                  )
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
                                 )
                                 (abs
                                   s
@@ -22402,15 +23711,17 @@
                                                 ]
                                                 [ State s ]
                                               ]
-                                            ]))
+                                            ]
+                                          )
+                                        )
                                         (lam
                                           ww
                                           (fun s Bool)
                                           (lam
                                             ww
                                             (fun
-                                              s
-                                              (fun i (fun ScriptContext Bool)))
+                                              s (fun i (fun ScriptContext Bool))
+                                            )
                                             (lam
                                               ww
                                               [ Maybe ThreadToken ]
@@ -22445,7 +23756,9 @@
                                                                       ]
                                                                       v
                                                                     ]
-                                                                  ]))
+                                                                  ]
+                                                                )
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                             [
@@ -22465,7 +23778,9 @@
                                                                         ]
                                                                         v
                                                                       ]
-                                                                    ]))
+                                                                    ]
+                                                                  )
+                                                                )
                                                                 (con bytestring)
                                                               ]
                                                               (con integer)
@@ -22506,9 +23821,12 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     [
                                                                       [
@@ -22527,14 +23845,19 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
-                                                                  ])
+                                                                  ]
+                                                                )
                                                               }
                                                               (lam
                                                                 a
@@ -22565,9 +23888,12 @@
                                                                                   ]
                                                                                   v
                                                                                 ]
-                                                                              ]))
+                                                                              ]
+                                                                            )
+                                                                          )
                                                                           (con
-                                                                            bytestring)
+                                                                            bytestring
+                                                                          )
                                                                         ]
                                                                         [
                                                                           [
@@ -22586,12 +23912,16 @@
                                                                                     ]
                                                                                     v
                                                                                   ]
-                                                                                ]))
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                             (con
-                                                                              bytestring)
+                                                                              bytestring
+                                                                            )
                                                                           ]
                                                                           (con
-                                                                            integer)
+                                                                            integer
+                                                                          )
                                                                         ]
                                                                       ]
                                                                     }
@@ -22624,9 +23954,12 @@
                                                                                         ]
                                                                                         v
                                                                                       ]
-                                                                                    ]))
+                                                                                    ]
+                                                                                  )
+                                                                                )
                                                                                 (con
-                                                                                  bytestring)
+                                                                                  bytestring
+                                                                                )
                                                                               ]
                                                                               [
                                                                                 [
@@ -22645,12 +23978,16 @@
                                                                                           ]
                                                                                           v
                                                                                         ]
-                                                                                      ]))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 (con
-                                                                                  integer)
+                                                                                  integer
+                                                                                )
                                                                               ]
                                                                             ]
                                                                           }
@@ -22676,9 +24013,12 @@
                                                                                           ]
                                                                                           v
                                                                                         ]
-                                                                                      ]))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 [
                                                                                   [
@@ -22697,12 +24037,16 @@
                                                                                             ]
                                                                                             v
                                                                                           ]
-                                                                                        ]))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 ]
                                                                               ]
                                                                               (lam
@@ -22710,7 +24054,8 @@
                                                                                 [
                                                                                   Maybe
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 ds
                                                                               )
@@ -22746,9 +24091,12 @@
                                                                               ]
                                                                               v
                                                                             ]
-                                                                          ]))
+                                                                          ]
+                                                                        )
+                                                                      )
                                                                       (con
-                                                                        bytestring)
+                                                                        bytestring
+                                                                      )
                                                                     ]
                                                                     [
                                                                       [
@@ -22767,12 +24115,16 @@
                                                                                 ]
                                                                                 v
                                                                               ]
-                                                                            ]))
+                                                                            ]
+                                                                          )
+                                                                        )
                                                                         (con
-                                                                          bytestring)
+                                                                          bytestring
+                                                                        )
                                                                       ]
                                                                       (con
-                                                                        integer)
+                                                                        integer
+                                                                      )
                                                                     ]
                                                                   ]
                                                                 }
@@ -22790,7 +24142,7 @@
                                                                           }
                                                                           (con
                                                                             string
-                                                                              "S0"
+                                                                            "S0"
                                                                           )
                                                                         ]
                                                                         Unit
@@ -22856,7 +24208,7 @@
                                                                               fAdditiveGroupValue_cscale
                                                                               (con
                                                                                 integer
-                                                                                  -1
+                                                                                -1
                                                                               )
                                                                             ]
                                                                             [
@@ -22879,7 +24231,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  Bool)
+                                                                  Bool
+                                                                )
                                                               }
                                                               (lam
                                                                 ds
@@ -22970,9 +24323,12 @@
                                                                                           ]
                                                                                           v
                                                                                         ]
-                                                                                      ]))
+                                                                                      ]
+                                                                                    )
+                                                                                  )
                                                                                   (con
-                                                                                    bytestring)
+                                                                                    bytestring
+                                                                                  )
                                                                                 ]
                                                                                 [
                                                                                   [
@@ -22991,12 +24347,16 @@
                                                                                             ]
                                                                                             v
                                                                                           ]
-                                                                                        ]))
+                                                                                        ]
+                                                                                      )
+                                                                                    )
                                                                                     (con
-                                                                                      bytestring)
+                                                                                      bytestring
+                                                                                    )
                                                                                   ]
                                                                                   (con
-                                                                                    integer)
+                                                                                    integer
+                                                                                  )
                                                                                 ]
                                                                               ]
                                                                               {
@@ -23013,17 +24373,16 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        Bool)
+                                                                                        Bool
+                                                                                      )
                                                                                     }
                                                                                     (abs
                                                                                       dead
                                                                                       (type)
                                                                                       (let
-                                                                                        (nonrec
-                                                                                        )
+                                                                                        (nonrec)
                                                                                         (termbind
-                                                                                          (nonstrict
-                                                                                          )
+                                                                                          (nonstrict)
                                                                                           (vardecl
                                                                                             j
                                                                                             Bool
@@ -23054,7 +24413,8 @@
                                                                                                   (all
                                                                                                     dead
                                                                                                     (type)
-                                                                                                    Bool)
+                                                                                                    Bool
+                                                                                                  )
                                                                                                 }
                                                                                                 (abs
                                                                                                   dead
@@ -23075,7 +24435,7 @@
                                                                                                     }
                                                                                                     (con
                                                                                                       string
-                                                                                                        "S4"
+                                                                                                      "S4"
                                                                                                     )
                                                                                                   ]
                                                                                                   False
@@ -23085,7 +24445,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              dead)
+                                                                                              dead
+                                                                                            )
                                                                                           }
                                                                                         )
                                                                                         {
@@ -23102,7 +24463,8 @@
                                                                                                 (all
                                                                                                   dead
                                                                                                   (type)
-                                                                                                  Bool)
+                                                                                                  Bool
+                                                                                                )
                                                                                               }
                                                                                               (abs
                                                                                                 dead
@@ -23129,7 +24491,7 @@
                                                                                                             }
                                                                                                             (con
                                                                                                               string
-                                                                                                                "S3"
+                                                                                                              "S3"
                                                                                                             )
                                                                                                           ]
                                                                                                           False
@@ -23138,7 +24500,8 @@
                                                                                                       (all
                                                                                                         dead
                                                                                                         (type)
-                                                                                                        Bool)
+                                                                                                        Bool
+                                                                                                      )
                                                                                                     }
                                                                                                     (abs
                                                                                                       dead
@@ -23155,14 +24518,16 @@
                                                                                                 (all
                                                                                                   dead
                                                                                                   (type)
-                                                                                                  dead)
+                                                                                                  dead
+                                                                                                )
                                                                                               }
                                                                                             )
                                                                                           ]
                                                                                           (all
                                                                                             dead
                                                                                             (type)
-                                                                                            dead)
+                                                                                            dead
+                                                                                          )
                                                                                         }
                                                                                       )
                                                                                     )
@@ -23266,7 +24631,9 @@
                                                                                                                     ]
                                                                                                                     (fun
                                                                                                                       a
-                                                                                                                      a))
+                                                                                                                      a
+                                                                                                                    )
+                                                                                                                  )
                                                                                                                   (lam
                                                                                                                     n
                                                                                                                     a
@@ -23320,7 +24687,8 @@
                                                                                             (all
                                                                                               dead
                                                                                               (type)
-                                                                                              Bool)
+                                                                                              Bool
+                                                                                            )
                                                                                           }
                                                                                           (abs
                                                                                             dead
@@ -23341,7 +24709,7 @@
                                                                                               }
                                                                                               (con
                                                                                                 string
-                                                                                                  "S5"
+                                                                                                "S5"
                                                                                               )
                                                                                             ]
                                                                                             False
@@ -23351,14 +24719,16 @@
                                                                                       (all
                                                                                         dead
                                                                                         (type)
-                                                                                        dead)
+                                                                                        dead
+                                                                                      )
                                                                                     }
                                                                                   )
                                                                                 ]
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  dead)
+                                                                                  dead
+                                                                                )
                                                                               }
                                                                             )
                                                                           )
@@ -23408,7 +24778,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  Bool)
+                                                                  Bool
+                                                                )
                                                               }
                                                               (lam
                                                                 threadToken
@@ -23449,7 +24820,8 @@
                                                                                                 threadToken
                                                                                               ]
                                                                                               (con
-                                                                                                bytestring)
+                                                                                                bytestring
+                                                                                              )
                                                                                             }
                                                                                             (lam
                                                                                               ds
@@ -23457,7 +24829,8 @@
                                                                                               (lam
                                                                                                 ds
                                                                                                 (con
-                                                                                                  bytestring)
+                                                                                                  bytestring
+                                                                                                )
                                                                                                 ds
                                                                                               )
                                                                                             )
@@ -23471,7 +24844,7 @@
                                                                                     ]
                                                                                     (con
                                                                                       integer
-                                                                                        1
+                                                                                      1
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -23483,7 +24856,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Bool)
+                                                                            Bool
+                                                                          )
                                                                         }
                                                                         (abs
                                                                           dead
@@ -23510,7 +24884,7 @@
                                                                                       }
                                                                                       (con
                                                                                         string
-                                                                                          "S2"
+                                                                                        "S2"
                                                                                       )
                                                                                     ]
                                                                                     False
@@ -23519,7 +24893,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  Bool)
+                                                                                  Bool
+                                                                                )
                                                                               }
                                                                               (abs
                                                                                 dead
@@ -23536,14 +24911,16 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            dead)
+                                                                            dead
+                                                                          )
                                                                         }
                                                                       )
                                                                     ]
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      dead)
+                                                                      dead
+                                                                    )
                                                                   }
                                                                 )
                                                               )
@@ -23565,9 +24942,8 @@
                                                                 ]
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                Bool)
+                                                                dead (type) Bool
+                                                              )
                                                             }
                                                             (abs dead (type) j)
                                                           ]
@@ -23590,7 +24966,7 @@
                                                                           }
                                                                           (con
                                                                             string
-                                                                              "S1"
+                                                                            "S1"
                                                                           )
                                                                         ]
                                                                         False
@@ -23599,7 +24975,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Bool)
+                                                                      Bool
+                                                                    )
                                                                   }
                                                                   (abs
                                                                     dead
@@ -23614,9 +24991,8 @@
                                                                 )
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                dead)
+                                                                dead (type) dead
+                                                              )
                                                             }
                                                           )
                                                         ]
@@ -23649,9 +25025,12 @@
                                         (fun
                                           [ [ StateMachine s ] i ]
                                           (fun
-                                            s
-                                            (fun
-                                              i (fun ScriptContext Bool)))))))
+                                            s (fun i (fun ScriptContext Bool))
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
                                 )
                                 (abs
                                   s
@@ -23705,7 +25084,9 @@
                                                           ]
                                                           [ State s ]
                                                         ]
-                                                      ]))
+                                                      ]
+                                                    )
+                                                  )
                                                   (lam
                                                     ww
                                                     (fun s Bool)
@@ -23716,8 +25097,10 @@
                                                         (fun
                                                           i
                                                           (fun
-                                                            ScriptContext
-                                                            Bool)))
+                                                            ScriptContext Bool
+                                                          )
+                                                        )
+                                                      )
                                                       (lam
                                                         ww
                                                         [ Maybe ThreadToken ]
@@ -23773,7 +25156,9 @@
                                     Params
                                     (fun
                                       GovState
-                                      (fun GovInput (fun ScriptContext Bool))))
+                                      (fun GovInput (fun ScriptContext Bool))
+                                    )
+                                  )
                                 )
                                 (lam
                                   params

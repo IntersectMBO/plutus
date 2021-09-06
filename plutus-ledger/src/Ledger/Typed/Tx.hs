@@ -26,11 +26,11 @@
 --   validation time.
 module Ledger.Typed.Tx where
 
+import           Control.Lens              (preview)
 import           Ledger.Scripts
 import           Ledger.Tx
 import           Ledger.Typed.Scripts
 import           Plutus.V1.Ledger.Crypto
-import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value    as Value
 
 import           PlutusTx
@@ -159,7 +159,7 @@ data ConnectionError =
     | WrongValidatorType String
     | WrongRedeemerType BuiltinData
     | WrongDatumType BuiltinData
-    | NoDatum TxId DatumHash
+    | NoDatum TxOutRef DatumHash
     | UnknownRef
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -179,7 +179,7 @@ instance Pretty ConnectionError where
         WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
         WrongRedeemerType d         -> "Wrong redeemer type" <+> pretty (builtinDataToData d)
         WrongDatumType d            -> "Wrong datum type" <+> pretty (builtinDataToData d)
-        NoDatum t d                 -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
+        NoDatum t d                 -> "No datum with hash " <+> pretty d <+> "for tx output" <+> pretty t
         UnknownRef                  -> "Unknown reference"
 
 -- | Checks that the given validator hash is consistent with the actual validator.
@@ -219,7 +219,7 @@ typeScriptTxIn
       , FromData (DatumType inn)
       , ToData (DatumType inn)
       , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOutTx)
+    => (TxOutRef -> Maybe ChainIndexTxOut)
     -> TypedValidator inn
     -> TxIn
     -> m (TypedScriptTxIn inn)
@@ -256,18 +256,20 @@ typeScriptTxOut
       , ToData (DatumType out)
       , MonadError ConnectionError m)
     => TypedValidator out
-    -> TxOutTx
+    -> TxOutRef
+    -> ChainIndexTxOut
     -> m (TypedScriptTxOut out)
-typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutDatumHash}} = do
-    dsh <- case txOutDatumHash of
-        Just ds -> pure ds
-        _       -> throwError $ WrongOutType ExpectedScriptGotPubkey
-    ds <- case lookupDatum tx dsh of
-        Just ds -> pure ds
-        Nothing -> throwError $ NoDatum (txId tx) dsh
-    checkValidatorAddress si txOutAddress
+typeScriptTxOut si ref txout = do
+    (addr, datum, outVal) <- case preview _ScriptChainIndexTxOut txout of
+        Just (addr,_ ,datum, outVal) -> pure (addr, datum, outVal)
+        _                            -> throwError $ WrongOutType ExpectedScriptGotPubkey
+
+    ds <- case datum of
+      Left dsh -> throwError $ NoDatum ref dsh
+      Right ds -> pure ds
+    checkValidatorAddress si addr
     dsVal <- checkDatum si ds
-    pure $ makeTypedScriptTxOut si dsVal txOutValue
+    pure $ makeTypedScriptTxOut si dsVal outVal
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts. To do this we
 -- need to cross-reference against the validator script and be able to look up the 'TxOut' to which this
@@ -277,7 +279,7 @@ typeScriptTxOutRef
     . ( FromData (DatumType out)
       , ToData (DatumType out)
       , MonadError ConnectionError m)
-    => (TxOutRef -> Maybe TxOutTx)
+    => (TxOutRef -> Maybe ChainIndexTxOut)
     -> TypedValidator out
     -> TxOutRef
     -> m (TypedScriptTxOutRef out)
@@ -285,7 +287,7 @@ typeScriptTxOutRef lookupRef ct ref = do
     out <- case lookupRef ref of
         Just res -> pure res
         Nothing  -> throwError UnknownRef
-    tyOut <- typeScriptTxOut @out ct out
+    tyOut <- typeScriptTxOut @out ct ref out
     pure $ TypedScriptTxOutRef ref tyOut
 
 -- | Create a 'PubKeyTxOUt' from an existing 'TxOut' by checking that it has the right payment type.

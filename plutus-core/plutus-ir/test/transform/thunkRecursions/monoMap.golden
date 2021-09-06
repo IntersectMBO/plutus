@@ -17,7 +17,8 @@
         map
         (fun
           (fun (con integer) (con integer))
-          (fun [ List (con integer) ] [ List (con integer) ]))
+          (fun [ List (con integer) ] [ List (con integer) ])
+        )
       )
       (lam
         f

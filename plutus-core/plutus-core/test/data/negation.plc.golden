@@ -1,4 +1,5 @@
-(program 0.1.0
+(program
+  0.1.0
   (lam
     x
     (all a (type) (fun a (fun a a)))

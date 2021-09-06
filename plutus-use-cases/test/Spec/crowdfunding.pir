@@ -28,7 +28,8 @@
           StakingPtr
           (fun
             (con integer)
-            (fun (con integer) (fun (con integer) StakingCredential)))
+            (fun (con integer) (fun (con integer) StakingCredential))
+          )
         )
       )
     )
@@ -173,13 +174,16 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       (con integer)
                     ]
                   ]
-                  (fun [ Maybe (con bytestring) ] TxOut)))
+                  (fun [ Maybe (con bytestring) ] TxOut)
+                )
+              )
             )
           )
         )
@@ -206,13 +210,15 @@
                     [
                       [
                         (lam
-                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                          k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                        )
                         (con bytestring)
                       ]
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         (con integer)
@@ -222,7 +228,8 @@
                       [
                         [
                           (lam
-                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                            k (type) (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                          )
                           (con bytestring)
                         ]
                         [
@@ -230,7 +237,8 @@
                             (lam
                               k
                               (type)
-                              (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                              (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                            )
                             (con bytestring)
                           ]
                           (con integer)
@@ -251,7 +259,16 @@
                                   List
                                   [ [ Tuple2 (con bytestring) ] (con data) ]
                                 ]
-                                (fun (con bytestring) TxInfo))))))))))
+                                (fun (con bytestring) TxInfo)
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )
@@ -274,7 +291,8 @@
               Campaign
               (fun
                 (con integer)
-                (fun (con integer) (fun (con bytestring) Campaign)))
+                (fun (con integer) (fun (con bytestring) Campaign))
+              )
             )
           )
         )
@@ -624,8 +642,14 @@
                         (fun
                           (fun a (fun a Bool))
                           (fun
-                            (fun a (fun a a))
-                            (fun (fun a (fun a a)) [ Ord a ]))))))))
+                            (fun a (fun a a)) (fun (fun a (fun a a)) [ Ord a ])
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )
@@ -686,7 +710,8 @@
                           (lam
                             v
                             (fun a (fun a Bool))
-                            (lam v (fun a (fun a a)) (lam v (fun a (fun a a)) v)
+                            (lam
+                              v (fun a (fun a a)) (lam v (fun a (fun a a)) v)
                             )
                           )
                         )
@@ -705,8 +730,8 @@
             (all
               a
               (type)
-              (fun
-                [ Ord a ] (fun [ Extended a ] (fun [ Extended a ] Ordering))))
+              (fun [ Ord a ] (fun [ Extended a ] (fun [ Extended a ] Ordering)))
+            )
           )
           (abs
             a
@@ -762,7 +787,8 @@
                                                 (vardecl
                                                   fail
                                                   (fun
-                                                    (all a (type) a) Ordering)
+                                                    (all a (type) a) Ordering
+                                                  )
                                                 )
                                                 (lam
                                                   ds
@@ -781,7 +807,8 @@
                                                             (all
                                                               dead
                                                               (type)
-                                                              Ordering)
+                                                              Ordering
+                                                            )
                                                           }
                                                           (lam
                                                             default_arg0
@@ -804,7 +831,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          Ordering)
+                                                                          Ordering
+                                                                        )
                                                                       }
                                                                       (lam
                                                                         l
@@ -827,7 +855,8 @@
                                                                                     (all
                                                                                       dead
                                                                                       (type)
-                                                                                      Ordering)
+                                                                                      Ordering
+                                                                                    )
                                                                                   }
                                                                                   (lam
                                                                                     r
@@ -884,7 +913,8 @@
                                                                             (all
                                                                               dead
                                                                               (type)
-                                                                              dead)
+                                                                              dead
+                                                                            )
                                                                           }
                                                                         )
                                                                       )
@@ -913,7 +943,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  dead)
+                                                                  dead
+                                                                )
                                                               }
                                                             )
                                                           )
@@ -936,7 +967,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Ordering)
+                                                                      Ordering
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     l
@@ -959,7 +991,8 @@
                                                                                 (all
                                                                                   dead
                                                                                   (type)
-                                                                                  Ordering)
+                                                                                  Ordering
+                                                                                )
                                                                               }
                                                                               (lam
                                                                                 r
@@ -1016,7 +1049,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          dead)
+                                                                          dead
+                                                                        )
                                                                       }
                                                                     )
                                                                   )
@@ -1039,7 +1073,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       ]
@@ -1059,7 +1094,8 @@
                                                           ds
                                                         ]
                                                         (all
-                                                          dead (type) Ordering)
+                                                          dead (type) Ordering
+                                                        )
                                                       }
                                                       (lam
                                                         default_arg0
@@ -1103,7 +1139,8 @@
                                                               (all
                                                                 dead
                                                                 (type)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             }
                                                             (lam
                                                               default_arg0
@@ -1193,7 +1230,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Ordering)
+                                                                    Ordering
+                                                                  )
                                                                 }
                                                                 (lam
                                                                   l
@@ -1216,7 +1254,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                Ordering)
+                                                                                Ordering
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               r
@@ -1273,7 +1312,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -1316,7 +1356,8 @@
                                                               (all
                                                                 dead
                                                                 (type)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             }
                                                             (lam
                                                               l
@@ -1339,7 +1380,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           r
@@ -1396,7 +1438,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             )
@@ -1468,7 +1511,8 @@
                                                           ds
                                                         ]
                                                         (all
-                                                          dead (type) Ordering)
+                                                          dead (type) Ordering
+                                                        )
                                                       }
                                                       (lam
                                                         default_arg0
@@ -1589,7 +1633,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    Ordering)
+                                                                    Ordering
+                                                                  )
                                                                 }
                                                                 (lam
                                                                   l
@@ -1612,7 +1657,8 @@
                                                                               (all
                                                                                 dead
                                                                                 (type)
-                                                                                Ordering)
+                                                                                Ordering
+                                                                              )
                                                                             }
                                                                             (lam
                                                                               r
@@ -1669,7 +1715,8 @@
                                                                       (all
                                                                         dead
                                                                         (type)
-                                                                        dead)
+                                                                        dead
+                                                                      )
                                                                     }
                                                                   )
                                                                 )
@@ -1712,7 +1759,8 @@
                                                               (all
                                                                 dead
                                                                 (type)
-                                                                Ordering)
+                                                                Ordering
+                                                              )
                                                             }
                                                             (lam
                                                               l
@@ -1735,7 +1783,8 @@
                                                                           (all
                                                                             dead
                                                                             (type)
-                                                                            Ordering)
+                                                                            Ordering
+                                                                          )
                                                                         }
                                                                         (lam
                                                                           r
@@ -1792,7 +1841,8 @@
                                                                   (all
                                                                     dead
                                                                     (type)
-                                                                    dead)
+                                                                    dead
+                                                                  )
                                                                 }
                                                               )
                                                             )
@@ -1864,7 +1914,8 @@
                                                           ds
                                                         ]
                                                         (all
-                                                          dead (type) Ordering)
+                                                          dead (type) Ordering
+                                                        )
                                                       }
                                                       (lam
                                                         default_arg0
@@ -1945,7 +1996,8 @@
                                                             (all
                                                               dead
                                                               (type)
-                                                              Ordering)
+                                                              Ordering
+                                                            )
                                                           }
                                                           (lam
                                                             l
@@ -1968,7 +2020,8 @@
                                                                         (all
                                                                           dead
                                                                           (type)
-                                                                          Ordering)
+                                                                          Ordering
+                                                                        )
                                                                       }
                                                                       (lam
                                                                         r
@@ -2015,7 +2068,8 @@
                                                                       (abs
                                                                         e
                                                                         (type)
-                                                                        (error e
+                                                                        (error
+                                                                          e
                                                                         )
                                                                       )
                                                                     ]
@@ -2024,7 +2078,8 @@
                                                                 (all
                                                                   dead
                                                                   (type)
-                                                                  dead)
+                                                                  dead
+                                                                )
                                                               }
                                                             )
                                                           )
@@ -2060,7 +2115,8 @@
                                                           ds
                                                         ]
                                                         (all
-                                                          dead (type) Ordering)
+                                                          dead (type) Ordering
+                                                        )
                                                       }
                                                       (lam
                                                         l
@@ -2083,7 +2139,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Ordering)
+                                                                      Ordering
+                                                                    )
                                                                   }
                                                                   (lam
                                                                     r
@@ -2134,7 +2191,8 @@
                                                               )
                                                             ]
                                                             (all
-                                                              dead (type) dead)
+                                                              dead (type) dead
+                                                            )
                                                           }
                                                         )
                                                       )
@@ -2246,8 +2304,8 @@
             (all
               a
               (type)
-              (fun
-                [ Ord a ] (fun [ UpperBound a ] (fun [ UpperBound a ] Bool))))
+              (fun [ Ord a ] (fun [ UpperBound a ] (fun [ UpperBound a ] Bool)))
+            )
           )
           (abs
             a
@@ -2332,7 +2390,8 @@
             (all
               a
               (type)
-              (fun [ Ord a ] (fun [ Interval a ] (fun [ Interval a ] Bool))))
+              (fun [ Ord a ] (fun [ Interval a ] (fun [ Interval a ] Bool)))
+            )
           )
           (abs
             a
@@ -2407,7 +2466,8 @@
                                                           {
                                                             [ Bool_match in ]
                                                             (all
-                                                              dead (type) Bool)
+                                                              dead (type) Bool
+                                                            )
                                                           }
                                                           (abs
                                                             dead
@@ -2423,7 +2483,8 @@
                                                                     (all
                                                                       dead
                                                                       (type)
-                                                                      Bool)
+                                                                      Bool
+                                                                    )
                                                                   }
                                                                   (abs
                                                                     dead
@@ -2450,9 +2511,8 @@
                                                                 )
                                                               ]
                                                               (all
-                                                                dead
-                                                                (type)
-                                                                dead)
+                                                                dead (type) dead
+                                                              )
                                                             }
                                                           )
                                                         ]
@@ -2530,9 +2590,8 @@
           (vardecl
             p1Monoid
             (all
-              a
-              (type)
-              (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
+              a (type) (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ])
+            )
           )
           (abs
             a
@@ -2576,9 +2635,9 @@
                 m
                 (type)
                 (all
-                  a
-                  (type)
-                  (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))))
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
             )
             (abs
               m
@@ -2593,7 +2652,8 @@
                     (nonrec)
                     (termbind
                       (nonstrict)
-                      (vardecl dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
                       )
                       [ { p1Monoid m } dMonoid ]
                     )
@@ -2657,7 +2717,10 @@
                     [ (lam a (type) [ Maybe a ]) a ]
                     (fun
                       [ (lam a (type) [ Maybe a ]) a ]
-                      [ (lam a (type) [ Maybe a ]) a ])))
+                      [ (lam a (type) [ Maybe a ]) a ]
+                    )
+                  )
+                )
               )
               (abs
                 a
@@ -2727,7 +2790,8 @@
                               (lam
                                 k
                                 (type)
-                                (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                              )
                               (con bytestring)
                             ]
                             [
@@ -2735,7 +2799,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               (con integer)
@@ -2748,7 +2813,8 @@
                                 (lam
                                   k
                                   (type)
-                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                  (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                )
                                 (con bytestring)
                               ]
                               [
@@ -2756,7 +2822,8 @@
                                   (lam
                                     k
                                     (type)
-                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ]))
+                                    (lam v (type) [ List [ [ Tuple2 k ] v ] ])
+                                  )
                                   (con bytestring)
                                 ]
                                 (con integer)
@@ -2806,7 +2873,8 @@
                                                               (lam
                                                                 a
                                                                 (type)
-                                                                [ Maybe a ])
+                                                                [ Maybe a ]
+                                                              )
                                                               (con bytestring)
                                                             ]
                                                           }
@@ -2856,8 +2924,10 @@
                                                                   [
                                                                     Maybe
                                                                     (con
-                                                                      bytestring)
-                                                                  ])
+                                                                      bytestring
+                                                                    )
+                                                                  ]
+                                                                )
                                                               }
                                                               (abs
                                                                 dead
@@ -2866,7 +2936,8 @@
                                                                   {
                                                                     Just
                                                                     (con
-                                                                      bytestring)
+                                                                      bytestring
+                                                                    )
                                                                   }
                                                                   x
                                                                 ]
@@ -2955,7 +3026,9 @@
                                             (lam
                                               v
                                               (type)
-                                              [ List [ [ Tuple2 k ] v ] ]))
+                                              [ List [ [ Tuple2 k ] v ] ]
+                                            )
+                                          )
                                           (con bytestring)
                                         ]
                                         [
@@ -2966,7 +3039,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           (con integer)
@@ -2982,7 +3057,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -2993,7 +3070,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -3150,7 +3229,9 @@
                                               (lam
                                                 v
                                                 (type)
-                                                [ List [ [ Tuple2 k ] v ] ]))
+                                                [ List [ [ Tuple2 k ] v ] ]
+                                              )
+                                            )
                                             (con bytestring)
                                           ]
                                           [
@@ -3161,7 +3242,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             (con integer)
@@ -3177,7 +3260,9 @@
                                                 (lam
                                                   v
                                                   (type)
-                                                  [ List [ [ Tuple2 k ] v ] ]))
+                                                  [ List [ [ Tuple2 k ] v ] ]
+                                                )
+                                              )
                                               (con bytestring)
                                             ]
                                             [
@@ -3188,9 +3273,9 @@
                                                   (lam
                                                     v
                                                     (type)
-                                                    [
-                                                      List [ [ Tuple2 k ] v ]
-                                                    ]))
+                                                    [ List [ [ Tuple2 k ] v ] ]
+                                                  )
+                                                )
                                                 (con bytestring)
                                               ]
                                               (con integer)
@@ -3241,7 +3326,8 @@
                             ]
                             (all dead (type) Bool)
                           }
-                          (abs dead (type) [ [ txSignedBy txinfo ] contributor ]
+                          (abs
+                            dead (type) [ [ txSignedBy txinfo ] contributor ]
                           )
                         ]
                         (abs dead (type) False)
@@ -3260,7 +3346,9 @@
                   Campaign
                   (fun
                     (con bytestring)
-                    (fun CampaignAction (fun ScriptContext Bool))))
+                    (fun CampaignAction (fun ScriptContext Bool))
+                  )
+                )
               )
               (lam
                 c

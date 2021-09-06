@@ -210,6 +210,7 @@ data ContractTerms = ContractTerms
   , ct_IPCB          :: Maybe IPCB     -- Interest Calculation Base
   , ct_IPCBA         :: Maybe Double   -- Interest Calculation Base Amount
   , ct_IPNR          :: Maybe Double   -- Nominal Interest Rate
+  , ct_SCIP          :: Maybe Double   -- Interest Scaling Multiplier
 
   -- Notional Principal
   , ct_NT            :: Maybe Double   -- Notional Principal
@@ -228,6 +229,7 @@ data ContractTerms = ContractTerms
   , ct_SCEF          :: Maybe SCEF     -- Scaling Effect
   , ct_SCCDD         :: Maybe Double   -- Scaling Index At Contract Deal Date
   , ct_SCMO          :: Maybe String   -- Market Object Code Of Scaling Index
+  , ct_SCNT          :: Maybe Double   -- Notional Scaling Multiplier
 
   -- Optionality
   , ct_OPCL          :: Maybe Cycle    -- Cycle Of Optionality
@@ -257,8 +259,14 @@ data ContractTerms = ContractTerms
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
+defaultSCIP :: Double
+defaultSCIP = 1
+
 defaultPDIED :: Double
 defaultPDIED = 0
+
+defaultSCNT :: Double
+defaultSCNT = 1
 
 defaultPYRT :: Double
 defaultPYRT = 0
@@ -287,7 +295,11 @@ setDefaultContractTermValues ct@ContractTerms{..} =
 
       ct_IPCB'  = Just $ fromMaybe IPCB_NT ct_IPCB
 
+      ct_SCIP'  = Just $ fromMaybe defaultSCIP ct_SCIP
+
       ct_PDIED' = Just $ fromMaybe defaultPDIED ct_PDIED
+
+      ct_SCNT'  = Just $ fromMaybe defaultSCNT ct_SCNT
 
       ct_SCEF'  = Just $ fromMaybe SE_000 ct_SCEF
 
@@ -321,14 +333,55 @@ setDefaultContractTermValues ct@ContractTerms{..} =
             , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
             }
 
-          _ ->
-            ct
+          LAM ->
+            ct {
+              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
+            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
+
+            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
+            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
+
+            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
+            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
+            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
+            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
+
+            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
+            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
+            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
+            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
+
+            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
+            }
+
+          NAM ->
+            ct {
+              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
+            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
+
+            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
+            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
+
+            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
+            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
+            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
+            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
+
+            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
+            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
+            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
+            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
+
+            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
+            }
   in
     ct' {
       scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' }
     , ct_PRF   = ct_PRF'
     , ct_IPCB  = ct_IPCB'
+    , ct_SCIP  = ct_SCIP'
     , ct_PDIED = ct_PDIED'
+    , ct_SCNT  = ct_SCNT'
     , ct_SCEF  = ct_SCEF'
     , ct_PYRT  = ct_PYRT'
     , ct_PYTP  = ct_PYTP'

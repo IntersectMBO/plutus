@@ -194,7 +194,7 @@ scheduleCollection cmp =
         let inst = typedValidator cmp
 
         _ <- awaitTime $ campaignDeadline cmp
-        unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
+        unspentOutputs <- utxosAt (Scripts.validatorAddress inst)
 
         let tx = Typed.collectFromScript unspentOutputs Collect
                 <> Constraints.mustValidateIn (collectionRange cmp)

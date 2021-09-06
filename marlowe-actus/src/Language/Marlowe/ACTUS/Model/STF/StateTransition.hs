@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState,
-                                                                         ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
+                                                                         ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (LAM, NAM, PAM), ContractTerms (..),
@@ -18,6 +18,7 @@ import           Language.Marlowe.ACTUS.Ops                             (YearFra
 
 
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift
+
 
 shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
@@ -34,7 +35,8 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
         ct_RRMLT' = fromJust ct_RRMLT
         ct_RRSP'  = fromJust ct_RRSP
         ct_SCEF'  = fromJust ct_SCEF
-        ct_SCIED' = fromJust ct_SCIED
+        ct_SCIED' = fromJust ct_SCIED -- TODO: check for other CTs
+        ct_SCCDD' = fromJust ct_SCCDD
 
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< fpSchedule)
@@ -77,7 +79,7 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
                 IPCB -> _STF_IPCB_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER' ct_CNTRL
                 RR   -> _STF_RR_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER' ct_CNTRL ct_RRLF' ct_RRLC' ct_RRPC' ct_RRPF' ct_RRMLT' ct_RRSP' o_rf_RRMO
                 RRF  -> _STF_RRF_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER' ct_CNTRL ct_RRNXT
-                SC   -> _STF_SC_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER' ct_CNTRL ct_SCEF' o_rf_SCMO ct_SCIED'
+                SC   -> _STF_SC_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER' ct_CNTRL ct_SCEF' o_rf_SCMO ct_SCCDD'
                 CE   -> _STF_CE_LAM st t y_sd_t
                 _    -> st
         NAM ->

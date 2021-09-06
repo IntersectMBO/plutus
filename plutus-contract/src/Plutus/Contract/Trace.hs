@@ -33,8 +33,7 @@ module Plutus.Contract.Trace
     , handleTimeToSlotConversions
     , handleUnbalancedTransactions
     , handlePendingTransactions
-    , handleUtxoQueries
-    , handleAddressChangedAtQueries
+    , handleChainIndexQueries
     , handleOwnInstanceIdQueries
     -- * Initial distributions of emulated chains
     , InitialDistribution
@@ -67,8 +66,8 @@ import qualified Plutus.Contract.Trace.RequestHandler as RequestHandler
 import qualified Ledger.Ada                           as Ada
 import           Ledger.Value                         (Value)
 
+import           Plutus.ChainIndex                    (ChainIndexQueryEffect)
 import           Plutus.Trace.Emulator.Types          (EmulatedWalletEffects)
-import           Wallet.API                           (ChainIndexEffect)
 import           Wallet.Effects                       (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator                      (Wallet)
 import qualified Wallet.Emulator                      as EM
@@ -149,9 +148,8 @@ handleBlockchainQueries ::
 handleBlockchainQueries =
     handleUnbalancedTransactions
     <> handlePendingTransactions
-    <> handleUtxoQueries
+    <> handleChainIndexQueries
     <> handleOwnPubKeyQueries
-    <> handleAddressChangedAtQueries
     <> handleOwnInstanceIdQueries
     <> handleSlotNotifications
     <> handleCurrentSlotQueries
@@ -171,14 +169,11 @@ handleUnbalancedTransactions =
         (E.BalanceTxResp . either E.BalanceTxFailed E.BalanceTxSuccess)
         RequestHandler.handleUnbalancedTransactions
 
--- | Submit the wallet's pending transactions to the blockchain
---   and inform all wallets about new transactions and respond to
---   UTXO queries
+-- | Submit the wallet's pending transactions to the blockchain.
 handlePendingTransactions ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
-    , Member ChainIndexEffect effs
     )
     => RequestHandler effs PABReq PABResp
 handlePendingTransactions =
@@ -187,26 +182,15 @@ handlePendingTransactions =
         (E.WriteBalancedTxResp . either E.WriteBalancedTxFailed E.WriteBalancedTxSuccess)
         RequestHandler.handlePendingTransactions
 
--- | Look at the "utxo-at" requests of the contract and respond to all of them
---   with the current UTXO set at the given address.
-handleUtxoQueries ::
+handleChainIndexQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member ChainIndexEffect effs
+    , Member ChainIndexQueryEffect effs
     )
     => RequestHandler effs PABReq PABResp
-handleUtxoQueries =
-    generalise (preview E._UtxoAtReq) E.UtxoAtResp RequestHandler.handleUtxoQueries
-
-handleAddressChangedAtQueries ::
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member ChainIndexEffect effs
-    , Member NodeClientEffect effs
-    )
-    => RequestHandler effs PABReq PABResp
-handleAddressChangedAtQueries =
-    generalise (preview E._AddressChangeReq) E.AddressChangeResp RequestHandler.handleAddressChangedAtQueries
+handleChainIndexQueries =
+    generalise (preview E._ChainIndexQueryReq)
+               E.ChainIndexQueryResp
+               RequestHandler.handleChainIndexQueries
 
 handleOwnPubKeyQueries ::
     ( Member (LogObserve (LogMessage Text)) effs

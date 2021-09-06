@@ -73,7 +73,7 @@ data Observation a = Observation
     -- ^ The value
     , obsTime  :: POSIXTime
     -- ^ The time at which the value was observed
-    } deriving (Generic, Haskell.Show)
+    } deriving (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq a => Eq (Observation a) where
     l == r =
@@ -91,6 +91,12 @@ data SignedMessage a = SignedMessage
     }
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
+
+instance Eq a => Eq (SignedMessage a) where
+    l == r =
+        osmSignature l == osmSignature r
+        && osmMessageHash l == osmMessageHash r
+        && osmDatum l == osmDatum r
 
 data SignedMessageCheckError =
     SignatureMismatch Signature PubKey DatumHash

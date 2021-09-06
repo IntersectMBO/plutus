@@ -20,7 +20,8 @@
       (vardecl
         unsafeDataAsConstr
         (fun
-          (con data) [ [ (con pair) (con integer) ] [ (con list) (con data) ] ])
+          (con data) [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+        )
       )
       (builtin unConstrData)
     )
@@ -68,7 +69,11 @@
               [ (lam a (type) (fun (con data) a)) a ]
               (fun
                 [ (lam a (type) (fun (con data) a)) b ]
-                (fun (con data) [ [ Tuple2 a ] b ])))))
+                (fun (con data) [ [ Tuple2 a ] b ])
+              )
+            )
+          )
+        )
       )
       (abs
         a
@@ -169,7 +174,11 @@
               [ (lam a (type) (fun (con data) a)) a ]
               (fun
                 [ (lam a (type) (fun (con data) a)) b ]
-                [ (lam a (type) (fun (con data) a)) [ [ Tuple2 a ] b ] ]))))
+                [ (lam a (type) (fun (con data) a)) [ [ Tuple2 a ] b ] ]
+              )
+            )
+          )
+        )
       )
       fUnsafeFromDataTuple2_cunsafeFromBuiltinData
     )
@@ -219,8 +228,9 @@
           a
           (type)
           (fun
-            [ (lam a (type) (fun (con data) a)) a ]
-            (fun (con data) [ Maybe a ])))
+            [ (lam a (type) (fun (con data) a)) a ] (fun (con data) [ Maybe a ])
+          )
+        )
       )
       (abs
         a
@@ -306,7 +316,9 @@
           (type)
           (fun
             [ (lam a (type) (fun (con data) a)) a ]
-            [ (lam a (type) (fun (con data) a)) [ Maybe a ] ]))
+            [ (lam a (type) (fun (con data) a)) [ Maybe a ] ]
+          )
+        )
       )
       fUnsafeFromDataMaybe_cunsafeFromBuiltinData
     )
@@ -331,7 +343,8 @@
         (all
           a
           (type)
-          (fun [ (lam a (type) (fun (con data) a)) a ] (fun (con data) a)))
+          (fun [ (lam a (type) (fun (con data) a)) a ] (fun (con data) a))
+        )
       )
       (abs a (type) (lam v [ (lam a (type) (fun (con data) a)) a ] v))
     )

@@ -27,7 +27,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4_, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, id_, placeholder, ref, target, type_, value)
@@ -49,6 +49,7 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
 import Popper (Placement(..))
 import Tooltip.State (tooltip)
+import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
@@ -130,10 +131,10 @@ contractScreen viewInput state =
     --       why this is only done to the right side). To avoid our cards getting shrinked, we add the flex-shrink-0
     --       property, and we add an empty `div` that occupies space (aka also cant be shrinked) to allow that the
     --       first and last card can be scrolled to the center
-    paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
+    paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element", "h-full" ] ] [] ]
   in
     div
-      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full", "relative" ] ]
+      [ classNames [ "flex", "flex-col", "items-center", "pt-3", "h-full", "w-screen", "relative" ] ]
       [ lifeCycleSlot "carousel-lifecycle" case _ of
           OnInit -> Just CarouselOpened
           OnFinalize -> Just CarouselClosed
@@ -148,7 +149,7 @@ contractScreen viewInput state =
               (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
           ]
       , cardNavigationButtons state
-      , div [ classNames [ "absolute", "font-bold", "bottom-4", "right-4" ] ] [ text $ statusIndicatorMessage state ]
+      , div [ classNames [ "self-end", "pb-4", "pr-4", "font-bold" ] ] [ text $ statusIndicatorMessage state ]
       ]
 
 statusIndicatorMessage :: State -> String
@@ -207,10 +208,12 @@ cardNavigationButtons state =
       , tooltip "Next step" (RefId "nextStepButton") Bottom
       ]
   in
-    div [ classNames [ "mb-6", "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
-      $ leftButton
-      <> [ icon Icon.Info [ "px-4", "invisible" ] ]
-      <> rightButton
+    div [ classNames [ "flex-grow" ] ]
+      [ div [ classNames [ "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
+          $ leftButton
+          <> [ icon Icon.Info [ "px-4", "invisible" ] ]
+          <> rightButton
+      ]
 
 -- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
 actionConfirmationCard ::
@@ -329,10 +332,10 @@ renderContractCard :: forall p. Int -> State -> Tab -> Array (HTML p Action) -> 
 renderContractCard stepNumber state currentTab cardBody =
   let
     tabSelector isActive =
-      [ "flex-grow", "text-center", "py-2", "trapesodial-card-selector", "text-sm", "font-semibold" ]
+      [ "flex-grow", "text-center", "py-2", "text-sm", "font-semibold" ]
         <> case isActive of
-            true -> [ "active" ]
-            false -> []
+            true -> [ "bg-white" ]
+            false -> [ "bg-gray" ]
 
     contractCardCss =
       -- NOTE: The cards that are not selected gets scaled down to 77 percent of the original size. But when you scale down
@@ -340,16 +343,16 @@ renderContractCard stepNumber state currentTab cardBody =
       --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "mb-8", "filter" ]
+      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out", "mb-3" ]
         <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
-            [ "drop-shadow", "scale-77", "-mx-4" ]
+            [ "-mx-4", "shadow-sm", "md:shadow", "scale-77" ]
           else
             -- Selected card modifiers
-            [ "drop-shadow-lg", "mx-2" ]
+            [ "mx-2", "shadow-sm", "md:shadow-lg" ]
   in
     div [ classNames contractCardCss ]
-      [ div [ classNames [ "flex", "select-none" ] ]
+      [ div [ classNames [ "flex", "select-none", "rounded-t", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
               , onClick_ $ SelectTab stepNumber Tasks
@@ -720,9 +723,23 @@ renderTasks state =
         $ namedActions
         <#> uncurry (renderPartyTasks state)
     else
-      div
-        [ classNames [ "p-4" ] ]
-        [ text "There are no tasks to perform at this step. The contract will progress automatically when the timeout has passed." ]
+      noPossibleActions
+
+noPossibleActions :: forall p a. HTML p a
+noPossibleActions =
+  let
+    purpleDot extraCss = div [ classNames $ [ "rounded-full", "bg-lightpurple", "w-3", "h-3", "animate-grow" ] <> extraCss ] []
+  in
+    div
+      [ classNames [ "p-4", "text-xs", "flex", "flex-col", "h-full" ] ]
+      [ h4 [ classNames [ "font-semibold" ] ] [ text "Please wait…" ]
+      , p [ classNames [ "mt-2" ] ] [ text "There are no tasks to complete at this step. The contract will progress automatically when the timeout passes." ]
+      , div [ classNames [ "flex-grow", "flex", "justify-center", "items-center" ] ]
+          [ purpleDot [ "mr-2" ]
+          , purpleDot [ "animate-delay-150" ]
+          , purpleDot [ "ml-2", "animate-delay-300" ]
+          ]
+      ]
 
 participantWithNickname :: State -> Party -> String
 participantWithNickname state party =
@@ -1057,7 +1074,7 @@ shortDescription :: forall p a. Boolean -> String -> HTML p a
 shortDescription isActiveParticipant description =
   div [ classNames ([ "text-xs" ] <> applyWhen (not isActiveParticipant) [ "opacity-50" ]) ]
     [ span [ classNames [ "font-semibold" ] ] [ text "Short description: " ]
-    , span_ [ text description ]
+    , span_ $ markdownToHTML description
     ]
 
 getParty :: S.Input -> Maybe Party

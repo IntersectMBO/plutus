@@ -14,6 +14,7 @@
 module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
+import           Control.Lens             (view)
 import           Control.Monad            (void, when)
 import           Data.Default             (Default (def))
 import qualified Data.Map                 as Map
@@ -175,9 +176,9 @@ retrieveFundsC vesting payment = do
     let inst = typedValidator vesting
         addr = Scripts.validatorAddress inst
     nextTime <- awaitTime 0
-    unspentOutputs <- utxoAt addr
+    unspentOutputs <- utxosAt addr
     let
-        currentlyLocked = foldMap (Validation.txOutValue . Tx.txOutTxOut . snd) (Map.toList unspentOutputs)
+        currentlyLocked = foldMap (view Tx.ciTxOutValue) (Map.elems unspentOutputs)
         remainingValue = currentlyLocked - payment
         mustRemainLocked = totalAmount vesting - availableAt vesting nextTime
         maxPayment = currentlyLocked - mustRemainLocked

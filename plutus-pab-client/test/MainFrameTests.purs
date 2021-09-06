@@ -75,10 +75,12 @@ instance monadStateMockApp :: Monad m => MonadState (State ExampleContracts) (Mo
           (Tuple a appState') -> pure $ RWSResult (Tuple world appState') a unit
 
 instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
-  activateContract _ = pure unit
+  activateContract _ = pure Loading
   invokeEndpoint _ _ _ = pure Loading
   getFullReport = pure Loading
-  getContractSignature _ = pure Loading
+  getContractInstanceStatus _ = pure Loading
+  getContractInstances = pure Loading
+  getContractDefinitions = pure Loading
   sendWebSocketMessage _ = pure unit
   log msg =
     wrap

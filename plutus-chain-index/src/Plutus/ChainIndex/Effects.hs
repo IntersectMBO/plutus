@@ -10,6 +10,7 @@ module Plutus.ChainIndex.Effects(
     , validatorFromHash
     , mintingPolicyFromHash
     , stakeValidatorFromHash
+    , redeemerFromHash
     , txOutFromRef
     , txFromTxId
     , utxoSetMembership
@@ -23,10 +24,10 @@ module Plutus.ChainIndex.Effects(
     ) where
 
 import           Control.Monad.Freer.TH  (makeEffect)
-import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
-                                          StakeValidatorHash, TxId, Validator, ValidatorHash)
+import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
+                                          StakeValidator, StakeValidatorHash, TxId, Validator, ValidatorHash)
 import           Ledger.Credential       (Credential)
-import           Ledger.Tx               (TxOut, TxOutRef)
+import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
 import           Plutus.ChainIndex.Types (Page, Tip)
 
@@ -41,11 +42,14 @@ data ChainIndexQueryEffect r where
     -- | Get the monetary policy from an MPS hash (if available)
     MintingPolicyFromHash :: MintingPolicyHash -> ChainIndexQueryEffect (Maybe MintingPolicy)
 
+    -- | Get the redeemer from a redeemer hash (if available)
+    RedeemerFromHash :: RedeemerHash -> ChainIndexQueryEffect (Maybe Redeemer)
+
     -- | Get the stake validator from a stake validator hash (if available)
     StakeValidatorFromHash :: StakeValidatorHash -> ChainIndexQueryEffect (Maybe StakeValidator)
 
     -- | Get the TxOut from a TxOutRef (if available)
-    TxOutFromRef :: TxOutRef -> ChainIndexQueryEffect (Maybe TxOut)
+    TxOutFromRef :: TxOutRef -> ChainIndexQueryEffect (Maybe ChainIndexTxOut)
 
     -- | Get the transaction for a tx ID
     TxFromTxId :: TxId -> ChainIndexQueryEffect (Maybe ChainIndexTx)
@@ -67,13 +71,13 @@ makeEffect ''ChainIndexQueryEffect
 
 data ChainIndexControlEffect r where
 
-    -- | Add a new block to the chain index
+    -- | Add a new block to the chain index by giving a new tip and list of tx.
     AppendBlock :: Tip -> [ChainIndexTx] -> ChainIndexControlEffect ()
 
-    -- | Roll back to a previous state
+    -- | Roll back to a previous state (previous tip)
     Rollback    :: Tip -> ChainIndexControlEffect ()
 
-    -- | Delete all data that is not covered by current UTXOs.
+    -- | Delete all data that is not covered by current UTxOs.
     CollectGarbage :: ChainIndexControlEffect ()
 
 makeEffect ''ChainIndexControlEffect

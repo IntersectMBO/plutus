@@ -3,6 +3,9 @@
 module Web.HTML.WindowExtra
   ( close
   , postMessage
+  , matchMedia
+  , matches
+  , MediaQueryList
   ) where
 
 import Prelude
@@ -23,3 +26,18 @@ foreign import _postMessage :: FU.EffectFn3 Foreign String Window Unit
 -- TODO: transfer is not being modeled, see if needed later
 postMessage :: Foreign -> String -> Window -> Effect Unit
 postMessage = FU.runEffectFn3 _postMessage
+
+---------
+-- These functions allow the use of window.matchMedia
+-- https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
+foreign import data MediaQueryList :: Type
+
+foreign import _matchMedia :: FU.EffectFn2 String Window MediaQueryList
+
+matchMedia :: String -> Window -> Effect MediaQueryList
+matchMedia = FU.runEffectFn2 _matchMedia
+
+foreign import _matches :: FU.EffectFn1 MediaQueryList Boolean
+
+matches :: MediaQueryList -> Effect Boolean
+matches = FU.runEffectFn1 _matches

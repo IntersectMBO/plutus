@@ -1,6 +1,3 @@
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 module Plutus.ChainIndex(
     module Export
 

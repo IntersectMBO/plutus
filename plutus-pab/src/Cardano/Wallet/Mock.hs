@@ -17,14 +17,13 @@ module Cardano.Wallet.Mock
     ) where
 
 import           Cardano.BM.Data.Trace               (Trace)
-import qualified Cardano.ChainIndex.Client           as ChainIndexClient
 import qualified Cardano.Node.Client                 as NodeClient
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Cardano.Wallet.Types                (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
                                                       WalletMsg (..), Wallets)
 import           Control.Concurrent                  (MVar)
 import           Control.Concurrent.MVar             (putMVar, takeMVar)
-import           Control.Lens                        (at, (.~))
+import           Control.Lens                        (at, (?~))
 import           Control.Monad.Error                 (MonadError)
 import qualified Control.Monad.Except                as MonadError
 import           Control.Monad.Freer
@@ -45,11 +44,12 @@ import qualified Data.Map                            as Map
 import           Data.Text.Encoding                  (encodeUtf8)
 import           Data.Text.Prettyprint.Doc           (pretty)
 import qualified Ledger.Ada                          as Ada
-import           Ledger.Address                      (pubKeyAddress)
 import           Ledger.Crypto                       (generateFromSeed, privateKey2, pubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
 import           Ledger.Tx                           (Tx)
+import           Plutus.ChainIndex                   (ChainIndexQueryEffect)
+import qualified Plutus.ChainIndex.Client            as ChainIndex
 import           Plutus.PAB.Arbitrary                ()
 import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Servant                             (ServerError (..), err400, err401, err404)
@@ -57,8 +57,7 @@ import           Servant.Client                      (ClientEnv)
 import           Servant.Server                      (err500)
 import           Wallet.API                          (PubKey, WalletAPIError (..))
 import qualified Wallet.API                          as WAPI
-import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect)
-import qualified Wallet.Effects                      as WalletEffects
+import           Wallet.Effects                      (NodeClientEffect)
 import           Wallet.Emulator.LogMessages         (TxBalanceMsg)
 import           Wallet.Emulator.NodeClient          (emptyNodeClientState)
 import           Wallet.Emulator.Wallet              (Wallet, WalletState (..), defaultSigningProcess, knownWallet)
@@ -71,16 +70,15 @@ generateSeed = do
     (bytes :: ScrubbedBytes) <- sendM $ liftIO $ getRandomBytes 32
     pure $ Seed bytes
 
+{-# INLINE byteString2Integer #-}
 -- |Helper function to convert bytestrings to integers
 byteString2Integer :: BS.ByteString -> Integer
 byteString2Integer = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
-{-# INLINE byteString2Integer #-}
 
-
+{-# INLINE integer2ByteString32 #-}
 -- |@i2bs bitLen i@ converts @i@ to a 'ByteString' of @bitLen@ bits (must be a multiple of 8).
 integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
-{-# INLINE integer2ByteString32 #-}
 
 distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKey -> Eff effs Tx
 distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
@@ -95,7 +93,7 @@ newWallet = do
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
     ( Member NodeClientEffect effs
-    , Member ChainIndexEffect effs
+    , Member ChainIndexQueryEffect effs
     , Member (State Wallets) effs
     , Member (Error WAPI.WalletAPIError) effs
     , Member (LogMsg WalletMsg) effs
@@ -114,7 +112,7 @@ handleMultiWallet feeCfg = \case
                         & raiseEnd
                         & interpret (Wallet.handleWallet feeCfg)
                         & interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
-                put @Wallets (wallets & at wallet .~ Just newState)
+                put @Wallets (wallets & at wallet ?~ newState)
                 pure x
             Nothing -> throwError $ WAPI.OtherError "Wallet not found"
     CreateWallet -> do
@@ -131,7 +129,6 @@ handleMultiWallet feeCfg = \case
             interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
             $ interpret (Wallet.handleWallet feeCfg)
             $ distributeNewWalletFunds pubKey
-        WalletEffects.startWatching (pubKeyAddress pubKey)
         return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
@@ -182,7 +179,7 @@ runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets feeCfg
     & reinterpret2 (NodeClient.handleNodeClientClient slotCfg)
     & runReader chainSyncHandle
     & runReader txSendHandle
-    & reinterpret ChainIndexClient.handleChainIndexClient
+    & reinterpret ChainIndex.handleChainIndexClient
     & runReader chainIndexEnv
     & runState wallets
     & interpret (LM.handleLogMsgTrace (toWalletMsg trace))

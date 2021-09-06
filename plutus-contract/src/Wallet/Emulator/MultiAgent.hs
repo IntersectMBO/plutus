@@ -36,12 +36,12 @@ import           Ledger.Fee                        (FeeConfig)
 import           Ledger                            hiding (to, value)
 import qualified Ledger.AddressMap                 as AM
 import qualified Ledger.Index                      as Index
+import qualified Plutus.ChainIndex                 as ChainIndex
 import           Plutus.Trace.Emulator.Types       (ContractInstanceLog, EmulatedWalletEffects, EmulatedWalletEffects',
                                                     UserThreadMsg)
 import qualified Plutus.Trace.Scheduler            as Scheduler
 import qualified Wallet.API                        as WAPI
 import qualified Wallet.Emulator.Chain             as Chain
-import qualified Wallet.Emulator.ChainIndex        as ChainIndex
 import           Wallet.Emulator.LogMessages       (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient        as NC
 import           Wallet.Emulator.Wallet            (Wallet (..), WalletId (..))
@@ -77,7 +77,7 @@ data EmulatorEvent' =
     ChainEvent Chain.ChainEvent
     | ClientEvent Wallet NC.NodeClientEvent
     | WalletEvent Wallet Wallet.WalletEvent
-    | ChainIndexEvent Wallet ChainIndex.ChainIndexEvent
+    | ChainIndexEvent Wallet ChainIndex.ChainIndexLog
     | SchedulerEvent Scheduler.SchedulerLog
     | InstanceEvent ContractInstanceLog
     | UserThreadEvent UserThreadMsg
@@ -108,7 +108,7 @@ walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Ju
 walletEvent' :: Prism' EmulatorEvent' (Wallet, Wallet.WalletEvent)
 walletEvent' = prism' (uncurry WalletEvent) (\case { WalletEvent w c -> Just (w, c); _ -> Nothing })
 
-chainIndexEvent :: Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
+chainIndexEvent :: Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexLog
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
 schedulerEvent :: Prism' EmulatorEvent' Scheduler.SchedulerLog
@@ -191,7 +191,7 @@ handleMultiAgentEffects wallet =
         . interpret (raiseWallet @(LogMsg TxBalanceMsg) wallet)
         . interpret (raiseWallet @(LogMsg RequestHandlerLogMsg) wallet)
         . interpret (raiseWallet @(LogObserve (LogMessage T.Text)) wallet)
-        . interpret (raiseWallet @WAPI.ChainIndexEffect wallet)
+        . interpret (raiseWallet @ChainIndex.ChainIndexQueryEffect wallet)
         . interpret (raiseWallet @WAPI.NodeClientEffect wallet)
         . interpret (raiseWallet @(Error WAPI.WalletAPIError) wallet)
         . interpret (raiseWallet @WAPI.WalletEffect wallet)
@@ -297,6 +297,7 @@ type MultiAgentEffs =
     '[ State EmulatorState
      , LogMsg EmulatorEvent'
      , Error WAPI.WalletAPIError
+     , Error ChainIndex.ChainIndexError
      , Error AssertionError
      , Chain.ChainEffect
      , Chain.ChainControlEffect
@@ -312,14 +313,14 @@ handleMultiAgentControl = interpret $ \case
             p1 = walletEvent wallet
             p2 :: AReview EmulatorEvent' NC.NodeClientEvent
             p2 = walletClientEvent wallet
-            p3 :: AReview EmulatorEvent' ChainIndex.ChainIndexEvent
+            p3 :: AReview EmulatorEvent' ChainIndex.ChainIndexLog
             p3 = chainIndexEvent wallet
             p4 :: AReview EmulatorEvent' T.Text
             p4 =  walletEvent wallet . Wallet._GenericLog
         act
             & raiseEnd
             & NC.handleNodeControl
-            & ChainIndex.handleChainIndexControl
+            & interpret ChainIndex.handleControl
             & Wallet.handleSigningProcessControl
             & handleObserveLog
             & interpret (mapLog (review p4))
@@ -327,7 +328,7 @@ handleMultiAgentControl = interpret $ \case
             & interpret (mapLog (review p1))
             & interpret (handleZoomedState (walletState wallet . Wallet.nodeClient))
             & interpret (mapLog (review p2))
-            & interpret (handleZoomedState (walletState wallet . Wallet.chainIndex))
+            & interpret (handleZoomedState (walletState wallet . Wallet.chainIndexEmulatorState))
             & interpret (mapLog (review p3))
             & interpret (handleZoomedState (walletState wallet . Wallet.signingProcess))
             & interpret (writeIntoState emulatorLog)
@@ -345,7 +346,7 @@ handleMultiAgent feeCfg = interpret $ \case
             p1 = walletEvent wallet
             p2 :: AReview EmulatorEvent' NC.NodeClientEvent
             p2 = walletClientEvent wallet
-            p3 :: AReview EmulatorEvent' ChainIndex.ChainIndexEvent
+            p3 :: AReview EmulatorEvent' ChainIndex.ChainIndexLog
             p3 = chainIndexEvent wallet
             p4 :: AReview EmulatorEvent' T.Text
             p4 = walletEvent wallet . Wallet._GenericLog
@@ -358,7 +359,7 @@ handleMultiAgent feeCfg = interpret $ \case
             & interpret (Wallet.handleWallet feeCfg)
             & subsume
             & NC.handleNodeClient
-            & ChainIndex.handleChainIndex
+            & interpret ChainIndex.handleQuery
             & handleObserveLog
             & interpret (mapLog (review p5))
             & interpret (mapLog (review p6))
@@ -367,7 +368,7 @@ handleMultiAgent feeCfg = interpret $ \case
             & interpret (mapLog (review p1))
             & interpret (handleZoomedState (walletState wallet . Wallet.nodeClient))
             & interpret (mapLog (review p2))
-            & interpret (handleZoomedState (walletState wallet . Wallet.chainIndex))
+            & interpret (handleZoomedState (walletState wallet . Wallet.chainIndexEmulatorState))
             & interpret (mapLog (review p3))
             & interpret (handleZoomedState (walletState wallet . Wallet.signingProcess))
             & interpret (writeIntoState emulatorLog)
