@@ -52,30 +52,30 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , InstanceClientEnv(..)
     ) where
 
-import           Control.Applicative              (Alternative (..))
-import           Control.Concurrent.STM           (STM, TMVar, TVar)
-import qualified Control.Concurrent.STM           as STM
-import           Control.Lens                     (view)
-import           Control.Monad                    (guard, (<=<))
-import           Data.Aeson                       (Value)
-import           Data.Default                     (def)
-import           Data.Foldable                    (fold)
-import           Data.List.NonEmpty               (NonEmpty)
-import           Data.Map                         (Map)
-import qualified Data.Map                         as Map
-import           Data.Set                         (Set)
-import qualified Data.Set                         as Set
-import           Ledger                           (Address, OnChainTx, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
-import           Ledger.AddressMap                (AddressMap)
-import qualified Ledger.AddressMap                as AM
-import           Ledger.Time                      (POSIXTime (..))
-import qualified Ledger.TimeSlot                  as TimeSlot
-import qualified Ledger.Value                     as Value
-import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxStatus (..))
-import           Plutus.Contract.Resumable        (IterationID, Request (..), RequestID)
-import           Wallet.Emulator.ChainIndex.Index (ChainIndex)
-import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue (..),
-                                                   NotificationError (..))
+import           Control.Applicative       (Alternative (..))
+import           Control.Concurrent.STM    (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM    as STM
+import           Control.Lens              (view)
+import           Control.Monad             (guard, (<=<))
+import           Data.Aeson                (Value)
+import           Data.Default              (def)
+import           Data.Foldable             (fold)
+import           Data.List.NonEmpty        (NonEmpty)
+import           Data.Map                  (Map)
+import qualified Data.Map                  as Map
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           Ledger                    (Address, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
+import           Ledger.AddressMap         (AddressMap)
+import qualified Ledger.AddressMap         as AM
+import           Ledger.Time               (POSIXTime (..))
+import qualified Ledger.TimeSlot           as TimeSlot
+import qualified Ledger.Value              as Value
+import           Plutus.ChainIndex         (ChainIndexTx)
+import           Plutus.Contract.Effects   (ActiveEndpoint (..), TxStatus (..))
+import           Plutus.Contract.Resumable (IterationID, Request (..), RequestID)
+import           Wallet.Types              (ContractInstanceId, EndpointDescription, EndpointValue (..),
+                                            NotificationError (..))
 
 {- Note [Contract instance thread model]
 
@@ -139,13 +139,13 @@ data OpenEndpoint =
 data OpenTxOutSpentRequest =
     OpenTxOutSpentRequest
         { osrOutRef     :: TxOutRef -- ^ The 'TxOutRef' that the instance is watching
-        , osrSpendingTx :: TMVar OnChainTx -- ^ A place to write the spending transaction to
+        , osrSpendingTx :: TMVar ChainIndexTx -- ^ A place to write the spending transaction to
         }
 
 data OpenTxOutProducedRequest =
     OpenTxOutProducedRequest
         { otxAddress       :: Address -- ^ 'Address' that the contract instance is watching (TODO: Should be ViewAddress -- SCP-2628)
-        , otxProducingTxns :: TMVar (NonEmpty OnChainTx) -- ^ A place to write the producing transactions to
+        , otxProducingTxns :: TMVar (NonEmpty ChainIndexTx) -- ^ A place to write the producing transactions to
         }
 
 -- | Data about the blockchain that contract instances
@@ -154,7 +154,6 @@ data BlockchainEnv =
     BlockchainEnv
         { beCurrentSlot :: TVar Slot -- ^ Current slot
         , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
-        , beTxIndex     :: TVar ChainIndex -- ^ Local chain index (not persisted). TODO: Should not be part of 'BlockchainEnv'
         , beTxChanges   :: TVar (Map TxId (TVar TxStatus)) -- ^ Map of transaction IDs to statuses
         }
 
@@ -163,7 +162,6 @@ emptyBlockchainEnv :: STM BlockchainEnv
 emptyBlockchainEnv =
     BlockchainEnv
         <$> STM.newTVar 0
-        <*> STM.newTVar mempty
         <*> STM.newTVar mempty
         <*> STM.newTVar mempty
 
@@ -285,7 +283,7 @@ addUtxoSpentReq Request{rqID, itID, rqRequest} InstanceState{issTxOutRefs} = do
     request <- OpenTxOutSpentRequest rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issTxOutRefs (Map.insert (rqID, itID) request)
 
-waitForUtxoSpent :: Request TxOutRef -> InstanceState -> STM OnChainTx
+waitForUtxoSpent :: Request TxOutRef -> InstanceState -> STM ChainIndexTx
 waitForUtxoSpent Request{rqID, itID} InstanceState{issTxOutRefs} = do
     theMap <- STM.readTVar issTxOutRefs
     case Map.lookup (rqID, itID) theMap of
@@ -299,7 +297,7 @@ addUtxoProducedReq Request{rqID, itID, rqRequest} InstanceState{issAddressRefs} 
     request <- OpenTxOutProducedRequest rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issAddressRefs (Map.insert (rqID, itID) request)
 
-waitForUtxoProduced :: Request Address -> InstanceState -> STM (NonEmpty OnChainTx)
+waitForUtxoProduced :: Request Address -> InstanceState -> STM (NonEmpty ChainIndexTx)
 waitForUtxoProduced Request{rqID, itID} InstanceState{issAddressRefs} = do
     theMap <- STM.readTVar issAddressRefs
     case Map.lookup (rqID, itID) theMap of

@@ -120,7 +120,9 @@
                 a
                 (type)
                 (fun
-                  (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]))
+                  (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                )
+              )
             )
             (abs
               a
@@ -177,7 +179,8 @@
                 (lam
                   c
                   (fun (con integer) (fun a a))
-                  (lam n a [ [ c (con integer 7) ] [ [ c (con integer 6) ] n ] ]
+                  (lam
+                    n a [ [ c (con integer 7) ] [ [ c (con integer 6) ] n ] ]
                   )
                 )
               )

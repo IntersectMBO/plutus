@@ -499,7 +499,7 @@ runEmulator :: (Handles state -> EmulatorTrace ()) -> ContractMonad state ()
 runEmulator a = State.modify (<> EmulatorAction (\ h -> h <$ a h))
 
 setHandles :: EmulatorTrace (Handles state) -> ContractMonad state ()
-setHandles a = State.modify (<> EmulatorAction (\ _ -> a))
+setHandles a = State.modify (<> EmulatorAction (const a))
 
 instance ContractModel state => Show (StateModel.Action (ModelState state) a) where
     showsPrec p (ContractAction a) = showsPrec p a
@@ -563,7 +563,7 @@ instance ContractModel state => Show (Actions state) where
   showsPrec d (Actions as)
     | d>10      = ("("++).showsPrec 0 (Actions as).(")"++)
     | null as   = ("Actions []"++)
-    | otherwise = (("Actions \n [")++) .
+    | otherwise = ("Actions \n [" ++) .
                   foldr (.) (showsPrec 0 (last as) . ("]"++))
                     [showsPrec 0 a . (",\n  "++) | a <- init as]
 

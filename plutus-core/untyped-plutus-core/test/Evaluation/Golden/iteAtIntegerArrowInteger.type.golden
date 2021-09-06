@@ -2,4 +2,6 @@
   (con bool)
   (fun
     (fun (con integer) (con integer))
-    (fun (fun (con integer) (con integer)) (fun (con integer) (con integer))))))
+    (fun (fun (con integer) (con integer)) (fun (con integer) (con integer)))
+  )
+))

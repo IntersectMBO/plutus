@@ -18,6 +18,8 @@ module PlutusIR.Core.Plated
     , bindingSubterms
     , bindingSubtypes
     , bindingSubkinds
+    , bindingNames
+    , bindingTyNames
     , bindingIds
     , termUniques
     , termUniquesDeep
@@ -81,20 +83,14 @@ bindingSubkinds f = \case
 bindingIds :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
             => Traversal' (Binding tyname name uni fun a) PLC.Unique
 bindingIds f = \case
-   TermBind x s d t -> TermBind x s <$> varDeclIds f d <*> pure t
-   TypeBind a d ty -> TypeBind a <$> tyVarDeclIds f d <*> pure ty
+   TermBind x s d t -> TermBind x s <$> (PLC.varDeclName . PLC.theUnique) f d <*> pure t
+   TypeBind a d ty -> TypeBind a <$> (PLC.tyVarDeclName . PLC.theUnique) f d <*> pure ty
    DatatypeBind a1 (Datatype a2 tvdecl tvdecls n vdecls) ->
      DatatypeBind a1 <$>
-       (Datatype a2 <$> tyVarDeclIds f tvdecl
-                    <*> traverse (tyVarDeclIds f) tvdecls
+       (Datatype a2 <$> (PLC.tyVarDeclName . PLC.theUnique) f tvdecl
+                    <*> traverse ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
                     <*> PLC.theUnique f n
-                    <*> traverse (varDeclIds f) vdecls)
-
-tyVarDeclIds :: PLC.HasUnique tyname PLC.TypeUnique => Traversal' (TyVarDecl tyname a) PLC.Unique
-tyVarDeclIds f (TyVarDecl a n b ) = TyVarDecl a <$> PLC.theUnique f n <*> pure b
-
-varDeclIds :: PLC.HasUnique name PLC.TermUnique => Traversal' (VarDecl tyname name uni fun a) PLC.Unique
-varDeclIds f (VarDecl a n b ) = VarDecl a <$> PLC.theUnique f n <*> pure b
+                    <*> traverse ((PLC.varDeclName . PLC.theUnique) f) vdecls)
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -182,3 +178,27 @@ termUniquesDeep
     :: PLC.HasUniques (Term tyname name uni fun ann)
     => Fold (Term tyname name uni fun ann) PLC.Unique
 termUniquesDeep = termSubtermsDeep . (termSubtypes . typeUniquesDeep <^> termUniques)
+
+-- | Get all the names introduces by a binding
+bindingNames :: Traversal' (Binding tyname name uni fun a) name
+bindingNames f = \case
+   TermBind x s d t -> TermBind x s <$> PLC.varDeclName f d <*> pure t
+   DatatypeBind a1 (Datatype a2 tvdecl tvdecls n vdecls) ->
+     DatatypeBind a1 <$>
+       (Datatype a2 tvdecl tvdecls
+                    <$> f n
+                    <*> traverse (PLC.varDeclName f) vdecls)
+   b@TypeBind{} -> pure b
+
+-- | Get all the type-names introduces by a binding
+bindingTyNames :: Traversal' (Binding tyname name uni fun a) tyname
+bindingTyNames f = \case
+   TypeBind a d ty -> TypeBind a <$> PLC.tyVarDeclName f d <*> pure ty
+   DatatypeBind a1 (Datatype a2 tvdecl tvdecls n vdecls) ->
+     DatatypeBind a1 <$>
+       (Datatype a2 <$> PLC.tyVarDeclName f tvdecl
+                    <*> traverse (PLC.tyVarDeclName f) tvdecls
+                    <*> pure n
+                    <*> pure vdecls)
+   b@TermBind{} -> pure b
+

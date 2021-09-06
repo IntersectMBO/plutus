@@ -2,25 +2,25 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE TypeApplications   #-}
 module Plutus.Contract.Tx where
 
 import           Control.Lens
 import           Data.Maybe                       (fromMaybe)
 
-import           Ledger                           (Redeemer (..), TxOutRef, TxOutTx, Validator)
+import           Data.Map                         (Map)
+import           Ledger                           (Redeemer (..), TxOutRef, Validator)
 import qualified Ledger.Address                   as Address
-import           Ledger.AddressMap                (AddressMap)
 import           Ledger.Constraints.TxConstraints (UntypedConstraints)
+import           Ledger.Tx                        (ChainIndexTxOut)
 import qualified Plutus.Contract.Typed.Tx         as Typed
-import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx
 
 -- | A set of constraints for a transaction that collects script outputs
 --   from the address of the given validator script, using the same redeemer
 --   script for all outputs.
 collectFromScript
-    :: AddressMap
+    :: Map Address.Address (Map TxOutRef ChainIndexTxOut)
     -> Validator
     -> Redeemer
     -> UntypedConstraints
@@ -28,8 +28,8 @@ collectFromScript = collectFromScriptFilter (\_ -> const True)
 
 -- | See
 collectFromScriptFilter
-    :: (TxOutRef -> TxOutTx -> Bool)
-    -> AddressMap
+    :: (TxOutRef -> ChainIndexTxOut -> Bool)
+    -> Map Address.Address (Map TxOutRef ChainIndexTxOut)
     -> Validator
     -> Redeemer
     -> UntypedConstraints

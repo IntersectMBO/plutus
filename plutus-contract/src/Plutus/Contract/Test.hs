@@ -23,7 +23,6 @@ module Plutus.Contract.Test(
     , (.&&.)
     -- * Assertions
     , endpointAvailable
-    , queryingUtxoAt
     , assertDone
     , assertNotDone
     , assertContractError
@@ -47,7 +46,6 @@ module Plutus.Contract.Test(
     , walletFundsExactChange
     , walletPaidFees
     , waitingForSlot
-    , walletWatchingAddress
     , valueAtAddress
     , dataAtAddress
     , reasonable
@@ -80,7 +78,7 @@ import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer            (Writer (..), tell)
 import           Control.Monad.IO.Class                (MonadIO (liftIO))
 import           Data.Default                          (Default (..))
-import           Data.Foldable                         (fold, toList, traverse_)
+import           Data.Foldable                         (fold, traverse_)
 import qualified Data.Map                              as M
 import           Data.Maybe                            (fromJust, mapMaybe)
 import           Data.Proxy                            (Proxy (..))
@@ -119,7 +117,6 @@ import qualified Ledger.Generators                     as Gen
 import           Ledger.Index                          (ScriptValidationEvent, ValidationError)
 import           Ledger.Slot                           (Slot)
 import           Ledger.Value                          (Value)
-import           Wallet.Emulator                       (EmulatorEvent, EmulatorTimeEvent)
 
 import           Plutus.Contract.Trace                 as X
 import           Plutus.Trace.Emulator                 (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
@@ -127,6 +124,7 @@ import           Plutus.Trace.Emulator.Types           (ContractConstraints, Con
                                                         ContractInstanceState (..), ContractInstanceTag, UserThreadMsg)
 import qualified Streaming                             as S
 import qualified Streaming.Prelude                     as S
+import           Wallet.Emulator                       (EmulatorEvent, EmulatorTimeEvent)
 import           Wallet.Emulator.Chain                 (ChainEvent)
 import           Wallet.Emulator.Folds                 (EmulatorFoldErr (..), Outcome (..), describeError, postMapM)
 import qualified Wallet.Emulator.Folds                 as Folds
@@ -261,28 +259,6 @@ endpointAvailable contract inst =
                 tell @(Doc Void) ("missing endpoint:" <+> fromString (symbolVal (Proxy :: Proxy l)))
                 pure False
 
-queryingUtxoAt
-    :: forall w s e a.
-       ( Monoid w
-       )
-    => Contract w s e a
-    -> ContractInstanceTag
-    -> Address
-    -> TracePredicate
-queryingUtxoAt contract inst addr =
-    flip postMapM (Folds.instanceRequests contract inst) $ \rqs -> do
-        let hks :: [Request Address]
-            hks = mapMaybe (traverse (preview Requests._UtxoAtReq)) rqs
-        if elem addr (rqRequest <$> hks)
-        then pure True
-        else do
-            tell @(Doc Void) $ hsep
-                [ "UTXO queries of " <+> pretty inst <> colon
-                    <+> nest 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
-                , "Missing address:", viaShow addr
-                ]
-            pure False
-
 tx
     :: forall w s e a.
        ( Monoid w
@@ -302,12 +278,6 @@ tx contract inst flt nm =
                     <+> nest 2 (vsep (fmap pretty unbalancedTxns))
                 , "No transaction with '" <> fromString nm <> "'"]
             pure False
-
-walletWatchingAddress :: Wallet -> Address -> TracePredicate
-walletWatchingAddress w addr = flip postMapM (L.generalize $ Folds.walletWatchingAddress w addr) $ \r -> do
-    unless r $ do
-        tell @(Doc Void) $ "Wallet" <+> pretty w <+> "not watching address" <+> pretty addr
-    pure r
 
 assertEvents
     :: forall w s e a.

@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
 module Ledger.Generators(
     -- * Mockchain
@@ -18,7 +19,15 @@ module Ledger.Generators(
     genInitialTransaction,
     -- * Assertions
     assertValid,
+    -- * Time
+    genInterval,
+    genSlotRange,
+    genTimeRange,
+    genSlot,
+    genPOSIXTime,
+    genSlotConfig,
     -- * Etc.
+    genSomeCardanoApiTx,
     genAda,
     genValue,
     genValueNonNegative,
@@ -30,22 +39,29 @@ module Ledger.Generators(
     signAll
     ) where
 
+import qualified Cardano.Api               as C
+import           Control.Monad             (replicateM)
 import           Data.Bifunctor            (Bifunctor (..))
 import qualified Data.ByteString           as BS
 import           Data.Default              (Default (def))
 import           Data.Foldable             (fold, foldl')
+import           Data.Functor.Identity     (Identity)
+import           Data.List                 (sort)
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isNothing)
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import           GHC.Stack                 (HasCallStack)
+import qualified Gen.Cardano.Api.Typed     as Gen
 import           Hedgehog
 import qualified Hedgehog.Gen              as Gen
 import qualified Hedgehog.Range            as Range
 import           Ledger
 import           Ledger.Fee                (FeeConfig (fcScriptsFeeFactor), calcFees)
 import qualified Ledger.Index              as Index
+import           Ledger.TimeSlot           (SlotConfig (..))
+import qualified Ledger.TimeSlot           as TimeSlot
 import qualified Plutus.V1.Ledger.Ada      as Ada
 import qualified Plutus.V1.Ledger.Interval as Interval
 import qualified Plutus.V1.Ledger.Value    as Value
@@ -181,6 +197,78 @@ genValidTransactionSpending' g feeCfg ins totalVal = do
                 -- this is somewhat crude (but technically valid)
             pure (signAll tx)
         else Gen.discard
+
+-- | Generate an 'Interval where the lower bound if less or equal than the
+-- upper bound.
+genInterval :: (MonadFail m, Ord a)
+            => m a
+            -> m (Interval a)
+genInterval gen = do
+    [b, e] <- sort <$> replicateM 2 gen
+    return $ Interval.interval b e
+
+-- | Generate a 'SlotRange' where the lower bound if less or equal than the
+-- upper bound.
+genSlotRange :: (MonadFail m, Hedgehog.MonadGen m) => m SlotRange
+genSlotRange = genInterval genSlot
+
+-- | Generate a 'POSIXTimeRange' where the lower bound if less or equal than the
+-- upper bound.
+genTimeRange :: (MonadFail m, Hedgehog.MonadGen m) => SlotConfig -> m POSIXTimeRange
+genTimeRange sc = genInterval $ genPOSIXTime sc
+
+-- | Generate a 'Slot' where the lowest slot number is 0.
+genSlot :: (Hedgehog.MonadGen m) => m Slot
+genSlot = Slot <$> Gen.integral (Range.linear 0 10000)
+
+-- | Generate a 'POSIXTime' where the lowest value is 'scSlotZeroTime' given a
+-- 'SlotConfig'.
+genPOSIXTime :: (Hedgehog.MonadGen m) => SlotConfig -> m POSIXTime
+genPOSIXTime sc = do
+    let beginTime = getPOSIXTime $ TimeSlot.scSlotZeroTime sc
+    POSIXTime <$> Gen.integral (Range.linear beginTime (beginTime + 10000000))
+
+-- | Generate a 'SlotConfig' where the slot length goes from 1 to 100000
+-- ms and the time of Slot 0 is the default 'scSlotZeroTime'.
+genSlotConfig :: Hedgehog.MonadGen m => m SlotConfig
+genSlotConfig = do
+    sl <- Gen.integral (Range.linear 1 1000000)
+    return $ def { TimeSlot.scSlotLength = sl }
+
+-- TODO Unfortunately, there's no way to get a warning if another era has been
+-- added to EraInMode. Alternative way?
+genSomeCardanoApiTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genSomeCardanoApiTx = Gen.choice [ genByronEraInCardanoModeTx
+                                 , genShelleyEraInCardanoModeTx
+                                 , genAllegraEraInCardanoModeTx
+                                 , genMaryEraInCardanoModeTx
+                                 , genAlonzoEraInCardanoModeTx
+                                 ]
+
+genByronEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genByronEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.ByronEra
+  pure $ SomeTx tx C.ByronEraInCardanoMode
+
+genShelleyEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genShelleyEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.ShelleyEra
+  pure $ SomeTx tx C.ShelleyEraInCardanoMode
+
+genAllegraEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genAllegraEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.AllegraEra
+  pure $ SomeTx tx C.AllegraEraInCardanoMode
+
+genMaryEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genMaryEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.MaryEra
+  pure $ SomeTx tx C.MaryEraInCardanoMode
+
+genAlonzoEraInCardanoModeTx :: (GenBase m ~ Identity, MonadGen m) => m SomeCardanoApiTx
+genAlonzoEraInCardanoModeTx = do
+  tx <- fromGenT $ Gen.genTx C.AlonzoEra
+  pure $ SomeTx tx C.AlonzoEraInCardanoMode
 
 genAda :: MonadGen m => m Ada
 genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))

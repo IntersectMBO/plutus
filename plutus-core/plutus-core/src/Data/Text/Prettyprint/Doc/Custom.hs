@@ -2,38 +2,24 @@
 
 module Data.Text.Prettyprint.Doc.Custom ( brackets'
                                         , braces'
-                                        , vsep'
                                         , parens'
-                                        , (</>)
-                                        , (<//>)
+                                        , sexp
                                         ) where
 
 import           Data.Text.Prettyprint.Doc
 
-infixr 5 </>
-infixr 5 <//>
+-- | An area bracketed by two delimiters. When on multiple lines the delimiters are not indented but the content is.
+section' :: Doc a -> Doc a -> Doc a -> Doc a
+-- The subtlety here is that the nest call surrounds the first delimiter and the content, but not
+-- the final one. This is because of how nest behaves, where it doesn't indent until it hits the first
+-- line break. So we need to include the first delimiter so that the main content gets indented, but not
+-- the final delimiter.
+section' c1 c2 d = group $ nest 2 (c1 <> d) <> c2
 
--- | This operator prints @a@ and then prints @b@ indented on a new line
-(<//>) :: Doc a -- ^ @a@
-       -> Doc a -- ^ @b@
-       -> Doc a
-(<//>) d d' = d <> hardline <> indent 2 d'
-
--- | This prints both documents on the same line separated by a space if they
--- can fit, and behaves like '<//>' otherwise.
-(</>) :: Doc a -> Doc a -> Doc a
-(</>) d d' = group (flatAlt (d <//> d') (d <+> d'))
-
-vsepSquish :: [Doc a] -> Doc a
-vsepSquish = group . concatWith (\x y -> x <> line' <> y)
-
--- | This is the same as 'vsep', but it 'group's the output, so that documents
--- are printed on the same line when possible.
-vsep' :: [Doc a] -> Doc a
-vsep' = group . vsep
-
+-- | An area bracketed by two delimiters. When on one line, there are spaces between the delimiters
+-- and the content, when on multiple lines the delimiters are not indented but the content is.
 section :: Doc a -> Doc a -> Doc a -> Doc a
-section c1 c2 d = group (flatAlt (c1 <> hardline <> indent 2 d <> hardline <> c2) (c1 <+> d <+> c2))
+section c1 c2 = section' (c1 <> line) (line <> c2)
 
 -- | This prints a document enclosed by brackets, possibly indenting the output on
 -- a new line if it does not fit.
@@ -48,4 +34,13 @@ braces' = section "{" "}"
 -- | This prints a document enclosed by parentheses, aligning the opening and
 -- closing parentheses.
 parens' :: Doc a -> Doc a
-parens' d = vsepSquish ["(" <> d, ")"]
+parens' = section "(" ")"
+
+-- | Print a "sexp", i.e. something like "(keyword arg1 ... argN)".
+sexp :: Doc a -> [Doc a] -> Doc a
+sexp a es =
+    -- This is a bit funny, because we want the keyword to "stick" to the opening parenthesis
+    -- when it's split over multiple lines. So we include it in the "initial" segment. But then
+    -- we also have to have a space after that rather than no space. So we start with "(keyword"
+    -- and a line-or-space, but end with a line-or-nothing and ")".
+    section' ("(" <> a <> line) (line' <> ")") (sep es)

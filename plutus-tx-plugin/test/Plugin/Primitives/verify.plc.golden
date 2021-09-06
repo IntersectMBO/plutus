@@ -20,7 +20,8 @@
         verifySignature
         (fun
           (con bytestring)
-          (fun (con bytestring) (fun (con bytestring) (con bool))))
+          (fun (con bytestring) (fun (con bytestring) (con bool)))
+        )
       )
       (builtin verifySignature)
     )
@@ -29,7 +30,8 @@
       (vardecl
         verifySignature
         (fun
-          (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
+          (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool))
+        )
       )
       (lam
         pubKey

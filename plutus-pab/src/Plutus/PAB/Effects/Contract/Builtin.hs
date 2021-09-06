@@ -36,7 +36,7 @@ module Plutus.PAB.Effects.Contract.Builtin(
     ) where
 
 
-import           Control.Monad                                    (when)
+import           Control.Monad                                    (unless)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
@@ -174,7 +174,7 @@ initBuiltin' ::
     -> Eff effs (SomeBuiltinState a)
 initBuiltin' silent i con = do
     let initialState = Emulator.emptyInstanceState (toContract con)
-    when (not silent) $ logNewMessages @a i initialState
+    unless silent $ logNewMessages @a i initialState
     pure $ SomeBuiltinState initialState mempty
 
 updateBuiltin, updateBuiltinSilently ::
@@ -208,7 +208,7 @@ updateBuiltin' silent i oldState oldW resp = do
     case newState of
         Just k -> do
             logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i resp)
-            when (not silent) $ logNewMessages @a i k
+            unless silent $ logNewMessages @a i k
             let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
             pure (SomeBuiltinState k newW)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"

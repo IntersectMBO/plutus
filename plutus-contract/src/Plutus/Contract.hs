@@ -40,10 +40,6 @@ module Plutus.Contract(
     , Request.endpointWithMeta
     , Schema.EmptySchema
     -- * Blockchain events
-    , Wallet.Types.AddressChangeRequest(..)
-    , Wallet.Types.AddressChangeResponse(..)
-    , Request.addressChangeRequest
-    , Request.nextTransactionsAt
     , Request.watchAddressUntilSlot
     , Request.watchAddressUntilTime
     , Request.fundsAtAddressGt
@@ -52,9 +48,18 @@ module Plutus.Contract(
     , Request.utxoIsSpent
     , Request.awaitUtxoProduced
     , Request.utxoIsProduced
-    -- * UTXO set
-    , UtxoMap
-    , Request.utxoAt
+    -- * Chain index requests
+    , Request.datumFromHash
+    , Request.validatorFromHash
+    , Request.mintingPolicyFromHash
+    , Request.stakeValidatorFromHash
+    , Request.txOutFromRef
+    , Request.txFromTxId
+    , Request.utxoRefMembership
+    , Request.utxosAt
+    , Request.utxosTxOutTxAt
+    , Request.utxosTxOutTxFromTx
+    , Request.getTip
     -- * Wallet's own public key
     , Request.ownPubKey
     -- * Contract instance Id
@@ -110,7 +115,6 @@ import           Plutus.Contract.Types          (AsCheckpointError (..), AsContr
 import qualified Control.Monad.Freer.Extras.Log as L
 import qualified Control.Monad.Freer.Writer     as W
 import           Data.Functor.Apply             (liftF2)
-import           Ledger.AddressMap              (UtxoMap)
 import           Prelude
 import           Wallet.API                     (WalletAPIError)
 import qualified Wallet.Types

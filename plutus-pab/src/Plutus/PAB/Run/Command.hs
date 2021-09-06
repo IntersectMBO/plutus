@@ -42,9 +42,9 @@ allServices :: ConfigCommand
 allServices =
   ForkCommands
     [ StartMockNode
-    , ChainIndex
     , MockWallet
     , PABWebserver
+    , ChainIndex
     ]
 
 

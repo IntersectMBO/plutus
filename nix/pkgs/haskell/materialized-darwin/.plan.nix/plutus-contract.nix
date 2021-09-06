@@ -41,11 +41,6 @@
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
           (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
-          (hsPkgs."cardano-ledger-alonzo" or (errorHandler.buildDepError "cardano-ledger-alonzo"))
-          (hsPkgs."cardano-ledger-shelley-ma" or (errorHandler.buildDepError "cardano-ledger-shelley-ma"))
-          (hsPkgs."ouroboros-consensus-shelley" or (errorHandler.buildDepError "ouroboros-consensus-shelley"))
-          (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
-          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -54,7 +49,10 @@
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+          (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
@@ -93,8 +91,6 @@
           "Data/Text/Extras"
           "Data/UUID/Extras"
           "Plutus/Contract"
-          "Plutus/Contract/CardanoAPI"
-          "Plutus/Contract/CardanoAPITemp"
           "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
@@ -116,8 +112,6 @@
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
           "Wallet/Emulator/Chain"
-          "Wallet/Emulator/ChainIndex"
-          "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
@@ -142,6 +136,7 @@
           "Plutus/Trace/Effects/Waiting"
           "Plutus/Trace/Emulator"
           "Plutus/Trace/Emulator/ContractInstance"
+          "Plutus/Trace/Emulator/Extract"
           "Plutus/Trace/Emulator/System"
           "Plutus/Trace/Emulator/Types"
           "Plutus/Trace/Playground"

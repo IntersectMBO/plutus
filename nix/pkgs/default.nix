@@ -102,6 +102,7 @@ let
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
+    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system windows)
     $(nix-build default.nix -A plutus.haskell.project.projectCross.mingwW64.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
 
     # This updates the sha files for the extra packages
