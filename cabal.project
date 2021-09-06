@@ -99,7 +99,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
+  tag: 46502694f6a9f0498f822068008b232b3837a9e9
   subdir:
     base-deriving-via
     binary
@@ -123,7 +123,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: 877ce057ff6fb086474c8eaad53f2b7f0e0fce6b
+  tag: 6d00ff77f9bcd769fb6d7fd02216cec4e837bfcf
   subdir:
     monoidal-synchronisation
     typed-protocols
@@ -156,7 +156,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: d5b184a820853c7ba202efd615b8fadca1acb52c
+  tag: 8efcfc755faae4db3a64ad45343235fce3ed5c47
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -179,7 +179,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: ed11e8b6429d4af1cb2539460e5cb2283a06b2dc
+  tag: 8cf2b208c7708bd890c7e74d5b1d7c4167a3b40b
   subdir:
     cardano-api
     cardano-node
