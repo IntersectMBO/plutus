@@ -41,7 +41,6 @@ import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (pubKeyAddress)
-import qualified Ledger.Generators           as Gen
 import qualified Ledger.Interval             as Interval
 import           Ledger.Slot                 (Slot (..))
 import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), TxOutRef (..))
@@ -112,7 +111,7 @@ txIdStateTip TxIdGenState {_txgsBlocks, _txgsNumTransactions} =
     Tip
         { tipSlot    = Slot (fromIntegral numBlocks) -- Because in every slot we have one block.
         , tipBlockId = BlockId $ BSL.toStrict $ serialise numBlocks
-        , tipBlockNo = numBlocks
+        , tipBlockNo = BlockNumber numBlocks
         }
   where
     numBlocks = length _txgsBlocks
@@ -123,7 +122,7 @@ genStateTip UtxoGenState{_uxUtxoSet, _uxNumTransactions, _uxNumBlocks} =
     Tip
         { tipSlot    = fromIntegral _uxNumBlocks
         , tipBlockId = BlockId $ BSL.toStrict $ serialise _uxNumBlocks -- TODO: Incl. hash of utxo set!
-        , tipBlockNo = _uxNumBlocks
+        , tipBlockNo = BlockNumber _uxNumBlocks
         }
 
 initialState :: UtxoGenState

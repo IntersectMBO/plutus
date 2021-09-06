@@ -147,6 +147,7 @@ library
         cryptonite -any,
         cborg -any,
         freer-simple -any,
+        fingertree -any,
         generic-arbitrary -any,
         http-client -any,
         http-client-tls -any,

@@ -249,5 +249,5 @@ blockNumberAscending = property $ do
             items === sort items
     where
         tipBlockNo' :: Tip -> Int
-        tipBlockNo' TipAtGenesis = error "There should be no empty UtxoState."
-        tipBlockNo' (Tip _ _ no) = no
+        tipBlockNo' TipAtGenesis               = error "There should be no empty UtxoState."
+        tipBlockNo' (Tip _ _ (BlockNumber no)) = no
