@@ -53,6 +53,7 @@
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           build-tools = [
             (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
@@ -66,6 +67,7 @@
             "BasicPolicies"
             "BasicApps"
             "GameModel"
+            "HandlingBlockchainEvents"
             "HelloWorldApp"
             ];
           hsSourceDirs = [ "plutus/tutorials" ];

@@ -8,4 +8,5 @@ Explanations
    platform
    ledger
    plutus-foundation
+   rollback
    pab
