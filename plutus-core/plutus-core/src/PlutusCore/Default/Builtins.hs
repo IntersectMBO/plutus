@@ -258,11 +258,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Tracing
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            emitPlc
+            (\text a -> a <$ emit @Emitter text)
             (runCostingFunTwoArguments . paramTrace)
-        where
-          emitPlc :: SomeConstantOf uni Text '[] -> Opaque term a -> Emitter (Opaque term a)
-          emitPlc (SomeConstantOfRes _ s) t = emit s >> pure t
     -- Pairs
     toBuiltinMeaning FstPair =
         makeBuiltinMeaning
