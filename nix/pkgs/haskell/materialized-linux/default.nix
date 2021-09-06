@@ -441,6 +441,7 @@
         "row-types".revision = (((hackage."row-types")."1.0.1.0").revisions).default;
         "criterion-measurement".revision = (((hackage."criterion-measurement")."0.1.3.0").revisions).default;
         "criterion-measurement".flags.fast = false;
+        "servant-options".revision = (((hackage."servant-options")."0.1.0.0").revisions).default;
         "insert-ordered-containers".revision = (((hackage."insert-ordered-containers")."0.2.5").revisions).default;
         "show-combinators".revision = (((hackage."show-combinators")."0.2.0.0").revisions).default;
         "base-orphans".revision = (((hackage."base-orphans")."0.8.4").revisions).default;
@@ -1062,6 +1063,7 @@
           "Win32-network".components.exes."named-pipe-demo".planned = lib.mkOverride 900 true;
           "criterion-measurement".components.library.planned = lib.mkOverride 900 true;
           "plutus-contract".components.library.planned = lib.mkOverride 900 true;
+          "servant-options".components.library.planned = lib.mkOverride 900 true;
           "plutus-pab".components.tests."plutus-pab-test-light".planned = lib.mkOverride 900 true;
           "wl-pprint-text".components.library.planned = lib.mkOverride 900 true;
           "bifunctors".components.library.planned = lib.mkOverride 900 true;
