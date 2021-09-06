@@ -31,7 +31,7 @@ They differ in the kind of witness that is required to spend them.
 A public key output can be spent by a transaction that carry a signature of the private key that corresponds to the output's public key.
 A script output can be spent by a transaction that carries the validator script which hashes to the script hash, and two pieces of data - the redeemer and the datum.
 The latter must be the value that hashes to the output's datum hash.
-In addition, the any transaction spending a script output must meet the requirements set out in the validator script.
+In addition, any transaction spending a script output must meet the requirements set out in the validator script.
 
 +-------------+-----------+------------------+-----------+
 | Output type | Witness   | Address          | Data      |
@@ -60,7 +60,7 @@ The transition happens when a transaction that spends the output is appended to 
 
 .. note::
     Reality is slightly more complicated: Since transactions can be rolled back, the state of a transaction output can change back to "unspent" if the spending transaction gets rolled back.
-    Only when a certain number of blocks have been added is the spending transaction fimrly committed and the state of the output cannot change back to "unspent" anymore.
+    Only when a certain number of blocks have been added is the spending transaction firmly committed and the state of the output cannot change back to "unspent" anymore.
     Rollbacks are reflected in the PAB's APIs for dealing with the status of UTXOs, and they need to be considered when thinking about the business logic of your applications.
 
 Changing the state of our app
