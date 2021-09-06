@@ -4,18 +4,18 @@
 
 module Language.Marlowe.ACTUS.MarloweCompat where
 
-import           Language.Marlowe                                  (Contract (Let), Observation,
-                                                                    Value (Constant, UseValue), ValueId (ValueId))
-
 import           Data.String                                       (IsString (fromString))
 import           Data.Time                                         (Day, UTCTime (UTCTime))
 import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
+import           Language.Marlowe                                  (Contract (Let), Observation,
+                                                                    Value (Constant, UseValue), ValueId (ValueId))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType, RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Ops                        (marloweFixedPoint)
 
 type EventHandlerSTF = EventType -> ContractStateMarlowe -> ContractStateMarlowe
 type ContractStateMarlowe = ContractStatePoly (Value Observation) (Value Observation)
+type RiskFactorsMarlowe = RiskFactorsPoly (Value Observation)
 
 useval :: String -> Integer -> Value Observation
 useval name t = UseValue $ ValueId $ fromString $ name ++ "_" ++ show t

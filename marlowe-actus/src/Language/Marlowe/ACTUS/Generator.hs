@@ -24,7 +24,8 @@ import           Language.Marlowe                                           (Act
                                                                              Slot (..), Value (..), ValueId (ValueId),
                                                                              ada)
 import           Language.Marlowe.ACTUS.Analysis                            (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors,
+                                                                             RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
                                                                              Assertions (..), ContractTerms (..),
                                                                              TermValidationError (..),
@@ -98,6 +99,7 @@ inquiryFs
 inquiryFs ev ct timePosfix date oracle context continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
+
         letTemplate inputChoiceId inputOwner cont =
             Let
                 (ValueId inputChoiceId)
@@ -116,25 +118,26 @@ inquiryFs ev ct timePosfix date oracle context continue =
             ("o_rf_RRMO", Just AssertionContext{..}) ->
                 [Bound (toMarloweFixedPoint rrmoMin) (toMarloweFixedPoint rrmoMax)]
             _ -> [Bound 0 maxPseudoDecimalValue]
+
         riskFactorInquiry name = inputTemplate
             (fromString (name ++ timePosfix))
             oracleRole
             (inferBounds name context)
+
         riskFactorsInquiryEv AD = id
         riskFactorsInquiryEv SC = riskFactorInquiry "o_rf_SCMO"
         riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"
-        riskFactorsInquiryEv PP =
-            riskFactorInquiry "o_rf_CURS" .
-                riskFactorInquiry "pp_payoff"
+        riskFactorsInquiryEv PP = riskFactorInquiry "o_rf_CURS" .  riskFactorInquiry "pp_payoff"
         riskFactorsInquiryEv _ =
             if enableSettlement ct then riskFactorInquiry "o_rf_CURS"
             else Let (ValueId (fromString ("o_rf_CURS" ++ timePosfix))) (constnt 1.0)
+
     in
         riskFactorsInquiryEv ev continue
 
 defaultRiskFactors :: EventType -> Day -> RiskFactors
 defaultRiskFactors _ _ =
-  RiskFactors
+  RiskFactorsPoly
     { o_rf_CURS = 1.0,
       o_rf_RRMO = 1.0,
       o_rf_SCMO = 1.0,
@@ -200,7 +203,14 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                 gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
                 gen (cf, prevDate, ev, date, r, t) cont =
                     inquiryFs ev terms' ("_" ++ show t) date "oracle" ctx
-                    $ stateTransitionFs ev terms' t prevDate (cashCalculationDay cf)
+                    $ stateTransitionFs ev
+                        RiskFactorsPoly {
+                            o_rf_CURS = useval "o_rf_CURS" t
+                          , o_rf_RRMO = useval "o_rf_RRMO" t
+                          , o_rf_SCMO = useval "o_rf_SCMO" t
+                          , pp_payoff = useval "pp_payoff" t
+                        }
+                        terms' t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
                     $ if isNothing pof then cont
                     else if  r > 0.0   then
@@ -221,7 +231,14 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                             -- (Constant $ collateralAmount terms)
                             date
                             cont
-                    where pof = payoffFs ev terms' t (t P.- 1) prevDate (cashCalculationDay cf)
+                    where pof = payoffFs ev
+                                  RiskFactorsPoly {
+                                      o_rf_CURS = useval "o_rf_CURS" t
+                                    , o_rf_RRMO = useval "o_rf_RRMO" t
+                                    , o_rf_SCMO = useval "o_rf_SCMO" t
+                                    , pp_payoff = useval "pp_payoff" t
+                                    }
+                                  terms' (t P.- 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
                 -- withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont

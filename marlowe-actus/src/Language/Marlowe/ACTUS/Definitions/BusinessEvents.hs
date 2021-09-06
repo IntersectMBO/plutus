@@ -38,12 +38,13 @@ data EventType =
 
 {-| Risk factor observer
 -}
-data RiskFactors = RiskFactors
-    { o_rf_CURS :: Double
-    , o_rf_RRMO :: Double
-    , o_rf_SCMO :: Double
-    , pp_payoff :: Double
+data RiskFactorsPoly a = RiskFactorsPoly
+    { o_rf_CURS :: a
+    , o_rf_RRMO :: a
+    , o_rf_SCMO :: a
+    , pp_payoff :: a
     }
     deriving stock (Generic)
     deriving (Show, ToJSON)
 
+type RiskFactors = RiskFactorsPoly Double

@@ -15,7 +15,7 @@ import qualified Data.List                                                  as L
 import           Data.Maybe                                                 (fromMaybe, isNothing)
 import           Data.Sort                                                  (sortOn)
 import           Data.Time                                                  (Day)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors)
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),

@@ -4,17 +4,18 @@ module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 
 import           Data.Time                                         (Day)
 import           Language.Marlowe                                  (Observation, Value)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
-import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
+import           Language.Marlowe.ACTUS.MarloweCompat              (RiskFactorsMarlowe, constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
                                                                     marloweFixedPoint)
 import           Prelude                                           hiding (Fractional, Num, (*), (+), (-), (/))
 
-payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Day -> Maybe (Value Observation)
+payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> Day -> Day -> Maybe (Value Observation)
 payoffFs
   ev
+  RiskFactorsPoly {..}
   ContractTerms
     { ct_NT = Just np,
       ct_PDIED = Just pdied,
@@ -28,7 +29,6 @@ payoffFs
       ct_cPYRT = cpyrt,
       ..
     }
-  t
   t_minus
   prevDate
   curDate =
@@ -87,9 +87,6 @@ payoffFs
       priceAtTerminationDate = constnt ptd
       penaltyRate = constnt pyrt
       cPenaltyRate = constnt cpyrt
-      o_rf_CURS = useval "o_rf_CURS" t
-      o_rf_RRMO = useval "o_rf_RRMO" t
-      pp_payoff = useval "pp_payoff" t
       nsc = useval "nsc" t_minus
       nt = useval "nt" t_minus
       isc = useval "isc" t_minus

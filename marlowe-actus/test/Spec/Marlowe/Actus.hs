@@ -12,7 +12,7 @@ import qualified Data.Map                                          as M (lookup)
 import           Data.Maybe                                        (fromMaybe)
 import           GHC.Records                                       (getField)
 import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  hiding (Assertion)
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Spec.Marlowe.Util
@@ -30,7 +30,7 @@ runTest tc@TestCase {..} =
 
       getRiskFactors ev date =
         let riskFactors =
-              RiskFactors
+              RiskFactorsPoly
                 { o_rf_CURS = 1.0,
                   o_rf_RRMO = 1.0,
                   o_rf_SCMO = 1.0,

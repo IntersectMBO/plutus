@@ -4,7 +4,8 @@ module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 
 import           Data.Maybe                                             (maybeToList)
 import           Data.Time                                              (Day)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors,
+                                                                         RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
@@ -16,7 +17,7 @@ import           Language.Marlowe.ACTUS.Ops                             (YearFra
 stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
 stateTransition
   ev
-  RiskFactors {..}
+  RiskFactorsPoly {..}
   ct@ContractTerms
     { ct_DCC = Just dayCountConvention,
       ct_FER = Just feeRate,

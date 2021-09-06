@@ -4,7 +4,6 @@ module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs (stateTransitionFs) wh
 
 import           Data.Maybe                                             (maybeToList)
 import           Data.Time                                              (Day)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
@@ -13,12 +12,15 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, su
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
 import           Language.Marlowe                                       (Contract)
-import           Language.Marlowe.ACTUS.MarloweCompat                   (ContractStateMarlowe, constnt, enum, letval,
-                                                                         marloweDate, stateTransitionMarlowe, useval)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.MarloweCompat                   (ContractStateMarlowe, RiskFactorsMarlowe,
+                                                                         constnt, enum, letval, marloweDate,
+                                                                         stateTransitionMarlowe)
 
-stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Day -> Contract -> Contract
+stateTransitionFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> Day -> Day -> Contract -> Contract
 stateTransitionFs
   ev
+  RiskFactorsPoly{..}
   ct@ContractTerms
     { ct_NT = Just nt,
       ct_FER = Just fer,
@@ -202,10 +204,6 @@ stateTransitionFs
       interestCalculationBaseAmont = constnt <$> ct_IPCBA
       nextRateReset = constnt <$> ct_RRNXT
 
-      o_rf_RRMO = useval "o_rf_RRMO" t
-      o_rf_SCMO = useval "o_rf_SCMO" t
-      pp_payoff = useval "pp_payoff" t
-
       time = marloweDate curDate
       fpSchedule = schedule FP ct
       prSchedule = schedule PR ct
@@ -231,4 +229,4 @@ stateTransitionFs
         RR  -> letval ("RR:" ++ show curDate) t (constnt 0) cont
         FP  -> letval ("FP:" ++ show curDate) t (constnt 0) cont
         _   -> cont
-stateTransitionFs _ _ _ _ _ c = c
+stateTransitionFs _ _ _ _ _ _ c = c
