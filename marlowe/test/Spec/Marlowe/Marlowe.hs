@@ -46,6 +46,7 @@ import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
 import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as Val
+import qualified Plutus.Contract.StateMachine          as SM
 import           Plutus.Contract.Test                  hiding ((.&&.))
 import qualified Plutus.Contract.Test                  as T
 import           Plutus.Contract.Types                 (_observableState)
@@ -74,6 +75,7 @@ tests = testGroup "Marlowe"
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testCase "Mul analysis" mulAnalysisTest
+    , testCase "Transfers between accounts work" transferBetweenAccountsTest
     , testCase "extractContractRoles" extractContractRolesTest
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
@@ -363,6 +365,26 @@ mulAnalysisTest = do
     result <- warningsTrace contract
     --print result
     assertBool "Analysis ok" $ isRight result
+
+
+transferBetweenAccountsTest :: IO ()
+transferBetweenAccountsTest = do
+    let state = State
+            { accounts = AssocMap.fromList [((Role "alice", Token "" ""), 100)]
+            , choices  = AssocMap.empty
+            , boundValues = AssocMap.empty
+            , minSlot = 10 }
+    let contract = Pay "alice" (Account "bob") (Token "" "") (Constant 100) (When [] 100 Close)
+    let marloweData = MarloweData {
+                marloweContract = contract,
+                marloweState = state }
+    let Just result@(constraints, SM.State (MarloweData {marloweState=State{accounts}}) balance) =
+            mkMarloweStateMachineTransition
+                defaultMarloweParams
+                (SM.State marloweData (lovelaceValueOf 100))
+                ((20, 30), [])
+    balance @=? lovelaceValueOf 100
+    assertBool "Accounts check" $ accounts == AssocMap.fromList [(("bob",Token "" ""), 100)]
 
 
 pangramContractSerialization :: IO ()
