@@ -62,6 +62,6 @@ theContract = MS.contract
 -- a 'MultiSig' contract that requires three out of five signatures
 multiSig :: MultiSig
 multiSig = MultiSig
-        { signatories = Ledger.pubKeyHash . walletPubKey <$> [w1, w2, w3, w4, w5]
+        { signatories = Ledger.pubKeyHash . walletPubKey . knownWallet <$> [1..5]
         , minNumSignatures = 3
         }

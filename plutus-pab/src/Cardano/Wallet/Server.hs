@@ -38,7 +38,7 @@ import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Servant                             (Application, NoContent (..), hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                      (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv)
 import           Wallet.Effects                      (balanceTx, ownPubKey, submitTxn, totalFunds, walletAddSignature)
-import           Wallet.Emulator.Wallet              (Wallet (..), emptyWalletState)
+import           Wallet.Emulator.Wallet              (Wallet (..), WalletId, emptyWalletState)
 import qualified Wallet.Emulator.Wallet              as Wallet
 
 app :: Trace IO WalletMsg

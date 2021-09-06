@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -123,12 +122,6 @@ fromBase16 s = do
         128 -> MockWallet <$> Crypto.xprv bs
         _   -> Left "fromBase16 error: bytestring length should be 64 or 128"
 
-newtype XPrvWrapper = XPrvWrapper Crypto.XPrv
-instance Eq XPrvWrapper where
-    XPrvWrapper l == XPrvWrapper r = Crypto.unXPrv l == Crypto.unXPrv r
-instance Ord XPrvWrapper where
-    compare (XPrvWrapper l) (XPrvWrapper r) = compare (Crypto.unXPrv l) (Crypto.unXPrv r)
-
 -- | Get a wallet's extended public key
 walletXPub :: Wallet -> Crypto.XPub
 walletXPub (Wallet (MockWallet xprv)) = Crypto.toXPub xprv
@@ -161,7 +154,7 @@ fromWalletNumber :: WalletNumber -> Wallet
 fromWalletNumber (WalletNumber i) = knownWallet i
 
 toWalletNumber :: Wallet -> WalletNumber
-toWalletNumber w = maybe (WalletNumber 8) (WalletNumber . toInteger . succ) $ findIndex (== w) knownWallets
+toWalletNumber w = maybe (error "toWalletNumber: not a known wallet") (WalletNumber . toInteger . succ) $ findIndex (== w) knownWallets
 
 data WalletEvent =
     GenericLog T.Text
