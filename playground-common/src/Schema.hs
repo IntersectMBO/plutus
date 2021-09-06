@@ -59,11 +59,12 @@ import           GHC.Generics           (C1, Constructor, D1, Generic, K1 (K1), 
                                          conIsRecord, conName, from, selName, (:*:) ((:*:)), (:+:) (L1, R1))
 import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumHash, Interval, POSIXTime,
                                          POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash, Signature, TokenName, TxId,
-                                         ValidatorHash, Value)
+                                         ValidatorHash, Value, TxOutRef)
 import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
 import qualified PlutusTx.Ratio         as P
+import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken)
 import           Wallet.Emulator.Wallet (Wallet)
 import           Wallet.Types           (ContractInstanceId)
 
@@ -406,3 +407,7 @@ deriving anyclass instance ToArgument Wallet
 deriving anyclass instance ToArgument Ada
 
 deriving anyclass instance ToSchema ContractInstanceId
+
+deriving anyclass instance ToSchema TxOutRef
+
+deriving anyclass instance ToSchema ThreadToken
