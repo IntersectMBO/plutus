@@ -169,7 +169,7 @@ startPingPongContract pabConfig = do
 
   let ca = ContractActivationArgs
                 { caID     = PingPong
-                , caWallet = knownWallet 1
+                , caWallet = Just (knownWallet 1)
                 }
 
   let PabClient{activateContract} = pabClient @TestingContracts @Integer

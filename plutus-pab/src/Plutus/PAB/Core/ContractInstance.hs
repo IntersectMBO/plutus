@@ -45,6 +45,7 @@ import           Control.Monad.Freer.Extras.Log                   (LogMessage, L
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
 import           Data.Aeson                                       (Value)
+import           Data.Maybe                                       (fromMaybe)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
@@ -60,6 +61,7 @@ import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInsta
 
 import           Wallet.Effects                                   (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
+import qualified Wallet.Emulator.Wallet                           as Wallet
 
 import           Plutus.ChainIndex                                (ChainIndexQueryEffect)
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
@@ -98,12 +100,13 @@ activateContractSTM' ::
     -> (Eff appBackend ~> IO)
     -> ContractActivationArgs (ContractDef t)
     -> Eff effs ContractInstanceId
-activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID} = do
+activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
   logInfo @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
   Contract.putStartInstance @t a activeContractInstanceId
   Contract.putState @t a activeContractInstanceId contractState
   cid <- startContractInstanceThread' c activeContractInstanceId runAppBackend a
-  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID (caWallet a) activeContractInstanceId
+  let wallet = fromMaybe (Wallet.knownWallet 1) caWallet
+  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID wallet activeContractInstanceId
   pure cid
 
 -- | Spin up the STM Instance thread for the provided contract and add it to

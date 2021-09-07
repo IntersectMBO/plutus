@@ -32,7 +32,7 @@ import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
 import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
-import           Data.Maybe                              (mapMaybe)
+import           Data.Maybe                              (fromMaybe, mapMaybe)
 import           Data.Proxy                              (Proxy (..))
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
@@ -51,7 +51,7 @@ import           Servant                                 (NoContent (NoContent),
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
-import           Wallet.Emulator.Wallet                  (Wallet, WalletNumber, fromWalletNumber)
+import           Wallet.Emulator.Wallet                  (Wallet, WalletNumber, fromWalletNumber, knownWallet)
 import           Wallet.Types                            (ContractInstanceId (..))
 
 healthcheck :: forall t env. PABAction t env ()
@@ -114,7 +114,7 @@ apiHandler =
 fromInternalState ::
     t
     -> ContractInstanceId
-    -> Wallet
+    -> Maybe Wallet
     -> PartiallyDecodedResponse PABReq
     -> ContractInstanceClientState t
 fromInternalState t i wallet resp =
@@ -123,7 +123,7 @@ fromInternalState t i wallet resp =
         , cicCurrentState =
             let hks' = mapMaybe (traverse (preview _ExposeEndpointReq)) (hooks resp)
             in resp { hooks = hks' }
-        , cicWallet = wallet
+        , cicWallet = fromMaybe (knownWallet 1) wallet
         , cicDefinition = t
         }
 
@@ -131,14 +131,15 @@ fromInternalState t i wallet resp =
 
 activateContract :: forall t env. Contract.PABContract t => ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId
 activateContract ContractActivationArgs{caID, caWallet} = do
-    Core.activateContract caWallet caID
+    Core.activateContract (fromMaybe (knownWallet 1) caWallet) caID
 
 contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
 contractInstanceState i = do
     definition <- Contract.getDefinition @t i
     case definition of
         Nothing -> throwError @PABError (ContractInstanceNotFound i)
-        Just ContractActivationArgs{caWallet, caID} -> fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+        Just ContractActivationArgs{caWallet, caID} ->
+            fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)

@@ -44,6 +44,7 @@ import           Control.Monad.Logger                  (logErrorN, runStdoutLogg
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Foldable                         (traverse_)
 import qualified Data.Map                              as Map
+import           Data.Maybe                            (fromMaybe)
 import           Data.Proxy                            (Proxy (..))
 import qualified Data.Set                              as Set
 import           Data.Text.Extras                      (tshow)
@@ -72,6 +73,7 @@ import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
 import           System.Exit                           (ExitCode (ExitFailure), exitWith)
+import qualified Wallet.Emulator.Wallet                as Wallet
 import qualified Wallet.Types                          as Wallet
 
 runNoConfigCommand ::
@@ -305,4 +307,5 @@ buildPABAction currentState cid ContractActivationArgs{caWallet, caID} = do
 
     -- Squish it into a PAB action which we will run
     let ciState = ContractInstanceState currentState (pure stmState)
-    pure $ Core.activateContract' @(Builtin a) ciState cid caWallet caID
+        wallet = fromMaybe (Wallet.knownWallet 1) caWallet
+    pure $ Core.activateContract' @(Builtin a) ciState cid wallet caID

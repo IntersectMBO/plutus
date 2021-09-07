@@ -29,6 +29,7 @@ import qualified Data.ByteString.Char8               as B
 import qualified Data.ByteString.Lazy.Char8          as LB
 import           Data.Map                            (Map)
 import qualified Data.Map                            as Map
+import           Data.Maybe                          (fromMaybe)
 import           Data.Text                           (Text)
 import qualified Data.Text                           as Text
 import           Data.Text.Encoding                  (encodeUtf8Builder)
@@ -57,7 +58,7 @@ mkRow ContractActivationArgs{caID, caWallet} instanceId
   = ContractInstance
       (uuidStr instanceId)
       (Text.decodeUtf8 $ B.concat $ LB.toChunks $ encode caID)
-      (Wallet.toBase16 . getWalletId $ caWallet)
+      (Wallet.toBase16 . getWalletId . fromMaybe (Wallet.knownWallet 1) $ caWallet)
       Nothing -- No state, initially
       True    -- 'Active' immediately
 
@@ -83,7 +84,7 @@ mkContracts xs =
                       $ ci
           wallet <- fmap Wallet . either (const Nothing) Just . Wallet.fromBase16 . _contractInstanceWallet $ ci
           return ( ciId
-                 , ContractActivationArgs contractId wallet
+                 , ContractActivationArgs contractId (Just wallet)
                  )
 
 -- | Our database doesn't store UUIDs natively, so we need to convert them
