@@ -51,7 +51,7 @@ import           Servant                                 (NoContent (NoContent),
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
-import           Wallet.Emulator.Wallet                  (Wallet, WalletNumber, fromWalletNumber, knownWallet)
+import           Wallet.Emulator.Wallet                  (Wallet (..), WalletId, knownWallet)
 import           Wallet.Types                            (ContractInstanceId (..))
 
 healthcheck :: forall t env. PABAction t env ()
@@ -98,7 +98,7 @@ apiHandler ::
                                           :<|> (String -> JSON.Value -> PABAction t env ())
                                           :<|> PABAction t env ()
                                           )
-              :<|> (WalletNumber -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+              :<|> (WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
               :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
               :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 
@@ -144,8 +144,8 @@ contractInstanceState i = do
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => WalletNumber -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
-instancesForWallets wallet = filter ((==) (fromWalletNumber wallet) . cicWallet) <$> allInstanceStates
+instancesForWallets :: forall t env. Contract.PABContract t => WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
 
 allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 allInstanceStates = do
@@ -169,11 +169,11 @@ walletProxyClientEnv ::
     forall t env.
     ClientEnv ->
     (PABAction t env WalletInfo -- Create new wallet
-    :<|> (WalletNumber -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (WalletNumber -> PABAction t env WalletInfo)
-    :<|> (WalletNumber -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (WalletNumber -> PABAction t env Value)
-    :<|> (WalletNumber -> Tx -> PABAction t env Tx))
+    :<|> (WalletId -> Tx -> PABAction t env NoContent) -- Submit txn
+    :<|> (WalletId -> PABAction t env WalletInfo)
+    :<|> (WalletId -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
+    :<|> (WalletId -> PABAction t env Value)
+    :<|> (WalletId -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
     let createWallet = runWalletClientM clientEnv Wallet.Client.createWallet
     in walletProxy createWallet
@@ -191,15 +191,15 @@ walletProxy ::
     forall t env.
     PABAction t env WalletInfo -> -- default action for creating a new wallet
     (PABAction t env WalletInfo -- Create new wallet
-    :<|> (WalletNumber -> Tx -> PABAction t env NoContent) -- Submit txn
-    :<|> (WalletNumber -> PABAction t env WalletInfo)
-    :<|> (WalletNumber -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
-    :<|> (WalletNumber -> PABAction t env Value)
-    :<|> (WalletNumber -> Tx -> PABAction t env Tx))
+    :<|> (WalletId -> Tx -> PABAction t env NoContent) -- Submit txn
+    :<|> (WalletId -> PABAction t env WalletInfo)
+    :<|> (WalletId -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
+    :<|> (WalletId -> PABAction t env Value)
+    :<|> (WalletId -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     createNewWallet
-    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (fromWalletNumber w) $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> (\pk -> WalletInfo{wiWallet=fromWalletNumber w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (fromWalletNumber w) Wallet.Effects.ownPubKey)
-    :<|> (\w -> Core.handleAgentThread (fromWalletNumber w) . Wallet.Effects.balanceTx)
-    :<|> (\w -> Core.handleAgentThread (fromWalletNumber w) Wallet.Effects.totalFunds)
-    :<|> (\w tx -> Core.handleAgentThread (fromWalletNumber w) $ Wallet.Effects.walletAddSignature tx)
+    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
+    :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
+    :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
