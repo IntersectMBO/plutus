@@ -120,15 +120,17 @@ processBlock :: forall era. C.BlockHeader -> BlockchainEnv -> [C.Tx era] -> C.Er
 processBlock header env transactions era =
   unless (null transactions) $ do
     let tip = fromCardanoBlockHeader header
-    updateTxIdStateIndex tip env (flip txEvent era <$> transactions)
+    updateTransactionState tip env (flip txEvent era <$> transactions)
 
-updateTxIdStateIndex
+-- | For the given transactions, perform the updates in the TxIdState, and
+-- also record that a new block has been processed.
+updateTransactionState
   :: Foldable t
   => Tip
   -> BlockchainEnv
   -> t (TxId, TxValidity)
   -> STM ()
-updateTxIdStateIndex tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
+updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
     txIdStateIndex <- STM.readTVar beTxChanges
     let txIdState = _usTxUtxoData $ measure $ txIdStateIndex
     blockNumber <- STM.readTVar beCurrentBlock
@@ -138,6 +140,7 @@ updateTxIdStateIndex tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
       -- TODO: Proper error.
       Left e                                         -> error $ "Insert of new TxIdState failed." <> show e
       Right InsertUtxoSuccess{newIndex=newTxIdState} -> STM.writeTVar beTxChanges newTxIdState
+    STM.writeTVar beCurrentBlock (succ blockNumber)
 
 
 insertNewTx :: Slot -> BlockNumber -> TxIdState -> (TxId, TxValidity) -> TxIdState
@@ -168,12 +171,11 @@ processMockBlock instancesState env@BlockchainEnv{beAddressMap, beCurrentSlot, b
     blockNumber <- STM.readTVar beCurrentBlock
 
     let tip = Tip { tipSlot = slot
-                  -- TODO: Where to get this from?
                   , tipBlockId = blockId transactions
                   , tipBlockNo = blockNumber
                   }
 
-    updateTxIdStateIndex tip env (txMockEvent <$> fmap fromOnChainTx transactions)
+    updateTransactionState tip env (txMockEvent <$> fmap fromOnChainTx transactions)
 
     instEnv <- S.instancesClientEnv instancesState
     updateInstances (indexBlock $ fmap fromOnChainTx transactions) instEnv
