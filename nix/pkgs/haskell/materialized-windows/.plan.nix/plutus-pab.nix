@@ -87,6 +87,7 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-options" or (errorHandler.buildDepError "servant-options"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
