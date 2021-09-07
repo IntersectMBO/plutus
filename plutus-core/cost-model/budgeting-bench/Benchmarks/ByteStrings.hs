@@ -38,7 +38,15 @@ benchLengthOfByteString =
 -- Copy the byteString here, because otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap BS.copy inputs)
-    where inputs = largerByteStrings21 seedA
+    where inputs = smallerByteStrings150 seedA
+
+-- Here we benchmark different pairs of bytestrings elementwise.  This is used
+-- to get times for off-diagonal comparisons, which we expect to be roughly
+-- constant since the equality test returns quickly in that case.
+benchDifferentByteStringsElementwise :: DefaultFun -> Benchmark
+benchDifferentByteStringsElementwise name = createTwoTermBuiltinBenchElementwise name [] inputs1 inputs2
+    where inputs1 = smallerByteStrings150 seedA
+          inputs2 = smallerByteStrings150 seedB
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
@@ -83,13 +91,14 @@ benchConsByteString =
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,
+makeBenchmarks gen =  {- [ benchTwoByteStrings AppendByteString,
                         benchConsByteString,
                         benchLengthOfByteString,
                         benchIndexByteString gen,
                         benchSliceByteString
                       ]
-                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+                      <> -} [benchDifferentByteStringsElementwise EqualsByteString]
+--                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
 
 
 {- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The

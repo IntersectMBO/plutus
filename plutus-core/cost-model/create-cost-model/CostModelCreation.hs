@@ -311,7 +311,8 @@ divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArgu
 divideInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
-                 (ModelConstantOrTwoArguments 148000 $  -- ### FIXME: Get this number from R
+                 (ModelConstantOrTwoArguments 196500 $
+                  -- ### FIXME: this number is currently obtained manually from R; automate this
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.
@@ -323,7 +324,8 @@ quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoAr
 quotientInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
-                 (ModelConstantOrTwoArguments 148000 $ -- ### FIXME: Get this number from R
+                 (ModelConstantOrTwoArguments 196500 $
+                  -- ### FIXME: this number is currently obtained manually from R; automate this
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.

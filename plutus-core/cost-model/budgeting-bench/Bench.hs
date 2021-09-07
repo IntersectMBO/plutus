@@ -59,17 +59,17 @@ main = do
   criterionMainWith
        True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-{-            Benchmarks.Bool.makeBenchmarks            gen
-        <>  Benchmarks.ByteStrings.makeBenchmarks     gen
-        <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
-        <>  Benchmarks.Data.makeBenchmarks            gen
-        <>  Benchmarks.Integers.makeBenchmarks        gen
-        <>  Benchmarks.Lists.makeBenchmarks           gen
-        <>  Benchmarks.Misc.makeBenchmarks            gen
-        <>  Benchmarks.Pairs.makeBenchmarks           gen
+        --     Benchmarks.Bool.makeBenchmarks            gen
+        Benchmarks.ByteStrings.makeBenchmarks     gen
+        -- <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
+        -- <>  Benchmarks.Data.makeBenchmarks            gen
+        -- <>  Benchmarks.Integers.makeBenchmarks        gen
+        -- <>  Benchmarks.Lists.makeBenchmarks           gen
+        -- <>  Benchmarks.Misc.makeBenchmarks            gen
+        -- <>  Benchmarks.Pairs.makeBenchmarks           gen
         <>  Benchmarks.Strings.makeBenchmarks         gen
-        <>  Benchmarks.Tracing.makeBenchmarks         gen
-        <>  -} Benchmarks.Unit.makeBenchmarks            gen
+        -- <>  Benchmarks.Tracing.makeBenchmarks         gen
+        -- <>   Benchmarks.Unit.makeBenchmarks            gen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
@@ -78,7 +78,7 @@ main = do
   -- error when the argument gets passed to the nop benchmarks below (but the
   -- data will still be generated and saved in benching.csv).
 
-  criterionMainWith
+   criterionMainWith
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen

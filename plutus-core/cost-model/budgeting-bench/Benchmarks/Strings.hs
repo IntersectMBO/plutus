@@ -148,15 +148,26 @@ benchTwoTextStrings name =
     in createTwoTermBuiltinBench name [] s1 s2
 
 
--- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
+-- Benchmark times for a function applied to equal arguments.  This is used for
+-- benchmarking EqualsString on the diagonal.
+-- Copy the bytestring here, because otherwise it'll be exactly the same, and
+-- the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
 benchSameTwoTextStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
-                               where inputs = makeSizedTextStrings seedA oneArgumentSizes
+    where inputs = makeSizedTextStrings seedA oneArgumentSizes
+
+-- Benchmark times for a function applied to equal arguments.  This is used for
+-- finding the average time of comparing strings of different length (which is quick).
+benchDifferentTextStringsElementwise :: DefaultFun -> Benchmark
+benchDifferentTextStringsElementwise name = createTwoTermBuiltinBenchElementwise name [] inputs1 inputs2
+    where inputs1 = makeSizedTextStrings seedA oneArgumentSizes
+          inputs2 = makeSizedTextStrings seedB oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
+makeBenchmarks _gen = [ {- benchOneTextString EncodeUtf8
                       , benchOneUtf8ByteString DecodeUtf8
                       , benchTwoTextStrings AppendString
                       , benchSameTwoTextStrings EqualsString
+                      , -} benchDifferentTextStringsElementwise EqualsString
                       ]
 
