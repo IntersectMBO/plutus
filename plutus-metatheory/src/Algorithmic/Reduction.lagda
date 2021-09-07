@@ -238,7 +238,8 @@ IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
   _ ,, inj₁ (proj₂ f)
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
   _ ,, inj₁ (proj₂ t)
-IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
+IBUILTIN trace σ (((tt ,, _) ,, _ ,, V-con (string s)) ,, v) =
+  _ ,, inj₁ (TRACE s (proj₂ v))
 IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
   _ ,, inj₁ (V-con (Data (iDATA i)))
 IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
@@ -446,7 +447,7 @@ ival equalsByteString = V-I⇒ equalsByteString refl refl refl (λ()) (skip base
 ival appendByteString = V-I⇒ appendByteString refl refl refl (λ()) (skip base) tt (ibuiltin appendByteString)
 ival appendString = V-I⇒ appendString refl refl refl (λ()) (skip base) tt (ibuiltin appendString)
 ival ifThenElse = V-IΠ ifThenElse refl refl refl (λ()) (skip (skip (skip base))) tt (ibuiltin ifThenElse)
-ival trace = V-I⇒ trace refl refl refl (λ()) base tt (ibuiltin trace)
+ival trace = V-IΠ trace refl refl refl (λ()) (skip (skip base)) tt (ibuiltin trace)
 ival equalsString = V-I⇒ equalsString refl refl refl (λ()) (skip base) tt (ibuiltin equalsString)
 ival encodeUtf8 = V-I⇒ encodeUtf8 refl refl refl (λ()) base tt (ibuiltin encodeUtf8)
 ival decodeUtf8 = V-I⇒ decodeUtf8 refl refl refl (λ()) base tt (ibuiltin decodeUtf8)

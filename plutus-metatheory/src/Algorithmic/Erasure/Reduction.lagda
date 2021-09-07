@@ -182,33 +182,33 @@ erase-BUILTIN equalsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.false)) ,, t ,, tv) ,, u ,, uv) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.true)) ,, t ,, tv) ,, u ,, uv) = refl
 erase-BUILTIN appendString σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
-erase-BUILTIN trace σ (tt ,, _ ,, A.V-con (string b)) = refl
-erase-BUILTIN equalsString σ vs = refl
-erase-BUILTIN encodeUtf8 σ vs = refl
-erase-BUILTIN decodeUtf8 σ vs = refl
-erase-BUILTIN fstPair σ vs = refl
-erase-BUILTIN sndPair σ vs = refl
-erase-BUILTIN nullList σ vs = refl
-erase-BUILTIN headList σ vs = refl
-erase-BUILTIN tailList σ vs = refl
-erase-BUILTIN chooseList σ vs = refl
-erase-BUILTIN constrData σ vs = refl
-erase-BUILTIN mapData σ vs = refl
-erase-BUILTIN listData σ vs = refl
+erase-BUILTIN trace σ (((tt ,, A) ,, _ ,, A.V-con (string b)) ,, _ ,, v) = refl
+erase-BUILTIN equalsString σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = ?
+erase-BUILTIN encodeUtf8 σ vs = {!!}
+erase-BUILTIN decodeUtf8 σ vs = {!!}
+erase-BUILTIN fstPair σ vs = {!!}
+erase-BUILTIN sndPair σ vs = {!!}
+erase-BUILTIN nullList σ vs = {!!}
+erase-BUILTIN headList σ vs = {!!}
+erase-BUILTIN tailList σ vs = {!!}
+erase-BUILTIN chooseList σ vs = {!!}
+erase-BUILTIN constrData σ vs = {!!}
+erase-BUILTIN mapData σ vs = {!!}
+erase-BUILTIN listData σ vs = {!!}
 erase-BUILTIN iData σ (tt ,, _ ,, A.V-con (integer i)) = refl
 erase-BUILTIN bData σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
-erase-BUILTIN unConstrData σ vs = refl
-erase-BUILTIN unMapData σ vs = refl
-erase-BUILTIN unListData σ vs = refl
-erase-BUILTIN unIData σ vs = refl
-erase-BUILTIN unBData σ vs = refl
-erase-BUILTIN equalsData σ vs = refl
-erase-BUILTIN chooseData σ vs = refl
-erase-BUILTIN chooseUnit σ vs = refl
-erase-BUILTIN mkPairData σ vs = refl
-erase-BUILTIN mkNilData σ vs = refl
-erase-BUILTIN mkNilPairData σ vs = refl
-erase-BUILTIN mkCons σ vs = refl
+erase-BUILTIN unConstrData σ vs = {!!}
+erase-BUILTIN unMapData σ vs = {!!}
+erase-BUILTIN unListData σ vs = {!!}
+erase-BUILTIN unIData σ vs = {!!}
+erase-BUILTIN unBData σ vs = {!!}
+erase-BUILTIN equalsData σ vs = {!!}
+erase-BUILTIN chooseData σ vs = {!!}
+erase-BUILTIN chooseUnit σ vs = {!!}
+erase-BUILTIN mkPairData σ vs = {!!}
+erase-BUILTIN mkNilData σ vs = {!!}
+erase-BUILTIN mkNilPairData σ vs = {!!}
+erase-BUILTIN mkCons σ vs = {!!}
 erase-BUILTIN consByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN sliceByteString σ (((tt ,, _ ,, A.V-con (integer st)) ,, _ ,, A.V-con (integer n)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN lengthOfByteString σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
@@ -217,7 +217,7 @@ erase-BUILTIN indexByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.
 ... | yes _ with i Data.Integer.<? Builtin.length b
 ... | no  _ = refl
 ... | yes _ = refl
-erase-BUILTIN blake2b-256 σ vs = refl
+erase-BUILTIN blake2b-256 σ vs = {!!}
 
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →
   proj₁

@@ -337,7 +337,7 @@ BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
 BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
-BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
+BUILTIN trace (step _ (step _ (step⋆ _ base refl refl) (V-con (string s))) v) = TRACE s (deval v)
 BUILTIN iData (step _ base (V-con (integer i))) = con (Data (iDATA i))
 BUILTIN bData (step _ base (V-con (bytestring b))) = con (Data (bDATA b))
 BUILTIN consByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
@@ -631,6 +631,9 @@ lemma∷1 as .as (start .as) = refl
 -- lemma that knocks off a more general class of imposible _<>>_∈_
 -- inhabitants.
 
+-- HINT: pattern matching on p rather than the next arg (q) generates
+-- fewer cases
+
 bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Term ∷ as) ∈ arity b)
   → BAPP b p M → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
 bappTermLem addInteger _ (start _) base = _ ,, _ ,, refl
@@ -722,9 +725,9 @@ bappTermLem ifThenElse
             (bubble (bubble (bubble (start _))))
             (step _ (step _ (step⋆ _ base refl refl) _) _)
             | refl ,, refl ,, refl = _ ,, _ ,, refl
-bappTermLem trace {az = az} {as} M p q
-  with <>>-cancel-both az ([] :< Term) as p
-bappTermLem trace _ (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem trace {as = .(Term ∷ [])} _ (bubble (start .(Type ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ [])) base refl refl) = _ ,, _ ,, refl
+bappTermLem trace {as = as} _ (bubble (bubble {as = az} p)) q with <>>-cancel-both' az _ ([] <>< arity trace) _ p refl
+bappTermLem trace {as = .[]} _ (bubble (bubble {as = _} (start .(Type ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ [])) base refl refl) x) | refl ,, refl ,, refl = _ ,, _ ,, refl
 bappTermLem equalsString _ (start _) base = _ ,, _ ,, refl
 bappTermLem equalsString {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
@@ -969,9 +972,9 @@ bappTypeLem ifThenElse _ (start _) base = _ ,, _ ,, refl
 bappTypeLem ifThenElse _ (bubble (bubble (bubble {as = az} p))) _
   with <>>-cancel-both' az _ ([] <>< arity ifThenElse) _ p refl
 ... | _ ,, _ ,, ()
-bappTypeLem trace {az = az} _ p _
-  with <>>-cancel-both' az _ ([] :< Term) _ p refl
-... | refl ,, refl ,, ()
+bappTypeLem trace _ (start _) base = _ ,, _ ,, refl
+bappTypeLem trace M (bubble (bubble {as = az} p)) q with <>>-cancel-both' az _ ([] <>< arity trace) _ p refl
+... | _ ,, _ ,, ()
 bappTypeLem equalsString _ (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
 ... | refl ,, refl ,, ()
@@ -1124,7 +1127,7 @@ ival sha3-256 = V-I⇒ sha3-256 (start _) base
 ival verifySignature = V-I⇒ verifySignature (start _) base 
 ival equalsByteString = V-I⇒ equalsByteString (start _) base 
 ival ifThenElse = V-IΠ ifThenElse (start _) base 
-ival trace = V-I⇒ trace (start _) base 
+ival trace = V-IΠ trace (start _) base 
 ival equalsString = V-I _ (start _) base
 ival encodeUtf8 = V-I _ (start _) base
 ival decodeUtf8 = V-I _ (start _) base
@@ -1468,7 +1471,7 @@ U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  (λ (p : _ ≡ B') →
    substEq
    (EC (B [ A ]Nf))
-   p []
+   p [] 
    ≅ E'
    × substEq (_⊢_ ∅) p (Λ L ·⋆ A) ≅ L')
 U·⋆1 eq [] refl q = refl ,, refl ,, refl

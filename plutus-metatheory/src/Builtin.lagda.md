@@ -139,10 +139,12 @@ data Builtin : Set where
 postulate
   length     : ByteString → Int
   index      : ByteString → Int → Int
-  div            : Int → Int → Int
-  quot           : Int → Int → Int
-  rem            : Int → Int → Int
-  mod            : Int → Int → Int
+  div        : Int → Int → Int
+  quot       : Int → Int → Int
+  rem        : Int → Int → Int
+  mod        : Int → Int → Int
+  
+  TRACE      : {a : Set} → String → a → a
 
   concat    : ByteString → ByteString → ByteString
   cons  : Int → ByteString → ByteString
@@ -183,6 +185,8 @@ postulate
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
+
+{-# COMPILE GHC TRACE = trace  #-}
 {-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
 {-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}
