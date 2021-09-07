@@ -179,6 +179,7 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-options -any,
         tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,

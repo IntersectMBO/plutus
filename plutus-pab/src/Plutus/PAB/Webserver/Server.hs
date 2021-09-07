@@ -18,39 +18,41 @@ module Plutus.PAB.Webserver.Server
     , startServerDebug'
     ) where
 
-import           Cardano.Wallet.Types            (WalletInfo (..))
-import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
-import           Control.Concurrent.Availability (Availability, available, newToken)
-import qualified Control.Concurrent.STM          as STM
-import           Control.Monad                   (void, when)
-import           Control.Monad.Except            (ExceptT (ExceptT))
-import           Control.Monad.Freer.Extras.Log  (logInfo, logWarn)
-import           Control.Monad.IO.Class          (liftIO)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Bifunctor                  (first)
-import qualified Data.ByteString.Lazy.Char8      as LBS
-import           Data.Function                   ((&))
-import           Data.Monoid                     (Endo (..))
-import           Data.Proxy                      (Proxy (Proxy))
-import           Ledger.Crypto                   (pubKeyHash)
-import           Network.Wai                     (Middleware)
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Network.Wai.Middleware.Cors     (simpleCors)
-import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
-import qualified Plutus.PAB.Core                 as Core
-import qualified Plutus.PAB.Effects.Contract     as Contract
-import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
-import           Plutus.PAB.Simulator            (Simulation)
-import qualified Plutus.PAB.Simulator            as Simulator
-import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl, defaultWebServerConfig)
-import           Plutus.PAB.Webserver.API        (API, WSAPI, WalletProxy)
-import           Plutus.PAB.Webserver.Handler    (apiHandler, walletProxy, walletProxyClientEnv)
-import qualified Plutus.PAB.Webserver.WebSocket  as WS
-import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
-                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
+import           Cardano.Wallet.Types                   (WalletInfo (..))
+import           Control.Concurrent                     (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
+import           Control.Concurrent.Availability        (Availability, available, newToken)
+import qualified Control.Concurrent.STM                 as STM
+import           Control.Monad                          (void, when)
+import           Control.Monad.Except                   (ExceptT (ExceptT))
+import           Control.Monad.Freer.Extras.Log         (logInfo, logWarn)
+import           Control.Monad.IO.Class                 (liftIO)
+import           Data.Aeson                             (FromJSON, ToJSON)
+import           Data.Bifunctor                         (first)
+import qualified Data.ByteString.Lazy.Char8             as LBS
+import           Data.Function                          ((&))
+import           Data.Monoid                            (Endo (..))
+import           Data.Proxy                             (Proxy (Proxy))
+import           Ledger.Crypto                          (pubKeyHash)
+import           Network.Wai                            (Middleware)
+import qualified Network.Wai.Handler.Warp               as Warp
+import qualified Network.Wai.Middleware.Cors            as Cors
+import qualified Network.Wai.Middleware.Servant.Options as Cors
+import           Plutus.PAB.Core                        (PABAction, PABRunner (..))
+import qualified Plutus.PAB.Core                        as Core
+import qualified Plutus.PAB.Effects.Contract            as Contract
+import qualified Plutus.PAB.Monitoring.PABLogMsg        as LM
+import           Plutus.PAB.Simulator                   (Simulation)
+import qualified Plutus.PAB.Simulator                   as Simulator
+import           Plutus.PAB.Types                       (PABError, WebserverConfig (..), baseUrl,
+                                                         defaultWebServerConfig)
+import           Plutus.PAB.Webserver.API               (API, WSAPI, WalletProxy)
+import           Plutus.PAB.Webserver.Handler           (apiHandler, walletProxy, walletProxyClientEnv)
+import qualified Plutus.PAB.Webserver.WebSocket         as WS
+import           Servant                                (Application, Handler (Handler), Raw, ServerT, err500, errBody,
+                                                         hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import qualified Servant
-import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
-import           Wallet.Emulator.Wallet          (WalletId)
+import           Servant.Client                         (BaseUrl (baseUrlPort), ClientEnv)
+import           Wallet.Emulator.Wallet                 (WalletId)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
@@ -120,9 +122,16 @@ startServer ::
 startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy, endpointTimeout} walletClient availability = do
     when permissiveCorsPolicy $
       logWarn @(LM.PABMultiAgentMsg t) (LM.UserLog "Warning: Using a very permissive CORS policy! *Any* website serving JavaScript can interact with these endpoints.")
-    startServer' [mw] (baseUrlPort baseUrl) walletClient staticDir availability (timeout endpointTimeout)
+    startServer' middlewares (baseUrlPort baseUrl) walletClient staticDir availability (timeout endpointTimeout)
       where
-        mw = if permissiveCorsPolicy then simpleCors else id
+        middlewares = if permissiveCorsPolicy then corsMiddlewares else []
+        corsMiddlewares =
+            [ -- a custom CORS policy since 'simpleCors' doesn't support "content-type" header by default
+            let policy = Cors.simpleCorsResourcePolicy { Cors.corsRequestHeaders = [ "content-type" ] }
+            in Cors.cors (const $ Just policy)
+            -- this middleware handles preflight OPTIONS browser requests
+            , Cors.provideOptions (Proxy @(API (Contract.ContractDef t) Integer))
+            ]
         -- By default we use the normal request timeout: 30 seconds. But if
         -- someone has asked for a longer endpoint timeout, we need to set
         -- that to be the webserver timeout as well.
