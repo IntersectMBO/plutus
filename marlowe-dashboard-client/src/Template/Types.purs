@@ -34,6 +34,8 @@ data ContractSetupStage
   | Setup
   | Review
 
+derive instance eqContractSetupStage :: Eq ContractSetupStage
+
 type Input
   = { currentSlot :: Slot
     , walletLibrary :: WalletLibrary
