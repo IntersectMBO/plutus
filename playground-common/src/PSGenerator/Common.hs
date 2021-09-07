@@ -38,7 +38,8 @@ import           Ledger.Value                              (AssetClass, Currency
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.ChainIndex.Emulator.Handlers       (ChainIndexError, ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (Depth, Page, PageSize, Tip, TxStatus, TxValidity)
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Tip, TxStatus,
+                                                            TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
@@ -390,6 +391,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxValidity)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxStatus)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BlockNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Depth)
     ]
 

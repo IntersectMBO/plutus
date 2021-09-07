@@ -44,7 +44,6 @@ newtype PageSize = PageSize { getPageSize :: Natural }
 instance Default PageSize where
     def = PageSize 50
 
-
 -- | Compute a hash of the block's contents.
 blockId :: Block -> BlockId
 blockId = BlockId
@@ -52,8 +51,6 @@ blockId = BlockId
         . hash @_ @SHA256
         . BSL.toStrict
         . CBOR.serialise
-
-
 -- | Part of a collection
 data Page a = Page { pageSize :: PageSize, pageNumber :: Int, totalPages :: Int, pageItems :: [a]}
     deriving stock (Eq, Ord, Show, Generic)
