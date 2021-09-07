@@ -85,7 +85,7 @@ instance Show Wallet where
     showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
 
 instance Pretty Wallet where
-    pretty (Wallet i) = "W" <> pretty (toBase16 i)
+    pretty (Wallet i) = "W" <> pretty (T.take 7 $ toBase16 i)
 
 data WalletId = MockWallet Crypto.XPrv | XPubWallet Crypto.XPub
     deriving (Eq, Ord, Generic)

@@ -400,21 +400,19 @@ deriving anyclass instance ToSchema RedeemerHash
 
 deriving anyclass instance ToSchema Signature
 
+deriving anyclass instance ToSchema ThreadToken
+
 deriving anyclass instance ToSchema TokenName
 
 deriving anyclass instance ToSchema TxId
+
+deriving anyclass instance ToSchema TxOutRef
 
 deriving anyclass instance ToSchema ValidatorHash
 
 deriving anyclass instance ToSchema Wallet
 
 deriving anyclass instance ToSchema WalletNumber
-
-deriving anyclass instance ToSchema ContractInstanceId
-
-deriving anyclass instance ToSchema TxOutRef
-
-deriving anyclass instance ToSchema ThreadToken
 
 
 deriving anyclass instance ToArgument Ada
