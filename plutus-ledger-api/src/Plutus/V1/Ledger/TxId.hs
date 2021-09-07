@@ -13,7 +13,6 @@ module Plutus.V1.Ledger.TxId(
 import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
@@ -25,7 +24,7 @@ import qualified PlutusTx.Prelude          as PlutusTx
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, OpenApi.ToSchema, Serialise)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
     deriving (Show, Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId

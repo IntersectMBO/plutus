@@ -212,8 +212,7 @@ library
         beam-core -any,
         beam-sqlite -any,
         beam-migrate -any,
-        sqlite-simple -any,
-        orphans -any,
+        sqlite-simple -any
 
 executable plutus-pab-setup
     main-is:          Main.hs

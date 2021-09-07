@@ -63,6 +63,7 @@ import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
 import           Ledger.Crypto
+import           Ledger.Orphans                   ()
 import           Ledger.Scripts
 import qualified Ledger.TimeSlot                  as TimeSlot
 import           Ledger.Tx                        (txId)

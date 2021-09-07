@@ -316,8 +316,7 @@ library
         unordered-containers -any,
         witherable -any,
         word-array -any,
-        cardano-crypto-class -any,
-        openapi3
+        cardano-crypto-class -any
 
 test-suite satint-test
   import: lang

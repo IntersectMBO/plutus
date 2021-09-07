@@ -44,7 +44,6 @@ import           PlutusCore.Name
 import           Control.Lens
 import           Data.Hashable
 import qualified Data.Kind                as GHC
-import qualified Data.OpenApi             as OpenApi
 import           Data.Proxy
 import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
@@ -59,8 +58,6 @@ data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
-
-deriving instance OpenApi.ToSchema ann => OpenApi.ToSchema (Kind ann)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -88,23 +85,12 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
-deriving instance
-    ( OpenApi.ToSchema tyname
-    , OpenApi.ToSchema name
-    , OpenApi.ToSchema (uni ann)
-    , OpenApi.ToSchema fun
-    , OpenApi.ToSchema ann
-    , OpenApi.ToSchema (Type tyname uni ann)
-    , OpenApi.ToSchema (Some (ValueOf uni))
-    , Typeable uni
-    ) => OpenApi.ToSchema (Term tyname name uni fun ann)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
     deriving (Show, Functor, Generic, NFData, Hashable)
 
-deriving instance OpenApi.ToSchema ann => OpenApi.ToSchema (Version ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)

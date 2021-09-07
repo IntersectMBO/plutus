@@ -92,9 +92,6 @@ import           PlutusTx.Prelude
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
-import qualified Data.OpenApi                             as OpenApi
-import           Data.Proxy                               (Proxy (..))
-
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
@@ -102,9 +99,6 @@ newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni 
   -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
   deriving Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())))
 
-instance OpenApi.ToSchema Script where
-    declareNamedSchema _ =
-        Haskell.pure $ OpenApi.NamedSchema (Just "Script") (OpenApi.toSchema (Proxy :: Proxy String))
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -253,7 +247,7 @@ unStakeValidatorScript = getStakeValidator
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise, OpenApi.ToSchema)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow Validator)
 
@@ -270,7 +264,7 @@ instance BA.ByteArrayAccess Validator where
 newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (ToJSON, FromJSON, OpenApi.ToSchema, Serialise, NFData) via PLC.Data
+  deriving (ToJSON, FromJSON, Serialise, NFData) via PLC.Data
   deriving Pretty via PLC.Data
 
 
@@ -284,7 +278,7 @@ instance BA.ByteArrayAccess Datum where
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
-  deriving (ToJSON, FromJSON, OpenApi.ToSchema, Serialise, NFData, Pretty) via PLC.Data
+  deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
 
 instance BA.ByteArrayAccess Redeemer where
     length =
@@ -296,7 +290,7 @@ instance BA.ByteArrayAccess Redeemer where
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, NFData)
+  deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow MintingPolicy)
 
 instance Haskell.Show MintingPolicy where
@@ -330,7 +324,7 @@ newtype ValidatorHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
@@ -338,7 +332,7 @@ newtype DatumHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
@@ -346,7 +340,7 @@ newtype RedeemerHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
@@ -354,7 +348,7 @@ newtype MintingPolicyHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype StakeValidatorHash =
@@ -362,7 +356,7 @@ newtype StakeValidatorHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, ToJSONKey, FromJSONKey)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.

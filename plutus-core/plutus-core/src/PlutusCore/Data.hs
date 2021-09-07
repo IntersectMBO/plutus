@@ -16,16 +16,12 @@ import qualified Codec.CBOR.Magic          as CBOR
 import           Codec.Serialise           (Serialise (decode, encode))
 import           Codec.Serialise.Decoding  (decodeSequenceLenIndef, decodeSequenceLenN)
 import           Control.DeepSeq           (NFData)
-import           Control.Lens              ((&), (.~), (?~))
 import           Control.Monad.Except
 import           Data.Bits                 (shiftR)
 import qualified Data.ByteString           as BS
 import qualified Data.ByteString.Lazy      as BSL
-import qualified Data.OpenApi              as OpenApi
-import           Data.Proxy                (Proxy (..))
 import           Data.Text.Prettyprint.Doc
 import           Data.Word                 (Word64, Word8)
-import           GHC.Exts                  (IsList (..))
 import           GHC.Generics
 import           Prelude
 
@@ -43,24 +39,6 @@ data Data =
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
-
-instance OpenApi.ToSchema Data where
-  declareNamedSchema _ = do
-    integerSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy Integer)
-    constrArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy (Integer, [Data]))
-    mapArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy [(Data, Data)])
-    listArgsSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy [Data])
-    bytestringSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy String)
-    return $ OpenApi.NamedSchema (Just "Data") $ mempty
-      & OpenApi.type_ ?~ OpenApi.OpenApiObject
-      & OpenApi.properties .~
-          fromList
-          [ ("Constr", constrArgsSchema)
-          , ("Map", mapArgsSchema)
-          , ("List", listArgsSchema)
-          , ("I", integerSchema)
-          , ("B", bytestringSchema)
-          ]
 
 
 instance Pretty Data where

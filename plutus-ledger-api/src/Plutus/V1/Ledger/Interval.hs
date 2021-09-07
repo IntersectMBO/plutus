@@ -43,7 +43,6 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
-import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
 import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
@@ -61,7 +60,7 @@ import           PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Functor Interval where
   fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
@@ -73,8 +72,6 @@ instance Pretty a => Pretty (Interval a) where
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
-
-deriving anyclass instance OpenApi.ToSchema a => OpenApi.ToSchema (Extended a)
 
 instance Functor Extended where
   fmap _ NegInf     = NegInf
@@ -92,7 +89,7 @@ type Closure = Bool
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
@@ -106,7 +103,7 @@ instance Pretty a => Pretty (UpperBound a) where
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c

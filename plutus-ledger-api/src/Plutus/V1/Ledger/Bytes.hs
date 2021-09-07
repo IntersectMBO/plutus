@@ -25,7 +25,6 @@ import qualified Data.Aeson.Extras                as JSON
 import qualified Data.ByteString                  as BS
 import           Data.ByteString.Internal         (c2w, w2c)
 import           Data.Either.Extras               (unsafeFromEither)
-import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.String                      (IsString (..))
 import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
@@ -71,7 +70,7 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, OpenApi.ToSchema, NFData)
+    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BS.ByteString

@@ -741,7 +741,6 @@
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         playground-common = ./.plan.nix/playground-common.nix;
         cardano-node = ./.plan.nix/cardano-node.nix;
-        orphans = ./.plan.nix/orphans.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
         lobemo-backend-monitoring = ./.plan.nix/lobemo-backend-monitoring.nix;
         marlowe-dashboard-server = ./.plan.nix/marlowe-dashboard-server.nix;
@@ -861,7 +860,6 @@
               "systemd" = lib.mkOverride 900 true;
               };
             };
-          "orphans" = { flags = {}; };
           "cardano-crypto-class" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
@@ -1649,7 +1647,6 @@
           "directory".components.library.planned = lib.mkOverride 900 true;
           "ouroboros-network".components.sublibs."ouroboros-protocol-tests".planned = lib.mkOverride 900 true;
           "dns".components.library.planned = lib.mkOverride 900 true;
-          "orphans".components.library.planned = lib.mkOverride 900 true;
           "servant-purescript".components.library.planned = lib.mkOverride 900 true;
           "servant-websockets".components.exes."websocket-echo".planned = lib.mkOverride 900 true;
           "th-abstraction".components.library.planned = lib.mkOverride 900 true;

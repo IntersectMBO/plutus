@@ -35,7 +35,6 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 
-import qualified Data.OpenApi              as OpenApi
 
 {- HLINT ignore "Redundant if" -}
 
@@ -43,7 +42,7 @@ import qualified Data.OpenApi              as OpenApi
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, FromJSONKey, ToJSON, OpenApi.ToSchema, ToJSONKey, NFData)
+    deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
     deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 

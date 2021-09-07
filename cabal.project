@@ -27,7 +27,6 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
-          orphans
           stubs/plutus-ghc-stub
 
 -- We never, ever, want this.

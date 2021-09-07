@@ -42,7 +42,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import qualified Data.Bimap                as BM
-import qualified Data.OpenApi.Schema       as OpenApi
 import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc
 
@@ -56,7 +55,7 @@ import           GHC.Generics
 newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord, Pretty)
-    deriving anyclass (NFData, OpenApi.ToSchema)
+    deriving anyclass (NFData)
 
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
@@ -66,7 +65,7 @@ data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn { dbnIndex :: Index }
     deriving (Show, Generic)
-    deriving anyclass (NFData, OpenApi.ToSchema)
+    deriving anyclass (NFData)
 
 -- | A type name as a de Bruijn index.
 newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn

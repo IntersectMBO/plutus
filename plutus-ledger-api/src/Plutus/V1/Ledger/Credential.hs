@@ -22,7 +22,6 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
-import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
@@ -36,7 +35,7 @@ data StakingCredential
     = StakingHash Credential
     | StakingPtr Integer Integer Integer -- NB: The fields should really be Word64 / Natural / Natural, but 'Integer' is our only integral type so we need to use it instead.
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, Serialise, Hashable, NFData)
+    deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
 
 instance Pretty StakingCredential where
     pretty (StakingHash h)    = "StakingHash" <+> pretty h
@@ -56,7 +55,7 @@ data Credential
   = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
   | ScriptCredential ValidatorHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, Serialise, Hashable, NFData)
+    deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
 
 instance Pretty Credential where
     pretty (PubKeyCredential pkh) = "PubKeyCredential:" <+> pretty pkh

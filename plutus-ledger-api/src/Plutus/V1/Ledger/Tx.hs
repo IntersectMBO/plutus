@@ -73,7 +73,6 @@ import qualified Data.ByteArray            as BA
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
-import qualified Data.OpenApi              as OpenApi
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
@@ -138,7 +137,7 @@ data Tx = Tx {
     txData        :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
-      deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, Serialise, NFData)
+      deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
@@ -251,14 +250,14 @@ strip Tx{..} = TxStripped i txOutputs txMint txFee where
 -- NOTE: Cert/Reward are not supported right now.
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData, OpenApi.ToSchema)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 
 -- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
 -- script of type t in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, OpenApi.ToSchema, FromJSONKey, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
 
 type Redeemers = Map RedeemerPtr Redeemer
 
@@ -270,7 +269,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, OpenApi.ToSchema, FromJSONKey, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -287,7 +286,7 @@ data TxInType =
       ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData, OpenApi.ToSchema)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
@@ -296,7 +295,7 @@ data TxIn = TxIn {
     txInType :: Maybe TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, OpenApi.ToSchema, FromJSON, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
@@ -350,7 +349,7 @@ data TxOut = TxOut {
     txOutDatumHash :: Maybe DatumHash
     }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, OpenApi.ToSchema, FromJSON, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue} =

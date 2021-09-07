@@ -61,7 +61,6 @@ import qualified Data.Aeson.Extras                as JSON
 import qualified Data.ByteString                  as BS
 import           Data.Hashable                    (Hashable)
 import qualified Data.List                        (sortBy)
-import           Data.OpenApi.Schema              as OpenApi
 import           Data.String                      (IsString (fromString))
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
@@ -84,7 +83,7 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, ToJSONKey, OpenApi.ToSchema, FromJSONKey,  NFData)
+    deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -126,7 +125,7 @@ newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, OpenApi.ToSchema, NFData)
+    deriving anyclass (Hashable, NFData)
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
@@ -187,7 +186,7 @@ makeLift ''TokenName
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData, ToJSON, FromJSON, OpenApi.ToSchema)
+    deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
 {-# INLINABLE assetClass #-}
@@ -213,7 +212,7 @@ makeLift ''AssetClass
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema, Hashable, NFData)
+    deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
     deriving newtype (Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
 

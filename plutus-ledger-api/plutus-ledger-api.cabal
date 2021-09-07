@@ -76,8 +76,7 @@ library
         newtype-generics -any,
         tagged -any,
         lens -any,
-        scientific -any,
-        openapi3
+        scientific -any
     
 test-suite plutus-ledger-api-test
     import: lang

@@ -24,7 +24,6 @@ import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, F
 import qualified Data.Aeson                as JSON
 import qualified Data.Aeson.Extras         as JSON
 import           Data.Hashable             (Hashable)
-import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
@@ -37,7 +36,7 @@ import qualified PlutusTx.Prelude          as PlutusTx
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Newtype, ToJSON, FromJSON, OpenApi.ToSchema, NFData)
+    deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -53,7 +52,7 @@ instance FromJSONKey PubKey where
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, OpenApi.ToSchema, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
@@ -70,7 +69,7 @@ makeLift ''PrivateKey
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, OpenApi.ToSchema, NFData, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, NFData, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving (Show, Pretty) via LedgerBytes
 
 instance ToJSON Signature where
