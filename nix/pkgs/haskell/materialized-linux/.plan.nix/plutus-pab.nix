@@ -90,6 +90,7 @@
           (hsPkgs."servant-swagger-ui" or (errorHandler.buildDepError "servant-swagger-ui"))
           (hsPkgs."servant-openapi3" or (errorHandler.buildDepError "servant-openapi3"))
           (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
+          (hsPkgs."servant-options" or (errorHandler.buildDepError "servant-options"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))

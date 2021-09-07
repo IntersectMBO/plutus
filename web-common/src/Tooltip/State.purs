@@ -23,6 +23,7 @@ import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.Window (document)
+import Web.HTML.WindowExtra (matchMedia, matches)
 
 _tooltipSlot :: SProxy "tooltipSlot"
 _tooltipSlot = SProxy
@@ -92,10 +93,15 @@ handleAction Init = do
       -- subscriptionId to manually remove it because we are inside a component (not a subcomponent), so any
       -- subscriptions will be terminated when the component is no longer rendered.
       -- TODO: We could later implement the performance suggestions from https://popper.js.org/docs/v2/tutorial/#performance
-      void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "mouseenter") (HTMLElement.toEventTarget refElem) (const $ Just Show)
-      void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "focus") (HTMLElement.toEventTarget refElem) (const $ Just Show)
-      void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "mouseleave") (HTMLElement.toEventTarget refElem) (const $ Just Hide)
-      void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "blur") (HTMLElement.toEventTarget refElem) (const $ Just Hide)
+      acceptsHover <- liftEffect $ matches =<< matchMedia "(hover: hover)" =<< window
+      if acceptsHover then do
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "mouseenter") (HTMLElement.toEventTarget refElem) (const $ Just Show)
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "focus") (HTMLElement.toEventTarget refElem) (const $ Just Show)
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "mouseleave") (HTMLElement.toEventTarget refElem) (const $ Just Hide)
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "blur") (HTMLElement.toEventTarget refElem) (const $ Just Hide)
+      else do
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "touchstart") (HTMLElement.toEventTarget refElem) (const $ Just Show)
+        void $ MaybeT $ map pure $ H.subscribe $ eventListenerEventSource (EventType "touchend") (HTMLElement.toEventTarget refElem) (const $ Just Hide)
       pure popperInstance
   assign _mPopperInstance mPopperInstance
 

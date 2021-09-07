@@ -182,6 +182,7 @@ library
         servant-swagger-ui,
         servant-openapi3,
         openapi3 -any,
+        servant-options -any,
         tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,

@@ -1,11 +1,11 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE NumericUnderscores   #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-| Hedgehog generators for types used in plutus-chain-index
@@ -35,6 +35,7 @@ import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (pubKeyAddress)
+import qualified Ledger.Generators           as Gen
 import qualified Ledger.Interval             as Interval
 import           Ledger.Slot                 (Slot (..))
 import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), TxOutRef (..))
@@ -145,6 +146,7 @@ genTx = do
                 pure (firstInput : otherInputs)
 
     deleteInputs (Set.fromList allInputs)
+
     ChainIndexTx
         <$> nextTxId
         <*> pure (Set.fromList $ fmap (flip TxIn Nothing) allInputs)
@@ -157,6 +159,10 @@ genTx = do
         <*> pure mempty
         <*> pure mempty
         <*> pure mempty
+
+        -- TODO: We need a way to convert the generated 'ChainIndexTx' to a
+        -- 'SomeCardanoTx', or vis-versa. And then put it here.
+        <*> pure Nothing
 
 -- | Generate a 'TxUtxoBalance' based on the state of utxo changes produced so
 --   far. Ensures that tx outputs are created before they are spent, and that

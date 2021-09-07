@@ -16,7 +16,7 @@ import qualified Data.OpenApi                   as OpenApi
 import qualified Data.Text                      as Text
 import           Data.Typeable
 import           GHC.Exts                       (IsList (..))
-import           Plutus.V1.Ledger.Api           ()
+import           Plutus.V1.Ledger.Api
 import           Plutus.V1.Ledger.Bytes         (bytes)
 import           Plutus.V1.Ledger.Crypto        (PrivateKey (PrivateKey, getPrivateKey), PubKey (..), Signature (..))
 import           Plutus.V1.Ledger.Slot          (Slot (..))

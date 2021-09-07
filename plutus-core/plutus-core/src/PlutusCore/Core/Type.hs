@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE UndecidableInstances     #-}
@@ -34,6 +35,15 @@ module PlutusCore.Core.Type
     , termAnn
     , typeAnn
     , mapFun
+    , tyVarDeclAnn
+    , tyVarDeclName
+    , tyVarDeclKind
+    , varDeclAnn
+    , varDeclName
+    , varDeclType
+    , tyDeclAnn
+    , tyDeclType
+    , tyDeclKind
     )
 where
 
@@ -103,24 +113,27 @@ type instance UniOf (Term tyname name uni fun ann) = uni
 
 -- | A "type variable declaration", i.e. a name and a kind for a type variable.
 data TyVarDecl tyname ann = TyVarDecl
-    { tyVarDeclAnn  :: ann
-    , tyVarDeclName :: tyname
-    , tyVarDeclKind :: Kind ann
+    { _tyVarDeclAnn  :: ann
+    , _tyVarDeclName :: tyname
+    , _tyVarDeclKind :: Kind ann
     } deriving (Functor, Show, Generic)
+makeLenses ''TyVarDecl
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name uni fun ann = VarDecl
-    { varDeclAnn  :: ann
-    , varDeclName :: name
-    , varDeclType :: Type tyname uni ann
+    { _varDeclAnn  :: ann
+    , _varDeclName :: name
+    , _varDeclType :: Type tyname uni ann
     } deriving (Functor, Show, Generic)
+makeLenses ''VarDecl
 
 -- | A "type declaration", i.e. a kind for a type.
 data TyDecl tyname uni ann = TyDecl
-    { tyDeclAnn  :: ann
-    , tyDeclType :: Type tyname uni ann
-    , tyDeclKind :: Kind ann
+    { _tyDeclAnn  :: ann
+    , _tyDeclType :: Type tyname uni ann
+    , _tyDeclKind :: Kind ann
     } deriving (Functor, Show, Generic)
+makeLenses ''TyDecl
 
 tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname uni ann
 tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind
