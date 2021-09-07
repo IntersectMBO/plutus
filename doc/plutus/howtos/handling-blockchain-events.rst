@@ -42,7 +42,7 @@ The PAB has a function for the state of a transaction to change:
    :start-after: BLOCK4
    :end-before: BLOCK5
 
-:hsobj:`Plutus.Contract.Request.awaitTxStatusChange` returns a :hsobj:`Plutus.Contract.Effects.TxStatus` value with the new state of the transaction.
+:hsobj:`Plutus.Contract.Request.awaitTxStatusChange` returns a :hsobj:`Plutus.ChainIndex.Types.TxStatus` value with the new state of the transaction.
 
 .. note::
 
