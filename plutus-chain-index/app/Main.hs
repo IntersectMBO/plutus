@@ -37,7 +37,7 @@ import           Config                              (ChainIndexConfig)
 import qualified Config                              as Config
 import           Ledger                              (Slot (..))
 import           Logging                             (defaultConfig, loadConfig)
-import           Plutus.ChainIndex.Compatibility     (fromCardanoBlock, fromCardanoTip)
+import           Plutus.ChainIndex.Compatibility     (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
 import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                       appendBlock, rollback)
 import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), ChainIndexError (..),
@@ -74,7 +74,6 @@ runChainIndex trace emulatorState effect = do
           & run
     case result of
       Left err ->
-        -- TODO: log the error
         pure $ LogMessage Error (Err err) <| logMessages'
       Right (_, newState) -> do
         STM.writeTVar emulatorState newState
@@ -90,20 +89,21 @@ chainSyncHandler
   -> Slot
   -> IO ()
 chainSyncHandler trace mState
-  (RollForward block tip) _ = do
+  (RollForward block _) _ = do
     let ciBlock = fromCardanoBlock block
     case ciBlock of
       Left err    ->
         logError trace (ConversionFailed err)
-      Right block' ->
-        runChainIndex trace mState $ appendBlock (fromCardanoTip tip) block'
+      Right txs ->
+        runChainIndex trace mState $ appendBlock (tipFromCardanoBlock block) txs
 chainSyncHandler trace mState
-  (RollBackward _ tip) _ =
+  (RollBackward point _) _ = do
     -- Do we really want to pass the tip of the new blockchain to the
     -- rollback function (rather than the point where the chains diverge)?
-    runChainIndex trace mState $ rollback (fromCardanoTip tip)
+    runChainIndex trace mState $ rollback (fromCardanoPoint point)
 -- On resume we do nothing, for now.
-chainSyncHandler _ _ (Resume _) _ = pure ()
+chainSyncHandler _ _ (Resume _) _ = do
+  pure ()
 
 main :: IO ()
 main = do
@@ -133,7 +133,7 @@ main = do
       putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
       void $ runChainSync (Config.cicSocketPath config)
                           (Config.cicSlotConfig config)
-                          (Config.cicNetworkId config)
+                          (Config.cicNetworkId  config)
                           []
                           (chainSyncHandler trace appState)
       putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)
