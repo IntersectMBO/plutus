@@ -50,15 +50,6 @@ fromCardanoBlockHeader (BlockHeader slotNo hash blockNo) =
         , tipBlockNo = fromCardanoBlockNo blockNo
         }
 
--- | Like the above, but use a provided slot instead of the one from the
--- header.
-fromCardanoBlockHeader' :: Slot -> BlockHeader -> Tip
-fromCardanoBlockHeader' slot (BlockHeader _ hash blockNo) =
-    Tip { tipSlot = slot
-        , tipBlockId = fromCardanoBlockId hash
-        , tipBlockNo = fromCardanoBlockNo blockNo
-        }
-
 fromCardanoBlockNo :: BlockNo -> BlockNumber
 fromCardanoBlockNo (BlockNo blockNo) =
     fromIntegral $ toInteger blockNo

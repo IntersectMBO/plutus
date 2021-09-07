@@ -39,9 +39,8 @@ import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.ChainIndex                      (BlockNumber (..), ChainIndexTx (..), ChainIndexTxOutputs (..),
                                                          InsertUtxoSuccess (..), RollbackResult (..), Tip (..),
                                                          TxConfirmedState (..), TxIdState (..), TxValidity (..),
-                                                         UtxoState (..), citxTxId, fromOnChainTx, insert)
-import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader', fromCardanoChainPoint,
-                                                         fromCardanoSlot)
+                                                         UtxoState (..), blockId, citxTxId, fromOnChainTx, insert)
+import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoChainPoint, fromCardanoSlot)
 import           Plutus.ChainIndex.TxIdState            (rollback)
 
 -- | Connect to the node and write node updates to the blockchain
@@ -74,9 +73,9 @@ updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUt
 
 -- | Process a chain sync event that we receive from the alonzo node client
 processChainSyncEvent :: BlockchainEnv -> ChainSyncEvent -> Slot -> STM ()
-processChainSyncEvent blockchainEnv event slot = case event of
+processChainSyncEvent blockchainEnv event _slot = case event of
   Resume _                                                     -> pure () -- TODO: Handle resume
-  RollForward  (BlockInMode (C.Block header transactions) era) -> processBlock header slot blockchainEnv transactions era
+  RollForward  (BlockInMode (C.Block header transactions) era) -> processBlock header blockchainEnv transactions era
   RollBackward chainPoint                                      -> runRollback blockchainEnv chainPoint
 
 -- | Roll back the chain to the given ChainPoint and slot.
@@ -95,9 +94,9 @@ runRollback BlockchainEnv{beTxChanges} chainPoint@(ChainPoint cslot _) = do
       let tip = fromCardanoChainPoint blockNumber chainPoint
           rs  = rollback tip txIdStateIndex
       case rs of
-        Left e                                        -> error $ "Rollback Failed: " <> show e
-        -- TODO: What to do with the new tip?
-        Right RollbackResult{newTip, rolledBackIndex} -> STM.writeTVar beTxChanges rolledBackIndex
+        Left e                                -> error $ "Rollback Failed: " <> show e
+        Right RollbackResult{rolledBackIndex} -> STM.writeTVar beTxChanges rolledBackIndex
+runRollback _ ChainPointAtGenesis = error "Unsupported to rollback to the Gensis point."
 
 -- | Get transaction ID and validity from a cardano transaction in any era
 txEvent :: forall era. C.Tx era -> C.EraInMode era C.CardanoMode -> (TxId, TxValidity)
@@ -117,10 +116,10 @@ txMockEvent tx =
 
 -- | Update the blockchain env. with changes from a new block of cardano
 --   transactions in any era
-processBlock :: forall era. C.BlockHeader -> Slot -> BlockchainEnv -> [C.Tx era] -> C.EraInMode era C.CardanoMode -> STM ()
-processBlock header slot env transactions era =
+processBlock :: forall era. C.BlockHeader -> BlockchainEnv -> [C.Tx era] -> C.EraInMode era C.CardanoMode -> STM ()
+processBlock header env transactions era =
   unless (null transactions) $ do
-    let tip = fromCardanoBlockHeader' slot header
+    let tip = fromCardanoBlockHeader header
     updateTxIdStateIndex tip env (flip txEvent era <$> transactions)
 
 updateTxIdStateIndex
@@ -170,7 +169,7 @@ processMockBlock instancesState env@BlockchainEnv{beAddressMap, beCurrentSlot, b
 
     let tip = Tip { tipSlot = slot
                   -- TODO: Where to get this from?
-                  , tipBlockId = undefined
+                  , tipBlockId = blockId transactions
                   , tipBlockNo = blockNumber
                   }
 

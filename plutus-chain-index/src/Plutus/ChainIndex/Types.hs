@@ -2,10 +2,12 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-| Misc. types used in this package
 -}
 module Plutus.ChainIndex.Types(
     BlockId(..)
+    , blockId
     , Page(..)
     , PageSize(..)
     , pageOf
@@ -19,13 +21,17 @@ module Plutus.ChainIndex.Types(
     , Depth(..)
     ) where
 
+import qualified Codec.Serialise                  as CBOR
+import           Crypto.Hash                      (SHA256, hash)
 import           Data.Aeson                       (FromJSON, ToJSON)
+import qualified Data.ByteArray                   as BA
+import qualified Data.ByteString.Lazy             as BSL
 import           Data.Default                     (Default (..))
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
-import           Ledger.Blockchain                (BlockId (..))
+import           Ledger.Blockchain                (Block, BlockId (..))
 import           Ledger.Slot                      (Slot)
 import           Numeric.Natural                  (Natural)
 import           PlutusTx.Lattice                 (MeetSemiLattice (..))
@@ -37,6 +43,16 @@ newtype PageSize = PageSize { getPageSize :: Natural }
 
 instance Default PageSize where
     def = PageSize 50
+
+
+-- | Compute a hash of the block's contents.
+blockId :: Block -> BlockId
+blockId = BlockId
+        . BA.convert
+        . hash @_ @SHA256
+        . BSL.toStrict
+        . CBOR.serialise
+
 
 -- | Part of a collection
 data Page a = Page { pageSize :: PageSize, pageNumber :: Int, totalPages :: Int, pageItems :: [a]}
