@@ -28,14 +28,6 @@ tipFromCardanoBlock
 tipFromCardanoBlock (BlockInMode (Block (BlockHeader slot hash block) _) _) =
     fromCardanoTip $ ChainTip slot hash block
 
-fromCardanoChainPoint :: BlockNumber -> ChainPoint -> Tip
-fromCardanoChainPoint _ ChainPointAtGenesis = TipAtGenesis
-fromCardanoChainPoint blockNumber (ChainPoint slotNo hash) =
-    Tip { tipSlot = fromCardanoSlot slotNo
-        , tipBlockId = fromCardanoBlockId hash
-        , tipBlockNo = blockNumber
-        }
-
 fromCardanoSlot :: SlotNo -> Slot
 fromCardanoSlot (SlotNo slotNo) = Slot $ toInteger slotNo
 

@@ -207,8 +207,8 @@ viewTip :: Measured (UtxoState a) (UtxoState a)
 viewTip = tip . measure
 
 -- | Perform a rollback on the utxo index
-rollback :: Point 
-         -> UtxoIndex TxUtxoBalance 
+rollback :: Point
+         -> UtxoIndex TxUtxoBalance
          -> Either RollbackFailed (RollbackResult TxUtxoBalance)
 rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
 rollback targetPoint idx@(viewTip -> currentTip)

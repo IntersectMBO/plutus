@@ -40,7 +40,7 @@ import           Plutus.ChainIndex                      (BlockNumber (..), Chain
                                                          InsertUtxoSuccess (..), RollbackResult (..), Tip (..),
                                                          TxConfirmedState (..), TxIdState (..), TxValidity (..),
                                                          UtxoState (..), blockId, citxTxId, fromOnChainTx, insert)
-import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoChainPoint, fromCardanoSlot)
+import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoPoint)
 import           Plutus.ChainIndex.TxIdState            (rollback)
 
 -- | Connect to the node and write node updates to the blockchain
@@ -80,23 +80,15 @@ processChainSyncEvent blockchainEnv event _slot = case event of
 
 -- | Roll back the chain to the given ChainPoint and slot.
 runRollback :: BlockchainEnv -> ChainPoint -> STM ()
-runRollback BlockchainEnv{beTxChanges} chainPoint@(ChainPoint cslot _) = do
+runRollback BlockchainEnv{beTxChanges} chainPoint = do
   txIdStateIndex <- STM.readTVar beTxChanges
 
-  let txIdState = _usTxUtxoData $ measure $ txIdStateIndex
-      slot      = fromCardanoSlot cslot
+  let point = fromCardanoPoint chainPoint
+      rs    = rollback point txIdStateIndex
 
-  case Map.lookup slot (txSlotToBlockNumber txIdState) of
-    -- TODO: Proper errors.
-    Nothing -> error $ "Slot '" <> show slot <> "' not found in TxIdSate."
-    Just (Last Nothing) -> error "The blockNumber was empty."
-    Just (Last (Just blockNumber)) -> do
-      let tip = fromCardanoChainPoint blockNumber chainPoint
-          rs  = rollback tip txIdStateIndex
-      case rs of
-        Left e                                -> error $ "Rollback Failed: " <> show e
-        Right RollbackResult{rolledBackIndex} -> STM.writeTVar beTxChanges rolledBackIndex
-runRollback _ ChainPointAtGenesis = error "Unsupported to rollback to the Gensis point."
+  case rs of
+    Left e                                -> error $ "Rollback Failed: " <> show e
+    Right RollbackResult{rolledBackIndex} -> STM.writeTVar beTxChanges rolledBackIndex
 
 -- | Get transaction ID and validity from a cardano transaction in any era
 txEvent :: forall era. C.Tx era -> C.EraInMode era C.CardanoMode -> (TxId, TxValidity)
@@ -144,11 +136,10 @@ updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
 
 
 insertNewTx :: Slot -> BlockNumber -> TxIdState -> (TxId, TxValidity) -> TxIdState
-insertNewTx slot blockNumber TxIdState{txnsConfirmed, txnsDeleted, txSlotToBlockNumber} (txi, txValidity) =
+insertNewTx slot blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, txValidity) =
   let newConfirmed = txnsConfirmed & at txi ?~ newV
-   in TxIdState (txnsConfirmed <> newConfirmed) txnsDeleted (txSlotToBlockNumber <> newS)
+   in TxIdState (txnsConfirmed <> newConfirmed) txnsDeleted
     where
-      newS = Map.singleton slot (Last $ Just $ blockNumber)
       -- New state; we rely on the monoid instance to make this agree with any
       -- existing transactions already present (but perhaps rolled back.)
       newV = TxConfirmedState

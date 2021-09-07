@@ -32,27 +32,25 @@ import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
 import           Data.Semigroup.Generic      (GenericSemigroupMonoid (..))
 import           GHC.Generics                (Generic)
-import           Ledger                      (OnChainTx, Slot, TxId, eitherTx)
+import           Ledger                      (OnChainTx, TxId, eitherTx)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..), citxOutputs, citxTxId)
-import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxStatus (..), TxValidity (..), 
-                                              pointsToTip)
+import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxStatus (..),
+                                              TxValidity (..), pointsToTip)
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..), tip,
                                               viewTip)
 
 data TxIdState = TxIdState
-  { txnsConfirmed       :: Map TxId TxConfirmedState
+  { txnsConfirmed :: Map TxId TxConfirmedState
   -- ^ Number of times this transaction has been added as well as other
   -- necessary metadata.
-  , txnsDeleted         :: Map TxId (Sum Int)
+  , txnsDeleted   :: Map TxId (Sum Int)
   -- ^ Number of times this transaction has been deleted.
-  , txSlotToBlockNumber :: Map Slot (Last BlockNumber)
-  -- ^ Maps slots to the latest block number so we can rollback.
   }
   deriving stock (Eq, Generic, Show)
 
 instance Monoid TxIdState where
     mappend = (<>)
-    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty, txSlotToBlockNumber=mempty }
+    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
 
 data TxConfirmedState =
   TxConfirmedState
@@ -66,10 +64,9 @@ data TxConfirmedState =
 -- A semigroup instance that merges the two maps, instead of taking the
 -- leftmost one.
 instance Semigroup TxIdState where
-  TxIdState{txnsConfirmed=c, txnsDeleted=d, txSlotToBlockNumber=s} <> TxIdState{txnsConfirmed=c', txnsDeleted=d', txSlotToBlockNumber=s'}
+  TxIdState{txnsConfirmed=c, txnsDeleted=d} <> TxIdState{txnsConfirmed=c', txnsDeleted=d'}
     = TxIdState { txnsConfirmed = Map.unionWith (<>) c c'
                 , txnsDeleted   = Map.unionWith (<>) d d'
-                , txSlotToBlockNumber = Map.unionWith (<>) s s'
                 }
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
@@ -144,7 +141,6 @@ fromTx blockAdded tx =
                             , blockAdded = Last (Just blockAdded)
                             , validity = Last . Just $ validityFromChainIndex tx })
     , txnsDeleted = mempty
-    , txSlotToBlockNumber = mempty
     }
 
 rollback :: Point
@@ -157,15 +153,14 @@ rollback targetPoint idx@(viewTip -> currentTip)
         Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
         let (before, deleted) = FT.split (pointLessThanTip targetPoint . tip) idx
-        
+
         case tip (measure before) of
             TipAtGenesis -> Left $ OldPointNotFound targetPoint
-            oldTip | targetPoint `pointsToTip` oldTip -> 
+            oldTip | targetPoint `pointsToTip` oldTip ->
                       let x = _usTxUtxoData (measure deleted)
                           newTxIdState = TxIdState
                                             { txnsConfirmed = mempty
                                             , txnsDeleted = const 1 <$> txnsConfirmed x
-                                            , txSlotToBlockNumber = mempty
                                             }
                           newUtxoState = UtxoState newTxIdState oldTip
                        in Right RollbackResult{newTip=oldTip, rolledBackIndex=before |> newUtxoState }

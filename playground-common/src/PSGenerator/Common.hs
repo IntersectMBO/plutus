@@ -38,7 +38,7 @@ import           Ledger.Value                              (AssetClass, Currency
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.ChainIndex.Emulator.Handlers       (ChainIndexError, ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Tip, TxStatus,
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, Tip, TxStatus,
                                                             TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
