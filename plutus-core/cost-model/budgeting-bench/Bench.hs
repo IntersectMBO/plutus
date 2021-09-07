@@ -60,7 +60,7 @@ main = do
        True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
             Benchmarks.Bool.makeBenchmarks            gen
-            Benchmarks.ByteStrings.makeBenchmarks     gen
+        <>  Benchmarks.ByteStrings.makeBenchmarks     gen
         <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
         <>  Benchmarks.Data.makeBenchmarks            gen
         <>  Benchmarks.Integers.makeBenchmarks        gen
