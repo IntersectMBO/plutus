@@ -47,10 +47,10 @@ data Builtin : Set where
   decodeUtf8               : Builtin  
   -- Bool
   ifThenElse               : Builtin
-  -- Tracing
-  trace                    : Builtin
   -- Unit
   chooseUnit               : Builtin
+  -- Tracing
+  trace                    : Builtin
   -- Pairs
   fstPair                  : Builtin
   sndPair                  : Builtin
