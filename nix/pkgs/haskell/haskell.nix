@@ -51,7 +51,7 @@ let
       "https://github.com/input-output-hk/cardano-ledger-specs"."8efcfc755faae4db3a64ad45343235fce3ed5c47" = "13mj8nqk4jglyl96d6zm3dbjmx2qn5gwn06g7cmanxiwfkfm7bi1";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/goblins"."cde90a2b27f79187ca8310b6549331e59595e7ba" = "17c88rbva3iw82yg9srlxjv2ia5wjb9cyqw44hik565f5v9svnyg";
-      "https://github.com/input-output-hk/iohk-monitoring-framework"."808724ff8a19a33d0ed06f9ef59fbd900b08553c" = "0298dpl29gxzs9as9ha6y0w18hqwc00ipa3hzkxv7nlfrjjz8hmz";
+      "https://github.com/input-output-hk/iohk-monitoring-framework"."46f994e216a1f8b36fe4669b47b2a7011b0e153c" = "1il8fx3misp3650ryj368b3x95ksz01zz3x0z9k00807j93d0ka0";
       "https://github.com/input-output-hk/optparse-applicative"."7497a29cb998721a9068d5725d49461f2bba0e7a" = "1gvsrg925vynwgqwplgjmp53vj953qyh3wbdf34pw21c8r47w35r";
       "https://github.com/input-output-hk/ouroboros-network"."6d00ff77f9bcd769fb6d7fd02216cec4e837bfcf" = "19dfhm9r1z00jqwpbnx7z0d58gpqsbwx4p96xlwwamd40hi3asn3";
       "https://github.com/input-output-hk/cardano-node.git"."8cf2b208c7708bd890c7e74d5b1d7c4167a3b40b" = "0akmzzf1gb8067knlzpbqdpkn3zrk5fm16icdzip44ilzwl5y2m0";
