@@ -91,14 +91,14 @@ benchConsByteString =
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =  {- [ benchTwoByteStrings AppendByteString,
+makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,
                         benchConsByteString,
                         benchLengthOfByteString,
                         benchIndexByteString gen,
                         benchSliceByteString
                       ]
-                      <> -} [benchDifferentByteStringsElementwise EqualsByteString]
---                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+                      <> [benchDifferentByteStringsElementwise EqualsByteString]
+                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
 
 
 {- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The

@@ -312,8 +312,8 @@ divideInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
                  (ModelConstantOrTwoArguments 196500 $
-                  -- ### FIXME: this number is currently obtained manually from R; automate this
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+                  -- ### FIXME: the constant above is currently obtained manually from R; automate this
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
@@ -325,8 +325,8 @@ quotientInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
                  (ModelConstantOrTwoArguments 196500 $
-                  -- ### FIXME: this number is currently obtained manually from R; automate this
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+                  -- ### FIXME: the constant above is currently obtained manually from R; automate this
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
@@ -405,8 +405,8 @@ indexByteString cpuModelR = do
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
   cpuModelOnDiagonal <- readModelLinearInX cpuModelR
-  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ ModelConstantOrLinear 150000   -- ### FIXME: Get this number from R
-                 (modelLinearSizeIntercept cpuModelOnDiagonal) (modelLinearSizeSlope cpuModelOnDiagonal)
+  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ readModelLinearOnDiagonal cpuModel 245000
+                  -- ### FIXME: the constant above is currently obtained manually from R; automate this
   pure $ CostingFun cpuModel boolMemModel
 
 lessThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
@@ -458,7 +458,8 @@ appendString cpuModelR = do
 
 equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsString cpuModelR = do
-  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 100000  -- ### FIXME: Get this number from R
+  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 187000
+  -- ### FIXME: the constant above is currently obtained manually from R; automate this
   let memModel = boolMemModel
   pure $ CostingFun cpuModel memModel
 

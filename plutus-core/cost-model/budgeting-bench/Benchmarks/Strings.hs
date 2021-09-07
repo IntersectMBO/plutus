@@ -164,10 +164,10 @@ benchDifferentTextStringsElementwise name = createTwoTermBuiltinBenchElementwise
           inputs2 = makeSizedTextStrings seedB oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [ {- benchOneTextString EncodeUtf8
+makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
                       , benchOneUtf8ByteString DecodeUtf8
                       , benchTwoTextStrings AppendString
+                      , benchDifferentTextStringsElementwise EqualsString
                       , benchSameTwoTextStrings EqualsString
-                      , -} benchDifferentTextStringsElementwise EqualsString
                       ]
 
