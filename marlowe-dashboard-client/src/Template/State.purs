@@ -7,7 +7,6 @@ module Template.State
   ) where
 
 import Prelude
-
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)
