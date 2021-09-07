@@ -88,7 +88,7 @@ makeTransactionBody'
         scripts
         (TxBodyScriptData ScriptDataInAlonzoEra datums redeemers)
         Nothing -- ignoring txMetadata and txAuxScripts in CardanoAPITemp
-        (unBuildTxWith txScriptValidity)
+        txScriptValidity
         -- TODO alonzo: support the supplementary script data
   where
     witnesses :: [(ScriptWitnessIndex, AnyScriptWitness AlonzoEra)]
@@ -125,9 +125,6 @@ makeTransactionBody'
           | (idx, AnyScriptWitness
                     (PlutusScriptWitness _ _ _ _ d e)) <- witnesses
           ]
-
-unBuildTxWith :: BuildTxWith BuildTx a -> a
-unBuildTxWith (BuildTxWith a) = a
 
 toShelleyWithdrawal :: [(StakeAddress, Lovelace, a)] -> Shelley.Wdrl StandardCrypto
 toShelleyWithdrawal withdrawals =
