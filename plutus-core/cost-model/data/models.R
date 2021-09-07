@@ -194,15 +194,15 @@ modelFun <- function(path) {
             r <- t
         }
         else if (len == 0) {
-            cat(sprintf ("* WARNING: %s not found in input - returning 0", name))
+            cat(sprintf ("* WARNING: %s not found in input - returning 0\n", name))
             r <- 0
         } else {
-            vat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value", name))
+            cat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value\n", name))
             r <- mean(t)
         }
 
         if (r < 0) {
-            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0", name))
+            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0\n", name))
             return (0)
         }
         return (r)
@@ -439,7 +439,7 @@ modelFun <- function(path) {
     }
 
     encodeUtf8Model <- {
-        fname <- "DecodeUtf8"
+        fname <- "EncodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)

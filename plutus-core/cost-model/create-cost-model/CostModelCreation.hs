@@ -30,8 +30,6 @@ import           Foreign.R
 import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
 
-import qualified Debug.Trace                                    as Tr
-
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 msToPs :: Double -> CostingInteger
@@ -116,7 +114,6 @@ createBuiltinCostModel :: IO BuiltinCostModel
 createBuiltinCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
-    -- TODO: refactor with barbies
     let getParams x y = x (getConst $ y models)
 
     -- Integers
@@ -217,7 +214,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
 -- t = ax+c
 unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
 unsafeReadModelFromR formula rmodel = do
-  j <- Tr.trace formula $ [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
   let m = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
@@ -231,7 +228,7 @@ unsafeReadModelFromR formula rmodel = do
 -- t = ax+by+c
 unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
-  j <- Tr.trace (formula1 Prelude.++ " / " Prelude.++ formula2) $ [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
   let m = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
@@ -314,7 +311,7 @@ divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArgu
 divideInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
-                 (ModelConstantOrTwoArguments 148000 $  -- ### Get this number from R
+                 (ModelConstantOrTwoArguments 148000 $  -- ### FIXME: Get this number from R
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.
@@ -326,7 +323,7 @@ quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoAr
 quotientInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
   let cpuModel = ModelTwoArgumentsConstAboveDiagonal
-                 (ModelConstantOrTwoArguments 148000 $ -- ### Get this number from R
+                 (ModelConstantOrTwoArguments 148000 $ -- ### FIXME: Get this number from R
                   ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
                  )
   -- GMP requires division (mpn_divrem) to have x - y space.
@@ -340,6 +337,7 @@ remainderInteger = quotientInteger
 modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 modInteger = divideInteger
 
+-- FIXME: should probably be piecewise (harmless, but may overprice some comparisons a bit)
 equalsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsInteger cpuModelR = do
   cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
@@ -364,11 +362,6 @@ appendByteString cpuModelR = do
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
   pure $ CostingFun cpuModel memModel
 
-
--- The things marked with ### comments below are plausible guesses at the form
--- of the model to get it fixed for the HF.  Later we'll have to add benchmarks
--- to get data and R code to fit models for all of them.
-
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 consByteString cpuModelR = do
   m <- readModelLinearInY cpuModelR
@@ -380,8 +373,8 @@ consByteString cpuModelR = do
 {- | Return a substring of a bytestring with a specified start point and length.
    Plutus Core bytestrings are implemented using Data.ByteString, which
    represents a (strict) bytestring as a C array of bytes together with a
-   pointer into that and a length.  The sliceBytestring function is implemented
-   using 'take' and 'drop', and these work by modifying the pointer and length;
+   pointer into that and a length.  The sliceByteString function is implemented
+   using 'take' and 'drop', and these work by modifying the pointer and length:
    no bytes are copied so sliceByteString requires constant time and a constant
    memory overhead.  There's a mismatch here because the Haskell model which we
    defined for SliceByteString is linear in the length of the bytestring;
@@ -410,7 +403,7 @@ indexByteString cpuModelR = do
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
   cpuModelOnDiagonal <- readModelLinearInX cpuModelR
-  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ ModelConstantOrLinear 150000
+  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ ModelConstantOrLinear 150000   -- ### FIXME: Get this number from R
                  (modelLinearSizeIntercept cpuModelOnDiagonal) (modelLinearSizeSlope cpuModelOnDiagonal)
   pure $ CostingFun cpuModel boolMemModel
 
@@ -463,9 +456,7 @@ appendString cpuModelR = do
 
 equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsString cpuModelR = do
-  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 100000
-  -- TODO: 100000 is a made-up cost for off-diagonal comparisons.  We should put
-  -- something more sensible here
+  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 100000  -- ### FIXME: Get this number from R
   let memModel = boolMemModel
   pure $ CostingFun cpuModel memModel
 

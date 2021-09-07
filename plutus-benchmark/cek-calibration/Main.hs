@@ -22,7 +22,6 @@ import           Control.Exception
 import           Control.Monad.Except
 import           Criterion.Main
 import qualified Criterion.Types                          as C
-import           Data.ByteString.Lazy                     as BSL
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
@@ -88,7 +87,7 @@ main2:: Haskell.IO ()
 main2 = writePlc (mkListProg 999)
 
 main :: Haskell.IO ()
-main = main1
+main = main2
 
 
 {- (t+1e-4)/compute ~ 3.7e-8

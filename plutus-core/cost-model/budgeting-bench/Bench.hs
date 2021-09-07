@@ -29,8 +29,8 @@ import           System.Random              (getStdGen)
 ---------------- Miscellaneous ----------------
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
-   the time taken for all the builtin operations, as measured by criterion.
-   See also Note [Creation of the Cost Model]. -}
+   the time taken for all the builtin operations, as measured by criterion.  See
+   also Note [Creation of the Cost Model]. -}
 
 {- TODO: Some care is required here regarding the current working directory.  If
    you run this benchmark via `cabal bench` or `stack bench` (but not `cabal
@@ -59,7 +59,7 @@ main = do
   criterionMainWith
        True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-            Benchmarks.Bool.makeBenchmarks            gen
+{-            Benchmarks.Bool.makeBenchmarks            gen
         <>  Benchmarks.ByteStrings.makeBenchmarks     gen
         <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
         <>  Benchmarks.Data.makeBenchmarks            gen
@@ -69,7 +69,7 @@ main = do
         <>  Benchmarks.Pairs.makeBenchmarks           gen
         <>  Benchmarks.Strings.makeBenchmarks         gen
         <>  Benchmarks.Tracing.makeBenchmarks         gen
-        <>  Benchmarks.Unit.makeBenchmarks            gen
+        <>  -} Benchmarks.Unit.makeBenchmarks            gen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
