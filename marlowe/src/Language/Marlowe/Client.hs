@@ -282,17 +282,22 @@ marlowePlutusContract = do
                     _ -> tx
 
         let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
-            constraints = spendPayouts
-                -- must spend a role token for authorization
-                <> Constraints.mustSpendAtLeast (Val.singleton rolesCurrency role 1)
-            -- lookup for payout validator and role payouts
-            validator = rolePayoutScript rolesCurrency
-            lookups = Constraints.otherScript validator
-                <> Constraints.unspentOutputs utxos
-                <> Constraints.ownPubKeyHash pkh
-        tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
-        _ <- submitUnbalancedTx tx
-        tell OK
+        if spendPayouts == mempty
+        then do
+            tell OK
+        else do
+            let
+              constraints = spendPayouts
+                  -- must spend a role token for authorization
+                  <> Constraints.mustSpendAtLeast (Val.singleton rolesCurrency role 1)
+              -- lookup for payout validator and role payouts
+              validator = rolePayoutScript rolesCurrency
+              lookups = Constraints.otherScript validator
+                  <> Constraints.unspentOutputs utxos
+                  <> Constraints.ownPubKeyHash pkh
+            tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
+            _ <- submitUnbalancedTx tx
+            tell OK
         marlowePlutusContract
     auto = endpoint @"auto" $ \(params, party, untilSlot) -> do
         let theClient = mkMarloweClient params
