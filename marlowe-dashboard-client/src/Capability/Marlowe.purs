@@ -37,8 +37,8 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Int (floor)
-import Data.Json.JsonTuple (JsonTuple)
 import Data.Json.JsonTriple (JsonTriple(..))
+import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (view)
 import Data.Map (Map, findMin, fromFoldable, lookup, mapMaybeWithKey, singleton, toUnfoldable, values)
 import Data.Map (filter) as Map
@@ -296,7 +296,8 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
 
           pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
 
-          payload = JsonTriple (marloweParams /\ tokenName /\ pubKeyHash)
+          payload :: JsonTriple MarloweParams Back.TokenName Back.PubKeyHash
+          payload = JsonTriple (marloweParams /\ toBack tokenName /\ toBack pubKeyHash)
         in
           Contract.invokeEndpoint marloweAppId "redeem" payload
       LocalStorage -> pure $ Right unit

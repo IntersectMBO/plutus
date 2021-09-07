@@ -17,10 +17,8 @@ import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 transactionFee :: BigInteger
 transactionFee = fromInt 10
 
--- FIXME: it appears that creating a contract currently requires three transactions, but I believe it
--- should be possible with one; check this with Alex
 contractCreationFee :: BigInteger
-contractCreationFee = transactionFee * (fromInt 3)
+contractCreationFee = transactionFee * (fromInt 2)
 
 {-
 A `PlutusAppId` is used to identify an instance of a Plutus "contract" in the PAB. In the PAB code it is

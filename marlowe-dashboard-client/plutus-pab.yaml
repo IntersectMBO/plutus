@@ -28,7 +28,7 @@ nodeServerConfig:
   mscFeeConfig:
     fcConstantFee:
       getLovelace: 10 # Constant fee per transaction in lovelace
-    fcScriptsFeeFactor: 1.0 # Factor by which to multiply size-dependent scripts fee in lovelace
+    fcScriptsFeeFactor: 0.0 # Factor by which to multiply size-dependent scripts fee in lovelace
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2
