@@ -64,6 +64,7 @@ data Value = AvailableMoney S.AccountId S.Token
            | AddValue Value Value
            | SubValue Value Value
            | MulValue Value Value
+           | DivValue Value Value
            | Scale Rational Value
            | ChoiceValue S.ChoiceId
            | SlotIntervalStart

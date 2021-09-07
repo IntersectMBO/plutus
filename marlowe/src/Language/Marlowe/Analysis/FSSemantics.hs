@@ -192,6 +192,11 @@ symEvalVal (Scale s rhs) symState =
       nn = symEvalVal rhs symState * literal n
       (q, r) = nn `sQuotRem` literal d in
   ite (abs r * 2 .< literal (abs d)) q (q + signum nn * literal (signum d))
+symEvalVal (DivValue lhs rhs) symState =
+  let n = symEvalVal lhs symState
+      d = symEvalVal rhs symState
+      (q, r) = n `sQuotRem` d in
+  ite (abs r * 2 .< (abs d)) q (q + signum n * (signum d))
 symEvalVal (ChoiceValue choId) symState =
   M.findWithDefault (literal 0) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState
