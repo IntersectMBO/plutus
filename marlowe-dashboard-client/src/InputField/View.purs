@@ -7,11 +7,12 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
+import Halogen (RefLabel(..))
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, input, span_, text)
 import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onBlur_, onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, ref, type_, value)
 import InputField.Lenses (_additionalCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
@@ -35,6 +36,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
           $ [ type_ InputText
             , classNames $ (Css.input $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
             , readOnly $ view _readOnly options
@@ -70,6 +72,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
           $ [ type_ InputText
             , classNames $ (Css.inputNoFocus $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
             , readOnly $ view _readOnly options
@@ -118,6 +121,7 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
           $ [ type_ InputNumber
             , classNames $ (Css.input $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , value currentValue
             , readOnly $ view _readOnly options
             , autocomplete false
@@ -147,6 +151,7 @@ renderInput options@{ numberFormat: Just TimeFormat } state =
               [ type_ InputNumber
               , classNames $ Css.unstyledInput <> [ "flex-1" ]
               , id_ $ view _id_ options
+              , ref $ RefLabel $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
               , autocomplete false
@@ -182,6 +187,7 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
               [ type_ InputNumber
               , classNames $ Css.unstyledInput <> [ "flex-1" ]
               , id_ $ view _id_ options
+              , ref $ RefLabel $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
               , autocomplete false
