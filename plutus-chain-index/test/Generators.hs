@@ -116,7 +116,6 @@ txIdStateTip TxIdGenState {_txgsBlocks, _txgsNumTransactions} =
   where
     numBlocks = length _txgsBlocks
 
-
 genStateTip :: UtxoGenState -> Tip
 genStateTip UtxoGenState{_uxUtxoSet, _uxNumTransactions, _uxNumBlocks} =
     Tip
