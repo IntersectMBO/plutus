@@ -37,6 +37,7 @@ const lexer = moo.compile({
                     'AddValue',
                     'SubValue',
                     'MulValue',
+                    'DivValue',
                     'Scale',
                     'ChoiceValue',
                     'SlotIntervalStart',
@@ -195,6 +196,7 @@ value
     | lparen "AddValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "MulValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkMulValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
+    | lparen "DivValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkDivValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "Scale" someWS lparen rational rparen someWS value rparen {% ([start,{line,col},,,ratio,,,v,end]) => opts.mkTerm(opts.mkScale(ratio)(v))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "ChoiceValue" someWS choiceId rparen {% ([start,{line,col},,choiceId,end]) => opts.mkTerm(opts.mkChoiceValue(choiceId))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + 17}) %}
