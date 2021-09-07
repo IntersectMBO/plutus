@@ -1,3 +1,4 @@
+.. highlight:: haskell
 .. _handling_blockchain_events:
 
 How to handle blockchain events
