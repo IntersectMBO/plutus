@@ -126,7 +126,7 @@ updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
     txIdStateIndex <- STM.readTVar beTxChanges
     let txIdState = _usTxUtxoData $ measure $ txIdStateIndex
     blockNumber <- STM.readTVar beCurrentBlock
-    let txIdState' = foldl' (insertNewTx (tipSlot tip) blockNumber) txIdState xs
+    let txIdState' = foldl' (insertNewTx blockNumber) txIdState xs
         is  = insert (UtxoState txIdState' tip) txIdStateIndex
     case is of
       -- TODO: Proper error.
@@ -135,8 +135,8 @@ updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
     STM.writeTVar beCurrentBlock (succ blockNumber)
 
 
-insertNewTx :: Slot -> BlockNumber -> TxIdState -> (TxId, TxValidity) -> TxIdState
-insertNewTx slot blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, txValidity) =
+insertNewTx :: BlockNumber -> TxIdState -> (TxId, TxValidity) -> TxIdState
+insertNewTx blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, txValidity) =
   let newConfirmed = txnsConfirmed & at txi ?~ newV
    in TxIdState (txnsConfirmed <> newConfirmed) txnsDeleted
     where
