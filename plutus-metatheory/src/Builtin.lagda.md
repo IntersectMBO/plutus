@@ -169,6 +169,7 @@ postulate
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
+{-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
@@ -186,7 +187,7 @@ postulate
 -- no binding needed for equals
 
 
-{-# COMPILE GHC TRACE = trace  #-}
+{-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
 {-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}
