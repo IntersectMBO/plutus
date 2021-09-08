@@ -155,7 +155,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                     traceM marloweError
                     addToast $ errorToast "something went wrong" Nothing
                   Unknown -> pure unit
-              -- otherwise this should be one of the wallet's WalletFollowerApps
+              -- otherwise this should be one of the wallet's MarloweFollower apps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
                 Right contractHistory -> do
@@ -224,16 +224,12 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
       subscribeToPlutusApp dataProvider $ view _marloweAppId walletDetails
       for_ followerAppIds $ subscribeToPlutusApp dataProvider
+      -- we now have all the running contracts for this wallet, but if new role tokens have been
+      -- given to the wallet since we last connected it, we'll need to create some more - but since
+      -- we've just subscribed to the wallet companion contract, this will be triggered by the
+      -- initial websocket status notification
       contractNicknames <- getContractNicknames
       assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot
-      -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
-      -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
-      ajaxRoleContracts <- getRoleContracts walletDetails
-      case ajaxRoleContracts of
-        Left decodedAjaxError -> do
-          handleAction $ WelcomeAction Welcome.CloseCard
-          addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
-        Right companionState -> handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionState
 
 handleAction (WelcomeAction welcomeAction) = toWelcome $ Welcome.handleAction welcomeAction
 

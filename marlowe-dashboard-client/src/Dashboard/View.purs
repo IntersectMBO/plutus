@@ -8,8 +8,8 @@ import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
-import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State, Input)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletCompanionStatus, _walletDetails, _walletDataState)
+import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..), isJust)
@@ -344,14 +344,27 @@ contractNavigation contractFilter =
       ]
 
 contractCards :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-contractCards currentSlot { contractFilter: Running, contracts } =
-  let
-    runningContracts = filter (not isContractClosed) contracts
-  in
-    if isEmpty runningContracts then
-      noContractsMessage Running
-    else
-      contractGrid currentSlot Running runningContracts
+contractCards currentSlot { walletCompanionStatus, contractFilter: Running, contracts } =
+  case walletCompanionStatus of
+    FirstUpdateComplete ->
+      let
+        runningContracts = filter (not isContractClosed) contracts
+      in
+        if isEmpty runningContracts then
+          noContractsMessage Running
+        else
+          contractGrid currentSlot Running runningContracts
+    _ ->
+      div
+        [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
+        [ icon Icon.Contract [ "text-big-icon", "text-gray" ]
+        , p
+            [ classNames [ "flex", "items-center", "gap-2" ] ]
+            [ icon Icon.Sync [ "animate-spin" ]
+            , text "Checking for new contracts..."
+            ]
+        ]
+
 
 contractCards currentSlot { contractFilter: Completed, contracts } =
   let

@@ -1,6 +1,7 @@
 module Dashboard.Lenses
   ( _walletDataState
   , _walletDetails
+  , _walletCompanionStatus
   , _menuOpen
   , _card
   , _cardOpen
@@ -14,7 +15,7 @@ module Dashboard.Lenses
 
 import Prelude
 import Contract.Types (State) as Contract
-import Dashboard.Types (Card, ContractFilter, State)
+import Dashboard.Types (Card, ContractFilter, State, WalletCompanionStatus)
 import Data.Lens (Lens', Traversal', set, wander)
 import Data.Lens.At (at)
 import Data.Lens.Prism.Maybe (_Just)
@@ -32,6 +33,9 @@ _walletDataState = prop (SProxy :: SProxy "walletDataState")
 
 _walletDetails :: Lens' State WalletDetails
 _walletDetails = prop (SProxy :: SProxy "walletDetails")
+
+_walletCompanionStatus :: Lens' State WalletCompanionStatus
+_walletCompanionStatus = prop (SProxy :: SProxy "walletCompanionStatus")
 
 _menuOpen :: Lens' State Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")
