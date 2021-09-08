@@ -8,7 +8,7 @@ import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
 import           Plutus.ChainIndex.Types (Page, Tip)
-import           Servant.API             (Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
+import           Servant.API             (Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
 
 type API
     = "healthcheck" :> Get '[JSON] NoContent
@@ -18,6 +18,7 @@ type API
     :<|> "is-utxo" :> ReqBody '[JSON] TxOutRef :> Post '[JSON] (Tip, Bool)
     :<|> "utxo-at-address" :> ReqBody '[JSON] Credential :> Post '[JSON] (Tip, Page TxOutRef)
     :<|> "tip" :> Get '[JSON] Tip
+    :<|> "collect-garbage" :> Put '[JSON] NoContent
 
 type FromHashAPI =
     "datum" :> ReqBody '[JSON] DatumHash :> Post '[JSON] Datum
