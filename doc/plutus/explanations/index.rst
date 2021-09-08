@@ -10,3 +10,4 @@ Explanations
    plutus-foundation
    rollback
    pab
+   order-book-pattern
