@@ -23,7 +23,6 @@ import           Plutus.V1.Ledger.Slot          (Slot (..))
 import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.Value
 import           PlutusCore
-import           PlutusCore.Data
 import           Prelude                        as Haskell
 import           Web.HttpApiData                (FromHttpApiData (..), ToHttpApiData (..))
 
