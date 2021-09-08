@@ -74,11 +74,11 @@ which is a pair of a *currency symbol* and a *token name*, both given by a ``Byt
 
    data Token = Token ByteString ByteString
 
-   Cardano’s Ada token is 
+Cardano’s Ada token is 
 
-   .. code:: haskell
-   
-      ada = Token adaSymbol adaToken
+.. code:: haskell
+ 
+   ada = Token adaSymbol adaToken
    
 But you are free to create your own currencies and tokens using the native token facility of Cardano.   
 You can think
