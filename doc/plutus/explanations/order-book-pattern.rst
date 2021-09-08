@@ -83,7 +83,7 @@ To choose the right one we need to consider the requirement and usage patterns o
 ...............
 
 We could change the DEX contract to produce a new script UTXO for each fulfilled order that records the time and exchange rate of the order.
-The stablecoin user creates a UTXO with a script that requires an oracle UTXO to be present in the spending transaction, and the match maker would put the oracle UTXO and the stablecoing-action UTXO into one transaction and submit it.
+The stablecoin user creates a UTXO with a script that requires an oracle UTXO to be present in the spending transaction, and the match maker would put the oracle UTXO and the stablecoin-action UTXO into one transaction and submit it.
 
 2. Oracle tokens
 ................
