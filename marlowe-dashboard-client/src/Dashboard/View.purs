@@ -344,27 +344,25 @@ contractNavigation contractFilter =
       ]
 
 contractCards :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-contractCards currentSlot { walletCompanionStatus, contractFilter: Running, contracts } =
-  case walletCompanionStatus of
-    FirstUpdateComplete ->
-      let
-        runningContracts = filter (not isContractClosed) contracts
-      in
-        if isEmpty runningContracts then
-          noContractsMessage Running
-        else
-          contractGrid currentSlot Running runningContracts
-    _ ->
-      div
-        [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
-        [ icon Icon.Contract [ "text-big-icon", "text-gray" ]
-        , p
-            [ classNames [ "flex", "items-center", "gap-2" ] ]
-            [ icon Icon.Sync [ "animate-spin" ]
-            , text "Checking for new contracts..."
-            ]
-        ]
-
+contractCards currentSlot { walletCompanionStatus, contractFilter: Running, contracts } = case walletCompanionStatus of
+  FirstUpdateComplete ->
+    let
+      runningContracts = filter (not isContractClosed) contracts
+    in
+      if isEmpty runningContracts then
+        noContractsMessage Running
+      else
+        contractGrid currentSlot Running runningContracts
+  _ ->
+    div
+      [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
+      [ icon Icon.Contract [ "text-big-icon", "text-gray" ]
+      , p
+          [ classNames [ "flex", "items-center", "gap-2" ] ]
+          [ icon Icon.Sync [ "animate-spin" ]
+          , text "Checking for new contracts..."
+          ]
+      ]
 
 contractCards currentSlot { contractFilter: Completed, contracts } =
   let
