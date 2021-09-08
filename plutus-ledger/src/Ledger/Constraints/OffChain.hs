@@ -82,7 +82,6 @@ import           Plutus.V1.Ledger.Time            (POSIXTimeRange)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
-
 data ScriptLookups a =
     ScriptLookups
         { slMPS            :: Map MintingPolicyHash MintingPolicy

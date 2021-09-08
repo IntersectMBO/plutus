@@ -24,7 +24,6 @@ import           Ledger.Orphans                 ()
 import qualified Plutus.Contract.Resumable      as Contract
 import qualified Plutus.Contract.State          as Contract
 
-
 -- TODO: Replace with type synonym for @ContractResponse Value Value Value h@
 data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
@@ -36,7 +35,6 @@ data PartiallyDecodedResponse v =
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
-
 
 fromResp :: Contract.ContractResponse Value Value s v -> PartiallyDecodedResponse v
 fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.lastLogs, Contract.newState = Contract.State{Contract.observableState}} =

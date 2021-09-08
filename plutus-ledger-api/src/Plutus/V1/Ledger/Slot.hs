@@ -35,7 +35,6 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 
-
 {- HLINT ignore "Redundant if" -}
 
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain

@@ -21,6 +21,7 @@ import qualified Data.ByteString.Hash      as Hash
 import           Data.Coerce               (coerce)
 import           Data.Hashable             (Hashable)
 import           Data.Maybe                (fromMaybe)
+import qualified Data.OpenApi              as OpenApi
 import           Data.Text                 as Text (Text, empty)
 import           Data.Text.Encoding        as Text (decodeUtf8, encodeUtf8)
 import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
@@ -28,8 +29,6 @@ import           GHC.Generics              (Generic)
 import qualified PlutusCore.Data           as PLC
 import           PlutusTx.Utils            (mustBeReplaced)
 import           Prelude                   as Haskell
-
-import qualified Data.OpenApi              as OpenApi
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

@@ -252,7 +252,6 @@ data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
-
 -- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
 -- script of type t in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
@@ -287,7 +286,6 @@ data TxInType =
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
-
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {

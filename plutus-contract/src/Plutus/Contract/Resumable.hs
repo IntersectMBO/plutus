@@ -92,7 +92,6 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.State
 
-
 {- Note [Resumable state machine]
 
 @Resumable i o@ programs are like state machines with state 'Requests' @o@ and

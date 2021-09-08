@@ -80,7 +80,6 @@ import           Control.Lens                     (Iso', Prism', iso, makePrisms
 import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
 import           Data.List.NonEmpty               (NonEmpty)
-import qualified Data.Map                         as Map
 import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.Text.Prettyprint.Doc        (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))

@@ -51,7 +51,6 @@ import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
-
 -- | An interval of @a@s.
 --
 --   The interval may be either closed or open at either end, meaning

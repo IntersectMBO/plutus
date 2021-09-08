@@ -93,7 +93,6 @@ data ContractInstanceClientState t =
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
 
-
 deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractInstanceClientState t)
 
 -- | Status updates for contract instances streamed to client

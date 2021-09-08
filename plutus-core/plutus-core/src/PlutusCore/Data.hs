@@ -40,7 +40,6 @@ data Data =
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
-
 instance Pretty Data where
     pretty = \case
         Constr _ ds -> angles (sep (punctuate comma (fmap pretty ds)))

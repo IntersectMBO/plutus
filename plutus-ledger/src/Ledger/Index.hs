@@ -56,6 +56,7 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Default                     (Default (def))
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
+import qualified Data.OpenApi.Schema              as OpenApi
 import qualified Data.Set                         as Set
 import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty)
@@ -81,8 +82,6 @@ import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value           as V
 import           PlutusTx                         (toBuiltinData)
 import qualified PlutusTx.Numeric                 as P
-
-import qualified Data.OpenApi.Schema              as OpenApi
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.

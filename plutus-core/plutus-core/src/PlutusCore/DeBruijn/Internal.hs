@@ -55,7 +55,7 @@ import           GHC.Generics
 newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord, Pretty)
-    deriving anyclass (NFData)
+    deriving anyclass NFData
 
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
@@ -65,7 +65,7 @@ data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn { dbnIndex :: Index }
     deriving (Show, Generic)
-    deriving anyclass (NFData)
+    deriving anyclass NFData
 
 -- | A type name as a de Bruijn index.
 newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn

@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
@@ -95,12 +94,10 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
-
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
     deriving (Show, Functor, Generic, NFData, Hashable)
-
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
