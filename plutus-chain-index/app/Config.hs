@@ -4,16 +4,23 @@
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Config(
   ChainIndexConfig(..),
-  defaultConfig
+  defaultConfig,
+  -- * Lenses
+  socketPath,
+  port,
+  networkId,
+  slotConfig
   ) where
 
 import           Cardano.Api               (NetworkId (..))
+import           Control.Lens              (makeLensesFor)
 import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc (Pretty (..), vsep, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow, vsep, (<+>))
 import           GHC.Generics              (Generic)
 import           Ledger.TimeSlot           (SlotConfig (..))
 import           Ouroboros.Network.Magic   (NetworkMagic (..))
@@ -49,5 +56,15 @@ defaultConfig = ChainIndexConfig
   }
 
 instance Pretty ChainIndexConfig where
-  pretty ChainIndexConfig{cicSocketPath, cicPort} =
-    vsep ["Socket:" <+> pretty cicSocketPath, "Port:" <+> pretty cicPort]
+  pretty ChainIndexConfig{cicSocketPath, cicPort, cicNetworkId} =
+    vsep [ "Socket:" <+> pretty cicSocketPath
+         , "Port:" <+> pretty cicPort
+         , "Network Id:" <+> viaShow cicNetworkId
+         ]
+
+makeLensesFor [
+  ("cicSocketPath", "socketPath"),
+  ("cicPort", "port"),
+  ("cicNetworkId", "networkId"),
+  ("cicSlotConfig", "slotConfig")
+  ] 'ChainIndexConfig

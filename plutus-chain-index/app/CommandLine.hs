@@ -1,11 +1,38 @@
-{-# LANGUAGE ApplicativeDo #-}
-module CommandLine where
+{-# LANGUAGE ApplicativeDo  #-}
+{-# LANGUAGE NamedFieldPuns #-}
+module CommandLine(
+  AppConfig(..)
+  , Command(..)
+  , CLIConfigOverrides(..)
+  , applyOverrides
+  , cmdWithHelpParser
+  ) where
 
-import           Options.Applicative      (CommandFields, Mod, Parser, ParserInfo, argument, command, flag, fullDesc,
-                                           header, help, helper, info, long, metavar, option, progDesc, short, str,
-                                           subparser, value, (<**>))
+import           Control.Lens             (over)
+import           Options.Applicative      (CommandFields, Mod, Parser, ParserInfo, argument, auto, command, flag,
+                                           fullDesc, header, help, helper, info, long, metavar, option, progDesc, short,
+                                           str, subparser, value, (<**>))
 
+import           Cardano.Api              (NetworkId (..), NetworkMagic (..))
 import           Cardano.BM.Data.Severity
+import           Config                   (ChainIndexConfig)
+import qualified Config
+import           GHC.Word                 (Word32)
+
+data CLIConfigOverrides =
+  CLIConfigOverrides
+    { ccSocketPath :: Maybe String
+    , ccPort       :: Maybe Int
+    , ccNetworkId  :: Maybe Word32
+    }
+    deriving (Eq, Ord, Show)
+
+-- | Apply the CLI soverrides to the 'ChainIndexConfig'
+applyOverrides :: CLIConfigOverrides -> ChainIndexConfig -> ChainIndexConfig
+applyOverrides CLIConfigOverrides{ccSocketPath, ccPort, ccNetworkId} =
+  over Config.socketPath (maybe id const ccSocketPath)
+  . over Config.port (maybe id const ccPort)
+  . over Config.networkId (maybe id (const . Testnet . NetworkMagic) ccNetworkId)
 
 -- | Configuration
 data Command =
@@ -16,10 +43,11 @@ data Command =
     deriving (Show)
 
 data AppConfig = AppConfig
-  { acLogConfigPath :: Maybe FilePath
-  , acMinLogLevel   :: Maybe Severity
-  , acConfigPath    :: Maybe FilePath
-  , acCommand       :: Command
+  { acLogConfigPath      :: Maybe FilePath
+  , acMinLogLevel        :: Maybe Severity
+  , acConfigPath         :: Maybe FilePath
+  , acCLIConfigOverrides :: CLIConfigOverrides
+  , acCommand            :: Command
   } deriving (Show)
 
 -- | Command line parser
@@ -29,7 +57,18 @@ optParser =
     <$> loggingConfigParser
     <*> debuggingOutputParser
     <*> configParser
+    <*> cliConfigOverridesParser
     <*> commandParser
+
+cliConfigOverridesParser :: Parser CLIConfigOverrides
+cliConfigOverridesParser =
+  CLIConfigOverrides <$> socketPathParser <*> portParser <*> networkIDParser where
+    socketPathParser =
+      option (Just <$> str) (long "socket-path" <> value Nothing <> help "Node socket path")
+    portParser =
+      option (Just <$> auto) (long "port" <> value Nothing <> help "Port")
+    networkIDParser =
+      option (Just <$> auto) (long "network-id" <> value Nothing <> help "Network ID")
 
 loggingConfigParser :: Parser (Maybe FilePath)
 loggingConfigParser =
@@ -44,10 +83,10 @@ configParser :: Parser (Maybe FilePath)
 configParser =
   option ( Just <$> str)
          ( long "config"
-        <> metavar "LOGGING"
+        <> metavar "CONFIG"
         <> value Nothing
         <> short 'c'
-        <> help "Path to the logging configuration file." )
+        <> help "Path to the configuration file." )
 
 debuggingOutputParser :: Parser (Maybe Severity)
 debuggingOutputParser =
