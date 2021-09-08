@@ -62,7 +62,7 @@ should ``arbitrate`` between them:
            100
            Close
 
-Within these contracts we are also using simple abbreviations such as
+Within these contracts we are also using simple abbreviations such as:
 
 .. code:: haskell
 
@@ -204,8 +204,5 @@ JavaScript embedding instead.
 Note
 ~~~~
 
--  This contracts is contained in the modules
-   ```EscrowSimpleV2.hs`` <https://github.com/input-output-hk/marlowe/blob/master/semantics-3.0/src/Language/Marlowe/Examples/EscrowSimpleV2.hs>`__
-
--  The expanded version comes from the Marlowe Playground, which
-   supports expansion of embedded definitions into pure Marlowe..
+A number of other examples of using Haskell to build Marlowe contracts can be found in the Marlowe Playground,
+where it is also possible to build Haskell-embedded Marlowe contracts.

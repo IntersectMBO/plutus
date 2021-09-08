@@ -7,8 +7,8 @@ main :: IO ()
 main = print . pretty $ contract
 
 discountedPrice, notionalPrice :: Value
-discountedPrice = ConstantParam "Interest"
-notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
+discountedPrice = ConstantParam "Amount"
+notionalPrice = AddValue (ConstantParam "Interest") discountedPrice
 
 investor, issuer :: Party
 investor = Role "Lender"

@@ -38,8 +38,7 @@ participants that are bound to the contract roles can change during the
 execution of the particular *contract instance*. This allows roles in
 running contracts to be *traded* between participants, through a
 mechanism of *tokenisation*. This will be available in the on-chain
-implementation of Marlowe, and in the wallet-style simulation, but the
-omniscient simulation simply presents contract roles.
+implementation of Marlowe but the simulation in the Marlowe Playground simply presents contract roles.
 
 Accounts
 ~~~~~~~~
@@ -47,11 +46,11 @@ Accounts
 The Marlowe model allows for a contract to store assets. All parties
 that participate in the contract implicitly own an account with their
 name. All assets stored in the contract must be in the account of one of
-the parties, this way, when the contract is closed, all assets that
-remain in the contract are refunded to the respective owners. These
-accounts are local, in that they only exist during the execution of the
-contract, and during that time they are only accessible by parties to
-the contract.
+the parties; this way, when the contract is closed, all assets that
+remain in the contract belong to someone, and so can be refunded to their respective owners. 
+These
+accounts are *local*: they only exist for the duration of the execution of the
+contract, and during that time they are only accessible from within the contract.
 
 Steps and states
 ~~~~~~~~~~~~~~~~
@@ -87,10 +86,11 @@ can be generated in each *slot*, which are 1 second long.
 The mechanisms by which these blocks are generated, and by whom, are not
 relevant here, but contracts will be expressed in terms of *slot
 numbers*, counting from the starting (“genesis”) block of the
-blockchain.
+blockchain. Currently, we use slot numbers in the Marlowe Playground simulation, but
+on chain we will use time, adopting the Posix time standard.
 
-UTxO and wallets
-~~~~~~~~~~~~~~~~
+UTxO, wallets and the Marlowe Run app
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Value on the blockchain resides in the UTxO, which are protected
 cryptographically by a private key held by the owner. These keys can be
@@ -99,37 +99,37 @@ transactions, which can be seen as spending the value in the inputs.
 Users typically keep track of their private keys, and the values
 attached to them, in a cryptographically-secure *wallet*.
 
-It is through their wallets that users are able to interact with smart
-contracts - including Marlowe contracts – running on the blockchain.
-Deposits are made from users’ wallets, and payments received by them.
-Note, however, that these are definitely *off chain* actions that need
-to be controlled by code running in the user’s wallet: they cannot be
-made to happen by the Marlowe contract itself.
+To interact with a contract running on the blockchain, users will need to use the
+Marlowe Run client application. This, in turn, will interact with users’ wallets to 
+authenticate transactions that spend crypto-assets, since
+deposits are made from users’ wallets, and payments received by them.
+Note, however, that these are definitely *off-chain* actions that need
+to be initiated by code running off chain, typically this will be in the Marlowe Run application: 
+they cannot be
+made to happen by the contract running on chain itself.
 
-Omniscient and wallet-level simulation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Omniscient simulation
+~~~~~~~~~~~~~~~~~~~~~
 
-The Marlowe Playground supports two kinds of simulation: the standard
-*omniscient* simulation and a proof of concept *wallet-level*
-simulation.
-
-In an *omniscient* simulation, the user is able to perform any action
+The Marlowe Playground supports contract simulation. This is an *omniscient* simulation, 
+in which the user is able to perform any action
 for any role, and thus can observe the execution from the perspective of
-all the users. The *“wallet”-style* simulation explicitly models
-different wallets (i.e. different participants) and their participation
-in multiple roles in multiple contracts. This model thus presents a more
-faithful perspective of contract execution for a particular participant
-in the contract.
+all the users simultaneously. This contrasts with the experience of running a contract in
+Marlowe Run, in which each participant sees the
+contract from their own point of view. In particular, participants are only able to interact with
+a running contract that is waiting for input from them; if that’s not the case, then they will see that 
+the contract execution is waiting from someone else’s participation.
 
-Value
-~~~~~
+
+Values and tokens
+~~~~~~~~~~~~~~~~~
 
 In previous examples, whenever a ``Value`` was required, we have
-exclusively used Ada. This makes a lot of sense, seeing as Ada is the
-fundamental currency supported by Cardano.
+exclusively used Ada. This makes a lot of sense, as Ada is the
+fundamental currency supported by Cardano. 
 
 Marlowe offers a more general concept of *value*, though, supporting
-custom fungible, non-fungible, and mixed tokens.  [3]_ What *is* a
+custom, *native* tokens, which can be fungible, non-fungible, or indeed mixed.  [3]_ What *is* a
 ``Value`` in Marlowe?
 
 .. code:: haskell
@@ -140,8 +140,8 @@ custom fungible, non-fungible, and mixed tokens.  [3]_ What *is* a
 The types ``CurrencySymbol`` and ``TokenName`` are both simple wrappers
 around ``ByteString``.
 
-This notion of *value* encompasses Ada, fungible tokens (think
-currencies), non-fungible tokens (a custom token that is not
+This notion of *value* encompasses Ada, fungible tokens (think 
+currencies), non-fungible tokens or NFTs (custom tokens that are not
 interchangeable with other tokens), and more exotic mixed cases:
 
 -  Ada has the *empty bytestring* as ``CurrencySymbol`` and
@@ -160,24 +160,24 @@ interchangeable with other tokens), and more exotic mixed cases:
 
 Cardano provides a simple way to introduce a new currency by *minting*
 it using *minting policy scripts*. This effectively embeds Ethereum
-ERC-20/ERC-721 standards as primitive values in Cardano. We use custom
-tokens to represent participants in Marlowe contracts executing on
+ERC-20/ERC-721 standards as primitive values in Cardano. In Marlowe we use custom
+tokens to represent the participants in each contract executing on
 chain.
 
 Executing a Marlowe contract
 ----------------------------
 
 Executing a Marlowe contract on Cardano blockchain means constraining
-user-generated transactions according to the contract’s logic. If a
+user-generated transactions according to the contract’s logic. If, at a particular point of execution, a
 contract expects a deposit of 100 Ada from Alice, only such a
 transaction will succeed, anything else will be rejected.
 
 A transaction contains an ordered list of *inputs* or *actions*. The
 Marlowe interpreter is executed during transaction validation. First, it
 evaluates the contract *step by step* until it cannot be changed any
-further without processing any input, a condition that we call being
-*quiescent*. At this stage we progress through ``When`` with passed
-timeouts, ``If``, ``Let``, ``Pay``, and ``Close`` constructs without
+further without processing any input, a condition that is called
+*quiescent*. At this stage we progress through any ``When`` with 
+timeouts that have passed, and all ``If``, ``Let``, ``Pay``, and ``Close`` constructs without
 consuming any *inputs*.
 
 The first input is then processed, and then the contract is single
@@ -197,9 +197,8 @@ most one input. While the semantics of a contract is independent of how
 inputs are grouped into transactions, the *costs of execution* may be
 lower if multiple inputs can be grouped into a single transaction.
 
-In the *omniscient* simulation available in the Marlowe playground we
-abstract away from transaction grouping, while in the role-based
-“wallet“ simulation transactions are explicit.
+In the *omniscient* simulation available in the Marlowe playground we can safely 
+abstract away from transaction grouping, since the grouping does not affect the contract’s behaviour.
 
 .. container:: formalpara-title
 

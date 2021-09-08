@@ -24,7 +24,7 @@ solve all sorts of different problems – but the solutions they express
 are still programs, and they still require programming skills to use
 them effectively.
 
-In contrast, Marlowe is a domain-specific language (DSL) which is
+In contrast, Marlowe is a special purpose or *domain-specific language* (DSL) that is
 designed to be usable by someone who is expert in a particular field,
 rather than requiring programming skills to use it. In the case of
 Marlowe, the domain is the field of financial contracts.
@@ -53,22 +53,25 @@ possible to use “pure” Marlowe if we wish, being embedded in a
 general-purpose language allows contract writers to selectively exploit
 features of Haskell in writing Marlowe contracts, making them easier to
 read and supporting re-use. In fact, Marlowe is not tied to Haskell, and
-we have also developed a JavaScript environment for Marlowe. You will
-find a prototype of this in the Playground too.
+we have also developed a JavaScript environment for Marlowe. The Marlowe Playground, the online tool
+to help you build Marlowe contracts, supports both, as well as a visual way of writing Marlowe.
+
 
 Marlowe in a nutshell
 ---------------------
 
-Marlowe is modelled on financial contract DSLs popularised in the last
+Marlowe is modelled on special-purpose financial contract languages popularised in the last
 decade or so by academics and enterprises such as LexiFi, which provides
 contract software in the financial sector. In developing Marlowe, we
 have adapted these languages to work on blockchain. Marlowe is
 implemented on the Cardano blockchain, but could equally well be
 implemented on Ethereum or other blockchain platforms; in this respect
-it is “platform agnostic” just like modern programming languages like
+it is “platform agnostic” just like modern programming languages such as
 Java and C++. The Marlowe Playground online simulation allows you to
 experiment with, develop, simulate and analyse Marlowe contracts in your
-web browser, without having to install any software.
+web browser, without having to install any software. Marlowe Run is the client application 
+that allows you to run Marlowe contracts on chain: it is available as a prototype 
+and will presently be running "live" on the Cardano blockchain itself.
 
 What does a Marlowe contract look like? It is built by combining a small
 number of building blocks that describe making a payment, making an
@@ -97,7 +100,7 @@ All the constructs of Marlowe that require user participation –
 including user deposits and user choices – are protected by timeouts.
 Because of this, it is easy to see that the **commitment** made by a
 participant to a contract is *finite*: we can predict when the contract
-will have nothing left to do – when it can be closed – at this point any
+will have nothing left to do – when it can be closed. At this point any
 unspent funds left in the contract are **refunded** to participants, and
 the contract stops, or *terminates*. So, any funds put into the contract
 by a participant *can’t be locked up forever*: at this point the
@@ -106,7 +109,7 @@ commitment effectively ends.
 What is more, it is easy for us to *read off* from the contract when it
 will terminate, we call this the *lifetime* of the contract: all
 participants will therefore be able to find out this lifetime before
-taking part in the contract,
+taking part in any contract,
 
 In our model, a running contract cannot force a deposit or a choice to
 happen: all it can do is to request a deposit or choice from a
@@ -139,23 +142,22 @@ using *static analysis*. We can also use logic tools to *formally prove
 properties* of Marlowe contracts, giving users the highest level of
 assurance that their contracts behave as intended.
 
-Where to go to find out more
-----------------------------
+Research-based
+--------------
 
-This tutorial covers the latest version of Marlowe, while some of these
-links cover earlier versions of the language and the playground.
+Marlowe is based on original, peer reviewed, research conducted by the 
+Marlowe team, initially at the University of Kent supported by a research grant 
+from IOHK, and latterly as an internal engineering team in the company. We are also
+working jointly with Wyoming Advanced Blockchain R&D Laboratory (WABL) at the University of Wyoming.
+If you are interested in working with us, please get in touch.
 
--  `The Marlowe Playground <https://alpha.marlowe.iohkdev.io/>`_ an
-   in-browser development, analysis and simulation environment.
 
--  `The Marlowe github
-   repository <https://github.com/input-output-hk/marlowe>`_ from which
-   you can download Marlowe.
+Our research work is reported in these published papers.
 
 -  `Marlowe: financial contracts on
    blockchain <https://iohk.io/en/research/library/papers/marlowefinancial-contracts-on-blockchain/>`_
-   The paper that introduces an earlier version of the Marlowe language.
-   Nevertheless, it explains the principles and rationale behind its
+   The paper that introduced the Marlowe language. It is an earlier version, but 
+   nevertheless it explains the principles and rationale behind its
    design and implementation.
 
 -  `Marlowe: implementing and analysing financial contracts on
@@ -169,12 +171,37 @@ links cover earlier versions of the language and the playground.
    This paper explains how we optimised the static analysis explained in
    the previous paper.
 
+-  `Standardized crypto-loans on the Cardano blockchain <https://iohk.io/en/research/library/papers/standardized-crypto-loans-on-the-cardano-blockchain/>`_
+   In this paper we explore a smart contract framework for building standardized crypto-loans using Marlowe, with the ACTUS standard at its core.
+
+and in this eprints survey paper.
+
+- `Scripting smart contracts for distributed ledger 
+  technology <https://iohk.io/en/research/library/papers/scripting-smart-contracts-for-distributed-ledger-technology/>`_
+  Here we give an overview of the scripting languages used in existing cryptocurrencies.
+
+Finding out more
+----------------
+
+Systems 
+
+-  `The Marlowe Playground <https://play.marlowe-finance.io>`_ an
+   in-browser development, analysis and simulation environment.
+
+-  `Marlowe Run <https://run.marlowe-finance.io>`_ the end-user client for downloading and running
+   Marlowe contracts on the Cardano blockchain; currently in prototype.
+
+-  `The Marlowe github
+   repository <https://github.com/input-output-hk/marlowe>`_ from which
+   you can download Marlowe.
+
+-  `The Marlowe Website <https://staging.marlowe-web.iohkdev.io>`_ landing page for all things Marlowe.
+
+
+Videos
+
 -  `YouTube playlist: Marlowe: financial contracts on
    blockchain <https://www.youtube.com/playlist?list=PLqu19-ygE4ofUgGpslOs5zCr9Z6zCMibq>`_.
-   A general introduction to Marlowe from April 2020, updated October
-   2020.
+   A general introduction to Marlowe from October 2020.
+   Some features of the Playground have been updated since then.
 
--  `YouTube playlist: The Marlowe
-   Playground <https://www.youtube.com/playlist?list=PLqu19-ygE4ofEeRfUiA-DYKRk9I3V9c1Q>`_
-   An introduction to the playground; some features have changed, and
-   others have been added, since these videos were made in April 2020.
