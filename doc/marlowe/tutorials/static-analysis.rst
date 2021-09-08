@@ -60,7 +60,7 @@ and that the error generated is a ``TransactionPartialPay``: in this
 case Bob only receives a payment of ``1`` instead of ``2``.
 
 If we modify the contract so that Alice makes an initial deposit of
-``2``, then the analysis will succeed:
+``2``, then the analysis – this time invoked from the Blockly view – will succeed:
 
 .. image:: images/analysis4.png
    :alt: Successful analysis
@@ -72,7 +72,7 @@ Just to re-iterate: the effect of this analysis is to check *every
 possible execution path* through the contract, using a symbolic version
 of the contract. This gets passed to the Z3 SMT solver, which is a
 state-of-the-art automated system for deciding whether logic formulas
-are satisfable.
+are satisfiable.
 
 If the analysis is not successful, i.e. if there is a way of making the
 contract fail a payment, then the system will also *give an example* of
