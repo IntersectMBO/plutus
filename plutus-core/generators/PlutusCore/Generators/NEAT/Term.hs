@@ -163,6 +163,7 @@ convertTypeBuiltin (TyListG a)   =
       Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
         Nothing   -> error "higher kinded thing in list"
         Just Refl -> SomeTypeIn (DefaultUniList ka)
+
 convertTypeBuiltin TyStringG     = SomeTypeIn DefaultUniString
 convertTypeBuiltin TyDataG       = SomeTypeIn DefaultUniData
 
@@ -296,7 +297,7 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyIntegerG    = true
   check (Type _) TyBoolG       = true
   check (Type _) TyUnitG       = true
-  check (Type _) (TyListG a)   = check (Type ()) a
+  check (Type _) (TyListG a)   = false -- check (Type ()) a
   check (Type _) TyStringG     = true
   check (Type _) TyDataG       = true
   check _        _             = false
