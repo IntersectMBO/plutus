@@ -96,7 +96,6 @@ data FormSchema
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
-
 ------------------------------------------------------------
 type FormArgument = Fix FormArgumentF
 

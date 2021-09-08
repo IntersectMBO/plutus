@@ -122,7 +122,6 @@ data PABReq =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
-
 instance Pretty PABReq where
   pretty = \case
     AwaitSlotReq s                          -> "Await slot:" <+> pretty s
@@ -225,7 +224,6 @@ data ChainIndexQuery =
   | GetTip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
-
 
 instance Pretty ChainIndexQuery where
     pretty = \case
