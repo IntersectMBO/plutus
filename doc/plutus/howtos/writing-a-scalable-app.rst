@@ -148,6 +148,7 @@ Each order (bid/ask) is represented as a single UTXO.
 Creating a new order only requires adding a script output, so it cannot be subject to UTXO congestion.
 Matching orders is performed by a service that scans the blockchain for script outputs, maintains an order book and creates spending transactions when a match has been made.
 This is an example decoupling the spending of script outputs from producing them (Guideline 2).
+It is an instance of the :ref:`order book pattern <what_is_the_order_book_pattern>`.
 
 The basic idea could be extended in many different ways.
 For example, minting policies can be used to enforce payment for market makers or to create governance tokens.

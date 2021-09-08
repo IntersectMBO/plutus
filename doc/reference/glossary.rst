@@ -190,6 +190,10 @@ Glossary
     UTXO
       An unspent :term:`transaction output`
 
+    utxo congestion
+      The effect of multiple transactions attempting to spend the same
+      :term:`transaction output`. See :ref:`utxo_congestion`
+
     validator script
       The script attached to a script output in the Extended UTXO model.
       Must be run and return positively in order for the output to be
