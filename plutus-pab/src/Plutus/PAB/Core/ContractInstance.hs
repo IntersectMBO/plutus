@@ -48,8 +48,7 @@ import           Data.Aeson                                       (Value)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
-import           Plutus.Contract.Effects                          (ActiveEndpoint (..), PABReq (..), PABResp (..),
-                                                                   TxStatus (Unknown))
+import           Plutus.Contract.Effects                          (ActiveEndpoint (..), PABReq (..), PABResp (..))
 import qualified Plutus.Contract.Effects                          as Contract.Effects
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
 import           Plutus.Contract.State                            (ContractResponse (..), State (..))
@@ -61,7 +60,7 @@ import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInsta
 import           Wallet.Effects                                   (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
-import           Plutus.ChainIndex                                (ChainIndexQueryEffect)
+import           Plutus.ChainIndex                                (ChainIndexQueryEffect, TxStatus (Unknown))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)

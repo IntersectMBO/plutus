@@ -4,7 +4,7 @@ import           Cardano.Api                (Block (..), BlockHeader (..), Block
                                              ChainPoint (..), ChainTip (..), Hash, SlotNo (..), serialiseToRawBytes)
 import           Ledger                     (BlockId (..), Slot (..))
 import           Plutus.ChainIndex.Tx       (ChainIndexTx (..), fromOnChainTx)
-import           Plutus.ChainIndex.Types    (Point (..), Tip (..))
+import           Plutus.ChainIndex.Types    (BlockNumber (..), Point (..), Tip (..))
 import qualified Plutus.Contract.CardanoAPI as C
 
 fromCardanoTip :: ChainTip -> Tip
@@ -35,9 +35,16 @@ fromCardanoBlockId :: Hash BlockHeader -> BlockId
 fromCardanoBlockId hash =
     BlockId $ serialiseToRawBytes hash
 
-fromCardanoBlockNo :: BlockNo -> Int
+fromCardanoBlockHeader :: BlockHeader -> Tip
+fromCardanoBlockHeader (BlockHeader slotNo hash blockNo) =
+    Tip { tipSlot = fromCardanoSlot slotNo
+        , tipBlockId = fromCardanoBlockId hash
+        , tipBlockNo = fromCardanoBlockNo blockNo
+        }
+
+fromCardanoBlockNo :: BlockNo -> BlockNumber
 fromCardanoBlockNo (BlockNo blockNo) =
-    fromInteger $ toInteger blockNo
+    fromIntegral $ toInteger blockNo
 
 fromCardanoBlock
     :: BlockInMode CardanoMode

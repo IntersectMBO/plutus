@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -11,7 +14,7 @@
 -}
 module Plutus.ChainIndex.UtxoState(
     UtxoState(..)
-    , usTxUtxoBalance
+    , usTxUtxoData
     , usTip
     , TxUtxoBalance(..)
     , tubUnspentOutputs
@@ -32,6 +35,7 @@ module Plutus.ChainIndex.UtxoState(
     , RollbackFailed(..)
     , RollbackResult(..)
     , rollback
+    , viewTip
     ) where
 
 import           Control.Lens            (makeLenses, view)
@@ -57,6 +61,7 @@ data TxUtxoBalance =
         deriving stock (Eq, Show, Generic)
         deriving anyclass (FromJSON, ToJSON)
 
+
 makeLenses ''TxUtxoBalance
 
 instance Semigroup TxUtxoBalance where
@@ -72,13 +77,13 @@ instance Monoid TxUtxoBalance where
 
 -- | UTXO / ledger state, kept in memory. We are only interested in the UTXO set, everything else is stored
 --   on disk. This is OK because we don't need to validate transactions when they come in.
-data UtxoState =
+data UtxoState a =
     UtxoState
-        { _usTxUtxoBalance :: TxUtxoBalance
-        , _usTip           :: Tip -- ^ Tip of our chain sync client
+        { _usTxUtxoData :: a -- One of 'TxUtxoBalance' or 'TxIdState'
+        , _usTip        :: Tip -- ^ Tip of our chain sync client
         }
         deriving stock (Eq, Show, Generic)
-        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid UtxoState)
+        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (UtxoState a))
         deriving anyclass (FromJSON, ToJSON)
 
 makeLenses ''UtxoState
@@ -90,33 +95,35 @@ fromTx tx =
         , _tubUnmatchedSpentInputs = Set.mapMonotonic txInRef (view citxInputs tx)
         }
 
-type UtxoIndex = FingerTree UtxoState UtxoState
-instance Measured UtxoState UtxoState where
+type UtxoIndex a = FingerTree (UtxoState a) (UtxoState a)
+instance Monoid a => Measured (UtxoState a) (UtxoState a) where
     measure = id
 
-utxoState :: UtxoIndex -> UtxoState
+utxoState :: Measured (UtxoState a) (UtxoState a)
+          => UtxoIndex a
+          -> UtxoState a
 utxoState = measure
 
 -- | Whether a 'TxOutRef' is a member of the UTXO set (ie. unspent)
-isUnspentOutput :: TxOutRef -> UtxoState -> Bool
-isUnspentOutput r = Set.member r . view (usTxUtxoBalance . tubUnspentOutputs)
+isUnspentOutput :: TxOutRef -> UtxoState TxUtxoBalance -> Bool
+isUnspentOutput r = Set.member r . view (usTxUtxoData . tubUnspentOutputs)
 
-tip :: UtxoState -> Tip
+tip :: UtxoState a -> Tip
 tip = view usTip
 
-instance Ord UtxoState where
+instance Eq a => Ord (UtxoState a) where
     compare = compare `on` tip
 
 -- | The UTXO set
-unspentOutputs :: UtxoState -> Set TxOutRef
-unspentOutputs = view (usTxUtxoBalance . tubUnspentOutputs)
+unspentOutputs :: UtxoState TxUtxoBalance -> Set TxOutRef
+unspentOutputs = view (usTxUtxoData . tubUnspentOutputs)
 
 -- | 'UtxoIndex' for a single block
-fromBlock :: Tip -> [ChainIndexTx] -> UtxoState
+fromBlock :: Tip -> [ChainIndexTx] -> UtxoState TxUtxoBalance
 fromBlock tip_ transactions =
     UtxoState
-            { _usTxUtxoBalance = foldMap fromTx transactions
-            , _usTip           = tip_
+            { _usTxUtxoData = foldMap fromTx transactions
+            , _usTip        = tip_
             }
 
 -- | Outcome of inserting a 'UtxoState' into the utxo index
@@ -131,13 +138,13 @@ instance Pretty InsertUtxoPosition where
     InsertAtEnd     -> "UTxO state was added to the end."
     InsertBeforeEnd -> "UTxO state was added somewhere before the end."
 
-data InsertUtxoSuccess =
+data InsertUtxoSuccess a =
     InsertUtxoSuccess
-        { newIndex       :: UtxoIndex
+        { newIndex       :: UtxoIndex a
         , insertPosition :: InsertUtxoPosition
         }
 
-instance Pretty InsertUtxoSuccess where
+instance Pretty (InsertUtxoSuccess a) where
   pretty = \case
     InsertUtxoSuccess _ insertPosition -> pretty insertPosition
 
@@ -154,7 +161,13 @@ instance Pretty InsertUtxoFailed where
     InsertUtxoNoTip  -> "UTxO insertion failed - no tip"
 
 -- | Insert a 'UtxoState' into the index
-insert :: UtxoState -> UtxoIndex -> Either InsertUtxoFailed InsertUtxoSuccess
+insert ::
+       ( Measured (UtxoState a) (UtxoState a)
+       , Eq a
+       )
+       => UtxoState a
+       -> FingerTree (UtxoState a) (UtxoState a)
+       -> Either InsertUtxoFailed (InsertUtxoSuccess a)
 insert   UtxoState{_usTip=TipAtGenesis} _ = Left InsertUtxoNoTip
 insert s@UtxoState{_usTip=thisTip} ix =
     let (before, after) = FT.split (s <=)  ix
@@ -182,17 +195,21 @@ instance Pretty RollbackFailed where
       <+> "was different"
     OldPointNotFound t -> "Unable to find the old tip" <+> pretty t
 
-data RollbackResult =
+data RollbackResult a =
     RollbackResult
         { newTip          :: Tip
-        , rolledBackIndex :: UtxoIndex
+        , rolledBackIndex :: UtxoIndex a
         }
 
-viewTip :: UtxoIndex -> Tip
+viewTip :: Measured (UtxoState a) (UtxoState a)
+        => UtxoIndex a
+        -> Tip
 viewTip = tip . measure
 
 -- | Perform a rollback on the utxo index
-rollback :: Point -> UtxoIndex -> Either RollbackFailed RollbackResult
+rollback :: Point
+         -> UtxoIndex TxUtxoBalance
+         -> Either RollbackFailed (RollbackResult TxUtxoBalance)
 rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
 rollback targetPoint idx@(viewTip -> currentTip)
     -- The rollback happened sometime after the current tip.

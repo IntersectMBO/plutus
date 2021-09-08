@@ -47,7 +47,7 @@ import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
 import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoPosition, InsertUtxoSuccess (..), RollbackResult (..),
-                                                       UtxoIndex, isUnspentOutput, tip)
+                                                       TxUtxoBalance, UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Plutus.Contract.CardanoAPI           (FromCardanoError (..))
 import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
@@ -56,7 +56,7 @@ import           Prettyprinter                        (Pretty (..), colon, (<+>)
 data ChainIndexEmulatorState =
     ChainIndexEmulatorState
         { _diskState :: DiskState
-        , _utxoIndex :: UtxoIndex
+        , _utxoIndex :: UtxoIndex TxUtxoBalance
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ChainIndexEmulatorState)
