@@ -3,8 +3,9 @@
 What is the order book pattern?
 ===============================
 
-The order book pattern is a way of organising distributed applications on :term:`Cardano`. 
-The key idea of the order book pattern is to materialise actions that act on some state as :term:`UTXOs <UTXO>` on the :term:`ledger`, and to leave the spending of those UTXOs (applying the action to the state) to a third party.
+The order book pattern is a way of organising distributed applications on :term:`Cardano`.
+The key idea of the order book pattern is to materialise *actions* that act on some state as :term:`UTXOs <UTXO>` on the :term:`ledger`, separating them from the state they act on.
+The spending of those UTXOs (applying the action to the state) can be performed by an untrusted third party.
 The pattern is helpful for designing applications that follow the :ref:`scalability_guidelines`.
 
 Example: Distributed exchange
@@ -92,14 +93,16 @@ We could set the asset name of the token to be the hash of the exchange rate dat
 
 The :term:`minting policy <minting policy script>` of the oracle token should allow any number of tokens of the same asset name to be created as long as at least one token with that asset name exists already, reflecting the idea that information is hard to obtain but easy to replicate.
 
-The consumer of the oracle token needs to check that a token with the expected MPS hash is present in the transaction, and that the datum value of the token's asset name is available.
+The consumer of the oracle token needs to check that a token with the expected minting policy hash is present in the transaction, and that the datum value of the token's asset name is available.
 Then it can use the information from the datum.
 Maybe it could even destroy the token when it has been used.
 
 This approach has the advantage of not clogging up the UTXO set too much, but the big question here is:
 How do we make the oracle token available to the match maker?
 It has to be stored in an output that the match maker can spend.
-Maybe the tokenomics of the exchange could have incentives to make this information flow to where it is needed.
+The solution depends on the project.
+There is no general solution (yet) and some experimentation and research is needed.
+Perhaps the tokenomics of the exchange could have incentives to make this information flow to where it is needed.
 
 State machines
 ~~~~~~~~~~~~~~
