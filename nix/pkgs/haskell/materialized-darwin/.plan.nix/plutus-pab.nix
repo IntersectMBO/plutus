@@ -518,6 +518,9 @@
           buildable = true;
           modules = [
             "ContractExample"
+            "ContractExample/WaitForTx"
+            "ContractExample/AtomicSwap"
+            "ContractExample/PayToWallet"
             "Plutus/PAB/CliSpec"
             "Plutus/PAB/Effects/Contract/ContractTest"
             "Plutus/PAB/Simulator/Test"
