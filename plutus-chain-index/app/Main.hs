@@ -32,7 +32,7 @@ import           Cardano.BM.Setup                    (setupTrace_)
 import           Cardano.BM.Trace                    (Trace, logError)
 
 import           Cardano.Protocol.Socket.Client      (ChainSyncEvent (..), runChainSync)
-import           CommandLine                         (AppConfig (..), Command (..), cmdWithHelpParser)
+import           CommandLine                         (AppConfig (..), Command (..), applyOverrides, cmdWithHelpParser)
 import           Config                              (ChainIndexConfig)
 import qualified Config                              as Config
 import           Ledger                              (Slot (..))
@@ -108,7 +108,7 @@ chainSyncHandler _ _ (Resume _) _ = do
 main :: IO ()
 main = do
   -- Parse comand line arguments.
-  cmdConfig@AppConfig{acLogConfigPath, acConfigPath, acMinLogLevel, acCommand} <- execParser cmdWithHelpParser
+  cmdConfig@AppConfig{acLogConfigPath, acConfigPath, acMinLogLevel, acCommand, acCLIConfigOverrides} <- execParser cmdWithHelpParser
 
   -- Initialise logging
   logConfig <- maybe defaultConfig loadConfig acLogConfigPath
@@ -123,19 +123,20 @@ main = do
   putStrLn "Command line config:"
   print cmdConfig
 
-  putStrLn "Configuration file:"
-  print (pretty config)
+  let actualConfig = applyOverrides acCLIConfigOverrides config
+  putStrLn "Configuration:"
+  print (pretty actualConfig)
 
   appState <- STM.newTVarIO mempty
 
   case acCommand of
     StartChainIndex{} -> do
-      putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
-      void $ runChainSync (Config.cicSocketPath config)
-                          (Config.cicSlotConfig config)
-                          (Config.cicNetworkId  config)
+      putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath actualConfig
+      void $ runChainSync (Config.cicSocketPath actualConfig)
+                          (Config.cicSlotConfig actualConfig)
+                          (Config.cicNetworkId  actualConfig)
                           []
                           (chainSyncHandler trace appState)
-      putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)
-      Server.serveChainIndexQueryServer (Config.cicPort config) appState
+      putStrLn $ "Starting webserver on port " <> show (Config.cicPort actualConfig)
+      Server.serveChainIndexQueryServer (Config.cicPort actualConfig) appState
     _ -> pure ()
