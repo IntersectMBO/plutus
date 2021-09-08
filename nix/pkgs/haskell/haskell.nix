@@ -202,6 +202,12 @@ let
             export ACTUS_TEST_DATA_DIR=${actus-tests}/tests/
           '';
 
+          marlowe.components.tests.marlowe-test-long-running = {
+            # Note: These tests fail on the mac-mini, so we're disablihg them
+            # for _all_ macs here.
+            platforms = lib.platforms.linux;
+          };
+
           # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
           iohk-monitoring.doHaddock = false;
 
