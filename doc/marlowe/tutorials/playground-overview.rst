@@ -25,9 +25,7 @@ author contracts in these languages and then convert ("compile") them to
 Marlowe in the Playground. Once a contract has been written in Blockly, Haskell, or JavaScript, we
 can move to the Simulator to analyse and simulate the contract.
 
-Work from the Playground can be saved as a github gist. This saves everything in the Playground as a
-*project*: this includes not only the contracts but also
-the current state of the simulation, the logs and so on. Projects can be
+Work from the Playground can be saved as a github gist. Projects can be
 reloaded or duplicated at a later time. Even without using github the
 project is saved between sessions, but this is *volatile*, and will be
 lost if browser caches are updated.
@@ -43,7 +41,7 @@ The landing page for the Marlowe Playground looks like this
 .. image:: images/landing-page.png
    :alt: The landing page for the Playground
 
-The title bar has a links to this tutorial at the right-hand side, and the footer has some general links.
+The title bar has a link to this tutorial at the right-hand side, and the footer has some general links.
 
 The page offers three options
 
@@ -132,8 +130,10 @@ information describing
 - parameters
 - choices
 
-There is no need for you to add these fields yourself, ans they are generated automatically from the contract as
-it is developed.
+When a contract is compiled successfully, the metadata editor will prompt
+you to add metadata for the fields that correspond to the appropriate
+elements of the contract, and to delete the fields that do not correspond
+to anything in the contract.
 
 Contract metadata not only provides documentation for Marlowe contracts, but is also used in Marlowe Run, the 
 end-user client that is to be used to run Marlowe contacts on the Cardano blockchain.
@@ -194,8 +194,10 @@ information describing
 - parameters
 - choices
 
-There is no need for you to add these fields yourself, ans they are generated automatically from the contract as
-it is developed.
+When a contract is compiled successfully, the metadata editor will prompt
+you to add metadata for the fields that correspond to the appropriate
+elements of the contract, and to delete the fields that do not correspond
+to anything in the contract.
 
 Contract metadata not only provides documentation for Marlowe contracts, but is also used in Marlowe Run, the 
 end-user client that is to be used to run Marlowe contacts on the Cardano blockchain.
@@ -289,7 +291,7 @@ doing that we see
 
 where we see to the right of the screen that the deposit has been made, followed by
 an automatic payment to the *Borrower*. We can also see that the highlighted part has changed
-to reflect that fact that the initial deposit and pay have been performed.
+to reflect the fact that the initial deposit and pay have been performed.
 
 The remaining part of the contract is the repayment: if we select this action by the *Borrower* 
 we see that the contract has completed.

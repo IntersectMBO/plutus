@@ -94,8 +94,8 @@ to as used above, the Performer/Vendor/Artist/Consultant". This way we can decou
 the notion of ownership of a contract role, and make it tradable. So you
 can sell your loan or buy a share of a role in some contract.
 
-Slot numbers and amounts of money are treated in a similar way: with the
-same show/overload approach as used above, they will appear in contracts  numbers:
+Slot numbers and amounts of money are treated in a similar way; with the
+same show/overload approach as used above, they will appear in contracts as numbers:
 
 .. code:: haskell
 
@@ -293,7 +293,7 @@ where the types are defined like this:
       deriving (Eq,Ord,Show,Read)
 
 The notation used here adds field names to the arguments of the
-constructors, giving selectors for the data as used above, well as used above, making in clearer
+constructors, giving selectors for the data (as used above), as well as making clearer
 the purpose of each field.
 
 The ``TransactionInput`` type has two components: the ``SlotInterval``
@@ -329,11 +329,11 @@ How does this affect the processing of a Marlowe contract? Each step is
 processed relative to a slot interval, and the current slot value needs
 to lie within that interval.
 
-The endpoints of the interval are accessible as used above, the values
-``SlotIntervalStart`` and ``SlotIntervalEnd``, and these can be used in
-observations. Timeouts need to be processed *unambiguously*, so that
-*all values in the slot interval* have to either have exceeded the
-timeout for it to take effect, or fall before the timeout, for normal
+The endpoints of the interval are accessible as the values
+``SlotIntervalStart`` and ``SlotIntervalEnd`` (as used above), and these
+can be used in observations. Timeouts need to be processed *unambiguously*,
+so that *all values in the slot interval* have to either have exceeded
+the timeout for it to take effect, or fall before the timeout, for normal
 execution to take effect. In other words, the timeout value needs to
 either be less or equal than ``SlotIntervalStart`` (in order for the
 timeout to take effect) or be strictly greater than ``SlotIntervalEnd``

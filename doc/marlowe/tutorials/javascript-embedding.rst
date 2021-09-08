@@ -25,7 +25,7 @@ Using the JS Editor in the Marlowe Playground
 
 
 The library implementation itself is straightforward, and you can find all of
-its source code here. https://github.com/input-output-hk/plutus/blob/master/marlowe-playground-client/src/Language/Javascript/MarloweJS.ts
+its source code here: https://github.com/input-output-hk/plutus/blob/master/marlowe-playground-client/src/Language/Javascript/MarloweJS.ts
 It is based on the principle that for each Haskell *type* there is a corresponding TypeScript type, and
 corresponding to each *constructor* there is a constant definition.
 

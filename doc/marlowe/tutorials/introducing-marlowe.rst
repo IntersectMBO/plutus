@@ -185,7 +185,7 @@ Finding out more
 
 Systems 
 
--  `The Marlowe Playground <https://alpha.marlowe.iohkdev.io/>`_ an
+-  `The Marlowe Playground <https://play.marlowe-finance.io>`_ an
    in-browser development, analysis and simulation environment.
 
 -  `Marlowe Run <https://run.marlowe-finance.io>`_ the end-user client for downloading and running
@@ -195,7 +195,7 @@ Systems
    repository <https://github.com/input-output-hk/marlowe>`_ from which
    you can download Marlowe.
 
--  `The Marlowe Website <https://hernan.marlowe-web.iohkdev.io/#>`_ landing page for all things Marlowe.
+-  `The Marlowe Website <https://staging.marlowe-web.iohkdev.io>`_ landing page for all things Marlowe.
 
 
 Videos
