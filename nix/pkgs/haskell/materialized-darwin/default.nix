@@ -1055,6 +1055,7 @@
           "semigroupoids".components.library.planned = lib.mkOverride 900 true;
           "iohk-monitoring".components.library.planned = lib.mkOverride 900 true;
           "insert-ordered-containers".components.library.planned = lib.mkOverride 900 true;
+          "plutus-pab".components.tests."plutus-pab-test-full-long-running".planned = lib.mkOverride 900 true;
           "Win32-network".components.exes."named-pipe-demo".planned = lib.mkOverride 900 true;
           "criterion-measurement".components.library.planned = lib.mkOverride 900 true;
           "plutus-contract".components.library.planned = lib.mkOverride 900 true;
