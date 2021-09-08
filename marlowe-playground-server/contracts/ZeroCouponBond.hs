@@ -7,12 +7,12 @@ main :: IO ()
 main = print . pretty $ contract
 
 discountedPrice, notionalPrice :: Value
-discountedPrice = ConstantParam "Interest"
-notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
+discountedPrice = ConstantParam "Amount"
+notionalPrice = AddValue (ConstantParam "Interest") discountedPrice
 
-investor, issuer :: Party
-investor = Role "Lender"
-issuer = Role "Borrower"
+lender, borrower :: Party
+lender = Role "Lender"
+borrower = Role "Borrower"
 
 initialExchange, maturityExchangeTimeout :: Timeout
 initialExchange = SlotParam "Loan deadline"
@@ -26,6 +26,6 @@ transfer timeout from to amount continuation =
          Close
 
 contract :: Contract
-contract = transfer initialExchange investor issuer discountedPrice
-         $ transfer maturityExchangeTimeout issuer investor notionalPrice
+contract = transfer initialExchange lender borrower discountedPrice
+         $ transfer maturityExchangeTimeout borrower lender notionalPrice
            Close

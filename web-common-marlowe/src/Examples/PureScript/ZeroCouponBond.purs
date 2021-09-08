@@ -44,16 +44,16 @@ ada :: Token
 ada = Token "" ""
 
 discountedPrice :: Value
-discountedPrice = ConstantParam "Interest"
+discountedPrice = ConstantParam "Amount"
 
 notionalPrice :: Value
-notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
+notionalPrice = AddValue (ConstantParam "Interest") discountedPrice
 
-investor :: Party
-investor = Role "Lender"
+lender :: Party
+lender = Role "Lender"
 
-issuer :: Party
-issuer = Role "Borrower"
+borrower :: Party
+borrower = Role "Borrower"
 
 initialExchange :: Timeout
 initialExchange = SlotParam "Loan deadline"
@@ -72,6 +72,6 @@ transfer timeout from to amount continuation =
 
 fullExtendedContract :: Contract
 fullExtendedContract =
-  transfer initialExchange investor issuer discountedPrice
-    $ transfer maturityExchangeTimeout issuer investor notionalPrice
+  transfer initialExchange lender borrower discountedPrice
+    $ transfer maturityExchangeTimeout borrower lender notionalPrice
         Close
