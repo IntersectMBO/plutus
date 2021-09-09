@@ -90,8 +90,8 @@ tests =
             con = selectList [void oneTwo, void oneThree]
           in
             run 1 "alternative"
-                (endpointAvailable @"3" con tag
-                    .&&. not (endpointAvailable @"2" con tag))
+                (endpointAvailable @"2" con tag
+                    .&&. not (endpointAvailable @"3" con tag))
                 $ do
                     hdl <- activateContract w1 con tag
                     callEndpoint @"1" hdl 1

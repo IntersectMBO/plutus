@@ -11,7 +11,7 @@
     flags = { unexpected_thunks = false; systemd = true; };
     package = {
       specVersion = "3.0";
-      identifier = { name = "cardano-node"; version = "1.28.0"; };
+      identifier = { name = "cardano-node"; version = "1.29.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "operations@iohk.io";

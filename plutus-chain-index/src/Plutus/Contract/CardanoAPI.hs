@@ -106,7 +106,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txExtraScriptData = C.BuildTxWith $ toCardanoExtraScriptData (Map.elems txData)
         , txMintValue = txMintValue
         , txProtocolParams = C.BuildTxWith protocolParams
-        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
+        , txScriptValidity = C.TxScriptValidityNone
         -- unused:
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone

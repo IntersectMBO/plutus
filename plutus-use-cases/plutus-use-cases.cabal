@@ -133,6 +133,7 @@ test-suite plutus-use-cases-test
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cardano-crypto-class -any,
         containers -any,
         data-default -any,
         freer-extras -any,
@@ -189,6 +190,7 @@ executable plutus-use-cases-scripts
         base >= 4.9 && <5,
         aeson -any,
         bytestring -any,
+        cardano-crypto-class -any,
         containers -any,
         data-default -any,
         flat -any,

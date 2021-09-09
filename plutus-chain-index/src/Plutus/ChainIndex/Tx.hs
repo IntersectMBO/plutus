@@ -78,6 +78,7 @@ data ChainIndexTx = ChainIndexTx {
 
 makeLenses ''ChainIndexTx
 
+
 instance Pretty ChainIndexTx where
     pretty ChainIndexTx{_citxTxId, _citxInputs, _citxOutputs = ValidTx outputs, _citxValidRange, _citxMintingPolicies, _citxData, _citxRedeemers} =
         let lines' =

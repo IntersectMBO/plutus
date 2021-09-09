@@ -103,8 +103,8 @@ import           Data.Text                               (Text)
 import           Ledger.Tx                               (Address, Tx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
-import           Plutus.ChainIndex                       (ChainIndexQueryEffect)
-import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq, TxStatus (Unknown))
+import           Plutus.ChainIndex                       (ChainIndexQueryEffect, TxStatus (Unknown))
+import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, ContractInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
 import           Plutus.PAB.Core.ContractInstance.STM    (Activity (Active), BlockchainEnv, InstancesState,

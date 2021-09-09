@@ -4,20 +4,35 @@ Marlowe embedded in JavaScript
 ==============================
 
 Marlowe is written as a Haskell data type, and thus it is
-straightforward to generate Marlowe smart contracts using Haskell.
-Nevertheless, we also provide a library written in TypeScript that can
+straightforward to describe Marlowe smart contracts using Haskell. But since Marlowe contracts are “just” 
+a form of data, we can equally well represent them in other languages.
+
+Here we describe a library written in TypeScript that can
 be used to generate Marlowe smart contracts from TypeScript or
 JavaScript in a similar way to how one would by using Haskell. If you
 are not familiar with TypeScript, you can also use the API as if it was
 written in JavaScript since TypeScript is a superset of JavaScript.
 
-You can try the library online by selecting the JS Editor tab in the
-Marlowe Playground. On the top of the tab you can find several examples
-that illustrate how to use the library.
+You can try the library online in the
+Marlowe Playground by selecting **Start in JavaScript** on the home page, or by opening one of the 
+JavaScript examples.
 
-Using the JS Editor tab
------------------------
+We begin this section by explaining the embedding, then explain a couple of particular points about
+embedding in JavaScript, and finally present an example of a full contract described using the JS embedding.
 
+Using the JS Editor in the Marlowe Playground
+---------------------------------------------
+
+
+The library implementation itself is straightforward, and you can find all of
+its source code here: https://github.com/input-output-hk/plutus/blob/master/marlowe-playground-client/src/Language/Javascript/MarloweJS.ts
+It is based on the principle that for each Haskell *type* there is a corresponding TypeScript type, and
+corresponding to each *constructor* there is a constant definition.
+
+.. image:: images/JavaScriptImport.png
+   :alt: JavaScript import
+
+   
 The JavaScript/TypeScript library provides constant definitions for
 Marlowe constructs that have no arguments, as is the case of
 ``SlotIntervalEnd``:
@@ -60,14 +75,15 @@ example, the function ``AvailableMoney`` is defined as follows:
                     "in_account": accountId };
        };
 
-When you click the Compile button in the JS tab of the Marlowe
+When you click the **Compile** button in the JS editor of the Marlowe
 Playground, the code in the body of the tab is executed, and the JSON
 object returned by the function during the execution is parsed into an
-actual Marlowe contract that can then be sent to the Simulation tab
-where it can be simulated.
+actual Marlowe contract. Once that is successful it is possible to **Send to Simulator**; how this works is
+described in the next section.
 
-The library implementation itself is quite simple, you can find all of
-its source code here. In principle you could write JavaScript code that
+
+
+In principle you could write JavaScript code that
 produces the Marlowe’s JSON representation directly, but you should not
 have to worry about JSON at all when using the JS library.
 
@@ -284,6 +300,6 @@ The contract has four steps:
 
 4. We pay Bob’s deposit to Alice.
 
-And that is it. You can find the full source code for the swap smart
+And that is it. You can find the full source code for a templated version of the swap smart
 contract in the examples in the Marlowe Playground, which we look at
 next.

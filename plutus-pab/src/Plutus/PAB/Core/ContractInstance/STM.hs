@@ -52,30 +52,33 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , InstanceClientEnv(..)
     ) where
 
-import           Control.Applicative       (Alternative (..))
-import           Control.Concurrent.STM    (STM, TMVar, TVar)
-import qualified Control.Concurrent.STM    as STM
-import           Control.Lens              (view)
-import           Control.Monad             (guard, (<=<))
-import           Data.Aeson                (Value)
-import           Data.Default              (def)
-import           Data.Foldable             (fold)
-import           Data.List.NonEmpty        (NonEmpty)
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
-import           Ledger                    (Address, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
-import           Ledger.AddressMap         (AddressMap)
-import qualified Ledger.AddressMap         as AM
-import           Ledger.Time               (POSIXTime (..))
-import qualified Ledger.TimeSlot           as TimeSlot
-import qualified Ledger.Value              as Value
-import           Plutus.ChainIndex         (ChainIndexTx)
-import           Plutus.Contract.Effects   (ActiveEndpoint (..), TxStatus (..))
-import           Plutus.Contract.Resumable (IterationID, Request (..), RequestID)
-import           Wallet.Types              (ContractInstanceId, EndpointDescription, EndpointValue (..),
-                                            NotificationError (..))
+import           Control.Applicative         (Alternative (..))
+import           Control.Concurrent.STM      (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM      as STM
+import           Control.Lens                (view)
+import           Control.Monad               (guard, (<=<))
+import           Data.Aeson                  (Value)
+import           Data.Default                (def)
+import           Data.FingerTree             (Measured (..))
+import           Data.Foldable               (fold)
+import           Data.List.NonEmpty          (NonEmpty)
+import           Data.Map                    (Map)
+import qualified Data.Map                    as Map
+import           Data.Set                    (Set)
+import qualified Data.Set                    as Set
+import           Ledger                      (Address, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
+import           Ledger.AddressMap           (AddressMap)
+import qualified Ledger.AddressMap           as AM
+import           Ledger.Time                 (POSIXTime (..))
+import qualified Ledger.TimeSlot             as TimeSlot
+import qualified Ledger.Value                as Value
+import           Plutus.ChainIndex           (BlockNumber (..), ChainIndexTx, TxIdState (..), TxStatus (..),
+                                              transactionStatus)
+import           Plutus.ChainIndex.UtxoState (UtxoIndex, UtxoState (..))
+import           Plutus.Contract.Effects     (ActiveEndpoint (..))
+import           Plutus.Contract.Resumable   (IterationID, Request (..), RequestID)
+import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue (..),
+                                              NotificationError (..))
 
 {- Note [Contract instance thread model]
 
@@ -152,9 +155,10 @@ data OpenTxOutProducedRequest =
 --   may be interested in.
 data BlockchainEnv =
     BlockchainEnv
-        { beCurrentSlot :: TVar Slot -- ^ Current slot
-        , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
-        , beTxChanges   :: TVar (Map TxId (TVar TxStatus)) -- ^ Map of transaction IDs to statuses
+        { beCurrentSlot  :: TVar Slot -- ^ Current slot
+        , beAddressMap   :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
+        , beTxChanges    :: TVar (UtxoIndex TxIdState) -- ^ Map holding metadata which determines the status of transactions.
+        , beCurrentBlock :: TVar BlockNumber -- ^ Current block
         }
 
 -- | Initialise an empty 'BlockchainEnv' value
@@ -164,6 +168,7 @@ emptyBlockchainEnv =
         <$> STM.newTVar 0
         <*> STM.newTVar mempty
         <*> STM.newTVar mempty
+        <*> STM.newTVar (BlockNumber 0)
 
 -- | Wait until the current slot is greater than or equal to the
 --   target slot, then return the current slot.
@@ -415,14 +420,12 @@ watchedTransactions (InstancesState m) = do
 
 -- | Wait for the status of a transaction to change.
 waitForTxStatusChange :: TxStatus -> TxId -> BlockchainEnv -> STM TxStatus
-waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges} = do
-    idx <- STM.readTVar beTxChanges
-    case Map.lookup tx idx of
-        Nothing -> empty -- TODO: should be an error?
-        Just tv' -> do
-            newStatus <- STM.readTVar tv'
-            guard $ oldStatus /= newStatus
-            pure newStatus
+waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges, beCurrentBlock} = do
+    txIdState   <- _usTxUtxoData . measure <$> STM.readTVar beTxChanges
+    blockNumber <- STM.readTVar beCurrentBlock
+    let newStatus = transactionStatus blockNumber txIdState tx
+    guard $ oldStatus /= newStatus
+    pure newStatus
 
 -- | The value at an address
 valueAt :: Address -> BlockchainEnv -> STM Value.Value

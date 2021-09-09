@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -11,7 +14,7 @@
 -}
 module Plutus.ChainIndex.UtxoState(
     UtxoState(..)
-    , usTxUtxoBalance
+    , usTxUtxoData
     , usTip
     , TxUtxoBalance(..)
     , tubUnspentOutputs
@@ -32,6 +35,7 @@ module Plutus.ChainIndex.UtxoState(
     , RollbackFailed(..)
     , RollbackResult(..)
     , rollback
+    , viewTip
     ) where
 
 import           Control.Lens            (makeLenses, view)
@@ -45,7 +49,7 @@ import qualified Data.Set                as Set
 import           GHC.Generics            (Generic)
 import           Ledger                  (TxIn (txInRef), TxOutRef (..))
 import           Plutus.ChainIndex.Tx    (ChainIndexTx (..), citxInputs, txOutsWithRef)
-import           Plutus.ChainIndex.Types (Tip (..))
+import           Plutus.ChainIndex.Types (Point (..), Tip (..), pointsToTip)
 import           Prettyprinter           (Pretty (..), (<+>))
 
 -- | The effect of a transaction (or a number of them) on the utxo set.
@@ -56,6 +60,7 @@ data TxUtxoBalance =
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (FromJSON, ToJSON)
+
 
 makeLenses ''TxUtxoBalance
 
@@ -72,13 +77,13 @@ instance Monoid TxUtxoBalance where
 
 -- | UTXO / ledger state, kept in memory. We are only interested in the UTXO set, everything else is stored
 --   on disk. This is OK because we don't need to validate transactions when they come in.
-data UtxoState =
+data UtxoState a =
     UtxoState
-        { _usTxUtxoBalance :: TxUtxoBalance
-        , _usTip           :: Tip -- ^ Tip of our chain sync client
+        { _usTxUtxoData :: a -- One of 'TxUtxoBalance' or 'TxIdState'
+        , _usTip        :: Tip -- ^ Tip of our chain sync client
         }
         deriving stock (Eq, Show, Generic)
-        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid UtxoState)
+        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (UtxoState a))
         deriving anyclass (FromJSON, ToJSON)
 
 makeLenses ''UtxoState
@@ -90,33 +95,35 @@ fromTx tx =
         , _tubUnmatchedSpentInputs = Set.mapMonotonic txInRef (view citxInputs tx)
         }
 
-type UtxoIndex = FingerTree UtxoState UtxoState
-instance Measured UtxoState UtxoState where
+type UtxoIndex a = FingerTree (UtxoState a) (UtxoState a)
+instance Monoid a => Measured (UtxoState a) (UtxoState a) where
     measure = id
 
-utxoState :: UtxoIndex -> UtxoState
+utxoState :: Measured (UtxoState a) (UtxoState a)
+          => UtxoIndex a
+          -> UtxoState a
 utxoState = measure
 
 -- | Whether a 'TxOutRef' is a member of the UTXO set (ie. unspent)
-isUnspentOutput :: TxOutRef -> UtxoState -> Bool
-isUnspentOutput r = Set.member r . view (usTxUtxoBalance . tubUnspentOutputs)
+isUnspentOutput :: TxOutRef -> UtxoState TxUtxoBalance -> Bool
+isUnspentOutput r = Set.member r . view (usTxUtxoData . tubUnspentOutputs)
 
-tip :: UtxoState -> Tip
+tip :: UtxoState a -> Tip
 tip = view usTip
 
-instance Ord UtxoState where
+instance Eq a => Ord (UtxoState a) where
     compare = compare `on` tip
 
 -- | The UTXO set
-unspentOutputs :: UtxoState -> Set TxOutRef
-unspentOutputs = view (usTxUtxoBalance . tubUnspentOutputs)
+unspentOutputs :: UtxoState TxUtxoBalance -> Set TxOutRef
+unspentOutputs = view (usTxUtxoData . tubUnspentOutputs)
 
 -- | 'UtxoIndex' for a single block
-fromBlock :: Tip -> [ChainIndexTx] -> UtxoState
+fromBlock :: Tip -> [ChainIndexTx] -> UtxoState TxUtxoBalance
 fromBlock tip_ transactions =
     UtxoState
-            { _usTxUtxoBalance = foldMap fromTx transactions
-            , _usTip           = tip_
+            { _usTxUtxoData = foldMap fromTx transactions
+            , _usTip        = tip_
             }
 
 -- | Outcome of inserting a 'UtxoState' into the utxo index
@@ -131,13 +138,13 @@ instance Pretty InsertUtxoPosition where
     InsertAtEnd     -> "UTxO state was added to the end."
     InsertBeforeEnd -> "UTxO state was added somewhere before the end."
 
-data InsertUtxoSuccess =
+data InsertUtxoSuccess a =
     InsertUtxoSuccess
-        { newIndex       :: UtxoIndex
+        { newIndex       :: UtxoIndex a
         , insertPosition :: InsertUtxoPosition
         }
 
-instance Pretty InsertUtxoSuccess where
+instance Pretty (InsertUtxoSuccess a) where
   pretty = \case
     InsertUtxoSuccess _ insertPosition -> pretty insertPosition
 
@@ -154,7 +161,13 @@ instance Pretty InsertUtxoFailed where
     InsertUtxoNoTip  -> "UTxO insertion failed - no tip"
 
 -- | Insert a 'UtxoState' into the index
-insert :: UtxoState -> UtxoIndex -> Either InsertUtxoFailed InsertUtxoSuccess
+insert ::
+       ( Measured (UtxoState a) (UtxoState a)
+       , Eq a
+       )
+       => UtxoState a
+       -> FingerTree (UtxoState a) (UtxoState a)
+       -> Either InsertUtxoFailed (InsertUtxoSuccess a)
 insert   UtxoState{_usTip=TipAtGenesis} _ = Left InsertUtxoNoTip
 insert s@UtxoState{_usTip=thisTip} ix =
     let (before, after) = FT.split (s <=)  ix
@@ -166,41 +179,53 @@ insert s@UtxoState{_usTip=thisTip} ix =
 -- | Reason why the 'rollback' operation failed
 data RollbackFailed =
     RollbackNoTip  -- ^ Rollback failed because the utxo index had no tip (not synchronised)
-    | TipMismatch { foundTip :: Tip, targetTip :: Tip } -- ^ Unable to roll back to 'expectedTip' because the tip at that position was different
-    | OldTipNotFound Tip -- ^ Unable to find the old tip
+    | TipMismatch { foundTip :: Tip, targetPoint :: Point } -- ^ Unable to roll back to 'expectedTip' because the tip at that position was different
+    | OldPointNotFound Point -- ^ Unable to find the old tip
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty RollbackFailed where
   pretty = \case
     RollbackNoTip -> "UTxO index had no tip (not synchronised)"
-    TipMismatch foundTip targetTip ->
+    TipMismatch foundTip targetPoint ->
           "Unable to rollback to"
-      <+> pretty targetTip
+      <+> pretty targetPoint
       <+> "because the tip at that position"
       <+> pretty foundTip
       <+> "was different"
-    OldTipNotFound t -> "Unable to find the old tip" <+> pretty t
+    OldPointNotFound t -> "Unable to find the old tip" <+> pretty t
 
-data RollbackResult =
+data RollbackResult a =
     RollbackResult
         { newTip          :: Tip
-        , rolledBackIndex :: UtxoIndex
+        , rolledBackIndex :: UtxoIndex a
         }
 
-viewTip :: UtxoIndex -> Tip
+viewTip :: Measured (UtxoState a) (UtxoState a)
+        => UtxoIndex a
+        -> Tip
 viewTip = tip . measure
 
 -- | Perform a rollback on the utxo index
-rollback :: Tip -> UtxoIndex -> Either RollbackFailed RollbackResult
-rollback _             (viewTip -> TipAtGenesis) = Left RollbackNoTip
-rollback targetTip idx@(viewTip -> currentTip)
+rollback :: Point
+         -> UtxoIndex TxUtxoBalance
+         -> Either RollbackFailed (RollbackResult TxUtxoBalance)
+rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
+rollback targetPoint idx@(viewTip -> currentTip)
     -- The rollback happened sometime after the current tip.
-    | currentTip < targetTip = Left TipMismatch{foundTip=currentTip, targetTip}
+    | not (targetPoint `pointLessThanTip` currentTip) =
+        Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
-        let (before, _) = FT.split ((> targetTip) . tip) idx
+        let (before, _) = FT.split (pointLessThanTip targetPoint . tip) idx
 
         case tip (measure before) of
-            TipAtGenesis -> Left $ OldTipNotFound targetTip
-            oldTip | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
-                   | otherwise           -> Left  TipMismatch{foundTip=oldTip, targetTip}
+            TipAtGenesis -> Left $ OldPointNotFound targetPoint
+            oldTip | targetPoint `pointsToTip` oldTip ->
+                       Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
+                   | otherwise                        ->
+                       Left  TipMismatch{foundTip=oldTip, targetPoint=targetPoint}
+    where
+      pointLessThanTip :: Point -> Tip -> Bool
+      pointLessThanTip PointAtGenesis  _               = True
+      pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
+      pointLessThanTip _               TipAtGenesis    = False

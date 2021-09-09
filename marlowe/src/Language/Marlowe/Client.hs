@@ -548,14 +548,16 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
                     marloweContract = txOutContract,
                     marloweState = txOutState }
 
-            let (outputsConstraints, finalBalance) = case txOutContract of
-                    Close -> (payoutConstraints txOutPayments, P.zero)
-                    _ -> let
-                        outputsConstraints = payoutConstraints txOutPayments
-                        totalIncome = P.foldMap collectDeposits inputs
-                        totalPayouts = P.foldMap (\(Payment _ _ v) -> v) txOutPayments
-                        finalBalance = totalIncome P.- totalPayouts
-                        in (outputsConstraints, finalBalance)
+            let (outputsConstraints, finalBalance) = let
+                    payoutsByParty = AssocMap.toList $ P.foldMap payoutByParty txOutPayments
+                    in case txOutContract of
+                        Close -> (payoutConstraints payoutsByParty, P.zero)
+                        _ -> let
+                            outputsConstraints = payoutConstraints payoutsByParty
+                            totalIncome = P.foldMap collectDeposits inputs
+                            totalPayouts = P.foldMap snd payoutsByParty
+                            finalBalance = inputBalance P.+ totalIncome P.- totalPayouts
+                            in (outputsConstraints, finalBalance)
             -- TODO Push this use of time further down the code
             let range = TimeSlot.slotRangeToPOSIXTimeRange def $ Interval.interval minSlot maxSlot
             let constraints = inputsConstraints <> outputsConstraints <> mustValidateIn range
@@ -588,20 +590,18 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
     collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
     collectDeposits _                                     = P.zero
 
-    payoutConstraints :: [Payment] -> TxConstraints i0 o0
-    payoutConstraints payments = P.foldMap payoutToTxOut payoutsByParty
-      where
-        payoutsByParty = AssocMap.toList $ P.foldMap payoutByParty payments
+    payoutByParty :: Payment -> AssocMap.Map Party Val.Value
+    payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
+    payoutByParty (Payment _ (Account _) _)       = AssocMap.empty
 
+    payoutConstraints :: [(Party, Val.Value)] -> TxConstraints i0 o0
+    payoutConstraints payoutsByParty = P.foldMap payoutToTxOut payoutsByParty
+      where
         payoutToTxOut (party, value) = case party of
             PK pk  -> mustPayToPubKey pk value
             Role role -> let
                 dataValue = Datum $ PlutusTx.toBuiltinData role
                 in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
-
-        payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
-
-        payoutByParty (Payment _ (Account _) _)       = AssocMap.empty
 
 
 {-# INLINABLE isFinal #-}

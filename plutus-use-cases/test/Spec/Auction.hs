@@ -15,6 +15,7 @@ module Spec.Auction
     , prop_FinishAuction
     ) where
 
+import           Cardano.Crypto.Hash                as Crypto
 import           Control.Lens
 import           Control.Monad                      (void, when)
 import qualified Control.Monad.Freer                as Freer
@@ -38,6 +39,7 @@ import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.Auction           hiding (Bid)
 import qualified Plutus.Trace.Emulator              as Trace
 import           PlutusTx.Monoid                    (inv)
+import qualified PlutusTx.Prelude                   as PlutusTx
 
 import           Test.QuickCheck                    hiding ((.&&.))
 import           Test.Tasty
@@ -54,13 +56,14 @@ params =
         , apEndTime = TimeSlot.scSlotZeroTime slotCfg + 100000
         }
 
+mpsHash :: Value.CurrencySymbol
+mpsHash = Value.CurrencySymbol $ PlutusTx.toBuiltin $ Crypto.hashToBytes $ Crypto.hashWith @Crypto.Blake2b_224 id "ffff"
+
 -- | The token that we are auctioning off.
 theToken :: Value
 theToken =
-    -- "ffff" is not a valid MPS hash. But this doesn't matter because we
-    -- never try to mint any value of "ffff" using a script.
     -- This currency is created by the initial transaction.
-    Value.singleton "ffff" "token" 1
+    Value.singleton mpsHash "token" 1
 
 -- | 'EmulatorConfig' that includes 'theToken' in the initial distribution of Wallet 1.
 auctionEmulatorCfg :: Trace.EmulatorConfig
@@ -76,7 +79,7 @@ seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
 buyer :: ThreadToken -> Contract AuctionOutput BuyerSchema AuctionError ()
-buyer cur = auctionBuyer slotCfg cur params
+buyer cur = auctionBuyer cur params
 
 w1, w2, w3 :: Wallet
 w1 = Wallet 1

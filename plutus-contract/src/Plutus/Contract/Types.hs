@@ -9,8 +9,6 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MonoLocalBinds         #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
@@ -243,6 +241,11 @@ instance IsContract Promise where
 
 -- | @select@ returns the contract that makes progress first, discarding the
 --   other one.
+--
+-- However, note that if multiples promises are chained together like
+-- @P1 `select` P2 `select` P3@ and all three can make progress at the same
+-- moment, then @select@ will prioritize the promises starting from the right
+-- (first @P3@ then @P2@ then @P1@).
 select :: forall w s e a. Promise w s e a -> Promise w s e a -> Promise w s e a
 select (Promise (Contract l)) (Promise (Contract r)) = Promise (Contract (Resumable.select @PABResp @PABReq @(ContractEffs w e) l r))
 
@@ -250,8 +253,14 @@ select (Promise (Contract l)) (Promise (Contract r)) = Promise (Contract (Resuma
 selectEither :: forall w s e a b. Promise w s e a -> Promise w s e b -> Promise w s e (Either a b)
 selectEither l r = (Left <$> l) `select` (Right <$> r)
 
+-- | 'selectList' returns the contract that makes progress first, discarding the
+-- other ones.
+--
+-- However, if multiple contracts can make progress, 'selectList' prioritizes
+-- the ones appearing first in the input list. Therefore, the order of the
+-- list of promises is important.
 selectList :: [Promise w s e a] -> Contract w s e a
-selectList = awaitPromise . foldr1 select
+selectList = awaitPromise . foldr1 select . reverse
 
 -- | Write the current state of the contract to a checkpoint.
 checkpoint :: forall w s e a. (AsCheckpointError e, Aeson.FromJSON a, Aeson.ToJSON a) => Contract w s e a -> Contract w s e a

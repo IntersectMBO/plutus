@@ -52,11 +52,11 @@ import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
 import           Ledger.Blockchain                    (OnChainTx (..))
 import           Ledger.Tx                            (Address, TxIn (..), TxOut (..), TxOutRef, txId)
-import           Plutus.ChainIndex                    (ChainIndexQueryEffect, ChainIndexTx, _ValidTx, citxInputs,
-                                                       citxOutputs, fromOnChainTx)
+import           Plutus.ChainIndex                    (ChainIndexQueryEffect, ChainIndexTx, TxStatus (..),
+                                                       TxValidity (..), _ValidTx, citxInputs, citxOutputs,
+                                                       fromOnChainTx)
 import           Plutus.Contract                      (Contract (..))
-import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
-                                                       matches)
+import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), matches)
 import qualified Plutus.Contract.Effects              as E
 import           Plutus.Contract.Resumable            (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable            as State
@@ -290,7 +290,7 @@ updateTxStatus txns = do
     let mpReq Request{rqID, itID, rqRequest=txid} =
             case Map.lookup txid statusMap of
                 Nothing -> Nothing
-                Just newStatus -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=AwaitTxStatusChangeResp txid (E.Committed newStatus)}
+                Just newStatus -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=AwaitTxStatusChangeResp txid (Committed newStatus)}
         txStatusHk = listToMaybe $ mapMaybe mpReq hks
     traverse_ (addResponse @w @s @e) txStatusHk
     logResponse @w @s @e False txStatusHk
