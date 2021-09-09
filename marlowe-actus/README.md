@@ -24,7 +24,7 @@ Regular principal repayments over time, the interest payments decrease linearly.
 
 ##### Negative Amortizer (NAM)
 
-Negative amortization means that the payments per period are smaller the interest, i.e. the balance of the loan increases over time.
+Negative amortization means that the payments per period are smaller than the interest, i.e. the balance of the loan increases over time.
 
 ##### Annuity (ANN)
 
