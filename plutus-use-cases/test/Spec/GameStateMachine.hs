@@ -247,15 +247,6 @@ tests =
 initialVal :: Value
 initialVal = Ada.adaValueOf 10
 
-w1 :: Wallet
-w1 = Wallet 1
-
-w2 :: Wallet
-w2 = Wallet 2
-
-w3 :: Wallet
-w3 = Wallet 3
-
 -- | Wallet 1 locks some funds, transfers the token to wallet 2
 --   which then makes a correct guess and locks the remaining
 --   funds with a new secret

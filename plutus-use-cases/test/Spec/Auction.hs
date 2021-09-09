@@ -16,7 +16,7 @@ module Spec.Auction
     ) where
 
 import           Cardano.Crypto.Hash                as Crypto
-import           Control.Lens
+import           Control.Lens                       hiding (elements)
 import           Control.Monad                      (void, when)
 import qualified Control.Monad.Freer                as Freer
 import qualified Control.Monad.Freer.Error          as Freer
@@ -80,11 +80,6 @@ seller = auctionSeller (apAsset params) (apEndTime params)
 
 buyer :: ThreadToken -> Contract AuctionOutput BuyerSchema AuctionError ()
 buyer cur = auctionBuyer cur params
-
-w1, w2, w3 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
 
 trace1WinningBid :: Ada
 trace1WinningBid = 50
@@ -199,7 +194,7 @@ instance ContractModel AuctionModel where
     arbitraryAction s
         | p /= NotStarted =
             oneof [ WaitUntil . step <$> choose (1, 10 :: Integer)
-                  , Bid  <$> (Wallet <$> choose (2, 4)) <*> choose (1, 1000) ]
+                  , Bid  <$> elements [w2, w3, w4] <*> choose (1, 1000) ]
         | otherwise = pure Init
         where
             p    = s ^. contractState . phase
@@ -263,7 +258,7 @@ prop_Auction script =
         script
     where
         spec = ContractInstanceSpec SellerH w1 seller :
-               [ ContractInstanceSpec (BuyerH w) w (buyer threadToken) | w <- map Wallet [2..4] ]
+               [ ContractInstanceSpec (BuyerH w) w (buyer threadToken) | w <- [w2, w3, w4] ]
 
 finishAuction :: DL AuctionModel ()
 finishAuction = do

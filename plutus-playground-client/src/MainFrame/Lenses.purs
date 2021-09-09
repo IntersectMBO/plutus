@@ -53,7 +53,7 @@ import Plutus.V1.Ledger.Crypto (PubKeyHash)
 import Prelude ((<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (FormArgument)
-import Wallet.Emulator.Wallet (Wallet)
+import Wallet.Emulator.Wallet (WalletNumber)
 import Wallet.Rollup.Types (AnnotatedTx)
 
 _demoFilesMenuVisible :: Lens' State Boolean
@@ -133,7 +133,7 @@ _resultRollup = _Newtype <<< prop (SProxy :: SProxy "resultRollup")
 _functionSchema :: Lens' CompilationResult (Array (FunctionSchema FormSchema))
 _functionSchema = _Newtype <<< prop (SProxy :: SProxy "functionSchema")
 
-_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKeyHash Wallet))
+_walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKeyHash WalletNumber))
 _walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
 
 _knownCurrencies :: Lens' CompilationResult (Array KnownCurrency)

@@ -23,7 +23,7 @@ import           Servant                     ((:<|>) (..))
 import           Servant.Client              (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects              (WalletEffect (..))
 import           Wallet.Emulator.Error       (WalletAPIError)
-import           Wallet.Emulator.Wallet      (Wallet (..))
+import           Wallet.Emulator.Wallet      (Wallet (..), WalletId)
 
 createWallet :: ClientM WalletInfo
 submitTxn :: Wallet -> Tx -> ClientM ()
@@ -34,17 +34,17 @@ sign :: Wallet -> Tx -> ClientM Tx
 (createWallet, submitTxn, ownPublicKey, balanceTx, totalFunds, sign) =
   ( createWallet_
   , \(Wallet wid) tx -> void (submitTxn_ wid tx)
-  , ownPublicKey_ . getWallet
-  , \(Wallet w) -> balanceTx_ w
-  , totalFunds_ . getWallet
-  , \(Wallet w) -> sign_ w)
+  , ownPublicKey_ . getWalletId
+  , balanceTx_ . getWalletId
+  , totalFunds_ . getWalletId
+  , sign_ . getWalletId)
   where
     ( createWallet_
       :<|> (submitTxn_
       :<|> ownPublicKey_
       :<|> balanceTx_
       :<|> totalFunds_
-      :<|> sign_)) = client (Proxy @(API Integer))
+      :<|> sign_)) = client (Proxy @(API WalletId))
 
 handleWalletClient ::
   forall m effs.

@@ -52,6 +52,7 @@ import           Servant                                (Application, Handler (H
                                                          hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import qualified Servant
 import           Servant.Client                         (BaseUrl (baseUrlPort), ClientEnv)
+import           Wallet.Emulator.Wallet                 (WalletId)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
@@ -59,7 +60,7 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
 type CombinedAPI t =
-      API (Contract.ContractDef t) Integer
+      API (Contract.ContractDef t) WalletId
       :<|> WSAPI
 
 app ::
@@ -84,10 +85,10 @@ app fp walletClient pabRunner = do
     case fp of
         Nothing -> do
             let wp = either walletProxyClientEnv walletProxy walletClient
-                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer))
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy WalletId))
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @(WalletProxy Integer))
+                        (Proxy @(WalletProxy WalletId))
                         (asHandler pabRunner)
                         wp
             Servant.serve rest (apiServer :<|> wpServer)
@@ -95,12 +96,12 @@ app fp walletClient pabRunner = do
             let wp = either walletProxyClientEnv walletProxy walletClient
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @(WalletProxy Integer))
+                        (Proxy @(WalletProxy WalletId))
                         (asHandler pabRunner)
                         wp
                 fileServer :: ServerT Raw Handler
                 fileServer = serveDirectoryFileServer filePath
-                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer) :<|> Raw)
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy WalletId) :<|> Raw)
             Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
 

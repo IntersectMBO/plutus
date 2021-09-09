@@ -30,6 +30,3 @@ tests = testGroup "error handling"
             Trace.callEndpoint @"catchError" hdl ()
             void Trace.nextSlot
     ]
-
-w1 :: Wallet
-w1 = Wallet 1

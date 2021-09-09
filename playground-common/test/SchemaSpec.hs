@@ -22,7 +22,7 @@ import           Schema                (FormArgument,
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Tasty            (TestTree, testGroup)
 import           Test.Tasty.HUnit      (assertEqual, testCase)
-import           Wallet.Emulator.Types (Wallet (Wallet))
+import           Wallet.Emulator.Types (WalletNumber (WalletNumber))
 
 tests :: TestTree
 tests = testGroup "Schema" [toSchemaTests, toArgumentTests]
@@ -96,7 +96,7 @@ toArgumentTests =
                   "Size"
                   (toArgument Medium)
                   (formRadioF ["Small", "Medium", "Large"] (Just "Medium"))
-              let payTo = Wallet 1
+              let payTo = WalletNumber 1
                   value = lovelaceValueOf 20
               assertEqual
                   "PayToWalletParams"

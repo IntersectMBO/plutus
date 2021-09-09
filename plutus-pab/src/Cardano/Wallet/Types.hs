@@ -59,7 +59,7 @@ import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet (..), WalletState)
+import           Wallet.Emulator.Wallet             (Wallet, WalletState)
 
 -- | Information about an emulated wallet.
 data WalletInfo =

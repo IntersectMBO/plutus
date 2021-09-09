@@ -55,7 +55,7 @@ import           Wallet.Emulator.Folds                 (EmulatorEventFoldM)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, eteEvent, instanceEvent)
 import           Wallet.Emulator.Stream                (foldEmulatorStreamM)
-import           Wallet.Emulator.Types                 (Wallet, walletPubKey)
+import           Wallet.Emulator.Types                 (Wallet, WalletNumber, fromWalletNumber, walletPubKey)
 import           Wallet.Types                          (EndpointDescription (getEndpointDescription))
 
 
@@ -75,11 +75,11 @@ playgroundDecode expected input =
                  {expected, input = BSL.unpack input, decodingError = err}) $
     eitherDecode input
 
-funds :: [Wallet] -> EmulatorEventFoldM effs (Map Wallet Value)
-funds = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFunds w))
+funds :: [WalletNumber] -> EmulatorEventFoldM effs (Map WalletNumber Value)
+funds = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFunds (fromWalletNumber w)))
 
-fees :: [Wallet] -> EmulatorEventFoldM effs (Map Wallet Value)
-fees = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFees w))
+fees :: [WalletNumber] -> EmulatorEventFoldM effs (Map WalletNumber Value)
+fees = L.generalize . sequenceA . Map.fromList . fmap (\w -> (w, Folds.walletFees (fromWalletNumber w)))
 
 renderInstanceTrace :: [ContractInstanceTag] -> EmulatorEventFoldM effs Text
 renderInstanceTrace =
@@ -96,13 +96,13 @@ isInteresting x =
     || matches (eteEvent . instanceEvent . cilMessage . _ReceiveEndpointCall) x
     || matches (eteEvent . instanceEvent . cilMessage . _ContractLog) x
 
-evaluationResultFold :: [Wallet] -> EmulatorEventFoldM effs EvaluationResult
+evaluationResultFold :: [WalletNumber] -> EmulatorEventFoldM effs EvaluationResult
 evaluationResultFold wallets =
-    let pkh wallet = (pubKeyHash (walletPubKey wallet), wallet)
+    let pkh wallet = (pubKeyHash (walletPubKey $ fromWalletNumber wallet), wallet)
     in Playground.Types.EvaluationResult
             <$> L.generalize (reverse <$> Folds.annotatedBlockchain)
             <*> L.generalize (filter isInteresting <$> Folds.emulatorLog)
-            <*> renderInstanceTrace (walletInstanceTag <$> wallets)
+            <*> renderInstanceTrace (walletInstanceTag . fromWalletNumber <$> wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (funds wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (fees wallets)
             <*> pure (fmap pkh wallets)
@@ -136,13 +136,13 @@ stage contract programJson simulatorWalletsJson = do
         Right result -> Right (fst' result)
 
 toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
-toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
+toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (fromWalletNumber w, v))
 
 expressionToTrace :: Expression -> PlaygroundTrace ()
 expressionToTrace = \case
     AddBlocks blcks -> void $ Trace.waitNSlots $ fromIntegral blcks
     AddBlocksUntil slot -> void $ Trace.waitUntilSlot slot
-    PayToWallet {sender, recipient, amount} -> void $ Trace.payToWallet sender recipient amount
+    PayToWallet {sender, recipient, amount} -> void $ Trace.payToWallet (fromWalletNumber sender) (fromWalletNumber recipient) amount
     CallEndpoint {caller, argumentValues=FunctionSchema { endpointDescription, argument = rawArgument}} ->
         let fromString (JSON.String string) = Just $ BSL.fromStrict $ Text.encodeUtf8 string
             fromString _                    = Nothing
@@ -156,7 +156,7 @@ expressionToTrace = \case
                         show errs)
                               rawArgument
                     Right argument -> do
-                        Trace.callEndpoint caller (getEndpointDescription endpointDescription) argument
+                        Trace.callEndpoint (fromWalletNumber caller) (getEndpointDescription endpointDescription) argument
             Nothing ->
                 throwError
                     $ EmulatorJSONDecodingError

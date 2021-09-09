@@ -118,15 +118,14 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
             pure $ createWalletDetails <$> ajaxCompanionAppId <*> ajaxMarloweAppId <*> ajaxAssets
       LocalStorage -> do
         uuid <- liftEffect genUUID
-        number <- liftEffect random
         let
-          integer = floor $ number * 1000000000000000000.0
+          uuidString = toString uuid
 
           walletInfo =
             WalletInfo
-              { wallet: Wallet $ fromInt integer
-              , pubKey: toString uuid
-              , pubKeyHash: PubKeyHash $ toString uuid
+              { wallet: Wallet uuidString
+              , pubKey: uuidString
+              , pubKeyHash: PubKeyHash uuidString
               }
 
           assets = Assets $ singleton "" $ singleton "" (fromInt 1000000 * fromInt 10000)

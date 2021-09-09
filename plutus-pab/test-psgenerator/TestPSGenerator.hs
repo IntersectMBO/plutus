@@ -30,7 +30,7 @@ import           Plutus.PAB.Webserver.Types                 (ContractSignatureRe
 import           Servant.PureScript                         (HasBridge (..))
 import           System.Environment                         (getArgs)
 import           System.FilePath                            ((</>))
-import           Wallet.Emulator.Wallet                     (Wallet (..))
+import           Wallet.Emulator.Wallet                     (Wallet, knownWallet)
 import           Wallet.Types                               (ContractInstanceId (..))
 
 data TestBridge
@@ -67,7 +67,7 @@ main = getArgs >>= \case
     _ -> putStrLn "Usage: plutus-pab-test-psgenerator FILEPATH"
 
 defaultWallet :: Wallet
-defaultWallet = Wallet 1
+defaultWallet = knownWallet 1
 
 writeTestData :: FilePath -> IO ()
 writeTestData outputDir = do

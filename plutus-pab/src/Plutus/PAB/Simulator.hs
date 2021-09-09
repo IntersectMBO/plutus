@@ -102,7 +102,7 @@ import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
                                                                  eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
-import           Ledger.Crypto                                  (PubKey, pubKeyHash)
+import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.TimeSlot                                (SlotConfig)
@@ -134,7 +134,7 @@ import qualified Wallet.Emulator.Chain                          as Chain
 import           Wallet.Emulator.LogMessages                    (TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
 import qualified Wallet.Emulator.Stream                         as Emulator
-import           Wallet.Emulator.Wallet                         (Wallet (..))
+import           Wallet.Emulator.Wallet                         (Wallet (..), WalletId (..), knownWallet, knownWallets)
 import qualified Wallet.Emulator.Wallet                         as Wallet
 import           Wallet.Types                                   (ContractInstanceId, NotificationError)
 
@@ -156,11 +156,12 @@ data AgentState t =
 makeLenses ''AgentState
 
 initialAgentState :: forall t. Wallet -> AgentState t
-initialAgentState wallet =
+initialAgentState (Wallet (MockWallet privKey)) =
     AgentState
-        { _walletState   = Wallet.emptyWalletState wallet
+        { _walletState   = Wallet.emptyWalletState privKey
         , _submittedFees = mempty
         }
+initialAgentState (Wallet (XPubWallet _)) = error "Only mock wallets supported in the simulator"
 
 data SimulatorState t =
     SimulatorState
@@ -175,10 +176,9 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
-    let wallets = Wallet <$> [1..10]
-        initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) wallets
+    let initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) knownWallets
         Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
-        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) wallets
+        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) knownWallets
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -361,7 +361,7 @@ makeBlock slotCfg = do
             interpret (logIntoTQueue @_ @(SimulatorState t) (view logMessages))
             . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
-            . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
+            . reinterpret (mapLog (ChainIndexEvent (knownWallet 1)))
     delayThread (1000 :: Millisecond)
     void
         $ makeTimedChainEvent
@@ -728,14 +728,14 @@ instanceActivity = Core.instanceActivity
 addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (publicKey, privateKey) <- MockWallet.newKeyPair
+    (newWallet, newState) <- MockWallet.newWallet
+    let publicKey = Wallet.walletPubKey newWallet
     result <- liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWallet = MockWallet.pubKeyHashWallet (pubKeyHash publicKey)
-            newWallets = currentWallets & at newWallet ?~ AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty
+        let newWallets = currentWallets & at newWallet ?~ AgentState newState mempty
         STM.writeTVar _agentStates newWallets
         pure (newWallet, publicKey)
-    _ <- handleAgentThread (Wallet 2)
+    _ <- handleAgentThread (knownWallet 2)
             $ Modify.wrapError WalletError
             $ MockWallet.distributeNewWalletFunds publicKey
     pure result

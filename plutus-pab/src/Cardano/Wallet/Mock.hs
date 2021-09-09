@@ -12,9 +12,7 @@ module Cardano.Wallet.Mock
     ( processWalletEffects
     , integer2ByteString32
     , byteString2Integer
-    , newKeyPair
-    , walletPubKey
-    , pubKeyHashWallet
+    , newWallet
     , distributeNewWalletFunds
     ) where
 
@@ -34,9 +32,6 @@ import           Control.Monad.Freer.Extras
 import           Control.Monad.Freer.Reader          (runReader)
 import           Control.Monad.Freer.State           (State, evalState, get, put, runState)
 import           Control.Monad.IO.Class              (MonadIO, liftIO)
-import qualified Crypto.ECC.Ed25519Donna             as ED25519
-import           Crypto.Error                        (CryptoFailable (..))
-import           Crypto.PubKey.Ed25519               (secretKeySize)
 import           Crypto.Random                       (getRandomBytes)
 import           Data.Bits                           (shiftL, shiftR)
 import           Data.ByteArray                      (ScrubbedBytes, unpack)
@@ -49,8 +44,7 @@ import qualified Data.Map                            as Map
 import           Data.Text.Encoding                  (encodeUtf8)
 import           Data.Text.Prettyprint.Doc           (pretty)
 import qualified Ledger.Ada                          as Ada
-import           Ledger.Crypto                       (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
-                                                      toPublicKey)
+import           Ledger.Crypto                       (generateFromSeed, privateKey2, pubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
 import           Ledger.Tx                           (Tx)
@@ -58,8 +52,6 @@ import           Plutus.ChainIndex                   (ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Client            as ChainIndex
 import           Plutus.PAB.Arbitrary                ()
 import qualified Plutus.PAB.Monitoring.Monitoring    as LM
-import qualified Plutus.V1.Ledger.Bytes              as KB
-import qualified PlutusTx.Prelude                    as PlutusTx
 import           Servant                             (ServerError (..), err400, err401, err404)
 import           Servant.Client                      (ClientEnv)
 import           Servant.Server                      (err500)
@@ -68,14 +60,14 @@ import qualified Wallet.API                          as WAPI
 import           Wallet.Effects                      (NodeClientEffect)
 import           Wallet.Emulator.LogMessages         (TxBalanceMsg)
 import           Wallet.Emulator.NodeClient          (emptyNodeClientState)
-import           Wallet.Emulator.Wallet              (Wallet (..), WalletState (..), defaultSigningProcess)
+import           Wallet.Emulator.Wallet              (Wallet, WalletState (..), defaultSigningProcess, knownWallet)
 import qualified Wallet.Emulator.Wallet              as Wallet
 
 newtype Seed = Seed ScrubbedBytes
 
 generateSeed :: (LastMember m effs, MonadIO m) => Eff effs Seed
 generateSeed = do
-    (bytes :: ScrubbedBytes) <- sendM $ liftIO $ getRandomBytes secretKeySize
+    (bytes :: ScrubbedBytes) <- sendM $ liftIO $ getRandomBytes 32
     pure $ Seed bytes
 
 {-# INLINE byteString2Integer #-}
@@ -91,32 +83,12 @@ integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fr
 distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKey -> Eff effs Tx
 distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
-newKeyPair :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (PubKey, PrivateKey)
-newKeyPair = do
+newWallet :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (Wallet, WalletState)
+newWallet = do
     Seed seed <- generateSeed
     let secretKeyBytes = BS.pack . unpack $ seed
-    let e = ED25519.secretKey secretKeyBytes
-    case e of
-        CryptoFailed _ -> newKeyPair
-        CryptoPassed _ -> do
-            let privateKey = PrivateKey (KB.fromBytes secretKeyBytes)
-            let pubKey = toPublicKey privateKey
-            pure (pubKey, privateKey)
-
--- | Get the public key of a 'Wallet' by converting the wallet identifier
---   to a private key bytestring.
-walletPubKey :: Wallet -> PubKeyHash
-walletPubKey (Wallet i) =
-    -- public key hashes are 28 bytes long, so we need to drop the first 4
-    -- (SCP-2208)
-    PubKeyHash $ PlutusTx.toBuiltin $ BS.drop 4 $ integer2ByteString32 i
-
--- | Get the 'Wallet' whose identifier is the integer representation of the
---   pubkey hash.
-pubKeyHashWallet :: PubKeyHash -> Wallet
-pubKeyHashWallet (PubKeyHash kb) =
---   TODO (jm): this is terrible and we need to change it - see SCP-2208
-    Wallet $ byteString2Integer $ PlutusTx.fromBuiltin kb
+    let privateKey = generateFromSeed secretKeyBytes
+    pure (Wallet.Wallet (Wallet.MockWallet privateKey), Wallet.emptyWalletState privateKey)
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
@@ -145,15 +117,14 @@ handleMultiWallet feeCfg = \case
             Nothing -> throwError $ WAPI.OtherError "Wallet not found"
     CreateWallet -> do
         wallets <- get @Wallets
-        (pubKey, privateKey) <- newKeyPair
-        let wallet = pubKeyHashWallet $ pubKeyHash pubKey
-            newState = Wallet.emptyWalletStateFromPrivateKey privateKey
+        (wallet, newState) <- newWallet
+        let pubKey = Wallet.walletPubKey wallet
         let wallets' = Map.insert wallet newState wallets
         put wallets'
         -- For some reason this doesn't work with (Wallet 1)/privateKey1,
         -- works just fine with (Wallet 2)/privateKey2
         -- ¯\_(ツ)_/¯
-        let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
+        let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (knownWallet 2))
         _ <- evalState walletState $
             interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
             $ interpret (Wallet.handleWallet feeCfg)

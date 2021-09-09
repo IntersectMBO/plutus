@@ -19,6 +19,7 @@ import           Prelude                     hiding (negate)
 import           Ledger.Ada                  (adaSymbol, adaToken)
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (Address)
+import           Ledger.Crypto               (PrivateKey, privateKey2)
 import           Ledger.Oracle               (Observation, SignedMessage, signObservation)
 import           Ledger.Time                 (POSIXTime)
 import qualified Ledger.TimeSlot             as TimeSlot
@@ -39,10 +40,13 @@ import           Wallet.Emulator.MultiAgent  (eteEvent)
 import           Test.Tasty
 
 user :: Wallet
-user = Wallet 1
+user = w1
 
 oracle :: Wallet
-oracle = Wallet 2
+oracle = w2
+
+oraclePrivateKey :: PrivateKey
+oraclePrivateKey = privateKey2
 
 onePercent :: Ratio Integer
 onePercent = 1 % 100
@@ -60,7 +64,7 @@ coin = Stablecoin
     }
 
 signConversionRate :: POSIXTime -> ConversionRate -> SignedMessage (Observation ConversionRate)
-signConversionRate startTime rate = signObservation startTime rate (walletPrivKey oracle)
+signConversionRate startTime rate = signObservation startTime rate oraclePrivateKey
 
 stablecoinAddress :: Address
 stablecoinAddress = validatorAddress $ Stablecoin.typedValidator coin
@@ -102,7 +106,7 @@ tests = testGroup "Stablecoin"
       checkPredicate "Cannot exceed the maximum reserve ratio"
         (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
         .&&. assertNoFailedTransactions
-        .&&. assertInstanceLog (Trace.walletInstanceTag $ Wallet 1) ((==) (Just expectedLogMsg) . listToMaybe . reverse . mapMaybe (preview (eteEvent . cilMessage . _ContractLog)))
+        .&&. assertInstanceLog (Trace.walletInstanceTag w1) ((==) (Just expectedLogMsg) . listToMaybe . reverse . mapMaybe (preview (eteEvent . cilMessage . _ContractLog)))
         )
         maxReservesExceededTrace
 
