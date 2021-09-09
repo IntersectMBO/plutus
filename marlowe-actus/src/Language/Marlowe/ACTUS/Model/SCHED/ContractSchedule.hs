@@ -29,7 +29,7 @@ import           Language.Marlowe.ACTUS.Model.Utility.YearFraction        (yearF
 import           Language.Marlowe.ACTUS.Ops                               (YearFractionOps (_y))
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
-schedule ev c = let m = maturity c in schedule' ev c { ct_MD = m }
+schedule ev c = schedule' ev c { ct_MD = maturity c }
   where
 
     schedule' :: EventType -> ContractTerms -> Maybe [ShiftedDay]
