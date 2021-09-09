@@ -41,8 +41,8 @@ import           Ledger                               (Address (addressCredentia
                                                        TxOut (txOutAddress), TxOutRef (..), txOutDatumHash, txOutValue)
 import           Ledger.Tx                            (ChainIndexTxOut (ScriptChainIndexTxOut))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap, redeemerMap,
-                                                       stakeValidatorMap, txMap, validatorMap)
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, mintingPolicyMap,
+                                                       redeemerMap, stakeValidatorMap, txMap, validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
 import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
@@ -181,6 +181,7 @@ handleControl = \case
             . view utxoIndex
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
         modify $ set diskState newDiskState
+    GetDiagnostics -> diagnostics . _diskState <$> get @ChainIndexEmulatorState
 
 data ChainIndexError =
     InsertionFailed UtxoState.InsertUtxoFailed

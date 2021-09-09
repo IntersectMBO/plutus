@@ -21,6 +21,7 @@ module Plutus.ChainIndex.Effects(
     , appendBlock
     , rollback
     , collectGarbage
+    , getDiagnostics
     ) where
 
 import           Control.Monad.Freer.TH  (makeEffect)
@@ -29,7 +30,7 @@ import           Ledger                  (Datum, DatumHash, MintingPolicy, Minti
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
-import           Plutus.ChainIndex.Types (Page, Point, Tip)
+import           Plutus.ChainIndex.Types (Diagnostics, Page, Point, Tip)
 
 data ChainIndexQueryEffect r where
 
@@ -79,5 +80,7 @@ data ChainIndexControlEffect r where
 
     -- | Delete all data that is not covered by current UTxOs.
     CollectGarbage :: ChainIndexControlEffect ()
+
+    GetDiagnostics :: ChainIndexControlEffect Diagnostics
 
 makeEffect ''ChainIndexControlEffect

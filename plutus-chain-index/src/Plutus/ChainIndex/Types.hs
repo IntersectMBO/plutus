@@ -19,6 +19,7 @@ module Plutus.ChainIndex.Types(
     , TxStatus(..)
     , BlockNumber(..)
     , Depth(..)
+    , Diagnostics(..)
     ) where
 
 import qualified Codec.Serialise                  as CBOR
@@ -33,6 +34,7 @@ import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain                (Block, BlockId (..))
 import           Ledger.Slot                      (Slot)
+import           Ledger.TxId                      (TxId)
 import           Numeric.Natural                  (Natural)
 import           PlutusTx.Lattice                 (MeetSemiLattice (..))
 import           Prettyprinter                    (Pretty (..), (<+>))
@@ -197,3 +199,16 @@ instance MeetSemiLattice TxStatus where
 newtype BlockNumber = BlockNumber Int
     deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
+
+data Diagnostics =
+    Diagnostics
+        { numTransactions    :: Int
+        , numValidators      :: Int
+        , numMintingPolicies :: Int
+        , numStakeValidators :: Int
+        , numRedeemers       :: Int
+        , numAddresses       :: Int
+        , someTransactions   :: [TxId]
+        }
+        deriving stock (Eq, Ord, Show, Generic)
+        deriving anyclass (ToJSON, FromJSON)
