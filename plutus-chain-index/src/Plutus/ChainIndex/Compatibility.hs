@@ -3,7 +3,7 @@ module Plutus.ChainIndex.Compatibility where
 import           Cardano.Api                (Block (..), BlockHeader (..), BlockInMode (..), BlockNo (..), CardanoMode,
                                              ChainPoint (..), ChainTip (..), Hash, SlotNo (..), serialiseToRawBytes)
 import           Ledger                     (BlockId (..), Slot (..))
-import           Plutus.ChainIndex.Tx       (ChainIndexTx (..), fromOnChainTx)
+import           Plutus.ChainIndex.Tx       (ChainIndexTx (..))
 import           Plutus.ChainIndex.Types    (BlockNumber (..), Point (..), Tip (..))
 import qualified Plutus.Contract.CardanoAPI as C
 
@@ -49,5 +49,4 @@ fromCardanoBlockNo (BlockNo blockNo) =
 fromCardanoBlock
     :: BlockInMode CardanoMode
     -> Either C.FromCardanoError [ChainIndexTx]
-fromCardanoBlock cBlock =
-    (fmap . fmap) fromOnChainTx $ C.fromCardanoBlock cBlock
+fromCardanoBlock = C.fromCardanoBlock
