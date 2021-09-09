@@ -36,26 +36,33 @@ import           Text.Printf                 (printf)
 import qualified Wallet.Emulator.Folds       as Folds
 import           Wallet.Emulator.Stream      (foldEmulatorStreamM)
 
+-- | Configuration for 'writeScriptsTo'
 data ScriptsConfig =
     ScriptsConfig
-        { scPath    :: FilePath
-        , scCommand :: Command
+        { scPath    :: FilePath -- ^ Folder the extracted scripts should be written to
+        , scCommand :: Command -- ^ Whether to write out complete transactions or just the validator scripts
         }
 
+-- | Command for 'writeScriptsTo'
 data Command =
-    Scripts{ unappliedValidators :: ValidatorMode }
-    | Transactions{ networkId :: C.NetworkId, protocolParamsJSON :: FilePath }
+    Scripts -- ^ Write out validator scripts only (flat encoding)
+        { unappliedValidators :: ValidatorMode -- ^ Whether to write fully applied or unapplied validators
+        }
+    | Transactions  -- ^ Write out partial transactions
+        { networkId          :: C.NetworkId -- ^ Network ID to use when creating addresses
+        , protocolParamsJSON :: FilePath -- ^ Location of a JSON file with protocol parameters
+        }
     deriving stock (Show, Eq)
 
 {-| Run an emulator trace and write the applied scripts to a file in Flat format
     using the name as a prefix.
 -}
 writeScriptsTo
-    :: ScriptsConfig
-    -> String
-    -> EmulatorTrace a
-    -> EmulatorConfig
-    -> IO (Sum Int64, ExBudget)
+    :: ScriptsConfig -- ^ Configuration
+    -> String -- ^ Prefix to be used for file names
+    -> EmulatorTrace a -- ^ Emulator trace to extract transactions from
+    -> EmulatorConfig -- ^ Emulator config
+    -> IO (Sum Int64, ExBudget) -- Total size and 'ExBudget' of extracted scripts
 writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
     let stream = Trace.runEmulatorStream emulatorCfg trace
         getEvents :: Folds.EmulatorEventFold a -> a
