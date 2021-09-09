@@ -133,7 +133,7 @@ defaultMockServerConfig :: MockServerConfig
 defaultMockServerConfig =
     MockServerConfig
       -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
-      { mscBaseUrl = BaseUrl Http "127.0.0.1" 9082 ""
+      { mscBaseUrl = BaseUrl Http "localhost" 9082 ""
       , mscInitialTxWallets =
           [ WalletNumber 1
           , WalletNumber 2

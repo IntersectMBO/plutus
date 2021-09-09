@@ -171,6 +171,7 @@ startServer' waiMiddlewares port walletClient staticPath availability timeout = 
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
             & Warp.setTimeout timeout
+            & Warp.setHost "*6" -- HostIPv6@ - "any IPv4 or IPv6 hostname, IPv6 preferred"
         middleware = appEndo $ foldMap Endo waiMiddlewares
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
