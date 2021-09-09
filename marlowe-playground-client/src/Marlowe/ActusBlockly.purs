@@ -902,6 +902,7 @@ actusContractToTerms raw = do
   contractType <- Either.Right c.contractType
   startDate <- Either.note "start date is a mandatory field!" <$> actusDateToDay c.startDate >>= identity
   maturityDate <- actusDateToDay c.maturityDate
+  amortizationDate <- actusDateToDay c.amortizationDate
   initialExchangeDate <- fromMaybe startDate <$> actusDateToDay c.initialExchangeDate
   terminationDate <- actusDateToDay c.terminationDate
   terminationPrice <- actusDecimalToNumber c.terminationPrice
