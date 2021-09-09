@@ -93,7 +93,6 @@ test-suite plutus-tx-tests
         Plugin.Functions.Spec
         Plugin.Laziness.Spec
         Plugin.Primitives.Spec
-        Plugin.Profiling
         Plugin.Typeclasses.Spec
         Plugin.Typeclasses.Lib
         Plugin.Lib
@@ -125,3 +124,32 @@ test-suite plutus-tx-tests
     -- NOTE: -g makes the plugin give better errors
     -- NOTE: we disable the simplifier as it simplifies away some tests
     ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
+
+executable profile
+    main-is: Main.hs
+    hs-source-dirs: executables/profile, test
+    other-modules:
+        Lib
+        Plugin.Lib
+        Plugin.Basic.Spec
+        Plugin.Data.Spec
+        Plugin.Functions.Spec
+        Plugin.Typeclasses.Lib
+        Plugin.Typeclasses.Spec
+        TH.TestTH
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        flat -any,
+        deepseq -any,
+        integer-gmp -any,
+        plutus-core -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
+        prettyprinter -any,
+        mtl -any,
+        bytestring -any,
+        serialise -any,
+        template-haskell -any,
+        text -any,
+        lens -any,
