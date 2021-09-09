@@ -37,7 +37,6 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
@@ -49,14 +48,12 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
-          (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           ];
         buildable = true;
         modules = [
           "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/MarloweCompat"
           "Language/Marlowe/ACTUS/Generator"
-          "Language/Marlowe/ACTUS/QCGenerator"
           "Language/Marlowe/ACTUS/Analysis"
           "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
           "Language/Marlowe/ACTUS/Definitions/ContractTerms"
@@ -71,10 +68,9 @@
           "Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel"
           "Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule"
           "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
-          "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
-          "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
           "Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability"
           "Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel"
+          "Language/Marlowe/ACTUS/Model/Utility/ANN/Annuity"
           "Language/Marlowe/ACTUS/Model/Utility/DateShift"
           "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
           "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
@@ -128,8 +124,6 @@
             "Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel"
             "Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule"
             "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
-            "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
-            "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
             "Language/Marlowe/ACTUS/Model/Utility/DateShift"
             "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
             "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
@@ -184,8 +178,6 @@
             "Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel"
             "Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule"
             "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
-            "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
-            "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
             "Language/Marlowe/ACTUS/Model/Utility/DateShift"
             "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
             "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
