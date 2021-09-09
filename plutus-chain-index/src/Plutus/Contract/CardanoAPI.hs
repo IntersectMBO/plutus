@@ -58,6 +58,8 @@ import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, (<+>))
 import           GHC.Generics                   (Generic)
 import qualified Ledger                         as P
 import qualified Ledger.Ada                     as Ada
+import           Plutus.ChainIndex.Tx           (ChainIndexTx (..))
+import qualified Plutus.ChainIndex.Tx           as ChainIndex.Tx
 import           Plutus.Contract.CardanoAPITemp (makeTransactionBody')
 import qualified Plutus.V1.Ledger.Api           as Api
 import qualified Plutus.V1.Ledger.Credential    as Credential
@@ -65,25 +67,26 @@ import qualified Plutus.V1.Ledger.Value         as Value
 import qualified PlutusCore.Data                as Data
 import qualified PlutusTx.Prelude               as PlutusTx
 
-fromCardanoBlock :: C.BlockInMode mode -> Either FromCardanoError P.Block
-fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) _) =
-  traverse (fmap P.Valid . fromCardanoTx) txs
+fromCardanoBlock :: C.BlockInMode C.CardanoMode -> Either FromCardanoError [ChainIndexTx]
+fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) era) =
+  traverse (fromCardanoTx era) txs
 
-fromCardanoTx :: C.Tx era -> Either FromCardanoError P.Tx
-fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
+fromCardanoTx ::C.EraInMode era C.CardanoMode -> C.Tx era -> Either FromCardanoError ChainIndexTx
+fromCardanoTx _era (C.Tx b@(C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
     txOutputs <- traverse fromCardanoTxOut txOuts
-    pure $ P.Tx
-        { txInputs = Set.fromList $ fmap ((`P.TxIn` Nothing) . fromCardanoTxIn . fst) txIns
-        , txCollateral = fromCardanoTxInsCollateral txInsCollateral
-        , txOutputs = txOutputs
-        , txMint = fromCardanoMintValue txMintValue
-        , txFee = fromCardanoFee txFee
-        , txValidRange = fromCardanoValidityRange txValidityRange
-        , txData = mempty -- only available with a Build Tx
-        , txSignatures = mempty -- TODO: convert from _keyWitnesses?
-        , txMintScripts = mempty -- only available with a Build Tx
-        , txRedeemers = mempty -- only available with a Build Tx
-        }
+    pure
+        ChainIndexTx
+            { _citxTxId = fromCardanoTxId (C.getTxId b)
+            , _citxValidRange = fromCardanoValidityRange txValidityRange
+            , _citxInputs = Set.fromList $ fmap ((`P.TxIn` Nothing) . fromCardanoTxIn . fst) txIns
+            , _citxOutputs = ChainIndex.Tx.ValidTx txOutputs -- FIXME: Check if tx is invalid
+            , _citxData = mempty -- only available with a Build Tx
+            , _citxRedeemers = mempty -- only available with a Build Tx
+            , _citxMintingPolicies = mempty -- only available with a Build Tx
+            , _citxStakeValidators = mempty -- only available with a Build Tx
+            , _citxValidators = mempty -- only available with a Build Tx
+            , _citxCardanoTx = Nothing -- FIXME: Should be SomeTx t era, but we are missing a 'C.IsCardanoEra era' constraint. This constraint is required in 'Ledger.Tx' for the JSON instance.
+            }
 
 toCardanoTxBody ::
     Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
