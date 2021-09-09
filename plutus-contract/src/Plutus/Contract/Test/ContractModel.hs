@@ -204,7 +204,6 @@ type HandleFun state = forall w schema err. (Typeable w, Typeable schema, Typeab
 --   * the amount that has been minted (`minted`)
 data ModelState state = ModelState
         { _currentSlot    :: Slot
-        , _lastSlot       :: Slot
         , _balanceChanges :: Map Wallet Value
         , _minted         :: Value
         , _contractState  :: state
@@ -212,7 +211,7 @@ data ModelState state = ModelState
   deriving (Show)
 
 dummyModelState :: state -> ModelState state
-dummyModelState s = ModelState 0 0 Map.empty mempty s
+dummyModelState s = ModelState 0 Map.empty mempty s
 
 -- | The `Spec` monad is a state monad over the `ModelState`. It is used exclusively by the
 --   `nextState` function to model the effects of an action on the blockchain.
@@ -520,15 +519,13 @@ instance ContractModel state => StateModel (ModelState state) where
     shrinkAction s (ContractAction a) = [ Some @() (ContractAction a') | a' <- shrinkAction s a ]
 
     initialState = ModelState { _currentSlot    = 0
-                              , _lastSlot       = 125        -- Set by propRunActions
                               , _balanceChanges = Map.empty
                               , _minted         = mempty
                               , _contractState  = initialState }
 
     nextState s (ContractAction cmd) _v = runSpec (nextState cmd) s
 
-    precondition s (ContractAction cmd) = s ^. currentSlot < s ^. lastSlotL - 10 -- No commands if < 10 slots left
-                                          && precondition s cmd
+    precondition s (ContractAction cmd) = precondition s cmd
 
     perform s (ContractAction cmd) _env = () <$ runEmulator (\ h -> perform (handle h) s cmd)
 
@@ -1006,8 +1003,7 @@ propRunActionsWithOptions ::
 propRunActionsWithOptions opts handleSpecs predicate actions' =
     monadic (flip State.evalState mempty) $ finalChecks opts finalPredicate $ do
         QC.run $ setHandles $ activateWallets handleSpecs
-        let initState = StateModel.initialState { _lastSlot = opts ^. maxSlot }
-        void $ runActionsInState initState actions
+        void $ runActionsInState StateModel.initialState actions
     where
         finalState     = stateAfter actions
         finalPredicate = predicate finalState .&&. checkBalances finalState
