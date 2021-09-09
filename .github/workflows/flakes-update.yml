@@ -11,7 +11,7 @@ jobs:
     # Borrowed from https://github.com/Mic92/dotfiles/blob/9c2fc2cc98021dd8d42bbb714278785a9a6757c2/.github/workflows/upgrade-flakes.yml
     steps:
       - uses: actions/checkout@v2
-      - uses: cachix/install-nix-action@v13
+      - uses: cachix/install-nix-action@v14
         with:
           install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.4pre20210415_76980a1/install
           extra_nix_config: |
