@@ -11,3 +11,4 @@ How-to guides
    exporting-a-script
    writing-a-scalable-app
    handling-blockchain-events
+   analysing-scripts
