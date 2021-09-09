@@ -1,14 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
-module Language.Marlowe.ACTUS.Analysis
-  ( genProjectedCashflows )
-where
 
 {-| = ACTUS Analysis
 
 Given an ACTUS contract cashflows can be projected.
 
 -}
+
+module Language.Marlowe.ACTUS.Analysis
+  ( genProjectedCashflows )
+where
 
 import           Control.Applicative                                        ((<|>))
 import qualified Data.List                                                  as L (groupBy)
