@@ -657,6 +657,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , amortizationDate: parseFieldActusValueJson g block "amortization_date"
             , terminationDate: parseFieldActusValueJson g block "termination_date"
             , terminationPrice: parseFieldActusValueJson g block "termination_price"
             , periodicPaymentAmount: NoActusValue
@@ -683,6 +684,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , amortizationDate: parseFieldActusValueJson g block "amortization_date"
             , terminationDate: parseFieldActusValueJson g block "termination_date"
             , terminationPrice: parseFieldActusValueJson g block "termination_price"
             , periodicPaymentAmount: parseFieldActusValueJson g block "periodic_payment_amount"
@@ -709,6 +711,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , amortizationDate: parseFieldActusValueJson g block "amortization_date"
             , terminationDate: parseFieldActusValueJson g block "termination_date"
             , terminationPrice: parseFieldActusValueJson g block "termination_price"
             , periodicPaymentAmount: parseFieldActusValueJson g block "periodic_payment_amount"
