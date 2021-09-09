@@ -9,7 +9,7 @@ import qualified Data.Map                                          as M
 import           Data.Time
 import           Data.Time.Clock.POSIX                             (posixSecondsToUTCTime)
 import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
@@ -211,11 +211,18 @@ contractTermsGen = do
 
 
 riskAtTGen :: Gen RiskFactors
-riskAtTGen = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
+riskAtTGen = RiskFactorsPoly <$> percentage <*> percentage <*> percentage <*> smallamount
 
 riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGen ct = do
-    let days = cashCalculationDay <$> genProjectedCashflows M.empty ct
+    let riskFactors _ _ =
+         RiskFactorsPoly
+            { o_rf_CURS = 1.0,
+              o_rf_RRMO = 1.0,
+              o_rf_SCMO = 1.0,
+              pp_payoff = 0.0
+            }
+    let days = cashCalculationDay <$> genProjectedCashflows riskFactors ct
     rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
 
@@ -229,6 +236,6 @@ riskFactorsGenRandomWalkGen contractTerms = do
         fluctuate state fluctiation = state + (fluctiation - 50) / 100
         walk rf st =
             let fluctuate' extractor = fluctuate (extractor rf) (extractor st)
-            in RiskFactors (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
+            in RiskFactorsPoly (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
         path = L.scanl walk riskAtT riskFactorsValues
     return $ M.fromList $ L.zip riskFactorsDates path
