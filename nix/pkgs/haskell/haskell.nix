@@ -202,11 +202,21 @@ let
             export ACTUS_TEST_DATA_DIR=${actus-tests}/tests/
           '';
 
+
+          # Note: The following two statements say that these tests should
+          # _only_ run on linux. In actual fact we just don't want them
+          # running on the 'mac-mini' instances, because these tests time out
+          # there. In an ideal world this would be reflected here more
+          # accurately.
+          # TODO: Resolve this situation in a better way.
           marlowe.components.tests.marlowe-test-long-running = {
-            # Note: These tests fail on the mac-mini, so we're disablihg them
-            # for _all_ macs here.
             platforms = lib.platforms.linux;
           };
+
+          plutus-pab.components.tests.plutus-pab-test-full-long-running = {
+            platforms = lib.platforms.linux;
+          };
+
 
           # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
           iohk-monitoring.doHaddock = false;
