@@ -554,6 +554,7 @@ newtype ActusContract
   , startDate :: ActusValue
   , initialExchangeDate :: ActusValue
   , maturityDate :: ActusValue
+  , amortizationDate :: ActusValue
   , terminationDate :: ActusValue
   , terminationPrice :: ActusValue
   , periodicPaymentAmount :: ActusValue
@@ -636,6 +637,7 @@ parseActusContractType b = case getType b of
   "PaymentAtMaturity" -> PAM
   "LinearAmortizer" -> LAM
   "NegativeAmortizer" -> NAM
+  "Annuity" -> ANN
   _ -> PAM
 
 parseActusJsonCode :: String -> Either String ContractTerms
@@ -707,6 +709,33 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , terminationDate: parseFieldActusValueJson g block "termination_date"
+            , terminationPrice: parseFieldActusValueJson g block "termination_price"
+            , periodicPaymentAmount: parseFieldActusValueJson g block "periodic_payment_amount"
+            , purchaseDate: parseFieldActusValueJson g block "purchase_date"
+            , purchasePrice: parseFieldActusValueJson g block "purchase_price"
+            , dayCountConvention: parseFieldActusValueJson g block "day_count_convention"
+            , endOfMonthConvention: parseFieldActusValueJson g block "end_of_month_convention"
+            , rateReset: parseFieldActusValueJson g block "rate_reset_cycle"
+            , notional: parseFieldActusValueJson g block "notional"
+            , premiumDiscount: parseFieldActusValueJson g block "premium_discount"
+            , interestRate: parseFieldActusValueJson g block "interest_rate"
+            , interestRateCycle: parseFieldActusValueJson g block "interest_rate_cycle"
+            , principalRedemptionCycle: parseFieldActusValueJson g block "principal_redemption_cycle"
+            , interestCalculationBaseCycle: parseFieldActusValueJson g block "interest_calculation_base_cycle"
+            , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
+            , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            -- Any collateral-related code is commented out, until implemented properly
+            -- , collateral: parseFieldActusValueJson g block "collateral"
+            }
+    ANN ->
+      Either.Right
+        $ ActusContract
+            { contractType: parseActusContractType block
+            , startDate: parseFieldActusValueJson g block "start_date"
+            , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
+            , maturityDate: parseFieldActusValueJson g block "maturity_date"
+            , amortizationDate: parseFieldActusValueJson g block "amortization_date"
             , terminationDate: parseFieldActusValueJson g block "termination_date"
             , terminationPrice: parseFieldActusValueJson g block "termination_price"
             , periodicPaymentAmount: parseFieldActusValueJson g block "periodic_payment_amount"
@@ -920,6 +949,7 @@ actusContractToTerms raw = do
         , ct_IED: Just initialExchangeDate
         , ct_SD: startDate
         , ct_MD: maturityDate
+        , ct_AD: amortizationDate
         , ct_TD: terminationDate
         , ct_PRNXT: periodicPaymentAmount
         , ct_PRD: purchaseDate
