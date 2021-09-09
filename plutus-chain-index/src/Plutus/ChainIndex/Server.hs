@@ -77,6 +77,7 @@ serveChainIndex =
     :<|> E.utxoSetAtAddress
     :<|> E.getTip
     :<|> E.collectGarbage *> pure NoContent
+    :<|> E.getDiagnostics
 
 serveFromHashApi ::
     forall effs.

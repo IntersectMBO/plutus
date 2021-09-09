@@ -63,7 +63,8 @@ getTip :: ClientM Tip
             :<|> getIsUtxo_
             :<|> getUtxoAtAddress_
             :<|> getTip_
-            :<|> collectGarbage_ = client (Proxy @API)
+            :<|> collectGarbage_
+            :<|> _ = client (Proxy @API)
 
 -- | Handle 'ChainIndexQueryEffect' by making HTTP calls to a remote
 --   server.

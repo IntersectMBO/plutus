@@ -19,23 +19,25 @@ module Plutus.ChainIndex.Emulator.DiskState(
     , fromTx
     , CredentialMap
     , unCredentialMap
+    , diagnostics
 ) where
 
-import           Control.Lens           (At (..), Index, IxValue, Ixed (..), lens, makeLenses, view, (&), (.~), (^.))
-import           Data.Bifunctor         (Bifunctor (..))
-import           Data.Map               (Map)
-import qualified Data.Map               as Map
-import           Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import           Data.Set               (Set)
-import qualified Data.Set               as Set
-import           GHC.Generics           (Generic)
-import           Ledger                 (Address (..), TxOut (..), TxOutRef)
-import           Ledger.Credential      (Credential)
-import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
-                                         StakeValidator, StakeValidatorHash, Validator, ValidatorHash)
-import           Ledger.TxId            (TxId)
-import           Plutus.ChainIndex.Tx   (ChainIndexTx (..), citxData, citxMintingPolicies, citxRedeemers,
-                                         citxStakeValidators, citxTxId, citxValidators, txOutsWithRef)
+import           Control.Lens            (At (..), Index, IxValue, Ixed (..), lens, makeLenses, view, (&), (.~), (^.))
+import           Data.Bifunctor          (Bifunctor (..))
+import           Data.Map                (Map)
+import qualified Data.Map                as Map
+import           Data.Semigroup.Generic  (GenericSemigroupMonoid (..))
+import           Data.Set                (Set)
+import qualified Data.Set                as Set
+import           GHC.Generics            (Generic)
+import           Ledger                  (Address (..), TxOut (..), TxOutRef)
+import           Ledger.Credential       (Credential)
+import           Ledger.Scripts          (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
+                                          StakeValidator, StakeValidatorHash, Validator, ValidatorHash)
+import           Ledger.TxId             (TxId)
+import           Plutus.ChainIndex.Tx    (ChainIndexTx (..), citxData, citxMintingPolicies, citxRedeemers,
+                                          citxStakeValidators, citxTxId, citxValidators, txOutsWithRef)
+import           Plutus.ChainIndex.Types (Diagnostics (..))
 
 -- | Set of transaction output references for each address.
 newtype CredentialMap = CredentialMap { _unCredentialMap :: Map Credential (Set TxOutRef) }
@@ -95,4 +97,16 @@ fromTx tx =
         , _TxMap = Map.singleton (view citxTxId tx) tx
         , _RedeemerMap = view citxRedeemers tx
         , _AddressMap = txCredentialMap tx
+        }
+
+diagnostics :: DiskState -> Diagnostics
+diagnostics DiskState{_DataMap, _ValidatorMap, _MintingPolicyMap, _TxMap, _StakeValidatorMap, _RedeemerMap, _AddressMap} =
+    Diagnostics
+        { numTransactions = Map.size _TxMap
+        , numValidators = Map.size _ValidatorMap
+        , numMintingPolicies = Map.size _MintingPolicyMap
+        , numStakeValidators = Map.size _StakeValidatorMap
+        , numRedeemers = Map.size _RedeemerMap
+        , numAddresses = Map.size $ _unCredentialMap _AddressMap
+        , someTransactions = take 10 $ fmap fst $ Map.toList _TxMap
         }

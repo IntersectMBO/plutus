@@ -7,7 +7,7 @@ import           Ledger                  (Datum, DatumHash, MintingPolicy, Minti
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
-import           Plutus.ChainIndex.Types (Page, Tip)
+import           Plutus.ChainIndex.Types (Diagnostics, Page, Tip)
 import           Servant.API             (Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
 
 type API
@@ -19,6 +19,7 @@ type API
     :<|> "utxo-at-address" :> ReqBody '[JSON] Credential :> Post '[JSON] (Tip, Page TxOutRef)
     :<|> "tip" :> Get '[JSON] Tip
     :<|> "collect-garbage" :> Put '[JSON] NoContent
+    :<|> "diagnostics" :> Get '[JSON] Diagnostics
 
 type FromHashAPI =
     "datum" :> ReqBody '[JSON] DatumHash :> Post '[JSON] Datum
