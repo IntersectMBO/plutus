@@ -69,8 +69,9 @@
             "GameModel"
             "HandlingBlockchainEvents"
             "HelloWorldApp"
+            "WriteScriptsTo"
             ];
-          hsSourceDirs = [ "plutus/tutorials" ];
+          hsSourceDirs = [ "plutus/tutorials" "plutus/howtos" ];
           mainPath = (([
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (compiler.isGhcjs && true || system.isWindows) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";

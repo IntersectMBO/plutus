@@ -1,6 +1,11 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module WriteScriptsTo() where
 
+import           Data.Int                      (Int64)
+import           Data.Monoid                   (Sum)
+import           Ledger                        (ExBudget)
+import           Plutus.Trace.Emulator         (EmulatorConfig, EmulatorTrace)
 import           Plutus.Trace.Emulator.Extract as Extract
 
 -- BLOCK0
