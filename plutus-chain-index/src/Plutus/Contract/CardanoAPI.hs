@@ -154,10 +154,11 @@ fromCardanoTxInWitness
         (P.Validator $ fromCardanoPlutusScript script)
         (P.Redeemer $ fromCardanoScriptData redeemer)
         (P.Datum $ fromCardanoScriptData datum)
-fromCardanoTxInWitness (C.ScriptWitness _ C.SimpleScriptWitness{}) = Left SimpleScriptsNotSupported
+fromCardanoTxInWitness (C.ScriptWitness _ C.SimpleScriptWitness{}) = pure P.ConsumeSimpleScriptAddress
 
 toCardanoTxInWitness :: P.TxInType -> Either ToCardanoError (C.Witness C.WitCtxTxIn C.AlonzoEra)
 toCardanoTxInWitness P.ConsumePublicKeyAddress = pure (C.KeyWitness C.KeyWitnessForSpending)
+toCardanoTxInWitness P.ConsumeSimpleScriptAddress = Left SimpleScriptsNotSupportedToCardano -- TODO: Better support for simple scripts
 toCardanoTxInWitness
     (P.ConsumeScriptAddress
         (P.Validator validator)
@@ -237,7 +238,7 @@ fromCardanoStakeAddressReference :: C.StakeAddressReference -> Either FromCardan
 fromCardanoStakeAddressReference C.NoStakeAddress = pure Nothing
 fromCardanoStakeAddressReference (C.StakeAddressByValue stakeCredential) =
     pure $ Just (Credential.StakingHash $ fromCardanoStakeCredential stakeCredential)
-fromCardanoStakeAddressReference C.StakeAddressByPointer{} = Left StakeAddressPointersNotSupported
+fromCardanoStakeAddressReference C.StakeAddressByPointer{} = pure Nothing
 
 toCardanoStakeAddressReference :: Maybe Credential.StakingCredential -> Either ToCardanoError C.StakeAddressReference
 toCardanoStakeAddressReference Nothing = pure C.NoStakeAddress
@@ -372,10 +373,10 @@ fromCardanoScriptData = Api.dataToBuiltinData . C.toPlutusData
 toCardanoScriptData :: Api.BuiltinData -> C.ScriptData
 toCardanoScriptData = C.fromPlutusData . Api.builtinDataToData
 
-fromCardanoScriptInEra :: C.ScriptInEra era -> Either FromCardanoError P.Script
+fromCardanoScriptInEra :: C.ScriptInEra era -> Maybe P.Script
 fromCardanoScriptInEra (C.ScriptInEra C.PlutusScriptV1InAlonzo (C.PlutusScript C.PlutusScriptV1 script)) =
-    pure $ fromCardanoPlutusScript script
-fromCardanoScriptInEra (C.ScriptInEra _ C.SimpleScript{}) = Left SimpleScriptsNotSupported
+    Just $ fromCardanoPlutusScript script
+fromCardanoScriptInEra (C.ScriptInEra _ C.SimpleScript{}) = Nothing
 
 toCardanoScriptInEra :: P.Script -> Either ToCardanoError (C.ScriptInEra C.AlonzoEra)
 toCardanoScriptInEra script = C.ScriptInEra C.PlutusScriptV1InAlonzo . C.PlutusScript C.PlutusScriptV1 <$> toCardanoPlutusScript script
@@ -405,13 +406,13 @@ tag s = first (Tag s)
 
 data FromCardanoError
     = SimpleScriptsNotSupported
-    | StakeAddressPointersNotSupported
+    -- | StakeAddressPointersNotSupported
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON, ToObject)
 
 instance Pretty FromCardanoError where
     pretty SimpleScriptsNotSupported        = "Simple scripts are not supported"
-    pretty StakeAddressPointersNotSupported = "Stake address pointers are not supported"
+    -- pretty StakeAddressPointersNotSupported = "Stake address pointers are not supported"
 
 data ToCardanoError
     = EvaluationError Api.EvaluationError
@@ -421,16 +422,18 @@ data ToCardanoError
     | ValueNotPureAda
     | NoDefaultCostModelParams
     | StakingPointersNotSupported
+    | SimpleScriptsNotSupportedToCardano
     | MissingTxInType
     | Tag String ToCardanoError
 
 instance Pretty ToCardanoError where
-    pretty (EvaluationError err)       = "EvaluationError" <> colon <+> pretty err
-    pretty (TxBodyError err)           = "TxBodyError" <> colon <+> pretty (C.displayError err)
-    pretty DeserialisationError        = "ByteString deserialisation failed"
-    pretty InvalidValidityRange        = "Invalid validity range"
-    pretty ValueNotPureAda             = "Fee values should only contain Ada"
-    pretty NoDefaultCostModelParams    = "Extracting default cost model failed"
-    pretty StakingPointersNotSupported = "Staking pointers are not supported"
-    pretty MissingTxInType             = "Missing TxInType"
-    pretty (Tag t err)                 = pretty t <> colon <+> pretty err
+    pretty (EvaluationError err)              = "EvaluationError" <> colon <+> pretty err
+    pretty (TxBodyError err)                  = "TxBodyError" <> colon <+> pretty (C.displayError err)
+    pretty DeserialisationError               = "ByteString deserialisation failed"
+    pretty InvalidValidityRange               = "Invalid validity range"
+    pretty ValueNotPureAda                    = "Fee values should only contain Ada"
+    pretty NoDefaultCostModelParams           = "Extracting default cost model failed"
+    pretty StakingPointersNotSupported        = "Staking pointers are not supported"
+    pretty SimpleScriptsNotSupportedToCardano = "Simple scripts are not supported"
+    pretty MissingTxInType                    = "Missing TxInType"
+    pretty (Tag t err)                        = pretty t <> colon <+> pretty err
