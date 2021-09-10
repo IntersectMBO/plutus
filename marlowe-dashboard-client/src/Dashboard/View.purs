@@ -4,6 +4,7 @@ module Dashboard.View
   ) where
 
 import Prelude hiding (div)
+import Contract.Lenses (_Started, _stateNickname)
 import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
@@ -117,7 +118,7 @@ dashboardCard currentSlot state = case view _card state of
                   CurrentWalletCard -> currentWalletCard currentWallet
                   WalletDataCard -> renderSubmodule _walletDataState WalletDataAction (walletDataCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
-                  ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId) (ContractAction followerAppId) (actionConfirmationCard assets action) state
+                  ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId <<< _Started) (ContractAction followerAppId) (actionConfirmationCard assets action) state
               ]
         ]
   Nothing -> div_ []
@@ -217,11 +218,13 @@ dashboardBreadcrumb mSelectedContractState =
               [ text "Dashboard" ]
           ]
         <> case mSelectedContractState of
-            Just { nickname } ->
+            Just state ->
               [ icon_ Icon.Next
               , tooltip "Go to dashboard" (RefId "goToDashboard") Bottom
               , span_ [ text if nickname == mempty then "My new contract" else nickname ]
               ]
+              where
+              nickname = state ^. _stateNickname
             Nothing -> []
     ]
 

@@ -11,22 +11,22 @@ import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFol
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
-import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
+import Contract.Lenses (_Started, _Starting, _marloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderState, updateState) as Contract
-import Contract.Types (Action(..), State) as Contract
+import Contract.Types (Action(..), State(..), StartingState) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
 import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDataState, _walletDetails)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State)
-import Data.Array (elem)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, filtered, modifying, over, set, use, view)
+import Data.Lens (assign, elemOf, filtered, modifying, set, use, view)
 import Data.Lens.Extra (peruse)
+import Data.Lens.Index (ix)
 import Data.Lens.Traversal (traversed)
 import Data.List (filter, fromFoldable) as List
-import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable, values)
+import Data.Map (Map, delete, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Traversable (for)
 import Data.Tuple (Tuple)
@@ -157,7 +157,11 @@ handleAction input (UpdateFollowerApps companionAppState) = do
   walletDetails <- use _walletDetails
   existingContracts <- use _contracts
   let
-    contractExists marloweParams = elem (Just marloweParams) (view _mMarloweParams <$> values existingContracts)
+    contractExists marloweParams =
+      elemOf
+        (traversed <<< _Started <<< _marloweParams)
+        marloweParams
+        existingContracts
 
     newContracts = filterKeys (not contractExists) companionAppState
 
@@ -168,12 +172,13 @@ handleAction input (UpdateFollowerApps companionAppState) = do
         let
           mTemplate = findTemplate $ view _marloweContract marloweData
 
-          hasRightMetaData :: Contract.State -> Boolean
-          hasRightMetaData { mMarloweParams, metadata } = case mMarloweParams, mTemplate of
-            Nothing, Just template -> template.metaData == metadata
-            _, _ -> false
+          isStartingAndMetadataMatches :: Contract.State -> Maybe Contract.StartingState
+          isStartingAndMetadataMatches = case _, mTemplate of
+            Contract.Starting starting@{ metadata }, Just template
+              | template.metaData == metadata -> Just starting
+            _, _ -> Nothing
 
-          mPendingContract = findMin $ filter hasRightMetaData existingContracts
+          mPendingContract = findMin $ mapMaybe isStartingAndMetadataMatches existingContracts
         -- Note [PendingContracts]: Okay, here's the problem: When we're using the PAB, and a contract is created,
         -- we create a follower app immediately as a placeholder (and remember its PlutusAppId), then we wait for
         -- the wallet companion app to tell us the MarloweParams of the contract we created, and pass those to the
@@ -215,9 +220,8 @@ handleAction input (UpdateFollowerApps companionAppState) = do
               Right (followerAppId /\ contractHistory) -> do
                 handleAction input $ UpdateContract followerAppId contractHistory
                 for_ mPendingContract \{ key, value } -> do
-                  modifying _contracts
-                    $ delete key
-                    <<< alter (map $ set _nickname value.nickname) followerAppId
+                  assign (_contracts <<< ix followerAppId <<< _Starting <<< _nickname) value.nickname
+                  modifying _contracts $ delete key
                   insertIntoContractNicknames followerAppId value.nickname
 
 -- this handler updates the state of an individual contract
@@ -234,11 +238,11 @@ handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory
         Just contractState -> do
           let
             chHistory = view _chHistory contractHistory
-          selectedStep <- peruse $ _selectedContract <<< _selectedStep
-          modifying _contracts $ insert followerAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
+          selectedStep <- peruse $ _selectedContract <<< _Started <<< _selectedStep
+          modifying _contracts $ insert followerAppId $ Contract.updateState walletDetails marloweParams marloweData currentSlot chHistory contractState
           -- if the modification changed the currently selected step, that means the card for the contract
           -- that was changed is currently open, so we need to realign the step cards
-          selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+          selectedStep' <- peruse $ _selectedContract <<< _Started <<< _selectedStep
           when (selectedStep /= selectedStep')
             $ for_ selectedStep' (handleAction input <<< ContractAction followerAppId <<< Contract.MoveToStep)
         Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot mempty contractHistory) (modifying _contracts <<< insert followerAppId)
@@ -254,31 +258,36 @@ handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory
 -- will happen anyway, therefore, this extra complication doesn't seem worth the bother.
 handleAction input (RedeemPayments followerAppId) = do
   walletDetails <- use _walletDetails
-  contracts <- use _contracts
-  for_ (lookup followerAppId contracts) \{ executionState, mMarloweParams, userParties } ->
-    for_ mMarloweParams \marloweParams ->
-      let
-        payments = getAllPayments executionState
+  mStartedContract <- peruse $ _contracts <<< ix followerAppId <<< _Started
+  for_ mStartedContract \{ executionState, marloweParams, userParties } ->
+    let
+      payments = getAllPayments executionState
 
-        isToParty party (Payment _ payee _) = case payee of
-          Party p -> p == party
-          _ -> false
-      in
-        for (List.fromFoldable userParties) \party ->
-          let
-            paymentsToParty = List.filter (isToParty party) payments
-          in
-            for paymentsToParty \payment -> case payment of
-              Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
-              _ -> pure unit
+      isToParty party (Payment _ payee _) = case payee of
+        Party p -> p == party
+        _ -> false
+    in
+      for (List.fromFoldable userParties) \party ->
+        let
+          paymentsToParty = List.filter (isToParty party) payments
+        in
+          for paymentsToParty \payment -> case payment of
+            Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
+            _ -> pure unit
 
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
-  selectedStep <- peruse $ _selectedContract <<< _selectedStep
-  modify_
-    $ over
-        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
-        (applyTimeout currentSlot)
+  selectedStep <- peruse $ _selectedContract <<< _Started <<< _selectedStep
+  modifying
+    ( _contracts
+        <<< traversed
+        <<< _Started
+        <<< filtered
+            ( \contract ->
+                contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot
+            )
+    )
+    (applyTimeout currentSlot)
   selectedContractFollowerAppId <- use _selectedContractFollowerAppId
   for_ selectedContractFollowerAppId \followerAppId -> do
     -- If the modification changed the currently selected step, that means the screen for the
@@ -286,7 +295,7 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     -- call the CancelConfirmation action - because if the user had the action confirmation card
     -- open for an action in the current step, we want to close it (otherwise they could confirm an
     -- action that is no longer possible).
-    selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+    selectedStep' <- peruse $ _selectedContract <<< _Started <<< _selectedStep
     when (selectedStep /= selectedStep') do
       for_ selectedStep' (handleAction input <<< ContractAction followerAppId <<< Contract.MoveToStep)
       handleAction input $ ContractAction followerAppId $ Contract.CancelConfirmation

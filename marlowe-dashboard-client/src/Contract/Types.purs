@@ -1,5 +1,7 @@
 module Contract.Types
-  ( State
+  ( State(..)
+  , StartedState
+  , StartingState
   , StepBalance
   , TimeoutInfo
   , PreviousStep
@@ -24,10 +26,20 @@ import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token(..), TransactionInput, Value)
+import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token, TransactionInput)
 import WalletData.Types (WalletDetails, WalletNickname)
 
-type State
+data State
+  = Starting StartingState
+  | Started StartedState
+
+type StartingState
+  = { nickname :: String
+    , metadata :: MetaData
+    , participants :: Map Party (Maybe WalletNickname)
+    }
+
+type StartedState
   = { nickname :: String
     , tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: Execution.State
@@ -35,10 +47,7 @@ type State
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
     , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
-    -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
-    -- contracts when a user creates a contract, to show on the page until the blockchain settles and
-    -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
-    , mMarloweParams :: Maybe MarloweParams
+    , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
