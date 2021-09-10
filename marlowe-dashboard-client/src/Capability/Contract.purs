@@ -13,10 +13,10 @@ module Capability.Contract
   ) where
 
 import Prelude
+import API.Contract as API
 import API.Lenses (_cicCurrentState, _hooks, _observableState)
 import AppM (AppM)
 import Bridge (toBack, toFront)
-import API.Contract as API
 import Control.Monad.Except (lift, runExceptT)
 import Data.Lens (view)
 import Data.RawJson (RawJson)

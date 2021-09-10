@@ -4,6 +4,7 @@ import Prelude
 import Bridge (toFront)
 import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
+import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
@@ -34,7 +35,6 @@ import Humanize (getTimezoneOffset)
 import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _tzOffset, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.Client (LastResult(..), MarloweError(..))
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import Toast.State (defaultState, handleAction) as Toast
@@ -153,14 +153,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               -- if this is the wallet's MarloweApp...
               if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right lastResult -> case lastResult of
-                  -- FIXME: unpack these updates properly and respond appropriately in each case
-                  OK -> addToast $ successToast "all okay"
-                  SomeError marloweError -> do
-                    traceM marloweError
-                    addToast $ errorToast "something went wrong" Nothing
-                  Unknown -> pure unit
-              -- otherwise this should be one of the wallet's MarloweFollower apps
+                Right lastResult -> MarloweApp.onNewState lastResult
+              -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
                 Right contractHistory -> do

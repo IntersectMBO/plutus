@@ -38,10 +38,12 @@ mkEnvironment = do
 
     encodeJson = SPSettingsEncodeJson_ jsonOptions
   contractStepCarouselSubscription <- AVar.empty
+  lastMarloweAppEndpointCall <- AVar.empty
   pure
     { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
     , contractStepCarouselSubscription
     , dataProvider: MarlowePAB
+    , lastMarloweAppEndpointCall
     }
 
 main :: Effect Unit
