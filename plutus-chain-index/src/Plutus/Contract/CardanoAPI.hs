@@ -409,7 +409,6 @@ tag s = first (Tag s)
 
 data FromCardanoError
     = SimpleScriptsNotSupported
-    -- | StakeAddressPointersNotSupported
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON, ToObject)
 
