@@ -23,6 +23,7 @@
 @import './save-as-modal.css';
 @import './../../web-common/static/popover.css';
 @import "../../web-common/static/icons.css";
+@import "../../web-common/static/progress-circular.css";
 
 
 /* @tailwind base; */
