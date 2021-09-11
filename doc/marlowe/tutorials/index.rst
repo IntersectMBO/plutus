@@ -3,7 +3,7 @@
 Tutorials
 =========
 
-This document gives an overview the Marlowe tutorials.
+This document gives an overview of the Marlowe tutorials.
 
 1.  :ref:`introducing-marlowe`
     This tutorial gives an overview of the ideas behind Marlowe, as a
@@ -71,21 +71,23 @@ This document gives an overview the Marlowe tutorials.
     tutorial gives an introduction to the general idea of the ACTUS
     taxonomy, plus examples implemented in Marlowe.
 
-13. :ref:`actus-labs` The Actus Labs
+..
+    13. :ref:`actus-labs` The Actus Labs
     support generation of different styles of Actus contract from the
     parameters that describe the particular contract instance.
 
-14. :ref:`wallets-simulation`
+..  
+    14. :ref:`wallets-simulation`
     The wallets simulation present a view of a running contract from the
     perspective of a participant in that contract, rather than the
     ‘omniscient‘ view given in the simulation tab.
 
-15. :ref:`using-marlowe` This
+13. :ref:`using-marlowe` This
     tutorial shows you how to use Marlowe from the command line in ghci,
     and in particular shows how to exercise a contract using the
     semantics given earlier.
 
-16. :ref:`migrating` Here we explain how the
+14. :ref:`migrating` Here we explain how the
     current version of Marlowe is related to earlier versions.
 
 ..
@@ -115,7 +117,5 @@ This document gives an overview the Marlowe tutorials.
    potential-problems-with-contracts
    static-analysis
    actus-marlowe
-   actus-labs
-   wallets-simulation
    using-marlowe
    migrating

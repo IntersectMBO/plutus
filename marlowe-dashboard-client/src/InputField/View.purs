@@ -7,15 +7,26 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
+import Halogen (RefLabel(..))
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, input, span_, text)
 import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onBlur_, onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, ref, tabIndex, type_, value)
 import InputField.Lenses (_additionalCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
 import Marlowe.Extended.Metadata (NumberFormat(..))
+
+inputCss :: InputDisplayOptions -> Boolean -> Array String
+inputCss { readOnly: true } = Css.inputNoFocus
+
+inputCss _ = Css.input
+
+getTabIndex :: InputDisplayOptions -> Int
+getTabIndex { readOnly: true } = -1
+
+getTabIndex _ = 0
 
 renderInput :: forall p e. InputFieldError e => InputDisplayOptions -> State e -> HTML p (Action e)
 renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
@@ -33,11 +44,13 @@ renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
     div_
       [ input
           $ [ type_ InputText
-            , classNames $ (Css.input $ not showError) <> additionalCss
+            , classNames $ (inputCss options $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
             , readOnly $ view _readOnly options
+            , tabIndex $ getTabIndex options
             , autocomplete false
             , onValueInput_ SetValue
             ]
@@ -70,9 +83,11 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
           $ [ type_ InputText
             , classNames $ (Css.inputNoFocus $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
             , readOnly $ view _readOnly options
+            , tabIndex $ getTabIndex options
             , autocomplete false
             , onValueInput_ SetValue
             ]
@@ -116,10 +131,12 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
     div_
       [ input
           $ [ type_ InputNumber
-            , classNames $ (Css.input $ not showError) <> additionalCss
+            , classNames $ (inputCss options $ not showError) <> additionalCss
             , id_ $ view _id_ options
+            , ref $ RefLabel $ view _id_ options
             , value currentValue
             , readOnly $ view _readOnly options
+            , tabIndex $ getTabIndex options
             , autocomplete false
             , onValueInput_ SetValue
             ]
@@ -142,13 +159,15 @@ renderInput options@{ numberFormat: Just TimeFormat } state =
   in
     div_
       [ div
-          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
+          [ classNames $ inputCss options (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
           [ input
               [ type_ InputNumber
               , classNames $ Css.unstyledInput <> [ "flex-1" ]
               , id_ $ view _id_ options
+              , ref $ RefLabel $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
+              , tabIndex $ getTabIndex options
               , autocomplete false
               , onValueInput_ SetValue
               , onBlur_ $ FormatValue TimeFormat
@@ -175,15 +194,17 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
   in
     div_
       [ div
-          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
+          [ classNames $ inputCss options (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
           [ span_
               [ text label ]
           , input
               [ type_ InputNumber
               , classNames $ Css.unstyledInput <> [ "flex-1" ]
               , id_ $ view _id_ options
+              , ref $ RefLabel $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
+              , tabIndex $ getTabIndex options
               , autocomplete false
               , onValueInput_ SetValue
               , onBlur_ $ FormatValue $ DecimalFormat decimals label

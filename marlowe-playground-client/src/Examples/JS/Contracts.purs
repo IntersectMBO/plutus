@@ -183,8 +183,8 @@ escrowWithCollateral =
 zeroCouponBond :: String
 zeroCouponBond =
   """
-    const discountedPrice: Value = ConstantParam("Interest");
-    const notionalPrice: Value = AddValue(ConstantParam("Amount"), discountedPrice);
+    const discountedPrice: Value = ConstantParam("Amount");
+    const notionalPrice: Value = AddValue(ConstantParam("Interest"), discountedPrice);
 
     const investor: Party = Role("Lender");
     const issuer: Party = Role("Borrower");
