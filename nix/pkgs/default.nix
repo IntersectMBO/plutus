@@ -30,10 +30,7 @@ let
   stylish-haskell = exeFromExtras "stylish-haskell";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
-  haskell-language-server-wrapper = pkgs.writeScriptBin "haskell-language-server-wrapper" ''
-    #!/usr/bin/env sh
-    haskell-language-server "$@"
-  '';
+  haskell-language-server-wrapper = pkgs.writeShellScriptBin "haskell-language-server-wrapper" ''${haskell-language-server}/bin/haskell-language-server "$@"'';
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
 
