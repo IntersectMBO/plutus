@@ -1,27 +1,82 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase            #-}
-
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
 
-module Spec.Marlowe.Util where
+module Spec.Marlowe.ACTUS.TestFramework
+  where
 
+import           Data.Aeson                                        as Aeson (decode)
 import           Data.Aeson.Types                                  (FromJSON, Value (Array, Number, Object, String))
+import           Data.ByteString.Lazy.UTF8                         as BLU (fromString)
 import           Data.HashMap.Strict                               as HashMap ((!))
+import           Data.List                                         as L (find)
 import           Data.List.Extra                                   (replace)
-import           Data.Map                                          as Map (Map, lookup, mapMaybe, (!))
-import           Data.Maybe                                        (fromJust)
+import           Data.Map                                          as Map (Map, lookup, mapMaybe, toList, (!))
+import           Data.Maybe                                        (fromJust, fromMaybe)
 import           Data.Scientific                                   (toRealFloat)
 import           Data.Text                                         (unpack)
 import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
 import           Data.Vector                                       as Vector (catMaybes, map, toList)
 import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
-import           Test.Tasty.HUnit                                  (assertBool, assertFailure)
+import           GHC.Records                                       (getField)
+import           Language.Marlowe.ACTUS.Analysis
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  hiding (Assertion)
+import           Language.Marlowe.ACTUS.Definitions.Schedule
+import           Test.Tasty
+import           Test.Tasty.HUnit                                  (Assertion, assertBool, assertFailure, testCase)
+
+tests :: String -> [TestCase] -> TestTree
+tests n t = testGroup n $ [ testCase (getField @"identifier" tc) (runTest tc) | tc <- t]
+
+runTest :: TestCase -> Assertion
+runTest tc@TestCase {..} =
+  let testcase = testToContractTerms tc
+      contract = setDefaultContractTermValues testcase
+      observed = parseObservedValues dataObserved
+
+      getRiskFactors ev date =
+        let riskFactors =
+              RiskFactorsPoly
+                { o_rf_CURS = 1.0,
+                  o_rf_RRMO = 1.0,
+                  o_rf_SCMO = 1.0,
+                  pp_payoff = 0.0
+                }
+
+            observedKey RR = ct_RRMO contract
+            observedKey SC = ct_SCMO contract
+            observedKey _  = ct_CURS contract
+
+            value = fromMaybe 1.0 $ do
+              k <- observedKey ev
+              ValuesObserved {values = values} <- Map.lookup k observed
+              ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
+              return valueObserved
+         in case ev of
+              RR -> riskFactors {o_rf_RRMO = value}
+              SC -> riskFactors {o_rf_SCMO = value}
+              _  -> riskFactors {o_rf_CURS = value}
+
+      cashFlows = genProjectedCashflows getRiskFactors contract
+      cashFlowsTo = maybe cashFlows (\d -> filter (\cf -> cashCalculationDay cf <= d) cashFlows) (parseDate to)
+   in assertTestResults cashFlowsTo results identifier
+
+testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
+testCasesFromFile excludedTestCases fileName = do
+  tcs <- readFile fileName
+  case let tc = fromString tcs in decode tc :: Maybe (Map String TestCase) of
+    (Just decodedTests) ->
+      return $
+        filter (\TestCase {..} -> notElem identifier excludedTestCases) $
+          fmap snd (Map.toList decodedTests)
+    Nothing -> assertFailure ("Cannot parse test specification from file: " ++ fileName) >> return []
 
 data ValuesObserved = ValuesObserved
   { identifier :: String

@@ -197,8 +197,7 @@ test-suite marlowe-actus-test
     main-is: Spec.hs
     other-modules:
         Spec.Marlowe.ACTUS.Examples
-        Spec.Marlowe.ACTUS
-        Spec.Marlowe.Util
+        Spec.Marlowe.ACTUS.TestFramework
     build-depends:
         vector -any,
         unordered-containers -any,
