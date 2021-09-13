@@ -168,9 +168,17 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                   Right contractHistory -> do
                     handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
                     handleAction $ DashboardAction $ Dashboard.RedeemPayments plutusAppId
-        -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
-        -- we can ignore these cases here
-        _ -> pure unit
+        NewActiveEndpoints activeEndpoints -> do
+          mDashboardState <- peruse _dashboardState
+          -- these updates should only ever be coming when we are in the Dashboard state (and if
+          -- we're not, we don't care about them anyway)
+          for_ mDashboardState \dashboardState -> do
+            let
+              plutusAppId = toFront contractInstanceId
+
+              marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
+            when (plutusAppId == marloweAppId) $ MarloweApp.onNewActiveEndpoints activeEndpoints
+        ContractFinished _ -> pure unit
   pure $ Just next
 
 handleQuery (MainFrameActionQuery action next) = do

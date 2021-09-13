@@ -8,7 +8,7 @@ import Effect.AVar (AVar)
 import Halogen (SubscriptionId)
 import Plutus.PAB.Webserver (SPParams_)
 import Servant.PureScript.Settings (SPSettings_)
-import Capability.PlutusApps.MarloweApp.Types (MarloweAppEndpoint)
+import Capability.PlutusApps.MarloweApp.Types as MarloweApp
 
 -- Application enviroment configuration
 type Env
@@ -22,8 +22,10 @@ type Env
     --    creation functions didn't require that, so it seemed wrong to lift several functions into Effect.
     --    In contrast, the Env is created in Main, where we already have access to Effect
     , contractStepCarouselSubscription :: AVar SubscriptionId
-    -- FIXME: Add comment
-    , lastMarloweAppEndpointCall :: AVar MarloweAppEndpoint
+    -- FIXME: remove
+    , lastMarloweAppEndpointCall :: AVar MarloweApp.MarloweAppEndpoint
+    -- See note on Capability.PlutusApps.MarloweApp.Types
+    , marloweAppEndpointMutex :: MarloweApp.EndpointMutex
     , dataProvider :: DataProvider
     }
 

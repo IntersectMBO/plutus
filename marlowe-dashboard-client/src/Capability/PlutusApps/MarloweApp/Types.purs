@@ -6,11 +6,14 @@ module Capability.PlutusApps.MarloweApp.Types
   , EndpointName
   , MarloweError
   , MarloweAppState
+  , EndpointMutex
+  , MarloweAppEndpointMutexEnv
   ) where
 
 import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Tuple (Tuple)
+import Effect.AVar (AVar)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Marlowe.Semantics (Input, MarloweData, Slot, TransactionError)
@@ -77,6 +80,18 @@ type MarloweSlotRange
 type MarloweAppState
   = LastResult
 
+-- The plutus contracts can have their endpoints active or inactive. We use
+-- this AVar object to allow the API users to wait for an endpoint to be available.
+type EndpointMutex
+  = { create :: AVar Unit
+    , applyInputs :: AVar Unit
+    , redeem :: AVar Unit
+    }
+
+type MarloweAppEndpointMutexEnv env
+  = { marloweAppEndpointMutex :: EndpointMutex | env }
+
+-- FIXME: Delete
 -- These are the endpoints of the main marlowe (control) contract.
 data MarloweAppEndpoint
   = Create

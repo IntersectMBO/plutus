@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 import AppM (runAppM)
+import Capability.PlutusApps.MarloweApp as MarloweApp
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -39,11 +40,13 @@ mkEnvironment = do
     encodeJson = SPSettingsEncodeJson_ jsonOptions
   contractStepCarouselSubscription <- AVar.empty
   lastMarloweAppEndpointCall <- AVar.empty
+  marloweAppEndpointMutex <- MarloweApp.createEndpointMutex
   pure
     { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
     , contractStepCarouselSubscription
     , dataProvider: MarlowePAB
     , lastMarloweAppEndpointCall
+    , marloweAppEndpointMutex
     }
 
 main :: Effect Unit
