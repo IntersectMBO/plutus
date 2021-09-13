@@ -1,8 +1,7 @@
 -- The types are defined separated from the MarloweApp to avoid this circular dependency
 -- Capability.PlutusApps.MarloweApp -> AppM -> Env -> Capability.PlutusApps.MarloweApp
 module Capability.PlutusApps.MarloweApp.Types
-  ( MarloweAppEndpoint(..)
-  , LastResult(..)
+  ( LastResult(..)
   , EndpointName
   , MarloweError
   , MarloweAppState
@@ -90,10 +89,3 @@ type EndpointMutex
 
 type MarloweAppEndpointMutexEnv env
   = { marloweAppEndpointMutex :: EndpointMutex | env }
-
--- FIXME: Delete
--- These are the endpoints of the main marlowe (control) contract.
-data MarloweAppEndpoint
-  = Create
-  | ApplyInputs
-  | Redeem

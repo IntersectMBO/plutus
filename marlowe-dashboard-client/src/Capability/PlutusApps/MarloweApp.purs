@@ -83,6 +83,9 @@ createEndpointMutex = do
   redeem <- EAVar.empty
   pure { create, applyInputs, redeem }
 
+-- Plutus contracts have endpoints that can be available or not. We get notified by the
+-- websocket message NewActiveEndpoints when the status change, and we use this function
+-- to update some mutex we use to restrict access to unavailable methods.
 onNewActiveEndpoints ::
   forall env m.
   MonadAff m =>
@@ -102,11 +105,19 @@ onNewActiveEndpoints endpoints = do
         )
         endpoints
 
+    -- For each endpoint:
     updateEndpoint name getter = do
       mutex <- asks $ view (_marloweAppEndpointMutex <<< getter)
+      -- We check if it's available or not
       if (elem name endpointsName) then
+        -- If it's available we put a unit in the mutex, to allow
+        -- users to call the endpoint. If the mutex already has a unit,
+        -- `tryPut` will return false but wont block the thread.
         void $ liftAff $ AVar.tryPut unit mutex
       else
+        -- If it's not available we remove a unit from the mutex to make
+        -- callers to wait until we put a unit. If the mutex was already
+        -- empty, tryTake will return Nothing but wont block the thread.
         void $ liftAff $ AVar.tryTake mutex
   updateEndpoint "redeem" _redeem
   updateEndpoint "create" _create
