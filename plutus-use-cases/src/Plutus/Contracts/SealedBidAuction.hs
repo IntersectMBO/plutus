@@ -40,10 +40,10 @@ import           Ledger.Constraints.TxConstraints (TxConstraints)
 import qualified Ledger.Interval                  as Interval
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Plutus.Contract
+import           Plutus.Contract.Secrets
 import           Plutus.Contract.StateMachine     (State (..), StateMachine (..), StateMachineClient, Void)
 import qualified Plutus.Contract.StateMachine     as SM
 import qualified PlutusTx
-import           PlutusTx.Extensions.Secrets
 import           PlutusTx.Prelude
 import qualified Prelude                          as Haskell
 

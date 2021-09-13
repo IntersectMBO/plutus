@@ -30,12 +30,12 @@ import           Test.Tasty.QuickCheck              (testProperty)
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
+import           Plutus.Contract.Secrets
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx
-import           PlutusTx.Extensions.Secrets
 
 -- * QuickCheck model
 

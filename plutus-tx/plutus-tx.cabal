@@ -69,7 +69,6 @@ library
         PlutusTx.Builtins.Internal
         PlutusTx.Plugin.Utils
         PlutusTx.Utils
-        PlutusTx.Extensions.Secrets
     other-modules:
         PlutusTx.IsData.Instances
         PlutusTx.IsData.TH
@@ -110,8 +109,6 @@ test-suite plutus-tx-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-quickcheck -any,
         tasty-hunit -any,
         serialise -any,
-        cborg -any,
-        aeson -any
+        cborg -any

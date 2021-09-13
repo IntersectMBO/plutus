@@ -3,29 +3,24 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
-import qualified Codec.CBOR.FlatTerm         as FlatTerm
-import           Codec.Serialise             (deserialiseOrFail, serialise)
-import qualified Codec.Serialise             as Serialise
-import qualified Data.Aeson                  as Aeson
-import qualified Data.ByteString             as BS
-import           Data.Either                 (isLeft)
-import           Data.Maybe
-import           Hedgehog                    (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property,
-                                              tripping)
-import qualified Hedgehog.Gen                as Gen
-import qualified Hedgehog.Range              as Range
-import           PlutusCore.Data             (Data (..))
-import           PlutusTx.Extensions.Secrets
-import           PlutusTx.List               (nub, nubBy)
-import           PlutusTx.Numeric            (negate)
-import           PlutusTx.Prelude            (dropByteString, takeByteString)
-import           PlutusTx.Ratio              (Rational, denominator, numerator, recip, (%))
-import           PlutusTx.Sqrt               (Sqrt (..), isqrt, rsqrt)
-import           Prelude                     hiding (Rational, negate, recip)
+import qualified Codec.CBOR.FlatTerm as FlatTerm
+import           Codec.Serialise     (deserialiseOrFail, serialise)
+import qualified Codec.Serialise     as Serialise
+import qualified Data.ByteString     as BS
+import           Data.Either         (isLeft)
+import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
+import           PlutusCore.Data     (Data (..))
+import           PlutusTx.List       (nub, nubBy)
+import           PlutusTx.Numeric    (negate)
+import           PlutusTx.Prelude    (dropByteString, takeByteString)
+import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (%))
+import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
+import           Prelude             hiding (Rational, negate, recip)
 import           Test.Tasty
-import           Test.Tasty.HUnit            (testCase, (@?=))
-import           Test.Tasty.Hedgehog         (testProperty)
-import qualified Test.Tasty.QuickCheck       as QC
+import           Test.Tasty.HUnit    (testCase, (@?=))
+import           Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
 main = defaultMain tests
@@ -37,7 +32,6 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
-    , secretTests
     ]
 
 sqrtTests :: TestTree
@@ -254,14 +248,4 @@ nubTests = testGroup "nub"
   , testCase "[2, 1, 1] == [2, 1]" $ nub [2 :: Integer, 1, 1] @?= [2, 1]
   , testCase "[1, 1, 1] == [1]" $ nub [1 :: Integer, 1, 1] @?= [1]
   , testCase "[1, 2, 3, 4, 5] == [1, 2, 3, 4, 5]" $ nub [1 :: Integer, 2, 3, 4, 5] @?= [1, 2, 3, 4, 5]
-  ]
-
-secretTests :: TestTree
-secretTests = testGroup "secrets"
-  [ QC.testProperty "isJust (decode (encode x))"
-      $ \x -> isJust (Aeson.decode (Aeson.encode (secretArg (x :: Integer))) :: Maybe (SecretArgument Integer))
-  , QC.testProperty "decode . encode = Just . mkSecret"
-      $ \x -> (unsafe_escape_secret . extractSecret . fromJust . Aeson.decode . Aeson.encode . secretArg $ (x :: Integer)) == x
-  , QC.testProperty "decode (encode x) is a secret"
-      $ \x -> show ((fromJust . Aeson.decode . Aeson.encode . secretArg) (x :: Integer) :: SecretArgument Integer) == "EndpointSide *****"
   ]

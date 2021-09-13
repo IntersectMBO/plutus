@@ -22,11 +22,11 @@ import           Plutus.Contract.Test               hiding (not)
 
 import qualified Ledger.TimeSlot                    as TimeSlot
 import qualified Ledger.Value                       as Value
+import           Plutus.Contract.Secrets
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.SealedBidAuction
 import qualified Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx.Builtins.Internal         as PlutusTx
-import           PlutusTx.Extensions.Secrets        as PlutusTx
 import qualified PlutusTx.Prelude                   as PlutusTx
 
 import           Test.QuickCheck                    hiding ((.&&.))
@@ -130,7 +130,7 @@ instance ContractModel AuctionModel where
     perform _ _ (Init _)            = delay 3
     perform _ _ (WaitUntil slot)    = void $ Trace.waitUntilSlot slot
     perform handle _ (Bid w bid)    = do
-        Trace.callEndpoint @"bid" (handle $ BidderH w) (BidArgs (PlutusTx.secretArg bid))
+        Trace.callEndpoint @"bid" (handle $ BidderH w) (BidArgs (secretArg bid))
         delay 1
     perform handle _ (Reveal w bid) = do
         Trace.callEndpoint @"reveal" (handle $ BidderH w) (RevealArgs bid)

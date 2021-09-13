@@ -62,9 +62,9 @@ import           Ledger                                   (Ada, AssetClass, Curr
                                                            POSIXTime, POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash,
                                                            Signature, TokenName, TxId, TxOutRef, ValidatorHash, Value)
 import           Ledger.Bytes                             (LedgerBytes)
+import           Plutus.Contract.Secrets                  (SecretArgument (EndpointSide, UserSide))
 import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken)
 import qualified PlutusTx.AssocMap
-import           PlutusTx.Extensions.Secrets              (SecretArgument (EndpointSide, UserSide))
 import qualified PlutusTx.Prelude                         as P
 import qualified PlutusTx.Ratio                           as P
 import           Wallet.Emulator.Wallet                   (Wallet, WalletId, WalletNumber)

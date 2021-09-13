@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module PlutusTx.Extensions.Secrets(
+module Plutus.Contract.Secrets(
   Secret
   , SecretArgument (..)
   , mkSecret

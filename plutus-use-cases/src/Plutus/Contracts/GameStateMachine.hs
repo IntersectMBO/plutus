@@ -43,7 +43,6 @@ import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Typed.Scripts         as Scripts
 import qualified Ledger.Value                 as V
 import qualified PlutusTx
-import           PlutusTx.Extensions.Secrets
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
 import           Schema                       (ToArgument, ToSchema)
 
@@ -53,6 +52,7 @@ import           Plutus.Contract.StateMachine (State (..), Void)
 import qualified Plutus.Contract.StateMachine as SM
 
 import           Plutus.Contract
+import           Plutus.Contract.Secrets
 
 import qualified Prelude                      as Haskell
 
