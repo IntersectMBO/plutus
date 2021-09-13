@@ -48,16 +48,16 @@ import           PlutusTx.Prelude
 import qualified Prelude                          as Haskell
 
 {- Note [Sealed bid auction disclaimer]
- - This file implements a sealed bid auction using `SecretArgument`s. In the bidding
- - phase of the contract sealed bids appear hashed on the blockchain and hashed
- - bids are "claimed" by the participants in the second phase of the auction.
- -
- - Because bids are integer lovelace values there is the faint possibility of a
- - brute-force attack or lookup table attack on the bids in the bidding phase. An
- - implementation intended to be deployed in the real world may consider adding a
- - salt to the secret bids or using some other more sophisticated mechanism to
- - avoid this attack. In other words, please don't blidnly deploy this code
- - without understanding the possible attack scenarios.
+   This file implements a sealed bid auction using `SecretArgument`s. In the bidding
+   phase of the contract sealed bids appear hashed on the blockchain and hashed
+   bids are "claimed" by the participants in the second phase of the auction.
+
+   Because bids are integer lovelace values there is the faint possibility of a
+   brute-force attack or lookup table attack on the bids in the bidding phase. An
+   implementation intended to be deployed in the real world may consider adding a
+   salt to the secret bids or using some other more sophisticated mechanism to
+   avoid this attack. In other words, please don't blidnly deploy this code
+   without understanding the possible attack scenarios.
  -}
 
 data BidArgs = BidArgs{ secretBid :: SecretArgument Integer }
