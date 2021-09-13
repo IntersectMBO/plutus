@@ -149,12 +149,10 @@ parsePluginArgs args = do
             , poDoSimplifierBeta = notElem' "no-simplifier-beta"
             , poDoSimplifierInline = notElem' "no-simplifier-inline"
             , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
-            -- profiling: profiling-on turns on profiling for everything
+            -- profiling: @profile-all@ turns on profiling for everything
             , poProfile =
                 if elem' "profile-all" then All
                 else None
-                -- TODO add a few options for
-                -- else if elem' "profile=" then Some
             }
     -- TODO: better parsing with failures
     pure opts

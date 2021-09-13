@@ -72,8 +72,8 @@ swap (a,b) = (b,a)
 swapTest :: CompiledCode (Integer,Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))
 
--- | Write the time log of a program to a file,
--- in the plutus-tx-plugin/executables/profile/ directory.
+-- | Write the time log of a program to a file in
+-- the plutus-tx-plugin/executables/profile/ directory.
 writeLogToFile ::
   ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
   -- | Name of the file you want to save it as.

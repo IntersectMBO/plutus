@@ -45,11 +45,10 @@ data CompileContext uni fun = CompileContext {
     ccBlackholed      :: Set.Set GHC.Name
     }
 
--- | Profiling options. @All@ profiles everything. @None@ turns off profiling. @Some@ turns on profiling for selected terms.
+-- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts =
-    All
+    All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
-    | Some [String]
     deriving (Eq)
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering

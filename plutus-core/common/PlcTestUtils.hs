@@ -24,7 +24,6 @@ module PlcTestUtils (
     goldenUEval,
     goldenTEvalCatch,
     goldenUEvalCatch,
-    goldenUEvalProfile,
     NoMarkRenameT(..),
     noMarkRename,
     NoRenameT(..),
@@ -57,7 +56,6 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek             as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logWithTimeEmitter)
 
 import           Control.Exception
-import           Control.Lens.Combinators                             (_2)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
@@ -207,12 +205,6 @@ goldenUEvalCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc values
-
--- | Similar to @goldenUEval@ but with profiling turned on.
-goldenUEvalProfile
-    :: ToUPlc a DefaultUni TPLC.DefaultFun
-    => String -> [a] -> TestNested
-goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
 
 -- See Note [Marking].
 -- | A version of 'RenameT' that fails to take free variables into account.
