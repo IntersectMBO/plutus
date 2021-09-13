@@ -175,6 +175,7 @@ test-suite plutus-contract-test
         Spec.Rows
         Spec.State
         Spec.ThreadToken
+        Spec.Secrets
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
