@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
-module Spec.Marlowe.Actus
+module Spec.Marlowe.ACTUS
     (
       tests, TestCase(..)
     )

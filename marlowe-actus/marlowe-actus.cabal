@@ -196,8 +196,9 @@ test-suite marlowe-actus-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
+        Spec.Marlowe.ACTUS.Examples
+        Spec.Marlowe.ACTUS
         Spec.Marlowe.Util
-        Spec.Marlowe.Actus
     build-depends:
         vector -any,
         unordered-containers -any,
