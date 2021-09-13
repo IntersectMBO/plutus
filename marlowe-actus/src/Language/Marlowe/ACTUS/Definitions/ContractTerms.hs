@@ -239,7 +239,6 @@ data ContractTerms = ContractTerms
   , ct_PYRT          :: Maybe Double   -- Penalty Rate
   , ct_PYTP          :: Maybe PYTP     -- Penalty Type
   , ct_PPEF          :: Maybe PPEF     -- Prepayment Effect
-  , ct_cPYRT         :: Double
 
   -- Rate Reset
   , ct_RRCL          :: Maybe Cycle    -- Cycle Of Rate Reset

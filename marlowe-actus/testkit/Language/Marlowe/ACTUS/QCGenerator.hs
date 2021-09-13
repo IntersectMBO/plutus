@@ -75,7 +75,6 @@ contractTermsGen = do
 
     penaltytype <- elements [PYTP_A , PYTP_N , PYTP_I , PYTP_O]
     penaltyrate <- zeroOr percentage
-    cpyrt <- zeroOr percentage
 
     eomc <- elements [EOMC_EOM, EOMC_SD]
     bdc <- elements [BDC_NULL, BDC_SCF, BDC_SCMF, BDC_CSF, BDC_CSMF, BDC_SCP, BDC_SCMP, BDC_CSP, BDC_CSMP]
@@ -158,7 +157,6 @@ contractTermsGen = do
         -- Penalties
         , ct_PYRT      = Just penaltyrate
         , ct_PYTP      = Just penaltytype
-        , ct_cPYRT     = cpyrt
         -- Optionality
         , ct_OPCL      = optionalityCycle
         , ct_OPANX     = optionalityAnchor

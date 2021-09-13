@@ -159,7 +159,6 @@ testToContractTerms TestCase{terms = t} =
      , ct_PYRT          = readMaybe $ Map.lookup "penaltyRate" terms' :: Maybe Double
      , ct_PYTP          = readMaybe (maybeConcatPrefix "PYTP_" (Map.lookup "penaltyType" terms')) :: Maybe PYTP
      , ct_PPEF          = readMaybe (maybeConcatPrefix "PPEF_" (Map.lookup "prepaymentEffect" terms')) :: Maybe PPEF
-     , ct_cPYRT         = 0.0
      , ct_RRCL          = parseMaybeCycle $ Map.lookup "cycleOfRateReset" terms'
      , ct_RRANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfRateReset" terms'
      , ct_RRNXT         = readMaybe $ Map.lookup "nextResetRate" terms' :: Maybe Double

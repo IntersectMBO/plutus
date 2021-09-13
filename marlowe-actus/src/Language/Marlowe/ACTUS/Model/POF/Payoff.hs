@@ -68,7 +68,6 @@ payoff
   ContractTerms
     { ct_PYTP = Just pytp,
       ct_PYRT = Just pyrt,
-      ct_cPYRT = cpyrt,
       ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
       ct_MD = md
@@ -76,7 +75,7 @@ payoff
   ContractStatePoly {..}
   t =
     let y_sd_t = _y dayCountConvention sd t md
-     in _POF_PY_PAM pytp o_rf_CURS o_rf_RRMO pyrt cpyrt cntrl nt ipnr y_sd_t
+     in _POF_PY_PAM pytp o_rf_CURS o_rf_RRMO pyrt cntrl nt ipnr y_sd_t
 -- FP
 payoff
   FP

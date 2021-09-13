@@ -17,11 +17,11 @@ _POF_MD_PAM o_rf_CURS nsc nt isct ipac feac = o_rf_CURS * (nsc * nt + isct * ipa
 _POF_PP_PAM :: ActusNum a => a -> a -> a
 _POF_PP_PAM o_rf_CURS pp_payoff = o_rf_CURS * pp_payoff
 
-_POF_PY_PAM :: (ActusOps a, ActusNum a, RoleSignOps a) => PYTP -> a -> a -> a -> a -> CR -> a -> a -> a -> a
-_POF_PY_PAM PYTP_A o_rf_CURS _         _PYRT _cPYRT _CNTRL _  _    _      = o_rf_CURS * _r _CNTRL * _PYRT
-_POF_PY_PAM PYTP_N _         _         _PYRT _cPYRT _CNTRL _  _    _      = _cPYRT
-_POF_PY_PAM PYTP_I o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t = let c = o_rf_CURS * _r _CNTRL * y_sd_t * nt in  c * _max _zero (ipnr - o_rf_RRMO)
-_POF_PY_PAM PYTP_O _         _         _PYRT _cPYRT _CNTRL _  _    _      = undefined -- FIXME: Ask Nils
+_POF_PY_PAM :: (ActusOps a, ActusNum a, RoleSignOps a) => PYTP -> a -> a -> a -> CR -> a -> a -> a -> a
+_POF_PY_PAM PYTP_A o_rf_CURS _ _PYRT _CNTRL _ _ _ = o_rf_CURS * _r _CNTRL * _PYRT
+_POF_PY_PAM PYTP_N o_rf_CURS _ _PYRT _CNTRL nt _ y_sd_t = let c = o_rf_CURS * _r _CNTRL * y_sd_t * nt in  c * _PYRT
+_POF_PY_PAM PYTP_I o_rf_CURS o_rf_RRMO _PYRT _CNTRL nt ipnr y_sd_t = let c = o_rf_CURS * _r _CNTRL * y_sd_t * nt in  c * _max _zero (ipnr - o_rf_RRMO)
+_POF_PY_PAM PYTP_O _ _ _ _ _ _ _ = undefined -- FIXME: Ask Nils
 
 _POF_FP_PAM :: (RoleSignOps a, ActusNum a) => FEB -> a -> a -> CR -> a -> a -> a -> a
 _POF_FP_PAM FEB_A _FER o_rf_CURS _CNTRL _  _   _      = _r _CNTRL * o_rf_CURS * _FER

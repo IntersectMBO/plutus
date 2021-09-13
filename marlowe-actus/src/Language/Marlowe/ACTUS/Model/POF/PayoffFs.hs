@@ -26,7 +26,6 @@ payoffFs
       ct_PYRT = Just pyrt,
       ct_PTD = Just ptd,
       ct_DCC = Just dayCountConvention,
-      ct_cPYRT = cpyrt,
       ..
     }
   t_minus
@@ -37,7 +36,7 @@ payoffFs
             IED -> Just $ _POF_IED_PAM o_rf_CURS ct_CNTRL notionalPrincipal premiumDiscount
             MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
             PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
-            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate ct_CNTRL nt ipnr y_sd_t
             FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
             PRD -> Just $ _POF_PRD_PAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr nt y_sd_t
             TD  -> Just $ _POF_TD_PAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr nt y_sd_t
@@ -48,7 +47,7 @@ payoffFs
             PR  -> Just $ _POF_PR_LAM o_rf_CURS ct_CNTRL nt nsc prnxt
             MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
             PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
-            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate ct_CNTRL nt ipnr y_sd_t
             FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
             PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
             TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
@@ -59,7 +58,7 @@ payoffFs
             PR  -> Just $ _POF_PR_NAM o_rf_CURS ct_CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt
             MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
             PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
-            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate ct_CNTRL nt ipnr y_sd_t
             FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
             PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
             TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
@@ -70,7 +69,7 @@ payoffFs
             PR  -> Just $ _POF_PR_NAM o_rf_CURS ct_CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt
             MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
             PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
-            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate ct_CNTRL nt ipnr y_sd_t
             FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
             PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
             TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
@@ -86,7 +85,6 @@ payoffFs
       priceAtPurchaseDate = constnt pprd
       priceAtTerminationDate = constnt ptd
       penaltyRate = constnt pyrt
-      cPenaltyRate = constnt cpyrt
       nsc = useval "nsc" t_minus
       nt = useval "nt" t_minus
       isc = useval "isc" t_minus
