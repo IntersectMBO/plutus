@@ -160,87 +160,79 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
 -- apps or activates pending ones for any contracts that aren't yet being followed
 handleAction input (UpdateFollowerApps companionAppState) = do
   walletCompanionStatus <- use _walletCompanionStatus
-  case walletCompanionStatus of
-    LoadingNewContracts _ -> do
-      -- In the unlikely event that this happens, it means we're still processing the first
-      -- wallet companion state update. To avoid weird things happening, we should let that update
-      -- finish before handling this one. So basically we just try again later.
-      liftAff $ delay $ Milliseconds 100.0
-      handleAction input $ UpdateFollowerApps companionAppState
-    _ -> do
-      walletDetails <- use _walletDetails
-      existingContracts <- use _contracts
-      let
-        contractExists marloweParams =
-          elemOf
-            (traversed <<< _Started <<< _marloweParams)
-            marloweParams
-            existingContracts
+  walletDetails <- use _walletDetails
+  existingContracts <- use _contracts
+  let
+    contractExists marloweParams =
+      elemOf
+        (traversed <<< _Started <<< _marloweParams)
+        marloweParams
+        existingContracts
 
-        newContracts = filterKeys (not contractExists) companionAppState
+    newContracts = filterKeys (not contractExists) companionAppState
 
-        newContractsArray :: Array (Tuple MarloweParams MarloweData)
-        newContractsArray = toUnfoldable newContracts
-      if (walletCompanionStatus /= FirstUpdateComplete && (not $ null newContractsArray)) then
-        assign _walletCompanionStatus $ LoadingNewContracts $ Set.fromFoldable $ map fst newContractsArray
-      else
-        assign _walletCompanionStatus FirstUpdateComplete
-      void
-        $ for newContractsArray \(marloweParams /\ marloweData) -> do
-            let
-              mTemplate = findTemplate $ view _marloweContract marloweData
+    newContractsArray :: Array (Tuple MarloweParams MarloweData)
+    newContractsArray = toUnfoldable newContracts
+  if (walletCompanionStatus /= FirstUpdateComplete && (not $ null newContractsArray)) then
+    assign _walletCompanionStatus $ LoadingNewContracts $ Set.fromFoldable $ map fst newContractsArray
+  else
+    assign _walletCompanionStatus FirstUpdateComplete
+  void
+    $ for newContractsArray \(marloweParams /\ marloweData) -> do
+        let
+          mTemplate = findTemplate $ view _marloweContract marloweData
 
-              isStartingAndMetadataMatches :: Contract.State -> Maybe Contract.StartingState
-              isStartingAndMetadataMatches = case _, mTemplate of
-                Contract.Starting starting@{ metadata }, Just template
-                  | template.metaData == metadata -> Just starting
-                _, _ -> Nothing
+          isStartingAndMetadataMatches :: Contract.State -> Maybe Contract.StartingState
+          isStartingAndMetadataMatches = case _, mTemplate of
+            Contract.Starting starting@{ metadata }, Just template
+              | template.metaData == metadata -> Just starting
+            _, _ -> Nothing
 
-              mPendingContract = findMin $ mapMaybe isStartingAndMetadataMatches existingContracts
-            -- Note [PendingContracts]: Okay, here's the problem: When we're using the PAB, and a contract is created,
-            -- we create a follower app immediately as a placeholder (and remember its PlutusAppId), then we wait for
-            -- the wallet companion app to tell us the MarloweParams of the contract we created, and pass those to the
-            -- pending follower app. Fine. But when we're using the LocalStorage as our dataProvider, this workflow
-            -- doesn't quite work. This is because the LocalStorage doesn't keep a record of PlutusAppIds, but just
-            -- derives them as a function of the MarloweParams (see note [MarloweParams] in Capability.Marlowe). So
-            -- when we create a pending follower app with LocalStorage, we get back what is ultimately the wrong
-            -- PlutusAppId (and we can't know the right one until we've generated the MarloweParams). At that point we
-            -- could try to update the PlutusAppId, but it's simpler to just delete the pending follower app and
-            -- create a new one with the right ID (and the right key in the contracts map).
-            --
-            -- This solution is ugly for two reasons: (1) In general, the Marlowe capability should be the only thing
-            -- that cares about the dataProvider and does things differently depending on what it is. (2) In particular,
-            -- what we're doing here means that the LocalStorage implementations of `createPendingFollowerApp` and
-            -- `followContractWithPendingFollowerApp` are completely pointless (the first one is called at the
-            -- appropriate point, but here we just delete the pending follower app that it created without making any
-            -- use of it; and the second is never even called).
-            --
-            -- (Note: There are sensible LocalStorage implementations of these useless functions in the Marlowe capability.
-            -- Why? Because I wrote them before I realised that the simplest solution to the present problem would be to
-            -- stop using them. I might as well leave them there in case they become useful again at some point.)
-            --
-            -- But the good news is that all of this is for the bin anyway, as soon as the PAB is working fully and we can
-            -- get rid of the LocalStorage hack altogether. So I think in the meantime this will do (and I don't want to
-            -- waste any more time than I already have on trying to do something nicer).
-            { dataProvider } <- ask
-            case dataProvider of
-              MarlowePAB -> do
-                ajaxFollowerApp <- case mPendingContract of
-                  Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
-                  Nothing -> followContract walletDetails marloweParams
-                case ajaxFollowerApp of
-                  Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-                  Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
-              LocalStorage -> do
-                ajaxFollowerApp <- followContract walletDetails marloweParams
-                case ajaxFollowerApp of
-                  Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-                  Right (followerAppId /\ contractHistory) -> do
-                    handleAction input $ UpdateContract followerAppId contractHistory
-                    for_ mPendingContract \{ key, value } -> do
-                      assign (_contracts <<< ix followerAppId <<< _Starting <<< _nickname) value.nickname
-                      modifying _contracts $ delete key
-                      insertIntoContractNicknames followerAppId value.nickname
+          mPendingContract = findMin $ mapMaybe isStartingAndMetadataMatches existingContracts
+        -- Note [PendingContracts]: Okay, here's the problem: When we're using the PAB, and a contract is created,
+        -- we create a follower app immediately as a placeholder (and remember its PlutusAppId), then we wait for
+        -- the wallet companion app to tell us the MarloweParams of the contract we created, and pass those to the
+        -- pending follower app. Fine. But when we're using the LocalStorage as our dataProvider, this workflow
+        -- doesn't quite work. This is because the LocalStorage doesn't keep a record of PlutusAppIds, but just
+        -- derives them as a function of the MarloweParams (see note [MarloweParams] in Capability.Marlowe). So
+        -- when we create a pending follower app with LocalStorage, we get back what is ultimately the wrong
+        -- PlutusAppId (and we can't know the right one until we've generated the MarloweParams). At that point we
+        -- could try to update the PlutusAppId, but it's simpler to just delete the pending follower app and
+        -- create a new one with the right ID (and the right key in the contracts map).
+        --
+        -- This solution is ugly for two reasons: (1) In general, the Marlowe capability should be the only thing
+        -- that cares about the dataProvider and does things differently depending on what it is. (2) In particular,
+        -- what we're doing here means that the LocalStorage implementations of `createPendingFollowerApp` and
+        -- `followContractWithPendingFollowerApp` are completely pointless (the first one is called at the
+        -- appropriate point, but here we just delete the pending follower app that it created without making any
+        -- use of it; and the second is never even called).
+        --
+        -- (Note: There are sensible LocalStorage implementations of these useless functions in the Marlowe capability.
+        -- Why? Because I wrote them before I realised that the simplest solution to the present problem would be to
+        -- stop using them. I might as well leave them there in case they become useful again at some point.)
+        --
+        -- But the good news is that all of this is for the bin anyway, as soon as the PAB is working fully and we can
+        -- get rid of the LocalStorage hack altogether. So I think in the meantime this will do (and I don't want to
+        -- waste any more time than I already have on trying to do something nicer).
+        { dataProvider } <- ask
+        case dataProvider of
+          MarlowePAB -> do
+            ajaxFollowerApp <- case mPendingContract of
+              Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
+              Nothing -> followContract walletDetails marloweParams
+            case ajaxFollowerApp of
+              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
+              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
+          LocalStorage -> do
+            ajaxFollowerApp <- followContract walletDetails marloweParams
+            case ajaxFollowerApp of
+              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
+              Right (followerAppId /\ contractHistory) -> do
+                handleAction input $ UpdateContract followerAppId contractHistory
+                for_ mPendingContract \{ key, value } -> do
+                  assign (_contracts <<< ix followerAppId <<< _Starting <<< _nickname) value.nickname
+                  modifying _contracts $ delete key
+                  insertIntoContractNicknames followerAppId value.nickname
 
 -- this handler updates the state of an individual contract
 handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory) =
