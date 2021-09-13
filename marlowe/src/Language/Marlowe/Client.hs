@@ -140,8 +140,10 @@ instance Semigroup ContractProgress where
 instance Monoid ContractProgress where
     mempty = InProgress
 
+-- TODO: We should change this for a Tuple of endpoint name and request id.
+type EndpointName = String
 
-data LastResult = OK | SomeError MarloweError | Unknown
+data LastResult = OK EndpointName | SomeError EndpointName MarloweError | Unknown
   deriving (Show,Eq,Generic)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -240,15 +242,14 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
     redeem role payouts, and close.
  -}
 marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweError ()
-marlowePlutusContract = do
-    catching _MarloweError
-        (void $ mapError (review _MarloweError) $
-            selectList [create, apply, auto, redeem, close])
-        (\er -> do
-            tell $ SomeError er
-            marlowePlutusContract)
+marlowePlutusContract = selectList [create, apply, auto, redeem, close]
   where
-    create = endpoint @"create" $ \(owners, contract) -> do
+    catchError endpointName handler = catching _MarloweError
+        (void $ mapError (review _MarloweError) handler)
+        (\er -> do
+            tell $ SomeError endpointName er
+            marlowePlutusContract)
+    create = endpoint @"create" $ \(owners, contract) -> catchError "create" $ do
         (params, distributeRoleTokens) <- setupMarloweParams owners contract
         slot <- currentSlot
         let StateMachineClient{scInstance} = mkMarloweClient params
@@ -261,13 +262,13 @@ marlowePlutusContract = do
         let lookups = Constraints.typedValidatorLookups typedValidator
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
-        tell OK
+        tell $ OK "create"
         marlowePlutusContract
-    apply = endpoint @"apply-inputs" $ \(params, slotInterval, inputs) -> do
+    apply = endpoint @"apply-inputs" $ \(params, slotInterval, inputs) -> catchError "apply-inputs" $ do
         _ <- applyInputs params slotInterval inputs
-        tell OK
+        tell $ OK "apply-inputs"
         marlowePlutusContract
-    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> do
+    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> catchError "redeem" $ do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
@@ -284,7 +285,7 @@ marlowePlutusContract = do
         let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
         if spendPayouts == mempty
         then do
-            tell OK
+            tell $ OK "redeem"
         else do
             let
               constraints = spendPayouts
@@ -297,16 +298,17 @@ marlowePlutusContract = do
                   <> Constraints.ownPubKeyHash pkh
             tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
             _ <- submitUnbalancedTx tx
-            tell OK
+            tell $ OK "redeem"
+
         marlowePlutusContract
-    auto = endpoint @"auto" $ \(params, party, untilSlot) -> do
+    auto = endpoint @"auto" $ \(params, party, untilSlot) -> catchError "auto" $ do
         let theClient = mkMarloweClient params
         let continueWith :: MarloweData -> Contract MarloweContractState MarloweSchema MarloweError ()
             continueWith md@MarloweData{marloweContract} =
                 if canAutoExecuteContractForParty party marloweContract
                 then autoExecuteContract theClient party md
                 else do
-                    tell OK
+                    tell $ OK "auto"
                     marlowePlutusContract
 
         maybeState <- SM.getOnChainState theClient
@@ -316,18 +318,18 @@ marlowePlutusContract = do
                 case wr of
                     ContractEnded{} -> do
                         logInfo @String $ "Contract Ended for party " <> show party
-                        tell OK
+                        tell $ OK "auto"
                         marlowePlutusContract
                     Timeout{} -> do
                         logInfo @String $ "Contract Timeout for party " <> show party
-                        tell OK
+                        tell $ OK "auto"
                         marlowePlutusContract
                     Transition _ _ marloweData -> continueWith marloweData
                     InitialState _ marloweData -> continueWith marloweData
             Just (SM.OnChainState{SM.ocsTxOut=st}, _) -> do
                 let marloweData = tyTxOutData st
                 continueWith marloweData
-    close = endpoint @"close" $ \_ -> tell OK
+    close = endpoint @"close" $ \_ -> tell $ OK "close"
 
 
     autoExecuteContract :: StateMachineClient MarloweData MarloweInput
@@ -362,7 +364,7 @@ marlowePlutusContract = do
                 case wr of
                     ContractEnded{} -> do
                         logInfo @String $ "Contract Ended"
-                        tell OK
+                        tell $ OK "auto"
                         marlowePlutusContract
                     Timeout{} -> do
                         logInfo @String $ "Contract Timeout"
@@ -372,12 +374,12 @@ marlowePlutusContract = do
 
             CloseContract -> do
                 logInfo @String $ "CloseContract"
-                tell OK
+                tell $ OK "auto"
                 marlowePlutusContract
 
             NotSure -> do
                 logInfo @String $ "NotSure"
-                tell OK
+                tell $ OK "auto"
                 marlowePlutusContract
 
           where
@@ -695,10 +697,10 @@ notifyOnNewContractRoles txout = do
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
             Just (params, md) -> do
-                logDebug @String $ "Updating observable state"
+                logDebug @String $ "Companion contract: Updating observable state"
                 tell $ CompanionState (Map.singleton params md)
             Nothing           -> do
-                logWarn @String $ "On-chain state not found!"
+                logWarn @String $ "Companion contract: On-chain state not found!"
                 pure ()
 
 

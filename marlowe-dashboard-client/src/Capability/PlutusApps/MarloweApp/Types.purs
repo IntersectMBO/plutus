@@ -3,6 +3,7 @@
 module Capability.PlutusApps.MarloweApp.Types
   ( MarloweAppEndpoint(..)
   , LastResult(..)
+  , EndpointName
   , MarloweError
   , MarloweAppState
   ) where
@@ -16,14 +17,26 @@ import Marlowe.Semantics (Input, MarloweData, Slot, TransactionError)
 import Plutus.Contract.StateMachine (InvalidTransition, SMContractError)
 import Wallet.Types (ContractError)
 
+-- TODO: We should change this for a Tuple of endpoint name and request id.
+type EndpointName
+  = String
+
 -- The Plutus contract state keeps track of the result of the last action. This is needed because
 -- the PAB needs to return inmediatly and the result might take a while to compute.
 -- Right now we are only allowing one endpoint to be called at a time, but we could later extend this
 -- to use a RequestId to map between the request and the response.
 data LastResult
-  = OK
-  | SomeError MarloweError
+  = OK EndpointName
+  | SomeError EndpointName MarloweError
   | Unknown
+
+derive instance genericLastResult :: Generic LastResult _
+
+instance encodeLastResult :: Encode LastResult where
+  encode a = genericEncode defaultOptions a
+
+instance decodeLastResult :: Decode LastResult where
+  decode a = genericDecode defaultOptions a
 
 data MarloweError
   = StateMachineError SMContractError
@@ -63,14 +76,6 @@ type MarloweSlotRange
 -- We use an alias because we could later on add more info to the state
 type MarloweAppState
   = LastResult
-
-derive instance genericLastResult :: Generic LastResult _
-
-instance encodeLastResult :: Encode LastResult where
-  encode a = genericEncode defaultOptions a
-
-instance decodeLastResult :: Decode LastResult where
-  decode a = genericDecode defaultOptions a
 
 -- These are the endpoints of the main marlowe (control) contract.
 data MarloweAppEndpoint

@@ -66,7 +66,7 @@ main = do
       $ forkAff
       $ WS.runWebSocketManager
           (WS.URI "/ws")
-          (\msg -> void $ driver.query $ ReceiveWebSocketMessage msg unit)
+          (\msg -> void $ forkAff $ driver.query $ ReceiveWebSocketMessage msg unit)
           wsManager
     driver.subscribe
       $ consumer
