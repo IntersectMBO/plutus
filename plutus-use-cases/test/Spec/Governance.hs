@@ -64,7 +64,7 @@ baseName = "TestLawToken"
 -- | A governance contract that requires 6 votes out of 10
 params :: Gov.Params
 params = Gov.Params
-    { Gov.initialHolders = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..numberOfHolders]
+    { Gov.initialHolders = Ledger.pubKeyHash . EM.walletPubKey . knownWallet <$> [1..numberOfHolders]
     , Gov.requiredVotes = 6
     , Gov.baseTokenName = baseName
     }
@@ -77,7 +77,7 @@ lawv3 = "Law v3"
 doVoting :: Int -> Int -> Integer -> EmulatorTrace ()
 doVoting ayes nays rounds = do
     let activate w = (Gov.mkTokenName baseName w,)
-                 <$> Trace.activateContractWallet (EM.Wallet w)
+                 <$> Trace.activateContractWallet (knownWallet w)
                                                   (Gov.contract @Gov.GovError params)
     namesAndHandles <- traverse activate [1..numberOfHolders]
     let handle1 = snd (head namesAndHandles)
@@ -87,7 +87,7 @@ doVoting ayes nays rounds = do
     slotCfg <- Trace.getSlotConfig
     let votingRound (_, law) = do
             now <- view Trace.currentSlot <$> Trace.chainState
-            void $ Trace.activateContractWallet (EM.Wallet 2)
+            void $ Trace.activateContractWallet w2
                 (Gov.proposalContract @Gov.GovError params
                     Gov.Proposal { Gov.newLaw = law
                                  , Gov.votingDeadline = TimeSlot.slotToEndPOSIXTime slotCfg $ now + 20

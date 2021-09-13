@@ -19,7 +19,7 @@ import qualified Test.Tasty.HUnit        as HUnit
 import           Spec.TokenAccount       (assertAccountBalance)
 
 import qualified Ledger.Ada              as Ada
-import           Ledger.Crypto           (PrivateKey, PubKey (..))
+import           Ledger.Crypto           (PrivateKey, PubKey (..), privateKey10)
 import           Ledger.Oracle           (Observation (..), SignedMessage)
 import qualified Ledger.Oracle           as Oracle
 import           Ledger.Time             (POSIXTime)
@@ -83,15 +83,6 @@ setup startTime =
         , longPK = walletPubKey w2
         , contractStart = startTime + 15000
         }
-
-w1 :: Wallet
-w1 = Wallet 1
-
-w2 :: Wallet
-w2 = Wallet 2
-
-w10 :: Wallet
-w10 = Wallet 10
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
@@ -172,7 +163,7 @@ units :: Integer
 units = 187
 
 oracleKeys :: (PrivateKey, PubKey)
-oracleKeys = (walletPrivKey w10, walletPubKey w10)
+oracleKeys = (privateKey10, walletPubKey w10)
 
 -- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()

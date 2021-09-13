@@ -33,7 +33,7 @@ import           Ledger.Slot                  (Slot)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import           Schema                       (FormArgumentF, FormSchema, ToArgument, ToSchema)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
+import           Wallet.Emulator.Types        (EmulatorEvent, WalletNumber, fromWalletNumber, walletPubKey)
 import           Wallet.Rollup.Types          (AnnotatedTx)
 import           Wallet.Types                 (EndpointDescription)
 
@@ -56,7 +56,7 @@ adaCurrency =
 --------------------------------------------------------------------------------
 data PayToWalletParams =
     PayToWalletParams
-        { payTo :: Wallet
+        { payTo :: WalletNumber
         , value :: V.Value
         }
     deriving (Eq, Show, Generic)
@@ -64,7 +64,7 @@ data PayToWalletParams =
 
 data SimulatorWallet =
     SimulatorWallet
-        { simulatorWalletWallet  :: Wallet
+        { simulatorWalletWallet  :: WalletNumber
         , simulatorWalletBalance :: V.Value
         }
     deriving (Show, Generic, Eq)
@@ -76,7 +76,7 @@ data SimulatorWallet =
 -- easier testing and simulation.
 data ContractCall a
     = CallEndpoint
-          { caller         :: Wallet
+          { caller         :: WalletNumber
           , argumentValues :: FunctionSchema a
           }
       -- ^ Call one of the defined endpoints of your contract.
@@ -92,8 +92,8 @@ data ContractCall a
       -- @AddBlocksUntil 20@ doesn't mean you'll continue at slot 20,
       -- just that the slot number will now be /at least/ that high.
     | PayToWallet
-          { sender    :: Wallet
-          , recipient :: Wallet
+          { sender    :: WalletNumber
+          , recipient :: WalletNumber
           , amount    :: V.Value
           }
       -- ^ Make a wallet-to-wallet transfer of the specified value.
@@ -135,7 +135,7 @@ data Evaluation =
     deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKeyHash]
-pubKeys Evaluation {..} = pubKeyHash . walletPubKey . simulatorWalletWallet <$> wallets
+pubKeys Evaluation {..} = pubKeyHash . walletPubKey . fromWalletNumber . simulatorWalletWallet <$> wallets
 
 data EvaluationResult =
     EvaluationResult
@@ -144,7 +144,7 @@ data EvaluationResult =
         , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
         , feesDistribution  :: [SimulatorWallet]
-        , walletKeys        :: [(PubKeyHash, Wallet)]
+        , walletKeys        :: [(PubKeyHash, WalletNumber)]
         }
     deriving (Show, Generic, ToJSON, FromJSON)
 

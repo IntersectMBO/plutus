@@ -111,7 +111,3 @@ mkEscrowParams startTime p e =
     , expecting = e
     , deadline  = startTime + 100000
     }
-
-w1, w2 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2

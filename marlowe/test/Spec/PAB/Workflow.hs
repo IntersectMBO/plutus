@@ -140,14 +140,14 @@ marloweCompanionFollowerContractExample = do
       hash   = wiPubKeyHash walletInfo
       args   = createArgs hash hash
 
-  companionContractId <- runApi $ activateContract $ ContractActivationArgs { caID = WalletCompanion, caWallet = wallet }
-  marloweContractId    <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweApp, caWallet = wallet }
+  companionContractId <- runApi $ activateContract $ ContractActivationArgs { caID = WalletCompanion, caWallet = Just wallet }
+  marloweContractId    <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweApp, caWallet = Just wallet }
 
   sleep 2
 
   runApi $ callEndpointOnInstance marloweContractId "create" args
 
-  followerId <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweFollower, caWallet = wallet }
+  followerId <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweFollower, caWallet = Just wallet }
 
   sleep 2
 

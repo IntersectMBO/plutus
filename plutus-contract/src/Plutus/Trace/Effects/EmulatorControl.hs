@@ -24,14 +24,13 @@ module Plutus.Trace.Effects.EmulatorControl(
     , getSlotConfig
     ) where
 
-import           Control.Lens                           (at, view)
+import           Control.Lens                           (view)
 import           Control.Monad                          (void)
 import           Control.Monad.Freer                    (Eff, Member, type (~>))
 import           Control.Monad.Freer.Coroutine          (Yield)
 import           Control.Monad.Freer.Error              (Error)
 import           Control.Monad.Freer.State              (State, gets)
 import           Control.Monad.Freer.TH                 (makeEffect)
-import           Data.Maybe                             (fromMaybe)
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types            (EmulatorMessage (Freeze), EmulatorThreads)
@@ -39,7 +38,8 @@ import           Plutus.Trace.Scheduler                 (EmSystemCall, MessageCa
                                                          ThreadCall (Thaw), mkSysCall)
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainState)
-import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentControlEffect, walletControlAction)
+import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentControlEffect, walletControlAction,
+                                                         walletState)
 import           Wallet.Emulator.Wallet                 (SigningProcess, Wallet, WalletState)
 import qualified Wallet.Emulator.Wallet                 as W
 import           Wallet.Types                           (ContractInstanceId)
@@ -85,7 +85,7 @@ handleEmulatorControl ::
     ~> Eff effs
 handleEmulatorControl slotCfg = \case
     SetSigningProcess wllt sp -> walletControlAction wllt $ W.setSigningProcess sp
-    AgentState wllt -> gets @EmulatorState (fromMaybe (W.emptyWalletState wllt) . view (EM.walletStates . at wllt))
+    AgentState wllt -> gets @EmulatorState (view (walletState wllt))
     FreezeContractInstance i -> do
         threadId <- getThread i
         -- see note [Freeze and Thaw]

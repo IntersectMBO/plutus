@@ -33,7 +33,7 @@ import Playground.Lenses (_recipient, _amount)
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..), _PayToWallet)
 import Schema (FormArgumentF(..), FormSchema(..))
 import ValueEditor (ValueEvent(..))
-import Wallet.Emulator.Wallet (Wallet)
+import Wallet.Emulator.Wallet (WalletNumber)
 
 data SimulationAction
   = ModifyActions ActionEvent
@@ -77,7 +77,7 @@ data ActionEvent
   | SetWaitTime Int BigInteger
   | SetWaitUntilTime Int Slot
   | SetPayToWalletValue Int ValueEvent
-  | SetPayToWalletRecipient Int Wallet
+  | SetPayToWalletRecipient Int WalletNumber
 
 derive instance genericActionEvent :: Generic ActionEvent _
 

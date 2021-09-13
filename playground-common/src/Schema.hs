@@ -66,7 +66,7 @@ import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude                         as P
 import qualified PlutusTx.Ratio                           as P
-import           Wallet.Emulator.Wallet                   (Wallet)
+import           Wallet.Emulator.Wallet                   (Wallet, WalletId, WalletNumber)
 import           Wallet.Types                             (ContractInstanceId)
 
 import qualified Data.OpenApi.Schema                      as OpenApi
@@ -376,6 +376,9 @@ instance ToSchema LedgerBytes where
 instance ToSchema UUID where
     toSchema = toSchema @String
 
+instance ToSchema WalletId where
+    toSchema = toSchema @String
+
 instance ToSchema POSIXTime where
     toSchema = FormSchemaInteger
 
@@ -383,6 +386,8 @@ instance ToSchema POSIXTimeRange where
     toSchema = FormSchemaPOSIXTimeRange
 
 deriving anyclass instance ToSchema Ada
+
+deriving anyclass instance ToSchema ContractInstanceId
 
 deriving anyclass instance ToSchema CurrencySymbol
 
@@ -396,20 +401,26 @@ deriving anyclass instance ToSchema RedeemerHash
 
 deriving anyclass instance ToSchema Signature
 
+deriving anyclass instance ToSchema ThreadToken
+
 deriving anyclass instance ToSchema TokenName
 
 deriving anyclass instance ToSchema TxId
+
+deriving anyclass instance ToSchema TxOutRef
 
 deriving anyclass instance ToSchema ValidatorHash
 
 deriving anyclass instance ToSchema Wallet
 
-deriving anyclass instance ToArgument Wallet
+deriving anyclass instance ToSchema WalletNumber
+
 
 deriving anyclass instance ToArgument Ada
 
-deriving anyclass instance ToSchema ContractInstanceId
+deriving anyclass instance ToArgument Wallet
 
-deriving anyclass instance ToSchema TxOutRef
+deriving anyclass instance ToArgument WalletNumber
 
-deriving anyclass instance ToSchema ThreadToken
+instance ToArgument WalletId where
+    toArgument = Fix . FormStringF . Just . show

@@ -204,7 +204,7 @@ unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 
 fakeNameDeBruijn
     :: DeBruijn -> NamedDeBruijn
-fakeNameDeBruijn (DeBruijn ix) = NamedDeBruijn "" ix
+fakeNameDeBruijn (DeBruijn ix) = NamedDeBruijn "i" ix
 
 nameToDeBruijn
     :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)

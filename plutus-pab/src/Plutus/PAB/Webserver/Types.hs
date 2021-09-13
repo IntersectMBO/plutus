@@ -70,7 +70,7 @@ deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractSignatureRespo
 data ContractActivationArgs t =
     ContractActivationArgs
         { caID     :: t -- ^ ID of the contract
-        , caWallet :: Wallet -- ^ Wallet that should be used for this instance
+        , caWallet :: Maybe Wallet -- ^ Wallet that should be used for this instance, `knownWallet 1` is used in the Nothing case.
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)

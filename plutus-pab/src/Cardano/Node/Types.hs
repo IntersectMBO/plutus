@@ -68,6 +68,7 @@ import           Wallet.Emulator                     (Wallet)
 import qualified Wallet.Emulator                     as EM
 import           Wallet.Emulator.Chain               (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent          as MultiAgent
+import           Wallet.Emulator.Wallet              (WalletNumber (..))
 
 import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..), testnetNetworkId)
 import           Ledger.Fee                          (FeeConfig)
@@ -108,7 +109,7 @@ data MockServerConfig =
     MockServerConfig
         { mscBaseUrl          :: BaseUrl
         -- ^ base url of the service
-        , mscInitialTxWallets :: [Wallet]
+        , mscInitialTxWallets :: [WalletNumber]
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
         -- ^ Path to the socket used to communicate with the server.
@@ -132,11 +133,11 @@ defaultMockServerConfig :: MockServerConfig
 defaultMockServerConfig =
     MockServerConfig
       -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
-      { mscBaseUrl = BaseUrl Http "127.0.0.1" 9082 ""
+      { mscBaseUrl = BaseUrl Http "localhost" 9082 ""
       , mscInitialTxWallets =
-          [ EM.Wallet 1
-          , EM.Wallet 2
-          , EM.Wallet 3
+          [ WalletNumber 1
+          , WalletNumber 2
+          , WalletNumber 3
           ]
       , mscSocketPath = "./node-server.sock"
       , mscKeptBlocks = 100

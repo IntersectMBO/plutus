@@ -153,7 +153,7 @@ theCampaign :: POSIXTime -> Campaign
 theCampaign startTime = Campaign
     { campaignDeadline = startTime + 40000
     , campaignCollectionDeadline = startTime + 60000
-    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
+    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.knownWallet 1)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes

@@ -42,8 +42,8 @@ module Plutus.Contract.Trace
     -- * Wallets
     , EM.Wallet(..)
     , EM.walletPubKey
-    , EM.walletPrivKey
-    , allWallets
+    , EM.knownWallets
+    , EM.knownWallet
     ) where
 
 import           Control.Lens                         (makeClassyPrisms, preview)
@@ -208,13 +208,8 @@ handleOwnInstanceIdQueries ::
 handleOwnInstanceIdQueries =
     generalise (preview E._OwnContractInstanceIdReq) E.OwnContractInstanceIdResp RequestHandler.handleOwnInstanceIdQueries
 
--- | The wallets used in mockchain simulations by default. There are
---   ten wallets because the emulator comes with ten private keys.
-allWallets :: [EM.Wallet]
-allWallets = EM.Wallet <$> [1 .. 10]
-
 defaultDist :: InitialDistribution
-defaultDist = defaultDistFor allWallets
+defaultDist = defaultDistFor EM.knownWallets
 
 defaultDistFor :: [EM.Wallet] -> InitialDistribution
 defaultDistFor wallets = Map.fromList $ zip wallets (repeat (Ada.lovelaceValueOf 100_000_000))

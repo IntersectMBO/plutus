@@ -28,7 +28,7 @@ import           Data.Coerce                         (coerce)
 import           Data.Function                       ((&))
 import qualified Data.Map.Strict                     as Map
 import           Data.Proxy                          (Proxy (Proxy))
-import           Ledger.Crypto                       (pubKeyHash)
+import           Ledger.Crypto                       (knownPrivateKeys, pubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
 import           Network.HTTP.Client                 (defaultManagerSettings, newManager)
@@ -38,7 +38,7 @@ import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Servant                             (Application, NoContent (..), hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                      (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv)
 import           Wallet.Effects                      (balanceTx, ownPubKey, submitTxn, totalFunds, walletAddSignature)
-import           Wallet.Emulator.Wallet              (Wallet (..), emptyWalletState)
+import           Wallet.Emulator.Wallet              (Wallet (..), WalletId, emptyWalletState)
 import qualified Wallet.Emulator.Wallet              as Wallet
 
 app :: Trace IO WalletMsg
@@ -50,9 +50,9 @@ app :: Trace IO WalletMsg
     -> SlotConfig
     -> Application
 app trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg slotCfg =
-    serve (Proxy @(API Integer)) $
+    serve (Proxy @(API WalletId)) $
     hoistServer
-        (Proxy @(API Integer))
+        (Proxy @(API WalletId))
         (processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg slotCfg) $
             createWallet :<|>
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
@@ -64,7 +64,7 @@ app trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg slotCfg =
 main :: Trace IO WalletMsg -> WalletConfig -> FeeConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl } feeCfg serverSocket slotCfg (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
-    let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
+    let knownWallets = Map.fromList $ zip Wallet.knownWallets (emptyWalletState <$> knownPrivateKeys)
     mVarState <- liftIO $ newMVar knownWallets
     txSendHandle    <- liftIO $ MockClient.runTxSender serverSocket
     chainSyncHandle <- Left <$> (liftIO $ MockClient.runChainSync' serverSocket slotCfg)

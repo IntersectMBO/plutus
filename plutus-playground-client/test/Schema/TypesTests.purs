@@ -27,7 +27,7 @@ import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
 import Validation (ValidationError(..), validate, withPath)
-import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Emulator.Wallet (WalletNumber(..))
 import Wallet.Types (EndpointDescription(..))
 
 all :: TestSuite
@@ -111,7 +111,7 @@ makeTestAction :: FormArgument -> ContractCall FormArgument
 makeTestAction argument =
   CallEndpoint
     { caller:
-        Wallet { getWallet: one }
+        WalletNumber { getWallet: one }
     , argumentValues:
         FunctionSchema
           { endpointDescription: EndpointDescription { getEndpointDescription: "test" }

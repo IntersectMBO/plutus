@@ -18,15 +18,19 @@ module Ledger.Scripts (
     , validatorHash
     , mintingPolicyHash
     , stakeValidatorHash
+    , toCardanoApiScript
+    , scriptHash
     ) where
 
 import           Cardano.Api              (AsType, HasTextEnvelope (textEnvelopeType), HasTypeProxy (proxyToAsType),
                                            SerialiseAsCBOR, TextEnvelopeType (TextEnvelopeType))
+import qualified Cardano.Api              as Script
+import qualified Cardano.Api.Shelley      as Script
 import           Cardano.Binary           (FromCBOR (fromCBOR), ToCBOR (toCBOR))
-import qualified Cardano.Crypto.Hash      as Crypto
-import           Codec.Serialise          (Serialise, decode, encode, serialise)
+import           Codec.Serialise          (decode, encode, serialise)
 import qualified Data.ByteArray           as BA
 import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.ByteString.Short    as SBS
 import qualified Data.Text                as Text
 import           Plutus.V1.Ledger.Api     (plutusDatumEnvelopeType, plutusRedeemerEnvelopeType,
                                            plutusScriptEnvelopeType)
@@ -85,20 +89,27 @@ redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash = ValidatorHash . scriptHash
+validatorHash = ValidatorHash . scriptHash . getValidator
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash = MintingPolicyHash . scriptHash
+mintingPolicyHash = MintingPolicyHash . scriptHash . getMintingPolicy
 
 stakeValidatorHash :: StakeValidator -> StakeValidatorHash
-stakeValidatorHash = StakeValidatorHash . scriptHash
+stakeValidatorHash = StakeValidatorHash . scriptHash . getStakeValidator
 
-scriptHash :: Serialise a => a -> Builtins.BuiltinByteString
+-- | Hash a 'Script'
+scriptHash :: Script -> Builtins.BuiltinByteString
 scriptHash =
     toBuiltin
-    . Crypto.hashToBytes
-    . Crypto.hashWith @Crypto.Blake2b_224 id
-    . Crypto.hashToBytes
-    . Crypto.hashWith @Crypto.Blake2b_224 id
+    . Script.serialiseToRawBytes
+    . Script.hashScript
+    . toCardanoApiScript
+
+-- | Convert a 'Script' to a 'cardano-api' script
+toCardanoApiScript :: Script -> Script.Script Script.PlutusScriptV1
+toCardanoApiScript =
+    Script.PlutusScript Script.PlutusScriptV1
+    . Script.PlutusScriptSerialised
+    . SBS.toShort
     . BSL.toStrict
     . serialise

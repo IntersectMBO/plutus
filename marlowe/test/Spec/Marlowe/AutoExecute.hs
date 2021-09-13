@@ -62,9 +62,9 @@ tests = testGroup "Marlowe Auto Execution"
 
 
 alice, bob, carol :: Wallet
-alice = Wallet 1
-bob = Wallet 2
-carol = Wallet 3
+alice = T.w1
+bob = T.w2
+carol = T.w3
 
 -- Leave some lovelace for fees
 almostAll :: Ledger.Value

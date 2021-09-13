@@ -16,6 +16,7 @@ module Plutus.ChainIndex.Client(
     , getIsUtxo
     , getUtxoAtAddress
     , getTip
+    , collectGarbage
     ) where
 
 import           Control.Monad.Freer          (Eff, LastMember, Member, sendM, type (~>))
@@ -38,6 +39,7 @@ import           Servant.Client               (ClientEnv, ClientError (..), Clie
 import           Servant.Client.Core.Response (ResponseF (..))
 
 healthCheck :: ClientM NoContent
+collectGarbage :: ClientM NoContent
 
 -- TODO: Catch 404 error
 getDatum :: DatumHash -> ClientM Datum
@@ -52,15 +54,17 @@ getIsUtxo :: TxOutRef -> ClientM (Tip, Bool)
 getUtxoAtAddress :: Credential -> ClientM (Tip, Page TxOutRef)
 getTip :: ClientM Tip
 
-(healthCheck, (getDatum, getValidator, getMintingPolicy, getStakeValidator, getRedeemer), getTxOut, getTx, getIsUtxo, getUtxoAtAddress, getTip) =
-    (healthCheck_, (getDatum_, getValidator_, getMintingPolicy_, getStakeValidator_, getRedeemer_), getTxOut_, getTx_, getIsUtxo_, getUtxoAtAddress_, getTip_) where
+(healthCheck, (getDatum, getValidator, getMintingPolicy, getStakeValidator, getRedeemer), getTxOut, getTx, getIsUtxo, getUtxoAtAddress, getTip, collectGarbage) =
+    (healthCheck_, (getDatum_, getValidator_, getMintingPolicy_, getStakeValidator_, getRedeemer_), getTxOut_, getTx_, getIsUtxo_, getUtxoAtAddress_, getTip_, collectGarbage_) where
         healthCheck_
             :<|> (getDatum_ :<|> getValidator_ :<|> getMintingPolicy_ :<|> getStakeValidator_ :<|> getRedeemer_)
             :<|> getTxOut_
             :<|> getTx_
             :<|> getIsUtxo_
             :<|> getUtxoAtAddress_
-            :<|> getTip_ = client (Proxy @API)
+            :<|> getTip_
+            :<|> collectGarbage_
+            :<|> _ = client (Proxy @API)
 
 -- | Handle 'ChainIndexQueryEffect' by making HTTP calls to a remote
 --   server.

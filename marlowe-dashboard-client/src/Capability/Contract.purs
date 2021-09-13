@@ -19,6 +19,7 @@ import Bridge (toBack, toFront)
 import API.Contract as API
 import Control.Monad.Except (lift, runExceptT)
 import Data.Lens (view)
+import Data.Maybe
 import Data.RawJson (RawJson)
 import Foreign.Generic (class Encode)
 import Halogen (HalogenM)
@@ -46,7 +47,7 @@ class
   getContractDefinitions :: m (AjaxResponse (Array (ContractSignatureResponse MarloweContract)))
 
 instance monadContractAppM :: ManageContract AppM where
-  activateContract contractActivationId wallet = map toFront $ runExceptT $ API.activateContract $ ContractActivationArgs { caID: contractActivationId, caWallet: toBack wallet }
+  activateContract contractActivationId wallet = map toFront $ runExceptT $ API.activateContract $ ContractActivationArgs { caID: contractActivationId, caWallet: Just (toBack wallet) }
   deactivateContract plutusAppId = runExceptT $ API.deactivateContract $ toBack plutusAppId
   getContractInstanceClientState plutusAppId = runExceptT $ API.getContractInstanceClientState $ toBack plutusAppId
   getContractInstanceCurrentState plutusAppId = do

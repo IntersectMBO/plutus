@@ -34,11 +34,11 @@ import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
 import           Playground.Contract
 import           Plutus.Contract
+import           Plutus.Contract.Test
 import qualified Plutus.Contract.Typed.Tx as Typed
 import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), fold)
 import           Prelude                  as Haskell (Semigroup (..), show)
-import           Wallet.Emulator.Types    (walletPubKey)
 
 {- |
     A simple vesting scheme. Money is locked by a contract and may only be
@@ -163,8 +163,8 @@ vestFundsC
     :: VestingParams
     -> Contract () s T.Text ()
 vestFundsC vesting = do
-    let tx = payIntoContract (totalAmount vesting)
-    void $ submitTxConstraints (typedValidator vesting) tx
+    let txn = payIntoContract (totalAmount vesting)
+    void $ submitTxConstraints (typedValidator vesting) txn
 
 data Liveness = Alive | Dead
 
@@ -199,20 +199,20 @@ retrieveFundsC vesting payment = do
         remainingOutputs = case liveness of
                             Alive -> payIntoContract remainingValue
                             Dead  -> mempty
-        tx = Typed.collectFromScript unspentOutputs ()
+        txn = Typed.collectFromScript unspentOutputs ()
                 <> remainingOutputs
                 <> mustValidateIn (Interval.from nextTime)
                 <> mustBeSignedBy (vestingOwner vesting)
                 -- we don't need to add a pubkey output for 'vestingOwner' here
                 -- because this will be done by the wallet when it balances the
                 -- transaction.
-    void $ submitTxConstraintsSpending inst unspentOutputs tx
+    void $ submitTxConstraintsSpending inst unspentOutputs txn
     return liveness
 
 endpoints :: Contract () VestingSchema T.Text ()
 endpoints = vestingContract vestingParams
   where
-    vestingOwner = Ledger.pubKeyHash $ walletPubKey $ Wallet 1
+    vestingOwner = Ledger.pubKeyHash $ walletPubKey w1
     vestingParams =
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =

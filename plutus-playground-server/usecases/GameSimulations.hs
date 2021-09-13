@@ -10,14 +10,14 @@ import qualified Ledger.Ada            as Ada
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), SimulatorAction,
                                         simulationActions, simulationId, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
-import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
+import           Wallet.Emulator.Types (WalletNumber (..))
 
 simulations :: [Simulation]
 simulations = [basicGame, badGuess]
   where
-    wallet1 = Wallet {getWallet = 1}
-    wallet2 = Wallet {getWallet = 2}
-    wallet3 = Wallet {getWallet = 3}
+    wallet1 = WalletNumber 1
+    wallet2 = WalletNumber 2
+    wallet3 = WalletNumber 3
     basicGame =
         Simulation
             { simulationName = "Basic Game"
@@ -45,12 +45,12 @@ simulations = [basicGame, badGuess]
                   ]
             }
 
-lock :: Wallet -> String -> Integer -> SimulatorAction
+lock :: WalletNumber -> String -> Integer -> SimulatorAction
 lock caller secretWord balance =
     callEndpoint
         caller
         "lock"
         LockParams {secretWord, amount = Ada.lovelaceValueOf balance}
 
-guess :: Wallet -> String -> SimulatorAction
+guess :: WalletNumber -> String -> SimulatorAction
 guess caller guessWord = callEndpoint caller "guess" (GuessParams {guessWord})

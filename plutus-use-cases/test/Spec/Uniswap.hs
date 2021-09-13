@@ -13,7 +13,7 @@ tests :: TestTree
 tests = testGroup "uniswap" [
     checkPredicate "can create a liquidity pool and add liquidity"
         (assertNotDone Uniswap.setupTokens
-                       (Trace.walletInstanceTag (Wallet 1))
+                       (Trace.walletInstanceTag w1)
                        "setupTokens contract should be still running"
         .&&. assertNoFailedTransactions)
         Uniswap.uniswapTrace

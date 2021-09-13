@@ -168,5 +168,5 @@ validators =
             , Map.singleton (datumHash dat) dat
             , Map.singleton (redeemerHash red) red
             )
-        withHash ConsumePublicKeyAddress    = mempty
+        withHash _ = mempty
     in foldMap (maybe mempty withHash . txInType) . Set.toList

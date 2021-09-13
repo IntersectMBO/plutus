@@ -47,6 +47,10 @@ Glossary
     datum
       The data field on script outputs in the Extended UTXO model.
 
+    emulator
+      An in-process (single thread) emulated blockchain for testing and
+      analysing Plutus apps.
+
     endpoint
       A potential request made by a contract application for user input. Every endpoint has a name and a type.
 

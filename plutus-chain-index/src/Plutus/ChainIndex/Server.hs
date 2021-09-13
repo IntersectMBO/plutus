@@ -24,10 +24,10 @@ import qualified Data.Text                           as Text
 import qualified Data.Text.Encoding                  as Text
 import qualified Network.Wai.Handler.Warp            as Warp
 import           Plutus.ChainIndex.Api               (API, FromHashAPI)
-import           Plutus.ChainIndex.Effects           (ChainIndexQueryEffect)
+import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect, ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Effects           as E
 import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), ChainIndexError, ChainIndexLog,
-                                                      handleQuery)
+                                                      handleControl, handleQuery)
 import           Servant.API                         ((:<|>) (..))
 import           Servant.API.ContentTypes            (NoContent (..))
 import           Servant.Server                      (Handler, ServerError, ServerT, err404, err500, errBody,
@@ -43,7 +43,7 @@ serveChainIndexQueryServer port diskState = do
 
 runChainIndexQuery ::
     TVar ChainIndexEmulatorState
-    -> Eff '[ChainIndexQueryEffect, Error ServerError] ~> Handler
+    -> Eff '[ChainIndexQueryEffect, ChainIndexControlEffect, Error ServerError] ~> Handler
 runChainIndexQuery emState_ action = do
     emState <- liftIO (STM.readTVarIO emState_)
     let result = run
@@ -51,6 +51,7 @@ runChainIndexQuery emState_ action = do
                     $ runError @ChainIndexError
                     $ handleLogIgnore @ChainIndexLog
                     $ runError
+                    $ interpret handleControl
                     $ interpret handleQuery
                     $ raiseEnd action
     case result of
@@ -64,6 +65,7 @@ serveChainIndex ::
     forall effs.
     ( Member (Error ServerError) effs
     , Member ChainIndexQueryEffect effs
+    , Member ChainIndexControlEffect effs
     )
     => ServerT API (Eff effs)
 serveChainIndex =
@@ -74,6 +76,8 @@ serveChainIndex =
     :<|> E.utxoSetMembership
     :<|> E.utxoSetAtAddress
     :<|> E.getTip
+    :<|> E.collectGarbage *> pure NoContent
+    :<|> E.getDiagnostics
 
 serveFromHashApi ::
     forall effs.

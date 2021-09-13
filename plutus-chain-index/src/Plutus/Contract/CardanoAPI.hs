@@ -58,6 +58,8 @@ import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, (<+>))
 import           GHC.Generics                   (Generic)
 import qualified Ledger                         as P
 import qualified Ledger.Ada                     as Ada
+import           Plutus.ChainIndex.Tx           (ChainIndexTx (..))
+import qualified Plutus.ChainIndex.Tx           as ChainIndex.Tx
 import           Plutus.Contract.CardanoAPITemp (makeTransactionBody')
 import qualified Plutus.V1.Ledger.Api           as Api
 import qualified Plutus.V1.Ledger.Credential    as Credential
@@ -65,25 +67,26 @@ import qualified Plutus.V1.Ledger.Value         as Value
 import qualified PlutusCore.Data                as Data
 import qualified PlutusTx.Prelude               as PlutusTx
 
-fromCardanoBlock :: C.BlockInMode mode -> Either FromCardanoError P.Block
-fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) _) =
-  traverse (fmap P.Valid . fromCardanoTx) txs
+fromCardanoBlock :: C.BlockInMode C.CardanoMode -> Either FromCardanoError [ChainIndexTx]
+fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) era) =
+  traverse (fromCardanoTx era) txs
 
-fromCardanoTx :: C.Tx era -> Either FromCardanoError P.Tx
-fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
+fromCardanoTx ::C.EraInMode era C.CardanoMode -> C.Tx era -> Either FromCardanoError ChainIndexTx
+fromCardanoTx _era (C.Tx b@(C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
     txOutputs <- traverse fromCardanoTxOut txOuts
-    pure $ P.Tx
-        { txInputs = Set.fromList $ fmap ((`P.TxIn` Nothing) . fromCardanoTxIn . fst) txIns
-        , txCollateral = fromCardanoTxInsCollateral txInsCollateral
-        , txOutputs = txOutputs
-        , txMint = fromCardanoMintValue txMintValue
-        , txFee = fromCardanoFee txFee
-        , txValidRange = fromCardanoValidityRange txValidityRange
-        , txData = mempty -- only available with a Build Tx
-        , txSignatures = mempty -- TODO: convert from _keyWitnesses?
-        , txMintScripts = mempty -- only available with a Build Tx
-        , txRedeemers = mempty -- only available with a Build Tx
-        }
+    pure
+        ChainIndexTx
+            { _citxTxId = fromCardanoTxId (C.getTxId b)
+            , _citxValidRange = fromCardanoValidityRange txValidityRange
+            , _citxInputs = Set.fromList $ fmap ((`P.TxIn` Nothing) . fromCardanoTxIn . fst) txIns
+            , _citxOutputs = ChainIndex.Tx.ValidTx txOutputs -- FIXME: Check if tx is invalid
+            , _citxData = mempty -- only available with a Build Tx
+            , _citxRedeemers = mempty -- only available with a Build Tx
+            , _citxMintingPolicies = mempty -- only available with a Build Tx
+            , _citxStakeValidators = mempty -- only available with a Build Tx
+            , _citxValidators = mempty -- only available with a Build Tx
+            , _citxCardanoTx = Nothing -- FIXME: Should be SomeTx t era, but we are missing a 'C.IsCardanoEra era' constraint. This constraint is required in 'Ledger.Tx' for the JSON instance.
+            }
 
 toCardanoTxBody ::
     Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
@@ -154,10 +157,11 @@ fromCardanoTxInWitness
         (P.Validator $ fromCardanoPlutusScript script)
         (P.Redeemer $ fromCardanoScriptData redeemer)
         (P.Datum $ fromCardanoScriptData datum)
-fromCardanoTxInWitness (C.ScriptWitness _ C.SimpleScriptWitness{}) = Left SimpleScriptsNotSupported
+fromCardanoTxInWitness (C.ScriptWitness _ C.SimpleScriptWitness{}) = pure P.ConsumeSimpleScriptAddress
 
 toCardanoTxInWitness :: P.TxInType -> Either ToCardanoError (C.Witness C.WitCtxTxIn C.AlonzoEra)
 toCardanoTxInWitness P.ConsumePublicKeyAddress = pure (C.KeyWitness C.KeyWitnessForSpending)
+toCardanoTxInWitness P.ConsumeSimpleScriptAddress = Left SimpleScriptsNotSupportedToCardano -- TODO: Better support for simple scripts
 toCardanoTxInWitness
     (P.ConsumeScriptAddress
         (P.Validator validator)
@@ -237,7 +241,7 @@ fromCardanoStakeAddressReference :: C.StakeAddressReference -> Either FromCardan
 fromCardanoStakeAddressReference C.NoStakeAddress = pure Nothing
 fromCardanoStakeAddressReference (C.StakeAddressByValue stakeCredential) =
     pure $ Just (Credential.StakingHash $ fromCardanoStakeCredential stakeCredential)
-fromCardanoStakeAddressReference C.StakeAddressByPointer{} = Left StakeAddressPointersNotSupported
+fromCardanoStakeAddressReference C.StakeAddressByPointer{} = pure Nothing
 
 toCardanoStakeAddressReference :: Maybe Credential.StakingCredential -> Either ToCardanoError C.StakeAddressReference
 toCardanoStakeAddressReference Nothing = pure C.NoStakeAddress
@@ -372,10 +376,10 @@ fromCardanoScriptData = Api.dataToBuiltinData . C.toPlutusData
 toCardanoScriptData :: Api.BuiltinData -> C.ScriptData
 toCardanoScriptData = C.fromPlutusData . Api.builtinDataToData
 
-fromCardanoScriptInEra :: C.ScriptInEra era -> Either FromCardanoError P.Script
+fromCardanoScriptInEra :: C.ScriptInEra era -> Maybe P.Script
 fromCardanoScriptInEra (C.ScriptInEra C.PlutusScriptV1InAlonzo (C.PlutusScript C.PlutusScriptV1 script)) =
-    pure $ fromCardanoPlutusScript script
-fromCardanoScriptInEra (C.ScriptInEra _ C.SimpleScript{}) = Left SimpleScriptsNotSupported
+    Just $ fromCardanoPlutusScript script
+fromCardanoScriptInEra (C.ScriptInEra _ C.SimpleScript{}) = Nothing
 
 toCardanoScriptInEra :: P.Script -> Either ToCardanoError (C.ScriptInEra C.AlonzoEra)
 toCardanoScriptInEra script = C.ScriptInEra C.PlutusScriptV1InAlonzo . C.PlutusScript C.PlutusScriptV1 <$> toCardanoPlutusScript script
@@ -405,13 +409,12 @@ tag s = first (Tag s)
 
 data FromCardanoError
     = SimpleScriptsNotSupported
-    | StakeAddressPointersNotSupported
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON, ToObject)
 
 instance Pretty FromCardanoError where
     pretty SimpleScriptsNotSupported        = "Simple scripts are not supported"
-    pretty StakeAddressPointersNotSupported = "Stake address pointers are not supported"
+    -- pretty StakeAddressPointersNotSupported = "Stake address pointers are not supported"
 
 data ToCardanoError
     = EvaluationError Api.EvaluationError
@@ -421,16 +424,18 @@ data ToCardanoError
     | ValueNotPureAda
     | NoDefaultCostModelParams
     | StakingPointersNotSupported
+    | SimpleScriptsNotSupportedToCardano
     | MissingTxInType
     | Tag String ToCardanoError
 
 instance Pretty ToCardanoError where
-    pretty (EvaluationError err)       = "EvaluationError" <> colon <+> pretty err
-    pretty (TxBodyError err)           = "TxBodyError" <> colon <+> pretty (C.displayError err)
-    pretty DeserialisationError        = "ByteString deserialisation failed"
-    pretty InvalidValidityRange        = "Invalid validity range"
-    pretty ValueNotPureAda             = "Fee values should only contain Ada"
-    pretty NoDefaultCostModelParams    = "Extracting default cost model failed"
-    pretty StakingPointersNotSupported = "Staking pointers are not supported"
-    pretty MissingTxInType             = "Missing TxInType"
-    pretty (Tag t err)                 = pretty t <> colon <+> pretty err
+    pretty (EvaluationError err)              = "EvaluationError" <> colon <+> pretty err
+    pretty (TxBodyError err)                  = "TxBodyError" <> colon <+> pretty (C.displayError err)
+    pretty DeserialisationError               = "ByteString deserialisation failed"
+    pretty InvalidValidityRange               = "Invalid validity range"
+    pretty ValueNotPureAda                    = "Fee values should only contain Ada"
+    pretty NoDefaultCostModelParams           = "Extracting default cost model failed"
+    pretty StakingPointersNotSupported        = "Staking pointers are not supported"
+    pretty SimpleScriptsNotSupportedToCardano = "Simple scripts are not supported"
+    pretty MissingTxInType                    = "Missing TxInType"
+    pretty (Tag t err)                        = pretty t <> colon <+> pretty err

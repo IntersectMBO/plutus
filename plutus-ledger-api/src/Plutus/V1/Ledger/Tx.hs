@@ -284,6 +284,7 @@ data TxInType =
       -- TODO: these should all be hashes, with the validators and data segregated to the side
       ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
+    | ConsumeSimpleScriptAddress -- ^ Consume a simple script
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
@@ -319,8 +320,7 @@ inType = lens txInType s where
 inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
 inScripts TxIn{ txInType = t } = case t of
     Just (ConsumeScriptAddress v r d) -> Just (v, r, d)
-    Just ConsumePublicKeyAddress      -> Nothing
-    Nothing                           -> Nothing
+    _                                 -> Nothing
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: TxOutRef -> TxIn

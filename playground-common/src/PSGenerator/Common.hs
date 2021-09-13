@@ -53,7 +53,7 @@ import           Plutus.Trace.Scheduler                    (Priority, SchedulerL
 import           Plutus.Trace.Tag                          (Tag)
 import           Schema                                    (FormArgumentF, FormSchema)
 import           Wallet.API                                (WalletAPIError)
-import qualified Wallet.Emulator.Wallet                    as EM
+import qualified Wallet.Emulator.Types                     as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
 import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
@@ -262,6 +262,12 @@ ledgerBytesBridge = do
     typeModule ^== "Plutus.V1.Ledger.Bytes"
     pure psString
 
+walletIdBridge :: BridgePart
+walletIdBridge = do
+    typeName ^== "WalletId"
+    typeModule ^== "Wallet.Emulator.Wallet"
+    pure psString
+
 ledgerBridge :: BridgePart
 ledgerBridge =
         scriptBridge
@@ -272,6 +278,7 @@ ledgerBridge =
     <|> mpsHashBridge
     <|> stakeValidatorHashBridge
     <|> ledgerBytesBridge
+    <|> walletIdBridge
 
 ------------------------------------------------------------
 headersBridge :: BridgePart
@@ -400,6 +407,7 @@ walletTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.Wallet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletAPIError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)

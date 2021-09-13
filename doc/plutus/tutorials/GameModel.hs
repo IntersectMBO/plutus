@@ -247,10 +247,10 @@ badUnitTest :: DLTest GameModel
 badUnitTest =
     BadPrecondition
       [Witness (1 :: Integer),
-       Do $ Lock (Wallet 1) "hello" 1,
-       Do $ GiveToken (Wallet 2)]
-      [Action (Guess (Wallet 2) "hello" "new secret" 3)]
-      (GameModel {_gameValue = 1, _hasToken = Just (Wallet 2), _currentSecret = "hello"})
+       Do $ Lock w1 "hello" 1,
+       Do $ GiveToken w2]
+      [Action (Guess w2 "hello" "new secret" 3)]
+      (GameModel {_gameValue = 1, _hasToken = Just w2, _currentSecret = "hello"})
 -- END badUnitTest
 
 unitTest2 :: DL GameModel ()
@@ -288,11 +288,6 @@ prop_NoLockedFunds = forAllDL noLockedFunds prop_Game
 -- | Wallets and game token.
 
 -- START wallets
-w1, w2, w3 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
-
 wallets :: [Wallet]
 wallets = [w1, w2, w3]
 -- END wallets
@@ -306,7 +301,7 @@ gameTokenVal =
 
 -- START testLock v1
 testLock :: Property
-testLock = prop_Game $ Actions [Lock (Wallet 1) "hunter2" 0]
+testLock = prop_Game $ Actions [Lock w1 "hunter2" 0]
 -- END testLock v1
 
 testLockWithMaxSuccess :: ()
@@ -314,15 +309,15 @@ testLockWithMaxSuccess = ()
  where
 -- START testLock withMaxSuccess
  testLock :: Property
- testLock = withMaxSuccess 1 . prop_Game $ Actions [Lock (Wallet 1) "hunter2" 0]
+ testLock = withMaxSuccess 1 . prop_Game $ Actions [Lock w1 "hunter2" 0]
 -- END testLock withMaxSuccess
 
 -- START testDoubleLock
 testDoubleLock :: Property
 testDoubleLock = prop_Game $
   Actions
-    [Lock (Wallet 1) "*******" 0,
-     Lock (Wallet 1) "secret" 0]
+    [Lock w1 "*******" 0,
+     Lock w1 "secret" 0]
 -- END testDoubleLock
 
 anyActionsDef :: ()

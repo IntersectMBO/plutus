@@ -61,15 +61,10 @@ tests =
     , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ MS.typedValidator params) 51000
     ]
 
-w1, w2, w3 :: EM.Wallet
-w1 = EM.Wallet 1
-w2 = EM.Wallet 2
-w3 = EM.Wallet 3
-
 -- | A multisig contract that requires 3 out of 5 signatures
 params :: MS.Params
 params = MS.Params keys 3 where
-    keys = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..5]
+    keys = Ledger.pubKeyHash . EM.walletPubKey . knownWallet <$> [1..5]
 
 -- | A payment of 5 Ada to the public key address of wallet 2
 payment :: POSIXTime -> MS.Payment
@@ -85,12 +80,12 @@ payment startTime =
 --   finally call @"pay"@ a number of times.
 lockProposeSignPay :: Integer -> Integer -> EmulatorTrace ()
 lockProposeSignPay signatures rounds = do
-    let wallets = EM.Wallet <$> [1..signatures]
+    let wallets = knownWallet <$> [1..signatures]
         activate w = Trace.activateContractWallet w (MS.contract @MS.MultiSigError params)
 
     -- the 'proposeSignPay' trace needs at least 2 signatures
-    handle1 <- activate (EM.Wallet 1)
-    handle2 <- activate (EM.Wallet 2)
+    handle1 <- activate w1
+    handle2 <- activate w2
     handles <- traverse activate (drop 2 wallets)
     _ <- Trace.callEndpoint @"lock" handle1 (Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1

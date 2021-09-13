@@ -71,7 +71,7 @@ import           Servant.Client                      (BaseUrl (..), ClientEnv, S
                                                       runClientM)
 import           Test.Tasty                          (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit
-import           Wallet.Emulator.Wallet              (Wallet (..))
+import           Wallet.Emulator.Wallet              (Wallet, knownWallet)
 import           Wallet.Types                        (ContractInstanceId (..))
 
 tests :: TestTree
@@ -170,7 +170,7 @@ startPingPongContract pabConfig = do
 
   let ca = ContractActivationArgs
                 { caID     = PingPong
-                , caWallet = Wallet 1
+                , caWallet = Just (knownWallet 1)
                 }
 
   let PabClient{activateContract} = pabClient @TestingContracts @Integer
