@@ -12,9 +12,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 
 module Plutus.ChainIndex.TxIdState(
-    TxIdState(..)
-    , TxConfirmedState(..)
-    , isConfirmed
+    isConfirmed
     , increaseDepth
     , initialStatus
     , transactionStatus
@@ -27,47 +25,16 @@ module Plutus.ChainIndex.TxIdState(
 import           Control.Lens                ((^.))
 import           Data.FingerTree             (Measured (..), (|>))
 import qualified Data.FingerTree             as FT
-import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
-import           Data.Semigroup.Generic      (GenericSemigroupMonoid (..))
-import           GHC.Generics                (Generic)
 import           Ledger                      (OnChainTx, TxId, eitherTx)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..), citxOutputs, citxTxId)
-import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxStatus (..),
-                                              TxValidity (..), pointsToTip)
+import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxConfirmedState (..),
+                                              TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..),
+                                              pointsToTip)
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..), tip,
                                               viewTip)
 
-data TxIdState = TxIdState
-  { txnsConfirmed :: Map TxId TxConfirmedState
-  -- ^ Number of times this transaction has been added as well as other
-  -- necessary metadata.
-  , txnsDeleted   :: Map TxId (Sum Int)
-  -- ^ Number of times this transaction has been deleted.
-  }
-  deriving stock (Eq, Generic, Show)
-
-instance Monoid TxIdState where
-    mappend = (<>)
-    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
-
-data TxConfirmedState =
-  TxConfirmedState
-    { timesConfirmed :: Sum Int
-    , blockAdded     :: Last BlockNumber
-    , validity       :: Last TxValidity
-    }
-    deriving stock (Eq, Generic, Show)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid TxConfirmedState)
-
--- A semigroup instance that merges the two maps, instead of taking the
--- leftmost one.
-instance Semigroup TxIdState where
-  TxIdState{txnsConfirmed=c, txnsDeleted=d} <> TxIdState{txnsConfirmed=c', txnsDeleted=d'}
-    = TxIdState { txnsConfirmed = Map.unionWith (<>) c c'
-                , txnsDeleted   = Map.unionWith (<>) d d'
-                }
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
 initialStatus :: OnChainTx -> TxStatus
@@ -95,23 +62,22 @@ chainConstant = Depth 8
 
 -- | Given the current block, compute the status for the given transaction by
 -- checking to see if it has been deleted.
-transactionStatus :: BlockNumber -> TxIdState -> TxId -> TxStatus
+transactionStatus :: BlockNumber -> TxIdState -> TxId -> Either TxStatusFailure TxStatus
 transactionStatus currentBlock txIdState txId
   = case (confirmed, deleted) of
-       (Nothing, _)      -> Unknown
+       (Nothing, _)      -> Right Unknown
 
        (Just TxConfirmedState{blockAdded=Last (Just block'), validity=Last (Just validity')}, Nothing) ->
          if block' + (fromIntegral chainConstant) >= currentBlock
-            then newStatus block' validity'
-            else Committed validity'
+            then Right $ newStatus block' validity'
+            else Right $ Committed validity'
 
        (Just TxConfirmedState{timesConfirmed=confirms, blockAdded=Last (Just block'), validity=Last (Just validity')}, Just deletes) ->
          if confirms >= deletes
-            then newStatus block' validity'
-            else Unknown
+            then Right $ newStatus block' validity'
+            else Right $ Unknown
 
-       -- TODO: Proper error.
-       _ -> error $ "Unable to determine transactionStatus for TxId: " <> show txId <> " at block: " <> show currentBlock <> "."
+       _ -> Left $ TxIdStateInvalid currentBlock txId txIdState
     where
       newStatus block' validity' = TentativelyConfirmed (Depth $ fromIntegral $ currentBlock - block') validity'
       confirmed = Map.lookup txId (txnsConfirmed txIdState)
