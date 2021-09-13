@@ -5,6 +5,8 @@ module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
   , plusCycle
   , minusCycle
+  , (<+>)
+  , (<->)
   , sup
   , inf
   , remove
@@ -16,7 +18,6 @@ where
 import           Control.Arrow                                    ((>>>))
 import           Data.Function                                    ((&))
 import qualified Data.List                                        as L (delete, init, last, length)
-import           Data.Maybe                                       (fromJust)
 import           Data.Time.Calendar                               (Day, addDays, addGregorianMonthsClip,
                                                                    addGregorianYearsClip, fromGregorian,
                                                                    gregorianMonthLength, toGregorian)
@@ -36,11 +37,11 @@ minimumMaybe xs = Just $ minimum xs
 
 inf :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 inf set threshold =
-  minimumMaybe [t | t <- set, calculationDay t >= threshold]
+  minimumMaybe [t | t <- set, calculationDay t > threshold]
 
 sup :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 sup set threshold =
-  maximumMaybe [t | t <- set, calculationDay t <= threshold]
+  maximumMaybe [t | t <- set, calculationDay t < threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)
@@ -88,18 +89,34 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
   in  go anchorDate 1 []
 
 generateRecurrentScheduleWithCorrections :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
-  = generateRecurrentSchedule cycle anchorDate endDate &
-      ((correction cycle anchorDate endDate) >>>
-      (fmap $ applyEOMC anchorDate cycle (fromJust eomc)) >>>
-      (fmap $ applyBDC (fromJust bdc) (fromJust calendar)) >>>
-      (addEndDay (includeEndDay cycle) endDate))
+generateRecurrentScheduleWithCorrections
+  anchorDate
+  cycle
+  endDate
+  ScheduleConfig
+    { eomc = Just eomc',
+      calendar = Just calendar',
+      bdc = Just bdc'
+    } =
+    generateRecurrentSchedule cycle anchorDate endDate
+      & ( correction cycle anchorDate endDate
+            >>> (fmap $ applyEOMC anchorDate cycle eomc')
+            >>> (fmap $ applyBDC bdc' calendar')
+            >>> addEndDay (includeEndDay cycle) endDate
+        )
+generateRecurrentScheduleWithCorrections _ _ _ _ = []
 
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)
 
 minusCycle :: Day -> Cycle -> Day
 minusCycle date cycle = shiftDate date (-n cycle) (p cycle)
+
+(<+>) :: Day -> Cycle -> Day
+(<+>) = plusCycle
+
+(<->) :: Day -> Cycle -> Day
+(<->) = minusCycle
 
 shiftDate :: Day -> Integer -> Period -> Day
 shiftDate date n p = case p of
