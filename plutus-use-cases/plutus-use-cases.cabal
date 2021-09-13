@@ -36,7 +36,6 @@ library
         Plutus.Contracts.SimpleEscrow
         Plutus.Contracts.Future
         Plutus.Contracts.GameStateMachine
-        Plutus.Contracts.GameStateMachineWithSecretArguments
         Plutus.Contracts.Governance
         Plutus.Contracts.MultiSig
         Plutus.Contracts.MultiSigStateMachine
@@ -110,7 +109,6 @@ test-suite plutus-use-cases-test
         Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
-        Spec.GameStateMachineWithSecretArguments
         Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
