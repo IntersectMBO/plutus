@@ -17,8 +17,9 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State(..), StartingState) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDataState, _walletDetails)
-import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletCompanionStatus, _walletDataState, _walletDetails)
+import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
+import Data.Array (null)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, elemOf, filtered, modifying, set, use, view)
@@ -28,10 +29,13 @@ import Data.Lens.Traversal (traversed)
 import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, delete, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Set (delete, fromFoldable, isEmpty) as Set
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (for)
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple, fst)
 import Data.Tuple.Nested ((/\))
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff (delay)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Env (DataProvider(..), Env)
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
@@ -72,6 +76,7 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
   in
     { walletDataState: WalletData.mkInitialState walletLibrary
     , walletDetails
+    , walletCompanionStatus: FirstUpdatePending
     , menuOpen: false
     , card: Nothing
     , cardOpen: false
@@ -154,6 +159,7 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
 -- the wallet is interested in, compares it to the existing contracts, and either creates new follower
 -- apps or activates pending ones for any contracts that aren't yet being followed
 handleAction input (UpdateFollowerApps companionAppState) = do
+  walletCompanionStatus <- use _walletCompanionStatus
   walletDetails <- use _walletDetails
   existingContracts <- use _contracts
   let
@@ -167,6 +173,10 @@ handleAction input (UpdateFollowerApps companionAppState) = do
 
     newContractsArray :: Array (Tuple MarloweParams MarloweData)
     newContractsArray = toUnfoldable newContracts
+  if (walletCompanionStatus /= FirstUpdateComplete && (not $ null newContractsArray)) then
+    assign _walletCompanionStatus $ LoadingNewContracts $ Set.fromFoldable $ map fst newContractsArray
+  else
+    assign _walletCompanionStatus FirstUpdateComplete
   void
     $ for newContractsArray \(marloweParams /\ marloweData) -> do
         let
@@ -246,6 +256,17 @@ handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory
           when (selectedStep /= selectedStep')
             $ for_ selectedStep' (handleAction input <<< ContractAction followerAppId <<< Contract.MoveToStep)
         Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot mempty contractHistory) (modifying _contracts <<< insert followerAppId)
+      -- if we're currently loading the first bunch of contracts, we can report that this one has now been loaded
+      walletCompanionStatus <- use _walletCompanionStatus
+      case walletCompanionStatus of
+        LoadingNewContracts pendingMarloweParams -> do
+          let
+            updatedPendingMarloweParams = Set.delete marloweParams pendingMarloweParams
+          if Set.isEmpty updatedPendingMarloweParams then
+            assign _walletCompanionStatus FirstUpdateComplete
+          else
+            assign _walletCompanionStatus $ LoadingNewContracts updatedPendingMarloweParams
+        _ -> pure unit
 
 -- This handler looks, in the given contract, for any payments to roles for which the current
 -- wallet holds the token, and then calls the "redeem" endpoint of the main marlowe app for each

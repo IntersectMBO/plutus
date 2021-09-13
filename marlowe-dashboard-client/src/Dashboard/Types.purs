@@ -1,5 +1,6 @@
 module Dashboard.Types
   ( State
+  , WalletCompanionStatus(..)
   , Card(..)
   , ContractFilter(..)
   , Input
@@ -11,6 +12,7 @@ import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Data.Time.Duration (Minutes)
 import Marlowe.Client (ContractHistory)
 import Marlowe.Execution.Types (NamedAction)
@@ -23,6 +25,7 @@ import WalletData.Types (WalletDetails, WalletNickname)
 type State
   = { walletDataState :: WalletData.State
     , walletDetails :: WalletDetails
+    , walletCompanionStatus :: WalletCompanionStatus
     , menuOpen :: Boolean
     , card :: Maybe Card
     , cardOpen :: Boolean -- see note [CardOpen] in Welcome.State (the same applies here)
@@ -31,6 +34,13 @@ type State
     , selectedContractFollowerAppId :: Maybe PlutusAppId
     , templateState :: Template.State
     }
+
+data WalletCompanionStatus
+  = FirstUpdatePending
+  | LoadingNewContracts (Set MarloweParams)
+  | FirstUpdateComplete
+
+derive instance eqWalletCompanionStatus :: Eq WalletCompanionStatus
 
 data Card
   = TutorialsCard
