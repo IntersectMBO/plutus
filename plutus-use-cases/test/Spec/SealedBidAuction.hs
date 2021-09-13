@@ -171,7 +171,7 @@ instance ContractModel AuctionModel where
                   bids <- viewContractState currentBids
                   when (w `notElem` fmap snd bids) $ do
                     currentBids $= ((bid, w):bids)
-                    wait 1
+                  wait 1
 
             Reveal w bid | currentPhase == AwaitingPayout -> do
                 bids <- viewContractState currentBids
@@ -182,12 +182,11 @@ instance ContractModel AuctionModel where
                       withdraw w $ Ada.lovelaceValueOf bid
                       deposit w' $ Ada.lovelaceValueOf oldBid
                       currentWinningBid $= Just (bid, w)
-                      wait 1
                   Nothing ->
                     when ((bid, w) `elem` bids) $ do
                       withdraw w $ Ada.lovelaceValueOf bid
                       currentWinningBid $= Just (bid, w)
-                      wait 1
+                wait 1
 
             Payout _ | currentPhase == PayoutTime -> do
                   mwinningBid <- viewContractState currentWinningBid
@@ -195,11 +194,10 @@ instance ContractModel AuctionModel where
                     Just (bid, winner) -> do
                       deposit winner theToken
                       deposit w1 $ Ada.lovelaceValueOf bid
-                      wait 1
 
                     Nothing -> do
                       deposit w1 theToken
-                      wait 1
+                  wait 1
                   phase $= AuctionOver
 
             _ -> pure ()
