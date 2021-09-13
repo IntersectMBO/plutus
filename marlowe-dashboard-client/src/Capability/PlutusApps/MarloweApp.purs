@@ -8,7 +8,6 @@ module Capability.PlutusApps.MarloweApp
   , applyInputs
   , redeem
   , createEndpointMutex
-  , onNewState
   , onNewActiveEndpoints
   ) where
 
@@ -17,7 +16,7 @@ import AppM (AppM)
 import Bridge (toBack)
 import Capability.Contract (invokeEndpoint) as Contract
 import Capability.PlutusApps.MarloweApp.Lenses (_applyInputs, _create, _marloweAppEndpointMutex, _redeem)
-import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, MarloweAppEndpoint, MarloweAppEndpointMutexEnv, MarloweAppState)
+import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, MarloweAppEndpointMutexEnv)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Foldable (elem)
 import Data.Json.JsonTriple (JsonTriple(..))
@@ -30,7 +29,6 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.AVar as EAVar
-import Effect.Aff.AVar (AVar)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Marlowe.PAB (PlutusAppId)
@@ -113,19 +111,3 @@ onNewActiveEndpoints endpoints = do
   updateEndpoint "redeem" _redeem
   updateEndpoint "create" _create
   updateEndpoint "apply-inputs" _applyInputs
-
--- FIXME: change the mutex from onNewState to onNewActiveEndpoints that allow us to
--- know when an endpoint is available or not. And instead of hooking into NewObservableState
--- hook into NewActiveEndpoints
-onNewState ::
-  forall env m.
-  MonadAff m =>
-  MonadAsk { lastMarloweAppEndpointCall :: AVar MarloweAppEndpoint | env } m =>
-  MarloweAppState ->
-  m Unit
-onNewState lastResult = do
-  mutex :: AVar MarloweAppEndpoint <- asks _.lastMarloweAppEndpointCall
-  -- We try to take instead of taking as the later will block the thread until there
-  -- is a response, but if we are at this point, we should already have a value put in
-  -- the mutex. We use for_ to ignore the case in which we have a response but not a request.
-  void $ liftAff $ AVar.tryTake mutex

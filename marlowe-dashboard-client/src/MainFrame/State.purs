@@ -154,14 +154,12 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                 -- if this is the wallet's MarloweApp...
                 if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                  Right lastResult -> do
-                    MarloweApp.onNewState lastResult
-                    case lastResult of
-                      OK "create" -> addToast $ successToast "Contract initialised."
-                      OK "apply-inputs" -> addToast $ successToast "Contract update applied."
-                      SomeError "create" marloweError -> addToast $ errorToast "Failed to initialise contract." Nothing
-                      SomeError "apply-inputs" marloweError -> addToast $ errorToast "Failed to update contract." Nothing
-                      _ -> pure unit
+                  Right lastResult -> case lastResult of
+                    OK "create" -> addToast $ successToast "Contract initialised."
+                    OK "apply-inputs" -> addToast $ successToast "Contract update applied."
+                    SomeError "create" marloweError -> addToast $ errorToast "Failed to initialise contract." Nothing
+                    SomeError "apply-inputs" marloweError -> addToast $ errorToast "Failed to update contract." Nothing
+                    _ -> pure unit
                 -- otherwise this should be one of the wallet's WalletFollowerApps
                 else case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError

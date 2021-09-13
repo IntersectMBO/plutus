@@ -22,8 +22,6 @@ type Env
     --    creation functions didn't require that, so it seemed wrong to lift several functions into Effect.
     --    In contrast, the Env is created in Main, where we already have access to Effect
     , contractStepCarouselSubscription :: AVar SubscriptionId
-    -- FIXME: remove
-    , lastMarloweAppEndpointCall :: AVar MarloweApp.MarloweAppEndpoint
     -- See note on Capability.PlutusApps.MarloweApp.Types
     , marloweAppEndpointMutex :: MarloweApp.EndpointMutex
     , dataProvider :: DataProvider
