@@ -13,6 +13,7 @@ module Plutus.Contract.Secrets(
 import           Control.Monad
 import           Data.Aeson                   as Aeson (FromJSON (..), ToJSON (..), Value (..))
 import           Data.Aeson.Encoding.Internal (string)
+import           Data.String
 import           PlutusTx.Prelude             as PlutusTx
 import           Prelude                      as Haskell
 
@@ -109,6 +110,12 @@ instance PlutusTx.Applicative Secret where
 
 instance Monad Secret where
   MkSecret a >>= f = f a
+
+instance IsString s => IsString (Secret s) where
+  fromString = MkSecret . fromString
+
+instance IsString s => IsString (SecretArgument s) where
+  fromString = UserSide . fromString
 
 -- | Turn a public value into a secret value
 mkSecret :: a -> Secret a
