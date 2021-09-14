@@ -107,8 +107,10 @@ test-suite plutus-tx-test
         plutus-core -any,
         plutus-tx -any,
         hedgehog -any,
+        QuickCheck -any,
         tasty -any,
         tasty-hedgehog -any,
+        tasty-quickcheck -any,
         tasty-hunit -any,
         serialise -any,
         cborg -any
