@@ -97,9 +97,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _contracts dashboardState
-        { dataProvider } <- ask
-        subscribeToWallet dataProvider wallet
-        for followAppIds $ subscribeToPlutusApp dataProvider
+        subscribeToWallet wallet
+        for followAppIds $ subscribeToPlutusApp
     (WS.WebSocketClosed closeEvent) -> do
       -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any
@@ -213,14 +212,13 @@ handleAction Init = do
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ DashboardAction $ Dashboard.UpdateFromStorage)
 
 handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
-  { dataProvider } <- ask
   let
     followerAppIds :: Array PlutusAppId
     followerAppIds = Set.toUnfoldable $ keys followerApps
-  unsubscribeFromWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
-  unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
-  unsubscribeFromPlutusApp dataProvider $ view _marloweAppId walletDetails
-  for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
+  unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
+  unsubscribeFromPlutusApp $ view _companionAppId walletDetails
+  unsubscribeFromPlutusApp $ view _marloweAppId walletDetails
+  for_ followerAppIds unsubscribeFromPlutusApp
   assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
 handleAction (EnterDashboardState walletLibrary walletDetails) = do
@@ -229,14 +227,13 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
   case ajaxFollowerApps of
     Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      { dataProvider } <- ask
       let
         followerAppIds :: Array PlutusAppId
         followerAppIds = Set.toUnfoldable $ keys followerApps
-      subscribeToWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
-      subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
-      subscribeToPlutusApp dataProvider $ view _marloweAppId walletDetails
-      for_ followerAppIds $ subscribeToPlutusApp dataProvider
+      subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
+      subscribeToPlutusApp $ view _companionAppId walletDetails
+      subscribeToPlutusApp $ view _marloweAppId walletDetails
+      for_ followerAppIds subscribeToPlutusApp
       -- we now have all the running contracts for this wallet, but if new role tokens have been
       -- given to the wallet since we last connected it, we'll need to create some more - but since
       -- we've just subscribed to the wallet companion contract, this will be triggered by the

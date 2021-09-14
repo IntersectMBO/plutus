@@ -222,7 +222,7 @@ handleAction input (UpdateFollowerApps companionAppState) = do
               Nothing -> followContract walletDetails marloweParams
             case ajaxFollowerApp of
               Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
+              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp followerAppId
           LocalStorage -> do
             ajaxFollowerApp <- followContract walletDetails marloweParams
             case ajaxFollowerApp of
