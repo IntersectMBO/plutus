@@ -58,20 +58,17 @@ startNodeClient socket mode slotConfig networkId instancesState = do
     case mode of
       MockNode ->
         void $ MockClient.runChainSync socket slotConfig
-            (\block slot -> STM.atomically $ handleSyncAction $ processMockBlock instancesState env block slot)
+            (\block slot -> handleSyncAction $ processMockBlock instancesState env block slot)
       AlonzoNode -> do
           let resumePoints = []
           void $ Client.runChainSync socket slotConfig networkId resumePoints
-            (\block slot -> STM.atomically $ handleSyncAction $ processChainSyncEvent env block slot)
+            (\block slot -> handleSyncAction $ processChainSyncEvent env block slot)
     pure env
 
--- | Deal with errors. For now, we deal with them by simply failing the entire
--- application.
-handleSyncAction :: STM (Either SyncActionFailure ()) -> STM ()
-handleSyncAction a = a >>= f
-    where
-      f (Left e) = error $ "Sync action error: " <> show e
-      f _        = pure ()
+-- | Deal with sync action failures from running this STM action. For now, we
+-- deal with them by simply calling `error`; i.e. the application exits.
+handleSyncAction :: STM (Either SyncActionFailure ()) -> IO ()
+handleSyncAction action = STM.atomically action >>= either (error . show) pure
 
 updateInstances :: IndexedBlock -> InstanceClientEnv -> STM ()
 updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUtxoSpentRequests, ceUtxoProducedRequests} = do
