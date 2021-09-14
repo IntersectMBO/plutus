@@ -999,9 +999,30 @@ data _-→s_ {A : ∅ ⊢Nf⋆ *} : State A → State A → Set where
         → s' -→s s''
         → s -→s s''
 
-thm64 : ∀{A}{s s' : State A} → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
-thm64 base = CK.base
-thm64 (step* x p) = {!!}
+step** : ∀{A}{s : State A}{s' : State A}{s'' : State A}
+        → s -→s s'
+        → s' -→s s''
+        → s -→s s''
+step** base q = q
+step** (step* x p) q = step* x (step** p q)
+
+import Algorithmic.CC as CC
+thm64 : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
+thm64 s s  base        = CK.base
+thm64 (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (lookup x ρ)) (cek2ckVal (lookup x ρ)) (cek2ckStack s)) (thm64 _ s' q)
+thm64 (s ; ρ ▻ ƛ L) s' (step* refl q) =
+  CK.step** (CK.step* refl CK.base) (thm64 _ s' q)
+thm64 (s ; ρ ▻ (L · M)) s' (step* refl q) = ?
+thm64 (s ; ρ ▻ Λ L) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ (L ·⋆ A)) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ wrap A B L) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ unwrap L) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ con c) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ ibuiltin b) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ error _) s' (step* p q) = {!!}
+thm64 (s ◅ V) s' (step* p q) = {!!}
+thm64 (□ V) s' (step* p q) = {!!}
+thm64 (◆ A) s' (step* p q) = {!!}
 
 -- ∀ (c , k) there exists (c' , k') such that (c,k) -->cek (c',k') and
 --  cek2ckstate (c,k) -->ck cek2ckstate (c',k')
