@@ -7,7 +7,6 @@ let
   nodePort = 8082;
   chainIndexPort = 8083;
   signingProcessPort = 8084;
-  metadataPort = 8085;
 
   slotZeroTime = 1591566291000; # POSIX time of 2020-06-07T21:44:51Z (Sunday, June 7, 2020 21:44:51)
   slotLengthMillis = 1000;
@@ -72,10 +71,6 @@ let
       spWallet = {
         getWallet = "1";
       };
-    };
-
-    metadataServerConfig = {
-      mdBaseUrl = "http://localhost:${builtins.toString metadataPort}";
     };
   });
 
