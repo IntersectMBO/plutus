@@ -260,7 +260,7 @@ example02 =
               out =
                 computeTransaction
                   ( TransactionInput
-                      (0, 10000000000)
+                      (0, 0)
                       [
                         principal
                       , pr 1000, ip 200

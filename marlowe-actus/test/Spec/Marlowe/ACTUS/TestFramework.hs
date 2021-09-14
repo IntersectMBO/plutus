@@ -21,8 +21,7 @@ import           Data.Map                                          as Map (Map, 
 import           Data.Maybe                                        (fromJust, fromMaybe)
 import           Data.Scientific                                   (toRealFloat)
 import           Data.Text                                         (unpack)
-import           Data.Time                                         (Day, LocalTime (..), defaultTimeLocale, parseTimeM)
-import           Data.Time.Format.ISO8601
+import           Data.Time                                         (LocalTime (..), defaultTimeLocale, parseTimeM)
 import           Data.Vector                                       as Vector (catMaybes, map, toList)
 import           GHC.Generics                                      (Generic)
 import           GHC.Records                                       (getField)
