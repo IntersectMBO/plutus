@@ -431,33 +431,35 @@ currentWalletCard walletDetails =
 
     assets = view _assets walletDetails
   in
-    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
-      [ h3
-          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
+    div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto" ] ]
+      [ h2
+          [ classNames Css.cardHeader ]
           [ text $ "Wallet " <> walletNickname ]
-      , div
-          [ classNames Css.hasNestedLabel ]
-          [ label
-              [ classNames Css.nestedLabel ]
-              [ text "Wallet ID" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input true <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap companionAppId
-              , readOnly true
+      , div [ classNames [ "p-4", "overflow-y-auto" ] ]
+          [ div
+              [ classNames Css.hasNestedLabel ]
+              [ label
+                  [ classNames Css.nestedLabel ]
+                  [ text "Wallet ID" ]
+              , input
+                  [ type_ InputText
+                  , classNames $ Css.input true <> [ "mb-4" ]
+                  , value $ UUID.toString $ unwrap companionAppId
+                  , readOnly true
+                  ]
+              ]
+          , div
+              [ classNames [ "mb-4" ] ]
+              [ h4
+                  [ classNames [ "font-semibold" ] ]
+                  [ text "Balance:" ]
+              , p
+                  [ classNames Css.funds ]
+                  [ text $ humanizeValue adaToken $ getAda assets ]
               ]
           ]
       , div
-          [ classNames [ "mb-4" ] ]
-          [ h4
-              [ classNames [ "font-semibold" ] ]
-              [ text "Balance:" ]
-          , p
-              [ classNames Css.funds ]
-              [ text $ humanizeValue adaToken $ getAda assets ]
-          ]
-      , div
-          [ classNames [ "flex", "gap-4" ] ]
+          [ classNames [ "p-4", "flex", "gap-4", "border-t border-gray" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1" ]
               , onClick_ CloseCard
