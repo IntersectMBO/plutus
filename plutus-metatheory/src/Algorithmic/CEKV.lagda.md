@@ -946,7 +946,7 @@ ck2cekState (CK.□ V) = □ (ck2cekVal V)
 ck2cekState (CK.◆ A) = ◆ A
 
 
--- conver CEK things to CK things
+-- convert CEK things to CK things
 
 cek2ckVal : ∀{A} → (V : Value A) → Red.Value (discharge V)
 
@@ -991,3 +991,17 @@ cek2ckState (s ; ρ ▻ L) = cek2ckStack s CK.▻ cek2ckClos L ρ
 cek2ckState (s ◅ V) = cek2ckStack s CK.◅ cek2ckVal V
 cek2ckState (□ V) = CK.□ (cek2ckVal V)
 cek2ckState (◆ A) = CK.◆ A
+
+data _-→s_ {A : ∅ ⊢Nf⋆ *} : State A → State A → Set where
+  base  : {s : State A} → s -→s s
+  step* : {s s' s'' : State A}
+        → step s ≡ s'
+        → s' -→s s''
+        → s -→s s''
+
+thm64 : ∀{A}{s s' : State A} → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
+thm64 base = CK.base
+thm64 (step* x p) = {!!}
+
+-- ∀ (c , k) there exists (c' , k') such that (c,k) -->cek (c',k') and
+--  cek2ckstate (c,k) -->ck cek2ckstate (c',k')
