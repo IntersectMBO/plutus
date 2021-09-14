@@ -363,13 +363,6 @@ checkType Γ L A = do
   refl ← withE (typeMismatch _ _) (meqNfTy A A')
   return L
   
-inferTypeBuiltin : ∀{Φ m n}{Γ : Ctx Φ}(bn : Builtin)
-  → Tel⋆ (len⋆ Φ) m → Scoped.Tel (len Γ) n
-  → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
-inferTypeBuiltin b [] [] = let Φ ,, As ,, C = ISIG b in
-  inj₂ (_ ,, ibuiltin b)
-inferTypeBuiltin _ _ _ = inj₁ builtinError
-  
 inferType Γ (` x) = do
   A ,, α ← inferVarType Γ x
   return (A ,, ` α)

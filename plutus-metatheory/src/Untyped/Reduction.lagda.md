@@ -72,7 +72,7 @@ arity verifySignature = [] :< Term :< Term :< Term
 arity equalsByteString = [] :< Term :< Term
 arity ifThenElse = [] :< Type :< Term :< Term :< Term
 arity appendString = [] :< Term :< Term
-arity trace = [] :< Term
+arity trace = [] :< Type :< Term :< Term
 arity equalsString = [] :< Term :< Term
 arity encodeUtf8 = [] :< Term
 arity decodeUtf8 = [] :< Term
@@ -239,8 +239,8 @@ IBUILTIN equalsString
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (bool (primStringEquality s s')))
 IBUILTIN trace
-  (tt , (t , v))
-  = _ , inl (V-con unit)
+  ((tt , (t , V-con (string s))) , (t' , v))
+  = _ , inl (TRACE s v)
 IBUILTIN iData
   (tt , (t , V-con (integer i)))
   = _ , inl (V-con (Data (iDATA i)))
@@ -416,7 +416,7 @@ ival equalsByteString = V-F (V-builtin equalsByteString refl (skipTerm base) _ _
 ival ifThenElse =
   V-builtin⋆ ifThenElse refl (skipTerm (skipTerm (skipTerm base))) _ _
 ival appendString = V-F (V-builtin appendString refl (skipTerm base) _ _)
-ival trace = V-F (V-builtin trace refl base _ _)
+ival trace = V-F (V-builtin trace refl (skipTerm base) _ _)
 ival equalsString = V-F (V-builtin equalsString refl (skipTerm base) _ _)
 ival encodeUtf8 = V-F (V-builtin encodeUtf8 refl base _ _)
 ival decodeUtf8 = V-F (V-builtin decodeUtf8 refl base _ _)
