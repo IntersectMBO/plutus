@@ -1,4 +1,4 @@
-
+{-# OPTIONS_GHC -Wno-deprecations #-}
 module Spec.Secrets (tests) where
 
 import qualified Data.Aeson              as Aeson
