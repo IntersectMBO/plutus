@@ -1006,23 +1006,26 @@ step** : ∀{A}{s : State A}{s' : State A}{s'' : State A}
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
 
+postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
+
+
 import Algorithmic.CC as CC
 thm64 : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
 thm64 s s  base        = CK.base
 thm64 (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (lookup x ρ)) (cek2ckVal (lookup x ρ)) (cek2ckStack s)) (thm64 _ s' q)
-thm64 (s ; ρ ▻ ƛ L) s' (step* refl q) =
-  CK.step** (CK.step* refl CK.base) (thm64 _ s' q)
-thm64 (s ; ρ ▻ (L · M)) s' (step* refl q) = ?
-thm64 (s ; ρ ▻ Λ L) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ (L ·⋆ A)) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ wrap A B L) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ unwrap L) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ con c) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ ibuiltin b) s' (step* p q) = {!!}
-thm64 (s ; ρ ▻ error _) s' (step* p q) = {!!}
-thm64 (s ◅ V) s' (step* p q) = {!!}
-thm64 (□ V) s' (step* p q) = {!!}
-thm64 (◆ A) s' (step* p q) = {!!}
+thm64 (s ; ρ ▻ ƛ L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ (L · M)) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ Λ L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ (L ·⋆ A)) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (s ; ρ ▻ ibuiltin b) s' (step* refl q) = CK.step* (ival-lem b) (thm64 _ s' q)
+thm64 (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (ε ◅ V) s' (step* refl q) = {!!}
+thm64 ((s , x) ◅ V) s' (step* refl q) = {!!}
+thm64 (□ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 (◆ A) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 
 -- ∀ (c , k) there exists (c' , k') such that (c,k) -->cek (c',k') and
 --  cek2ckstate (c,k) -->ck cek2ckstate (c',k')
