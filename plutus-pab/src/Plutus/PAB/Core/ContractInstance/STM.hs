@@ -28,8 +28,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , waitForUtxoSpent
     , addUtxoProducedReq
     , waitForUtxoProduced
-    , addAddress
-    , addTransaction
     , setActivity
     , setObservableState
     , openEndpoints
@@ -40,8 +38,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , InstancesState
     , emptyInstancesState
     , insertInstance
-    , watchedAddresses
-    , watchedTransactions
     , callEndpointOnInstance
     , callEndpointOnInstanceTimeout
     , observableContractState
@@ -65,7 +61,6 @@ import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
 import           Data.Set                    (Set)
-import qualified Data.Set                    as Set
 import           Ledger                      (Address, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
 import           Ledger.AddressMap           (AddressMap)
 import qualified Ledger.AddressMap           as AM
@@ -205,8 +200,6 @@ data Activity =
 data InstanceState =
     InstanceState
         { issEndpoints       :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
-        , issAddresses       :: TVar (Set Address) -- ^ Addresses that the contract wants to watch -- FIXME: Delete?
-        , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
         , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
         , issStop            :: TMVar () -- ^ Stop the instance if a value is written into the TMVar.
@@ -219,8 +212,6 @@ emptyInstanceState :: STM InstanceState
 emptyInstanceState =
     InstanceState
         <$> STM.newTVar mempty
-        <*> STM.newTVar mempty
-        <*> STM.newTVar mempty
         <*> STM.newTVar Active
         <*> STM.newTVar Nothing
         <*> STM.newEmptyTMVar
@@ -254,15 +245,6 @@ instanceClientEnv InstanceState{issTxOutRefs, issAddressRefs} =
   InstanceClientEnv
     <$> (Map.fromList . fmap ((\r@OpenTxOutSpentRequest{osrOutRef} -> (osrOutRef, [r])) . snd) . Map.toList <$> STM.readTVar issTxOutRefs)
     <*> (Map.fromList . fmap ((\r@OpenTxOutProducedRequest{otxAddress} -> (otxAddress, [r])) . snd) . Map.toList  <$> STM.readTVar issAddressRefs)
-
--- | Add an address to the set of addresses that the instance is watching
-addAddress :: Address -> InstanceState -> STM ()
-addAddress addr InstanceState{issAddresses} = STM.modifyTVar issAddresses (Set.insert addr)
-
--- | Add a transaction hash to the set of transactions that the instance is
---   interested in
-addTransaction :: TxId -> InstanceState -> STM ()
-addTransaction txid InstanceState{issTransactions} = STM.modifyTVar issTransactions (Set.insert txid)
 
 -- | Set the 'Activity' of the instance
 setActivity :: Activity -> InstanceState -> STM ()
@@ -403,20 +385,6 @@ finalResult instanceId m = do
 -- | Insert an 'InstanceState' value into the 'InstancesState'
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
 insertInstance instanceID state (InstancesState m) = STM.modifyTVar m (Map.insert instanceID state)
-
--- | The addresses that are currently watched by the contract instances
-watchedAddresses :: InstancesState -> STM (Set Address)
-watchedAddresses (InstancesState m) = do
-    mp <- STM.readTVar m
-    allSets <- traverse (STM.readTVar . issAddresses) (snd <$> Map.toList mp)
-    pure $ fold allSets
-
--- | The transactions that are currently watched by the contract instances
-watchedTransactions :: InstancesState -> STM (Set TxId)
-watchedTransactions (InstancesState m) = do
-    mp <- STM.readTVar m
-    allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
-    pure $ fold allSets
 
 -- | Wait for the status of a transaction to change.
 waitForTxStatusChange :: TxStatus -> TxId -> BlockchainEnv -> STM TxStatus
