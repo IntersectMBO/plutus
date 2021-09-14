@@ -24,10 +24,11 @@ import qualified Data.Text                           as Text
 import qualified Data.Text.Encoding                  as Text
 import qualified Network.Wai.Handler.Warp            as Warp
 import           Plutus.ChainIndex.Api               (API, FromHashAPI)
+import           Plutus.ChainIndex.ChainIndexError   (ChainIndexError)
+import           Plutus.ChainIndex.ChainIndexLog     (ChainIndexLog)
 import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect, ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Effects           as E
-import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), ChainIndexError, ChainIndexLog,
-                                                      handleControl, handleQuery)
+import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), handleControl, handleQuery)
 import           Servant.API                         ((:<|>) (..))
 import           Servant.API.ContentTypes            (NoContent (..))
 import           Servant.Server                      (Handler, ServerError, ServerT, err404, err500, errBody,

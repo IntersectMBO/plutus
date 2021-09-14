@@ -38,11 +38,12 @@ import           CommandLine                         (AppConfig (..), Command (.
 import qualified Config
 import           Ledger                              (Slot (..))
 import qualified Logging
+import           Plutus.ChainIndex.ChainIndexError   (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog     (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility     (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
 import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                       appendBlock, rollback)
-import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), ChainIndexError (..),
-                                                      ChainIndexLog (..), handleControl, handleQuery)
+import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), handleControl, handleQuery)
 import           Plutus.Monitoring.Util              (runLogEffects)
 
 type ChainIndexEffects
@@ -64,7 +65,8 @@ runChainIndex trace emulatorState effect = do
   logMessages <- liftIO $ STM.atomically $ do
     oldEmulatorState <- STM.readTVar emulatorState
     let (result, logMessages')
-          = interpret handleControl effect
+          = effect
+          & interpret handleControl
           & interpret handleQuery
           & runState oldEmulatorState
           & runError

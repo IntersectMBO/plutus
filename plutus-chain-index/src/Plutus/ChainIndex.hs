@@ -5,6 +5,8 @@ module Plutus.ChainIndex(
     , module Emulator
     ) where
 
+import           Plutus.ChainIndex.ChainIndexError    as Export
+import           Plutus.ChainIndex.ChainIndexLog      as Export
 import           Plutus.ChainIndex.Effects            as Export
 import           Plutus.ChainIndex.Emulator.DiskState as Emulator hiding (fromTx)
 import           Plutus.ChainIndex.Emulator.Handlers  as Emulator

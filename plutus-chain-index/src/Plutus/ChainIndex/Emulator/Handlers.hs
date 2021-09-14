@@ -19,17 +19,13 @@ module Plutus.ChainIndex.Emulator.Handlers(
     , ChainIndexEmulatorState(..)
     , diskState
     , utxoIndex
-    , ChainIndexError(..)
-    , ChainIndexLog(..)
     ) where
 
-import           Cardano.BM.Data.Tracer               (ToObject (..))
 import           Control.Lens                         (at, ix, makeLenses, over, preview, set, to, view, (&))
 import           Control.Monad.Freer                  (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error            (Error, throwError)
 import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State            (State, get, gets, modify, put)
-import           Data.Aeson                           (FromJSON, ToJSON)
 import           Data.Default                         (Default (..))
 import           Data.FingerTree                      (Measured (..))
 import           Data.Maybe                           (catMaybes, fromMaybe)
@@ -40,18 +36,18 @@ import           Ledger                               (Address (addressCredentia
                                                        ChainIndexTxOut (PublicKeyChainIndexTxOut), TxId,
                                                        TxOut (txOutAddress), TxOutRef (..), txOutDatumHash, txOutValue)
 import           Ledger.Tx                            (ChainIndexTxOut (ScriptChainIndexTxOut))
+import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, mintingPolicyMap,
                                                        redeemerMap, stakeValidatorMap, txMap, validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
 import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
-import           Plutus.ChainIndex.UtxoState          (InsertUtxoPosition, InsertUtxoSuccess (..), RollbackResult (..),
-                                                       TxUtxoBalance, UtxoIndex, isUnspentOutput, tip)
+import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
+                                                       UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
-import           Plutus.Contract.CardanoAPI           (FromCardanoError (..))
 import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
-import           Prettyprinter                        (Pretty (..), colon, (<+>))
 
 data ChainIndexEmulatorState =
     ChainIndexEmulatorState
@@ -182,45 +178,3 @@ handleControl = \case
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
         modify $ set diskState newDiskState
     GetDiagnostics -> diagnostics . _diskState <$> get @ChainIndexEmulatorState
-
-data ChainIndexError =
-    InsertionFailed UtxoState.InsertUtxoFailed
-    | RollbackFailed UtxoState.RollbackFailed
-    | QueryFailedNoTip -- ^ Query failed because the chain index does not have a tip (not synchronised with node)
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-instance Pretty ChainIndexError where
-  pretty = \case
-    InsertionFailed err -> "Insertion failed" <> colon <+> pretty err
-    RollbackFailed err  -> "Rollback failed" <> colon <+> pretty err
-    QueryFailedNoTip    -> "Query failed" <> colon <+> "No tip."
-
-data ChainIndexLog =
-    InsertionSuccess Tip InsertUtxoPosition
-    | ConversionFailed FromCardanoError
-    | RollbackSuccess Tip
-    | Err ChainIndexError
-    | TxNotFound TxId
-    | TxOutNotFound TxOutRef
-    | TipIsGenesis
-    | NoDatumScriptAddr TxOut
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, ToObject)
-
-instance Pretty ChainIndexLog where
-  pretty = \case
-    InsertionSuccess t p ->
-         "InsertionSuccess"
-      <> colon
-      <+> "New tip is"
-      <+> pretty t
-      <> "."
-      <+> pretty p
-    RollbackSuccess t -> "RollbackSuccess: New tip is" <+> pretty t
-    ConversionFailed cvError -> "Conversion failed: " <+> pretty cvError
-    Err ciError -> "ChainIndexError:" <+> pretty ciError
-    TxNotFound txid -> "TxNotFound:" <+> pretty txid
-    TxOutNotFound ref -> "TxOut not found with:" <+> pretty ref
-    TipIsGenesis -> "TipIsGenesis"
-    NoDatumScriptAddr txout -> "The following transaction output from a script adress does not have a datum:" <+> pretty txout

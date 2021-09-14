@@ -32,6 +32,8 @@ library
     exposed-modules:
         Plutus.ChainIndex
         Plutus.ChainIndex.Api
+        Plutus.ChainIndex.ChainIndexError
+        Plutus.ChainIndex.ChainIndexLog
         Plutus.ChainIndex.Effects
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
