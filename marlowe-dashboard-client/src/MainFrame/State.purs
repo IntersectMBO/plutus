@@ -2,7 +2,7 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
+import Capability.Marlowe (class ManageMarlowe, getFollowerApps, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
 import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.PlutusApps.MarloweApp.Types (LastResult(..))
@@ -44,7 +44,7 @@ import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousComp
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
-import Welcome.Types (Action(..), State) as Welcome
+import Welcome.Types (Action, State) as Welcome
 
 mkMainFrame ::
   forall m.
