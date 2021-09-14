@@ -25,11 +25,13 @@ import Bridge (toBack, toFront)
 import Capability.Contract (activateContract, getContractInstanceClientState, getContractInstanceObservableState, getWalletContractInstances, invokeEndpoint) as Contract
 import Capability.Contract (class ManageContract)
 import Capability.MarloweStorage (class ManageMarloweStorage, addAssets, getContracts, getWalletLibrary, getWalletRoleContracts, insertContract, insertWalletRoleContracts)
+import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.Wallet (class ManageWallet)
 import Capability.Wallet (createWallet, getWalletInfo, getWalletTotalFunds) as Wallet
 import Capability.Websocket (class ManageWebsocket)
 import Capability.Websocket (subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet) as Websocket
 import Control.Monad.Except (ExceptT(..), except, lift, mapExceptT, runExcept, runExceptT, withExceptT)
+import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
 import Data.Array (filter) as Array
 import Data.Array (find)
@@ -53,6 +55,7 @@ import Effect.Aff (delay)
 import Effect.Class (liftEffect)
 import Effect.Random (random)
 import Env (DataProvider(..))
+import Env (Env)
 import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM, liftAff)
@@ -89,12 +92,12 @@ class
   lookupWalletDetails :: PlutusAppId -> m (AjaxResponse WalletDetails)
   getRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
   getFollowerApps :: WalletDetails -> m (DecodedAjaxResponse (Map PlutusAppId ContractHistory))
-  subscribeToPlutusApp :: DataProvider -> PlutusAppId -> m Unit
-  subscribeToWallet :: DataProvider -> Wallet -> m Unit
-  unsubscribeFromPlutusApp :: DataProvider -> PlutusAppId -> m Unit
-  unsubscribeFromWallet :: DataProvider -> Wallet -> m Unit
+  subscribeToPlutusApp :: PlutusAppId -> m Unit
+  subscribeToWallet :: Wallet -> m Unit
+  unsubscribeFromPlutusApp :: PlutusAppId -> m Unit
+  unsubscribeFromWallet :: Wallet -> m Unit
 
-instance monadMarloweAppM :: ManageMarlowe AppM where
+instance manageMarloweAppM :: ManageMarlowe AppM where
   -- create a Wallet, together with a WalletCompanion and a MarloweApp, and return the WalletDetails
   createWallet = do
     { dataProvider } <- ask
@@ -232,11 +235,8 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
       MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
-
-          bRoles :: Back.Map Back.TokenName Back.PubKeyHash
-          bRoles = toBack roles
         in
-          Contract.invokeEndpoint marloweAppId "create" (bRoles /\ contract)
+          MarloweApp.createContract marloweAppId roles contract
       LocalStorage -> do
         walletLibrary <- getWalletLibrary
         uuid <- liftEffect genUUID
@@ -263,19 +263,14 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
               void $ insertWalletRoleContracts (unwrap pubKeyHash) marloweParams marloweData
         pure $ Right unit
   -- "apply-inputs" to a Marlowe contract on the blockchain
-  applyTransactionInput walletDetails marloweParams transactionInput@(TransactionInput { interval, inputs }) = do
+  applyTransactionInput walletDetails marloweParams transactionInput = do
     { dataProvider } <- ask
     case dataProvider of
       MarlowePAB ->
         let
           marloweAppId = view _marloweAppId walletDetails
-
-          backSlotInterval :: JsonTuple Back.Slot Back.Slot
-          backSlotInterval = toBack interval
-
-          payload = JsonTriple (marloweParams /\ (Just backSlotInterval) /\ inputs)
         in
-          Contract.invokeEndpoint marloweAppId "apply-inputs" payload
+          MarloweApp.applyInputs marloweAppId marloweParams transactionInput
       LocalStorage -> do
         existingContracts <- getContracts
         -- When we emulate these calls we add a 500ms delay so we give time to the submit button
@@ -295,11 +290,8 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
           marloweAppId = view _marloweAppId walletDetails
 
           pubKeyHash = view (_walletInfo <<< _pubKeyHash) walletDetails
-
-          payload :: JsonTriple MarloweParams Back.TokenName Back.PubKeyHash
-          payload = JsonTriple (marloweParams /\ toBack tokenName /\ toBack pubKeyHash)
         in
-          Contract.invokeEndpoint marloweAppId "redeem" payload
+          MarloweApp.redeem marloweAppId marloweParams tokenName pubKeyHash
       LocalStorage -> pure $ Right unit
   -- get the WalletInfo of a wallet given the PlutusAppId of its WalletCompanion
   lookupWalletInfo companionAppId = do
@@ -413,12 +405,12 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                     Just $ plutusAppId /\ contractHistory
                 _, _ -> Nothing
         pure $ Right $ fromFoldable $ values $ mapMaybeWithKey roleContractsToHistory roleContracts
-  subscribeToPlutusApp dataProvider plutusAppId = Websocket.subscribeToContract $ toBack plutusAppId
-  subscribeToWallet dataProvider wallet = Websocket.subscribeToWallet $ toBack wallet
-  unsubscribeFromPlutusApp dataProvider plutusAppId = Websocket.unsubscribeFromContract $ toBack plutusAppId
-  unsubscribeFromWallet dataProvider wallet = Websocket.unsubscribeFromWallet $ toBack wallet
+  subscribeToPlutusApp plutusAppId = Websocket.subscribeToContract $ toBack plutusAppId
+  subscribeToWallet wallet = Websocket.subscribeToWallet $ toBack wallet
+  unsubscribeFromPlutusApp plutusAppId = Websocket.unsubscribeFromContract $ toBack plutusAppId
+  unsubscribeFromWallet wallet = Websocket.unsubscribeFromWallet $ toBack wallet
 
-instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageMarlowe (HalogenM state action slots Msg m) where
+instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m, MonadAsk Env m) => ManageMarlowe (HalogenM state action slots Msg m) where
   createWallet = lift createWallet
   followContract walletDetails marloweParams = lift $ followContract walletDetails marloweParams
   createPendingFollowerApp = lift <<< createPendingFollowerApp
@@ -430,7 +422,15 @@ instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageM
   lookupWalletDetails = lift <<< lookupWalletDetails
   getRoleContracts = lift <<< getRoleContracts
   getFollowerApps = lift <<< getFollowerApps
-  subscribeToPlutusApp dataProvider plutusAppId = when (dataProvider /= LocalStorage) $ Websocket.subscribeToContract $ toBack plutusAppId
-  subscribeToWallet dataProvider wallet = when (dataProvider /= LocalStorage) $ Websocket.subscribeToWallet $ toBack wallet
-  unsubscribeFromPlutusApp dataProvider plutusAppId = when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromContract $ toBack plutusAppId
-  unsubscribeFromWallet dataProvider wallet = when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromWallet $ toBack wallet
+  subscribeToPlutusApp plutusAppId = do
+    { dataProvider } <- ask
+    when (dataProvider /= LocalStorage) $ Websocket.subscribeToContract $ toBack plutusAppId
+  subscribeToWallet wallet = do
+    { dataProvider } <- ask
+    when (dataProvider /= LocalStorage) $ Websocket.subscribeToWallet $ toBack wallet
+  unsubscribeFromPlutusApp plutusAppId = do
+    { dataProvider } <- ask
+    when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromContract $ toBack plutusAppId
+  unsubscribeFromWallet wallet = do
+    { dataProvider } <- ask
+    when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromWallet $ toBack wallet

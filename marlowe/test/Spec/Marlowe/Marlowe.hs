@@ -103,8 +103,8 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf (150))
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) OK) "should be OK"
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) OK) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) (OK "close")) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) (OK "close")) "should be OK"
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
@@ -139,8 +139,8 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
 errorHandlingTest :: TestTree
 errorHandlingTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Error handling"
     (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
-    (\case SomeError (TransitionError _) -> True
-           _                             -> False
+    (\case SomeError "apply-inputs" (TransitionError _) -> True
+           _                                            -> False
     ) "should be fail with SomeError"
     ) $ do
     -- Init a contract

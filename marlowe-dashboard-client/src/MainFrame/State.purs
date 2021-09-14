@@ -2,8 +2,10 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
+import Capability.Marlowe (class ManageMarlowe, getFollowerApps, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
+import Capability.PlutusApps.MarloweApp as MarloweApp
+import Capability.PlutusApps.MarloweApp.Types (LastResult(..))
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
@@ -22,7 +24,6 @@ import Data.Newtype (unwrap)
 import Data.Set (toUnfoldable) as Set
 import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
-import Debug.Trace (traceM)
 import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
 import Foreign.Generic (decodeJSON)
@@ -34,7 +35,6 @@ import Humanize (getTimezoneOffset)
 import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _tzOffset, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.Client (LastResult(..), MarloweError(..))
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import Toast.State (defaultState, handleAction) as Toast
@@ -44,7 +44,7 @@ import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousComp
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
-import Welcome.Types (Action(..), State) as Welcome
+import Welcome.Types (Action, State) as Welcome
 
 mkMainFrame ::
   forall m.
@@ -97,9 +97,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _contracts dashboardState
-        { dataProvider } <- ask
-        subscribeToWallet dataProvider wallet
-        for followAppIds $ subscribeToPlutusApp dataProvider
+        subscribeToWallet wallet
+        for followAppIds $ subscribeToPlutusApp
     (WS.WebSocketClosed closeEvent) -> do
       -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any
@@ -135,40 +134,48 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           mDashboardState <- peruse _dashboardState
           -- these updates should only ever be coming when we are in the Dashboard state (and if
           -- we're not, we don't care about them anyway)
-          for_ mDashboardState \dashboardState -> do
+          for_ mDashboardState \dashboardState ->
             let
               walletCompanionAppId = view (_walletDetails <<< _companionAppId) dashboardState
-            -- if this is the wallet's WalletCompanion app...
-            if (plutusAppId == walletCompanionAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
-              Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-              Right companionAppState ->
-                -- this check shouldn't be necessary, but at the moment we are getting too many update notifications
-                -- through the PAB - so until that bug is fixed, this will have to mask it
-                when (view (_walletDetails <<< _previousCompanionAppState) dashboardState /= Just companionAppState) do
-                  assign (_dashboardState <<< _walletDetails <<< _previousCompanionAppState) (Just companionAppState)
-                  handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionAppState
-            else do
-              let
-                marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
-              -- if this is the wallet's MarloweApp...
-              if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
+
+              marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
+            in
+              -- if this is the wallet's WalletCompanion app...
+              if (plutusAppId == walletCompanionAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right lastResult -> case lastResult of
-                  -- FIXME: unpack these updates properly and respond appropriately in each case
-                  OK -> addToast $ successToast "all okay"
-                  SomeError marloweError -> do
-                    traceM marloweError
-                    addToast $ errorToast "something went wrong" Nothing
-                  Unknown -> pure unit
-              -- otherwise this should be one of the wallet's MarloweFollower apps
-              else case runExcept $ decodeJSON $ unwrap rawJson of
-                Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right contractHistory -> do
-                  handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
-                  handleAction $ DashboardAction $ Dashboard.RedeemPayments plutusAppId
-        -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
-        -- we can ignore these cases here
-        _ -> pure unit
+                Right companionAppState -> do
+                  -- this check shouldn't be necessary, but at the moment we are getting too many update notifications
+                  -- through the PAB - so until that bug is fixed, this will have to mask it
+                  when (view (_walletDetails <<< _previousCompanionAppState) dashboardState /= Just companionAppState) do
+                    assign (_dashboardState <<< _walletDetails <<< _previousCompanionAppState) (Just companionAppState)
+                    handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionAppState
+              else do
+                -- if this is the wallet's MarloweApp...
+                if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
+                  Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
+                  Right lastResult -> case lastResult of
+                    OK "create" -> addToast $ successToast "Contract initialised."
+                    OK "apply-inputs" -> addToast $ successToast "Contract update applied."
+                    SomeError "create" marloweError -> addToast $ errorToast "Failed to initialise contract." Nothing
+                    SomeError "apply-inputs" marloweError -> addToast $ errorToast "Failed to update contract." Nothing
+                    _ -> pure unit
+                -- otherwise this should be one of the wallet's WalletFollowerApps
+                else case runExcept $ decodeJSON $ unwrap rawJson of
+                  Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
+                  Right contractHistory -> do
+                    handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
+                    handleAction $ DashboardAction $ Dashboard.RedeemPayments plutusAppId
+        NewActiveEndpoints activeEndpoints -> do
+          mDashboardState <- peruse _dashboardState
+          -- these updates should only ever be coming when we are in the Dashboard state (and if
+          -- we're not, we don't care about them anyway)
+          for_ mDashboardState \dashboardState -> do
+            let
+              plutusAppId = toFront contractInstanceId
+
+              marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
+            when (plutusAppId == marloweAppId) $ MarloweApp.onNewActiveEndpoints activeEndpoints
+        ContractFinished _ -> pure unit
   pure $ Just next
 
 handleQuery (MainFrameActionQuery action next) = do
@@ -205,14 +212,13 @@ handleAction Init = do
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ DashboardAction $ Dashboard.UpdateFromStorage)
 
 handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
-  { dataProvider } <- ask
   let
     followerAppIds :: Array PlutusAppId
     followerAppIds = Set.toUnfoldable $ keys followerApps
-  unsubscribeFromWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
-  unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
-  unsubscribeFromPlutusApp dataProvider $ view _marloweAppId walletDetails
-  for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
+  unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
+  unsubscribeFromPlutusApp $ view _companionAppId walletDetails
+  unsubscribeFromPlutusApp $ view _marloweAppId walletDetails
+  for_ followerAppIds unsubscribeFromPlutusApp
   assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
 handleAction (EnterDashboardState walletLibrary walletDetails) = do
@@ -221,14 +227,13 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
   case ajaxFollowerApps of
     Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      { dataProvider } <- ask
       let
         followerAppIds :: Array PlutusAppId
         followerAppIds = Set.toUnfoldable $ keys followerApps
-      subscribeToWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
-      subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
-      subscribeToPlutusApp dataProvider $ view _marloweAppId walletDetails
-      for_ followerAppIds $ subscribeToPlutusApp dataProvider
+      subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
+      subscribeToPlutusApp $ view _companionAppId walletDetails
+      subscribeToPlutusApp $ view _marloweAppId walletDetails
+      for_ followerAppIds subscribeToPlutusApp
       -- we now have all the running contracts for this wallet, but if new role tokens have been
       -- given to the wallet since we last connected it, we'll need to create some more - but since
       -- we've just subscribed to the wallet companion contract, this will be triggered by the
