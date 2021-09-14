@@ -100,6 +100,7 @@ module.exports = {
         "1fr-auto": "minmax(0, 1fr) auto",
         "auto-auto-1fr": "auto auto minmax(0, 1fr)",
         "auto-1fr-auto": "auto minmax(0, 1fr) auto",
+        "auto-1fr-auto-auto": "auto minmax(0, 1fr) auto auto",
         "1fr-auto-1fr": "minmax(0, 1fr) auto minmax(0, 1fr)",
         "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
       },

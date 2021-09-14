@@ -30,7 +30,7 @@ import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
 import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (IProp(..), InputType(..), enabled, href, id_, placeholder, ref, target, type_, value)
+import Halogen.HTML.Properties (IProp, InputType(..), enabled, id_, placeholder, ref, type_, value)
 import Hint.State (hint)
 import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humanizeOffset, humanizeValue)
 import LoadingSubmitButton.State (loadingSubmitButton)
@@ -199,12 +199,12 @@ actionConfirmationCard ::
   ComponentHTML Action ChildSlots m
 actionConfirmationCard assets namedAction state =
   let
-    stepNumber = currentStep state
+    stepNumber = (currentStep state) + 1
 
     title = case namedAction of
-      MakeDeposit _ _ _ _ -> "Deposit confirmation"
-      MakeChoice _ _ _ -> "Choice confirmation"
-      CloseContract -> "Close contract"
+      MakeDeposit _ _ _ _ -> "Deposit"
+      MakeChoice _ _ _ -> "Choice"
+      CloseContract -> "Close Contract"
       _ -> "Fixme, this should not happen"
 
     cta = case namedAction of
@@ -230,6 +230,10 @@ actionConfirmationCard assets namedAction state =
         [ detailItem [ text "You are choosing:" ] [ text $ "[ option " <> show option <> " ]" ] false
         , transactionFeeItem true
         ]
+      CloseContract ->
+        [ detailItem [ text "You are closing the contract" ] mempty false
+        , transactionFeeItem true
+        ]
       _ -> [ transactionFeeItem false ]
 
     -- TODO: when we allow custom currency other than ada, we won't be able to add the deposit amount
@@ -240,66 +244,61 @@ actionConfirmationCard assets namedAction state =
 
     hasSufficientFunds = getAda assets >= totalToPay
   in
-    div_
-      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
-          [ span_ [ text "Demo wallet balance:" ]
-          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
-          ]
-      , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
-          [ h2
-              [ classNames [ "text-xl", "font-semibold" ] ]
-              [ text $ "Step " <> show (stepNumber + 1) ]
-          , h3
-              [ classNames [ "text-xs", "font-semibold" ] ]
-              [ text title ]
+    div
+      [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto-auto" ] ]
+      [ h2
+          [ classNames Css.cardHeader ]
+          [ text $ "Step " <> (show stepNumber) <> " " <> title ]
+      , div
+          [ classNames [ "p-4" ] ]
+          [ h3
+              [ classNames [ "font-semibold" ] ]
+              [ text $ title <> " summary" ]
           , div [ classNames [ "flex", "border-b", "border-gray", "mt-4" ] ]
               actionAmountItems
-          , h3
-              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
-              [ text "Confirm payment of:" ]
-          , div
-              [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ text $ humanizeValue adaToken totalToPay ]
-          , div [ classNames [ "flex", "justify-center" ] ]
-              [ button
-                  [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
-                  , onClick_ CancelConfirmation
-                  ]
-                  [ text "Cancel" ]
-              , loadingSubmitButton
-                  { ref: "action-confirm-button"
-                  , caption: cta
-                  , styles: [ "flex-1" ]
-                  , enabled: hasSufficientFunds
-                  , handler:
-                      \msg -> case msg of
-                        OnSubmit -> Just $ ConfirmAction namedAction
-                        _ -> Nothing
-                  }
+          ]
+      , div_
+          [ div
+              [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-4", "border-gray", "border-t", "border-b" ] ]
+              [ span_ [ text "Demo wallet balance:" ]
+              , span_ [ text $ humanizeValue adaToken $ getAda assets ]
               ]
           , div
-              [ classNames [ "my-4", "text-sm", "text-red" ] ]
-              if hasSufficientFunds then
-                []
-              else
-                [ text "You have insufficient funds to complete this transaction." ]
-          , div [ classNames [ "bg-black", "text-white", "p-4", "mt-4", "rounded" ] ]
-              [ h3 [ classNames [ "text-sm", "font-semibold" ] ] [ sup_ [ text "*" ], text "Transaction fees are estimates only:" ]
-              , p [ classNames [ "pb-4", "border-b-half", "border-lightgray", "text-xs", "text-gray" ] ]
-                  -- FIXME: review text with simon
-                  [ text "In the demo all fees are fixed at 10 lovelace, but in the live version the cost will depend on the status of the blockchain at the moment of the transaction." ]
-              , div [ classNames [ "pt-4", "flex", "justify-between", "items-center" ] ]
-                  [ a
-                      -- FIXME: where should this link point to?
-                      [ href "https://docs.cardano.org/en/latest/explore-cardano/cardano-fee-structure.html"
-                      , classNames [ "font-bold" ]
-                      , target "_blank"
+              [ classNames [ "p-4" ] ]
+              [ h3
+                  [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+                  [ text "Confirm payment of:" ]
+              , div
+                  [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
+                  [ text $ humanizeValue adaToken totalToPay ]
+              , div [ classNames [ "flex", "justify-center" ] ]
+                  [ button
+                      [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
+                      , onClick_ CancelConfirmation
                       ]
-                      [ text "Read more in Docs" ]
-                  , icon Icon.ArrowRight [ "text-2xl" ]
+                      [ text "Cancel" ]
+                  , loadingSubmitButton
+                      { ref: "action-confirm-button"
+                      , caption: cta
+                      , styles: [ "flex-1" ]
+                      , enabled: hasSufficientFunds
+                      , handler:
+                          \msg -> case msg of
+                            OnSubmit -> Just $ ConfirmAction namedAction
+                            _ -> Nothing
+                      }
                   ]
+              , div
+                  [ classNames [ "my-4", "text-sm", "text-red" ] ]
+                  if hasSufficientFunds then
+                    []
+                  else
+                    [ text "You have insufficient funds to complete this transaction." ]
               ]
           ]
+      , div
+          [ classNames [ "p-4", "border-t", "border-gray", "text-sm" ] ]
+          [ text "* Transaction fees are fixed at 10 lovelace in the demo, but will vary in the real app." ]
       ]
 
 -------------------------------------------------------------------------------
