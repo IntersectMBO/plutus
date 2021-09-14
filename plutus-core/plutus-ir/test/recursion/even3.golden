@@ -236,141 +236,141 @@
                                   )
                                   [
                                     (lam
-                                      three_i0
-                                      (ifix
-                                        (lam
-                                          rec_i0
-                                          (fun (fun (type) (type)) (type))
-                                          (lam
-                                            f_i0
-                                            (fun (type) (type))
-                                            [ f_i1 [ rec_i2 f_i1 ] ]
-                                          )
-                                        )
-                                        (lam
-                                          Nat_i0
-                                          (type)
-                                          (all
-                                            out_Nat_i0
-                                            (type)
+                                      tup_i0
+                                      (all
+                                        r_i0
+                                        (type)
+                                        (fun
+                                          (fun
                                             (fun
-                                              out_Nat_i1
-                                              (fun
-                                                (fun Nat_i2 out_Nat_i1)
-                                                out_Nat_i1
-                                              )
-                                            )
-                                          )
-                                        )
-                                      )
-                                      [
-                                        (lam
-                                          tup_i0
-                                          (all
-                                            r_i0
-                                            (type)
-                                            (fun
-                                              (fun
-                                                (fun
-                                                  (ifix
-                                                    (lam
-                                                      rec_i0
-                                                      (fun
-                                                        (fun (type) (type))
-                                                        (type)
-                                                      )
-                                                      (lam
-                                                        f_i0
-                                                        (fun (type) (type))
-                                                        [ f_i1 [ rec_i2 f_i1 ] ]
-                                                      )
-                                                    )
-                                                    (lam
-                                                      Nat_i0
-                                                      (type)
-                                                      (all
-                                                        out_Nat_i0
-                                                        (type)
-                                                        (fun
-                                                          out_Nat_i1
-                                                          (fun
-                                                            (fun
-                                                              Nat_i2 out_Nat_i1
-                                                            )
-                                                            out_Nat_i1
-                                                          )
-                                                        )
-                                                      )
-                                                    )
+                                              (ifix
+                                                (lam
+                                                  rec_i0
+                                                  (fun
+                                                    (fun (type) (type)) (type)
                                                   )
+                                                  (lam
+                                                    f_i0
+                                                    (fun (type) (type))
+                                                    [ f_i1 [ rec_i2 f_i1 ] ]
+                                                  )
+                                                )
+                                                (lam
+                                                  Nat_i0
+                                                  (type)
                                                   (all
-                                                    out_Bool_i0
+                                                    out_Nat_i0
                                                     (type)
                                                     (fun
-                                                      out_Bool_i1
+                                                      out_Nat_i1
                                                       (fun
-                                                        out_Bool_i1 out_Bool_i1
+                                                        (fun Nat_i2 out_Nat_i1)
+                                                        out_Nat_i1
                                                       )
                                                     )
                                                   )
                                                 )
+                                              )
+                                              (all
+                                                out_Bool_i0
+                                                (type)
                                                 (fun
-                                                  (fun
-                                                    (ifix
-                                                      (lam
-                                                        rec_i0
-                                                        (fun
-                                                          (fun (type) (type))
-                                                          (type)
-                                                        )
-                                                        (lam
-                                                          f_i0
-                                                          (fun (type) (type))
-                                                          [
-                                                            f_i1 [ rec_i2 f_i1 ]
-                                                          ]
-                                                        )
-                                                      )
-                                                      (lam
-                                                        Nat_i0
-                                                        (type)
-                                                        (all
-                                                          out_Nat_i0
-                                                          (type)
-                                                          (fun
-                                                            out_Nat_i1
-                                                            (fun
-                                                              (fun
-                                                                Nat_i2
-                                                                out_Nat_i1
-                                                              )
-                                                              out_Nat_i1
-                                                            )
-                                                          )
-                                                        )
-                                                      )
+                                                  out_Bool_i1
+                                                  (fun out_Bool_i1 out_Bool_i1)
+                                                )
+                                              )
+                                            )
+                                            (fun
+                                              (fun
+                                                (ifix
+                                                  (lam
+                                                    rec_i0
+                                                    (fun
+                                                      (fun (type) (type)) (type)
                                                     )
+                                                    (lam
+                                                      f_i0
+                                                      (fun (type) (type))
+                                                      [ f_i1 [ rec_i2 f_i1 ] ]
+                                                    )
+                                                  )
+                                                  (lam
+                                                    Nat_i0
+                                                    (type)
                                                     (all
-                                                      out_Bool_i0
+                                                      out_Nat_i0
                                                       (type)
                                                       (fun
-                                                        out_Bool_i1
+                                                        out_Nat_i1
                                                         (fun
-                                                          out_Bool_i1
-                                                          out_Bool_i1
+                                                          (fun
+                                                            Nat_i2 out_Nat_i1
+                                                          )
+                                                          out_Nat_i1
                                                         )
                                                       )
                                                     )
                                                   )
-                                                  r_i1
+                                                )
+                                                (all
+                                                  out_Bool_i0
+                                                  (type)
+                                                  (fun
+                                                    out_Bool_i1
+                                                    (fun
+                                                      out_Bool_i1 out_Bool_i1
+                                                    )
+                                                  )
                                                 )
                                               )
                                               r_i1
                                             )
                                           )
+                                          r_i1
+                                        )
+                                      )
+                                      [
+                                        (lam
+                                          even_i0
+                                          (fun
+                                            (ifix
+                                              (lam
+                                                rec_i0
+                                                (fun (fun (type) (type)) (type))
+                                                (lam
+                                                  f_i0
+                                                  (fun (type) (type))
+                                                  [ f_i1 [ rec_i2 f_i1 ] ]
+                                                )
+                                              )
+                                              (lam
+                                                Nat_i0
+                                                (type)
+                                                (all
+                                                  out_Nat_i0
+                                                  (type)
+                                                  (fun
+                                                    out_Nat_i1
+                                                    (fun
+                                                      (fun Nat_i2 out_Nat_i1)
+                                                      out_Nat_i1
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                            )
+                                            (all
+                                              out_Bool_i0
+                                              (type)
+                                              (fun
+                                                out_Bool_i1
+                                                (fun out_Bool_i1 out_Bool_i1)
+                                              )
+                                            )
+                                          )
                                           [
                                             (lam
-                                              even_i0
+                                              odd_i0
                                               (fun
                                                 (ifix
                                                   (lam
@@ -415,221 +415,49 @@
                                               )
                                               [
                                                 (lam
-                                                  odd_i0
-                                                  (fun
-                                                    (ifix
-                                                      (lam
-                                                        rec_i0
-                                                        (fun
-                                                          (fun (type) (type))
-                                                          (type)
-                                                        )
-                                                        (lam
-                                                          f_i0
-                                                          (fun (type) (type))
-                                                          [
-                                                            f_i1 [ rec_i2 f_i1 ]
-                                                          ]
-                                                        )
-                                                      )
-                                                      (lam
-                                                        Nat_i0
-                                                        (type)
-                                                        (all
-                                                          out_Nat_i0
-                                                          (type)
-                                                          (fun
-                                                            out_Nat_i1
-                                                            (fun
-                                                              (fun
-                                                                Nat_i2
-                                                                out_Nat_i1
-                                                              )
-                                                              out_Nat_i1
-                                                            )
-                                                          )
-                                                        )
-                                                      )
-                                                    )
-                                                    (all
-                                                      out_Bool_i0
-                                                      (type)
+                                                  three_i0
+                                                  (ifix
+                                                    (lam
+                                                      rec_i0
                                                       (fun
-                                                        out_Bool_i1
-                                                        (fun
-                                                          out_Bool_i1
-                                                          out_Bool_i1
-                                                        )
-                                                      )
-                                                    )
-                                                  )
-                                                  [ even_i2 three_i4 ]
-                                                )
-                                                [
-                                                  {
-                                                    tup_i2
-                                                    (fun
-                                                      (ifix
-                                                        (lam
-                                                          rec_i0
-                                                          (fun
-                                                            (fun (type) (type))
-                                                            (type)
-                                                          )
-                                                          (lam
-                                                            f_i0
-                                                            (fun (type) (type))
-                                                            [
-                                                              f_i1
-                                                              [ rec_i2 f_i1 ]
-                                                            ]
-                                                          )
-                                                        )
-                                                        (lam
-                                                          Nat_i0
-                                                          (type)
-                                                          (all
-                                                            out_Nat_i0
-                                                            (type)
-                                                            (fun
-                                                              out_Nat_i1
-                                                              (fun
-                                                                (fun
-                                                                  Nat_i2
-                                                                  out_Nat_i1
-                                                                )
-                                                                out_Nat_i1
-                                                              )
-                                                            )
-                                                          )
-                                                        )
-                                                      )
-                                                      (all
-                                                        out_Bool_i0
+                                                        (fun (type) (type))
                                                         (type)
-                                                        (fun
-                                                          out_Bool_i1
-                                                          (fun
-                                                            out_Bool_i1
-                                                            out_Bool_i1
-                                                          )
-                                                        )
                                                       )
-                                                    )
-                                                  }
-                                                  (lam
-                                                    arg_0_i0
-                                                    (fun
-                                                      (ifix
-                                                        (lam
-                                                          rec_i0
-                                                          (fun
-                                                            (fun (type) (type))
-                                                            (type)
-                                                          )
-                                                          (lam
-                                                            f_i0
-                                                            (fun (type) (type))
-                                                            [
-                                                              f_i1
-                                                              [ rec_i2 f_i1 ]
-                                                            ]
-                                                          )
-                                                        )
-                                                        (lam
-                                                          Nat_i0
-                                                          (type)
-                                                          (all
-                                                            out_Nat_i0
-                                                            (type)
-                                                            (fun
-                                                              out_Nat_i1
-                                                              (fun
-                                                                (fun
-                                                                  Nat_i2
-                                                                  out_Nat_i1
-                                                                )
-                                                                out_Nat_i1
-                                                              )
-                                                            )
-                                                          )
-                                                        )
-                                                      )
-                                                      (all
-                                                        out_Bool_i0
-                                                        (type)
-                                                        (fun
-                                                          out_Bool_i1
-                                                          (fun
-                                                            out_Bool_i1
-                                                            out_Bool_i1
-                                                          )
-                                                        )
+                                                      (lam
+                                                        f_i0
+                                                        (fun (type) (type))
+                                                        [ f_i1 [ rec_i2 f_i1 ] ]
                                                       )
                                                     )
                                                     (lam
-                                                      arg_1_i0
-                                                      (fun
-                                                        (ifix
-                                                          (lam
-                                                            rec_i0
-                                                            (fun
-                                                              (fun
-                                                                (type) (type)
-                                                              )
-                                                              (type)
-                                                            )
-                                                            (lam
-                                                              f_i0
-                                                              (fun
-                                                                (type) (type)
-                                                              )
-                                                              [
-                                                                f_i1
-                                                                [ rec_i2 f_i1 ]
-                                                              ]
-                                                            )
-                                                          )
-                                                          (lam
-                                                            Nat_i0
-                                                            (type)
-                                                            (all
-                                                              out_Nat_i0
-                                                              (type)
-                                                              (fun
-                                                                out_Nat_i1
-                                                                (fun
-                                                                  (fun
-                                                                    Nat_i2
-                                                                    out_Nat_i1
-                                                                  )
-                                                                  out_Nat_i1
-                                                                )
-                                                              )
-                                                            )
-                                                          )
-                                                        )
-                                                        (all
-                                                          out_Bool_i0
-                                                          (type)
+                                                      Nat_i0
+                                                      (type)
+                                                      (all
+                                                        out_Nat_i0
+                                                        (type)
+                                                        (fun
+                                                          out_Nat_i1
                                                           (fun
-                                                            out_Bool_i1
                                                             (fun
-                                                              out_Bool_i1
-                                                              out_Bool_i1
+                                                              Nat_i2 out_Nat_i1
                                                             )
+                                                            out_Nat_i1
                                                           )
                                                         )
                                                       )
-                                                      arg_1_i1
                                                     )
                                                   )
+                                                  [ even_i3 three_i1 ]
+                                                )
+                                                [
+                                                  Suc_i5
+                                                  [ Suc_i5 [ Suc_i5 Zero_i6 ] ]
                                                 ]
                                               ]
                                             )
                                             [
                                               {
-                                                tup_i1
+                                                tup_i2
                                                 (fun
                                                   (ifix
                                                     (lam
@@ -768,7 +596,7 @@
                                                       )
                                                     )
                                                   )
-                                                  arg_0_i2
+                                                  arg_1_i1
                                                 )
                                               )
                                             ]
@@ -776,42 +604,119 @@
                                         )
                                         [
                                           {
-                                            {
-                                              {
-                                                {
-                                                  fix2_i8
-                                                  (ifix
-                                                    (lam
-                                                      rec_i0
+                                            tup_i1
+                                            (fun
+                                              (ifix
+                                                (lam
+                                                  rec_i0
+                                                  (fun
+                                                    (fun (type) (type)) (type)
+                                                  )
+                                                  (lam
+                                                    f_i0
+                                                    (fun (type) (type))
+                                                    [ f_i1 [ rec_i2 f_i1 ] ]
+                                                  )
+                                                )
+                                                (lam
+                                                  Nat_i0
+                                                  (type)
+                                                  (all
+                                                    out_Nat_i0
+                                                    (type)
+                                                    (fun
+                                                      out_Nat_i1
                                                       (fun
-                                                        (fun (type) (type))
-                                                        (type)
-                                                      )
-                                                      (lam
-                                                        f_i0
-                                                        (fun (type) (type))
-                                                        [ f_i1 [ rec_i2 f_i1 ] ]
+                                                        (fun Nat_i2 out_Nat_i1)
+                                                        out_Nat_i1
                                                       )
                                                     )
+                                                  )
+                                                )
+                                              )
+                                              (all
+                                                out_Bool_i0
+                                                (type)
+                                                (fun
+                                                  out_Bool_i1
+                                                  (fun out_Bool_i1 out_Bool_i1)
+                                                )
+                                              )
+                                            )
+                                          }
+                                          (lam
+                                            arg_0_i0
+                                            (fun
+                                              (ifix
+                                                (lam
+                                                  rec_i0
+                                                  (fun
+                                                    (fun (type) (type)) (type)
+                                                  )
+                                                  (lam
+                                                    f_i0
+                                                    (fun (type) (type))
+                                                    [ f_i1 [ rec_i2 f_i1 ] ]
+                                                  )
+                                                )
+                                                (lam
+                                                  Nat_i0
+                                                  (type)
+                                                  (all
+                                                    out_Nat_i0
+                                                    (type)
+                                                    (fun
+                                                      out_Nat_i1
+                                                      (fun
+                                                        (fun Nat_i2 out_Nat_i1)
+                                                        out_Nat_i1
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                              (all
+                                                out_Bool_i0
+                                                (type)
+                                                (fun
+                                                  out_Bool_i1
+                                                  (fun out_Bool_i1 out_Bool_i1)
+                                                )
+                                              )
+                                            )
+                                            (lam
+                                              arg_1_i0
+                                              (fun
+                                                (ifix
+                                                  (lam
+                                                    rec_i0
+                                                    (fun
+                                                      (fun (type) (type)) (type)
+                                                    )
                                                     (lam
-                                                      Nat_i0
+                                                      f_i0
+                                                      (fun (type) (type))
+                                                      [ f_i1 [ rec_i2 f_i1 ] ]
+                                                    )
+                                                  )
+                                                  (lam
+                                                    Nat_i0
+                                                    (type)
+                                                    (all
+                                                      out_Nat_i0
                                                       (type)
-                                                      (all
-                                                        out_Nat_i0
-                                                        (type)
+                                                      (fun
+                                                        out_Nat_i1
                                                         (fun
-                                                          out_Nat_i1
                                                           (fun
-                                                            (fun
-                                                              Nat_i2 out_Nat_i1
-                                                            )
-                                                            out_Nat_i1
+                                                            Nat_i2 out_Nat_i1
                                                           )
+                                                          out_Nat_i1
                                                         )
                                                       )
                                                     )
                                                   )
-                                                }
+                                                )
                                                 (all
                                                   out_Bool_i0
                                                   (type)
@@ -822,7 +727,19 @@
                                                     )
                                                   )
                                                 )
-                                              }
+                                              )
+                                              arg_0_i2
+                                            )
+                                          )
+                                        ]
+                                      ]
+                                    )
+                                    [
+                                      {
+                                        {
+                                          {
+                                            {
+                                              fix2_i7
                                               (ifix
                                                 (lam
                                                   rec_i0
@@ -861,154 +778,221 @@
                                               )
                                             )
                                           }
-                                          (abs
-                                            Q_i0
-                                            (type)
+                                          (ifix
                                             (lam
-                                              choose_i0
-                                              (fun
+                                              rec_i0
+                                              (fun (fun (type) (type)) (type))
+                                              (lam
+                                                f_i0
+                                                (fun (type) (type))
+                                                [ f_i1 [ rec_i2 f_i1 ] ]
+                                              )
+                                            )
+                                            (lam
+                                              Nat_i0
+                                              (type)
+                                              (all
+                                                out_Nat_i0
+                                                (type)
                                                 (fun
-                                                  (ifix
-                                                    (lam
-                                                      rec_i0
-                                                      (fun
-                                                        (fun (type) (type))
-                                                        (type)
-                                                      )
-                                                      (lam
-                                                        f_i0
-                                                        (fun (type) (type))
-                                                        [ f_i1 [ rec_i2 f_i1 ] ]
-                                                      )
-                                                    )
-                                                    (lam
-                                                      Nat_i0
-                                                      (type)
-                                                      (all
-                                                        out_Nat_i0
-                                                        (type)
-                                                        (fun
-                                                          out_Nat_i1
-                                                          (fun
-                                                            (fun
-                                                              Nat_i2 out_Nat_i1
-                                                            )
-                                                            out_Nat_i1
-                                                          )
-                                                        )
-                                                      )
-                                                    )
-                                                  )
-                                                  (all
-                                                    out_Bool_i0
-                                                    (type)
-                                                    (fun
-                                                      out_Bool_i1
-                                                      (fun
-                                                        out_Bool_i1 out_Bool_i1
-                                                      )
-                                                    )
-                                                  )
-                                                )
-                                                (fun
+                                                  out_Nat_i1
                                                   (fun
-                                                    (ifix
-                                                      (lam
-                                                        rec_i0
-                                                        (fun
-                                                          (fun (type) (type))
-                                                          (type)
-                                                        )
-                                                        (lam
-                                                          f_i0
-                                                          (fun (type) (type))
-                                                          [
-                                                            f_i1 [ rec_i2 f_i1 ]
-                                                          ]
-                                                        )
-                                                      )
-                                                      (lam
-                                                        Nat_i0
-                                                        (type)
-                                                        (all
-                                                          out_Nat_i0
-                                                          (type)
-                                                          (fun
-                                                            out_Nat_i1
-                                                            (fun
-                                                              (fun
-                                                                Nat_i2
-                                                                out_Nat_i1
-                                                              )
-                                                              out_Nat_i1
-                                                            )
-                                                          )
-                                                        )
-                                                      )
-                                                    )
-                                                    (all
-                                                      out_Bool_i0
-                                                      (type)
-                                                      (fun
-                                                        out_Bool_i1
-                                                        (fun
-                                                          out_Bool_i1
-                                                          out_Bool_i1
-                                                        )
-                                                      )
-                                                    )
+                                                    (fun Nat_i2 out_Nat_i1)
+                                                    out_Nat_i1
                                                   )
-                                                  Q_i2
                                                 )
                                               )
-                                              (lam
-                                                even_i0
-                                                (fun
-                                                  (ifix
-                                                    (lam
-                                                      rec_i0
-                                                      (fun
-                                                        (fun (type) (type))
-                                                        (type)
-                                                      )
-                                                      (lam
-                                                        f_i0
-                                                        (fun (type) (type))
-                                                        [ f_i1 [ rec_i2 f_i1 ] ]
-                                                      )
-                                                    )
-                                                    (lam
-                                                      Nat_i0
-                                                      (type)
-                                                      (all
-                                                        out_Nat_i0
-                                                        (type)
-                                                        (fun
-                                                          out_Nat_i1
-                                                          (fun
-                                                            (fun
-                                                              Nat_i2 out_Nat_i1
-                                                            )
-                                                            out_Nat_i1
-                                                          )
-                                                        )
-                                                      )
-                                                    )
+                                            )
+                                          )
+                                        }
+                                        (all
+                                          out_Bool_i0
+                                          (type)
+                                          (fun
+                                            out_Bool_i1
+                                            (fun out_Bool_i1 out_Bool_i1)
+                                          )
+                                        )
+                                      }
+                                      (abs
+                                        Q_i0
+                                        (type)
+                                        (lam
+                                          choose_i0
+                                          (fun
+                                            (fun
+                                              (ifix
+                                                (lam
+                                                  rec_i0
+                                                  (fun
+                                                    (fun (type) (type)) (type)
                                                   )
-                                                  (all
-                                                    out_Bool_i0
-                                                    (type)
-                                                    (fun
-                                                      out_Bool_i1
-                                                      (fun
-                                                        out_Bool_i1 out_Bool_i1
-                                                      )
-                                                    )
+                                                  (lam
+                                                    f_i0
+                                                    (fun (type) (type))
+                                                    [ f_i1 [ rec_i2 f_i1 ] ]
                                                   )
                                                 )
                                                 (lam
-                                                  odd_i0
+                                                  Nat_i0
+                                                  (type)
+                                                  (all
+                                                    out_Nat_i0
+                                                    (type)
+                                                    (fun
+                                                      out_Nat_i1
+                                                      (fun
+                                                        (fun Nat_i2 out_Nat_i1)
+                                                        out_Nat_i1
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                              (all
+                                                out_Bool_i0
+                                                (type)
+                                                (fun
+                                                  out_Bool_i1
+                                                  (fun out_Bool_i1 out_Bool_i1)
+                                                )
+                                              )
+                                            )
+                                            (fun
+                                              (fun
+                                                (ifix
+                                                  (lam
+                                                    rec_i0
+                                                    (fun
+                                                      (fun (type) (type)) (type)
+                                                    )
+                                                    (lam
+                                                      f_i0
+                                                      (fun (type) (type))
+                                                      [ f_i1 [ rec_i2 f_i1 ] ]
+                                                    )
+                                                  )
+                                                  (lam
+                                                    Nat_i0
+                                                    (type)
+                                                    (all
+                                                      out_Nat_i0
+                                                      (type)
+                                                      (fun
+                                                        out_Nat_i1
+                                                        (fun
+                                                          (fun
+                                                            Nat_i2 out_Nat_i1
+                                                          )
+                                                          out_Nat_i1
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                                (all
+                                                  out_Bool_i0
+                                                  (type)
                                                   (fun
+                                                    out_Bool_i1
+                                                    (fun
+                                                      out_Bool_i1 out_Bool_i1
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                              Q_i2
+                                            )
+                                          )
+                                          (lam
+                                            even_i0
+                                            (fun
+                                              (ifix
+                                                (lam
+                                                  rec_i0
+                                                  (fun
+                                                    (fun (type) (type)) (type)
+                                                  )
+                                                  (lam
+                                                    f_i0
+                                                    (fun (type) (type))
+                                                    [ f_i1 [ rec_i2 f_i1 ] ]
+                                                  )
+                                                )
+                                                (lam
+                                                  Nat_i0
+                                                  (type)
+                                                  (all
+                                                    out_Nat_i0
+                                                    (type)
+                                                    (fun
+                                                      out_Nat_i1
+                                                      (fun
+                                                        (fun Nat_i2 out_Nat_i1)
+                                                        out_Nat_i1
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                              (all
+                                                out_Bool_i0
+                                                (type)
+                                                (fun
+                                                  out_Bool_i1
+                                                  (fun out_Bool_i1 out_Bool_i1)
+                                                )
+                                              )
+                                            )
+                                            (lam
+                                              odd_i0
+                                              (fun
+                                                (ifix
+                                                  (lam
+                                                    rec_i0
+                                                    (fun
+                                                      (fun (type) (type)) (type)
+                                                    )
+                                                    (lam
+                                                      f_i0
+                                                      (fun (type) (type))
+                                                      [ f_i1 [ rec_i2 f_i1 ] ]
+                                                    )
+                                                  )
+                                                  (lam
+                                                    Nat_i0
+                                                    (type)
+                                                    (all
+                                                      out_Nat_i0
+                                                      (type)
+                                                      (fun
+                                                        out_Nat_i1
+                                                        (fun
+                                                          (fun
+                                                            Nat_i2 out_Nat_i1
+                                                          )
+                                                          out_Nat_i1
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                                (all
+                                                  out_Bool_i0
+                                                  (type)
+                                                  (fun
+                                                    out_Bool_i1
+                                                    (fun
+                                                      out_Bool_i1 out_Bool_i1
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                              [
+                                                [
+                                                  choose_i3
+                                                  (lam
+                                                    n_i0
                                                     (ifix
                                                       (lam
                                                         rec_i0
@@ -1043,23 +1027,26 @@
                                                         )
                                                       )
                                                     )
-                                                    (all
-                                                      out_Bool_i0
-                                                      (type)
-                                                      (fun
-                                                        out_Bool_i1
-                                                        (fun
-                                                          out_Bool_i1
-                                                          out_Bool_i1
-                                                        )
-                                                      )
-                                                    )
-                                                  )
-                                                  [
                                                     [
-                                                      choose_i3
+                                                      [
+                                                        {
+                                                          [ match_Nat_i6 n_i1 ]
+                                                          (all
+                                                            out_Bool_i0
+                                                            (type)
+                                                            (fun
+                                                              out_Bool_i1
+                                                              (fun
+                                                                out_Bool_i1
+                                                                out_Bool_i1
+                                                              )
+                                                            )
+                                                          )
+                                                        }
+                                                        True_i11
+                                                      ]
                                                       (lam
-                                                        n_i0
+                                                        pred_i0
                                                         (ifix
                                                           (lam
                                                             rec_i0
@@ -1099,80 +1086,64 @@
                                                             )
                                                           )
                                                         )
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                match_Nat_i7
-                                                                n_i1
-                                                              ]
-                                                              (all
-                                                                out_Bool_i0
-                                                                (type)
-                                                                (fun
-                                                                  out_Bool_i1
-                                                                  (fun
-                                                                    out_Bool_i1
-                                                                    out_Bool_i1
-                                                                  )
-                                                                )
-                                                              )
-                                                            }
-                                                            True_i12
-                                                          ]
-                                                          (lam
-                                                            pred_i0
-                                                            (ifix
-                                                              (lam
-                                                                rec_i0
-                                                                (fun
-                                                                  (fun
-                                                                    (type)
-                                                                    (type)
-                                                                  )
-                                                                  (type)
-                                                                )
-                                                                (lam
-                                                                  f_i0
-                                                                  (fun
-                                                                    (type)
-                                                                    (type)
-                                                                  )
-                                                                  [
-                                                                    f_i1
-                                                                    [
-                                                                      rec_i2
-                                                                      f_i1
-                                                                    ]
-                                                                  ]
-                                                                )
-                                                              )
-                                                              (lam
-                                                                Nat_i0
-                                                                (type)
-                                                                (all
-                                                                  out_Nat_i0
-                                                                  (type)
-                                                                  (fun
-                                                                    out_Nat_i1
-                                                                    (fun
-                                                                      (fun
-                                                                        Nat_i2
-                                                                        out_Nat_i1
-                                                                      )
-                                                                      out_Nat_i1
-                                                                    )
-                                                                  )
-                                                                )
-                                                              )
-                                                            )
-                                                            [ odd_i3 pred_i1 ]
-                                                          )
-                                                        ]
+                                                        [ odd_i3 pred_i1 ]
                                                       )
                                                     ]
+                                                  )
+                                                ]
+                                                (lam
+                                                  n_i0
+                                                  (ifix
                                                     (lam
-                                                      n_i0
+                                                      rec_i0
+                                                      (fun
+                                                        (fun (type) (type))
+                                                        (type)
+                                                      )
+                                                      (lam
+                                                        f_i0
+                                                        (fun (type) (type))
+                                                        [ f_i1 [ rec_i2 f_i1 ] ]
+                                                      )
+                                                    )
+                                                    (lam
+                                                      Nat_i0
+                                                      (type)
+                                                      (all
+                                                        out_Nat_i0
+                                                        (type)
+                                                        (fun
+                                                          out_Nat_i1
+                                                          (fun
+                                                            (fun
+                                                              Nat_i2 out_Nat_i1
+                                                            )
+                                                            out_Nat_i1
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                  [
+                                                    [
+                                                      {
+                                                        [ match_Nat_i6 n_i1 ]
+                                                        (all
+                                                          out_Bool_i0
+                                                          (type)
+                                                          (fun
+                                                            out_Bool_i1
+                                                            (fun
+                                                              out_Bool_i1
+                                                              out_Bool_i1
+                                                            )
+                                                          )
+                                                        )
+                                                      }
+                                                      False_i10
+                                                    ]
+                                                    (lam
+                                                      pred_i0
                                                       (ifix
                                                         (lam
                                                           rec_i0
@@ -1208,82 +1179,16 @@
                                                           )
                                                         )
                                                       )
-                                                      [
-                                                        [
-                                                          {
-                                                            [
-                                                              match_Nat_i7 n_i1
-                                                            ]
-                                                            (all
-                                                              out_Bool_i0
-                                                              (type)
-                                                              (fun
-                                                                out_Bool_i1
-                                                                (fun
-                                                                  out_Bool_i1
-                                                                  out_Bool_i1
-                                                                )
-                                                              )
-                                                            )
-                                                          }
-                                                          False_i11
-                                                        ]
-                                                        (lam
-                                                          pred_i0
-                                                          (ifix
-                                                            (lam
-                                                              rec_i0
-                                                              (fun
-                                                                (fun
-                                                                  (type) (type)
-                                                                )
-                                                                (type)
-                                                              )
-                                                              (lam
-                                                                f_i0
-                                                                (fun
-                                                                  (type) (type)
-                                                                )
-                                                                [
-                                                                  f_i1
-                                                                  [
-                                                                    rec_i2 f_i1
-                                                                  ]
-                                                                ]
-                                                              )
-                                                            )
-                                                            (lam
-                                                              Nat_i0
-                                                              (type)
-                                                              (all
-                                                                out_Nat_i0
-                                                                (type)
-                                                                (fun
-                                                                  out_Nat_i1
-                                                                  (fun
-                                                                    (fun
-                                                                      Nat_i2
-                                                                      out_Nat_i1
-                                                                    )
-                                                                    out_Nat_i1
-                                                                  )
-                                                                )
-                                                              )
-                                                            )
-                                                          )
-                                                          [ even_i4 pred_i1 ]
-                                                        )
-                                                      ]
+                                                      [ even_i4 pred_i1 ]
                                                     )
                                                   ]
                                                 )
-                                              )
+                                              ]
                                             )
                                           )
-                                        ]
-                                      ]
-                                    )
-                                    [ Suc_i2 [ Suc_i2 [ Suc_i2 Zero_i3 ] ] ]
+                                        )
+                                      )
+                                    ]
                                   ]
                                 )
                               )

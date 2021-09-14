@@ -681,6 +681,11 @@
         )
         (termbind
           (strict)
+          (vardecl fail (fun (all a (type) a) Ordering))
+          (lam ds (all a (type) a) (error Ordering))
+        )
+        (termbind
+          (strict)
           (vardecl
             compare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
           )
@@ -750,7 +755,762 @@
                     (termbind
                       (strict)
                       (vardecl fail (fun (all a (type) a) Ordering))
-                      (lam ds (all a (type) a) (error Ordering))
+                      (lam
+                        ds
+                        (all a (type) a)
+                        {
+                          [
+                            [
+                              [
+                                {
+                                  [ { Extended_match a } ds ]
+                                  (all dead (type) Ordering)
+                                }
+                                (lam
+                                  default_arg0
+                                  a
+                                  (abs
+                                    dead
+                                    (type)
+                                    {
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Extended_match a } ds ]
+                                              (all dead (type) Ordering)
+                                            }
+                                            (lam
+                                              l
+                                              a
+                                              (abs
+                                                dead
+                                                (type)
+                                                {
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (all
+                                                            dead (type) Ordering
+                                                          )
+                                                        }
+                                                        (lam
+                                                          r
+                                                          a
+                                                          (abs
+                                                            dead
+                                                            (type)
+                                                            [
+                                                              [
+                                                                [
+                                                                  { compare a }
+                                                                  dOrd
+                                                                ]
+                                                                l
+                                                              ]
+                                                              r
+                                                            ]
+                                                          )
+                                                        )
+                                                      ]
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              )
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
+                                            [ fail (abs e (type) (error e)) ]
+                                          )
+                                        ]
+                                        (abs dead (type) GT)
+                                      ]
+                                      (all dead (type) dead)
+                                    }
+                                  )
+                                )
+                              ]
+                              (abs
+                                dead
+                                (type)
+                                {
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match a } ds ]
+                                          (all dead (type) Ordering)
+                                        }
+                                        (lam
+                                          l
+                                          a
+                                          (abs
+                                            dead
+                                            (type)
+                                            {
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (all dead (type) Ordering)
+                                                    }
+                                                    (lam
+                                                      r
+                                                      a
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          [
+                                                            [
+                                                              { compare a } dOrd
+                                                            ]
+                                                            l
+                                                          ]
+                                                          r
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      fail
+                                                      (abs e (type) (error e))
+                                                    ]
+                                                  )
+                                                ]
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              ]
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        )
+                                      ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        [ fail (abs e (type) (error e)) ]
+                                      )
+                                    ]
+                                    (abs dead (type) GT)
+                                  ]
+                                  (all dead (type) dead)
+                                }
+                              )
+                            ]
+                            (abs dead (type) LT)
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl fail (fun (all a (type) a) Ordering))
+                      (lam
+                        ds
+                        (all a (type) a)
+                        {
+                          [
+                            [
+                              [
+                                {
+                                  [ { Extended_match a } ds ]
+                                  (all dead (type) Ordering)
+                                }
+                                (lam
+                                  default_arg0
+                                  a
+                                  (abs
+                                    dead
+                                    (type)
+                                    {
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Extended_match a } ds ]
+                                              (all dead (type) Ordering)
+                                            }
+                                            (lam
+                                              l
+                                              a
+                                              (abs
+                                                dead
+                                                (type)
+                                                {
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (all
+                                                            dead (type) Ordering
+                                                          )
+                                                        }
+                                                        (lam
+                                                          r
+                                                          a
+                                                          (abs
+                                                            dead
+                                                            (type)
+                                                            [
+                                                              [
+                                                                [
+                                                                  { compare a }
+                                                                  dOrd
+                                                                ]
+                                                                l
+                                                              ]
+                                                              r
+                                                            ]
+                                                          )
+                                                        )
+                                                      ]
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              )
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
+                                            [ fail (abs e (type) (error e)) ]
+                                          )
+                                        ]
+                                        (abs dead (type) GT)
+                                      ]
+                                      (all dead (type) dead)
+                                    }
+                                  )
+                                )
+                              ]
+                              (abs
+                                dead
+                                (type)
+                                {
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match a } ds ]
+                                          (all dead (type) Ordering)
+                                        }
+                                        (lam
+                                          l
+                                          a
+                                          (abs
+                                            dead
+                                            (type)
+                                            {
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (all dead (type) Ordering)
+                                                    }
+                                                    (lam
+                                                      r
+                                                      a
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          [
+                                                            [
+                                                              { compare a } dOrd
+                                                            ]
+                                                            l
+                                                          ]
+                                                          r
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      fail
+                                                      (abs e (type) (error e))
+                                                    ]
+                                                  )
+                                                ]
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              ]
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        )
+                                      ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        [ fail (abs e (type) (error e)) ]
+                                      )
+                                    ]
+                                    (abs dead (type) GT)
+                                  ]
+                                  (all dead (type) dead)
+                                }
+                              )
+                            ]
+                            (abs dead (type) LT)
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl fail (fun (all a (type) a) Ordering))
+                      (lam
+                        ds
+                        (all a (type) a)
+                        {
+                          [
+                            [
+                              [
+                                {
+                                  [ { Extended_match a } ds ]
+                                  (all dead (type) Ordering)
+                                }
+                                (lam
+                                  default_arg0
+                                  a
+                                  (abs
+                                    dead
+                                    (type)
+                                    {
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Extended_match a } ds ]
+                                              (all dead (type) Ordering)
+                                            }
+                                            (lam
+                                              l
+                                              a
+                                              (abs
+                                                dead
+                                                (type)
+                                                {
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (all
+                                                            dead (type) Ordering
+                                                          )
+                                                        }
+                                                        (lam
+                                                          r
+                                                          a
+                                                          (abs
+                                                            dead
+                                                            (type)
+                                                            [
+                                                              [
+                                                                [
+                                                                  { compare a }
+                                                                  dOrd
+                                                                ]
+                                                                l
+                                                              ]
+                                                              r
+                                                            ]
+                                                          )
+                                                        )
+                                                      ]
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              )
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
+                                            [ fail (abs e (type) (error e)) ]
+                                          )
+                                        ]
+                                        (abs dead (type) GT)
+                                      ]
+                                      (all dead (type) dead)
+                                    }
+                                  )
+                                )
+                              ]
+                              (abs
+                                dead
+                                (type)
+                                {
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match a } ds ]
+                                          (all dead (type) Ordering)
+                                        }
+                                        (lam
+                                          l
+                                          a
+                                          (abs
+                                            dead
+                                            (type)
+                                            {
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (all dead (type) Ordering)
+                                                    }
+                                                    (lam
+                                                      r
+                                                      a
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          [
+                                                            [
+                                                              { compare a } dOrd
+                                                            ]
+                                                            l
+                                                          ]
+                                                          r
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      fail
+                                                      (abs e (type) (error e))
+                                                    ]
+                                                  )
+                                                ]
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              ]
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        )
+                                      ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        [ fail (abs e (type) (error e)) ]
+                                      )
+                                    ]
+                                    (abs dead (type) GT)
+                                  ]
+                                  (all dead (type) dead)
+                                }
+                              )
+                            ]
+                            (abs dead (type) LT)
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl fail (fun (all a (type) a) Ordering))
+                      (lam
+                        ds
+                        (all a (type) a)
+                        {
+                          [
+                            [
+                              [
+                                {
+                                  [ { Extended_match a } ds ]
+                                  (all dead (type) Ordering)
+                                }
+                                (lam
+                                  default_arg0
+                                  a
+                                  (abs
+                                    dead
+                                    (type)
+                                    {
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Extended_match a } ds ]
+                                              (all dead (type) Ordering)
+                                            }
+                                            (lam
+                                              l
+                                              a
+                                              (abs
+                                                dead
+                                                (type)
+                                                {
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (all
+                                                            dead (type) Ordering
+                                                          )
+                                                        }
+                                                        (lam
+                                                          r
+                                                          a
+                                                          (abs
+                                                            dead
+                                                            (type)
+                                                            [
+                                                              [
+                                                                [
+                                                                  { compare a }
+                                                                  dOrd
+                                                                ]
+                                                                l
+                                                              ]
+                                                              r
+                                                            ]
+                                                          )
+                                                        )
+                                                      ]
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              )
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
+                                            [ fail (abs e (type) (error e)) ]
+                                          )
+                                        ]
+                                        (abs dead (type) GT)
+                                      ]
+                                      (all dead (type) dead)
+                                    }
+                                  )
+                                )
+                              ]
+                              (abs
+                                dead
+                                (type)
+                                {
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match a } ds ]
+                                          (all dead (type) Ordering)
+                                        }
+                                        (lam
+                                          l
+                                          a
+                                          (abs
+                                            dead
+                                            (type)
+                                            {
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (all dead (type) Ordering)
+                                                    }
+                                                    (lam
+                                                      r
+                                                      a
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          [
+                                                            [
+                                                              { compare a } dOrd
+                                                            ]
+                                                            l
+                                                          ]
+                                                          r
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      fail
+                                                      (abs e (type) (error e))
+                                                    ]
+                                                  )
+                                                ]
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              ]
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        )
+                                      ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        [ fail (abs e (type) (error e)) ]
+                                      )
+                                    ]
+                                    (abs dead (type) GT)
+                                  ]
+                                  (all dead (type) dead)
+                                }
+                              )
+                            ]
+                            (abs dead (type) LT)
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
                     )
                     {
                       [
@@ -780,19 +1540,43 @@
                                           (abs
                                             dead
                                             (type)
-                                            (let
-                                              (nonrec)
-                                              (termbind
-                                                (strict)
-                                                (vardecl
-                                                  fail
-                                                  (fun
-                                                    (all a (type) a) Ordering
+                                            {
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Extended_match a } ds
+                                                      ]
+                                                      (all dead (type) Ordering)
+                                                    }
+                                                    (lam
+                                                      default_arg0
+                                                      a
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      fail
+                                                      (abs e (type) (error e))
+                                                    ]
                                                   )
-                                                )
-                                                (lam
-                                                  ds
-                                                  (all a (type) a)
+                                                ]
+                                                (abs
+                                                  dead
+                                                  (type)
                                                   {
                                                     [
                                                       [
@@ -816,290 +1600,17 @@
                                                             (abs
                                                               dead
                                                               (type)
-                                                              {
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        [
-                                                                          {
-                                                                            Extended_match
-                                                                            a
-                                                                          }
-                                                                          ds
-                                                                        ]
-                                                                        (all
-                                                                          dead
-                                                                          (type)
-                                                                          Ordering
-                                                                        )
-                                                                      }
-                                                                      (lam
-                                                                        l
-                                                                        a
-                                                                        (abs
-                                                                          dead
-                                                                          (type)
-                                                                          {
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      {
-                                                                                        Extended_match
-                                                                                        a
-                                                                                      }
-                                                                                      ds
-                                                                                    ]
-                                                                                    (all
-                                                                                      dead
-                                                                                      (type)
-                                                                                      Ordering
-                                                                                    )
-                                                                                  }
-                                                                                  (lam
-                                                                                    r
-                                                                                    a
-                                                                                    (abs
-                                                                                      dead
-                                                                                      (type)
-                                                                                      [
-                                                                                        [
-                                                                                          [
-                                                                                            {
-                                                                                              compare
-                                                                                              a
-                                                                                            }
-                                                                                            dOrd
-                                                                                          ]
-                                                                                          l
-                                                                                        ]
-                                                                                        r
-                                                                                      ]
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                                (abs
-                                                                                  dead
-                                                                                  (type)
-                                                                                  [
-                                                                                    fail
-                                                                                    (abs
-                                                                                      e
-                                                                                      (type)
-                                                                                      (error
-                                                                                        e
-                                                                                      )
-                                                                                    )
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              (abs
-                                                                                dead
-                                                                                (type)
-                                                                                [
-                                                                                  fail
-                                                                                  (abs
-                                                                                    e
-                                                                                    (type)
-                                                                                    (error
-                                                                                      e
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                              )
-                                                                            ]
-                                                                            (all
-                                                                              dead
-                                                                              (type)
-                                                                              dead
-                                                                            )
-                                                                          }
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      [
-                                                                        fail
-                                                                        (abs
-                                                                          e
-                                                                          (type)
-                                                                          (error
-                                                                            e
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  (abs
-                                                                    dead
-                                                                    (type)
-                                                                    GT
-                                                                  )
-                                                                ]
-                                                                (all
-                                                                  dead
+                                                              [
+                                                                fail
+                                                                (abs
+                                                                  e
                                                                   (type)
-                                                                  dead
+                                                                  (error e)
                                                                 )
-                                                              }
+                                                              ]
                                                             )
                                                           )
                                                         ]
-                                                        (abs
-                                                          dead
-                                                          (type)
-                                                          {
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        a
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    (all
-                                                                      dead
-                                                                      (type)
-                                                                      Ordering
-                                                                    )
-                                                                  }
-                                                                  (lam
-                                                                    l
-                                                                    a
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      {
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    a
-                                                                                  }
-                                                                                  ds
-                                                                                ]
-                                                                                (all
-                                                                                  dead
-                                                                                  (type)
-                                                                                  Ordering
-                                                                                )
-                                                                              }
-                                                                              (lam
-                                                                                r
-                                                                                a
-                                                                                (abs
-                                                                                  dead
-                                                                                  (type)
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          compare
-                                                                                          a
-                                                                                        }
-                                                                                        dOrd
-                                                                                      ]
-                                                                                      l
-                                                                                    ]
-                                                                                    r
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (abs
-                                                                              dead
-                                                                              (type)
-                                                                              [
-                                                                                fail
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (abs
-                                                                            dead
-                                                                            (type)
-                                                                            [
-                                                                              fail
-                                                                              (abs
-                                                                                e
-                                                                                (type)
-                                                                                (error
-                                                                                  e
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (all
-                                                                          dead
-                                                                          (type)
-                                                                          dead
-                                                                        )
-                                                                      }
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (abs
-                                                                  dead
-                                                                  (type)
-                                                                  [
-                                                                    fail
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                  ]
-                                                                )
-                                                              ]
-                                                              (abs
-                                                                dead (type) GT
-                                                              )
-                                                            ]
-                                                            (all
-                                                              dead (type) dead
-                                                            )
-                                                          }
-                                                        )
-                                                      ]
-                                                      (abs dead (type) LT)
-                                                    ]
-                                                    (all dead (type) dead)
-                                                  }
-                                                )
-                                              )
-                                              {
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          { Extended_match a }
-                                                          ds
-                                                        ]
-                                                        (all
-                                                          dead (type) Ordering
-                                                        )
-                                                      }
-                                                      (lam
-                                                        default_arg0
-                                                        a
                                                         (abs
                                                           dead
                                                           (type)
@@ -1110,77 +1621,15 @@
                                                             )
                                                           ]
                                                         )
-                                                      )
+                                                      ]
+                                                      (abs dead (type) EQ)
                                                     ]
-                                                    (abs
-                                                      dead
-                                                      (type)
-                                                      [
-                                                        fail
-                                                        (abs e (type) (error e))
-                                                      ]
-                                                    )
-                                                  ]
-                                                  (abs
-                                                    dead
-                                                    (type)
-                                                    {
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  a
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (all
-                                                                dead
-                                                                (type)
-                                                                Ordering
-                                                              )
-                                                            }
-                                                            (lam
-                                                              default_arg0
-                                                              a
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                [
-                                                                  fail
-                                                                  (abs
-                                                                    e
-                                                                    (type)
-                                                                    (error e)
-                                                                  )
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (abs
-                                                            dead
-                                                            (type)
-                                                            [
-                                                              fail
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                            ]
-                                                          )
-                                                        ]
-                                                        (abs dead (type) EQ)
-                                                      ]
-                                                      (all dead (type) dead)
-                                                    }
-                                                  )
-                                                ]
-                                                (all dead (type) dead)
-                                              }
-                                            )
+                                                    (all dead (type) dead)
+                                                  }
+                                                )
+                                              ]
+                                              (all dead (type) dead)
+                                            }
                                           )
                                         )
                                       ]
@@ -1189,16 +1638,36 @@
                                     (abs
                                       dead
                                       (type)
-                                      (let
-                                        (nonrec)
-                                        (termbind
-                                          (strict)
-                                          (vardecl
-                                            fail (fun (all a (type) a) Ordering)
-                                          )
-                                          (lam
-                                            ds
-                                            (all a (type) a)
+                                      {
+                                        [
+                                          [
+                                            [
+                                              {
+                                                [ { Extended_match a } ds ]
+                                                (all dead (type) Ordering)
+                                              }
+                                              (lam
+                                                default_arg0
+                                                a
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              )
+                                            ]
+                                            (abs
+                                              dead
+                                              (type)
+                                              [ fail (abs e (type) (error e)) ]
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
                                             {
                                               [
                                                 [
@@ -1215,271 +1684,15 @@
                                                       (abs
                                                         dead
                                                         (type)
-                                                        {
-                                                          [
-                                                            [
-                                                              [
-                                                                {
-                                                                  [
-                                                                    {
-                                                                      Extended_match
-                                                                      a
-                                                                    }
-                                                                    ds
-                                                                  ]
-                                                                  (all
-                                                                    dead
-                                                                    (type)
-                                                                    Ordering
-                                                                  )
-                                                                }
-                                                                (lam
-                                                                  l
-                                                                  a
-                                                                  (abs
-                                                                    dead
-                                                                    (type)
-                                                                    {
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                {
-                                                                                  Extended_match
-                                                                                  a
-                                                                                }
-                                                                                ds
-                                                                              ]
-                                                                              (all
-                                                                                dead
-                                                                                (type)
-                                                                                Ordering
-                                                                              )
-                                                                            }
-                                                                            (lam
-                                                                              r
-                                                                              a
-                                                                              (abs
-                                                                                dead
-                                                                                (type)
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        compare
-                                                                                        a
-                                                                                      }
-                                                                                      dOrd
-                                                                                    ]
-                                                                                    l
-                                                                                  ]
-                                                                                  r
-                                                                                ]
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                          (abs
-                                                                            dead
-                                                                            (type)
-                                                                            [
-                                                                              fail
-                                                                              (abs
-                                                                                e
-                                                                                (type)
-                                                                                (error
-                                                                                  e
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (abs
-                                                                          dead
-                                                                          (type)
-                                                                          [
-                                                                            fail
-                                                                            (abs
-                                                                              e
-                                                                              (type)
-                                                                              (error
-                                                                                e
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                      (all
-                                                                        dead
-                                                                        (type)
-                                                                        dead
-                                                                      )
-                                                                    }
-                                                                  )
-                                                                )
-                                                              ]
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                [
-                                                                  fail
-                                                                  (abs
-                                                                    e
-                                                                    (type)
-                                                                    (error e)
-                                                                  )
-                                                                ]
-                                                              )
-                                                            ]
-                                                            (abs dead (type) GT)
-                                                          ]
-                                                          (all dead (type) dead)
-                                                        }
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
                                                       )
                                                     )
                                                   ]
-                                                  (abs
-                                                    dead
-                                                    (type)
-                                                    {
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  a
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (all
-                                                                dead
-                                                                (type)
-                                                                Ordering
-                                                              )
-                                                            }
-                                                            (lam
-                                                              l
-                                                              a
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                {
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              a
-                                                                            }
-                                                                            ds
-                                                                          ]
-                                                                          (all
-                                                                            dead
-                                                                            (type)
-                                                                            Ordering
-                                                                          )
-                                                                        }
-                                                                        (lam
-                                                                          r
-                                                                          a
-                                                                          (abs
-                                                                            dead
-                                                                            (type)
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    compare
-                                                                                    a
-                                                                                  }
-                                                                                  dOrd
-                                                                                ]
-                                                                                l
-                                                                              ]
-                                                                              r
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (abs
-                                                                        dead
-                                                                        (type)
-                                                                        [
-                                                                          fail
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                      )
-                                                                    ]
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      [
-                                                                        fail
-                                                                        (abs
-                                                                          e
-                                                                          (type)
-                                                                          (error
-                                                                            e
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  (all
-                                                                    dead
-                                                                    (type)
-                                                                    dead
-                                                                  )
-                                                                }
-                                                              )
-                                                            )
-                                                          ]
-                                                          (abs
-                                                            dead
-                                                            (type)
-                                                            [
-                                                              fail
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                            ]
-                                                          )
-                                                        ]
-                                                        (abs dead (type) GT)
-                                                      ]
-                                                      (all dead (type) dead)
-                                                    }
-                                                  )
-                                                ]
-                                                (abs dead (type) LT)
-                                              ]
-                                              (all dead (type) dead)
-                                            }
-                                          )
-                                        )
-                                        {
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [ { Extended_match a } ds ]
-                                                  (all dead (type) Ordering)
-                                                }
-                                                (lam
-                                                  default_arg0
-                                                  a
                                                   (abs
                                                     dead
                                                     (type)
@@ -1488,65 +1701,15 @@
                                                       (abs e (type) (error e))
                                                     ]
                                                   )
-                                                )
+                                                ]
+                                                (abs dead (type) EQ)
                                               ]
-                                              (abs
-                                                dead
-                                                (type)
-                                                [
-                                                  fail (abs e (type) (error e))
-                                                ]
-                                              )
-                                            ]
-                                            (abs
-                                              dead
-                                              (type)
-                                              {
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          { Extended_match a }
-                                                          ds
-                                                        ]
-                                                        (all
-                                                          dead (type) Ordering
-                                                        )
-                                                      }
-                                                      (lam
-                                                        default_arg0
-                                                        a
-                                                        (abs
-                                                          dead
-                                                          (type)
-                                                          [
-                                                            fail
-                                                            (abs
-                                                              e (type) (error e)
-                                                            )
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                    (abs
-                                                      dead
-                                                      (type)
-                                                      [
-                                                        fail
-                                                        (abs e (type) (error e))
-                                                      ]
-                                                    )
-                                                  ]
-                                                  (abs dead (type) EQ)
-                                                ]
-                                                (all dead (type) dead)
-                                              }
-                                            )
-                                          ]
-                                          (all dead (type) dead)
-                                        }
-                                      )
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        ]
+                                        (all dead (type) dead)
+                                      }
                                     )
                                   ]
                                   (all dead (type) dead)
@@ -1592,16 +1755,36 @@
                                     (abs
                                       dead
                                       (type)
-                                      (let
-                                        (nonrec)
-                                        (termbind
-                                          (strict)
-                                          (vardecl
-                                            fail (fun (all a (type) a) Ordering)
-                                          )
-                                          (lam
-                                            ds
-                                            (all a (type) a)
+                                      {
+                                        [
+                                          [
+                                            [
+                                              {
+                                                [ { Extended_match a } ds ]
+                                                (all dead (type) Ordering)
+                                              }
+                                              (lam
+                                                default_arg0
+                                                a
+                                                (abs
+                                                  dead
+                                                  (type)
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
+                                                )
+                                              )
+                                            ]
+                                            (abs
+                                              dead
+                                              (type)
+                                              [ fail (abs e (type) (error e)) ]
+                                            )
+                                          ]
+                                          (abs
+                                            dead
+                                            (type)
                                             {
                                               [
                                                 [
@@ -1618,271 +1801,15 @@
                                                       (abs
                                                         dead
                                                         (type)
-                                                        {
-                                                          [
-                                                            [
-                                                              [
-                                                                {
-                                                                  [
-                                                                    {
-                                                                      Extended_match
-                                                                      a
-                                                                    }
-                                                                    ds
-                                                                  ]
-                                                                  (all
-                                                                    dead
-                                                                    (type)
-                                                                    Ordering
-                                                                  )
-                                                                }
-                                                                (lam
-                                                                  l
-                                                                  a
-                                                                  (abs
-                                                                    dead
-                                                                    (type)
-                                                                    {
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                {
-                                                                                  Extended_match
-                                                                                  a
-                                                                                }
-                                                                                ds
-                                                                              ]
-                                                                              (all
-                                                                                dead
-                                                                                (type)
-                                                                                Ordering
-                                                                              )
-                                                                            }
-                                                                            (lam
-                                                                              r
-                                                                              a
-                                                                              (abs
-                                                                                dead
-                                                                                (type)
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        compare
-                                                                                        a
-                                                                                      }
-                                                                                      dOrd
-                                                                                    ]
-                                                                                    l
-                                                                                  ]
-                                                                                  r
-                                                                                ]
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                          (abs
-                                                                            dead
-                                                                            (type)
-                                                                            [
-                                                                              fail
-                                                                              (abs
-                                                                                e
-                                                                                (type)
-                                                                                (error
-                                                                                  e
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        ]
-                                                                        (abs
-                                                                          dead
-                                                                          (type)
-                                                                          [
-                                                                            fail
-                                                                            (abs
-                                                                              e
-                                                                              (type)
-                                                                              (error
-                                                                                e
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                      (all
-                                                                        dead
-                                                                        (type)
-                                                                        dead
-                                                                      )
-                                                                    }
-                                                                  )
-                                                                )
-                                                              ]
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                [
-                                                                  fail
-                                                                  (abs
-                                                                    e
-                                                                    (type)
-                                                                    (error e)
-                                                                  )
-                                                                ]
-                                                              )
-                                                            ]
-                                                            (abs dead (type) GT)
-                                                          ]
-                                                          (all dead (type) dead)
-                                                        }
+                                                        [
+                                                          fail
+                                                          (abs
+                                                            e (type) (error e)
+                                                          )
+                                                        ]
                                                       )
                                                     )
                                                   ]
-                                                  (abs
-                                                    dead
-                                                    (type)
-                                                    {
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  a
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (all
-                                                                dead
-                                                                (type)
-                                                                Ordering
-                                                              )
-                                                            }
-                                                            (lam
-                                                              l
-                                                              a
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                {
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Extended_match
-                                                                              a
-                                                                            }
-                                                                            ds
-                                                                          ]
-                                                                          (all
-                                                                            dead
-                                                                            (type)
-                                                                            Ordering
-                                                                          )
-                                                                        }
-                                                                        (lam
-                                                                          r
-                                                                          a
-                                                                          (abs
-                                                                            dead
-                                                                            (type)
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    compare
-                                                                                    a
-                                                                                  }
-                                                                                  dOrd
-                                                                                ]
-                                                                                l
-                                                                              ]
-                                                                              r
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      (abs
-                                                                        dead
-                                                                        (type)
-                                                                        [
-                                                                          fail
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                      )
-                                                                    ]
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      [
-                                                                        fail
-                                                                        (abs
-                                                                          e
-                                                                          (type)
-                                                                          (error
-                                                                            e
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  (all
-                                                                    dead
-                                                                    (type)
-                                                                    dead
-                                                                  )
-                                                                }
-                                                              )
-                                                            )
-                                                          ]
-                                                          (abs
-                                                            dead
-                                                            (type)
-                                                            [
-                                                              fail
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
-                                                              )
-                                                            ]
-                                                          )
-                                                        ]
-                                                        (abs dead (type) GT)
-                                                      ]
-                                                      (all dead (type) dead)
-                                                    }
-                                                  )
-                                                ]
-                                                (abs dead (type) LT)
-                                              ]
-                                              (all dead (type) dead)
-                                            }
-                                          )
-                                        )
-                                        {
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [ { Extended_match a } ds ]
-                                                  (all dead (type) Ordering)
-                                                }
-                                                (lam
-                                                  default_arg0
-                                                  a
                                                   (abs
                                                     dead
                                                     (type)
@@ -1891,65 +1818,15 @@
                                                       (abs e (type) (error e))
                                                     ]
                                                   )
-                                                )
+                                                ]
+                                                (abs dead (type) EQ)
                                               ]
-                                              (abs
-                                                dead
-                                                (type)
-                                                [
-                                                  fail (abs e (type) (error e))
-                                                ]
-                                              )
-                                            ]
-                                            (abs
-                                              dead
-                                              (type)
-                                              {
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          { Extended_match a }
-                                                          ds
-                                                        ]
-                                                        (all
-                                                          dead (type) Ordering
-                                                        )
-                                                      }
-                                                      (lam
-                                                        default_arg0
-                                                        a
-                                                        (abs
-                                                          dead
-                                                          (type)
-                                                          [
-                                                            fail
-                                                            (abs
-                                                              e (type) (error e)
-                                                            )
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                    (abs
-                                                      dead
-                                                      (type)
-                                                      [
-                                                        fail
-                                                        (abs e (type) (error e))
-                                                      ]
-                                                    )
-                                                  ]
-                                                  (abs dead (type) EQ)
-                                                ]
-                                                (all dead (type) dead)
-                                              }
-                                            )
-                                          ]
-                                          (all dead (type) dead)
-                                        }
-                                      )
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        ]
+                                        (all dead (type) dead)
+                                      }
                                     )
                                   )
                                 ]
@@ -1958,16 +1835,33 @@
                               (abs
                                 dead
                                 (type)
-                                (let
-                                  (nonrec)
-                                  (termbind
-                                    (strict)
-                                    (vardecl
-                                      fail (fun (all a (type) a) Ordering)
-                                    )
-                                    (lam
-                                      ds
-                                      (all a (type) a)
+                                {
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match a } ds ]
+                                          (all dead (type) Ordering)
+                                        }
+                                        (lam
+                                          default_arg0
+                                          a
+                                          (abs
+                                            dead
+                                            (type)
+                                            [ fail (abs e (type) (error e)) ]
+                                          )
+                                        )
+                                      ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        [ fail (abs e (type) (error e)) ]
+                                      )
+                                    ]
+                                    (abs
+                                      dead
+                                      (type)
                                       {
                                         [
                                           [
@@ -1982,307 +1876,27 @@
                                                 (abs
                                                   dead
                                                   (type)
-                                                  {
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            [
-                                                              {
-                                                                Extended_match a
-                                                              }
-                                                              ds
-                                                            ]
-                                                            (all
-                                                              dead
-                                                              (type)
-                                                              Ordering
-                                                            )
-                                                          }
-                                                          (lam
-                                                            l
-                                                            a
-                                                            (abs
-                                                              dead
-                                                              (type)
-                                                              {
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        [
-                                                                          {
-                                                                            Extended_match
-                                                                            a
-                                                                          }
-                                                                          ds
-                                                                        ]
-                                                                        (all
-                                                                          dead
-                                                                          (type)
-                                                                          Ordering
-                                                                        )
-                                                                      }
-                                                                      (lam
-                                                                        r
-                                                                        a
-                                                                        (abs
-                                                                          dead
-                                                                          (type)
-                                                                          [
-                                                                            [
-                                                                              [
-                                                                                {
-                                                                                  compare
-                                                                                  a
-                                                                                }
-                                                                                dOrd
-                                                                              ]
-                                                                              l
-                                                                            ]
-                                                                            r
-                                                                          ]
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      [
-                                                                        fail
-                                                                        (abs
-                                                                          e
-                                                                          (type)
-                                                                          (error
-                                                                            e
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  ]
-                                                                  (abs
-                                                                    dead
-                                                                    (type)
-                                                                    [
-                                                                      fail
-                                                                      (abs
-                                                                        e
-                                                                        (type)
-                                                                        (error
-                                                                          e
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                  )
-                                                                ]
-                                                                (all
-                                                                  dead
-                                                                  (type)
-                                                                  dead
-                                                                )
-                                                              }
-                                                            )
-                                                          )
-                                                        ]
-                                                        (abs
-                                                          dead
-                                                          (type)
-                                                          [
-                                                            fail
-                                                            (abs
-                                                              e (type) (error e)
-                                                            )
-                                                          ]
-                                                        )
-                                                      ]
-                                                      (abs dead (type) GT)
-                                                    ]
-                                                    (all dead (type) dead)
-                                                  }
+                                                  [
+                                                    fail
+                                                    (abs e (type) (error e))
+                                                  ]
                                                 )
                                               )
                                             ]
-                                            (abs
-                                              dead
-                                              (type)
-                                              {
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        [
-                                                          { Extended_match a }
-                                                          ds
-                                                        ]
-                                                        (all
-                                                          dead (type) Ordering
-                                                        )
-                                                      }
-                                                      (lam
-                                                        l
-                                                        a
-                                                        (abs
-                                                          dead
-                                                          (type)
-                                                          {
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        a
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    (all
-                                                                      dead
-                                                                      (type)
-                                                                      Ordering
-                                                                    )
-                                                                  }
-                                                                  (lam
-                                                                    r
-                                                                    a
-                                                                    (abs
-                                                                      dead
-                                                                      (type)
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              compare
-                                                                              a
-                                                                            }
-                                                                            dOrd
-                                                                          ]
-                                                                          l
-                                                                        ]
-                                                                        r
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (abs
-                                                                  dead
-                                                                  (type)
-                                                                  [
-                                                                    fail
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                  ]
-                                                                )
-                                                              ]
-                                                              (abs
-                                                                dead
-                                                                (type)
-                                                                [
-                                                                  fail
-                                                                  (abs
-                                                                    e
-                                                                    (type)
-                                                                    (error e)
-                                                                  )
-                                                                ]
-                                                              )
-                                                            ]
-                                                            (all
-                                                              dead (type) dead
-                                                            )
-                                                          }
-                                                        )
-                                                      )
-                                                    ]
-                                                    (abs
-                                                      dead
-                                                      (type)
-                                                      [
-                                                        fail
-                                                        (abs e (type) (error e))
-                                                      ]
-                                                    )
-                                                  ]
-                                                  (abs dead (type) GT)
-                                                ]
-                                                (all dead (type) dead)
-                                              }
-                                            )
-                                          ]
-                                          (abs dead (type) LT)
-                                        ]
-                                        (all dead (type) dead)
-                                      }
-                                    )
-                                  )
-                                  {
-                                    [
-                                      [
-                                        [
-                                          {
-                                            [ { Extended_match a } ds ]
-                                            (all dead (type) Ordering)
-                                          }
-                                          (lam
-                                            default_arg0
-                                            a
                                             (abs
                                               dead
                                               (type)
                                               [ fail (abs e (type) (error e)) ]
                                             )
-                                          )
-                                        ]
-                                        (abs
-                                          dead
-                                          (type)
-                                          [ fail (abs e (type) (error e)) ]
-                                        )
-                                      ]
-                                      (abs
-                                        dead
-                                        (type)
-                                        {
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [ { Extended_match a } ds ]
-                                                  (all dead (type) Ordering)
-                                                }
-                                                (lam
-                                                  default_arg0
-                                                  a
-                                                  (abs
-                                                    dead
-                                                    (type)
-                                                    [
-                                                      fail
-                                                      (abs e (type) (error e))
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (abs
-                                                dead
-                                                (type)
-                                                [
-                                                  fail (abs e (type) (error e))
-                                                ]
-                                              )
-                                            ]
-                                            (abs dead (type) EQ)
                                           ]
-                                          (all dead (type) dead)
-                                        }
-                                      )
-                                    ]
-                                    (all dead (type) dead)
-                                  }
-                                )
+                                          (abs dead (type) EQ)
+                                        ]
+                                        (all dead (type) dead)
+                                      }
+                                    )
+                                  ]
+                                  (all dead (type) dead)
+                                }
                               )
                             ]
                             (all dead (type) dead)
