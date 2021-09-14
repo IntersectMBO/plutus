@@ -53,6 +53,11 @@ import qualified Ledger.Typed.Scripts               as Scripts
 import           Plutus.Trace.Emulator              as Trace
 -- END import Emulator
 
+-- START import Contract.Security
+import           Plutus.Contract.Secrets
+-- END import Contract.Security
+
+
 -- * QuickCheck model
 
 -- START GameModel
@@ -94,13 +99,13 @@ instance ContractModel GameModel where
     perform handle s cmd = case cmd of
         Lock w new val -> do
             callEndpoint @"lock" (handle $ WalletKey w)
-                         LockArgs{ lockArgsSecret = new
+                         LockArgs{ lockArgsSecret = secretArg new
                                  , lockArgsValue = Ada.lovelaceValueOf val }
             delay 2
         Guess w old new val -> do
             callEndpoint @"guess" (handle $ WalletKey w)
                 GuessArgs{ guessArgsOldSecret     = old
-                         , guessArgsNewSecret     = new
+                         , guessArgsNewSecret     = secretArg new
                          , guessArgsValueTakenOut = Ada.lovelaceValueOf val }
             delay 1
         GiveToken w' -> do
@@ -383,12 +388,12 @@ v1_model = ()
     perform handle s cmd = case cmd of
         Lock w new val -> do
             callEndpoint @"lock" (handle $ WalletKey w)
-                         LockArgs{ lockArgsSecret = new
+                         LockArgs{ lockArgsSecret = secretArg new
                                  , lockArgsValue = Ada.lovelaceValueOf val}
         Guess w old new val -> do
             callEndpoint @"guess" (handle $ WalletKey w)
                 GuessArgs{ guessArgsOldSecret = old
-                         , guessArgsNewSecret = new
+                         , guessArgsNewSecret = secretArg new
                          , guessArgsValueTakenOut = Ada.lovelaceValueOf val}
         GiveToken w' -> do
             let w = fromJust (s ^. contractState . hasToken)
