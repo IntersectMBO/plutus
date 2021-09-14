@@ -15,7 +15,7 @@ import           Control.Applicative                                        ((<|
 import qualified Data.List                                                  as L (groupBy)
 import           Data.Maybe                                                 (fromMaybe, isNothing)
 import           Data.Sort                                                  (sortOn)
-import           Data.Time                                                  (Day)
+import           Data.Time                                                  (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors)
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
@@ -28,7 +28,7 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (sta
 
 -- |genProjectedCashflows generates a list of projected cashflows for
 -- given contract terms together with the observed data
-genProjectedCashflows :: (EventType -> Day -> RiskFactors) -> ContractTerms -> [CashFlow]
+genProjectedCashflows :: (EventType -> LocalTime -> RiskFactors) -> ContractTerms -> [CashFlow]
 genProjectedCashflows getRiskFactors ct@ContractTerms {..} = fromMaybe [] $
   do
     st0 <- initialize ct

@@ -16,7 +16,7 @@ import qualified Data.List                                                  as L
 import           Data.Maybe                                                 (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid                                                (Endo (Endo, appEndo))
 import           Data.String                                                (IsString (fromString))
-import           Data.Time                                                  (Day)
+import           Data.Time                                                  (LocalTime)
 import           Data.Validation                                            (Validation (..))
 import           Language.Marlowe                                           (Action (..), Bound (..), Case (..),
                                                                              ChoiceId (..), Contract (..),
@@ -31,8 +31,8 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Ass
                                                                              TermValidationError (..),
                                                                              setDefaultContractTermValues)
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, dayToSlotNumber,
-                                                                             stateInitialisation, toMarloweFixedPoint,
+import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, stateInitialisation,
+                                                                             timeToSlotNumber, toMarloweFixedPoint,
                                                                              useval)
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability   (validateTerms)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
@@ -135,7 +135,7 @@ inquiryFs ev ct timePosfix date oracle context continue =
     in
         riskFactorsInquiryEv ev continue
 
-defaultRiskFactors :: EventType -> Day -> RiskFactors
+defaultRiskFactors :: EventType -> LocalTime -> RiskFactors
 defaultRiskFactors _ _ =
   RiskFactorsPoly
     { o_rf_CURS = 1.0,
@@ -160,7 +160,7 @@ genStaticContract terms = genContract . setDefaultContractTermValues <$> validat
                         (Constant $ round amount)
                         -- Any collateral-related code is commented out, until implemented properly
                         -- (Constant 0)
-                        (Slot $ dayToSlotNumber cashPaymentDay)
+                        (Slot $ timeToSlotNumber cashPaymentDay)
                     | otherwise
                     = invoice
                         "counterparty"
@@ -168,13 +168,13 @@ genStaticContract terms = genContract . setDefaultContractTermValues <$> validat
                         (Constant $ round $ - amount)
                         -- Any collateral-related code is commented out, until implemented properly
                         -- (Constant $ collateralAmount t)
-                        (Slot $ dayToSlotNumber cashPaymentDay)
+                        (Slot $ timeToSlotNumber cashPaymentDay)
                 -- Any collateral-related code is commented out, until implemented properly
                 -- withCollateral cont =
                 --     receiveCollateral
                 --         "counterparty"
                 --         (collateralAmount t)
-                --         (dayToSlotNumber $ ct_SD t)
+                --         (timeToSlotNumber $ ct_SD t)
                 --         cont
             -- Any collateral-related code is commented out, until implemented properly
             -- in Success . withCollateral $ foldr gen Close cfs
@@ -195,12 +195,12 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                 payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
                 schedCfs = genProjectedCashflows defaultRiskFactors terms'
                 schedEvents = cashEvent <$> schedCfs
-                schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
+                schedDates = Slot . timeToSlotNumber . cashPaymentDay <$> schedCfs
                 previousDates = ct_SD terms' : (cashCalculationDay <$> schedCfs)
                 cfsDirections = amount <$> schedCfs
                 ctx = context <$> constraints terms'
 
-                gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
+                gen :: (CashFlow, LocalTime, EventType, Slot, Double, Integer) -> Contract -> Contract
                 gen (cf, prevDate, ev, date, r, t) cont =
                     inquiryFs ev terms' ("_" ++ show t) date "oracle" ctx
                     $ stateTransitionFs ev
@@ -241,7 +241,7 @@ genFsContract terms = genContract . setDefaultContractTermValues <$> validateTer
                                   terms' (t P.- 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
-                -- withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont
+                -- withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (timeToSlotNumber $ ct_SD terms') cont
             -- in withCollateral $ initializeStateFs terms' scheduleAcc
             in initializeStateFs terms' scheduleAcc
 
@@ -253,7 +253,7 @@ genZeroRiskAssertions terms@ContractTerms{ct_DCC = Just dcc, ..} NpvAssertionAga
     let
         cfs = genProjectedCashflows defaultRiskFactors terms
 
-        dateToYearFraction :: Day -> Double
+        dateToYearFraction :: LocalTime -> Double
         dateToYearFraction dt = _y dcc ct_SD dt ct_MD
 
         dateToDiscountFactor dt =  (1 O.- zeroRiskInterest) ** dateToYearFraction dt

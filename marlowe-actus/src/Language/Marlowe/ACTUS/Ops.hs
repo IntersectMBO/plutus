@@ -3,7 +3,7 @@
 
 module Language.Marlowe.ACTUS.Ops where
 
-import           Data.Time                                             (Day)
+import           Data.Time                                             (LocalTime)
 import           Language.Marlowe                                      (Observation (ValueGT, ValueLT),
                                                                         Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
                                                                         (%))
@@ -49,10 +49,10 @@ instance ActusNum Double where
     a * b       = a Prelude.* b
     a / b       = a Prelude./ b
 
-instance DateOps Day Double where
+instance DateOps LocalTime Double where
     _lt a b = if a < b then _one else _zero
 
-instance YearFractionOps Day Double where
+instance YearFractionOps LocalTime Double where
     _y = yearFraction
 
 instance RoleSignOps Double where

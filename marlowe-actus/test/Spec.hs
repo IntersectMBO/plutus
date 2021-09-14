@@ -11,16 +11,14 @@ main :: IO ()
 main = do
   p <- getEnv "ACTUS_TEST_DATA_DIR"
 
-  pamTests <- testCasesFromFile ["pam25"] $ p ++ "actus-tests-pam.json" -- pam25: dates include hours, minutes, second
-  lamTests <- testCasesFromFile ["lam18"] $ p ++ "actus-tests-lam.json" -- lam18: dates include hours, minutes, second
+  pamTests <- testCasesFromFile [] $ p ++ "actus-tests-pam.json"
+  lamTests <- testCasesFromFile [] $ p ++ "actus-tests-lam.json"
   -- NAM, ANN temporarily commented - waiting for
   -- https://github.com/actusfrf/actus-tests/pull/1
   namTests <- testCasesFromFile [] $ p ++ "actus-tests-nam.json"
   annTests <-
     testCasesFromFile
-      [ "ann09", -- ann09: currently unsupported, see also actus-core AnnuityTest.java
-        "ann19", -- ann19: dates include hours, minutes, second
-        "ann26" -- ann26: dates include hours, minutes, second
+      [ "ann09" -- ann09: currently unsupported, see also actus-core AnnuityTest.java
       ]
       $ p ++ "actus-tests-ann.json"
 

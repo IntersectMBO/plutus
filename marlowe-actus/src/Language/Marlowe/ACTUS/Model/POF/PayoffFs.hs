@@ -2,7 +2,7 @@
 
 module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 
-import           Data.Time                                         (Day)
+import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
@@ -12,7 +12,7 @@ import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..
                                                                     marloweFixedPoint)
 import           Prelude                                           hiding (Fractional, Num, (*), (+), (-), (/))
 
-payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> Day -> Day -> Maybe (Value Observation)
+payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> LocalTime -> LocalTime -> Maybe (Value Observation)
 payoffFs
   ev
   RiskFactorsPoly {..}

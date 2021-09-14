@@ -6,7 +6,7 @@ module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import           Data.Aeson.Types (FromJSON, ToJSON)
 import           Data.Maybe       (fromMaybe)
-import           Data.Time        (Day)
+import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
 
  -- ContractType
@@ -184,73 +184,73 @@ data ContractTerms = ContractTerms
   , ct_CURS          :: Maybe String
 
   -- Calendar
-  , ct_IED           :: Maybe Day      -- Initial Exchange Date
-  , ct_DCC           :: Maybe DCC      -- Day Count Convention
+  , ct_IED           :: Maybe LocalTime -- Initial Exchange Date
+  , ct_DCC           :: Maybe DCC       -- Day Count Convention
   , scfg             :: ScheduleConfig
 
   -- Contract Identification
-  , ct_SD            :: Day            -- Status Date
+  , ct_SD            :: LocalTime       -- Status Date
 
   -- Counterparty
-  , ct_PRF           :: Maybe PRF      -- Contract Performance
+  , ct_PRF           :: Maybe PRF       -- Contract Performance
 
   -- Fees
-  , ct_FECL          :: Maybe Cycle    -- Cycle Of Fee
-  , ct_FEANX         :: Maybe Day      -- Cycle Anchor Date Of Fee
-  , ct_FEAC          :: Maybe Double   -- Fee Accrued
-  , ct_FEB           :: Maybe FEB      -- Fee Basis
-  , ct_FER           :: Maybe Double   -- Fee Rate
+  , ct_FECL          :: Maybe Cycle     -- Cycle Of Fee
+  , ct_FEANX         :: Maybe LocalTime -- Cycle Anchor Date Of Fee
+  , ct_FEAC          :: Maybe Double    -- Fee Accrued
+  , ct_FEB           :: Maybe FEB       -- Fee Basis
+  , ct_FER           :: Maybe Double    -- Fee Rate
 
   -- Interest
-  , ct_IPANX         :: Maybe Day      -- Cycle Anchor Date Of Interest Payment
-  , ct_IPCL          :: Maybe Cycle    -- Cycle Of Interest Payment
-  , ct_IPAC          :: Maybe Double   -- Accrued Interest
-  , ct_IPCED         :: Maybe Day      -- Capitalization End Date
-  , ct_IPCBANX       :: Maybe Day      -- Cycle Anchor Date Of Interest Calculation Base
-  , ct_IPCBCL        :: Maybe Cycle    -- Cycle Of Interest Calculation Base
-  , ct_IPCB          :: Maybe IPCB     -- Interest Calculation Base
-  , ct_IPCBA         :: Maybe Double   -- Interest Calculation Base Amount
-  , ct_IPNR          :: Maybe Double   -- Nominal Interest Rate
-  , ct_SCIP          :: Maybe Double   -- Interest Scaling Multiplier
+  , ct_IPANX         :: Maybe LocalTime -- Cycle Anchor Date Of Interest Payment
+  , ct_IPCL          :: Maybe Cycle     -- Cycle Of Interest Payment
+  , ct_IPAC          :: Maybe Double    -- Accrued Interest
+  , ct_IPCED         :: Maybe LocalTime -- Capitalization End Date
+  , ct_IPCBANX       :: Maybe LocalTime -- Cycle Anchor Date Of Interest Calculation Base
+  , ct_IPCBCL        :: Maybe Cycle     -- Cycle Of Interest Calculation Base
+  , ct_IPCB          :: Maybe IPCB      -- Interest Calculation Base
+  , ct_IPCBA         :: Maybe Double    -- Interest Calculation Base Amount
+  , ct_IPNR          :: Maybe Double    -- Nominal Interest Rate
+  , ct_SCIP          :: Maybe Double    -- Interest Scaling Multiplier
 
   -- Notional Principal
-  , ct_NT            :: Maybe Double   -- Notional Principal
-  , ct_PDIED         :: Maybe Double   -- Premium Discount At IED
-  , ct_MD            :: Maybe Day      -- Maturity Date
-  , ct_AD            :: Maybe Day      -- Amortization Date
-  , ct_PRANX         :: Maybe Day      -- Cycle Anchor Date Of Principal Redemption
-  , ct_PRCL          :: Maybe Cycle    -- Cycle Of Principal Redemption
-  , ct_PRNXT         :: Maybe Double   -- Next Principal Redemption Payment
-  , ct_PRD           :: Maybe Day      -- Purchase Date
-  , ct_PPRD          :: Maybe Double   -- Price At Purchase Date
-  , ct_TD            :: Maybe Day      -- Termination Date
-  , ct_PTD           :: Maybe Double   -- Price At Termination Date
-  , ct_SCIED         :: Maybe Double   -- Scaling Index At Status Date
-  , ct_SCANX         :: Maybe Day      -- Cycle Anchor Date Of Scaling Index
-  , ct_SCCL          :: Maybe Cycle    -- Cycle Of Scaling Index
-  , ct_SCEF          :: Maybe SCEF     -- Scaling Effect
-  , ct_SCCDD         :: Maybe Double   -- Scaling Index At Contract Deal Date
-  , ct_SCMO          :: Maybe String   -- Market Object Code Of Scaling Index
-  , ct_SCNT          :: Maybe Double   -- Notional Scaling Multiplier
+  , ct_NT            :: Maybe Double    -- Notional Principal
+  , ct_PDIED         :: Maybe Double    -- Premium Discount At IED
+  , ct_MD            :: Maybe LocalTime -- Maturity Date
+  , ct_AD            :: Maybe LocalTime -- Amortization Date
+  , ct_PRANX         :: Maybe LocalTime -- Cycle Anchor Date Of Principal Redemption
+  , ct_PRCL          :: Maybe Cycle     -- Cycle Of Principal Redemption
+  , ct_PRNXT         :: Maybe Double    -- Next Principal Redemption Payment
+  , ct_PRD           :: Maybe LocalTime -- Purchase Date
+  , ct_PPRD          :: Maybe Double    -- Price At Purchase Date
+  , ct_TD            :: Maybe LocalTime -- Termination Date
+  , ct_PTD           :: Maybe Double    -- Price At Termination Date
+  , ct_SCIED         :: Maybe Double    -- Scaling Index At Status Date
+  , ct_SCANX         :: Maybe LocalTime -- Cycle Anchor Date Of Scaling Index
+  , ct_SCCL          :: Maybe Cycle     -- Cycle Of Scaling Index
+  , ct_SCEF          :: Maybe SCEF      -- Scaling Effect
+  , ct_SCCDD         :: Maybe Double    -- Scaling Index At Contract Deal Date
+  , ct_SCMO          :: Maybe String    -- Market Object Code Of Scaling Index
+  , ct_SCNT          :: Maybe Double    -- Notional Scaling Multiplier
 
   -- Optionality
-  , ct_OPCL          :: Maybe Cycle    -- Cycle Of Optionality
-  , ct_OPANX         :: Maybe Day      -- Cycle Anchor Date Of Optionality
-  , ct_PYRT          :: Maybe Double   -- Penalty Rate
-  , ct_PYTP          :: Maybe PYTP     -- Penalty Type
-  , ct_PPEF          :: Maybe PPEF     -- Prepayment Effect
+  , ct_OPCL          :: Maybe Cycle     -- Cycle Of Optionality
+  , ct_OPANX         :: Maybe LocalTime -- Cycle Anchor Date Of Optionality
+  , ct_PYRT          :: Maybe Double    -- Penalty Rate
+  , ct_PYTP          :: Maybe PYTP      -- Penalty Type
+  , ct_PPEF          :: Maybe PPEF      -- Prepayment Effect
 
   -- Rate Reset
-  , ct_RRCL          :: Maybe Cycle    -- Cycle Of Rate Reset
-  , ct_RRANX         :: Maybe Day      -- Cycle Anchor Date Of Rate Reset
-  , ct_RRNXT         :: Maybe Double   -- Next Reset Rate
-  , ct_RRSP          :: Maybe Double   -- Rate Spread
-  , ct_RRMLT         :: Maybe Double   -- Rate Multiplier
-  , ct_RRPF          :: Maybe Double   -- Period Floor
-  , ct_RRPC          :: Maybe Double   -- Period Cap
-  , ct_RRLC          :: Maybe Double   -- Life Cap
-  , ct_RRLF          :: Maybe Double   -- Life Floor
-  , ct_RRMO          :: Maybe String   -- Market Object Code Of Rate Reset
+  , ct_RRCL          :: Maybe Cycle     -- Cycle Of Rate Reset
+  , ct_RRANX         :: Maybe LocalTime -- Cycle Anchor Date Of Rate Reset
+  , ct_RRNXT         :: Maybe Double    -- Next Reset Rate
+  , ct_RRSP          :: Maybe Double    -- Rate Spread
+  , ct_RRMLT         :: Maybe Double    -- Rate Multiplier
+  , ct_RRPF          :: Maybe Double    -- Period Floor
+  , ct_RRPC          :: Maybe Double    -- Period Cap
+  , ct_RRLC          :: Maybe Double    -- Life Cap
+  , ct_RRLF          :: Maybe Double    -- Life Floor
+  , ct_RRMO          :: Maybe String    -- Market Object Code Of Rate Reset
 
   -- enable settlement currency
   , enableSettlement :: Bool

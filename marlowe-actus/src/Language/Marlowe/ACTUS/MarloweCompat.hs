@@ -5,7 +5,8 @@
 module Language.Marlowe.ACTUS.MarloweCompat where
 
 import           Data.String                                       (IsString (fromString))
-import           Data.Time                                         (Day, UTCTime (UTCTime))
+import           Data.Time                                         (Day, LocalTime (..), UTCTime (UTCTime),
+                                                                    timeOfDayToTime)
 import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime)
 import           Language.Marlowe                                  (Contract (Let), Observation,
                                                                     Value (Constant, UseValue), ValueId (ValueId))
@@ -62,14 +63,14 @@ stateTransitionMarlowe ev t continue handler =
 
 stateInitialisation :: ContractState -> Contract -> Contract
 stateInitialisation ContractStatePoly {..} continue =
-  letval "tmd" 0 (marloweDate tmd) $
+  letval "tmd" 0 (marloweTime tmd) $
   letval "nt" 0 (constnt nt) $
   letval "ipnr" 0 (constnt ipnr) $
   letval "ipac" 0 (constnt ipac) $
   letval "feac" 0 (constnt feac) $
   letval "nsc" 0 (constnt nsc) $
   letval "isc" 0 (constnt isc) $
-  letval "sd" 0 (marloweDate sd) $
+  letval "sd" 0 (marloweTime sd) $
   letval "prnxt" 0 (constnt prnxt) $
   letval "ipcb" 0 (constnt ipcb) continue
 
@@ -81,5 +82,13 @@ dayToSlotNumber d =
   let (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
    in fromIntegral secs - cardanoEpochStart
 
+timeToSlotNumber :: LocalTime -> Integer
+timeToSlotNumber LocalTime {..} =
+  let (MkSystemTime secs _) = utcToSystemTime (UTCTime localDay (timeOfDayToTime localTimeOfDay))
+   in fromIntegral secs - cardanoEpochStart
+
 marloweDate :: Day -> Value Observation
 marloweDate = Constant . fromInteger . dayToSlotNumber
+
+marloweTime :: LocalTime -> Value Observation
+marloweTime = Constant . fromInteger . timeToSlotNumber

@@ -5,8 +5,8 @@ import           Control.Applicative                                    (liftA2)
 import           Control.Monad                                          (join, liftM4)
 import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromMaybe, isJust, isNothing)
-import           Data.Time                                              (Day)
-import           Data.Time.Calendar                                     (addDays)
+import           Data.Time                                              (LocalTime)
+import           Data.Time.LocalTime                                    (addLocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), Cycle (..),
                                                                          IPCB (IPCB_NTL), PPEF (..), PYTP (..),
                                                                          SCEF (..), ScheduleConfig)
@@ -15,10 +15,10 @@ import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBD
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          minusCycle, plusCycle, remove)
 
-_S :: Maybe Day -> Maybe Cycle -> Maybe Day -> Maybe ScheduleConfig -> Maybe ShiftedSchedule
+_S :: Maybe LocalTime -> Maybe Cycle -> Maybe LocalTime -> Maybe ScheduleConfig -> Maybe ShiftedSchedule
 _S = liftM4 generateRecurrentScheduleWithCorrections
 
-shift :: ScheduleConfig -> Day -> ShiftedDay
+shift :: ScheduleConfig -> LocalTime -> ShiftedDay
 shift = applyBDCWithCfg
 
 -- Principal at Maturity (PAM)
@@ -204,7 +204,7 @@ _SCHED_IPCI_NAM ContractTerms{..} =
 
 _SCHED_PRF_ANN :: ContractTerms -> Maybe ShiftedSchedule
 _SCHED_PRF_ANN ct@ContractTerms{..} =
-  let prf | isJust ct_PRANX && isNothing ct_PRNXT && ct_PRANX > ct_IED = ct_PRANX >>= (\p -> Just [ShiftedDay p p]) . addDays (-1)
+  let prf | isJust ct_PRANX && isNothing ct_PRNXT && ct_PRANX > ct_IED = ct_PRANX >>= (\p -> Just [ShiftedDay p p]) . addLocalTime (-86400)
           | otherwise                                                  = Nothing
       rr  = _SCHED_RR_PAM ct
       rrf = _SCHED_RRF_PAM ct

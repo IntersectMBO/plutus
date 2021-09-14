@@ -3,7 +3,8 @@ module Spec.Marlowe.ACTUS.Examples
     (tests)
 where
 
-import           Data.Time
+import           Data.Maybe                                       (fromJust)
+import           Data.Time.Format.ISO8601
 import           Data.Validation                                  (Validation (..))
 import           Language.Marlowe
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
@@ -47,9 +48,9 @@ example01 =
           ContractTerms
             { contractId = "0",
               contractType = PAM,
-              ct_IED = Just $ fromGregorian 2020 01 01,
-              ct_SD = fromGregorian 2019 12 31,
-              ct_MD = Just $ fromGregorian 2030 01 01,
+              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
               ct_AD = Nothing,
               ct_TD = Nothing,
               ct_PRNXT = Nothing,
@@ -97,7 +98,7 @@ example01 =
               -- Interest
               ct_IPCED = Nothing,
               ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = Just $ fromGregorian 2020 01 01,
+              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
               ct_IPNR = Just 0.02,
               ct_IPAC = Just 0.0,
               ct_PRCL = Nothing,
@@ -180,9 +181,9 @@ example02 =
           ContractTerms
             { contractId = "0",
               contractType = LAM,
-              ct_IED = Just $ fromGregorian 2020 01 01,
-              ct_SD = fromGregorian 2019 12 31,
-              ct_MD = Just $ fromGregorian 2030 01 01,
+              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
               ct_AD = Nothing,
               ct_TD = Nothing,
               ct_PRNXT = Just 1000.0,
@@ -230,11 +231,11 @@ example02 =
               -- Interest
               ct_IPCED = Nothing,
               ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = Just $ fromGregorian 2020 01 01,
+              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
               ct_IPNR = Just 0.02,
               ct_IPAC = Just 0.0,
               ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = Just $ fromGregorian 2021 01 01,
+              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
               ct_IPCB = Just IPCB_NT,
               ct_IPCBA = Nothing,
               ct_IPCBCL = Nothing,
@@ -250,7 +251,7 @@ example02 =
               constraints = Nothing,
               collateralAmount = 0
             }
-   in case genFsContract  ct of
+   in case genFsContract ct of
         Failure _ -> assertFailure "Terms validation should not fail"
         Success contract -> do
           let principal = IDeposit (Role "counterparty") "counterparty" ada 10000
@@ -259,7 +260,7 @@ example02 =
               out =
                 computeTransaction
                   ( TransactionInput
-                      (0, 0)
+                      (0, 10000000000)
                       [
                         principal
                       , pr 1000, ip 200
@@ -313,9 +314,9 @@ example03 =
           ContractTerms
             { contractId = "0",
               contractType = NAM,
-              ct_IED = Just $ fromGregorian 2020 01 01,
-              ct_SD = fromGregorian 2019 12 31,
-              ct_MD = Just $ fromGregorian 2030 01 01,
+              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
               ct_AD = Nothing,
               ct_TD = Nothing,
               ct_PRNXT = Just 1000.0,
@@ -363,15 +364,15 @@ example03 =
               -- Interest
               ct_IPCED = Nothing,
               ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = Just $ fromGregorian 2020 01 01,
+              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
               ct_IPNR = Just 0.02,
               ct_IPAC = Just 0.0,
               ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = Just $ fromGregorian 2021 01 01,
+              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
               ct_IPCB = Just IPCB_NT,
               ct_IPCBA = Just 1000,
               ct_IPCBCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPCBANX = Just $ fromGregorian 2021 01 01,
+              ct_IPCBANX = iso8601ParseM "2021-01-01T00:00:00",
               -- Fee
               ct_FECL = Nothing,
               ct_FEANX = Nothing,
@@ -446,9 +447,9 @@ example04 =
           ContractTerms
             { contractId = "0",
               contractType = ANN,
-              ct_IED = Just $ fromGregorian 2020 01 01,
-              ct_SD = fromGregorian 2019 12 31,
-              ct_MD = Just $ fromGregorian 2030 01 01,
+              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
               ct_AD = Nothing,
               ct_TD = Nothing,
               ct_PRNXT = Just 1000,
@@ -496,11 +497,11 @@ example04 =
               -- Interest
               ct_IPCED = Nothing,
               ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = Just $ fromGregorian 2020 01 01,
+              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
               ct_IPNR = Just 0.02,
               ct_IPAC = Just 0.0,
               ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = Just $ fromGregorian 2021 01 01,
+              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
               ct_IPCB = Just IPCB_NT,
               ct_IPCBA = Nothing,
               ct_IPCBCL = Nothing,

@@ -3,7 +3,7 @@
 module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 
 import           Data.Maybe                                             (maybeToList)
-import           Data.Time                                              (Day)
+import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors,
                                                                          RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
@@ -14,7 +14,7 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
-stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
+stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTime -> ContractState
 stateTransition
   ev
   RiskFactorsPoly {..}

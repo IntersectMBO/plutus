@@ -1,4 +1,4 @@
-
+{-# LANGUAGE RecordWildCards #-}
 
 module Language.Marlowe.ACTUS.Model.Utility.DateShift
   ( applyBDC
@@ -6,14 +6,14 @@ module Language.Marlowe.ACTUS.Model.Utility.DateShift
   )
 where
 
-import           Data.Time                                        (Day, addDays, toGregorian)
+import           Data.Time                                        (LocalTime (..), addDays, toGregorian)
 import           Data.Time.Calendar.WeekDate                      (toWeekDate)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (BDC (..), Calendar (..), ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (..))
 
 {- Business Day Convention -}
 
-applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
+applyBDCWithCfg :: ScheduleConfig -> LocalTime -> ShiftedDay
 applyBDCWithCfg
   ScheduleConfig
     { bdc = Just bdc',
@@ -22,7 +22,7 @@ applyBDCWithCfg
   d = applyBDC bdc' calendar' d
 applyBDCWithCfg _ date = ShiftedDay {paymentDay = date, calculationDay = date}
 
-applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
+applyBDC :: BDC -> Calendar -> LocalTime -> ShiftedDay
 applyBDC BDC_NULL _ date =
   ShiftedDay { paymentDay = date, calculationDay = date }
 
@@ -66,49 +66,34 @@ applyBDC BDC_CSMP cal date = ShiftedDay
   , calculationDay = date
   }
 
+shiftModifiedFollowing :: LocalTime -> Calendar -> LocalTime
+shiftModifiedFollowing lt@LocalTime {..} cal =
+  let (_, month, _) = toGregorian localDay
+      st@LocalTime {localDay = stLocalDay} = getFollowingBusinessDay lt cal
+      (_, shiftedMonth, _) = toGregorian stLocalDay
+   in if month == shiftedMonth then st else getPreceedingBusinessDay lt cal
 
-shiftModifiedFollowing :: Day -> Calendar -> Day
-shiftModifiedFollowing date cal =
-  let (_, month, _)        = toGregorian date
-      shiftedFollowing     = getFollowingBusinessDay date cal
-      (_, shiftedMonth, _) = toGregorian shiftedFollowing
-  in  if month == shiftedMonth
-        then shiftedFollowing
-        else getPreceedingBusinessDay date cal
+shiftModifiedPreceeding :: LocalTime -> Calendar -> LocalTime
+shiftModifiedPreceeding lt@LocalTime {..} cal =
+  let (_, month, _) = toGregorian localDay
+      st@LocalTime {localDay = stLocalDay} = getPreceedingBusinessDay lt cal
+      (_, shiftedMonth, _) = toGregorian stLocalDay
+   in if month == shiftedMonth then st else getFollowingBusinessDay lt cal
 
-shiftModifiedPreceeding :: Day -> Calendar -> Day
-shiftModifiedPreceeding date cal =
-  let (_, month, _)        = toGregorian date
-      shiftedPreceeding    = getPreceedingBusinessDay date cal
-      (_, shiftedMonth, _) = toGregorian shiftedPreceeding
-  in  if month == shiftedMonth
-        then shiftedPreceeding
-        else getFollowingBusinessDay date cal
+getFollowingBusinessDay :: LocalTime -> Calendar -> LocalTime
+getFollowingBusinessDay LocalTime {..} CLDR_MF =
+  let day = case toWeekDate localDay of
+        (_, _, 6) -> addDays 2 localDay
+        (_, _, 7) -> addDays 1 localDay
+        _         -> localDay
+   in LocalTime {localDay = day, localTimeOfDay = localTimeOfDay}
+getFollowingBusinessDay lt _ = lt
 
-getFollowingBusinessDay :: Day -> Calendar -> Day
-getFollowingBusinessDay date cal =
-  case cal of
-    CLDR_MF ->
-      case toWeekDate date of
-        (_, _, 6) ->
-          addDays 2 date
-        (_, _, 7) ->
-          addDays 1 date
-        _ ->
-          date
-    CLDR_NC ->
-      date
-
-getPreceedingBusinessDay :: Day -> Calendar -> Day
-getPreceedingBusinessDay date cal =
-  case cal of
-    CLDR_MF ->
-      case toWeekDate date of
-        (_, _, 6) ->
-          addDays (-1) date
-        (_, _, 7) ->
-          addDays (-2) date
-        _ ->
-          date
-    CLDR_NC ->
-      date
+getPreceedingBusinessDay :: LocalTime -> Calendar -> LocalTime
+getPreceedingBusinessDay LocalTime {..} CLDR_MF =
+  let day = case toWeekDate localDay of
+        (_, _, 6) -> addDays (-1) localDay
+        (_, _, 7) -> addDays (-2) localDay
+        _         -> localDay
+   in LocalTime {localDay = day, localTimeOfDay = localTimeOfDay}
+getPreceedingBusinessDay lt _ = lt

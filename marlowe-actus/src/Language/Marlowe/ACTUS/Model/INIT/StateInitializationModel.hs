@@ -12,7 +12,7 @@ module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
 where
 
 import           Data.Maybe                                             (isJust, isNothing, maybeToList)
-import           Data.Time.Calendar                                     (Day)
+import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, CT (..), ContractTerms (..), Cycle (..),
@@ -103,10 +103,10 @@ initialize ct@ContractTerms {..} =
     r :: CR -> Double
     r = contractRoleSign
 
-    y :: DCC -> Day -> Day -> Maybe Day -> Double
+    y :: DCC -> LocalTime -> LocalTime -> Maybe LocalTime -> Double
     y = yearFraction
 
-    _S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
+    _S :: LocalTime -> Cycle -> LocalTime -> ScheduleConfig -> ShiftedSchedule
     _S = generateRecurrentScheduleWithCorrections
 
     scef_xNx :: SCEF -> Bool

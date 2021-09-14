@@ -1,9 +1,9 @@
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
-import           Data.Time                                        (Day)
+import           Data.Time                                        (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (PRF)
 
-type ContractState = ContractStatePoly Double Day
+type ContractState = ContractStatePoly Double LocalTime
 
 {-| ACTUS Contract states are defined in
     https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-states.json

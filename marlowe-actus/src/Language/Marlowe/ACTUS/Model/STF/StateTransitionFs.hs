@@ -3,7 +3,7 @@
 module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs (stateTransitionFs) where
 
 import           Data.Maybe                                             (maybeToList)
-import           Data.Time                                              (Day)
+import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
@@ -14,10 +14,10 @@ import           Language.Marlowe.ACTUS.Ops                             (YearFra
 import           Language.Marlowe                                       (Contract)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                   (ContractStateMarlowe, RiskFactorsMarlowe,
-                                                                         constnt, enum, letval, marloweDate,
+                                                                         constnt, enum, letval, marloweTime,
                                                                          stateTransitionMarlowe)
 
-stateTransitionFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> Day -> Day -> Contract -> Contract
+stateTransitionFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> LocalTime -> LocalTime -> Contract -> Contract
 stateTransitionFs
   ev
   RiskFactorsPoly{..}
@@ -193,7 +193,7 @@ stateTransitionFs
 
       stf _ _ st = st
 
-      interestPaymentAnchor = marloweDate <$> Just ipanx
+      interestPaymentAnchor = marloweTime <$> Just ipanx
       nominalInterestRate = constnt <$> ct_IPNR
       interestAccrued = constnt <$> ct_IPAC
       notionalPrincipal = constnt nt
@@ -204,7 +204,7 @@ stateTransitionFs
       interestCalculationBaseAmont = constnt <$> ct_IPCBA
       nextRateReset = constnt <$> ct_RRNXT
 
-      time = marloweDate curDate
+      time = marloweTime curDate
       fpSchedule = schedule FP ct
       prSchedule = schedule PR ct
 

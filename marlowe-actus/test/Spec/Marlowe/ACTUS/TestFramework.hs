@@ -21,7 +21,8 @@ import           Data.Map                                          as Map (Map, 
 import           Data.Maybe                                        (fromJust, fromMaybe)
 import           Data.Scientific                                   (toRealFloat)
 import           Data.Text                                         (unpack)
-import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
+import           Data.Time                                         (Day, LocalTime (..), defaultTimeLocale, parseTimeM)
+import           Data.Time.Format.ISO8601
 import           Data.Vector                                       as Vector (catMaybes, map, toList)
 import           GHC.Generics                                      (Generic)
 import           GHC.Records                                       (getField)
@@ -85,7 +86,7 @@ data ValuesObserved = ValuesObserved
   deriving (Show)
 
 data ValueObserved = ValueObserved
-  { timestamp :: Day
+  { timestamp :: LocalTime
   , value     :: Double
   }
   deriving (Show)
@@ -242,15 +243,15 @@ testToContractTerms TestCase{terms = t} =
 readMaybe :: (Read a) => Maybe String -> Maybe a
 readMaybe = fmap read
 
-parseMaybeDate :: Maybe String -> Maybe Day
+parseMaybeDate :: Maybe String -> Maybe LocalTime
 parseMaybeDate = maybe Nothing parseDate
 
-parseDate :: String -> Maybe Day
+parseDate :: String -> Maybe LocalTime
 parseDate date =
   let format | length date == 19 = "%Y-%-m-%-dT%T"
              | otherwise = "%Y-%-m-%-dT%H:%M"
   in
-    parseTimeM True defaultTimeLocale format date :: Maybe Day
+    parseTimeM True defaultTimeLocale format date :: Maybe LocalTime
 
 parseCycle :: String -> Maybe Cycle
 parseCycle (_ : rest) =

@@ -15,7 +15,7 @@ where
 import           Control.Applicative                                      (Alternative ((<|>)))
 import           Data.Ord                                                 (Down (..))
 import           Data.Sort                                                (sortOn)
-import           Data.Time                                                (Day)
+import           Data.Time                                                (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (CT (..), ContractTerms (..), Cycle (..),
                                                                            ScheduleConfig (..))
@@ -94,7 +94,7 @@ schedule ev c = schedule' ev c { ct_MD = maturity c }
 
     schedule' _ _                                         = Nothing
 
-maturity :: ContractTerms -> Maybe Day
+maturity :: ContractTerms -> Maybe LocalTime
 maturity ContractTerms {contractType = PAM, ..} = ct_MD
 maturity ContractTerms {contractType = LAM, ct_MD = md@(Just _)} = md
 maturity

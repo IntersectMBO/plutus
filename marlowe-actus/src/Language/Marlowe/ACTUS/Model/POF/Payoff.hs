@@ -2,14 +2,14 @@
 
 module Language.Marlowe.ACTUS.Model.POF.Payoff where
 
-import           Data.Time                                         (Day)
+import           Data.Time                                         (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactors, RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y))
 
-payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> Double
+payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTime -> Double
 -- IED
 payoff
   IED
