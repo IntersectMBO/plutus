@@ -225,6 +225,7 @@ data TxStatusFailure =
       -- state ... that we didn't know how to decode in
       -- 'Plutus.ChainIndex.TxIdState.transactionStatus'.
       TxIdStateInvalid BlockNumber TxId TxIdState
+      deriving (Show, Eq)
 
 data TxIdState = TxIdState
   { txnsConfirmed :: Map TxId TxConfirmedState
