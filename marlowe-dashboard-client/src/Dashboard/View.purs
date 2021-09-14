@@ -435,7 +435,7 @@ currentWalletCard walletDetails =
       [ h2
           [ classNames Css.cardHeader ]
           [ text $ "Wallet " <> walletNickname ]
-      , div [ classNames [ "p-4", "h-full", "flex", "flex-col" ] ]
+      , div [ classNames [ "p-4", "overflow-y-auto" ] ]
           [ div
               [ classNames Css.hasNestedLabel ]
               [ label
@@ -449,7 +449,7 @@ currentWalletCard walletDetails =
                   ]
               ]
           , div
-              [ classNames [ "mb-4", "flex-grow" ] ]
+              [ classNames [ "mb-4" ] ]
               [ h4
                   [ classNames [ "font-semibold" ] ]
                   [ text "Balance:" ]
