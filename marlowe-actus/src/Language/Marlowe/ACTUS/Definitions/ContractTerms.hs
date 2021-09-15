@@ -13,6 +13,7 @@ import           GHC.Generics     (Generic)
 data CT = PAM -- principal at maturity
         | LAM -- linear amortizer
         | NAM -- negative amortizer
+        | ANN -- annuity
         deriving stock (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- ContractRole
@@ -216,6 +217,7 @@ data ContractTerms = ContractTerms
   , ct_NT            :: Maybe Double   -- Notional Principal
   , ct_PDIED         :: Maybe Double   -- Premium Discount At IED
   , ct_MD            :: Maybe Day      -- Maturity Date
+  , ct_AD            :: Maybe Day      -- Amortization Date
   , ct_PRANX         :: Maybe Day      -- Cycle Anchor Date Of Principal Redemption
   , ct_PRCL          :: Maybe Cycle    -- Cycle Of Principal Redemption
   , ct_PRNXT         :: Maybe Double   -- Next Principal Redemption Payment
@@ -259,133 +261,40 @@ data ContractTerms = ContractTerms
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-defaultSCIP :: Double
-defaultSCIP = 1
-
-defaultPDIED :: Double
-defaultPDIED = 0
-
-defaultSCNT :: Double
-defaultSCNT = 1
-
-defaultPYRT :: Double
-defaultPYRT = 0
-
-defaultRRSP :: Double
-defaultRRSP = 0
-
-defaultRRMLT :: Double
-defaultRRMLT = 1.0
-
-infinity :: Double
-infinity = 1/0 :: Double
-
 setDefaultContractTermValues :: ContractTerms -> ContractTerms
 setDefaultContractTermValues ct@ContractTerms{..} =
-  let
-      ScheduleConfig{..} = scfg
-
-      eomc'     = Just $ fromMaybe EOMC_SD eomc
-
-      bdc'      = Just $ fromMaybe BDC_NULL bdc
-
-      calendar' = Just $ fromMaybe CLDR_NC calendar
-
-      ct_PRF'   = Just $ fromMaybe PRF_PF ct_PRF
-
-      ct_IPCB'  = Just $ fromMaybe IPCB_NT ct_IPCB
-
-      ct_SCIP'  = Just $ fromMaybe defaultSCIP ct_SCIP
-
-      ct_PDIED' = Just $ fromMaybe defaultPDIED ct_PDIED
-
-      ct_SCNT'  = Just $ fromMaybe defaultSCNT ct_SCNT
-
-      ct_SCEF'  = Just $ fromMaybe SE_000 ct_SCEF
-
-      ct_PYRT'  = Just $ fromMaybe defaultPYRT ct_PYRT
-
-      ct_PYTP'  = Just $ fromMaybe PYTP_O ct_PYTP
-
-      ct_PPEF'  = Just $ fromMaybe PPEF_N ct_PPEF
-
-      ct_RRSP'  = Just $ fromMaybe defaultRRSP ct_RRSP
-
-      ct_RRMLT' = Just $ fromMaybe defaultRRMLT ct_RRMLT
-
-      ct' =
-        case contractType of
-          PAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-            }
-
-          LAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-
-            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
-            }
-
-          NAM ->
-            ct {
-              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
-            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
-
-            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
-            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
-
-            , ct_PDIED         = Just $ fromMaybe 0.0 ct_PDIED
-            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
-            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
-            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
-
-            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
-            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
-            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
-            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
-
-            , ct_IPCBA         = Just $ fromMaybe 0.0 ct_IPCBA
-            }
-  in
-    ct' {
-      scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' }
-    , ct_PRF   = ct_PRF'
-    , ct_IPCB  = ct_IPCB'
-    , ct_SCIP  = ct_SCIP'
-    , ct_PDIED = ct_PDIED'
-    , ct_SCNT  = ct_SCNT'
-    , ct_SCEF  = ct_SCEF'
-    , ct_PYRT  = ct_PYRT'
-    , ct_PYTP  = ct_PYTP'
-    , ct_PPEF  = ct_PPEF'
-    , ct_RRSP  = ct_RRSP'
-    , ct_RRMLT = ct_RRMLT'
+  let ScheduleConfig{..} = scfg in
+    ct {
+      scfg     = scfg
+        { eomc = applyDefault EOMC_SD eomc
+        , bdc = applyDefault BDC_NULL bdc
+        , calendar = applyDefault CLDR_NC calendar
+        }
+    , ct_PRF   = applyDefault PRF_PF ct_PRF
+    , ct_IPCB  = applyDefault IPCB_NT ct_IPCB
+    , ct_PDIED = applyDefault 0.0 ct_PDIED
+    , ct_SCEF  = applyDefault SE_000 ct_SCEF
+    , ct_PYRT  = applyDefault 0.0 ct_PYRT
+    , ct_PYTP  = applyDefault PYTP_O ct_PYTP
+    , ct_PPEF  = applyDefault PPEF_N ct_PPEF
+    , ct_RRSP  = applyDefault 0.0 ct_RRSP
+    , ct_RRMLT = applyDefault 1.0 ct_RRMLT
+    , ct_FEAC  = applyDefault 0.0 ct_FEAC
+    , ct_FER   = applyDefault 0.0 ct_FER
+    , ct_IPAC  = applyDefault 0.0 ct_IPAC
+    , ct_IPNR  = applyDefault 0.0 ct_IPNR
+    , ct_PPRD  = applyDefault 0.0 ct_PPRD
+    , ct_PTD   = applyDefault 0.0 ct_PTD
+    , ct_SCCDD = applyDefault 0.0 ct_SCCDD
+    , ct_RRPF  = applyDefault (-infinity) ct_RRPF
+    , ct_RRPC  = applyDefault infinity ct_RRPC
+    , ct_RRLC  = applyDefault infinity ct_RRLC
+    , ct_RRLF  = applyDefault (-infinity) ct_RRLF
+    , ct_IPCBA = applyDefault 0.0 ct_IPCBA
     }
+  where
+    infinity :: Double
+    infinity = 1/0 :: Double
+
+    applyDefault :: a -> Maybe a -> Maybe a
+    applyDefault v = Just . fromMaybe v

@@ -47,10 +47,10 @@ data Builtin : Set where
   decodeUtf8               : Builtin  
   -- Bool
   ifThenElse               : Builtin
-  -- Tracing
-  trace                    : Builtin
   -- Unit
   chooseUnit               : Builtin
+  -- Tracing
+  trace                    : Builtin
   -- Pairs
   fstPair                  : Builtin
   sndPair                  : Builtin
@@ -139,10 +139,12 @@ data Builtin : Set where
 postulate
   length     : ByteString → Int
   index      : ByteString → Int → Int
-  div            : Int → Int → Int
-  quot           : Int → Int → Int
-  rem            : Int → Int → Int
-  mod            : Int → Int → Int
+  div        : Int → Int → Int
+  quot       : Int → Int → Int
+  rem        : Int → Int → Int
+  mod        : Int → Int → Int
+  
+  TRACE      : {a : Set} → String → a → a
 
   concat    : ByteString → ByteString → ByteString
   cons  : Int → ByteString → ByteString
@@ -167,6 +169,7 @@ postulate
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
+{-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
@@ -183,6 +186,8 @@ postulate
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
+
+{-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
 {-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}

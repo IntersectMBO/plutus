@@ -11,6 +11,11 @@
     )
     (termbind
       (strict)
+      (vardecl fail (fun (all a (type) a) Bool))
+      (lam ds (all a (type) a) False)
+    )
+    (termbind
+      (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
       (builtin equalsInteger)
     )
@@ -38,43 +43,35 @@
       (lam
         ds
         (con integer)
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl fail (fun (all a (type) a) Bool))
-            (lam ds (all a (type) a) False)
-          )
-          {
+        {
+          [
             [
-              [
+              {
+                [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                (all dead (type) Bool)
+              }
+              (abs
+                dead
+                (type)
                 {
-                  [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                  (all dead (type) Bool)
-                }
-                (abs
-                  dead
-                  (type)
-                  {
+                  [
                     [
-                      [
-                        {
-                          [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                          (all dead (type) Bool)
-                        }
-                        (abs dead (type) True)
-                      ]
-                      (abs dead (type) [ fail (abs e (type) (error e)) ])
+                      {
+                        [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                        (all dead (type) Bool)
+                      }
+                      (abs dead (type) True)
                     ]
-                    (all dead (type) dead)
-                  }
-                )
-              ]
-              (abs dead (type) [ fail (abs e (type) (error e)) ])
+                    (abs dead (type) [ fail (abs e (type) (error e)) ])
+                  ]
+                  (all dead (type) dead)
+                }
+              )
             ]
-            (all dead (type) dead)
-          }
-        )
+            (abs dead (type) [ fail (abs e (type) (error e)) ])
+          ]
+          (all dead (type) dead)
+        }
       )
     )
   )

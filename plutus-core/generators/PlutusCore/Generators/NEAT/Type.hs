@@ -42,7 +42,7 @@ data TypeBuiltinG = TyByteStringG
                   | TyBoolG
                   | TyUnitG
                   | TyStringG
-                  | TyListG
+                  | TyListG TypeBuiltinG
                   | TyDataG
                       deriving (Show, Eq, Ord)
 

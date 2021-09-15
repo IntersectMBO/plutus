@@ -3,7 +3,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE NamedFieldPuns        #-}
+
 {-# LANGUAGE OverloadedStrings     #-}
 
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
@@ -21,13 +21,24 @@ import           Data.Text                                         (unpack)
 import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
 import           Data.Vector                                       as Vector (map, toList)
 import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (DataObserved, EventType,
-                                                                    ValueObserved (ValueObserved, timestamp, value),
-                                                                    ValuesObserved (ValuesObserved, identifier, values))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
 import           Test.Tasty.HUnit                                  (assertBool)
 
+type DataObserved = Map String ValuesObserved
+
+data ValuesObserved = ValuesObserved
+  { identifier :: String
+  , values     :: [ValueObserved]
+  }
+  deriving (Show)
+
+data ValueObserved = ValueObserved
+  { timestamp :: Day
+  , value     :: Double
+  }
+  deriving (Show)
 
 data TestResult = TestResult{
     eventDate           :: String
@@ -60,41 +71,41 @@ termsToString = Map.map (\case
 parseObservedValues :: Map String Value -> DataObserved
 parseObservedValues =
   Map.map(\(Object valuesObserved) ->
-    let String identifier = valuesObserved HashMap.! "identifier"
-        Array values = valuesObserved HashMap.! "data"
+    let String identifier' = valuesObserved HashMap.! "identifier"
+        Array values' = valuesObserved HashMap.! "data"
     in
       ValuesObserved{
-        identifier = unpack identifier
+        identifier = unpack identifier'
       , values = Vector.toList $
           Vector.map (\(Object observedValue) ->
-            let String timestamp = observedValue HashMap.! "timestamp"
-                String value = observedValue HashMap.! "value"
+            let String timestamp' = observedValue HashMap.! "timestamp"
+                String value' = observedValue HashMap.! "value"
             in
               ValueObserved{
-                timestamp = fromJust $ parseMaybeDate $ Just $ unpack timestamp
-              , value = read (unpack value) :: Double
+                timestamp = fromJust $ parseMaybeDate $ Just $ unpack timestamp'
+              , value = read (unpack value') :: Double
               }
-          ) values
+          ) values'
       }
   )
 
 assertTestResults :: [CashFlow] -> [TestResult] -> String -> IO ()
 assertTestResults [] [] _ = return ()
-assertTestResults (cashFlow: restCash) (testResult: restTest) identifier = do
-  assertTestResult cashFlow testResult identifier
-  assertTestResults restCash restTest identifier
+assertTestResults (cashFlow: restCash) (testResult: restTest) identifier' = do
+  assertTestResult cashFlow testResult identifier'
+  assertTestResults restCash restTest identifier'
 
 assertTestResult :: CashFlow -> TestResult -> String -> IO ()
 assertTestResult
-  CashFlow{cashPaymentDay = date, cashEvent = event, amount = payoff}
-  testResult@TestResult{eventDate = testDate, eventType = testEvent, payoff = testPayoff} identifier = do
-    assertBool ("[" ++ show identifier ++ "] Generated event and test event types should be the same: actual " ++ show event ++ ", expected for " ++ show testResult) $ event == (read testEvent :: EventType)
-    assertBool ("Generated date and test date should be the same: actual " ++ show date ++ ", expected for " ++ show testResult ++ " in " ++ identifier) (date == (fromJust $ parseDate testDate))
-    assertBool ("[" ++ show identifier ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff ++ ", expected for " ++ show testResult) $ (realToFrac payoff :: Float) == (realToFrac testPayoff :: Float)
+  CashFlow{cashPaymentDay = date, cashEvent = event, amount = payoff'}
+  testResult@TestResult{eventDate = testDate, eventType = testEvent, payoff = testPayoff} identifier' = do
+    assertBool ("[" ++ show identifier' ++ "] Generated event and test event types should be the same: actual " ++ show event ++ ", expected for " ++ show testResult) $ event == (read testEvent :: EventType)
+    assertBool ("Generated date and test date should be the same: actual " ++ show date ++ ", expected for " ++ show testResult ++ " in " ++ identifier') (date == (fromJust $ parseDate testDate))
+    assertBool ("[" ++ show identifier' ++ "]  Generated payoff and test payoff should be the same: actual " ++ show payoff' ++ ", expected for " ++ show testResult) $ (realToFrac payoff' :: Float) == (realToFrac testPayoff :: Float)
 
 testToContractTerms :: TestCase -> ContractTerms
-testToContractTerms TestCase{terms = terms} =
-  let terms' = termsToString terms
+testToContractTerms TestCase{terms = t} =
+  let terms' = termsToString t
   in ContractTerms
      {
        contractId       = terms' Map.! "contractID"
@@ -128,6 +139,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_NT            = readMaybe $ Map.lookup "notionalPrincipal" terms' :: Maybe Double
      , ct_PDIED         = readMaybe $ Map.lookup "premiumDiscountAtIED" terms' :: Maybe Double
      , ct_MD            = parseMaybeDate $ Map.lookup "maturityDate" terms'
+     , ct_AD            = parseMaybeDate $ Map.lookup "amortizationDate" terms'
      , ct_PRANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfPrincipalRedemption" terms'
      , ct_PRCL          = parseMaybeCycle $ Map.lookup "cycleOfPrincipalRedemption" terms'
      , ct_PRNXT         = readMaybe $ Map.lookup "nextPrincipalRedemptionPayment" terms' :: Maybe Double
@@ -138,7 +150,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_SCIED         = readMaybe $ Map.lookup "scalingIndexAtStatusDate" terms' :: Maybe Double
      , ct_SCANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfScalingIndex" terms'
      , ct_SCCL          = parseMaybeCycle $ Map.lookup "cycleOfScalingIndex" terms'
-     , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
+     , ct_SCEF          = readMaybe (replace "O" "0" <$> (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
      , ct_SCCDD         = readMaybe $ Map.lookup "scalingIndexAtContractDealDate" terms' :: Maybe Double
      , ct_SCMO          = Map.lookup "marketObjectCodeOfScalingIndex" terms'
      , ct_SCNT          = readMaybe $ Map.lookup "notionalScalingMultiplier" terms' :: Maybe Double
@@ -180,10 +192,10 @@ parseMaybeCycle :: Maybe String -> Maybe Cycle
 parseMaybeCycle stringCycle =
   case stringCycle of
     Just (_:stringCycle') ->
-      let n = read (takeWhile (< 'A') stringCycle') :: Integer
-          [p, _, s] = dropWhile (< 'A') stringCycle'
+      let n' = read (takeWhile (< 'A') stringCycle') :: Integer
+          [p', _, s] = dropWhile (< 'A') stringCycle'
       in
-          Just Cycle { n = n, p = read $ "P_" ++ [p] :: Period, stub = parseStub [s], includeEndDay = False }
+          Just Cycle { n = n', p = read $ "P_" ++ [p'] :: Period, stub = parseStub [s], includeEndDay = False }
     Nothing ->
       Nothing
 
@@ -202,6 +214,3 @@ maybeDCCFromString dcc =
 
 maybeConcatPrefix :: String -> Maybe String -> Maybe String
 maybeConcatPrefix prefix = fmap (prefix ++)
-
-maybeReplace :: String -> String -> Maybe String -> Maybe String
-maybeReplace from to = fmap (replace from to)
