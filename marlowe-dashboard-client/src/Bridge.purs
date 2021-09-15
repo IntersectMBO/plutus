@@ -14,6 +14,7 @@ import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
 import Data.Tuple.Nested ((/\))
+import Data.Json.JsonNTuple (JsonNTuple(..))
 import Marlowe.PAB (PlutusAppId(..)) as Front
 import Marlowe.Semantics (Assets(..), Slot(..), SlotInterval(..)) as Front
 import Network.RemoteData (RemoteData)
@@ -71,6 +72,10 @@ instance jsonTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonTuple a b) (
   toFront (JsonTuple tuple) = JsonTuple $ toFront tuple
   toBack (JsonTuple tuple) = JsonTuple $ toBack tuple
 
+instance jsonNTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonNTuple a b) (JsonNTuple c d) where
+  toFront (JsonNTuple a b) = JsonNTuple (toFront a) (toFront b)
+  toBack (JsonNTuple a b) = JsonNTuple (toBack a) (toBack b)
+
 instance arrayBridge :: Bridge a b => Bridge (Array a) (Array b) where
   toFront = map toFront
   toBack = map toBack
@@ -87,6 +92,7 @@ instance slotBridge :: Bridge Back.Slot Front.Slot where
   toFront slot@(Back.Slot { getSlot }) = Front.Slot getSlot
   toBack (Front.Slot slot) = Back.Slot { getSlot: slot }
 
+-- FIXME remove
 instance slotIntervalBridge :: Bridge (JsonTuple Back.Slot Back.Slot) Front.SlotInterval where
   toFront (JsonTuple (Tuple slot1 slot2)) = Front.SlotInterval (toFront slot1) (toFront slot2)
   toBack (Front.SlotInterval slot1 slot2) = JsonTuple $ Tuple (toBack slot1) (toBack slot2)

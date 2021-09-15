@@ -19,8 +19,7 @@ import Capability.PlutusApps.MarloweApp.Lenses (_applyInputs, _create, _marloweA
 import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, MarloweAppEndpointMutexEnv)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Foldable (elem)
-import Data.Json.JsonTriple (JsonTriple(..))
-import Data.Json.JsonTuple (JsonTuple)
+import Data.Json.JsonNTuple ((/\), type (/\)) as Json
 import Data.Lens (toArrayOf, traversed, view)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -31,7 +30,7 @@ import Effect.AVar as EAVar
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Contract, MarloweParams, TokenName, TransactionInput(..))
+import Marlowe.Semantics (Contract, MarloweParams, SlotInterval(..), TokenName, TransactionInput(..))
 import Plutus.Contract.Effects (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Slot (Slot) as Back
@@ -56,19 +55,19 @@ instance marloweAppM :: MarloweApp AppM where
     mutex <- asks $ view (_marloweAppEndpointMutex <<< _create)
     liftAff $ AVar.take mutex
     Contract.invokeEndpoint plutusAppId "create" (backRoles /\ contract)
-  applyInputs plutusAppId marloweContractId (TransactionInput { interval, inputs }) = do
+  applyInputs plutusAppId marloweContractId (TransactionInput { interval: SlotInterval slotStart slotEnd, inputs }) = do
     let
-      backSlotInterval :: JsonTuple Back.Slot Back.Slot
-      backSlotInterval = toBack interval
+      backSlotInterval :: Back.Slot Json./\ Back.Slot
+      backSlotInterval = (toBack slotStart) Json./\ (toBack slotEnd)
 
-      payload = JsonTriple (marloweContractId /\ (Just backSlotInterval) /\ inputs)
+      payload = marloweContractId Json./\ Just backSlotInterval Json./\ inputs
     mutex <- asks $ view (_marloweAppEndpointMutex <<< _applyInputs)
     liftAff $ AVar.take mutex
     Contract.invokeEndpoint plutusAppId "apply-inputs" payload
   redeem plutusAppId marloweContractId tokenName pubKeyHash = do
     let
-      payload :: JsonTriple MarloweParams Back.TokenName Back.PubKeyHash
-      payload = JsonTriple (marloweContractId /\ toBack tokenName /\ toBack pubKeyHash)
+      payload :: MarloweParams Json./\ Back.TokenName Json./\ Back.PubKeyHash
+      payload = marloweContractId Json./\ toBack tokenName Json./\ toBack pubKeyHash
     mutex <- asks $ view (_marloweAppEndpointMutex <<< _redeem)
     -- TODO: we could later add a forkAff with a timer that unlocks this timer if we
     --       dont get a response
