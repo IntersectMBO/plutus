@@ -141,7 +141,8 @@ typeCheckTerm t = do
 check :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
 check arg = do
     shouldCheck <- view (ccOpts . coPedantic)
-    if shouldCheck then typeCheckTerm arg else pure ()
+    -- the typechecker requires global uniqueness, so rename here
+    if shouldCheck then typeCheckTerm =<< PLC.rename arg else pure ()
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
