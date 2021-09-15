@@ -21,6 +21,15 @@ payoff
     }
   _
   _ = _POF_IED_PAM o_rf_CURS cntrl notionalPrincipal pdied
+payoff
+  IED
+  RiskFactorsPoly {..}
+  ContractTerms
+    { ct_NT = Just notionalPrincipal,
+      ct_CNTRL = cntrl
+    }
+  _
+  _ = _POF_IED_PAM o_rf_CURS cntrl notionalPrincipal 0.0
 -- PR
 payoff
   PR

@@ -2,7 +2,7 @@
 
 module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 
-import           Data.Maybe                                             (maybeToList)
+import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors,
                                                                          RiskFactorsPoly (..))
@@ -20,7 +20,6 @@ stateTransition
   RiskFactorsPoly {..}
   ct@ContractTerms
     { ct_DCC = Just dayCountConvention,
-      ct_FER = Just feeRate,
       ct_IPANX = ipanx@(Just interestPaymentAnchor),
       ..
     }
@@ -154,6 +153,7 @@ stateTransition
       stf CE _ = _STF_CE_PAM st t y_sd_t
       stf _ _ = st
 
+      feeRate = fromMaybe 0.0 ct_FER
       fpSchedule = schedule FP ct
       prSchedule = schedule PR ct
 

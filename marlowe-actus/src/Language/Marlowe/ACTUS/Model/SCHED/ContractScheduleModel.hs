@@ -48,6 +48,7 @@ _SCHED_FP_PAM ContractTerms{..} =
           | otherwise                               = ct_FEANX
 
         r | ct_FER == Just 0.0                      = Nothing
+          | isNothing ct_FER                        = Nothing
           | otherwise                               = _S s ((\c -> c {includeEndDay = True}) <$> ct_FECL) ct_MD (Just scfg)
     in r
 

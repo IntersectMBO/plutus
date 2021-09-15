@@ -182,11 +182,11 @@ initialize ct@ContractTerms {..} =
             } = feac
     feeAccrued
         ContractTerms
-            { ct_FEB = Just feb,
+            { ct_FEB = Just FEB_N,
               ct_DCC = Just dayCountConvention,
               ct_FER = Just fer,
               ct_NT = Just notionalPrincipal
-            } | feb == FEB_N = Just $ y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
+            } = Just $ y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
     feeAccrued
         ContractTerms
             { ct_DCC = Just dayCountConvention,

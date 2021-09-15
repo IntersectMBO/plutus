@@ -44,116 +44,114 @@ tests = testGroup "Marlowe represenation of sample ACTUS contracts"
 example01 :: IO ()
 example01 =
   let ct =
-        setDefaultContractTermValues $
-          ContractTerms
-            { contractId = "0",
-              contractType = PAM,
-              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
-              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
-              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
-              ct_AD = Nothing,
-              ct_TD = Nothing,
-              ct_PRNXT = Nothing,
-              ct_PRD = Nothing,
-              ct_CNTRL = CR_RPA,
-              ct_PDIED = Nothing,
-              ct_NT = Just 10000.0,
-              ct_PPRD = Nothing,
-              ct_PTD = Nothing,
-              ct_DCC = Just DCC_E30_360,
-              ct_PPEF = Just PPEF_N,
-              ct_PRF = Nothing,
-              scfg =
-                ScheduleConfig
-                  { calendar = Just CLDR_NC,
-                    eomc = Just EOMC_EOM,
-                    bdc = Just BDC_NULL
-                  },
-              -- Penalties
-              ct_PYRT = Nothing,
-              ct_PYTP = Nothing,
-              -- Optionality
-              ct_OPCL = Nothing,
-              ct_OPANX = Nothing,
-              -- Scaling
-              ct_SCIP = Nothing,
-              ct_SCIED = Nothing,
-              ct_SCEF = Nothing,
-              ct_SCCDD = Nothing,
-              ct_SCMO = Nothing,
-              ct_SCNT = Nothing,
-              ct_SCCL = Nothing,
-              ct_SCANX = Nothing,
-              -- Rate Reset
-              ct_RRCL = Nothing,
-              ct_RRANX = Nothing,
-              ct_RRNXT = Nothing,
-              ct_RRSP = Nothing,
-              ct_RRMLT = Nothing,
-              ct_RRPF = Nothing,
-              ct_RRPC = Nothing,
-              ct_RRLC = Nothing,
-              ct_RRLF = Nothing,
-              ct_RRMO = Nothing,
-              -- Interest
-              ct_IPCED = Nothing,
-              ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
-              ct_IPNR = Just 0.02,
-              ct_IPAC = Just 0.0,
-              ct_PRCL = Nothing,
-              ct_PRANX = Nothing,
-              ct_IPCB = Just IPCB_NT,
-              ct_IPCBA = Nothing,
-              ct_IPCBCL = Nothing,
-              ct_IPCBANX = Nothing,
-              -- Fee
-              ct_FECL = Nothing,
-              ct_FEANX = Nothing,
-              ct_FEAC = Nothing,
-              ct_FEB = Just FEB_N,
-              ct_FER = Nothing,
-              ct_CURS = Nothing,
-              enableSettlement = False,
-              constraints = Nothing,
-              collateralAmount = 0
-            }
+        ContractTerms
+          { contractId = "0",
+            contractType = PAM,
+            ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+            ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+            ct_MD = iso8601ParseM "2030-01-01T00:00:00",
+            ct_AD = Nothing,
+            ct_TD = Nothing,
+            ct_PRNXT = Nothing,
+            ct_PRD = Nothing,
+            ct_CNTRL = CR_RPA,
+            ct_PDIED = Nothing,
+            ct_NT = Just 10000.0,
+            ct_PPRD = Nothing,
+            ct_PTD = Nothing,
+            ct_DCC = Just DCC_E30_360,
+            ct_PPEF = Just PPEF_N,
+            ct_PRF = Just PRF_PF,
+            scfg =
+              ScheduleConfig
+                { calendar = Just CLDR_NC,
+                  eomc = Just EOMC_EOM,
+                  bdc = Just BDC_NULL
+                },
+            -- Penalties
+            ct_PYRT = Nothing,
+            ct_PYTP = Just PYTP_O, -- no penalty
+            -- Optionality
+            ct_OPCL = Nothing,
+            ct_OPANX = Nothing,
+            -- Scaling
+            ct_SCIP = Nothing,
+            ct_SCIED = Nothing,
+            ct_SCEF = Nothing,
+            ct_SCCDD = Nothing,
+            ct_SCMO = Nothing,
+            ct_SCNT = Nothing,
+            ct_SCCL = Nothing,
+            ct_SCANX = Nothing,
+            -- Rate Reset
+            ct_RRCL = Nothing,
+            ct_RRANX = Nothing,
+            ct_RRNXT = Nothing,
+            ct_RRSP = Nothing,
+            ct_RRMLT = Nothing,
+            ct_RRMO = Nothing,
+            ct_RRPF  = Nothing,
+            ct_RRPC  = Nothing,
+            ct_RRLC  = Nothing,
+            ct_RRLF  = Nothing,
+            -- Interest
+            ct_IPCED = Nothing,
+            ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
+            ct_IPNR = Just 0.02,
+            ct_IPAC = Just 0.0,
+            ct_PRCL = Nothing,
+            ct_PRANX = Nothing,
+            ct_IPCB = Just IPCB_NT,
+            ct_IPCBA = Nothing,
+            ct_IPCBCL = Nothing,
+            ct_IPCBANX = Nothing,
+            -- Fee
+            ct_FECL = Nothing,
+            ct_FEANX = Nothing,
+            ct_FEAC = Nothing,
+            ct_FEB = Nothing,
+            ct_FER = Nothing,
+            ct_CURS = Nothing,
+            enableSettlement = False,
+            constraints = Nothing,
+            collateralAmount = 0
+          }
    in case genFsContract ct of
         Failure _ -> assertFailure "Terms validation should not fail"
-        Success contract -> do
-          let principal = IDeposit (Role "counterparty") "counterparty" ada 10000
-              ip = IDeposit (Role "party") "party" ada 200
-              redemption = IDeposit (Role "party") "party" ada 10000
+        Success contract ->
+            let principal = IDeposit (Role "counterparty") "counterparty" ada 10000
+                ip = IDeposit (Role "party") "party" ada 200
+                redemption = IDeposit (Role "party") "party" ada 10000
 
-              out =
-                computeTransaction
-                  ( TransactionInput
-                      (0, 0)
-                      [ principal,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        ip,
-                        redemption
-                      ]
-                  )
-                  (emptyState 0)
-                  contract
+                out =
+                  computeTransaction
+                    ( TransactionInput
+                        (0, 0)
+                        [ principal,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          ip,
+                          redemption
+                        ]
+                    )
+                    (emptyState 0)
+                    contract
+             in case out of
+                  Error _ -> assertFailure "Transactions are not expected to fail"
+                  TransactionOutput txWarn txPay _ con -> do
+                    assertBool "Contract is in Close" $ con == Close
+                    assertBool "No warnings" $ null txWarn
 
-           in case out of
-                Error _ -> assertFailure "Transactions are not expected to fail"
-                TransactionOutput txWarn txPay _ con -> do
-                  assertBool "Contract is in Close" $ con == Close
-                  assertBool "No warnings" $ null txWarn
-
-                  assertBool "total payments to party" (totalPayments (Party "party") txPay == 10000)
-                  assertBool "total payments to counterparty" (totalPayments (Party "counterparty") txPay == 12000)
+                    assertBool "total payments to party" (totalPayments (Party "party") txPay == 10000)
+                    assertBool "total payments to counterparty" (totalPayments (Party "counterparty") txPay == 12000)
 
 -- |example02 defines a contract of type LAM
 --
@@ -177,80 +175,79 @@ example01 =
 example02 :: IO ()
 example02 =
   let ct =
-        setDefaultContractTermValues $
-          ContractTerms
-            { contractId = "0",
-              contractType = LAM,
-              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
-              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
-              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
-              ct_AD = Nothing,
-              ct_TD = Nothing,
-              ct_PRNXT = Just 1000.0,
-              ct_PRD = Nothing,
-              ct_CNTRL = CR_RPA,
-              ct_PDIED = Nothing,
-              ct_NT = Just 10000.0,
-              ct_PPRD = Nothing,
-              ct_PTD = Nothing,
-              ct_DCC = Just DCC_E30_360,
-              ct_PPEF = Just PPEF_N,
-              ct_PRF = Nothing,
-              scfg =
-                ScheduleConfig
-                  { calendar = Just CLDR_NC,
-                    eomc = Just EOMC_EOM,
-                    bdc = Just BDC_NULL
-                  },
-              -- Penalties
-              ct_PYRT = Nothing,
-              ct_PYTP = Nothing,
-              -- Optionality
-              ct_OPCL = Nothing,
-              ct_OPANX = Nothing,
-              -- Scaling
-              ct_SCIP = Nothing,
-              ct_SCIED = Nothing,
-              ct_SCEF = Nothing,
-              ct_SCCDD = Nothing,
-              ct_SCMO = Nothing,
-              ct_SCNT = Nothing,
-              ct_SCCL = Nothing,
-              ct_SCANX = Nothing,
-              -- Rate Reset
-              ct_RRCL = Nothing,
-              ct_RRANX = Nothing,
-              ct_RRNXT = Nothing,
-              ct_RRSP = Nothing,
-              ct_RRMLT = Just 1.0,
-              ct_RRPF = Nothing,
-              ct_RRPC = Nothing,
-              ct_RRLC = Nothing,
-              ct_RRLF = Nothing,
-              ct_RRMO = Nothing,
-              -- Interest
-              ct_IPCED = Nothing,
-              ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
-              ct_IPNR = Just 0.02,
-              ct_IPAC = Just 0.0,
-              ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
-              ct_IPCB = Just IPCB_NT,
-              ct_IPCBA = Nothing,
-              ct_IPCBCL = Nothing,
-              ct_IPCBANX = Nothing,
-              -- Fee
-              ct_FECL = Nothing,
-              ct_FEANX = Nothing,
-              ct_FEAC = Nothing,
-              ct_FEB = Just FEB_N,
-              ct_FER = Nothing,
-              ct_CURS = Nothing,
-              enableSettlement = False,
-              constraints = Nothing,
-              collateralAmount = 0
-            }
+        ContractTerms
+          { contractId = "0",
+            contractType = LAM,
+            ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+            ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+            ct_MD = iso8601ParseM "2030-01-01T00:00:00",
+            ct_AD = Nothing,
+            ct_TD = Nothing,
+            ct_PRNXT = Just 1000.0,
+            ct_PRD = Nothing,
+            ct_CNTRL = CR_RPA,
+            ct_PDIED = Nothing,
+            ct_NT = Just 10000.0,
+            ct_PPRD = Nothing,
+            ct_PTD = Nothing,
+            ct_DCC = Just DCC_E30_360,
+            ct_PPEF = Just PPEF_N,
+            ct_PRF = Just PRF_PF,
+            scfg =
+              ScheduleConfig
+                { calendar = Just CLDR_NC,
+                  eomc = Just EOMC_EOM,
+                  bdc = Just BDC_NULL
+                },
+            -- Penalties
+            ct_PYRT = Nothing,
+            ct_PYTP = Just PYTP_O, -- no penalty
+            -- Optionality
+            ct_OPCL = Nothing,
+            ct_OPANX = Nothing,
+            -- Scaling
+            ct_SCIP = Nothing,
+            ct_SCIED = Nothing,
+            ct_SCEF = Nothing,
+            ct_SCCDD = Nothing,
+            ct_SCMO = Nothing,
+            ct_SCNT = Nothing,
+            ct_SCCL = Nothing,
+            ct_SCANX = Nothing,
+            -- Rate Reset
+            ct_RRCL = Nothing,
+            ct_RRANX = Nothing,
+            ct_RRNXT = Nothing,
+            ct_RRSP = Nothing,
+            ct_RRMLT = Nothing,
+            ct_RRPF = Nothing,
+            ct_RRPC = Nothing,
+            ct_RRLC = Nothing,
+            ct_RRLF = Nothing,
+            ct_RRMO = Nothing,
+            -- Interest
+            ct_IPCED = Nothing,
+            ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
+            ct_IPNR = Just 0.02,
+            ct_IPAC = Just 0.0,
+            ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
+            ct_IPCB = Just IPCB_NT,
+            ct_IPCBA = Nothing,
+            ct_IPCBCL = Nothing,
+            ct_IPCBANX = Nothing,
+            -- Fee
+            ct_FECL = Nothing,
+            ct_FEANX = Nothing,
+            ct_FEAC = Nothing,
+            ct_FEB = Nothing,
+            ct_FER = Nothing,
+            ct_CURS = Nothing,
+            enableSettlement = False,
+            constraints = Nothing,
+            collateralAmount = 0
+          }
    in case genFsContract ct of
         Failure _ -> assertFailure "Terms validation should not fail"
         Success contract -> do
@@ -261,19 +258,18 @@ example02 =
                 computeTransaction
                   ( TransactionInput
                       (0, 0)
-                      [
-                        principal
-                      , pr 1000, ip 200
-                      , pr 1000, ip 180
-                      , pr 1000, ip 160
-                      , pr 1000, ip 140
-                      , pr 1000, ip 120
-                      , pr 1000, ip 100
-                      , pr 1000, ip 80
-                      , pr 1000, ip 60
-                      , pr 1000, ip 40
-                      ,          ip 20
-                      , pr 1000
+                      [ principal,
+                        pr 1000, ip 200,
+                        pr 1000, ip 180,
+                        pr 1000, ip 160,
+                        pr 1000, ip 140,
+                        pr 1000, ip 120,
+                        pr 1000, ip 100,
+                        pr 1000, ip 80,
+                        pr 1000, ip 60,
+                        pr 1000, ip 40,
+                                 ip 20,
+                        pr 1000
                       ]
                   )
                   (emptyState 0)
@@ -310,81 +306,80 @@ example02 =
 example03 :: IO ()
 example03 =
   let ct =
-        setDefaultContractTermValues $
-          ContractTerms
-            { contractId = "0",
-              contractType = NAM,
-              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
-              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
-              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
-              ct_AD = Nothing,
-              ct_TD = Nothing,
-              ct_PRNXT = Just 1000.0,
-              ct_PRD = Nothing,
-              ct_CNTRL = CR_RPA,
-              ct_PDIED = Nothing,
-              ct_NT = Just 10000.0,
-              ct_PPRD = Nothing,
-              ct_PTD = Nothing,
-              ct_DCC = Just DCC_E30_360,
-              ct_PPEF = Just PPEF_N,
-              ct_PRF = Nothing,
-              scfg =
-                ScheduleConfig
-                  { calendar = Just CLDR_NC,
-                    eomc = Just EOMC_EOM,
-                    bdc = Just BDC_NULL
-                  },
-              -- Penalties
-              ct_PYRT = Nothing,
-              ct_PYTP = Nothing,
-              -- Optionality
-              ct_OPCL = Nothing,
-              ct_OPANX = Nothing,
-              -- Scaling
-              ct_SCIP = Nothing,
-              ct_SCIED = Nothing,
-              ct_SCEF = Nothing,
-              ct_SCCDD = Nothing,
-              ct_SCMO = Nothing,
-              ct_SCNT = Nothing,
-              ct_SCCL = Nothing,
-              ct_SCANX = Nothing,
-              -- Rate Reset
-              ct_RRCL = Nothing,
-              ct_RRANX = Nothing,
-              ct_RRNXT = Nothing,
-              ct_RRSP = Nothing,
-              ct_RRMLT = Nothing,
-              ct_RRPF = Nothing,
-              ct_RRPC = Nothing,
-              ct_RRLC = Nothing,
-              ct_RRLF = Nothing,
-              ct_RRMO = Nothing,
-              -- Interest
-              ct_IPCED = Nothing,
-              ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
-              ct_IPNR = Just 0.02,
-              ct_IPAC = Just 0.0,
-              ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
-              ct_IPCB = Just IPCB_NT,
-              ct_IPCBA = Just 1000,
-              ct_IPCBCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPCBANX = iso8601ParseM "2021-01-01T00:00:00",
-              -- Fee
-              ct_FECL = Nothing,
-              ct_FEANX = Nothing,
-              ct_FEAC = Nothing,
-              ct_FEB = Just FEB_N,
-              ct_FER = Nothing,
-              ct_CURS = Nothing,
-              enableSettlement = False,
-              constraints = Nothing,
-              collateralAmount = 0
-            }
-   in case genFsContract  ct of
+        ContractTerms
+          { contractId = "0",
+            contractType = NAM,
+            ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+            ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+            ct_MD = iso8601ParseM "2030-01-01T00:00:00",
+            ct_AD = Nothing,
+            ct_TD = Nothing,
+            ct_PRNXT = Just 1000.0,
+            ct_PRD = Nothing,
+            ct_CNTRL = CR_RPA,
+            ct_PDIED = Nothing,
+            ct_NT = Just 10000.0,
+            ct_PPRD = Nothing,
+            ct_PTD = Nothing,
+            ct_DCC = Just DCC_E30_360,
+            ct_PPEF = Just PPEF_N,
+            ct_PRF = Just PRF_PF,
+            scfg =
+              ScheduleConfig
+                { calendar = Just CLDR_NC,
+                  eomc = Just EOMC_EOM,
+                  bdc = Just BDC_NULL
+                },
+            -- Penalties
+            ct_PYRT = Nothing,
+            ct_PYTP = Just PYTP_O, -- no penalty
+            -- Optionality
+            ct_OPCL = Nothing,
+            ct_OPANX = Nothing,
+            -- Scaling
+            ct_SCIP = Nothing,
+            ct_SCIED = Nothing,
+            ct_SCEF = Nothing,
+            ct_SCCDD = Nothing,
+            ct_SCMO = Nothing,
+            ct_SCNT = Nothing,
+            ct_SCCL = Nothing,
+            ct_SCANX = Nothing,
+            -- Rate Reset
+            ct_RRCL = Nothing,
+            ct_RRANX = Nothing,
+            ct_RRNXT = Nothing,
+            ct_RRSP = Nothing,
+            ct_RRMLT = Nothing,
+            ct_RRPF = Nothing,
+            ct_RRPC = Nothing,
+            ct_RRLC = Nothing,
+            ct_RRLF = Nothing,
+            ct_RRMO = Nothing,
+            -- Interest
+            ct_IPCED = Nothing,
+            ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
+            ct_IPNR = Just 0.02,
+            ct_IPAC = Just 0.0,
+            ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
+            ct_IPCB = Just IPCB_NT,
+            ct_IPCBA = Just 1000,
+            ct_IPCBCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_IPCBANX = iso8601ParseM "2021-01-01T00:00:00",
+            -- Fee
+            ct_FECL = Nothing,
+            ct_FEANX = Nothing,
+            ct_FEAC = Nothing,
+            ct_FEB = Nothing,
+            ct_FER = Nothing,
+            ct_CURS = Nothing,
+            enableSettlement = False,
+            constraints = Nothing,
+            collateralAmount = 0
+          }
+   in case genFsContract ct of
         Failure _ -> assertFailure "Terms validation should not fail"
         Success contract -> do
           let principal = IDeposit (Role "counterparty") "counterparty" ada 10000
@@ -394,19 +389,18 @@ example03 =
                 computeTransaction
                   ( TransactionInput
                       (0, 0)
-                      [
-                        principal
-                      , pr 800, ip 200
-                      , pr 816, ip 184
-                      , pr 832, ip 168
-                      , pr 849, ip 151
-                      , pr 866, ip 134
-                      , pr 883, ip 117
-                      , pr 901, ip 99
-                      , pr 919, ip 81
-                      , pr 937, ip 63
-                      ,         ip 44
-                      , pr 2196
+                      [ principal,
+                        pr 800, ip 200,
+                        pr 816, ip 184,
+                        pr 832, ip 168,
+                        pr 849, ip 151,
+                        pr 866, ip 134,
+                        pr 883, ip 117,
+                        pr 901, ip 99,
+                        pr 919, ip 81,
+                        pr 937, ip 63,
+                                ip 44,
+                        pr 2196
                       ]
                   )
                   (emptyState 0)
@@ -443,81 +437,80 @@ example03 =
 example04 :: IO ()
 example04 =
   let ct =
-        setDefaultContractTermValues $
-          ContractTerms
-            { contractId = "0",
-              contractType = ANN,
-              ct_IED = iso8601ParseM "2020-01-01T00:00:00",
-              ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
-              ct_MD = iso8601ParseM "2030-01-01T00:00:00",
-              ct_AD = Nothing,
-              ct_TD = Nothing,
-              ct_PRNXT = Just 1000,
-              ct_PRD = Nothing,
-              ct_CNTRL = CR_RPA,
-              ct_PDIED = Nothing,
-              ct_NT = Just 10000.0,
-              ct_PPRD = Nothing,
-              ct_PTD = Nothing,
-              ct_DCC = Just DCC_E30_360,
-              ct_PPEF = Just PPEF_N,
-              ct_PRF = Nothing,
-              scfg =
-                ScheduleConfig
-                  { calendar = Just CLDR_NC,
-                    eomc = Just EOMC_EOM,
-                    bdc = Just BDC_NULL
-                  },
-              -- Penalties
-              ct_PYRT = Nothing,
-              ct_PYTP = Nothing,
-              -- Optionality
-              ct_OPCL = Nothing,
-              ct_OPANX = Nothing,
-              -- Scaling
-              ct_SCIP = Nothing,
-              ct_SCIED = Nothing,
-              ct_SCEF = Nothing,
-              ct_SCCDD = Nothing,
-              ct_SCMO = Nothing,
-              ct_SCNT = Nothing,
-              ct_SCCL = Nothing,
-              ct_SCANX = Nothing,
-              -- Rate Reset
-              ct_RRCL = Nothing,
-              ct_RRANX = Nothing,
-              ct_RRNXT = Nothing,
-              ct_RRSP = Nothing,
-              ct_RRMLT = Just 1.0,
-              ct_RRPF = Nothing,
-              ct_RRPC = Nothing,
-              ct_RRLC = Nothing,
-              ct_RRLF = Nothing,
-              ct_RRMO = Nothing,
-              -- Interest
-              ct_IPCED = Nothing,
-              ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
-              ct_IPNR = Just 0.02,
-              ct_IPAC = Just 0.0,
-              ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-              ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
-              ct_IPCB = Just IPCB_NT,
-              ct_IPCBA = Nothing,
-              ct_IPCBCL = Nothing,
-              ct_IPCBANX = Nothing,
-              -- Fee
-              ct_FECL = Nothing,
-              ct_FEANX = Nothing,
-              ct_FEAC = Nothing,
-              ct_FEB = Just FEB_N,
-              ct_FER = Nothing,
-              ct_CURS = Nothing,
-              enableSettlement = False,
-              constraints = Nothing,
-              collateralAmount = 0
-            }
-   in case genFsContract  ct of
+        ContractTerms
+          { contractId = "0",
+            contractType = ANN,
+            ct_IED = iso8601ParseM "2020-01-01T00:00:00",
+            ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
+            ct_MD = iso8601ParseM "2030-01-01T00:00:00",
+            ct_AD = Nothing,
+            ct_TD = Nothing,
+            ct_PRNXT = Just 1000,
+            ct_PRD = Nothing,
+            ct_CNTRL = CR_RPA,
+            ct_PDIED = Nothing,
+            ct_NT = Just 10000.0,
+            ct_PPRD = Nothing,
+            ct_PTD = Nothing,
+            ct_DCC = Just DCC_E30_360,
+            ct_PPEF = Just PPEF_N,
+            ct_PRF = Just PRF_PF,
+            scfg =
+              ScheduleConfig
+                { calendar = Just CLDR_NC,
+                  eomc = Just EOMC_EOM,
+                  bdc = Just BDC_NULL
+                },
+            -- Penalties
+            ct_PYRT = Nothing,
+            ct_PYTP = Just PYTP_O, -- no penalty
+            -- Optionality
+            ct_OPCL = Nothing,
+            ct_OPANX = Nothing,
+            -- Scaling
+            ct_SCIP = Nothing,
+            ct_SCIED = Nothing,
+            ct_SCEF = Nothing,
+            ct_SCCDD = Nothing,
+            ct_SCMO = Nothing,
+            ct_SCNT = Nothing,
+            ct_SCCL = Nothing,
+            ct_SCANX = Nothing,
+            -- Rate Reset
+            ct_RRCL = Nothing,
+            ct_RRANX = Nothing,
+            ct_RRNXT = Nothing,
+            ct_RRSP = Nothing,
+            ct_RRMLT = Just 1.0,
+            ct_RRPF = Nothing,
+            ct_RRPC = Nothing,
+            ct_RRLC = Nothing,
+            ct_RRLF = Nothing,
+            ct_RRMO = Nothing,
+            -- Interest
+            ct_IPCED = Nothing,
+            ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_IPANX = iso8601ParseM "2020-01-01T00:00:00",
+            ct_IPNR = Just 0.02,
+            ct_IPAC = Just 0.0,
+            ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
+            ct_PRANX = iso8601ParseM "2021-01-01T00:00:00",
+            ct_IPCB = Just IPCB_NT,
+            ct_IPCBA = Nothing,
+            ct_IPCBCL = Nothing,
+            ct_IPCBANX = Nothing,
+            -- Fee
+            ct_FECL = Nothing,
+            ct_FEANX = Nothing,
+            ct_FEAC = Nothing,
+            ct_FEB = Just FEB_N,
+            ct_FER = Nothing,
+            ct_CURS = Nothing,
+            enableSettlement = False,
+            constraints = Nothing,
+            collateralAmount = 0
+          }
+   in case genFsContract ct of
         Failure _ -> assertFailure "Terms validation should not fail"
         Success contract -> do
           let principal = IDeposit (Role "counterparty") "counterparty" ada 10000
@@ -527,19 +520,18 @@ example04 =
                 computeTransaction
                   ( TransactionInput
                       (0, 0)
-                      [
-                        principal
-                      , pr 800, ip 200
-                      , pr 816, ip 184
-                      , pr 832, ip 168
-                      , pr 849, ip 151
-                      , pr 866, ip 134
-                      , pr 883, ip 117
-                      , pr 901, ip 99
-                      , pr 919, ip 81
-                      , pr 937, ip 63
-                      ,         ip 44
-                      , pr 2196
+                      [ principal,
+                        pr 800, ip 200,
+                        pr 816, ip 184,
+                        pr 832, ip 168,
+                        pr 849, ip 151,
+                        pr 866, ip 134,
+                        pr 883, ip 117,
+                        pr 901, ip 99,
+                        pr 919, ip 81,
+                        pr 937, ip 63,
+                                ip 44,
+                        pr 2196
                       ]
                   )
                   (emptyState 0)

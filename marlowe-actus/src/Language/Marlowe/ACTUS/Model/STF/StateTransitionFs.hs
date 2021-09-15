@@ -2,7 +2,7 @@
 
 module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs (stateTransitionFs) where
 
-import           Data.Maybe                                             (maybeToList)
+import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
@@ -23,7 +23,6 @@ stateTransitionFs
   RiskFactorsPoly{..}
   ct@ContractTerms
     { ct_NT = Just nt,
-      ct_FER = Just fer,
       ct_DCC = Just dayCountConvention,
       ct_IPANX = Just ipanx,
       ..
@@ -198,7 +197,7 @@ stateTransitionFs
       interestAccrued = constnt <$> ct_IPAC
       notionalPrincipal = constnt nt
       feeBase = enum ct_FEB
-      feeRate = constnt fer
+      feeRate = constnt (fromMaybe 0.0 ct_FER)
 
       interestCalculationBase = enum <$> ct_IPCB
       interestCalculationBaseAmont = constnt <$> ct_IPCBA

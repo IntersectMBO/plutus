@@ -2,10 +2,11 @@
 
 module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 
+import           Data.Maybe                                        (fromMaybe)
 import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..), FEB (..))
 import           Language.Marlowe.ACTUS.MarloweCompat              (RiskFactorsMarlowe, constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
@@ -18,13 +19,7 @@ payoffFs
   RiskFactorsPoly {..}
   ContractTerms
     { ct_NT = Just np,
-      ct_PDIED = Just pdied,
       ct_PYTP = Just pytp,
-      ct_FEB = Just feb,
-      ct_FER = Just fer,
-      ct_PPRD = Just pprd,
-      ct_PYRT = Just pyrt,
-      ct_PTD = Just ptd,
       ct_DCC = Just dayCountConvention,
       ..
     }
@@ -78,13 +73,13 @@ payoffFs
      in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
     where
       notionalPrincipal = constnt np
-      premiumDiscount = constnt pdied
+      premiumDiscount = constnt (fromMaybe 0.0 ct_PDIED)
       penaltyType = enum pytp
-      feeBase = enum feb
-      feeRate = constnt fer
-      priceAtPurchaseDate = constnt pprd
-      priceAtTerminationDate = constnt ptd
-      penaltyRate = constnt pyrt
+      feeBase = enum (fromMaybe FEB_N ct_FEB)
+      feeRate = constnt (fromMaybe 0.0 ct_FER)
+      priceAtPurchaseDate = constnt (fromMaybe 0.0 ct_PPRD)
+      priceAtTerminationDate = constnt (fromMaybe 0.0 ct_PTD)
+      penaltyRate = constnt (fromMaybe 0.0 ct_PYRT)
       nsc = useval "nsc" t_minus
       nt = useval "nt" t_minus
       isc = useval "isc" t_minus

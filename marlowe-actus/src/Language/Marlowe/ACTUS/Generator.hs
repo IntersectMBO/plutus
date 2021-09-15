@@ -7,9 +7,9 @@ This module contains templates for Marlowe constructs required by ACTUS logic
 -}
 
 module Language.Marlowe.ACTUS.Generator
-    ( genStaticContract
+  (   genStaticContract
     , genFsContract
-    )
+  )
 where
 
 import qualified Data.List                                                  as L (foldl', zip6)
@@ -28,8 +28,7 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (Eve
                                                                              RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
                                                                              Assertions (..), ContractTerms (..),
-                                                                             TermValidationError (..),
-                                                                             setDefaultContractTermValues)
+                                                                             TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, stateInitialisation,
                                                                              timeToSlotNumber, toMarloweFixedPoint,
@@ -50,7 +49,7 @@ import           Prelude                                                    as P
 -- |genStaticContract generates a Marlowe contracts from the validated contract terms applying
 -- the default risk factors
 genStaticContract :: ContractTerms -> Validation [TermValidationError] Contract
-genStaticContract = fmap genStaticContract' . validateTerms . setDefaultContractTermValues
+genStaticContract = fmap genStaticContract' . validateTerms
 
 -- |genStaticContract' generates a Marlowe contracts from the given contract terms applying
 -- the default risk factors
@@ -143,7 +142,7 @@ defaultRiskFactors _ _ =
 #-}
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
-genFsContract = fmap genFsContract' . validateTerms . setDefaultContractTermValues
+genFsContract = fmap genFsContract' . validateTerms
 
 genFsContract' :: ContractTerms -> Contract
 genFsContract' ct =
