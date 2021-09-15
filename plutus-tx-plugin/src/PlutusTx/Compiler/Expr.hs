@@ -443,6 +443,8 @@ mkTrace ty str v =
         (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
         [PLC.mkConstant () str, v]
 
+-- | Trace inside a term's lambda. I.e., turn
+-- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
 traceInside ::
     PLC.Name
     -> PIR.Name

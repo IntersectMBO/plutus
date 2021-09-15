@@ -8,26 +8,43 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
 
--- | Executable for profiling. Add the program you want to profile here.
+-- | Tests for the profiling machinery.
 
-module Main where
+module Plugin.Profiling.Spec where
 import           Common
-import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcFlamegraph)
+import           Lib                       (goldenPir)
+import           PlcTestUtils              (ToUPlc (toUPlc), goldenUEvalProfile, rethrow, runUPlcProfile)
 import           Plugin.Basic.Spec
+import           Plugin.Lib                (MyExternalRecord (myExternal), andExternal, evenDirect)
 
+import           Plugin.Data.Spec
+import           Plugin.Functions.Spec     hiding (fib, recursiveFunctions)
+import           Plugin.Typeclasses.Spec
+import qualified PlutusCore.Default        as PLC
 import qualified PlutusTx.Builtins         as Builtins
 import           PlutusTx.Code             (CompiledCode)
 import           PlutusTx.Plugin           (plc)
 
-import qualified PlutusCore.Default        as PLC
-
 import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
-import           Data.Proxy                (Proxy (Proxy))
+import           Data.Proxy
 import           Data.Text                 (Text)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
+
+profiling :: TestNested
+profiling = testNested "Profiling" [
+  goldenUEvalProfile "fib" [toUPlc fibTest]
+  , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "addInt" [toUPlc addIntTest]
+  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
+  , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  -- ghc does the function application
+  , goldenUEvalProfile "id" [toUPlc idTest]
+  , goldenUEvalProfile "swap" [toUPlc swapTest]
+  ]
 
 fib :: Integer -> Integer
 fib n = if Builtins.equalsInteger n 0
@@ -71,31 +88,3 @@ swap (a,b) = (b,a)
 
 swapTest :: CompiledCode (Integer,Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))
-
--- | Write the time log of a program to a file in
--- the plutus-tx-plugin/executables/profile/ directory.
-writeLogToFile ::
-  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-  -- | Name of the file you want to save it as.
-  FilePath ->
-  -- | The program to be profiled.
-  [a] ->
-  IO ()
-writeLogToFile fileName values = do
-  log <- pretty . view _2 <$> (rethrow $ runUPlcFlamegraph values)
-  withFile
-    ("plutus-tx-plugin/executables/profile/"<>fileName)
-    WriteMode
-    (\h -> hPutDoc h log)
-
-main :: IO ()
-main = do
-  writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "addInt" [toUPlc addIntTest]
-  writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
-  writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  writeLogToFile "id" [toUPlc idTest]
-  writeLogToFile "swap" [toUPlc swapTest]
-
-
