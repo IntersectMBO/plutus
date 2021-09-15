@@ -28,6 +28,7 @@ betaStep = \case
         in
             Let a NonRec bindings body
     -- This case is disabled as it introduces a lot of type inlining (determined from profiling)
+    -- and is currently unsound https://input-output.atlassian.net/browse/SCP-2570.
     -- TyInst a (TyAbs _ tyname kind body) typ ->
     --     let tyVarDecl = TyVarDecl a tyname kind
     --         tyBinding = TypeBind a tyVarDecl typ
