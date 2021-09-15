@@ -7340,10 +7340,49 @@
                                     (con integer)
                                   ]
                                 ]
-                                [
-                                  [
-                                    [
-                                      checkPred
+                                greaterThanEqualsInteger
+                              ]
+                              fOrdInteger_cmax
+                            ]
+                            fOrdInteger_cmin
+                          ]
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl fail (fun (all a (type) a) Ordering))
+                          (lam
+                            ds
+                            (all a (type) a)
+                            { (abs e (type) (error e)) Ordering }
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            compare
+                            (all
+                              a (type) (fun [ Ord a ] (fun a (fun a Ordering)))
+                            )
+                          )
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              v
+                              [ Ord a ]
+                              [
+                                {
+                                  [ { Ord_match a } v ] (fun a (fun a Ordering))
+                                }
+                                (lam
+                                  v
+                                  [ (lam a (type) (fun a (fun a Bool))) a ]
+                                  (lam
+                                    v
+                                    (fun a (fun a Ordering))
+                                    (lam
+                                      v
+                                      (fun a (fun a Bool))
                                       (lam
                                         k
                                         [
