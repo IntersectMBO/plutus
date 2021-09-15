@@ -6,6 +6,7 @@ module Main(main) where
 import qualified Codec.CBOR.FlatTerm as FlatTerm
 import           Codec.Serialise     (deserialiseOrFail, serialise)
 import qualified Codec.Serialise     as Serialise
+import           Control.Exception   (ErrorCall, catch)
 import qualified Data.ByteString     as BS
 import           Data.Either         (isLeft)
 import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
@@ -19,7 +20,7 @@ import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
 import           Prelude             hiding (Rational, negate, recip)
 import           Test.Tasty
-import           Test.Tasty.HUnit    (testCase, (@?=))
+import           Test.Tasty.HUnit    (Assertion, testCase, (@?=))
 import           Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
@@ -167,7 +168,15 @@ ratioTests = testGroup "Ratio"
   [ testProperty "reciprocal ordering 1" reciprocalOrdering1
   , testProperty "reciprocal ordering 2" reciprocalOrdering2
   , testProperty "reciprocal ordering 3" reciprocalOrdering3
+  , testCase "recip 0 % 2 fails" reciprocalFailsZeroNumerator
   ]
+
+-- We check that 'recip' throws an exception if the numerator is zero
+reciprocalFailsZeroNumerator :: Assertion
+reciprocalFailsZeroNumerator = do
+  res <- catch (pure $! recip $ 0 % 2) $ \(_ :: ErrorCall) -> pure $ 1 % 1
+  -- the result should be 1 % 1 if there was an exception
+  res @?= (1 % 1)
 
 genPositiveRational :: Monad m => PropertyT m Rational
 genPositiveRational = do
