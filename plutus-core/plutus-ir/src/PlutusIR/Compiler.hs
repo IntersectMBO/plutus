@@ -185,19 +185,21 @@ compileReadableToPlc =
     >=> through check
     >=> (<$ logVerbose "  !!! compileLets RecTerms")
     >=> Let.compileLets Let.RecTerms
-    -- TODO: add 'check' steps from here on. Can't do this since we seem to generate a wrong type
-    -- somewhere in the recursive binding compilation step
     >=> through check
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
     >=> (<$ logVerbose "  !!! removeDeadBindings")
     >=> DeadCode.removeDeadBindings
+    >=> through check
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets Types")
     >=> Let.compileLets Let.Types
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets NonRecTerms")
     >=> Let.compileLets Let.NonRecTerms
+    >=> through check
     >=> (<$ logVerbose "  !!! lowerTerm")
     >=> lowerTerm
 
