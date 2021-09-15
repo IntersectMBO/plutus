@@ -8,6 +8,7 @@ import           Codec.Serialise     (deserialiseOrFail, serialise)
 import qualified Codec.Serialise     as Serialise
 import qualified Data.ByteString     as BS
 import           Data.Either         (isLeft)
+import           Data.Word
 import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
@@ -122,7 +123,7 @@ sixtyFourByteInteger = 2^((64 :: Integer) *8)
 genData :: MonadGen m => m Data
 genData =
     let st = Gen.subterm genData id
-        positiveInteger = Gen.integral (Range.linear 0 100000)
+        constrIndex = fromIntegral <$> (Gen.integral @_ @Word64 Range.linearBounded)
         reasonableInteger = Gen.integral (Range.linear (-100000) 100000)
         -- over 64 bytes
         reallyBigInteger = Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
@@ -137,7 +138,7 @@ genData =
         , I <$> reallyBigInteger
         , I <$> reallyBigNInteger
         , B <$> someBytes ]
-        [ Constr <$> positiveInteger <*> constructorArgList
+        [ Constr <$> constrIndex <*> constructorArgList
         , List <$> constructorArgList
         , Map <$> kvMapList
         ]
