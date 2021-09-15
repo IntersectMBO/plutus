@@ -1008,6 +1008,11 @@ step** (step* x p) q = step* x (step** p q)
 
 postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
 
+postulate dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _) ρ V → (s CK.▻ (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ])) ≡ (s CK.▻ cek2ckClos M (ρ ∷ V))
+
+postulate discharge-lem : ∀{A}(V : Value A) → Red.deval (cek2ckVal V) ≡ discharge V
+
+postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
 
 import Algorithmic.CC as CC
 thm64 : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
@@ -1022,8 +1027,16 @@ thm64 (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 (s ; ρ ▻ ibuiltin b) s' (step* refl q) = CK.step* (ival-lem b) (thm64 _ s' q)
 thm64 (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (ε ◅ V) s' (step* refl q) = {!!}
-thm64 ((s , x) ◅ V) s' (step* refl q) = {!!}
+thm64 (ε ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
+  (dischargeBody-lem M ρ V)
+  (thm64 _ s' q)
+thm64 ((s , (V-I⇒ b p x ·-)) ◅ V) s' (step* refl q) = {!!}
+thm64 ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm64 _ s' q)
+thm64 ((s , -·⋆ A) ◅ V-IΠ b p x) s' (step* refl q) = {!!}
+thm64 ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+thm64 ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm64 _ s' q))
 thm64 (□ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 (◆ A) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 
