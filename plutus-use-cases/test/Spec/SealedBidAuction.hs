@@ -14,7 +14,6 @@ import           Control.Lens                       hiding (elements)
 import           Control.Monad                      (void, when)
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Default                       (Default (def))
-import           Data.Text                          as Text
 
 import           Ledger                             (Slot (..), Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
@@ -26,7 +25,6 @@ import           Plutus.Contract.Secrets
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.SealedBidAuction
 import qualified Plutus.Trace.Emulator              as Trace
-import qualified PlutusTx.Builtins.Internal         as PlutusTx
 import qualified PlutusTx.Prelude                   as PlutusTx
 
 import           Test.QuickCheck                    hiding ((.&&.))
