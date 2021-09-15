@@ -137,6 +137,7 @@
             "Plugin/Functions/Spec"
             "Plugin/Laziness/Spec"
             "Plugin/Primitives/Spec"
+            "Plugin/Profiling/Spec"
             "Plugin/Typeclasses/Spec"
             "Plugin/Typeclasses/Lib"
             "Plugin/Lib"
