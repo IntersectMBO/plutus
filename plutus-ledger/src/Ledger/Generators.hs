@@ -74,6 +74,7 @@ import qualified Ledger.TimeSlot            as TimeSlot
 import qualified Plutus.V1.Ledger.Ada       as Ada
 import qualified Plutus.V1.Ledger.Contexts  as Contexts
 import qualified Plutus.V1.Ledger.Interval  as Interval
+import qualified Plutus.V1.Ledger.Scripts   as Script
 import qualified Plutus.V1.Ledger.Value     as Value
 import qualified PlutusTx
 
@@ -205,7 +206,7 @@ genValidTransactionSpending' g feeCfg ins totalVal = do
                         , txOutputs = uncurry pubKeyTxOut <$> zip (mintValue:outVals) (Set.toList $ gmPubKeys g)
                         , txMint = mintValue
                         , txMintScripts = Set.singleton alwaysSucceedPolicy
-                        , txRedeemers = Map.singleton (RedeemerPtr Mint 0) (Redeemer $ PlutusTx.toBuiltinData ())
+                        , txRedeemers = Map.singleton (RedeemerPtr Mint 0) Script.unitRedeemer
                         , txFee = Ada.toValue fee'
                         }
 
