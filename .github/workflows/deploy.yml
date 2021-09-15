@@ -12,5 +12,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+
       - name: Deploy to bitte
-        run: ./scripts/deploy-bitte master
+        run: ./scripts/deploy-bitte
