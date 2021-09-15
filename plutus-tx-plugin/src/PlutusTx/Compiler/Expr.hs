@@ -406,14 +406,14 @@ hoistExpr var t =
                     mempty
 
                 CompileContext {ccOpts=profileOpts} <- ask
-                t' <- do
+                t' <-
                     if coProfile profileOpts==All then do
                         let ty = PLC._varDeclType var'
-                            varName = T.pack $ show $ PLC._varDeclName var'
+                            varName = PLC._varDeclName var'
                         t'' <- compileExpr t
-                        lamName <- PLC.freshName "lamName"
-                        return $
-                            traceInside varName lamName t'' ty
+                        thunk <- PLC.freshName "thunk"
+                        pure $
+                            traceInside varName thunk t'' ty
                     else compileExpr t
 
                 -- See Note [Non-strict let-bindings]
@@ -444,29 +444,32 @@ mkTrace ty str v =
         [PLC.mkConstant () str, v]
 
 traceInside ::
-    T.Text
+    PLC.Name
     -> PIR.Name
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
     -> PLC.Type PIR.TyName PLC.DefaultUni ()
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-traceInside varName lamName (LamAbs () n t body) (PLC.TyFun () _dom cod) =
-    -- when t = \x -> body, => \x -> traceInside body
-    LamAbs () n t (traceInside varName lamName body cod)
-traceInside _ _ LamAbs{} _ =
-    error "traceInside: type mismatched. It should be a function type."
-traceInside varName lamName e ty =
-    let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
-        defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
-    in
-    --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
-        PIR.Apply
-            ()
-            (mkTrace
-                (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
-                ("entering " <> varName)
-                -- \() -> trace @c "exiting f" e
-                (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>varName) e)))
-            defaultUnit
+traceInside varName lamName = go
+    where
+        go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+        -- when t = \x -> body, => \x -> traceInside body
+            LamAbs () n t (traceInside varName lamName body cod)
+        go LamAbs{} _ =
+            error "traceInside: type mismatched. It should be a function type."
+        go e ty =
+            let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
+                defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
+                displayName = T.pack $ show varName
+            in
+            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+                PIR.Apply
+                    ()
+                    (mkTrace
+                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                        ("entering " <> displayName)
+                        -- \() -> trace @c "exiting f" e
+                        (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+                    defaultUnit
 
 -- Expressions
 
