@@ -424,8 +424,12 @@ waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges, beCurrentBlock} = 
     txIdState   <- _usTxUtxoData . measure <$> STM.readTVar beTxChanges
     blockNumber <- STM.readTVar beCurrentBlock
     let newStatus = transactionStatus blockNumber txIdState tx
-    guard $ oldStatus /= newStatus
-    pure newStatus
+    -- Succeed only if we _found_ a status and it was different; if
+    -- the status hasn't changed, _or_ there was an error computing
+    -- the status, keep retrying.
+    case newStatus of
+      Right s | s /= oldStatus -> pure s
+      _                        -> empty
 
 -- | The value at an address
 valueAt :: Address -> BlockchainEnv -> STM Value.Value
