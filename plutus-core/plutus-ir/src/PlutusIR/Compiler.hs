@@ -190,12 +190,6 @@ compileReadableToPlc =
     >=> through check
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
-    >=> (<$ logVerbose "  !!! rename")
-    >=> PLC.rename
-    >=> through check
-    -- NOTE: There was a bug in renamer handling non-rec terms, so we need to
-    -- rename again.
-    -- https://jira.iohk.io/browse/SCP-2156
     >=> (<$ logVerbose "  !!! removeDeadBindings")
     >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
