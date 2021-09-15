@@ -13,6 +13,7 @@ module Spec.Auction
     , auctionTrace2
     , prop_Auction
     , prop_FinishAuction
+    , prop_NoLockedFunds
     ) where
 
 import           Cardano.Crypto.Hash                as Crypto
@@ -220,7 +221,7 @@ instance ContractModel AuctionModel where
             Bid w bid -> do
                 current <- viewContractState currentBid
                 leader  <- viewContractState winner
-                wait 1
+                wait 2
                 when (bid > current && slot <= end) $ do
                     withdraw w $ Ada.lovelaceValueOf bid
                     deposit leader $ Ada.lovelaceValueOf current
@@ -240,6 +241,8 @@ instance ContractModel AuctionModel where
     perform handle _ (Bid w bid) = do
         Trace.callEndpoint @"bid" (handle $ BuyerH w) (Ada.lovelaceOf bid)
         delay 1
+        Trace.callEndpoint @"bid" (handle $ BuyerH w) (Ada.lovelaceOf bid)
+        delay 1
 
     shrinkAction _ Init      = []
     shrinkAction _ (WaitUntil (Slot n))  = [ WaitUntil (Slot n') | n' <- shrink n ]
@@ -253,12 +256,13 @@ delay n = void $ Trace.waitNSlots $ fromIntegral n
 
 prop_Auction :: Actions AuctionModel -> Property
 prop_Auction script =
-    propRunActionsWithOptions (set minLogLevel Info options) spec
+    propRunActionsWithOptions (set minLogLevel Info options) handleSpec
         (\ _ -> pure True)  -- TODO: check termination
         script
-    where
-        spec = ContractInstanceSpec SellerH w1 seller :
-               [ ContractInstanceSpec (BuyerH w) w (buyer threadToken) | w <- [w2, w3, w4] ]
+
+handleSpec :: [ContractInstanceSpec AuctionModel]
+handleSpec = ContractInstanceSpec SellerH w1 seller :
+             [ ContractInstanceSpec (BuyerH w) w (buyer threadToken) | w <- [w2, w3, w4] ]
 
 finishAuction :: DL AuctionModel ()
 finishAuction = do
@@ -270,6 +274,23 @@ finishAuction = do
 
 prop_FinishAuction :: Property
 prop_FinishAuction = forAllDL finishAuction prop_Auction
+
+-- | This does not hold! The Payout transition is triggered by the sellers off-chain code, so if the
+--   seller walks away the buyer will not get their token (unless going around the off-chain code
+--   and building a Payout transaction manually).
+noLockProof :: NoLockedFundsProof AuctionModel
+noLockProof = NoLockedFundsProof
+  { nlfpMainStrategy   = strat
+  , nlfpWalletStrategy = const strat }
+  where
+    strat = do
+      p <- viewContractState phase
+      when (p == NotStarted) $ action Init
+      slot <- viewModelState currentSlot
+      when (slot < 101) $ action $ WaitUntil 101
+
+prop_NoLockedFunds :: Property
+prop_NoLockedFunds = checkNoLockedFundsProof options handleSpec noLockProof
 
 tests :: TestTree
 tests =
