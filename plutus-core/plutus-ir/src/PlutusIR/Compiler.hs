@@ -141,7 +141,8 @@ typeCheckTerm t = do
 check :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
 check arg = do
     shouldCheck <- view (ccOpts . coPedantic)
-    if shouldCheck then typeCheckTerm arg else pure ()
+    -- the typechecker requires global uniqueness, so rename here
+    if shouldCheck then typeCheckTerm =<< PLC.rename arg else pure ()
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -185,25 +186,21 @@ compileReadableToPlc =
     >=> through check
     >=> (<$ logVerbose "  !!! compileLets RecTerms")
     >=> Let.compileLets Let.RecTerms
-    -- TODO: add 'check' steps from here on. Can't do this since we seem to generate a wrong type
-    -- somewhere in the recursive binding compilation step
     >=> through check
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
-    >=> (<$ logVerbose "  !!! rename")
-    >=> PLC.rename
-    >=> through check
-    -- NOTE: There was a bug in renamer handling non-rec terms, so we need to
-    -- rename again.
-    -- https://jira.iohk.io/browse/SCP-2156
     >=> (<$ logVerbose "  !!! removeDeadBindings")
     >=> DeadCode.removeDeadBindings
+    >=> through check
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets Types")
     >=> Let.compileLets Let.Types
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets NonRecTerms")
     >=> Let.compileLets Let.NonRecTerms
+    >=> through check
     >=> (<$ logVerbose "  !!! lowerTerm")
     >=> lowerTerm
 
