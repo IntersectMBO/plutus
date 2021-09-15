@@ -23,7 +23,7 @@ module Plutus.Contracts.SealedBidAuction(
   , bid
   , reveal
   , payout
-  , showInteger
+  , packInteger
   , sellerContract
   , bidderContract
   ) where
@@ -136,23 +136,23 @@ PlutusTx.unstableMakeIsData ''AuctionInput
 
 type AuctionMachine = StateMachine AuctionState AuctionInput
 
-{-# INLINABLE showInteger #-}
-showInteger :: Integer -> BuiltinString
-showInteger k = if k < 0 then "-" `appendString` go (negate k) emptyString else go k emptyString
+{-# INLINABLE packInteger #-}
+-- | Pack an integer into a byte string with a leading
+-- sign byte in little-endian order
+packInteger :: Integer -> BuiltinByteString
+packInteger k = if k < 0 then consByteString 1 (go (negate k) emptyByteString) else consByteString 0 (go k emptyByteString)
   where
-    digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     go n s
-      | n == 0 && s == "" = "0"
       | n == 0            = s
-      | otherwise         = go (n `divide` 10) (digits !! (n `modulo` 10) `appendString` s)
+      | otherwise         = go (n `divide` 256) (consByteString (n `modulo` 256) s)
 
 {-# INLINABLE hashInteger #-}
 hashInteger :: Integer -> BuiltinByteString
-hashInteger = sha2_256 . encodeUtf8 . showInteger
+hashInteger = sha2_256 . packInteger
 
 {-# INLINABLE hashSecretInteger #-}
 hashSecretInteger :: Secret Integer -> BuiltinByteString
-hashSecretInteger = escape_sha2_256 . fmap (encodeUtf8 . showInteger)
+hashSecretInteger = escape_sha2_256 . (fmap packInteger)
 
 {-# INLINABLE sealBid #-}
 sealBid :: RevealedBid -> SealedBid

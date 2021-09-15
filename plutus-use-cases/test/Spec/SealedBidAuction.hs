@@ -234,6 +234,6 @@ prop_AuctionModelCorrect = prop_Auction anyActions_
 tests :: TestTree
 tests =
   testGroup "sealed bid auction"
-    [ testProperty "showInteger = show" $ \x -> showInteger x == PlutusTx.BuiltinString (Text.pack $ show x)
+    [ testProperty "packInteger is injective" $ \x y -> x /= y ==> packInteger x /= packInteger y
     , testProperty "prop_AuctionModelCorrect" $ withMaxSuccess 20 prop_AuctionModelCorrect
     ]
