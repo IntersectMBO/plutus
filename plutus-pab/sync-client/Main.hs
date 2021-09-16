@@ -41,7 +41,7 @@ processBlock
   :: ChainSyncEvent
   -> Slot
   -> IO ()
-processBlock (RollForward (BlockInMode (Block (BlockHeader (SlotNo slot) hsh _) _) _)) _ =
+processBlock (RollForward (BlockInMode (Block (BlockHeader (SlotNo slot) hsh _) _) _) _) _ =
   putStrLn $ "Received block " <> show (serialiseToRawBytesHexText hsh)
           <> " for slot "      <> show slot
 processBlock (Resume (ChainPoint (SlotNo slot) hsh)) _ =
@@ -49,10 +49,10 @@ processBlock (Resume (ChainPoint (SlotNo slot) hsh)) _ =
           <> " at hash " <> show (serialiseToRawBytesHexText hsh)
 processBlock (Resume ChainPointAtGenesis) _ =
   putStrLn "Resuming from genesis block"
-processBlock (RollBackward (ChainPoint (SlotNo slot) hsh)) _ =
+processBlock (RollBackward (ChainPoint (SlotNo slot) hsh) _) _ =
   putStrLn $ "Rolling backward to slot " <> show slot
           <> " at hash " <> show (serialiseToRawBytesHexText hsh)
-processBlock (RollBackward ChainPointAtGenesis) _ =
+processBlock (RollBackward ChainPointAtGenesis _) _ =
   putStrLn $ "Rolling backward to genesis"
 
 hashParser :: ReadM ChainPoint

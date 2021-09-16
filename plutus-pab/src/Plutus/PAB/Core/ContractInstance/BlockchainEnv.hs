@@ -81,9 +81,9 @@ updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUt
 processChainSyncEvent :: BlockchainEnv -> ChainSyncEvent -> Slot -> STM (Either SyncActionFailure ())
 processChainSyncEvent blockchainEnv event _slot = do
   case event of
-      Resume _                                                     -> pure $ Right () -- TODO: Handle resume
-      RollForward  (BlockInMode (C.Block header transactions) era) -> processBlock header blockchainEnv transactions era
-      RollBackward chainPoint                                      -> runRollback blockchainEnv chainPoint
+      Resume _                                                       -> pure $ Right () -- TODO: Handle resume
+      RollForward  (BlockInMode (C.Block header transactions) era) _ -> processBlock header blockchainEnv transactions era
+      RollBackward chainPoint _                                      -> runRollback blockchainEnv chainPoint
 
 data SyncActionFailure
   = RollbackFailure RollbackFailed
