@@ -2,6 +2,7 @@
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
 import           Data.Foldable
+import           Data.String                  (fromString)
 import           Data.Traversable
 
 import qualified Language.Haskell.TH          as TH
@@ -12,6 +13,7 @@ import qualified PlutusTx.Applicative         as PlutusTx
 import           PlutusTx.Builtins            as Builtins
 import qualified PlutusTx.Builtins.Internal   as BI
 import           PlutusTx.IsData.Class
+import           PlutusTx.Trace               (traceError)
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
@@ -103,7 +105,7 @@ unsafeFromDataClause indexedCons = do
     let cases =
             foldl'
             (\kont ixCon -> unsafeReconstructCase ixCon (TH.varE indexName) [| BI.snd $(TH.varE tupName) |] kont)
-            [| Builtins.error () |]
+            [| traceError $ fromString "UD" |]
             indexedCons
     let body =
           [|
