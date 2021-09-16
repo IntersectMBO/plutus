@@ -3,6 +3,7 @@ module Main where
 
 import           Control.Concurrent             (threadDelay)
 import           Control.Monad                  (forever)
+import           Control.Tracer                 (nullTracer)
 import           Data.Either.Combinators        (maybeToRight)
 import           Data.List                      (elemIndex)
 import           Data.Proxy                     (Proxy (Proxy))
@@ -88,6 +89,7 @@ main = do
   putStrLn "----------------------"
   print    cfg
   _ <- runChainSync (cSocketPath cfg)
+                    nullTracer
                     slotConfig
                     cfgNetworkId
                     [(cResumeHash cfg)]

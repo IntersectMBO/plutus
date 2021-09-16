@@ -34,6 +34,7 @@ import           Control.Concurrent.STM                 (STM)
 import qualified Control.Concurrent.STM                 as STM
 import           Control.Lens
 import           Control.Monad                          (forM_, void, when)
+import           Control.Tracer                         (nullTracer)
 import           Data.Foldable                          (foldl')
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.ChainIndex                      (BlockNumber (..), ChainIndexTx (..), ChainIndexTxOutputs (..),
@@ -61,7 +62,7 @@ startNodeClient socket mode slotConfig networkId instancesState = do
             (\block slot -> handleSyncAction $ processMockBlock instancesState env block slot)
       AlonzoNode -> do
           let resumePoints = []
-          void $ Client.runChainSync socket slotConfig networkId resumePoints
+          void $ Client.runChainSync socket nullTracer slotConfig networkId resumePoints
             (\block slot -> handleSyncAction $ processChainSyncEvent env block slot)
     pure env
 

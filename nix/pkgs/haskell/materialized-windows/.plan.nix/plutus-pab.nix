@@ -359,6 +359,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."either" or (errorHandler.buildDepError "either"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))

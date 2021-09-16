@@ -558,6 +558,7 @@ executable sync-client
         base >=4.9 && <5,
         cardano-api -any,
         cardano-slotting -any,
+        contra-tracer -any,
         either -any,
         optparse-applicative -any,
         plutus-chain-index,
