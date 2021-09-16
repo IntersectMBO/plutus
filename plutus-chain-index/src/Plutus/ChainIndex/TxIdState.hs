@@ -73,7 +73,7 @@ transactionStatus currentBlock txIdState txId
             else Right $ Committed validity'
 
        (Just TxConfirmedState{timesConfirmed=confirms, blockAdded=Last (Just block'), validity=Last (Just validity')}, Just deletes) ->
-         if confirms >= deletes
+         if confirms > deletes
             then Right $ newStatus block' validity'
             else Right $ Unknown
 
@@ -104,7 +104,7 @@ fromTx blockAdded tx =
         Map.singleton
           (tx ^. citxTxId)
           (TxConfirmedState { timesConfirmed = Sum 1
-                            , blockAdded = Last (Just blockAdded)
+                            , blockAdded = Last . Just $ blockAdded
                             , validity = Last . Just $ validityFromChainIndex tx })
     , txnsDeleted = mempty
     }
@@ -125,7 +125,9 @@ rollback targetPoint idx@(viewTip -> currentTip)
             oldTip | targetPoint `pointsToTip` oldTip ->
                       let x = _usTxUtxoData (measure deleted)
                           newTxIdState = TxIdState
-                                            { txnsConfirmed = mempty
+                                            { txnsConfirmed = txnsConfirmed x
+                                            -- All the transactions that were confirmed in the deleted
+                                            -- section are now deleted.
                                             , txnsDeleted = const 1 <$> txnsConfirmed x
                                             }
                           newUtxoState = UtxoState newTxIdState oldTip

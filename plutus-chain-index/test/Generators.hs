@@ -25,7 +25,8 @@ module Generators(
     execTxIdGenState,
     txgsBlocks,
     txgsNumTransactions,
-    genTxIdStateTipAndTxId
+    genTxIdStateTipAndTxId,
+    txIdFromInt
     ) where
 
 import           Codec.Serialise             (serialise)
