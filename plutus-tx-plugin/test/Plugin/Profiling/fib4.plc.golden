@@ -1,74 +1,74 @@
-[ entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, exiting Name {nameString = "subtractInteger", nameUnique = Unique {unUnique = 97}}
-, entering Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "equalsInteger", nameUnique = Unique {unUnique = 87}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 93}}
-, exiting Name {nameString = "fib", nameUnique = Unique {unUnique = 81}} ]
+[ entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib ]

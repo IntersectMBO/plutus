@@ -39,8 +39,9 @@ import qualified PlutusIR.Purity               as PIR
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.MkPlc              as PLC
+import qualified PlutusCore.Pretty             as PP
 
-import           Control.Monad.Reader
+import           Control.Monad.Reader          (MonadReader (ask))
 
 import qualified Data.ByteString               as BS
 import           Data.List                     (elemIndex)
@@ -461,7 +462,7 @@ traceInside varName lamName = go
         go e ty =
             let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
                 defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
-                displayName = T.pack $ show varName
+                displayName = T.pack $ PP.displayPlcDef varName
             in
             --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
                 PIR.Apply

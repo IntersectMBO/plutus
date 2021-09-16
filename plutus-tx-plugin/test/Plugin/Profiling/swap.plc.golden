@@ -1,2 +1,1 @@
-[ entering Name {nameString = "swap", nameUnique = Unique {unUnique = 88}}
-, exiting Name {nameString = "swap", nameUnique = Unique {unUnique = 88}} ]
+[entering swap, exiting swap]

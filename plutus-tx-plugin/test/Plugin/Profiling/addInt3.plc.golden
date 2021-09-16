@@ -1,2 +1,1 @@
-[ entering Name {nameString = "addInt", nameUnique = Unique {unUnique = 81}}
-, exiting Name {nameString = "addInt", nameUnique = Unique {unUnique = 81}} ]
+[entering addInt, exiting addInt]

@@ -1,6 +1,6 @@
-[ entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}} ]
+[ entering addInteger
+, exiting addInteger
+, entering addInteger
+, exiting addInteger
+, entering addInteger
+, exiting addInteger ]
