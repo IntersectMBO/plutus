@@ -212,7 +212,9 @@ BUILTIN' : ∀ b {A}{az}(p : az <>> [] ∈ arity b)
   → ∅ ⊢ A
 BUILTIN' b {az = az} p q
   with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
-... | refl = {! BUILTIN b (convBApp b p (saturated (arity b)) q) !}
+... | refl with BUILTIN b (convBApp b p (saturated (arity b)) q)
+... | inj₁ V = discharge V
+... | inj₂ A = error _
 
 open import Data.Product using (∃)
 
@@ -1013,7 +1015,10 @@ postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K
 
 postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BAPP b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBAPP x)) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
 
--- assuming that that buitins work the same way for CEK and red/CK
+postulate dischargeB'-lem : ∀ {A}{C b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BAPP b p A} (s : CK.Stack C _) → s CK.◅ Red.V-I b p (cek2ckBAPP x) ≡ (s CK.◅ cek2ckVal (V-I b p x))
+
+
+-- assuming that buitins work the same way for CEK and red/CK
 
 postulate BUILTIN-lem : ∀ b {A}{az}(p : az <>> [] ∈ arity b)(q : BAPP b p A) → Red.BUILTIN' b p (cek2ckBAPP q) ≡ cek2ckClos (BUILTIN' b p q) []
 
@@ -1035,7 +1040,10 @@ thm64 ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
   (dischargeBody-lem M ρ V)
   (thm64 _ s' q)
-thm64 ((s , (V-I⇒ b p x ·-)) ◅ V) s' (step* refl q) = {!!}
+thm64 ((s , (V-I⇒ b {as' = []} p x ·-)) ◅ V) s' (step* refl q) = CK.step*
+  (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app p x V)))
+  (thm64 _ s' q)
+thm64 ((s , (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) ◅ V) s' (step* refl q) = CK.step* (dischargeB'-lem (cek2ckStack s)) (thm64 _ s' q)
 thm64 ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm64 _ s' q)
 thm64 ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x) s' (step* refl q) = CK.step*
   (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app⋆ p x refl)))
@@ -1045,6 +1053,3 @@ thm64 ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm64 _ s' q))
 thm64 (□ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 (◆ A) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-
--- ∀ (c , k) there exists (c' , k') such that (c,k) -->cek (c',k') and
---  cek2ckstate (c,k) -->ck cek2ckstate (c',k')
