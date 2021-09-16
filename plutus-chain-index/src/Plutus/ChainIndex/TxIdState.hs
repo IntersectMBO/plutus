@@ -123,14 +123,14 @@ rollback targetPoint idx@(viewTip -> currentTip)
         case tip (measure before) of
             TipAtGenesis -> Left $ OldPointNotFound targetPoint
             oldTip | targetPoint `pointsToTip` oldTip ->
-                      let x = _usTxUtxoData (measure deleted)
+                      let oldTxIdState = _usTxUtxoData (measure deleted)
                           newTxIdState = TxIdState
-                                            { txnsConfirmed = txnsConfirmed x
+                                            { txnsConfirmed = mempty
                                             -- All the transactions that were confirmed in the deleted
                                             -- section are now deleted.
-                                            , txnsDeleted = const 1 <$> txnsConfirmed x
+                                            , txnsDeleted = const 1 <$> txnsConfirmed oldTxIdState
                                             }
-                          newUtxoState = UtxoState newTxIdState oldTip
+                          newUtxoState = UtxoState (oldTxIdState <> newTxIdState) oldTip
                        in Right RollbackResult{newTip=oldTip, rolledBackIndex=before |> newUtxoState }
                    | otherwise -> Left  TipMismatch{foundTip=oldTip, targetPoint}
     where
