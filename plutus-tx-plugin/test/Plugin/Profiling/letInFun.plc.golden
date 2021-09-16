@@ -1,6 +1,6 @@
-[ [0] entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, [1] exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, [2] entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, [3] exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, [4] entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
-, [5] exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}} ]
+[ entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
+, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
+, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
+, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
+, entering Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}}
+, exiting Name {nameString = "addInteger", nameUnique = Unique {unUnique = 84}} ]

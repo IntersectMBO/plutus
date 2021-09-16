@@ -12,7 +12,7 @@
 
 module Main where
 import           Common
-import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcFlamegraph)
+import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcProfile)
 import           Plugin.Basic.Spec
 
 import qualified PlutusTx.Builtins         as Builtins
@@ -82,7 +82,7 @@ writeLogToFile ::
   [a] ->
   IO ()
 writeLogToFile fileName values = do
-  log <- pretty . view _2 <$> (rethrow $ runUPlcFlamegraph values)
+  log <- pretty . view _2 <$> (rethrow $ runUPlcProfile values)
   withFile
     ("plutus-tx-plugin/executables/profile/"<>fileName)
     WriteMode

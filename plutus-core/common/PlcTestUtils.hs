@@ -16,7 +16,6 @@ module PlcTestUtils (
     rethrow,
     runTPlc,
     runUPlc,
-    runUPlcFlamegraph,
     goldenTPlc,
     goldenTPlcCatch,
     goldenUPlc,
@@ -55,7 +54,7 @@ import qualified PlutusCore.Rename.Monad                              as TPLC
 
 import qualified UntypedPlutusCore                                    as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek             as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logWithCounter, logWithTimeEmitter)
+import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logEmitter)
 
 import           Control.Exception
 import           Control.Lens.Combinators                             (_2)
@@ -152,24 +151,9 @@ runUPlcProfile :: ToUPlc a DefaultUni UPLC.DefaultFun =>
 runUPlcProfile values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-        (result, logOut) = UPLC.evaluateCek logWithCounter TPLC.defaultCekParameters t
+        (result, logOut) = UPLC.evaluateCek logEmitter TPLC.defaultCekParameters t
     res <- either (throwError . SomeException) pure result
     pure (res, logOut)
-
--- For golden tests of profiling.
-runUPlcFlamegraph :: ToUPlc a DefaultUni UPLC.DefaultFun =>
-    [a]
-    -> ExceptT
-     SomeException
-     IO
-     (UPLC.Term UPLC.Name DefaultUni UPLC.DefaultFun (), [Text])
-runUPlcFlamegraph values = do
-    ps <- traverse toUPlc values
-    let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-        (result, logOut) = UPLC.evaluateCek logWithTimeEmitter TPLC.defaultCekParameters t
-    res <- either (throwError . SomeException) pure result
-    pure (res, logOut)
-
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
