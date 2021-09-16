@@ -2,7 +2,9 @@ name: "Deploy"
 on:
   push:
     branches:
-      - bitte
+      - marlowe-dist-demo # production, TODO this should be from the marlowe-production branch
+      - master # staging
+      # TODO need branches for wyohack and plutus-production
 jobs:
   deploy:
     runs-on: ubuntu-latest

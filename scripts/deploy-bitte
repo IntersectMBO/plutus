@@ -24,7 +24,9 @@ fi
 
 declare -A ref_env_mapping=(
     # TODO Make this the production branch
-    [bitte]=production
+    [marlowe-dist-demo]=production
+    [master]=staging
+    # TODO need branches for wyohack and plutus-production
 )
 
 if [ ! -v 'ref_env_mapping[${plutus_ref}]' ]
