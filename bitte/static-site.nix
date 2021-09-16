@@ -1,10 +1,10 @@
-{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd }: { root, port }:
+{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd }: { root }:
 
 let
   config = writeText "lighttpd.conf" ''
     server.modules = ("mod_deflate")
     server.document-root = "${root}"
-    server.port = ${toString port}
+    server.port = env.PORT
     index-file.names = ("index.html")
     mimetype.assign = (
       ".css" => "text/css",
