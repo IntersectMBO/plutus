@@ -1,4 +1,3 @@
-{-# LANGUAGE ExplicitNamespaces    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -6,7 +5,6 @@
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -240,9 +238,7 @@ fromTx :: ChainIndexTx -> Db InsertRows
 fromTx tx = mempty
     { datumRows = fromMap citxData DatumRow
     , scriptRows = mconcat
-        [ fromMap citxValidators ScriptRow
-        , fromMap citxMintingPolicies ScriptRow
-        , fromMap citxStakeValidators ScriptRow
+        [ fromMap citxScripts ScriptRow
         , fromMap citxRedeemers ScriptRow
         ]
     , txRows = fromPairs (const [(_citxTxId tx, tx)]) TxRow

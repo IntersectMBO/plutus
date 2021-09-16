@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -89,13 +88,13 @@ redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . dataHash . getRedeemer
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash = ValidatorHash . scriptHash . getValidator
+validatorHash = ValidatorHash . getScriptHash . scriptHash . getValidator
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash = MintingPolicyHash . scriptHash . getMintingPolicy
+mintingPolicyHash = MintingPolicyHash . getScriptHash . scriptHash . getMintingPolicy
 
 stakeValidatorHash :: StakeValidator -> StakeValidatorHash
-stakeValidatorHash = StakeValidatorHash . scriptHash . getStakeValidator
+stakeValidatorHash = StakeValidatorHash . getScriptHash . scriptHash . getStakeValidator
 
 -- | Hash a 'Builtins.BuiltinData'
 dataHash :: Builtins.BuiltinData -> Builtins.BuiltinByteString
@@ -107,9 +106,10 @@ dataHash =
     . builtinDataToData
 
 -- | Hash a 'Script'
-scriptHash :: Script -> Builtins.BuiltinByteString
+scriptHash :: Script -> ScriptHash
 scriptHash =
-    toBuiltin
+    ScriptHash
+    . toBuiltin
     . Script.serialiseToRawBytes
     . Script.hashScript
     . toCardanoApiScript

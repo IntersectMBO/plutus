@@ -215,6 +215,12 @@ languageBridge :: BridgePart
 languageBridge = dataBridge <|> assocMapBridge
 
 ------------------------------------------------------------
+scriptHashBridge :: BridgePart
+scriptHashBridge = do
+    typeName ^== "ScriptHash"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
+    pure psString
+
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
@@ -272,6 +278,7 @@ walletIdBridge = do
 ledgerBridge :: BridgePart
 ledgerBridge =
         scriptBridge
+    <|> scriptHashBridge
     <|> redeemerHashBridge
     <|> redeemerBridge
     <|> datumBridge

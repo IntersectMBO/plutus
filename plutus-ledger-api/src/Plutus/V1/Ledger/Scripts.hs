@@ -50,6 +50,7 @@ module Plutus.V1.Ledger.Scripts(
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
+    ScriptHash(..),
     ValidatorHash(..),
     MintingPolicyHash (..),
     StakeValidatorHash (..),
@@ -222,8 +223,8 @@ instance FromJSON Script where
         (SerialiseViaFlat p) <- JSON.decodeSerialise v
         Haskell.return $ Script p
 
-deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON (PLC.Data)
-deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON (PLC.Data)
+deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON PLC.Data
+deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON PLC.Data
 
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
@@ -315,6 +316,14 @@ instance BA.ByteArrayAccess StakeValidator where
         BA.length . BSL.toStrict . serialise
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
+
+-- | Script runtime representation of a @Digest SHA256@.
+newtype ScriptHash =
+    ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
+    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
