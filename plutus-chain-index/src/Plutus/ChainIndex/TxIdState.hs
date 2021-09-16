@@ -60,7 +60,7 @@ transactionStatus currentBlock txIdState txId
        (Nothing, _)      -> Right Unknown
 
        (Just TxConfirmedState{blockAdded=Last (Just block'), validity=Last (Just validity')}, Nothing) ->
-         if lockedIn block'
+         if isCommitted block'
             then Right $ Committed validity'
             else Right $ newStatus block' validity'
 
@@ -70,21 +70,22 @@ transactionStatus currentBlock txIdState txId
             then Right $ newStatus block' validity'
             -- Otherwise, throw an error if it looks deleted but we're too far
             -- into the future.
-            else if lockedIn block'
+            else if isCommitted block'
                     -- Illegal - We can't roll this transaction back.
                     then Left $ InvalidRollbackAttempt currentBlock txId txIdState
                     else Right $ Unknown
 
        _ -> Left $ TxIdStateInvalid currentBlock txId txIdState
     where
-      -- A block is 'locked in' if at least 'chainConstant' number of blocks
+      -- A block is committed at least 'chainConstant' number of blocks
       -- has elapsed since the block was added.
-      lockedIn addedInBlock = currentBlock > addedInBlock + fromIntegral chainConstant
+      isCommitted addedInBlock = currentBlock > addedInBlock + fromIntegral chainConstant
 
       newStatus block' validity' =
-        if lockedIn block'
+        if isCommitted block'
            then Committed validity'
            else TentativelyConfirmed (Depth $ fromIntegral $ currentBlock - block') validity'
+
       confirmed = Map.lookup txId (txnsConfirmed txIdState)
       deleted   = Map.lookup txId (txnsDeleted txIdState)
 
