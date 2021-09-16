@@ -209,10 +209,10 @@ convBApp b p p' q rewrite unique<>> p p' = q
 
 BUILTIN' : ∀ b {A}{az}(p : az <>> [] ∈ arity b)
   → BAPP b p A
-  → Value A ⊎ ∅ ⊢Nf⋆ *
+  → ∅ ⊢ A
 BUILTIN' b {az = az} p q
   with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
-... | refl = BUILTIN b (convBApp b p (saturated (arity b)) q)
+... | refl = {! BUILTIN b (convBApp b p (saturated (arity b)) q) !}
 
 open import Data.Product using (∃)
 
@@ -881,16 +881,11 @@ step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-step ((s , (V-I⇒ b {as' = []} p vs ·-)) ◅ V)
-  with BUILTIN' b (bubble p) (app p vs V)
-... | inj₁ V = s ◅ V
-... | inj₂ A = ◆ A
+step ((s , (V-I⇒ b {as' = []} p vs ·-)) ◅ V) = s ; [] ▻ (BUILTIN' b (bubble p) (app p vs V))
 step ((s , (V-I⇒ b {as' = x₂ ∷ as'} p vs ·-)) ◅ V) =
   s ◅ V-I b (bubble p) (app p vs V)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p vs)
-  with BUILTIN' b (bubble p) (app⋆ p vs refl)
-... | inj₁ V = s ◅ V
-... | inj₂ A = ◆ A
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p vs) =
+  s ; [] ▻ BUILTIN' b (bubble p) (app⋆ p vs refl) 
 step ((s , -·⋆ A) ◅ V-IΠ b {as' = x₂ ∷ as'} p vs) =
   s ◅ V-I b (bubble p) (app⋆ p vs refl)
 step (□ V) = □ V
@@ -1006,6 +1001,8 @@ step** : ∀{A}{s : State A}{s' : State A}{s'' : State A}
 step** base q = q
 step** (step* x p) q = step* x (step** p q)
 
+-- some syntactic assumptions
+
 postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
 
 postulate dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _) ρ V → (s CK.▻ (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ])) ≡ (s CK.▻ cek2ckClos M (ρ ∷ V))
@@ -1013,6 +1010,12 @@ postulate dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _
 postulate discharge-lem : ∀{A}(V : Value A) → Red.deval (cek2ckVal V) ≡ discharge V
 
 postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
+
+postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BAPP b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBAPP x)) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
+
+-- assuming that that buitins work the same way for CEK and red/CK
+
+postulate BUILTIN-lem : ∀ b {A}{az}(p : az <>> [] ∈ arity b)(q : BAPP b p A) → Red.BUILTIN' b p (cek2ckBAPP q) ≡ cek2ckClos (BUILTIN' b p q) []
 
 import Algorithmic.CC as CC
 thm64 : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
@@ -1034,7 +1037,10 @@ thm64 ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
   (thm64 _ s' q)
 thm64 ((s , (V-I⇒ b p x ·-)) ◅ V) s' (step* refl q) = {!!}
 thm64 ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm64 _ s' q)
-thm64 ((s , -·⋆ A) ◅ V-IΠ b p x) s' (step* refl q) = {!!}
+thm64 ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x) s' (step* refl q) = CK.step*
+  (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app⋆ p x refl)))
+  (thm64 _ s' q)
+thm64 ((s , -·⋆ A) ◅ V-IΠ b {as' = x₁ ∷ as'} p x) s' (step* refl q) = CK.step* (dischargeB-lem (cek2ckStack s)) (thm64 _ s' q)
 thm64 ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
 thm64 ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm64 _ s' q))
 thm64 (□ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
