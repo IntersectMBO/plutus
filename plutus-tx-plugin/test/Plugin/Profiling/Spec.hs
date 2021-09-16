@@ -29,6 +29,9 @@ import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
 import           Data.Proxy
 import           Data.Text                 (Text)
+import qualified PlutusCore.Default        as Builtins
+import qualified PlutusTx.Builtins         as Builtins
+import           Prelude
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
@@ -37,6 +40,7 @@ profiling :: TestNested
 profiling = testNested "Profiling" [
   goldenUEvalProfile "fib" [toUPlc fibTest]
   , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "addInt" [toUPlc addIntTest]
   , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
@@ -45,6 +49,15 @@ profiling = testNested "Profiling" [
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
   ]
+
+fact :: Integer -> Integer
+fact n =
+  if Builtins.equalsInteger n 0
+    then 1
+    else Builtins.multiplyInteger n (fact (Builtins.subtractInteger n 1))
+
+factTest :: CompiledCode (Integer -> Integer)
+factTest = plc (Proxy @"fact") fact
 
 fib :: Integer -> Integer
 fib n = if Builtins.equalsInteger n 0
@@ -86,5 +99,5 @@ idTest = plc (Proxy @"id") (id (1::Integer))
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 
-swapTest :: CompiledCode (Integer,Bool)
+swapTest :: CompiledCode (Integer, Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))

@@ -9,6 +9,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
 
 -- | Executable for profiling. Add the program you want to profile here.
+-- Plugin options only work in this file so you have to define the programs here.
 
 module Main where
 import           Common
@@ -28,6 +29,15 @@ import           Data.Text                 (Text)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
+
+fact :: Integer -> Integer
+fact n =
+  if Builtins.equalsInteger n 0
+    then 1
+    else Builtins.multiplyInteger n (fact (Builtins.subtractInteger n 1))
+
+factTest :: CompiledCode (Integer -> Integer)
+factTest = plc (Proxy @"fact") fact
 
 fib :: Integer -> Integer
 fib n = if Builtins.equalsInteger n 0
@@ -91,6 +101,7 @@ writeLogToFile fileName values = do
 main :: IO ()
 main = do
   writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   writeLogToFile "addInt" [toUPlc addIntTest]
   writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
   writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
