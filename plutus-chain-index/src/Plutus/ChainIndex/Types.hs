@@ -220,11 +220,12 @@ data Diagnostics =
         deriving stock (Eq, Ord, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
 
-data TxStatusFailure =
+data TxStatusFailure
       -- | We couldn't return the status because the 'TxIdState' was in a ...
       -- state ... that we didn't know how to decode in
       -- 'Plutus.ChainIndex.TxIdState.transactionStatus'.
-      TxIdStateInvalid BlockNumber TxId TxIdState
+      = TxIdStateInvalid BlockNumber TxId TxIdState
+      | InvalidRollbackAttempt BlockNumber TxId TxIdState
       deriving (Show, Eq)
 
 data TxIdState = TxIdState

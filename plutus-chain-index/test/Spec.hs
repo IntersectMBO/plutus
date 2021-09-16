@@ -26,7 +26,8 @@ import           Plutus.ChainIndex.Tx                 (citxTxId, txOutsWithRef)
 import           Plutus.ChainIndex.TxIdState          (increaseDepth, transactionStatus)
 import qualified Plutus.ChainIndex.TxIdState          as TxIdState
 import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), Tip (..), TxConfirmedState (..),
-                                                       TxIdState (..), TxStatus (..), TxValidity (..), tipAsPoint)
+                                                       TxIdState (..), TxStatus (..), TxStatusFailure (..),
+                                                       TxValidity (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Test.Tasty
@@ -102,6 +103,9 @@ rollbackTxIdState = property $ do
       deleted tx txIdState = (Map.lookup (tx ^. citxTxId) $ txnsDeleted $ getState txIdState)
       status bn tx txIdState = transactionStatus (BlockNumber bn) (getState txIdState) (tx ^. citxTxId)
 
+      isInvalidRollback (Left (InvalidRollbackAttempt _ _ _)) = True
+      isInvalidRollback _                                     = False
+
   -- It's inserted at f2, and is confirmed once and not deleted, resulting
   -- in a tentatively-confirmed status.
   confirmed txB f2 === Just 1
@@ -114,11 +118,18 @@ rollbackTxIdState = property $ do
   deleted txB f3   === Just 1
   status 2 txB f3  === (Right $ Unknown)
 
+  -- If we check the status far into the future, this should be an error, as
+  -- we're trying to rollback something that is committed.
+  isInvalidRollback (status 100 txB f3) === True
+
   -- At f4, it's confirmed twice, and deleted once, resulting in a
   -- tentatively-confirmed status again.
   confirmed txB f4 === Just 2
   deleted txB f4   === Just 1
   status 3 txB f4  === (Right $ TentativelyConfirmed (Depth 1) TxValid)
+
+  -- Much later, it should be committed.
+  status 100 txB f4 === Right (Committed TxValid)
 
 transactionDepthIncreases :: Property
 transactionDepthIncreases = property $ do
