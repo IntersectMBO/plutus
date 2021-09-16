@@ -86,6 +86,7 @@ library
         ouroboros-consensus-cardano -any,
         ouroboros-consensus-shelley -any,
         prettyprinter >=1.1.0.1,
+        retry -any,
         semigroups -any,
         serialise -any,
         time-units -any,

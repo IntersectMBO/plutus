@@ -11,10 +11,9 @@
 module Cardano.Protocol.Socket.Client where
 
 import           Control.Concurrent
-import           Control.Monad.Catch                         (catchAll)
+import           Control.Monad.Catch                         (Handler (..), SomeException (..))
 import           Data.Aeson                                  (FromJSON, ToJSON)
 import           Data.Text                                   (Text, pack)
-import           Data.Time.Units                             (Second, TimeUnit, toMicroseconds)
 import           GHC.Generics                                (Generic)
 
 import           Cardano.Api                                 (BlockInMode (..), CardanoMode, ChainPoint (..),
@@ -25,6 +24,7 @@ import           Cardano.Api                                 (BlockInMode (..), 
 import           Cardano.BM.Data.Trace                       (Trace)
 import           Cardano.BM.Data.Tracer                      (ToObject (..))
 import           Cardano.BM.Trace                            (logDebug, logWarning)
+import           Control.Retry                               (fibonacciBackoff, recovering, skipAsyncExceptions)
 import           Control.Tracer                              (nullTracer)
 import           Ledger.TimeSlot                             (SlotConfig, currentSlot)
 import           Ouroboros.Network.IOManager
@@ -91,7 +91,17 @@ runChainSync socketPath trace slotConfig networkId resumePoints chainSyncEventHa
           cshCurrentSlot = currentSlot slotConfig,
           cshHandler = chainSyncEventHandler }
 
-    _ <- forkIO $ withIOManager $ loop (1 :: Second)
+    _ <- forkIO $ withIOManager $ \_ ->
+           recovering
+             (fibonacciBackoff 500)
+             (skipAsyncExceptions ++
+               [(\_ -> Handler $ \(err :: SomeException) -> do
+                   logWarning trace (Disconnected $ pack $ show err)
+                   pure True )])
+             (\_ -> connectToLocalNode
+                      localNodeConnectInfo
+                      localNodeClientProtocols)
+
     pure handle
     where
       localNodeConnectInfo = LocalNodeConnectInfo {
@@ -105,19 +115,6 @@ runChainSync socketPath trace slotConfig networkId resumePoints chainSyncEventHa
             chainSyncClient trace slotConfig resumePoints chainSyncEventHandler,
         localTxSubmissionClient = Nothing,
         localStateQueryClient = Nothing }
-      loop :: forall a. TimeUnit a
-           => a
-           -> IOManager
-           -> IO ()
-      loop timeout iocp = do
-        catchAll
-          (connectToLocalNode
-             localNodeConnectInfo
-             localNodeClientProtocols)
-          (\err -> do
-               logWarning trace (Disconnected $ pack $ show err)
-               threadDelay (fromIntegral $ toMicroseconds timeout)
-               loop timeout iocp)
 
 -- | The client updates the application state when the protocol state changes.
 chainSyncClient
