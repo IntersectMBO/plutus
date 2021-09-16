@@ -61,7 +61,7 @@ declare -r tmp
 cat > "${tmp}/${plutus_env}.cue" <<EOF
 package revisions
 
-${plutus_env}: "${plutus_rev}"
+"${plutus_env}": "${plutus_rev}"
 EOF
 
 
