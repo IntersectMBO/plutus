@@ -250,6 +250,8 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
             tell $ SomeError endpointName er
             marlowePlutusContract)
     create = endpoint @"create" $ \(owners, contract) -> catchError "create" $ do
+        -- Create a transaction with the role tokens and pay them to the contract creator
+        -- See Note [The contract is not ready]
         (params, distributeRoleTokens) <- setupMarloweParams owners contract
         slot <- currentSlot
         let StateMachineClient{scInstance} = mkMarloweClient params
@@ -260,6 +262,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         let SM.StateMachineInstance{SM.typedValidator} = scInstance
         let tx = mustPayToTheScript marloweData payValue <> distributeRoleTokens
         let lookups = Constraints.typedValidatorLookups typedValidator
+        -- Create the Marlowe contract and pay the role tokens to the owners
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
         tell $ OK "create"
@@ -329,6 +332,8 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
             Just (SM.OnChainState{SM.ocsTxOut=st}, _) -> do
                 let marloweData = tyTxOutData st
                 continueWith marloweData
+    -- The MarloweApp contract is closed implicitly by not returning
+    -- itself (marlowePlutusContract) as a continuation
     close = endpoint @"close" $ \_ -> tell $ OK "close"
 
 
@@ -674,16 +679,23 @@ instance FromJSON CompanionState where
     with contract's @MarloweParams@ and @MarloweData@
 -}
 marloweCompanionContract :: Contract CompanionState MarloweCompanionSchema MarloweError ()
-marloweCompanionContract = contracts
+marloweCompanionContract = checkExistingRoleTokens
   where
-    contracts = do
+    checkExistingRoleTokens = do
+        -- Get the existing unspend outputs of the wallet that activated the companion contract
         pkh <- pubKeyHash <$> ownPubKey
         let ownAddress = pubKeyHashAddress pkh
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
+        -- Filter those outputs for role tokens and notify the WebSocket subscribers
+        -- NOTE: CombinedWSStreamToServer has an API to subscribe to WS notifications
         forM_ txOuts notifyOnNewContractRoles
-        checkpointLoop (fmap Right <$> cont) ownAddress
-    cont ownAddress = do
+        -- This contract will run in a loop forever (because we always return Right)
+        -- checking for updates to the UTXO's for a given address.
+        -- The contract could be stopped via /contract/<instance>/stop but we are
+        -- currently not doing that.
+        checkpointLoop (fmap Right <$> checkForUpdates) ownAddress
+    checkForUpdates ownAddress = do
         txns <- NonEmpty.toList <$> awaitUtxoProduced ownAddress
         let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
@@ -692,14 +704,24 @@ marloweCompanionContract = contracts
 notifyOnNewContractRoles :: TxOut
     -> Contract CompanionState MarloweCompanionSchema MarloweError ()
 notifyOnNewContractRoles txout = do
+    -- Filter the CurrencySymbol's of this transaction output that might be
+    -- a role token symbol. Basically, any non-ADA symbols is a prospect to
+    -- to be a role token, but it could also be an NFT for example.
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
+        -- Check if there is a Marlowe contract on chain that uses this currency
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
             Just (params, md) -> do
                 logDebug @String $ "Companion contract: Updating observable state"
                 tell $ CompanionState (Map.singleton params md)
             Nothing           -> do
+            -- The result will be empty if:
+            --   * Note [The contract is not ready]: When you create a Marlowe contract first we create
+            --                                       the role tokens, pay them to the contract creator and
+            --                                       then we create the Marlowe contract.
+            --   * If the marlowe contract is closed.
+                -- TODO: Change for debug
                 logWarn @String $ "Companion contract: On-chain state not found!"
                 pure ()
 
