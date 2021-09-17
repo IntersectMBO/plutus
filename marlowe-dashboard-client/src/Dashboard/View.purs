@@ -431,11 +431,11 @@ currentWalletCard walletDetails =
 
     assets = view _assets walletDetails
   in
-    div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto" ] ]
+    div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
           [ text $ "Wallet " <> walletNickname ]
-      , div [ classNames [ "p-4", "overflow-y-auto" ] ]
+      , div [ classNames [ "p-4", "overflow-y-auto", "space-y-4" ] ]
           [ div
               [ classNames Css.hasNestedLabel ]
               [ label
@@ -443,13 +443,12 @@ currentWalletCard walletDetails =
                   [ text "Wallet ID" ]
               , input
                   [ type_ InputText
-                  , classNames $ Css.input true <> [ "mb-4" ]
+                  , classNames $ Css.input true
                   , value $ UUID.toString $ unwrap companionAppId
                   , readOnly true
                   ]
               ]
-          , div
-              [ classNames [ "mb-4" ] ]
+          , div_
               [ h4
                   [ classNames [ "font-semibold" ] ]
                   [ text "Balance:" ]
@@ -459,7 +458,7 @@ currentWalletCard walletDetails =
               ]
           ]
       , div
-          [ classNames [ "p-4", "flex", "gap-4", "border-t border-gray" ] ]
+          [ classNames [ "p-4", "flex", "gap-4" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1" ]
               , onClick_ CloseCard

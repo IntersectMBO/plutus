@@ -47,7 +47,7 @@ contractTemplateCard walletLibrary assets state =
     contractTemplate = view _contractTemplate state
   in
     div
-      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr" ] ]
+      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
           [ text "Contract templates" ]

@@ -12,7 +12,7 @@ import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (Maybe(..), isJust)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, br_, button, div, h2, hr, iframe, img, label, main, p, section, span_, text)
+import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, label, main, p, p_, section, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (disabled, for, href, src, title)
 import Images (marloweRunLogo)
@@ -91,31 +91,33 @@ useWalletBox state =
       }
   in
     section
-      [ classNames [ "row-start-2", "lg:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-8", "pt-12", "lg:px-12", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box" ] ]
-      [ img
-          [ classNames [ "mx-auto", "mb-6", "text-center" ]
-          , src marloweRunLogo
+      [ classNames [ "row-start-2", "lg:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-8", "lg:p-12", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box", "space-y-4" ] ]
+      [ div [ classNames [ "p-2 pt-0" ] ]
+          [ img
+              [ classNames [ "mx-auto", "text-center" ]
+              , src marloweRunLogo
+              ]
           ]
       , p
-          [ classNames [ "mb-4", "text-center" ] ]
+          [ classNames [ "text-center" ] ]
           [ text "To being using the Marlowe Run demo, generate a new demo wallet." ]
       , button
-          [ classNames $ Css.primaryButton <> [ "w-full", "mb-4", "text-center" ]
+          [ classNames $ Css.primaryButton <> [ "w-full", "text-center" ]
           , onClick_ GenerateWallet
           ]
           [ text "Generate demo wallet" ]
       , a
-          [ classNames [ "block", "text-purple", "text-center", "font-semibold", "mb-4" ]
+          [ classNames [ "block", "text-purple", "text-center", "font-semibold" ]
           , onClick_ $ OpenCard GenerateWalletHelpCard
           ]
           [ text "Why do I need to do this?" ]
-      , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
+      , hr [ classNames [ "max-w-xs", "mx-auto" ] ]
       , p
-          [ classNames [ "mb-4", "text-center" ] ]
+          [ classNames [ "text-center" ] ]
           [ text "Or select an existing demo wallet from the list or paste in a demo wallet key." ]
       , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInputDisplayOptions walletNicknameOrIdInput
       , div
-          [ classNames [ "mt-6", "flex", "justify-between" ] ]
+          [ classNames [ "pt-2", "flex", "justify-between" ] ]
           [ a
               [ classNames [ "flex", "font-bold" ]
               , href "https://staging.marlowe-web.iohkdev.io"
@@ -152,18 +154,20 @@ gettingStartedBox =
         , text "Watch our get started tutorial"
         ]
     , div
-        [ classNames [ "hidden", "lg:block" ] ]
+        [ classNames [ "hidden", "lg:block", "space-y-6" ] ]
         [ a
-            [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box", "mb-6" ]
+            [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box" ]
             , onClick_ $ OpenCard GetStartedHelpCard
             ]
             [ icon Icon.Play $ Css.bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
-        , p
-            [ classNames [ "font-semibold", "text-lg", "text-center" ] ]
-            [ text "New to Marlowe Run?" ]
-        , p
-            [ classNames [ "text-lg", "text-center" ] ]
-            [ text "Watch our get started tutorial" ]
+        , div_
+            [ p
+                [ classNames [ "font-semibold", "text-lg", "text-center" ] ]
+                [ text "New to Marlowe Run?" ]
+            , p
+                [ classNames [ "text-lg", "text-center" ] ]
+                [ text "Watch our get started tutorial" ]
+            ]
         ]
     ]
 
@@ -198,12 +202,11 @@ generateWalletHelpCard =
           ]
       ]
   , div
-      [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+      [ classNames [ "p-5", "pb-6", "lg:pb-8", "space-y-4" ] ]
       [ h2
-          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ classNames [ "font-semibold" ] ]
           [ text "Why generate a demo wallet?" ]
-      , p
-          [ classNames [ "mb-4" ] ]
+      , p_
           [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
       , div
           [ classNames [ "flex", "gap-4" ] ]
@@ -241,12 +244,12 @@ useNewWalletCard state =
         , onClick_ CloseCard
         ]
         [ icon_ Icon.Close ]
-    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+    , div [ classNames [ "p-5", "lg:p-6", "space-y-4" ] ]
         [ h2
-            [ classNames [ "font-bold", "my-4" ] ]
+            [ classNames [ "font-bold" ] ]
             [ text $ "Demo wallet generated" ]
         , div
-            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            [ classNames $ Css.hasNestedLabel ]
             $ [ label
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
@@ -255,7 +258,7 @@ useNewWalletCard state =
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
               ]
         , div
-            [ classNames [ "relative", "mb-4" ] ]
+            [ classNames [ "relative" ] ]
             [ div
                 [ classNames Css.hasNestedLabel ]
                 [ label
@@ -309,12 +312,12 @@ useWalletCard state =
         , onClick_ CloseCard
         ]
         [ icon_ Icon.Close ]
-    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+    , div [ classNames [ "p-5", "lg:p-6", "space-y-4" ] ]
         [ h2
-            [ classNames [ "font-bold", "my-4", "truncate", "w-11/12" ] ]
+            [ classNames [ "font-bold", "truncate", "w-11/12" ] ]
             [ text $ "Demo wallet " <> walletNickname ]
         , div
-            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            [ classNames $ Css.hasNestedLabel ]
             $ [ label
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
@@ -323,7 +326,7 @@ useWalletCard state =
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
               ]
         , div
-            [ classNames [ "relative", "mb-4" ] ]
+            [ classNames [ "relative" ] ]
             [ div
                 [ classNames Css.hasNestedLabel ]
                 [ label
@@ -386,14 +389,13 @@ localWalletMissingCard =
           , onClick_ CloseCard
           ]
           [ icon_ Icon.Close ]
-      , div [ classNames [ "flex", "font-semibold", "px-5", "py-4", "bg-gray" ] ]
-          [ icon Icon.ErrorOutline [ "mr-2" ]
+      , div [ classNames [ "flex", "font-semibold", "gap-2", "px-5", "py-4", "bg-gray" ] ]
+          [ icon Icon.ErrorOutline []
           , span_ [ text "Wallet not found" ]
           ]
       , div
-          [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
-          [ p
-              [ classNames [ "mb-4" ] ]
+          [ classNames [ "p-5", "pb-6", "lg:pb-8", "space-y-4" ] ]
+          [ p_
               [ text "A wallet that you have previously used is no longer available in our demo server. This is probably because the demo server has been updated. (Note that this demo is in continuous development, and data is not preserved between updates.) We recommend that you use the button below to clear your browser's cache for this site and start again." ]
           , div
               [ classNames [ "flex", "justify-center" ] ]
