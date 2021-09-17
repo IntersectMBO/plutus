@@ -60,6 +60,7 @@ library
         Plutus.Contract.Util
         Plutus.Contract.Wallet
         Plutus.Contract.Typed.Tx
+        Plutus.Contract.Secrets
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Chain
@@ -174,6 +175,7 @@ test-suite plutus-contract-test
         Spec.Rows
         Spec.State
         Spec.ThreadToken
+        Spec.Secrets
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -184,6 +186,7 @@ test-suite plutus-contract-test
         tasty -any,
         tasty-golden -any,
         tasty-hunit -any,
+        tasty-quickcheck -any,
         tasty-hedgehog -any,
         text -any,
         mtl -any,

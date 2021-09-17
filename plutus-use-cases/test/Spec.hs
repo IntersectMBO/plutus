@@ -9,6 +9,7 @@ import qualified Spec.Escrow
 import qualified Spec.Future
 import qualified Spec.GameStateMachine
 import qualified Spec.Governance
+import qualified Spec.SealedBidAuction
 import qualified Spec.SimpleEscrow
 -- import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
@@ -54,6 +55,7 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Prism.tests,
     Spec.Stablecoin.tests,
     Spec.Auction.tests,
+    Spec.SealedBidAuction.tests,
     Spec.Governance.tests,
     Spec.Uniswap.tests
     ]

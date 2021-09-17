@@ -30,6 +30,7 @@ import           Test.Tasty.QuickCheck              (testProperty)
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
+import           Plutus.Contract.Secrets
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
@@ -71,12 +72,12 @@ instance ContractModel GameModel where
     perform handle s cmd = case cmd of
         Lock w new val -> do
             callEndpoint @"lock" (handle $ WalletKey w)
-                         LockArgs{lockArgsSecret = new, lockArgsValue = Ada.lovelaceValueOf val}
+                         LockArgs{lockArgsSecret = secretArg new, lockArgsValue = Ada.lovelaceValueOf val}
             delay 2
         Guess w old new val -> do
             callEndpoint @"guess" (handle $ WalletKey w)
                 GuessArgs{ guessArgsOldSecret = old
-                         , guessArgsNewSecret = new
+                         , guessArgsNewSecret = secretArg new
                          , guessArgsValueTakenOut = Ada.lovelaceValueOf val}
             delay 1
         GiveToken w' -> do
@@ -215,7 +216,7 @@ prop_NoLockedFunds = forAllDL noLockedFunds prop_Game
 
 tests :: TestTree
 tests =
-    testGroup "game state machine tests"
+    testGroup "game state machine with secret arguments tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
         .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 5 ==)
@@ -253,12 +254,12 @@ initialVal = Ada.adaValueOf 10
 successTrace :: EmulatorTrace ()
 successTrace = do
     hdl <- Trace.activateContractWallet w1 G.contract
-    Trace.callEndpoint @"lock" hdl LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
+    Trace.callEndpoint @"lock" hdl LockArgs{lockArgsSecret=secretArg "hello", lockArgsValue= Ada.lovelaceValueOf 8}
     _ <- Trace.waitNSlots 2
     _ <- Trace.payToWallet w1 w2 gameTokenVal
     _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 G.contract
-    Trace.callEndpoint @"guess" hdl2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
+    Trace.callEndpoint @"guess" hdl2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret=secretArg "new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     void $ Trace.waitNSlots 1
 
 -- | Run 'successTrace', then wallet 2 transfers the token to wallet 3, which
@@ -269,7 +270,7 @@ successTrace2 = do
     _ <- Trace.payToWallet w2 w3 gameTokenVal
     _ <- Trace.waitNSlots 1
     hdl3 <- Trace.activateContractWallet w3 G.contract
-    Trace.callEndpoint @"guess" hdl3 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
+    Trace.callEndpoint @"guess" hdl3 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret=secretArg "hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
     void $ Trace.waitNSlots 1
 
 
@@ -278,12 +279,12 @@ successTrace2 = do
 failTrace :: EmulatorTrace ()
 failTrace = do
     hdl <- Trace.activateContractWallet w1 G.contract
-    Trace.callEndpoint @"lock" hdl LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
+    Trace.callEndpoint @"lock" hdl LockArgs{lockArgsSecret=secretArg "hello", lockArgsValue= Ada.lovelaceValueOf 8}
     _ <- Trace.waitNSlots 2
     _ <- Trace.payToWallet w1 w2 gameTokenVal
     _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 G.contract
-    _ <- Trace.callEndpoint @"guess" hdl2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
+    _ <- Trace.callEndpoint @"guess" hdl2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret=secretArg "new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     void $ Trace.waitNSlots 1
 
 gameTokenVal :: Value
