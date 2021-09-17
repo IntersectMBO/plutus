@@ -1,0 +1,163 @@
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# options_ghc -Wno-missing-signatures #-}
+
+{-
+
+A beam-specific effect for writing to a beam database. Here we explicitly construct the
+database schema for the data which we wish to store:
+
+...
+
+In particular this is specialised to 'Sqlite'; but it could be refactored to
+work over a more general type, or changed to Postgres.
+
+The schema we've opted for at present is a very simple one, with no ability to
+track changes over time.
+
+-}
+
+module Plutus.ChainIndex.DbStore where
+
+import           Cardano.BM.Trace                  (Trace, logDebug)
+import           Control.Exception                 (try)
+import           Control.Monad.Freer               (Eff, LastMember, Member, type (~>))
+import           Control.Monad.Freer.Error         (Error, throwError)
+import           Control.Monad.Freer.TH            (makeEffect)
+import           Data.ByteString                   (ByteString)
+import qualified Data.Text                         as Text
+import           Database.Beam
+import           Database.Beam.Backend.SQL
+import           Database.Beam.Migrate
+import           Database.Beam.Schema.Tables
+import           Database.Beam.Sqlite              (Sqlite, SqliteM, runBeamSqliteDebug)
+import qualified Database.SQLite.Simple            as Sqlite
+import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
+
+data DatumRowT f
+  = DatumRow
+    { _datumRowHash  :: Columnar f ByteString
+    , _datumRowDatum :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type DatumRow = DatumRowT Identity
+
+instance Table DatumRowT where
+  data PrimaryKey DatumRowT f = DatumRowId (Columnar f ByteString) deriving (Generic, Beamable)
+  primaryKey = DatumRowId . _datumRowHash
+
+data TxRowT f
+  = TxRow
+    { _txRowHash :: Columnar f ByteString
+    , _txRowTx   :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type TxRow = TxRowT Identity
+
+instance Table TxRowT where
+  data PrimaryKey TxRowT f = TxRowId (Columnar f ByteString) deriving (Generic, Beamable)
+  primaryKey = TxRowId . _txRowHash
+
+data Db f = Db
+    { _DatumRows :: f (TableEntity DatumRowT)
+    , _TxRows    ::  f (TableEntity TxRowT)
+    }
+    deriving (Generic, Database be)
+
+db :: DatabaseSettings be Db
+db = defaultDbSettings
+
+checkedSqliteDb :: CheckedDatabaseSettings Sqlite Db
+checkedSqliteDb = defaultMigratableDbSettings
+
+-- | Effect for managing a beam-based database.
+data DbStoreEffect r where
+  -- | Insert a row into a table.
+  AddRows
+    ::
+    ( Beamable table
+    , FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table
+    )
+    => DatabaseEntity Sqlite Db (TableEntity table)
+    -> [table Identity]
+    -> DbStoreEffect ()
+
+  UpdateRow
+    ::
+    ( Beamable table
+    )
+    => SqlUpdate Sqlite table
+    -> DbStoreEffect ()
+
+  SelectList
+    ::
+    ( Beamable table
+    , FromBackendRow Sqlite (table Identity)
+    )
+    => SqlSelect Sqlite (table Identity)
+    -> DbStoreEffect [table Identity]
+
+  SelectOne
+    ::
+    ( FromBackendRow Sqlite a
+    )
+    => SqlSelect Sqlite a
+    -> DbStoreEffect (Maybe a)
+
+handleDbStore ::
+  forall effs.
+  ( Member (Error ChainIndexError) effs
+  , LastMember IO effs
+  )
+  => Trace IO ChainIndexLog
+  -> Sqlite.Connection
+  -> DbStoreEffect
+  ~> Eff effs
+handleDbStore trace conn eff = do
+  case eff of
+    AddRows table records ->
+        runBeam trace conn $ runInsert $ insert table (insertValues records)
+
+    SelectList q -> runBeam trace conn $ runSelectReturningList q
+
+    SelectOne q -> runBeam trace conn $ runSelectReturningOne q
+
+    UpdateRow q -> runBeam trace conn $ runUpdate q
+
+runBeam ::
+  forall effs.
+  ( Member (Error ChainIndexError) effs
+  , LastMember IO effs
+  )
+  => Trace IO ChainIndexLog
+  -> Sqlite.Connection
+  -> SqliteM
+  ~> Eff effs
+runBeam trace conn action = do
+    let traceSql = logDebug trace . SqlLog
+    resultEither <- liftIO $ try $ runBeamSqliteDebug traceSql conn action
+    case resultEither of
+        -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
+        -- missing database. When this exception is raised, we suppose it's
+        -- because the 'migrate' command was not executed before running the
+        -- chain index server.
+        Left e@(Sqlite.SQLError Sqlite.ErrorError _ _) -> do
+            throwError $ MigrationNotDoneError $ Text.pack $ show e
+        -- We handle and rethrow errors other than
+        -- 'Database.SQLite.Simple.ErrorError'.
+        Left e -> do
+            throwError $ SqlError $ Text.pack $ show e
+        Right v -> return v
+
+makeEffect ''DbStoreEffect

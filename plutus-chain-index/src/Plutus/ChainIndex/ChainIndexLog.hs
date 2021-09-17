@@ -22,6 +22,7 @@ data ChainIndexLog =
     | TxOutNotFound TxOutRef
     | TipIsGenesis
     | NoDatumScriptAddr TxOut
+    | SqlLog String
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, ToObject)
 
@@ -41,6 +42,7 @@ instance Pretty ChainIndexLog where
     TxOutNotFound ref -> "TxOut not found with:" <+> pretty ref
     TipIsGenesis -> "TipIsGenesis"
     NoDatumScriptAddr txout -> "The following transaction output from a script adress does not have a datum:" <+> pretty txout
+    SqlLog m -> pretty m
 
 -- | Outcome of inserting a 'UtxoState' into the utxo index
 data InsertUtxoPosition =

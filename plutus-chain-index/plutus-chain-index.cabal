@@ -34,10 +34,12 @@ library
         Plutus.ChainIndex.Api
         Plutus.ChainIndex.ChainIndexError
         Plutus.ChainIndex.ChainIndexLog
+        Plutus.ChainIndex.Client
+        Plutus.ChainIndex.DbStore
         Plutus.ChainIndex.Effects
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
-        Plutus.ChainIndex.Client
+        Plutus.ChainIndex.Handlers
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
         Plutus.ChainIndex.TxIdState
@@ -67,6 +69,9 @@ library
     build-depends:
         aeson -any,
         base >=4.7 && <5,
+        beam-core -any,
+        beam-sqlite -any,
+        beam-migrate -any,
         cardano-api -any,
         cardano-ledger-byron -any,
         containers -any,
@@ -89,6 +94,7 @@ library
         prettyprinter >=1.1.0.1,
         semigroups -any,
         serialise -any,
+        sqlite-simple -any,
         time-units -any,
         typed-protocols-examples -any,
         unordered-containers -any,
@@ -143,6 +149,9 @@ executable plutus-chain-index
   build-depends:
     base >=4.9 && <5,
     aeson -any,
+    beam-core -any,
+    beam-sqlite -any,
+    beam-migrate -any,
     cardano-api -any,
     cardano-slotting -any,
     containers -any,
@@ -157,4 +166,5 @@ executable plutus-chain-index
     yaml -any,
     prettyprinter >=1.1.0.1,
     plutus-chain-index -any,
+    sqlite-simple -any,
     stm -any

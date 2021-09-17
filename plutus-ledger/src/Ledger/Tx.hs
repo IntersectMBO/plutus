@@ -37,7 +37,8 @@ module Ledger.Tx
 import qualified Cardano.Api               as C
 import           Cardano.Crypto.Hash       (SHA256, digest)
 import qualified Codec.CBOR.Write          as Write
-import           Codec.Serialise.Class     (Serialise, encode)
+import           Codec.Serialise           (Serialise (..))
+import           Codec.Serialise.Encoding  (Encoding (..), Tokens (..))
 import           Control.Applicative       ((<|>))
 import           Control.Lens              hiding ((.=))
 import           Data.Aeson                (FromJSON (parseJSON), ToJSON (toJSON), object, (.:), (.=))
@@ -165,6 +166,20 @@ instance Eq SomeCardanoApiTx where
   _ == _                                                                           = False
 
 deriving instance Show SomeCardanoApiTx
+
+instance Serialise SomeCardanoApiTx where
+  encode (SomeTx tx eraInMode) = Encoding (TkBytes (C.serialiseToCBOR tx)) <> encode eraInMode
+  decode = undefined
+
+instance Serialise (C.EraInMode era mode) where
+  encode C.ByronEraInByronMode     = Encoding (TkSimple 0)
+  encode C.ShelleyEraInShelleyMode = Encoding (TkSimple 1)
+  encode C.ByronEraInCardanoMode   = Encoding (TkSimple 2)
+  encode C.ShelleyEraInCardanoMode = Encoding (TkSimple 3)
+  encode C.AllegraEraInCardanoMode = Encoding (TkSimple 4)
+  encode C.MaryEraInCardanoMode    = Encoding (TkSimple 5)
+  encode C.AlonzoEraInCardanoMode  = Encoding (TkSimple 6)
+  decode = undefined
 
 instance ToJSON SomeCardanoApiTx where
   toJSON (SomeTx tx eraInMode) =

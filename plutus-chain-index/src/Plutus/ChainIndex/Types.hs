@@ -202,12 +202,12 @@ newtype BlockNumber = BlockNumber Int
 
 data Diagnostics =
     Diagnostics
-        { numTransactions    :: Int
-        , numValidators      :: Int
-        , numMintingPolicies :: Int
-        , numStakeValidators :: Int
-        , numRedeemers       :: Int
-        , numAddresses       :: Int
+        { numTransactions    :: Integer
+        , numValidators      :: Integer
+        , numMintingPolicies :: Integer
+        , numStakeValidators :: Integer
+        , numRedeemers       :: Integer
+        , numAddresses       :: Integer
         , someTransactions   :: [TxId]
         }
         deriving stock (Eq, Ord, Show, Generic)

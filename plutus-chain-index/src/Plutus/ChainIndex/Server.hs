@@ -8,49 +8,57 @@ module Plutus.ChainIndex.Server(
     serveChainIndexQueryServer,
     serveChainIndex) where
 
-import           Control.Concurrent.STM              (TVar)
-import qualified Control.Concurrent.STM              as STM
-import           Control.Monad                       ((>=>))
-import qualified Control.Monad.Except                as E
-import           Control.Monad.Freer                 (Eff, Member, interpret, run, type (~>))
-import           Control.Monad.Freer.Error           (Error, runError, throwError)
-import           Control.Monad.Freer.Extras.Log      (handleLogIgnore)
-import           Control.Monad.Freer.Extras.Modify   (raiseEnd)
-import           Control.Monad.Freer.State           (evalState)
-import           Control.Monad.IO.Class              (MonadIO (liftIO))
-import qualified Data.ByteString.Lazy                as BSL
-import           Data.Proxy                          (Proxy (..))
-import qualified Data.Text                           as Text
-import qualified Data.Text.Encoding                  as Text
-import qualified Network.Wai.Handler.Warp            as Warp
-import           Plutus.ChainIndex.Api               (API, FromHashAPI)
-import           Plutus.ChainIndex.ChainIndexError   (ChainIndexError)
-import           Plutus.ChainIndex.ChainIndexLog     (ChainIndexLog)
-import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect, ChainIndexQueryEffect)
-import qualified Plutus.ChainIndex.Effects           as E
-import           Plutus.ChainIndex.Emulator.Handlers (ChainIndexEmulatorState (..), handleControl, handleQuery)
-import           Servant.API                         ((:<|>) (..))
-import           Servant.API.ContentTypes            (NoContent (..))
-import           Servant.Server                      (Handler, ServerError, ServerT, err404, err500, errBody,
-                                                      hoistServer, serve)
+import           Cardano.BM.Trace                  (Trace)
+import           Control.Concurrent.STM            (TVar)
+import qualified Control.Concurrent.STM            as STM
+import           Control.Monad                     ((>=>))
+import qualified Control.Monad.Except              as E
+import           Control.Monad.Freer               (Eff, Member, interpret, runM, type (~>))
+import           Control.Monad.Freer.Error         (Error, runError, throwError)
+import           Control.Monad.Freer.Extras.Log    (handleLogIgnore)
+import           Control.Monad.Freer.Extras.Modify (raiseEnd)
+import           Control.Monad.Freer.State         (evalState)
+import           Control.Monad.IO.Class            (MonadIO (liftIO))
+import qualified Data.ByteString.Lazy              as BSL
+import           Data.Proxy                        (Proxy (..))
+import qualified Data.Text                         as Text
+import qualified Data.Text.Encoding                as Text
+import qualified Database.SQLite.Simple            as Sqlite
+import qualified Network.Wai.Handler.Warp          as Warp
+import           Plutus.ChainIndex.Api             (API, FromHashAPI)
+import           Plutus.ChainIndex.ChainIndexError (ChainIndexError)
+import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog)
+import           Plutus.ChainIndex.DbStore         (handleDbStore)
+import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect, ChainIndexQueryEffect)
+import qualified Plutus.ChainIndex.Effects         as E
+import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
+import           Servant.API                       ((:<|>) (..))
+import           Servant.API.ContentTypes          (NoContent (..))
+import           Servant.Server                    (Handler, ServerError, ServerT, err404, err500, errBody, hoistServer,
+                                                    serve)
 
 serveChainIndexQueryServer ::
     Int -- ^ Port
-    -> TVar ChainIndexEmulatorState -- ^ Chain index state (TODO: When the disk state is stored in a DB, replace this with DB connection info)
+    -> Trace IO ChainIndexLog
+    -> TVar ChainIndexState -- ^ Chain index state
+    -> Sqlite.Connection -- ^ Sqlite DB connection
     -> IO ()
-serveChainIndexQueryServer port diskState = do
-    let server = hoistServer (Proxy @API) (runChainIndexQuery diskState) serveChainIndex
+serveChainIndexQueryServer port trace diskState conn = do
+    let server = hoistServer (Proxy @API) (runChainIndexQuery trace diskState conn) serveChainIndex
     Warp.run port (serve (Proxy @API) server)
 
 runChainIndexQuery ::
-    TVar ChainIndexEmulatorState
+    Trace IO ChainIndexLog
+    -> TVar ChainIndexState
+    -> Sqlite.Connection
     -> Eff '[ChainIndexQueryEffect, ChainIndexControlEffect, Error ServerError] ~> Handler
-runChainIndexQuery emState_ action = do
+runChainIndexQuery trace emState_ conn action = do
     emState <- liftIO (STM.readTVarIO emState_)
-    let result = run
+    result <- liftIO $ runM
                     $ evalState emState
                     $ runError @ChainIndexError
                     $ handleLogIgnore @ChainIndexLog
+                    $ interpret (handleDbStore trace conn)
                     $ runError
                     $ interpret handleControl
                     $ interpret handleQuery

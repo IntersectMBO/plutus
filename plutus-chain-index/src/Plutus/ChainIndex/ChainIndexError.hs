@@ -6,14 +6,17 @@
 module Plutus.ChainIndex.ChainIndexError (ChainIndexError(..), InsertUtxoFailed(..), RollbackFailed(..)) where
 
 import           Data.Aeson              (FromJSON, ToJSON)
+import           Data.Text               (Text)
 import           GHC.Generics            (Generic)
 import           Plutus.ChainIndex.Types (Point (..), Tip (..))
-import           Prettyprinter           (Pretty (..), colon, (<+>))
+import           Prettyprinter           (Pretty (..), colon, line, (<+>))
 
 data ChainIndexError =
     InsertionFailed InsertUtxoFailed
     | RollbackFailed RollbackFailed
     | QueryFailedNoTip -- ^ Query failed because the chain index does not have a tip (not synchronised with node)
+    | MigrationNotDoneError Text
+    | SqlError Text
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -22,6 +25,10 @@ instance Pretty ChainIndexError where
     InsertionFailed err -> "Insertion failed" <> colon <+> pretty err
     RollbackFailed err  -> "Rollback failed" <> colon <+> pretty err
     QueryFailedNoTip    -> "Query failed" <> colon <+> "No tip."
+    SqlError err        -> pretty err
+    MigrationNotDoneError err -> pretty err
+                                   <> line
+                                   <> "Did you forget to run the 'migrate' command ?"
 
 -- | UTXO state could not be inserted into the chain index
 data InsertUtxoFailed =
