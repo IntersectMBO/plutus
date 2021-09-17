@@ -5,7 +5,6 @@ module Web.Common.Components.WalletId
   ) where
 
 import Prelude
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.UUID (emptyUUID, toString) as UUID
 import Halogen.Css (classNames)
@@ -38,18 +37,15 @@ defaultParams =
 
 render :: forall w. Params -> HH.HTML w PlutusAppId
 render { inputId, label, value } =
-  Input.render
-    Input.defaultParams
-      { before =
-        Just
-          $ Label.render Label.defaultParams { for = inputId, text = label }
-      , after =
-        Just
-          $ HH.button
-              [ classNames [ "cursor-pointer", "h-4", "flex", "items-center", "self-center" ]
-              , onClick_ value
-              ]
-              [ icon Icon.Copy [ "w-6" ] ]
-      , id = inputId
-      , value = UUID.toString $ unwrap value
-      }
+  let
+    inputParams = Input.defaultParams { id = inputId, value = UUID.toString $ unwrap value }
+  in
+    Input.renderWithChildren inputParams \input ->
+      [ Label.render Label.defaultParams { for = inputId, text = label }
+      , input
+      , HH.button
+          [ classNames [ "cursor-pointer", "h-4", "flex", "items-center", "self-center" ]
+          , onClick_ value
+          ]
+          [ icon Icon.Copy [ "w-6" ] ]
+      ]

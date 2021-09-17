@@ -1,13 +1,12 @@
 module Web.Common.Components.Label
   ( Params
   , Variant(..)
-  , render
   , defaultParams
+  , render
+  , renderWithChildren
   ) where
 
 import Prelude
-import Data.Array (fromFoldable)
-import Data.Maybe (Maybe(..))
 import Halogen.Css (classNames)
 import Halogen.HTML as HH
 
@@ -18,10 +17,8 @@ data Variant
   = Above
   | Nested
 
-type Params w i
-  = { after :: Maybe (HH.HTML w i)
-    , before :: Maybe (HH.HTML w i)
-    , for :: String
+type Params
+  = { for :: String
     , text :: String
     , variant :: Variant
     }
@@ -29,23 +26,27 @@ type Params w i
 -------------------------------------------------------------------------------
 -- Public API
 -------------------------------------------------------------------------------
-defaultParams :: forall w i. Params w i
+defaultParams :: Params
 defaultParams =
-  { after: Nothing
-  , before: Nothing
-  , for: ""
+  { for: ""
   , text: ""
   , variant: Nested
   }
 
-render :: forall w i. Params w i -> HH.HTML w i
-render params =
+render :: forall w action. Params -> HH.HTML w action
+render params = renderWithChildren params pure
+
+renderWithChildren ::
+  forall w action.
+  Params ->
+  (HH.HTML w action -> Array (HH.HTML w action)) ->
+  HH.HTML w action
+renderWithChildren params renderChildren =
   HH.label
     ( [ classNames labelStyles ]
     )
-    $ fromFoldable params.before
-    <> [ HH.span [ classNames spanStyles ] [ HH.text params.text ] ]
-    <> fromFoldable params.after
+    $ renderChildren
+    $ HH.span [ classNames spanStyles ] [ HH.text params.text ]
   where
   labelStyles =
     [ "space-x-2", "leading-none" ]
