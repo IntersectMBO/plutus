@@ -14,8 +14,8 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
 
-epochToDay :: Integer -> Day
-epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
+epochToLocalTime :: Integer -> LocalTime
+epochToLocalTime = utcToLocalTime utc . posixSecondsToUTCTime . fromIntegral
 
 largeamount :: Gen Double
 largeamount = choose (-1.0, 10000000.0)
@@ -44,9 +44,8 @@ maxDate = 1607672749
 secondsPerYear :: Integer
 secondsPerYear = 31557600
 
-date :: Gen Day
-date = epochToDay <$> choose (0, maxDate)
-
+date :: Gen LocalTime
+date = epochToLocalTime <$> choose (0, maxDate)
 
 cyclePeriodFreq :: Gen Period
 cyclePeriodFreq = frequency [ (1, return P_D)
@@ -211,7 +210,7 @@ contractTermsGen = do
 riskAtTGen :: Gen RiskFactors
 riskAtTGen = RiskFactorsPoly <$> percentage <*> percentage <*> percentage <*> smallamount
 
-riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGen :: ContractTerms -> Gen (M.Map LocalTime RiskFactors)
 riskFactorsGen ct = do
     let riskFactors _ _ =
          RiskFactorsPoly
@@ -224,7 +223,7 @@ riskFactorsGen ct = do
     rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
 
-riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map LocalTime RiskFactors)
 riskFactorsGenRandomWalkGen contractTerms = do
     rfs <- riskFactorsGen contractTerms
     riskAtT <- riskAtTGen
