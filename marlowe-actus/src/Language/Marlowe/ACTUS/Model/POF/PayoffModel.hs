@@ -38,25 +38,10 @@ _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t = o_rf_CURS * isc * (ipac + y_sd_t
 
 -- Linear Amortizer (LAM)
 
-_POF_IED_LAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a
-_POF_IED_LAM = _POF_IED_PAM
-
 _POF_PR_LAM :: (ActusNum a, RoleSignOps a, ActusOps a) => a -> CR -> a -> a -> a -> a
 _POF_PR_LAM o_rf_CURS _CNTRL nt nsc prnxt =
-  let redemption = prnxt - _r _CNTRL * (_max _zero ((_abs prnxt) - (_abs nt)))
+  let redemption = prnxt - _r _CNTRL * _max _zero (_abs prnxt - _abs nt)
    in o_rf_CURS * _r _CNTRL * nsc * redemption
-
-_POF_MD_LAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a
-_POF_MD_LAM = _POF_MD_PAM
-
-_POF_PP_LAM :: ActusNum a => a -> a -> a
-_POF_PP_LAM = _POF_PP_PAM
-
-_POF_PY_LAM :: (ActusOps a, ActusNum a, RoleSignOps a) => PYTP -> a -> a -> a -> a -> CR -> a -> a -> a -> a
-_POF_PY_LAM = _POF_PY_PAM
-
-_POF_FP_LAM :: (RoleSignOps a, ActusNum a) => FEB -> a -> a -> CR -> a -> a -> a -> a
-_POF_FP_LAM = _POF_FP_PAM
 
 _POF_PRD_LAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a -> a -> a -> a
 _POF_PRD_LAM o_rf_CURS _CNTRL _PPRD ipac ipnr ipcb y_sd_t = _zero - o_rf_CURS * _r _CNTRL * (_PPRD + ipac + y_sd_t * ipnr * ipcb)
@@ -69,32 +54,8 @@ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t = o_rf_CURS * isc * (ipac + y_sd
 
 -- Negative Amortizer (NAM)
 
-_POF_IED_NAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a
-_POF_IED_NAM = _POF_IED_PAM
-
 _POF_PR_NAM :: (RoleSignOps a, ActusNum a, ActusOps a) => a -> CR -> a -> a -> a -> a -> a -> a -> a -> a
 _POF_PR_NAM o_rf_CURS _CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt =
   let ra = prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
-      r = ra - (_max _zero (ra - (_abs nt)))
+      r = ra - _max _zero (ra - _abs nt)
    in o_rf_CURS * _r _CNTRL * nsc * r
-
-_POF_MD_NAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a
-_POF_MD_NAM = _POF_MD_PAM
-
-_POF_PP_NAM :: ActusNum a => a -> a -> a
-_POF_PP_NAM = _POF_PP_PAM
-
-_POF_PY_NAM :: (ActusOps a, ActusNum a, RoleSignOps a) => PYTP -> a -> a -> a -> a -> CR -> a -> a -> a -> a
-_POF_PY_NAM = _POF_PY_PAM
-
-_POF_FP_NAM :: (RoleSignOps a, ActusNum a) => FEB -> a -> a -> CR -> a -> a -> a -> a
-_POF_FP_NAM = _POF_FP_PAM
-
-_POF_PRD_NAM :: (ActusNum a, ActusOps a, RoleSignOps a) => a -> CR -> a -> a -> a -> a -> a -> a
-_POF_PRD_NAM = _POF_PRD_LAM
-
-_POF_TD_NAM :: (ActusNum a, RoleSignOps a) => a -> CR -> a -> a -> a -> a -> a -> a
-_POF_TD_NAM = _POF_TD_LAM
-
-_POF_IP_NAM :: ActusNum a => a -> a -> a -> a -> a -> a -> a
-_POF_IP_NAM = _POF_IP_LAM

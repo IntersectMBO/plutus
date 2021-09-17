@@ -101,9 +101,9 @@ rollbackTxIdState = property $ do
       status3 = transactionStatus (BlockNumber 2) (getState f3) (txB ^. citxTxId)
       status4 = transactionStatus (BlockNumber 3) (getState f4) (txB ^. citxTxId)
 
-  status2 === TentativelyConfirmed (Depth 0) TxValid
-  status3 === Unknown
-  status4 === TentativelyConfirmed (Depth 1) TxValid
+  status2 === (Right $ TentativelyConfirmed (Depth 0) TxValid)
+  status3 === (Right $ Unknown)
+  status4 === (Right $ TentativelyConfirmed (Depth 1) TxValid)
 
 transactionDepthIncreases :: Property
 transactionDepthIncreases = property $ do
@@ -121,8 +121,8 @@ transactionDepthIncreases = property $ do
       status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
       status3 = transactionStatus (BlockNumber (1 + d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
 
-  status2 === increaseDepth status1
-  status3 === Committed TxValid
+  status2 === (increaseDepth <$> status1)
+  status3 === (Right $ Committed TxValid)
 
 uniqueTransactionIds :: Property
 uniqueTransactionIds = property $ do

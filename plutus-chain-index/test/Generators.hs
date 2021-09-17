@@ -47,9 +47,8 @@ import           Ledger.Tx                   (Address, TxIn (..), TxOut (..), Tx
 import           Ledger.TxId                 (TxId (..))
 import           Ledger.Value                (Value)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..))
-import           Plutus.ChainIndex.TxIdState (TxIdState)
 import qualified Plutus.ChainIndex.TxIdState as TxIdState
-import           Plutus.ChainIndex.Types     (BlockId (..), BlockNumber (..), Tip (..))
+import           Plutus.ChainIndex.Types     (BlockId (..), BlockNumber (..), Tip (..), TxIdState)
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..), fromTx)
 import qualified PlutusTx.Prelude            as PlutusTx
 

@@ -2,73 +2,98 @@
 
 module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 
-import           Data.Maybe                                        (fromJust)
 import           Data.Time                                         (Day)
 import           Language.Marlowe                                  (Observation, Value)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (FP, IED, IP, MD, PP, PR, PRD, PY, TD))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (LAM, NAM, PAM), ContractTerms (..))
-import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.MarloweCompat              (RiskFactorsMarlowe, constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
                                                                     marloweFixedPoint)
 import           Prelude                                           hiding (Fractional, Num, (*), (+), (-), (/))
 
-payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Day -> Maybe (Value Observation)
-payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
-    let __NT              = constnt (fromJust ct_NT)
-        __PDIED           = constnt (fromJust ct_PDIED)
-        __PYTP            = enum (fromJust ct_PYTP)
-        __FEB             = enum (fromJust ct_FEB)
-        __FER             = constnt (fromJust ct_FER)
-        (__PPRD, __PTD  ) = (constnt (fromJust ct_PPRD), constnt (fromJust ct_PTD))
-        (__PYRT, __cPYRT) = (constnt (fromJust ct_PYRT), constnt ct_cPYRT)
-
-
-        __o_rf_CURS       = useval "o_rf_CURS" t
-        __o_rf_RRMO       = useval "o_rf_RRMO" t
-        __pp_payoff       = useval "pp_payoff" t
-        __nsc             = useval "nsc" t_minus
-        __nt              = useval "nt" t_minus
-        __isc             = useval "isc" t_minus
-        __ipac            = useval "ipac" t_minus
-        __feac            = useval "feac" t_minus
-        __ipnr            = useval "ipnr" t_minus
-        __ipcb            = useval "ipcb" t_minus
-        __prnxt           = useval "prnxt" t_minus
-
-        y_sd_t            = constnt $ _y (fromJust ct_DCC) prevDate curDate ct_MD
-
-        pof = case contractType of
-            PAM -> case ev of
-                IED -> Just $ _POF_IED_PAM __o_rf_CURS ct_CNTRL __NT __PDIED
-                MD  -> Just $ _POF_MD_PAM __o_rf_CURS __nsc __nt __isc __ipac __feac
-                PP  -> Just $ _POF_PP_PAM __o_rf_CURS __pp_payoff
-                PY  -> Just $ _POF_PY_PAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
-                FP  -> Just $ _POF_FP_PAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
-                PRD -> Just $ _POF_PRD_PAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __nt y_sd_t
-                TD  -> Just $ _POF_TD_PAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __nt y_sd_t
-                IP  -> Just $ _POF_IP_PAM __o_rf_CURS __isc __ipac __ipnr __nt y_sd_t
-                _   -> Nothing
-            LAM -> case ev of
-                IED -> Just $ _POF_IED_LAM __o_rf_CURS ct_CNTRL __NT __PDIED
-                PR  -> Just $ _POF_PR_LAM __o_rf_CURS ct_CNTRL __nt __nsc __prnxt
-                MD  -> Just $ _POF_MD_LAM __o_rf_CURS __nsc __nt __isc __ipac __feac
-                PP  -> Just $ _POF_PP_LAM __o_rf_CURS __pp_payoff
-                PY  -> Just $ _POF_PY_LAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
-                FP  -> Just $ _POF_FP_LAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
-                PRD -> Just $ _POF_PRD_LAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
-                TD  -> Just $ _POF_TD_LAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
-                IP  -> Just $ _POF_IP_LAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
-                _   -> Nothing
-            NAM -> case ev of
-                IED -> Just $ _POF_IED_NAM  __o_rf_CURS ct_CNTRL __NT __PDIED
-                PR  -> Just $ _POF_PR_NAM __o_rf_CURS ct_CNTRL __nsc __prnxt __ipac y_sd_t __ipnr __ipcb __nt
-                MD  -> Just $ _POF_MD_NAM __o_rf_CURS __nsc __nt __isc __ipac __feac
-                PP  -> Just $ _POF_PP_NAM __o_rf_CURS __pp_payoff
-                PY  -> Just $ _POF_PY_NAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
-                FP  -> Just $ _POF_FP_NAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __feac y_sd_t
-                PRD -> Just $ _POF_PRD_NAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __ipcb y_sd_t
-                TD  -> Just $ _POF_TD_NAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __ipcb y_sd_t
-                IP  -> Just $ _POF_IP_NAM __o_rf_CURS __isc __ipac __ipnr __ipcb y_sd_t
-                _   -> Nothing
-    in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
+payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> Day -> Day -> Maybe (Value Observation)
+payoffFs
+  ev
+  RiskFactorsPoly {..}
+  ContractTerms
+    { ct_NT = Just np,
+      ct_PDIED = Just pdied,
+      ct_PYTP = Just pytp,
+      ct_FEB = Just feb,
+      ct_FER = Just fer,
+      ct_PPRD = Just pprd,
+      ct_PYRT = Just pyrt,
+      ct_PTD = Just ptd,
+      ct_DCC = Just dayCountConvention,
+      ct_cPYRT = cpyrt,
+      ..
+    }
+  t_minus
+  prevDate
+  curDate =
+    let pof = case contractType of
+          PAM -> case ev of
+            IED -> Just $ _POF_IED_PAM o_rf_CURS ct_CNTRL notionalPrincipal premiumDiscount
+            MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
+            PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
+            PRD -> Just $ _POF_PRD_PAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr nt y_sd_t
+            TD  -> Just $ _POF_TD_PAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr nt y_sd_t
+            IP  -> Just $ _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
+            _   -> Nothing
+          LAM -> case ev of
+            IED -> Just $ _POF_IED_PAM o_rf_CURS ct_CNTRL notionalPrincipal premiumDiscount
+            PR  -> Just $ _POF_PR_LAM o_rf_CURS ct_CNTRL nt nsc prnxt
+            MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
+            PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
+            PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
+            TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
+            IP  -> Just $ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
+            _   -> Nothing
+          NAM -> case ev of
+            IED -> Just $ _POF_IED_PAM o_rf_CURS ct_CNTRL notionalPrincipal premiumDiscount
+            PR  -> Just $ _POF_PR_NAM o_rf_CURS ct_CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt
+            MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
+            PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
+            PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
+            TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
+            IP  -> Just $ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
+            _   -> Nothing
+          ANN -> case ev of
+            IED -> Just $ _POF_IED_PAM o_rf_CURS ct_CNTRL notionalPrincipal premiumDiscount
+            PR  -> Just $ _POF_PR_NAM o_rf_CURS ct_CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt
+            MD  -> Just $ _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
+            PP  -> Just $ _POF_PP_PAM o_rf_CURS pp_payoff
+            PY  -> Just $ _POF_PY_PAM penaltyType o_rf_CURS o_rf_RRMO penaltyRate cPenaltyRate ct_CNTRL nt ipnr y_sd_t
+            FP  -> Just $ _POF_FP_PAM feeBase feeRate o_rf_CURS ct_CNTRL nt feac y_sd_t
+            PRD -> Just $ _POF_PRD_LAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr ipcb y_sd_t
+            TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
+            IP  -> Just $ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
+            _   -> Nothing
+     in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
+    where
+      notionalPrincipal = constnt np
+      premiumDiscount = constnt pdied
+      penaltyType = enum pytp
+      feeBase = enum feb
+      feeRate = constnt fer
+      priceAtPurchaseDate = constnt pprd
+      priceAtTerminationDate = constnt ptd
+      penaltyRate = constnt pyrt
+      cPenaltyRate = constnt cpyrt
+      nsc = useval "nsc" t_minus
+      nt = useval "nt" t_minus
+      isc = useval "isc" t_minus
+      ipac = useval "ipac" t_minus
+      feac = useval "feac" t_minus
+      ipnr = useval "ipnr" t_minus
+      ipcb = useval "ipcb" t_minus
+      prnxt = useval "prnxt" t_minus
+      y_sd_t = constnt $ _y dayCountConvention prevDate curDate ct_MD
+payoffFs _ _ _ _ _ _ = Nothing

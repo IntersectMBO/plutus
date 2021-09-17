@@ -1,20 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
-    )
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (lam x (con integer) (lam y (con integer) [ [ subtractInteger x ] y ]))
-    )
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -46,6 +32,20 @@
         )
       )
     )
+    (termbind
+      (strict)
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (builtin subtractInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (lam x (con integer) (lam y (con integer) [ [ subtractInteger x ] y ]))
+    )
     (let
       (rec)
       (termbind
@@ -54,25 +54,25 @@
         (lam
           n
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind
+              (nonstrict)
+              (vardecl n (con integer))
+              [ [ subtractInteger n ] (con integer 1) ]
+            )
+            {
               [
-                {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                  (all dead (type) Bool)
-                }
-                (abs dead (type) True)
-              ]
-              (abs
-                dead
-                (type)
-                (let
-                  (nonrec)
-                  (termbind
-                    (nonstrict)
-                    (vardecl n (con integer))
-                    [ [ subtractInteger n ] (con integer 1) ]
-                  )
+                [
+                  {
+                    [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                    (all dead (type) Bool)
+                  }
+                  (abs dead (type) True)
+                ]
+                (abs
+                  dead
+                  (type)
                   {
                     [
                       [
@@ -91,10 +91,10 @@
                     (all dead (type) dead)
                   }
                 )
-              )
-            ]
-            (all dead (type) dead)
-          }
+              ]
+              (all dead (type) dead)
+            }
+          )
         )
       )
       even

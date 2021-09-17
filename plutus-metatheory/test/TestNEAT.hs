@@ -28,12 +28,12 @@ main = defaultMain $ allTests defaultGenOptions
 
 allTests :: GenOptions -> TestTree
 allTests genOpts = testGroup "NEAT"
-  [ bigTestTypeG_NO_LIST "type-level"
-      genOpts {genDepth = 13}
+  [ bigTest "type-level"
+      genOpts {genDepth = 12}
       (Type ())
       (packAssertion prop_Type)
-  , bigTestTermG_NO_LIST "term-level"
-      genOpts {genDepth = 21}
+  , bigTest "term-level"
+      genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]

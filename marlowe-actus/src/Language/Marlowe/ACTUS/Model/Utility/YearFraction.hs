@@ -23,7 +23,7 @@ yearFraction DCC_A_AISDA startDay endDay _
             secondFractionDays = fromIntegral (diffDays endDay d2YearLastDay)
           in
             (firstFractionDays / d1YearFraction)
-              + (secondFractionDays / d2YearFraction) + (fromIntegral d2Year) - (fromIntegral d1Year) - 1
+              + (secondFractionDays / d2YearFraction) + fromIntegral d2Year - fromIntegral d1Year - 1
   | otherwise
   = 0.0
 
