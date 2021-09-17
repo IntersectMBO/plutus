@@ -91,6 +91,7 @@ let
           plutus-ledger.package.buildable = false;
           plutus-pab.package.buildable = false;
           plutus-playground-server.package.buildable = false; # Would also require libpq
+          plutus-tx-plugin.package.buildable = false;
           plutus-use-cases.package.buildable = false;
           web-ghc.package.buildable = false;
           # Needs agda
