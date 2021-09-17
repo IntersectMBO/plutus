@@ -75,6 +75,8 @@ renderWithChildren params renderChildren =
       , HP.readOnly $ isNothing params.onChange
       , HP.tabIndex $ maybe (-1) (const 0) params.onChange
       , HE.onValueInput $ sequence params.onChange
+      , HE.onBlur $ const params.onBlur
+      , HE.onFocus $ const params.onFocus
       , HP.type_ case params.inputType of
           Text -> HP.InputText
           Numeric -> HP.InputNumber

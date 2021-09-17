@@ -10,6 +10,7 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (handleAction) as Clipboard
 import Clipboard (class MonadClipboard)
 import Contract.Lenses (_Started, _Starting, _marloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
@@ -30,12 +31,10 @@ import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, delete, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (delete, fromFoldable, isEmpty) as Set
-import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (for)
 import Data.Tuple (Tuple, fst)
 import Data.Tuple.Nested ((/\))
-import Effect.Aff (delay)
-import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
@@ -108,6 +107,10 @@ handleAction _ (WalletDataAction walletDataAction) = case walletDataAction of
   _ -> toWalletData $ WalletData.handleAction walletDataAction
 
 handleAction _ ToggleMenu = modifying _menuOpen not
+
+handleAction _ (ClipboardAction action) = do
+  Clipboard.handleAction action
+  addToast $ successToast "Copied to clipboard"
 
 handleAction input (OpenCard card) = do
   -- first we set the card and reset the contact and template card states to their first section

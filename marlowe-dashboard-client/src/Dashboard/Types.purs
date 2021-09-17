@@ -9,6 +9,7 @@ module Dashboard.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Clipboard (Action) as Clipboard
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
@@ -78,6 +79,7 @@ data Action
   | TemplateAction Template.Action
   | ContractAction PlutusAppId Contract.Action
   | SetContactForRole String WalletNickname
+  | ClipboardAction Clipboard.Action
 
 -- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
@@ -85,6 +87,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (WalletDataAction walletDataAction) = toEvent walletDataAction
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing
+  toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"
   toEvent CloseCard = Nothing
   toEvent (SetContractFilter _) = Just $ defaultEvent "FilterContracts"
   toEvent (SelectContract _) = Just $ defaultEvent "OpenContract"
