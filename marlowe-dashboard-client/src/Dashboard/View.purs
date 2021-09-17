@@ -43,7 +43,7 @@ import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrar
 import Contacts.State (adaToken, getAda)
 import Contacts.Types (WalletDetails)
 import Contacts.View (contactsCard)
-import Web.Common.Components.WalletId as WalletId
+import Component.WalletId as WalletId
 
 dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 dashboardScreen { currentSlot, tzOffset } state =

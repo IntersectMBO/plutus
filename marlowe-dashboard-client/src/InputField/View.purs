@@ -31,7 +31,7 @@ import InputField.Lenses
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
 import Marlowe.Extended.Metadata (NumberFormat(..))
-import Web.Common.Components.Input as Input
+import Component.Input as Input
 
 inputCss :: forall w i. InputDisplayOptions w i -> Boolean -> Array String
 inputCss { readOnly: true } = Css.inputNoFocus

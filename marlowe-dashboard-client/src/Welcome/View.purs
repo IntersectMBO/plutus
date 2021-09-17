@@ -29,8 +29,8 @@ import Material.Icons (icon, icon_)
 import Prim.TypeError (class Warn, Text)
 import Contacts.Lenses (_walletNickname)
 import Contacts.View (walletIdTip)
-import Web.Common.Components.Label as Label
-import Web.Common.Components.WalletId as WalletId
+import Component.Label as Label
+import Component.WalletId as WalletId
 import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 

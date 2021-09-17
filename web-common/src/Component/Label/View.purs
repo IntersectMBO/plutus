@@ -1,44 +1,27 @@
-module Web.Common.Components.Label
-  ( Params
-  , Variant(..)
-  , defaultParams
+module Component.Label.View
+  ( defaultInput
   , render
   , renderWithChildren
   ) where
 
 import Prelude
+import Component.Label.Types (Input, Variant(..))
 import Halogen.Css (classNames)
 import Halogen.HTML as HH
 
--------------------------------------------------------------------------------
--- Public API types
--------------------------------------------------------------------------------
-data Variant
-  = Above
-  | Nested
-
-type Params
-  = { for :: String
-    , text :: String
-    , variant :: Variant
-    }
-
--------------------------------------------------------------------------------
--- Public API
--------------------------------------------------------------------------------
-defaultParams :: Params
-defaultParams =
+defaultInput :: Input
+defaultInput =
   { for: ""
   , text: ""
   , variant: Nested
   }
 
-render :: forall w action. Params -> HH.HTML w action
+render :: forall w action. Input -> HH.HTML w action
 render params = renderWithChildren params pure
 
 renderWithChildren ::
   forall w action.
-  Params ->
+  Input ->
   (HH.HTML w action -> Array (HH.HTML w action)) ->
   HH.HTML w action
 renderWithChildren params renderChildren =

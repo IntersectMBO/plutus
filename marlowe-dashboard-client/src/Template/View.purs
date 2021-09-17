@@ -36,7 +36,7 @@ import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError,
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import Web.Common.Components.Label as Label
+import Component.Label as Label
 import Contacts.Lenses (_walletNickname)
 import Contacts.State (adaToken, getAda)
 import Contacts.Types (WalletLibrary)
