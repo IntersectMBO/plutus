@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 -- | Data type used for minting and burning the thread token value.
 module Plutus.Contract.StateMachine.MintingPolarity where
 
