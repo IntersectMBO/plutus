@@ -2,11 +2,11 @@
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
 import           Data.Foldable
-import           Data.String                  (fromString)
 import           Data.Traversable
 
 import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
+import           PlutusTx.ErrorCodes
 
 import qualified PlutusTx.Applicative         as PlutusTx
 
@@ -105,7 +105,7 @@ unsafeFromDataClause indexedCons = do
     let cases =
             foldl'
             (\kont ixCon -> unsafeReconstructCase ixCon (TH.varE indexName) [| BI.snd $(TH.varE tupName) |] kont)
-            [| traceError $ fromString "UD" |]
+            [| traceError reconstructCaseError |]
             indexedCons
     let body =
           [|

@@ -17,6 +17,7 @@ import           PlutusTx.Builtins.Internal (BuiltinData (..))
 import qualified PlutusTx.Builtins.Internal as BI
 
 import           PlutusTx.Applicative
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Functor
 import           PlutusTx.Trace
 
@@ -133,7 +134,7 @@ instance FromData Void where
     fromBuiltinData _ = Nothing
 instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData _ = traceError "Pg" {-"unsafeFromBuiltinData: Void is not supported"-}
+    unsafeFromBuiltinData _ = traceError voidIsNotSupportedError
 
 -- | Convert a value to 'PLC.Data'.
 toData :: (ToData a) => a -> PLC.Data
