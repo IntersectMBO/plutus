@@ -48,7 +48,7 @@ import           Data.List                     (isPrefixOf)
 import qualified Data.Map                      as Map
 import           Data.Maybe                    (fromMaybe)
 import qualified Data.Text.Prettyprint.Doc     as PP
-import           Data.Traversable
+import           Data.Traversable              (for)
 import           ErrorCode
 import qualified FamInstEnv                    as GHC
 import           Text.Read                     (readMaybe)
@@ -71,6 +71,7 @@ data PluginOptions = PluginOptions {
     , poDoSimplifierBeta               :: Bool
     , poDoSimplifierInline             :: Bool
     , poDoSimplifierRemoveDeadBindings :: Bool
+    , poProfile                        :: ProfileOpts
     }
 
 data PluginCtx = PluginCtx
@@ -148,6 +149,10 @@ parsePluginArgs args = do
             , poDoSimplifierBeta = notElem' "no-simplifier-beta"
             , poDoSimplifierInline = notElem' "no-simplifier-inline"
             , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
+            -- profiling: @profile-all@ turns on profiling for everything
+            , poProfile =
+                if elem' "profile-all" then All
+                else None
             }
     -- TODO: better parsing with failures
     pure opts
@@ -281,7 +286,7 @@ compileMarkedExprs expr = do
 
 -- | Behaves the same as 'compileMarkedExpr', unless a compilation error occurs ;
 -- if a compilation error happens and the 'defer-errors' option is turned on,
--- the compilation error is supressed and the original hs expression is replaced with a
+-- the compilation error is suppressed and the original hs expression is replaced with a
 -- haskell runtime-error expression.
 compileMarkedExprOrDefer :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprOrDefer locStr codeTy origE = do
@@ -316,7 +321,7 @@ compileMarkedExpr locStr codeTy origE = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let ctx = CompileContext {
-            ccOpts = CompileOptions {},
+            ccOpts = CompileOptions {coProfile =poProfile opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccBuiltinNameInfo = nameInfo,
@@ -367,7 +372,6 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
-
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr

@@ -113,7 +113,7 @@ evaluateCek
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
     case runCek params restrictingEnormous emitMode term of
-        (errOrRes, _, logs) -> (errOrRes, logs)
+         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
