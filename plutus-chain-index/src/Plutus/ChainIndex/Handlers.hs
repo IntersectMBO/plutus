@@ -1,13 +1,15 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ExplicitNamespaces    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect' -}
 module Plutus.ChainIndex.Handlers
     ( handleQuery
@@ -16,7 +18,8 @@ module Plutus.ChainIndex.Handlers
     ) where
 
 import           Codec.Serialise                   (Serialise, deserialise, serialise)
-import           Control.Lens                      (view)
+import           Control.Applicative               (Const (..))
+import           Control.Lens                      (Lens', view)
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError)
@@ -25,15 +28,17 @@ import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
-import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
-import           Database.Beam                     (SqlSelect, aggregate_, all_, countAll_, filter_, limit_, select,
-                                                    val_)
+import           Data.Monoid                       (Ap (..))
+import           Data.Proxy                        (Proxy (..))
+import           Database.Beam                     (Beamable, Identity, SqlSelect, TableEntity, aggregate_, all_,
+                                                    countAll_, filter_, limit_, nub_, select, val_)
+import           Database.Beam.Backend.SQL         (BeamSqlBackendCanSerialize)
 import           Database.Beam.Query               ((==.))
+import           Database.Beam.Schema.Tables       (FieldsFulfillConstraint, zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
-import           GHC.Generics                      (Generic)
-import           Ledger                            (DatumHash (..), MintingPolicyHash (MintingPolicyHash),
+import           Ledger                            (Address (..), DatumHash (..), MintingPolicyHash (MintingPolicyHash),
                                                     RedeemerHash (RedeemerHash),
-                                                    StakeValidatorHash (StakeValidatorHash), TxId (..),
+                                                    StakeValidatorHash (StakeValidatorHash), TxId (..), TxOut (..),
                                                     ValidatorHash (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
@@ -59,7 +64,7 @@ handleQuery ::
     ~> Eff effs
 handleQuery = \case
   DatumFromHash (DatumHash (BuiltinByteString dh)) ->
-    queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (_DatumRows db))
+    queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (datumRows db))
   ValidatorFromHash (ValidatorHash svh) -> queryOneScript svh
   MintingPolicyFromHash (MintingPolicyHash svh) -> queryOneScript svh
   RedeemerFromHash (RedeemerHash svh) -> queryOneScript svh
@@ -76,7 +81,7 @@ queryOneScript ::
     ) => BuiltinByteString
     -> Eff effs (Maybe a)
 queryOneScript (BuiltinByteString hash) =
-    queryOne . select $ _scriptRowScript <$> filter_ (\row -> _scriptRowHash row ==. val_ hash) (all_ (_ScriptRows db))
+    queryOne . select $ _scriptRowScript <$> filter_ (\row -> _scriptRowHash row ==. val_ hash) (all_ (scriptRows db))
 
 queryOne ::
     ( Member DbStoreEffect effs
@@ -131,37 +136,39 @@ handleControl = \case
         -- modify $ set diskState newDiskState
     GetDiagnostics -> diagnostics
 
-data Inserts = Inserts
-    { datumInserts  :: [DatumRow]
-    , scriptInserts :: [ScriptRow]
-    , txInserts     :: [TxRow]
-    }
-    deriving stock (Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid Inserts)
 
-insert :: Member DbStoreEffect effs => Inserts -> Eff effs ()
-insert Inserts{..} = do
-    addRows (_DatumRows  db) datumInserts
-    addRows (_ScriptRows db) scriptInserts
-    addRows (_TxRows     db) txInserts
+data InsertRows te where
+    InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)
 
-fromTx :: ChainIndexTx -> Inserts
-fromTx tx@ChainIndexTx{_citxTxId = TxId (BuiltinByteString txId)} = Inserts
-    { datumInserts = fmap toDatumRow . Map.toList . view citxData $ tx
-    , scriptInserts = concat
-        [ fmap toScriptRow . Map.toList . view citxValidators $ tx
-        , fmap toScriptRow . Map.toList . view citxMintingPolicies $ tx
-        , fmap toScriptRow . Map.toList . view citxStakeValidators $ tx
-        , fmap toScriptRow . Map.toList . view citxRedeemers $ tx
+instance Semigroup (InsertRows te) where
+    InsertRows l <> InsertRows r = InsertRows (l <> r)
+instance BeamableSqlite t => Monoid (InsertRows (TableEntity t)) where
+    mempty = InsertRows []
+
+insert :: Member DbStoreEffect effs => Db InsertRows -> Eff effs ()
+insert = getAp . getConst . zipTables (Proxy :: Proxy Sqlite) (\tbl (InsertRows rows) -> Const $ Ap $ addRows tbl rows) db
+
+fromTx :: ChainIndexTx -> Db InsertRows
+fromTx tx = Db
+    { datumRows = fromMap citxData DatumRow
+    , scriptRows = mconcat
+        [ fromMap citxValidators ScriptRow
+        , fromMap citxMintingPolicies ScriptRow
+        , fromMap citxStakeValidators ScriptRow
+        , fromMap citxRedeemers ScriptRow
         ]
-    , txInserts = [txRow]
+    , txRows = fromPairs (const [(_citxTxId tx, tx)]) TxRow
+    , addressRows = fromPairs (fmap credential . txOutsWithRef) AddressRow
     }
     where
+        credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
         toByteString :: Serialise a => a -> ByteString
         toByteString = BSL.toStrict . serialise
-        toDatumRow (DatumHash (BuiltinByteString datumHash), datum) = DatumRow datumHash (toByteString datum)
-        txRow = TxRow txId (BSL.toStrict $ serialise tx)
-        toScriptRow (k, v) = ScriptRow (toByteString k) (toByteString v)
+        fromMap :: (BeamableSqlite t, Serialise k, Serialise v) => Lens' ChainIndexTx (Map.Map k v) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
+        fromMap l = fromPairs (Map.toList . view l)
+        fromPairs :: (BeamableSqlite t, Serialise k, Serialise v) => (ChainIndexTx -> [(k, v)]) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
+        fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toByteString k) (toByteString v)) . l $ tx
+
 
 diagnostics ::
     forall effs.
@@ -171,13 +178,14 @@ diagnostics ::
     )
     => Eff effs Diagnostics
 diagnostics = do
-    numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (_TxRows db))
-    txIds <- selectList . select $ _txRowHash <$> limit_ 10 (all_ (_TxRows db))
-    numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (_ScriptRows db))
+    numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (txRows db))
+    txIds <- selectList . select $ _txRowHash <$> limit_ 10 (all_ (txRows db))
+    numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
+    numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowHash <$> all_ (addressRows db)
 
     pure $ Diagnostics
         { numTransactions  = fromMaybe (-1) numTransactions
         , numScripts       = fromMaybe (-1) numScripts
-        , numAddresses     = 0
+        , numAddresses     = fromMaybe (-1) numAddresses
         , someTransactions = fmap (TxId . BuiltinByteString) txIds
         }

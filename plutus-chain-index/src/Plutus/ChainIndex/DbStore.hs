@@ -1,16 +1,20 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE ImpredicativeTypes   #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# options_ghc -Wno-missing-signatures #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-
 
@@ -35,16 +39,19 @@ import           Control.Monad.Freer                      (Eff, LastMember, Memb
 import           Control.Monad.Freer.Error                (Error, throwError)
 import           Control.Monad.Freer.TH                   (makeEffect)
 import           Data.ByteString                          (ByteString)
+import           Data.Kind                                (Constraint)
+import           Data.Semigroup.Generic                   (GenericSemigroupMonoid (..))
 import qualified Data.Text                                as Text
 import           Database.Beam                            (Beamable, Columnar, Database, DatabaseEntity,
                                                            DatabaseSettings, FromBackendRow, Generic, Identity,
                                                            MonadIO (liftIO), SqlSelect, SqlUpdate, Table (..),
-                                                           TableEntity, dbModification, defaultDbSettings, insertValues,
-                                                           runInsert, runSelectReturningList, runSelectReturningOne,
-                                                           runUpdate, setEntityName, withDbModification)
+                                                           TableEntity, dbModification, insertValues, runInsert,
+                                                           runSelectReturningList, runSelectReturningOne, runUpdate,
+                                                           withDbModification)
 import           Database.Beam.Backend.SQL                (BeamSqlBackendCanSerialize)
 import           Database.Beam.Backend.SQL.BeamExtensions (BeamHasInsertOnConflict (anyConflict, insertOnConflict, onConflictDoNothing))
-import           Database.Beam.Migrate                    (CheckedDatabaseSettings, defaultMigratableDbSettings)
+import           Database.Beam.Migrate                    (CheckedDatabaseSettings, defaultMigratableDbSettings,
+                                                           renameCheckedEntity, unCheckDatabase)
 import           Database.Beam.Schema.Tables              (FieldsFulfillConstraint)
 import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqliteDebug)
 import qualified Database.SQLite.Simple                   as Sqlite
@@ -87,32 +94,50 @@ instance Table TxRowT where
   data PrimaryKey TxRowT f = TxRowId (Columnar f ByteString) deriving (Generic, Beamable)
   primaryKey = TxRowId . _txRowHash
 
+data AddressRowT f
+  = AddressRow
+    { _addressRowHash    :: Columnar f ByteString
+    , _addressRowAddress :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type AddressRow = AddressRowT Identity
+
+instance Table AddressRowT where
+  data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
+  primaryKey (AddressRow h a) = AddressRowId h a
+
 data Db f = Db
-    { _DatumRows  :: f (TableEntity DatumRowT)
-    , _ScriptRows :: f (TableEntity ScriptRowT)
-    , _TxRows     :: f (TableEntity TxRowT)
+    { datumRows   :: f (TableEntity DatumRowT)
+    , scriptRows  :: f (TableEntity ScriptRowT)
+    , txRows      :: f (TableEntity TxRowT)
+    , addressRows :: f (TableEntity AddressRowT)
     }
     deriving (Generic, Database be)
 
-db :: DatabaseSettings be Db
-db = defaultDbSettings
---  `withDbModification`
---   dbModification
---     { datumRows  = setEntityName "datums"
---     , scriptRows = setEntityName "scripts"
---     , txRows     = setEntityName "txs"
---     }
+type AllTables (c :: * -> Constraint) f = (c (f (TableEntity DatumRowT)), c (f (TableEntity ScriptRowT)), c (f (TableEntity TxRowT)), c (f (TableEntity AddressRowT)))
+deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Semigroup f => Semigroup (Db f)
+deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Monoid f => Monoid (Db f)
+
+db :: DatabaseSettings Sqlite Db
+db = unCheckDatabase checkedSqliteDb
 
 checkedSqliteDb :: CheckedDatabaseSettings Sqlite Db
 checkedSqliteDb = defaultMigratableDbSettings
+  `withDbModification` dbModification
+    { datumRows   = renameCheckedEntity (const "datums")
+    , scriptRows  = renameCheckedEntity (const "scripts")
+    , txRows      = renameCheckedEntity (const "txs")
+    , addressRows = renameCheckedEntity (const "addresses")
+    }
+
+type BeamableSqlite table = (Beamable table, FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table)
 
 -- | Effect for managing a beam-based database.
 data DbStoreEffect r where
   -- | Insert a row into a table.
   AddRows
     ::
-    ( Beamable table
-    , FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table
+    ( BeamableSqlite table
     )
     => DatabaseEntity Sqlite Db (TableEntity table)
     -> [table Identity]
