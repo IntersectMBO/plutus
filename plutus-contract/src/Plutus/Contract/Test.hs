@@ -49,6 +49,7 @@ module Plutus.Contract.Test(
     , waitingForSlot
     , valueAtAddress
     , dataAtAddress
+    , outputsAtAddress
     , reasonable
     , reasonable'
     -- * Checking predicates
@@ -329,6 +330,18 @@ dataAtAddress address check =
           tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
               <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
       pure result
+
+outputsAtAddress :: forall d. FromData d => Address -> ([(d, Value)] -> Bool) -> TracePredicate
+outputsAtAddress address check =
+  flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
+    let datums = mapMaybe (uncurry $ getTxOutDatum @d) $ M.toList utxo
+        result = check $ zip datums (Ledger.txOutValue . Ledger.txOutTxOut . snd <$> M.toList utxo)
+    unless result $ do
+      tell @(Doc Void)
+        ( "Outputs at address" <+> pretty address <+> "were"
+            <+> foldMap (pretty . Ledger.txOutTxOut) utxo
+        )
+    pure result
 
 waitingForSlot
     :: forall w s e a.
