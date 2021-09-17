@@ -10,6 +10,7 @@ You can edit this file as you like.
   , "coroutines"
   , "debug"
   , "effect"
+  , "filterable"
   , "formatters"
   , "halogen"
   , "markdown"
