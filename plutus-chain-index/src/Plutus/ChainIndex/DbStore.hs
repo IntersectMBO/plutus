@@ -29,21 +29,27 @@ track changes over time.
 
 module Plutus.ChainIndex.DbStore where
 
-import           Cardano.BM.Trace                  (Trace, logDebug)
-import           Control.Exception                 (try)
-import           Control.Monad.Freer               (Eff, LastMember, Member, type (~>))
-import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.TH            (makeEffect)
-import           Data.ByteString                   (ByteString)
-import qualified Data.Text                         as Text
-import           Database.Beam
-import           Database.Beam.Backend.SQL
-import           Database.Beam.Migrate
-import           Database.Beam.Schema.Tables
-import           Database.Beam.Sqlite              (Sqlite, SqliteM, runBeamSqliteDebug)
-import qualified Database.SQLite.Simple            as Sqlite
-import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
-import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
+import           Cardano.BM.Trace                         (Trace, logDebug)
+import           Control.Exception                        (try)
+import           Control.Monad.Freer                      (Eff, LastMember, Member, type (~>))
+import           Control.Monad.Freer.Error                (Error, throwError)
+import           Control.Monad.Freer.TH                   (makeEffect)
+import           Data.ByteString                          (ByteString)
+import qualified Data.Text                                as Text
+import           Database.Beam                            (Beamable, Columnar, Database, DatabaseEntity,
+                                                           DatabaseSettings, FromBackendRow, Generic, Identity,
+                                                           MonadIO (liftIO), SqlSelect, SqlUpdate, Table (..),
+                                                           TableEntity, dbModification, defaultDbSettings, insertValues,
+                                                           runInsert, runSelectReturningList, runSelectReturningOne,
+                                                           runUpdate, setEntityName, withDbModification)
+import           Database.Beam.Backend.SQL                (BeamSqlBackendCanSerialize)
+import           Database.Beam.Backend.SQL.BeamExtensions (BeamHasInsertOnConflict (anyConflict, insertOnConflict, onConflictDoNothing))
+import           Database.Beam.Migrate                    (CheckedDatabaseSettings, defaultMigratableDbSettings)
+import           Database.Beam.Schema.Tables              (FieldsFulfillConstraint)
+import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runBeamSqliteDebug)
+import qualified Database.SQLite.Simple                   as Sqlite
+import           Plutus.ChainIndex.ChainIndexError        (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog          (ChainIndexLog (..))
 
 data DatumRowT f
   = DatumRow
@@ -56,6 +62,18 @@ type DatumRow = DatumRowT Identity
 instance Table DatumRowT where
   data PrimaryKey DatumRowT f = DatumRowId (Columnar f ByteString) deriving (Generic, Beamable)
   primaryKey = DatumRowId . _datumRowHash
+
+data ScriptRowT f
+  = ScriptRow
+    { _scriptRowHash   :: Columnar f ByteString
+    , _scriptRowScript :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type ScriptRow = ScriptRowT Identity
+
+instance Table ScriptRowT where
+  data PrimaryKey ScriptRowT f = ScriptRowId (Columnar f ByteString) deriving (Generic, Beamable)
+  primaryKey = ScriptRowId . _scriptRowHash
 
 data TxRowT f
   = TxRow
@@ -70,13 +88,20 @@ instance Table TxRowT where
   primaryKey = TxRowId . _txRowHash
 
 data Db f = Db
-    { _DatumRows :: f (TableEntity DatumRowT)
-    , _TxRows    ::  f (TableEntity TxRowT)
+    { _DatumRows  :: f (TableEntity DatumRowT)
+    , _ScriptRows :: f (TableEntity ScriptRowT)
+    , _TxRows     :: f (TableEntity TxRowT)
     }
     deriving (Generic, Database be)
 
 db :: DatabaseSettings be Db
 db = defaultDbSettings
+--  `withDbModification`
+--   dbModification
+--     { datumRows  = setEntityName "datums"
+--     , scriptRows = setEntityName "scripts"
+--     , txRows     = setEntityName "txs"
+--     }
 
 checkedSqliteDb :: CheckedDatabaseSettings Sqlite Db
 checkedSqliteDb = defaultMigratableDbSettings
@@ -102,11 +127,10 @@ data DbStoreEffect r where
 
   SelectList
     ::
-    ( Beamable table
-    , FromBackendRow Sqlite (table Identity)
+    ( FromBackendRow Sqlite a
     )
-    => SqlSelect Sqlite (table Identity)
-    -> DbStoreEffect [table Identity]
+    => SqlSelect Sqlite a
+    -> DbStoreEffect [a]
 
   SelectOne
     ::
@@ -127,7 +151,7 @@ handleDbStore ::
 handleDbStore trace conn eff = do
   case eff of
     AddRows table records ->
-        runBeam trace conn $ runInsert $ insert table (insertValues records)
+        runBeam trace conn $ runInsert $ insertOnConflict table (insertValues records) anyConflict onConflictDoNothing
 
     SelectList q -> runBeam trace conn $ runSelectReturningList q
 

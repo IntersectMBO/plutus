@@ -15,22 +15,26 @@ module Plutus.ChainIndex.Handlers
     , ChainIndexState
     ) where
 
-import           Codec.Serialise                   (Serialise, decode, serialise)
-import           Control.Lens                      (at, ix, over, preview, set, to, view, (&))
+import           Codec.Serialise                   (Serialise, deserialise, serialise)
+import           Control.Lens                      (view)
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
-import           Control.Monad.Freer.Reader        (Reader, ask)
-import           Control.Monad.Freer.State         (State, get, gets, modify, put)
-import           Data.Bifunctor                    (Bifunctor (..))
+import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError)
+import           Control.Monad.Freer.State         (State, get, put)
+import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
-import           Data.Int                          (Int32)
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
-import           Database.Beam                     (aggregate_, all_, as_, countAll_, select)
+import           Database.Beam                     (SqlSelect, aggregate_, all_, countAll_, filter_, limit_, select,
+                                                    val_)
+import           Database.Beam.Query               ((==.))
+import           Database.Beam.Sqlite              (Sqlite)
 import           GHC.Generics                      (Generic)
-import           Ledger                            (DatumHash (..), TxId (..))
+import           Ledger                            (DatumHash (..), MintingPolicyHash (MintingPolicyHash),
+                                                    RedeemerHash (RedeemerHash),
+                                                    StakeValidatorHash (StakeValidatorHash), TxId (..),
+                                                    ValidatorHash (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbStore
@@ -41,6 +45,7 @@ import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), Roll
                                                     UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
 import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
+-- import           Plutus.V1.Ledger.Scripts          as Scripts
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
@@ -52,7 +57,36 @@ handleQuery ::
     , Member (LogMsg ChainIndexLog) effs
     ) => ChainIndexQueryEffect
     ~> Eff effs
-handleQuery = undefined
+handleQuery = \case
+  DatumFromHash (DatumHash (BuiltinByteString dh)) ->
+    queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (_DatumRows db))
+  ValidatorFromHash (ValidatorHash svh) -> queryOneScript svh
+  MintingPolicyFromHash (MintingPolicyHash svh) -> queryOneScript svh
+  RedeemerFromHash (RedeemerHash svh) -> queryOneScript svh
+  StakeValidatorFromHash (StakeValidatorHash svh) -> queryOneScript svh
+--   TxOutFromRef tor -> _
+--   TxFromTxId ti -> _
+--   UtxoSetMembership tor -> _
+--   UtxoSetAtAddress cre -> _
+--   GetTip -> _
+
+queryOneScript ::
+    ( Member DbStoreEffect effs
+    , Serialise a
+    ) => BuiltinByteString
+    -> Eff effs (Maybe a)
+queryOneScript (BuiltinByteString hash) =
+    queryOne . select $ _scriptRowScript <$> filter_ (\row -> _scriptRowHash row ==. val_ hash) (all_ (_ScriptRows db))
+
+queryOne ::
+    ( Member DbStoreEffect effs
+    , Serialise a
+    ) => SqlSelect Sqlite ByteString
+    -> Eff effs (Maybe a)
+queryOne = fmap (fmap fromByteString) . selectOne
+
+fromByteString :: Serialise a => ByteString -> a
+fromByteString = deserialise . BSL.fromStrict
 
 handleControl ::
     forall effs.
@@ -98,25 +132,36 @@ handleControl = \case
     GetDiagnostics -> diagnostics
 
 data Inserts = Inserts
-    { datumRows :: [DatumRow]
-    , txRows    :: [TxRow]
+    { datumInserts  :: [DatumRow]
+    , scriptInserts :: [ScriptRow]
+    , txInserts     :: [TxRow]
     }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid Inserts)
 
 insert :: Member DbStoreEffect effs => Inserts -> Eff effs ()
 insert Inserts{..} = do
-    addRows (_DatumRows db) datumRows
-    addRows (_TxRows    db) txRows
+    addRows (_DatumRows  db) datumInserts
+    addRows (_ScriptRows db) scriptInserts
+    addRows (_TxRows     db) txInserts
 
 fromTx :: ChainIndexTx -> Inserts
-fromTx tx = Inserts
-    { datumRows = let x = Map.toList $ view citxData tx in fmap toDatumRow x
-    , txRows = [toTxRow tx]
+fromTx tx@ChainIndexTx{_citxTxId = TxId (BuiltinByteString txId)} = Inserts
+    { datumInserts = fmap toDatumRow . Map.toList . view citxData $ tx
+    , scriptInserts = concat
+        [ fmap toScriptRow . Map.toList . view citxValidators $ tx
+        , fmap toScriptRow . Map.toList . view citxMintingPolicies $ tx
+        , fmap toScriptRow . Map.toList . view citxStakeValidators $ tx
+        , fmap toScriptRow . Map.toList . view citxRedeemers $ tx
+        ]
+    , txInserts = [txRow]
     }
     where
-        toDatumRow (DatumHash (BuiltinByteString datumHash), datum) = DatumRow datumHash (BSL.toStrict $ serialise datum)
-        toTxRow tx@ChainIndexTx{_citxTxId = TxId (BuiltinByteString txId)} = TxRow txId (BSL.toStrict $ serialise tx)
+        toByteString :: Serialise a => a -> ByteString
+        toByteString = BSL.toStrict . serialise
+        toDatumRow (DatumHash (BuiltinByteString datumHash), datum) = DatumRow datumHash (toByteString datum)
+        txRow = TxRow txId (BSL.toStrict $ serialise tx)
+        toScriptRow (k, v) = ScriptRow (toByteString k) (toByteString v)
 
 diagnostics ::
     forall effs.
@@ -127,13 +172,12 @@ diagnostics ::
     => Eff effs Diagnostics
 diagnostics = do
     numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (_TxRows db))
+    txIds <- selectList . select $ _txRowHash <$> limit_ 10 (all_ (_TxRows db))
+    numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (_ScriptRows db))
 
     pure $ Diagnostics
-        { numTransactions    = fromMaybe (-1) numTransactions
-        , numValidators      = 0
-        , numMintingPolicies = 0
-        , numStakeValidators = 0
-        , numRedeemers       = 0
-        , numAddresses       = 0
-        , someTransactions   = []
+        { numTransactions  = fromMaybe (-1) numTransactions
+        , numScripts       = fromMaybe (-1) numScripts
+        , numAddresses     = 0
+        , someTransactions = fmap (TxId . BuiltinByteString) txIds
         }
