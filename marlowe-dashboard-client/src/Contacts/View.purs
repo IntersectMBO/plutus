@@ -13,7 +13,7 @@ import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (toString) as UUID
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, li, p, span, text, ul)
+import Halogen.HTML (HTML, a, button, div, h2, h3, li, p, span, text, ul)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (disabled)
 import InputField.Lenses (_value)
