@@ -6,6 +6,7 @@ import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Map.Ordered.OMap as OMap
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
@@ -17,11 +18,11 @@ import Halogen.HTML.Properties (enabled, for, id_)
 import Hint.State (hint)
 import Humanize (contractIcon, humanizeValue)
 import InputField.Lenses (_value)
+import InputField.Types (InputDisplayOptions)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
-import Data.Map.Ordered.OMap as OMap
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
@@ -35,6 +36,7 @@ import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError,
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
+import Web.Common.Components.Label as Label
 import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
@@ -184,6 +186,12 @@ contractSetup walletLibrary state =
       , readOnly: false
       , numberFormat: Nothing
       , valueOptions: mempty
+      , after: Nothing
+      , before:
+          Just
+            $ Label.render
+                Label.defaultParams
+                  { for = "contractNickname", text = contractName <> " title" }
       }
   in
     div
@@ -193,13 +201,7 @@ contractSetup walletLibrary state =
           [ h2
               [ classNames [ "text-lg", "font-semibold", "mb-2" ] ]
               [ text $ contractName <> " setup" ]
-          , div
-              [ classNames Css.hasNestedLabel ]
-              [ label
-                  [ classNames Css.nestedLabel ]
-                  [ text $ contractName <> " title" ]
-              , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
-              ]
+          , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
           , roleInputs walletLibrary metaData roleWalletInputs
           , parameterInputs metaData slotContentInputs valueContentInputs
           ]
@@ -365,6 +367,8 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , readOnly: false
     , numberFormat: Nothing
     , valueOptions: List.toUnfoldable $ Map.values $ view _walletNickname <$> walletLibrary
+    , after: Nothing
+    , before: Nothing
     }
 
 parameterInputs :: forall m. MonadAff m => MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
@@ -403,6 +407,7 @@ parameterInputs metaData slotContentInputs valueContentInputs =
       templateInputItem key description
         [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]
 
+  inputFieldOptions :: forall w i. String -> Boolean -> NumberFormat -> InputDisplayOptions w i
   inputFieldOptions key readOnly numberFormat =
     { additionalCss: mempty
     , id_: key
@@ -410,6 +415,8 @@ parameterInputs metaData slotContentInputs valueContentInputs =
     , readOnly
     , numberFormat: Just numberFormat
     , valueOptions: mempty
+    , after: Nothing
+    , before: Nothing
     }
 
 templateInputsSection :: forall p. Icon -> String -> Array (HTML p Action) -> HTML p Action

@@ -13,9 +13,9 @@ import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (toString) as UUID
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, label, li, p, span, text, ul)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, li, p, span, text, ul)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (disabled, for)
+import Halogen.HTML.Properties (disabled)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (State) as InputField
@@ -24,6 +24,8 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon_)
 import WalletData.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
 import WalletData.Types (Action(..), CardSection(..), State, WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
+import Web.Common.Components.Label as Label
+import Web.Common.Components.WalletId as WalletId
 
 walletDataCard :: forall p. WalletDetails -> State -> HTML p Action
 walletDataCard currentWallet state =
@@ -113,27 +115,19 @@ walletDetailsCard currentWallet walletDetails =
     companionAppIdString = UUID.toString $ unwrap companionAppId
 
     isCurrentWallet = walletNickname == currentWallet ^. _walletNickname
+
+    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
   in
     [ div [ classNames [ "space-y-4", "p-4" ] ]
         [ h3
             [ classNames [ "text-lg", "font-semibold" ] ]
             [ text walletNickname ]
-        , h4
-            [ classNames [ "text-sm", "font-semibold" ] ]
-            [ text "Demo wallet key" ]
-        , div
-            [ classNames [ "flex", "items-center", "justify-between" ] ]
-            [ span
-                [ classNames [ "font-mono", "text-xs", "whitespace-nowrap" ] ]
-                [ text companionAppIdString ]
-            , span
-                -- I don't understand why I have to set the width of this - for some reason it
-                -- grows very wide if I don't :/
-                [ classNames [ "cursor-pointer", "w-6" ]
-                , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard companionAppIdString
-                ]
-                [ icon_ Icon.Copy ]
-            ]
+        , copyWalletId
+            <$> WalletId.render
+                WalletId.defaultParams
+                  { label = "Demo wallet key"
+                  , value = companionAppId
+                  }
         , walletIdTip
         ]
     , div
@@ -170,6 +164,12 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       , readOnly: false
       , numberFormat: Nothing
       , valueOptions: mempty
+      , after: Nothing
+      , before:
+          Just
+            $ Label.render
+                Label.defaultParams
+                  { for = "newWalletNickname", text = "Wallet nickname" }
       }
 
     walletIdInputDisplayOptions =
@@ -179,27 +179,17 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       , readOnly: false
       , numberFormat: Nothing
       , valueOptions: mempty
+      , after: Nothing
+      , before:
+          Just
+            $ Label.render
+                Label.defaultParams
+                  { for = "newWalletId", text = "Wallet nickname" }
       }
   in
     [ div [ classNames [ "space-y-4", "p-4" ] ]
-        [ div
-            [ classNames $ Css.hasNestedLabel ]
-            [ label
-                [ classNames Css.nestedLabel
-                , for walletNicknameInputDisplayOptions.id_
-                ]
-                [ text "Wallet nickname" ]
-            , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
-            ]
-        , div
-            [ classNames $ Css.hasNestedLabel ]
-            [ label
-                [ classNames Css.nestedLabel
-                , for walletIdInputDisplayOptions.id_
-                ]
-                [ text "Demo wallet ID" ]
-            , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
-            ]
+        [ WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
+        , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
         ]
     , div
         [ classNames [ "flex", "gap-4", "p-4" ] ]

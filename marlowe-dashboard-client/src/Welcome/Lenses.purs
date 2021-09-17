@@ -4,7 +4,7 @@ module Welcome.Lenses
   , _walletLibrary
   , _walletNicknameOrIdInput
   , _walletNicknameInput
-  , _walletIdInput
+  , _walletId
   , _remoteWalletDetails
   , _enteringDashboardState
   ) where
@@ -14,8 +14,9 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
+import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
+import WalletData.Types (WalletDetails, WalletLibrary, WalletNicknameError)
 import Welcome.Types (Card, State, WalletNicknameOrIdError)
 
 _card :: Lens' State (Maybe Card)
@@ -33,8 +34,8 @@ _walletNicknameOrIdInput = prop (SProxy :: SProxy "walletNicknameOrIdInput")
 _walletNicknameInput :: Lens' State (InputField.State WalletNicknameError)
 _walletNicknameInput = prop (SProxy :: SProxy "walletNicknameInput")
 
-_walletIdInput :: Lens' State (InputField.State WalletIdError)
-_walletIdInput = prop (SProxy :: SProxy "walletIdInput")
+_walletId :: Lens' State PlutusAppId
+_walletId = prop (SProxy :: SProxy "walletId")
 
 _remoteWalletDetails :: Lens' State (WebData WalletDetails)
 _remoteWalletDetails = prop (SProxy :: SProxy "remoteWalletDetails")

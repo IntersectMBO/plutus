@@ -11,22 +11,27 @@ import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (Maybe(..), isJust)
+import Data.Newtype (unwrap)
+import Data.UUID (toString) as UUID
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, label, main, p, p_, section, span_, text)
+import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, main, p, p_, section, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (disabled, for, href, src, title)
+import Halogen.HTML.Properties (disabled, href, src, title)
 import Images (marloweRunLogo)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (InputDisplayOptions)
 import InputField.View (renderInput)
+import Marlowe.PAB (PlutusAppId)
 import Material.Icons (Icon(..)) as Icon
-import Material.Icons (icon, icon_)
 import Network.RemoteData (isSuccess)
+import Material.Icons (icon, icon_)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
 import WalletData.View (walletIdTip)
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Web.Common.Components.Label as Label
+import Web.Common.Components.WalletId as WalletId
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 welcomeScreen :: forall p. State -> HTML p Action
@@ -88,6 +93,8 @@ useWalletBox state =
       , readOnly: false
       , numberFormat: Nothing
       , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
+      , after: Nothing
+      , before: Nothing
       }
   in
     section
@@ -235,9 +242,7 @@ useNewWalletCard state =
 
     walletNickname = walletNicknameInput ^. _value
 
-    walletIdInput = state ^. _walletIdInput
-
-    walletId = walletIdInput ^. _value
+    walletId = state ^. _walletId
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -248,33 +253,8 @@ useNewWalletCard state =
         [ h2
             [ classNames [ "font-bold" ] ]
             [ text $ "Demo wallet generated" ]
-        , div
-            [ classNames $ Css.hasNestedLabel ]
-            $ [ label
-                  [ classNames $ Css.nestedLabel
-                  , for "walletNickname"
-                  ]
-                  [ text "Wallet nickname" ]
-              , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
-              ]
-        , div
-            [ classNames [ "relative" ] ]
-            [ div
-                [ classNames Css.hasNestedLabel ]
-                [ label
-                    [ classNames Css.nestedLabel
-                    , for "walletID"
-                    ]
-                    [ text "Demo wallet ID" ]
-                , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
-                ]
-            , walletIdTip
-            , a
-                [ classNames [ "w-6", "absolute", "top-10", "right-4" ]
-                , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard walletId
-                ]
-                [ icon Icon.Copy [ "w-6" ] ]
-            ]
+        , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
+        , renderWalletId walletId
         , div
             [ classNames [ "flex", "gap-4" ] ]
             [ button
@@ -292,6 +272,17 @@ useNewWalletCard state =
         ]
     ]
 
+renderWalletId :: forall p. PlutusAppId -> HTML p Action
+renderWalletId walletId =
+  let
+    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
+  in
+    div
+      [ classNames [] ]
+      [ copyWalletId <$> WalletId.render WalletId.defaultParams { label = "Demo wallet ID", value = walletId }
+      , walletIdTip
+      ]
+
 useWalletCard :: forall p. State -> Array (HTML p Action)
 useWalletCard state =
   let
@@ -303,9 +294,7 @@ useWalletCard state =
 
     walletNickname = walletNicknameInput ^. _value
 
-    walletIdInput = state ^. _walletIdInput
-
-    walletId = walletIdInput ^. _value
+    walletId = state ^. _walletId
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -316,33 +305,8 @@ useWalletCard state =
         [ h2
             [ classNames [ "font-bold", "truncate", "w-11/12" ] ]
             [ text $ "Demo wallet " <> walletNickname ]
-        , div
-            [ classNames $ Css.hasNestedLabel ]
-            $ [ label
-                  [ classNames $ Css.nestedLabel
-                  , for "walletNickname"
-                  ]
-                  [ text "Wallet nickname" ]
-              , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
-              ]
-        , div
-            [ classNames [ "relative" ] ]
-            [ div
-                [ classNames Css.hasNestedLabel ]
-                [ label
-                    [ classNames Css.nestedLabel
-                    , for "walletID"
-                    ]
-                    [ text "Demo wallet ID" ]
-                , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
-                ]
-            , walletIdTip
-            , a
-                [ classNames [ "w-6", "absolute", "top-10", "right-4" ]
-                , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard walletId
-                ]
-                [ icon Icon.Copy [ "w-6" ] ]
-            ]
+        , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
+        , renderWalletId walletId
         , div
             [ classNames [ "flex", "gap-4" ] ]
             [ button
@@ -360,7 +324,7 @@ useWalletCard state =
         ]
     ]
 
-walletNicknameInputDisplayOptions :: Boolean -> InputDisplayOptions
+walletNicknameInputDisplayOptions :: forall w i. Boolean -> InputDisplayOptions w i
 walletNicknameInputDisplayOptions readOnly =
   { additionalCss: mempty
   , id_: "walletNickname"
@@ -368,16 +332,11 @@ walletNicknameInputDisplayOptions readOnly =
   , readOnly
   , numberFormat: Nothing
   , valueOptions: mempty
-  }
-
-walletIdInputDisplayOptions :: InputDisplayOptions
-walletIdInputDisplayOptions =
-  { additionalCss: [ "font-mono", "text-xs", "pt-5" ]
-  , id_: "walletId"
-  , placeholder: "Demo wallet ID"
-  , readOnly: true
-  , numberFormat: Nothing
-  , valueOptions: mempty
+  , after: Nothing
+  , before:
+      Just
+        $ Label.render
+            Label.defaultParams { for = "walletNickname", text = "Wallet nickname" }
   }
 
 localWalletMissingCard :: forall p. Array (HTML p Action)

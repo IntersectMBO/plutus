@@ -4,6 +4,7 @@ module Dashboard.View
   ) where
 
 import Prelude hiding (div)
+import Clipboard (Action(..)) as Clipboard
 import Contract.Lenses (_Started, _stateNickname)
 import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
@@ -42,6 +43,7 @@ import WalletData.Lenses (_assets, _companionAppId, _walletNickname, _walletLibr
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails)
 import WalletData.View (walletDataCard)
+import Web.Common.Components.WalletId as WalletId
 
 dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 dashboardScreen { currentSlot, tzOffset } state =
@@ -430,24 +432,18 @@ currentWalletCard walletDetails =
     companionAppId = view _companionAppId walletDetails
 
     assets = view _assets walletDetails
+
+    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
   in
     div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
-          [ text $ "Wallet " <> walletNickname ]
-      , div [ classNames [ "p-4", "overflow-y-auto", "space-y-4" ] ]
-          [ div
-              [ classNames Css.hasNestedLabel ]
-              [ label
-                  [ classNames Css.nestedLabel ]
-                  [ text "Wallet ID" ]
-              , input
-                  [ type_ InputText
-                  , classNames $ Css.input true
-                  , value $ UUID.toString $ unwrap companionAppId
-                  , readOnly true
-                  ]
-              ]
+          [ text "My wallet" ]
+      , div [ classNames [ "p-4", "overflow-y-auto", "overflow-x-hidden", "space-y-4" ] ]
+          [ h3
+              [ classNames [ "font-semibold", "text-lg" ] ]
+              [ text walletNickname ]
+          , copyWalletId <$> WalletId.render WalletId.defaultParams { label = "Wallet ID", value = companionAppId }
           , div_
               [ h4
                   [ classNames [ "font-semibold" ] ]
