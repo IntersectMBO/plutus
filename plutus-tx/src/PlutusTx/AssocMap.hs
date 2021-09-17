@@ -40,6 +40,7 @@ module PlutusTx.AssocMap (
     ) where
 
 import           Control.DeepSeq            (NFData)
+import           Data.Text.Prettyprint.Doc  (Pretty (..))
 import           GHC.Generics               (Generic)
 import qualified PlutusTx.Builtins          as P
 import qualified PlutusTx.Builtins.Internal as BI
@@ -112,6 +113,9 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
 
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
     mempty = empty
+
+instance (Pretty k, Pretty v) => Pretty (Map k v) where
+    pretty (Map mp) = pretty mp
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v

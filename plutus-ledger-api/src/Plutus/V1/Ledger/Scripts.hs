@@ -275,7 +275,7 @@ instance BA.ByteArrayAccess Datum where
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
   deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
 
 instance BA.ByteArrayAccess Redeemer where
@@ -439,3 +439,5 @@ makeLift ''DatumHash
 makeLift ''RedeemerHash
 
 makeLift ''Datum
+
+makeLift ''Redeemer
