@@ -100,6 +100,7 @@ let
     purs
     purty
     spago
+    spago2nix
     stylish-haskell
     updateMaterialized
     updateClientDeps
