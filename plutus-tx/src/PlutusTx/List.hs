@@ -16,17 +16,19 @@ module PlutusTx.List (
     take,
     tail,
     nub,
-    nubBy
+    nubBy,
+    zipWith,
+    dropWhile
     ) where
 
-import           PlutusTx.Bool       ((||))
-import qualified PlutusTx.Builtins   as Builtins
-import           PlutusTx.Eq         (Eq, (==))
+import                          PlutusTx.Bool     (Bool (..), otherwise, (||))
+import                          PlutusTx.Builtins (Integer)
+import                qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.ErrorCodes
-import           PlutusTx.Ord        ((<), (<=))
-import           PlutusTx.Trace      (traceError)
-import           Prelude             hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
-                                      reverse, tail, take, zip, (!!), (&&), (++), (<), (<=), (||))
+import                          PlutusTx.Eq       (Eq, (==))
+import {-# SOURCE #-}           PlutusTx.Maybe    (Maybe (..))
+import {-# SOURCE #-}           PlutusTx.Ord      ((<), (<=))
+import                          PlutusTx.Trace    (traceError)
 
 {- HLINT ignore -}
 
@@ -145,7 +147,7 @@ tail []     =  traceError tailEmptyListError
 take :: Integer -> [a] -> [a]
 take n _      | n <= 0 =  []
 take _ []              =  []
-take n (x:xs)          =  x : take (n-1) xs
+take n (x:xs)          =  x : take (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE nub #-}
 -- | Plutus Tx version of 'Data.List.nub'.
@@ -167,3 +169,20 @@ nubBy eq l = nubBy' l []
     nubBy' (y:ys) xs
        | elemBy eq y xs = nubBy' ys xs
        | otherwise      = y : nubBy' ys (y:xs)
+
+{-# INLINABLE zipWith #-}
+-- | Plutus Tx version of 'Data.List.zipWith'.
+zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWith f = go
+  where
+    go [] _          = []
+    go _ []          = []
+    go (x:xs) (y:ys) = f x y : go xs ys
+
+{-# INLINABLE dropWhile #-}
+-- | Plutus Tx version of 'Data.List.dropWhile'.
+dropWhile :: (a -> Bool) -> [a] -> [a]
+dropWhile _ []          =  []
+dropWhile p xs@(x:xs')
+    | p x       =  dropWhile p xs'
+    | otherwise =  xs

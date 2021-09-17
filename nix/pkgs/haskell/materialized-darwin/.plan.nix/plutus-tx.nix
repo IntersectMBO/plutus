@@ -62,6 +62,7 @@
           "PlutusTx/Prelude"
           "PlutusTx/Evaluation"
           "PlutusTx/Applicative"
+          "PlutusTx/Base"
           "PlutusTx/Bool"
           "PlutusTx/IsData"
           "PlutusTx/IsData/Class"

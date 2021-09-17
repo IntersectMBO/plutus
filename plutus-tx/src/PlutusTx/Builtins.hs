@@ -22,6 +22,7 @@ module PlutusTx.Builtins (
                                 , verifySignature
                                 , decodeUtf8
                                 -- * Integer builtins
+                                , Integer
                                 , addInteger
                                 , subtractInteger
                                 , multiplyInteger
@@ -69,7 +70,7 @@ module PlutusTx.Builtins (
                                 , toBuiltin
                                 ) where
 
-import           Prelude                    hiding (String, error)
+import           Prelude                    (Bool (..), Integer, const, uncurry)
 
 import           PlutusTx.Builtins.Class
 import           PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)

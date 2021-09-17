@@ -28,6 +28,7 @@ import           Data.Proxy
 import qualified Data.Text           as Text
 
 import           GHC.TypeLits        (ErrorMessage (..), TypeError)
+import           Prelude
 
 -- Derived instances
 

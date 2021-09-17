@@ -43,6 +43,7 @@ import           Control.Monad.Reader            hiding (lift)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Typeable                   as GHC
+import           Prelude
 
 type PrettyPrintable uni fun = ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 

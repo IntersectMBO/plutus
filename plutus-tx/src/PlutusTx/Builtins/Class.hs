@@ -18,8 +18,8 @@ import           Data.String                (IsString (..))
 import           Data.Text                  (Text, pack)
 
 import qualified GHC.Magic                  as Magic
-
-import           Prelude                    hiding (fst, head, null, snd, tail)
+import           PlutusTx.Base              (const, id, ($))
+import           Prelude                    (Bool (..), Integer, String)
 
 {- Note [Fundeps versus type families in To/FromBuiltin]
 We could use a type family here to get the builtin representation of a type. After all, it's

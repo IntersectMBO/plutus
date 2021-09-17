@@ -2,10 +2,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Enum (Enum(..)) where
 
+import           PlutusTx.Bool     (Bool (..), otherwise)
 import           PlutusTx.Builtins
 import           PlutusTx.ErrorCodes
 import           PlutusTx.Trace
-import           Prelude             hiding (Enum (..))
+import           PlutusTx.Eq       ((==))
+import           PlutusTx.Ord      (Ordering (..))
 
 -- | Class 'Enum' defines operations on sequentially ordered types.
 class Enum a where

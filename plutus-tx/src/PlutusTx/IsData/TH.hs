@@ -15,6 +15,8 @@ import qualified PlutusTx.Builtins.Internal   as BI
 import           PlutusTx.IsData.Class
 import           PlutusTx.Trace               (traceError)
 
+import           Prelude
+
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"

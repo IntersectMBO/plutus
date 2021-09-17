@@ -43,13 +43,18 @@ import           Data.Monoid           (First (..))
 import           Data.Semigroup        (Dual (..), Endo (..), Product (..), Sum (..))
 import           GHC.Exts              (build)
 import           PlutusTx.Applicative  (Applicative (pure), (*>))
-import           PlutusTx.Bool         (not)
+import           PlutusTx.Base
+import           PlutusTx.Bool         (Bool (..), not)
+import           PlutusTx.Builtins     (Integer)
+import           PlutusTx.Either       (Either (..))
 import           PlutusTx.Eq           (Eq (..))
-import           PlutusTx.Functor      (id)
+import           PlutusTx.Maybe        (Maybe (..))
 import           PlutusTx.Monoid       (Monoid (..))
 import           PlutusTx.Numeric      (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
 import           PlutusTx.Semigroup    ((<>))
-import           Prelude               (Bool (..), Either (..), Integer, Maybe (..), Monad (..), flip, (.))
+
+-- TODO: define Plutus Monad?
+import           Prelude               (Monad (..))
 
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where

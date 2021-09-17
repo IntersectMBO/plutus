@@ -24,6 +24,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, u
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import           Data.Text                                (Text)
+import           Prelude
 
 -- | Evaluate a program in the CEK machine with the usual text dynamic builtins.
 evaluateCek

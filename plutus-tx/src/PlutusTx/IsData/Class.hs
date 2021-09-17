@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -9,16 +8,17 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import           Prelude                    (Int, Integer, Maybe (..), error)
+import           Prelude                    (Int, error)
 
 import qualified PlutusCore.Data            as PLC
+import           PlutusTx.Base
 import           PlutusTx.Builtins          as Builtins
 import           PlutusTx.Builtins.Internal (BuiltinData (..))
 import qualified PlutusTx.Builtins.Internal as BI
+import           PlutusTx.Maybe             (Maybe (..))
 
 import           PlutusTx.Applicative
 import           PlutusTx.ErrorCodes
-import           PlutusTx.Functor
 import           PlutusTx.Trace
 
 import           Data.Kind
