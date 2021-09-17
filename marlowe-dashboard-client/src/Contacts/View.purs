@@ -124,7 +124,7 @@ walletDetailsCard currentWallet walletDetails =
             [ text walletNickname ]
         , copyWalletId
             <$> WalletId.render
-                WalletId.defaultParams
+                WalletId.defaultInput
                   { label = "Demo wallet key"
                   , value = companionAppId
                   }
@@ -168,7 +168,7 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       , before:
           Just
             $ Label.render
-                Label.defaultParams
+                Label.defaultInput
                   { for = "newWalletNickname", text = "Wallet nickname" }
       }
 
@@ -183,7 +183,7 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       , before:
           Just
             $ Label.render
-                Label.defaultParams
+                Label.defaultInput
                   { for = "newWalletId", text = "Wallet nickname" }
       }
   in

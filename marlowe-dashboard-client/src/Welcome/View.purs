@@ -279,7 +279,7 @@ renderWalletId walletId =
   in
     div
       [ classNames [] ]
-      [ copyWalletId <$> WalletId.render WalletId.defaultParams { label = "Demo wallet ID", value = walletId }
+      [ copyWalletId <$> WalletId.render WalletId.defaultInput { label = "Demo wallet ID", value = walletId }
       , walletIdTip
       ]
 
@@ -336,7 +336,7 @@ walletNicknameInputDisplayOptions readOnly =
   , before:
       Just
         $ Label.render
-            Label.defaultParams { for = "walletNickname", text = "Wallet nickname" }
+            Label.defaultInput { for = "walletNickname", text = "Wallet nickname" }
   }
 
 localWalletMissingCard :: forall p. Array (HTML p Action)

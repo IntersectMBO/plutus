@@ -190,7 +190,7 @@ contractSetup walletLibrary state =
       , before:
           Just
             $ Label.render
-                Label.defaultParams
+                Label.defaultInput
                   { for = "contractNickname", text = contractName <> " title" }
       }
   in

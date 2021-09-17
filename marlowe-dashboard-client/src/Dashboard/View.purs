@@ -443,7 +443,7 @@ currentWalletCard walletDetails =
           [ h3
               [ classNames [ "font-semibold", "text-lg" ] ]
               [ text walletNickname ]
-          , copyWalletId <$> WalletId.render WalletId.defaultParams { label = "Wallet ID", value = companionAppId }
+          , copyWalletId <$> WalletId.render WalletId.defaultInput { label = "Wallet ID", value = companionAppId }
           , div_
               [ h4
                   [ classNames [ "font-semibold" ] ]
