@@ -54,6 +54,7 @@ module Plutus.V2.Ledger.Contexts
 
 import           Data.Text.Prettyprint.Doc   (Pretty (..), nest, vsep, (<+>))
 import           GHC.Generics                (Generic)
+import           PlutusTx.AssocMap
 import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Credential (StakingCredential)
@@ -74,10 +75,10 @@ data TxInfo = TxInfo
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
     , txInfoMint        :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
-    , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
+    , txInfoWdrl        :: Map StakingCredential Integer -- ^ Withdrawals
     , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
     , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
-    , txInfoData        :: [(DatumHash, Datum)]
+    , txInfoData        :: Map DatumHash Datum
     , txInfoId          :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
