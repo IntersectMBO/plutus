@@ -25,7 +25,7 @@ import           PlutusTx.Eq       (Eq, (==))
 import           PlutusTx.Ord      ((<), (<=))
 import           PlutusTx.Trace    (traceError)
 import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
-                                    reverse, tail, take, zip, (!!), (&&), (++), (<), (<=) (||))
+                                    reverse, tail, take, zip, (!!), (&&), (++), (<), (<=), (||))
 
 {- HLINT ignore -}
 
