@@ -52,7 +52,7 @@ import Popper (Placement(..))
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.State (adaToken, getAda)
+import Contacts.State (adaToken, getAda)
 
 -------------------------------------------------------------------------------
 -- Top-level views

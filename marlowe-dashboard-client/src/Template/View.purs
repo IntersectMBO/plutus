@@ -37,9 +37,9 @@ import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
 import Web.Common.Components.Label as Label
-import WalletData.Lenses (_walletNickname)
-import WalletData.State (adaToken, getAda)
-import WalletData.Types (WalletLibrary)
+import Contacts.Lenses (_walletNickname)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletLibrary)
 
 contractTemplateCard :: forall m. MonadAff m => WalletLibrary -> Assets -> State -> ComponentHTML Action ChildSlots m
 contractTemplateCard walletLibrary assets state =

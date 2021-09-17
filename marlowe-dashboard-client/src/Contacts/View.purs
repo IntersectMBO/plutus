@@ -1,5 +1,5 @@
-module WalletData.View
-  ( walletDataCard
+module Contacts.View
+  ( contactsCard
   , walletIdTip
   ) where
 
@@ -22,13 +22,13 @@ import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon_)
-import WalletData.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
-import WalletData.Types (Action(..), CardSection(..), State, WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
+import Contacts.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
+import Contacts.Types (Action(..), CardSection(..), State, WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 import Web.Common.Components.Label as Label
 import Web.Common.Components.WalletId as WalletId
 
-walletDataCard :: forall p. WalletDetails -> State -> HTML p Action
-walletDataCard currentWallet state =
+contactsCard :: forall p. WalletDetails -> State -> HTML p Action
+contactsCard currentWallet state =
   let
     walletLibrary = state ^. _walletLibrary
 
@@ -43,15 +43,15 @@ walletDataCard currentWallet state =
       $ [ h2
             [ classNames Css.cardHeader ]
             [ text "Contacts" ]
-        , walletDataBreadcrumb cardSection
+        , contactsBreadcrumb cardSection
         ]
       <> case cardSection of
           Home -> walletLibraryCard walletLibrary
           ViewWallet walletDetails -> walletDetailsCard currentWallet walletDetails
           NewWallet mTokenName -> newWalletCard walletNicknameInput walletIdInput mTokenName
 
-walletDataBreadcrumb :: forall p. CardSection -> HTML p Action
-walletDataBreadcrumb cardSection =
+contactsBreadcrumb :: forall p. CardSection -> HTML p Action
+contactsBreadcrumb cardSection =
   div
     [ classNames [ "overflow-x-auto", "flex", "align-baseline", "px-4", "gap-1", "text-xs" ] ] case cardSection of
     Home -> [ activeItem "Home" ]

@@ -27,7 +27,7 @@ import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token, TransactionInput)
-import WalletData.Types (WalletDetails, WalletNickname)
+import Contacts.Types (WalletDetails, WalletNickname)
 
 data State
   = Starting StartingState

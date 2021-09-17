@@ -17,7 +17,7 @@ import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.Extended.Metadata (ContractTemplate)
 import Marlowe.Semantics (Slot, TokenName)
-import WalletData.Types (WalletLibrary)
+import Contacts.Types (WalletLibrary)
 
 type State
   = { contractSetupStage :: ContractSetupStage

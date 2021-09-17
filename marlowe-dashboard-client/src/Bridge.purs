@@ -26,7 +26,7 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
+import Contacts.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
 {-
 Note [JSON communication]: To ensure the client and the PAB server understand each other, they have

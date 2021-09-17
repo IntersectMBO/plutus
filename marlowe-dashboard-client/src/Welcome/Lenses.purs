@@ -16,7 +16,7 @@ import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletLibrary, WalletNicknameError)
+import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError)
 import Welcome.Types (Card, State, WalletNicknameOrIdError)
 
 _card :: Lens' State (Maybe Card)

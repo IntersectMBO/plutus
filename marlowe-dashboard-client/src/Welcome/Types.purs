@@ -13,9 +13,9 @@ import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname, WalletNicknameError)
+import Contacts.Types (WalletDetails, WalletLibrary, WalletNickname, WalletNicknameError)
 
--- TODO (possibly): The WalletData submodule used in the Dashboard has some properties and
+-- TODO (possibly): The Contacts submodule used in the Dashboard has some properties and
 -- functionality that's similar to some of what goes on here. It might be worth generalising it so
 -- it works in both cases, and including it as a submodule here too.
 type State

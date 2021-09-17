@@ -27,8 +27,8 @@ import Material.Icons (Icon(..)) as Icon
 import Network.RemoteData (isSuccess)
 import Material.Icons (icon, icon_)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_walletNickname)
-import WalletData.View (walletIdTip)
+import Contacts.Lenses (_walletNickname)
+import Contacts.View (walletIdTip)
 import Web.Common.Components.Label as Label
 import Web.Common.Components.WalletId as WalletId
 import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)

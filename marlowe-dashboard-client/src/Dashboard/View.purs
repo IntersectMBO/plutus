@@ -10,7 +10,7 @@ import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _contactsState)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
@@ -39,10 +39,10 @@ import Prim.TypeError (class Warn, Text)
 import Template.View (contractTemplateCard)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
-import WalletData.State (adaToken, getAda)
-import WalletData.Types (WalletDetails)
-import WalletData.View (walletDataCard)
+import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletDetails)
+import Contacts.View (contactsCard)
 import Web.Common.Components.WalletId as WalletId
 
 dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
@@ -100,7 +100,7 @@ dashboardCard currentSlot state = case view _card state of
     let
       cardOpen = state ^. _cardOpen
 
-      walletLibrary = state ^. (_walletDataState <<< _walletLibrary)
+      walletLibrary = state ^. (_contactsState <<< _walletLibrary)
 
       currentWallet = state ^. _walletDetails
 
@@ -118,7 +118,7 @@ dashboardCard currentSlot state = case view _card state of
               , case card of
                   TutorialsCard -> tutorialsCard
                   CurrentWalletCard -> currentWalletCard currentWallet
-                  WalletDataCard -> renderSubmodule _walletDataState WalletDataAction (walletDataCard currentWallet) state
+                  ContactsCard -> renderSubmodule _contactsState ContactsAction (contactsCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
                   ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId <<< _Started) (ContractAction followerAppId) (actionConfirmationCard assets action) state
               ]
@@ -150,7 +150,7 @@ dashboardHeader walletNickname menuOpen =
             ]
         , nav
             [ classNames [ "flex", "items-center" ] ]
-            [ navigation (OpenCard WalletDataCard) Icon.Contacts "contactsHeader"
+            [ navigation (OpenCard ContactsCard) Icon.Contacts "contactsHeader"
             , tooltip "Contacts" (RefId "contactsHeader") Bottom
             , navigation (OpenCard TutorialsCard) Icon.Tutorials "tutorialsHeader"
             , tooltip "Tutorials" (RefId "tutorialsHeader") Bottom
