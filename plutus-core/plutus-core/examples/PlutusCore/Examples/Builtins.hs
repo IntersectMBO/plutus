@@ -139,7 +139,7 @@ instance KnownTypeAst uni Void where
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance KnownType term Void where
     makeKnown _ = absurd
-    readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 type instance ToBinds Void = '[]
 
 data BuiltinErrorCall = BuiltinErrorCall

@@ -36,6 +36,7 @@ module PlutusCore.Constant.Typed
     , HasConstantIn
     , KnownTypeAst (..)
     , KnownType (..)
+    , readKnownSelf
     , makeKnownOrFail
     , SomeConstant (..)
     , SomeConstantOf (..)
@@ -408,24 +409,24 @@ newtype Opaque term (rep :: GHC.Type) = Opaque
 
 -- | Throw an 'UnliftingError' saying that the received argument is not a constant.
 throwNotAConstant
-    :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
-    => term -> m r
-throwNotAConstant = throwingWithCause _UnliftingError "Not a constant" . Just
+    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
+    => Maybe cause -> m r
+throwNotAConstant = throwingWithCause _UnliftingError "Not a constant"
 
 class AsConstant term where
     -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
     -- is not a 'Constant'.
     asConstant
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
-        => term -> m (Some (ValueOf (UniOf term)))
+        :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
+        => Maybe cause -> term -> m (Some (ValueOf (UniOf term)))
 
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
 instance AsConstant (Term TyName Name uni fun ann) where
-    asConstant (Constant _ val) = pure val
-    asConstant term             = throwNotAConstant term
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = throwNotAConstant mayCause
 
 instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
@@ -459,11 +460,14 @@ We use @default@ for providing instances for built-in types instead of @Deriving
 latter breaks on @m a@
 -}
 
--- TODO: in @makeKnown@ @cause@ and @term@ can be different, while in @readKnown@ they must be the
--- same. We need to check if making them different in @readKnown@ is feasiable and can simplify
--- things such as error handling in the CEK machine.
 -- See Note [KnownType's defaults].
 -- | Haskell types known to exist on the PLC side.
+-- Both the methods take a @Maybe cause@ argument to report the cause of a potential failure.
+-- @cause@ is different to @term@ to support evaluators that distinguish between terms and values
+-- (@makeKnown@ normally constructs a value, but it's convenient to report the cause of a failure
+-- as a term). Note that an evaluator might require the cause to be computed lazily for best
+-- performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
+-- the cause stored in it is not forced due to @Maybe@ being a lazy data type.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
@@ -484,15 +488,15 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
            )
-        => term -> m a
+        => Maybe cause -> term -> m a
     default readKnown
-        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
            , KnownBuiltinType term a
            )
-        => term -> m a
-    readKnown term = asConstant term >>= \case
+        => Maybe cause -> term -> m a
+    readKnown mayCause term = asConstant mayCause term >>= \case
         Some (ValueOf uniAct x) -> do
             let uniExp = knownUni @_ @(UniOf term) @a
             case uniAct `geq` uniExp of
@@ -503,7 +507,15 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
                             , "expected: " ++ gshow uniExp
                             , "; actual: " ++ gshow uniAct
                             ]
-                    throwingWithCause _UnliftingError err $ Just term
+                    throwingWithCause _UnliftingError err mayCause
+
+-- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
+readKnownSelf
+    :: ( KnownType term a
+       , MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+       )
+    => term -> m a
+readKnownSelf term = readKnown (Just term) term
 
 -- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
 newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
@@ -536,7 +548,8 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
     -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
     -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
-    readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
+    readKnown mayCause _ =
+        throwingWithCause _UnliftingError "Error catching is not supported" mayCause
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     toTypeAst _ = toTypeAst $ Proxy @a
@@ -544,7 +557,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
 instance KnownType term a => KnownType term (Emitter a) where
     makeKnown mayCause = unEmitter >=> makeKnown mayCause
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
-    readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
 
 -- | For unlifting from the 'Constant' constructor. For cases where we care about having a type tag
 -- in the denotation of a builtin rather than full unlifting to a specific built-in type.
@@ -561,7 +574,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownType term (SomeConstant uni rep) where
     makeKnown _ = pure . fromConstant . unSomeConstant
-    readKnown = fmap SomeConstant . asConstant
+    readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
 {- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
 constants, the former is for unlifting constants of a specific polymorphic built-in type
@@ -625,7 +638,7 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
             KnownType term (SomeConstantOf uni f reps) where
     makeKnown _ = pure . fromConstant . runSomeConstantOf
 
-    readKnown term = asConstant term >>= \case
+    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
         Some (ValueOf uni xs) -> do
             let uniF = knownUni @_ @_ @f
                 err = fromString $ concat
@@ -633,8 +646,8 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
                     , "expected an application of: " ++ gshow uniF
                     , "; but got the following type: " ++ gshow uni
                     ]
-                wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
-                wrongType = throwingWithCause _UnliftingError err $ Just term
+                wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
+                wrongType = throwingWithCause _UnliftingError err mayCause
             -- In order to prove that the type of @xs@ is an application of @f@ we need to
             -- peel all type applications off in the type of @xs@ until we get to the head and then
             -- check that the head is indeed @f@. Each peeled type application becomes a
@@ -681,7 +694,7 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
     makeKnown _ = pure . unOpaque
-    readKnown = pure . Opaque
+    readKnown _ = pure . Opaque
 
 instance uni `Contains` Integer       => KnownTypeAst uni Integer
 instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
@@ -715,10 +728,10 @@ instance uni `Includes` Integer => KnownTypeAst uni Int where
 -- See Note [Int as Integer].
 instance KnownBuiltinType term Integer => KnownType term Int where
     makeKnown mayCause = makeKnown mayCause . toInteger
-    readKnown term = do
-        i :: Integer <- readKnown term
+    readKnown mayCause term = do
+        i :: Integer <- readKnown mayCause term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () $ Just term
+            throwingWithCause _EvaluationFailure () mayCause
         pure $ fromIntegral i
 
 -- Utils
