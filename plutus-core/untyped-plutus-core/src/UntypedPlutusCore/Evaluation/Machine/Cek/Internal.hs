@@ -599,7 +599,7 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     TypeSchemeResult _ -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        flip unWithEmitterT ?cekEmitter $ makeKnown x
+        flip unWithEmitterT ?cekEmitter $ makeKnown (Just term) x
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 

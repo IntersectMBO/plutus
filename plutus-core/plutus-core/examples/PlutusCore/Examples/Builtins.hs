@@ -138,7 +138,7 @@ instance KnownTypeAst uni Void where
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance KnownType term Void where
-    makeKnown = absurd
+    makeKnown _ = absurd
     readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
 type instance ToBinds Void = '[]
 

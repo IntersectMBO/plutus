@@ -209,7 +209,8 @@ evalBuiltinApp
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
 -- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
 -- 'makeKnown' never returns a non-value term.
-evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) = makeKnown x
+evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) =
+    makeKnown Nothing x
 evalBuiltinApp ann getTerm runtime =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 

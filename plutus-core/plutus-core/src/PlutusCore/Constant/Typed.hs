@@ -36,7 +36,7 @@ module PlutusCore.Constant.Typed
     , HasConstantIn
     , KnownTypeAst (..)
     , KnownType (..)
-    , makeKnownNoEmit
+    , makeKnownOrFail
     , SomeConstant (..)
     , SomeConstantOf (..)
     ) where
@@ -459,24 +459,27 @@ We use @default@ for providing instances for built-in types instead of @Deriving
 latter breaks on @m a@
 -}
 
+-- TODO: in @makeKnown@ @cause@ and @term@ can be different, while in @readKnown@ they must be the
+-- same. We need to check if making them different in @readKnown@ is feasiable and can simplify
+-- things such as error handling in the CEK machine.
 -- See Note [KnownType's defaults].
 -- | Haskell types known to exist on the PLC side.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadEmitter m, MonadError err m, AsEvaluationFailure err
+        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
            )
-        => a -> m term
+        => Maybe cause -> a -> m term
     default makeKnown
-        :: ( MonadError err m
+        :: ( MonadError (ErrorWithCause err cause) m
            , KnownBuiltinType term a
            )
-        => a -> m term
+        => Maybe cause -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
@@ -502,16 +505,30 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
                             ]
                     throwingWithCause _UnliftingError err $ Just term
 
-makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownNoEmit = unNoEmitterT . makeKnown
+-- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
+newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
+    { unNoCauseT :: m a
+    } deriving newtype (Functor, Applicative, Monad)
+
+instance (MonadError err m, AsEvaluationFailure err) =>
+            MonadError (ErrorWithCause err term) (NoCauseT term m) where
+    throwError _ = NoCauseT $ throwError evaluationFailure
+    NoCauseT a `catchError` h =
+        NoCauseT $ a `catchError` \err ->
+            unNoCauseT . h $ ErrorWithCause err Nothing
+
+-- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
+-- For example the monad can be simply 'EvaluationResult'.
+makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
+makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
             KnownType term (EvaluationResult a) where
-    makeKnown EvaluationFailure     = throwError evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
+    makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
+    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -525,7 +542,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownType term a => KnownType term (Emitter a) where
-    makeKnown = unEmitter >=> makeKnown
+    makeKnown mayCause = unEmitter >=> makeKnown mayCause
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
 
@@ -543,7 +560,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownType term (SomeConstant uni rep) where
-    makeKnown = pure . fromConstant . unSomeConstant
+    makeKnown _ = pure . fromConstant . unSomeConstant
     readKnown = fmap SomeConstant . asConstant
 
 {- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
@@ -606,7 +623,7 @@ data ReadSomeConstantOf m uni f reps =
 
 instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownType term (SomeConstantOf uni f reps) where
-    makeKnown = pure . fromConstant . runSomeConstantOf
+    makeKnown _ = pure . fromConstant . runSomeConstantOf
 
     readKnown term = asConstant term >>= \case
         Some (ValueOf uni xs) -> do
@@ -663,12 +680,12 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
-    makeKnown = pure . unOpaque
+    makeKnown _ = pure . unOpaque
     readKnown = pure . Opaque
 
 instance uni `Contains` Integer       => KnownTypeAst uni Integer
 instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Contains` Text.Text          => KnownTypeAst uni Text.Text
+instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
 instance uni `Contains` ()            => KnownTypeAst uni ()
 instance uni `Contains` Bool          => KnownTypeAst uni Bool
 instance uni `Contains` [a]           => KnownTypeAst uni [a]
@@ -677,7 +694,7 @@ instance uni `Contains` Data          => KnownTypeAst uni Data
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term Text.Text          => KnownType term Text.Text
+instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]
@@ -697,7 +714,7 @@ instance uni `Includes` Integer => KnownTypeAst uni Int where
 
 -- See Note [Int as Integer].
 instance KnownBuiltinType term Integer => KnownType term Int where
-    makeKnown = makeKnown . toInteger
+    makeKnown mayCause = makeKnown mayCause . toInteger
     readKnown term = do
         i :: Integer <- readKnown term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
