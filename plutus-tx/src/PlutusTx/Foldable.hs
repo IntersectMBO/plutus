@@ -2,12 +2,18 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Foldable (
   Foldable(..),
+  -- * Special biased folds
+  foldrM,
+  foldlM,
   -- * Folding actions
   -- ** Applicative actions
   traverse_,
   for_,
   sequenceA_,
+  sequence_,
   asum,
+  -- ** Monadic actions
+  mapM_,
   -- * Specialized folds
   concat,
   concatMap,
@@ -46,6 +52,8 @@ import           PlutusTx.Maybe        (Maybe (..))
 import           PlutusTx.Monoid       (Monoid (..))
 import           PlutusTx.Numeric      (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
 import           PlutusTx.Semigroup    ((<>))
+
+import qualified Prelude               as Haskell (Monad, return, (>>), (>>=))
 
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
@@ -127,10 +135,28 @@ sum = getSum #. foldMap Sum
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = getProduct #. foldMap Product
 
+-- | Plutus Tx version of 'Data.Foldable.foldrM'.
+foldrM :: (Foldable t, Haskell.Monad m) => (a -> b -> m b) -> b -> t a -> m b
+foldrM f z0 xs = foldl c Haskell.return xs z0
+  where c k x z = f x z Haskell.>>= k
+        {-# INLINE c #-}
+
+-- | Plutus Tx version of 'Data.Foldable.foldlM'.
+foldlM :: (Foldable t, Haskell.Monad m) => (b -> a -> m b) -> b -> t a -> m b
+foldlM f z0 xs = foldr c Haskell.return xs z0
+  where c x k z = f z x Haskell.>>= k
+        {-# INLINE c #-}
+
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
   where c x k = f x *> k
+        {-# INLINE c #-}
+
+-- | Plutus Tx version of 'Data.Foldable.sequence_'.
+sequence_ :: (Foldable t, Haskell.Monad m) => t (m a) -> m ()
+sequence_ = foldr c (Haskell.return ())
+  where c m k = m Haskell.>> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
@@ -192,3 +218,10 @@ find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
 (#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
 (#.) _f = coerce
 {-# INLINE (#.) #-}
+
+-- | Plutus Tx version of 'Data.Foldable.mapM_'.
+{-# INLINABLE mapM_ #-}
+mapM_ :: (Foldable t, Haskell.Monad m) => (a -> m b) -> t a -> m ()
+mapM_ f = foldr c (Haskell.return ())
+  where c x k = f x Haskell.>> k
+        {-# INLINE c #-}

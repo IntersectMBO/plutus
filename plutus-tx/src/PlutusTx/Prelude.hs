@@ -18,6 +18,11 @@ module PlutusTx.Prelude (
     module Lattice,
     module Foldable,
     module Traversable,
+    -- * Monad
+    (Haskell.>>=),
+    (Haskell.=<<),
+    (Haskell.>>),
+    Haskell.return,
     -- * Standard functions, Tuples
     module Base,
     -- * Tracing functions
@@ -102,6 +107,8 @@ import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
 import           PlutusTx.Trace       as Trace
 import           PlutusTx.Traversable as Traversable
+
+import qualified Prelude              as Haskell (return, (=<<), (>>), (>>=))
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
