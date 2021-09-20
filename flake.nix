@@ -60,7 +60,7 @@
       flake = false;
     };
     haskell-language-server = {
-      url = "github:haskell/haskell-language-server?ref=1.1.0";
+      url = "github:haskell/haskell-language-server?ref=1.3.0";
 
       flake = false;
     };
