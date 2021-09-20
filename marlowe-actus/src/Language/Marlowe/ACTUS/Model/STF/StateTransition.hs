@@ -24,7 +24,7 @@ data CtxSTF a b = CtxSTF
   , maturity      :: Maybe b
   }
 
--- |'stateTransition' updates the contract state based on the contracts terms in the reader contrext
+-- |'stateTransition' updates the contract state based on the contract terms in the reader contrext
 stateTransition :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a, DateOps b a, Ord b) =>
      EventType                                   -- ^ Event type
   -> RiskFactorsPoly a                           -- ^ Risk factors

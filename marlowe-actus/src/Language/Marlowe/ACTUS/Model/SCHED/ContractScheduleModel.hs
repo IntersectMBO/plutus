@@ -52,8 +52,8 @@ _SCHED_PP_PAM
 _SCHED_PP_PAM _ = []
 
 _SCHED_PY_PAM :: ContractTerms -> [ShiftedDay]
-_SCHED_PY_PAM ContractTermsPoly{ct_PYTP = Just PYTP_O} = []
-_SCHED_PY_PAM ct                                       = _SCHED_PP_PAM ct
+_SCHED_PY_PAM ContractTermsPoly {ct_PYTP = Just PYTP_O} = []
+_SCHED_PY_PAM ct                                        = _SCHED_PP_PAM ct
 
 _SCHED_FP_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_FP_PAM ContractTermsPoly {ct_FER = Nothing} = []

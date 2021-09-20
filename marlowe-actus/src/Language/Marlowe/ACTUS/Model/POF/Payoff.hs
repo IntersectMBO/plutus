@@ -15,7 +15,7 @@ import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..
 payoff :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a) =>
      EventType             -- ^ Event type
   -> RiskFactorsPoly a     -- ^ Risk factors
-  -> ContractTermsPoly a b -- ^ Contract terms (immutable)
+  -> ContractTermsPoly a b -- ^ Contract terms (constant)
   -> ContractStatePoly a b -- ^ Contract state
   -> b                     -- ^ Time
   -> a                     -- ^ Payoff amount
