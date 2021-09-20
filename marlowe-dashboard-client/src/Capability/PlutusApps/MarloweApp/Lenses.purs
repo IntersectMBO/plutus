@@ -1,6 +1,6 @@
 module Capability.PlutusApps.MarloweApp.Lenses where
 
-import Prelude
+import Prologue
 import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, MarloweAppEndpointMutexEnv)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)

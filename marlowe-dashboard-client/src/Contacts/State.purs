@@ -9,7 +9,7 @@ module Contacts.State
   , parsePlutusAppId
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, lookupWalletDetails, lookupWalletInfo)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoWalletLibrary)
@@ -21,11 +21,10 @@ import Dashboard.Types (Action(..)) as Dashboard
 import Data.Array (any)
 import Data.BigInteger (BigInteger)
 import Data.Char.Unicode (isAlphaNum)
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use)
 import Data.Map (isEmpty, filter, insert, lookup, member)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Newtype (unwrap)
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (emptyUUID, parseUUID)

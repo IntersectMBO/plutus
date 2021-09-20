@@ -7,14 +7,12 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (State) as Contract
 import Dashboard.Types (Action, State) as Dashboard
-import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import Halogen as H
 import Halogen.Extra (LifecycleEvent)

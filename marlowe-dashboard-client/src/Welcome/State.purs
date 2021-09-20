@@ -4,7 +4,7 @@ module Welcome.State
   , handleAction
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStorage, insertIntoWalletLibrary)
@@ -12,11 +12,9 @@ import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Clipboard (handleAction) as Clipboard
 import Control.Monad.Reader (class MonadAsk)
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use, view, (^.))
 import Data.Map (filter, findMin, insert, lookup)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.UUID (emptyUUID, toString) as UUID
 import Effect.Aff.Class (class MonadAff)

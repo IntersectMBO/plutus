@@ -10,7 +10,7 @@ module API.Lenses
   , _endpointDescriptionString
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.RawJson (RawJson)

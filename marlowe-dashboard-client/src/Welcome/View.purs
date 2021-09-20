@@ -3,14 +3,14 @@ module Welcome.View
   , welcomeCard
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
 import Css as Css
 import Data.Lens (view, (^.))
 import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (isJust)
 import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
 import Halogen.Css (classNames)

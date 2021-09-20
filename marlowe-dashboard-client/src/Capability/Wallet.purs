@@ -7,7 +7,7 @@ module Capability.Wallet
   , signTransaction
   ) where
 
-import Prelude
+import Prologue
 import API.Wallet as API
 import AppM (AppM)
 import Bridge (toBack, toFront)

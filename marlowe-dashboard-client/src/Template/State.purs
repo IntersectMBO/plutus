@@ -6,7 +6,7 @@ module Template.State
   , templateSetupIsValid
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)
@@ -14,10 +14,9 @@ import Data.Lens (Lens', assign, set, use, view)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Map.Ordered.OMap as OMap
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Maybe (isNothing)
 import Data.Set (toUnfoldable) as Set
 import Data.Traversable (for, traverse)
-import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Env (Env)

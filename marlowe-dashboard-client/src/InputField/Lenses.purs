@@ -14,9 +14,9 @@ module InputField.Lenses
   , _before
   ) where
 
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Halogen.HTML (HTML)
 import InputField.Types (InputDisplayOptions, State)

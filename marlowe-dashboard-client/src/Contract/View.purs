@@ -4,7 +4,7 @@ module Contract.View
   , actionConfirmationCard
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _stateMetadata, _stateNickname, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), StartedState, State(..), StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)
@@ -17,11 +17,11 @@ import Data.BigInteger (BigInteger, fromString)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
 import Data.Map (intersectionWith, keys, lookup, toUnfoldable) as Map
-import Data.Maybe (Maybe(..), isJust, maybe, maybe')
+import Data.Maybe (isJust, maybe, maybe')
 import Data.Set as Set
 import Data.String (take, trim)
 import Data.String.Extra (capitalize)
-import Data.Tuple (Tuple, fst, uncurry)
+import Data.Tuple (uncurry)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)

@@ -29,7 +29,7 @@ module Css
   , funds
   ) where
 
-import Prelude
+import Prologue
 import Halogen.Css (applyWhen)
 import Material.Icons (Icon, iconClass)
 

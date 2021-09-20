@@ -11,7 +11,7 @@ module Capability.PlutusApps.MarloweApp
   , onNewActiveEndpoints
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Bridge (toBack)
 import Capability.Contract (invokeEndpoint) as Contract
@@ -24,7 +24,6 @@ import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (toArrayOf, traversed, view)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)

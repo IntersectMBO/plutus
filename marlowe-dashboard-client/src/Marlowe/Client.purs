@@ -5,15 +5,13 @@ by the Marlowe Run frontend.
 -}
 module Marlowe.Client where
 
-import Prelude
+import Prologue
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Data.Tuple (Tuple)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (genericDecode, genericEncode)
 import Marlowe.Semantics (MarloweData, MarloweParams, TransactionInput, aesonCompatibleOptions)

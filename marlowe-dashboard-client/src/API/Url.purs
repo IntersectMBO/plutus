@@ -4,7 +4,7 @@ module API.Url
   , toUrlPiece
   ) where
 
-import Prelude
+import Prologue
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.UUID (toString) as UUID
 import Wallet.Emulator.Wallet (Wallet(..))

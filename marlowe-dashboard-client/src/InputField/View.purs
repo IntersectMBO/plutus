@@ -1,6 +1,6 @@
 module InputField.View (renderInput) where
 
-import Prelude hiding (div, min)
+import Prologue hiding (div, min)
 import Control.Alt ((<|>))
 import Control.MonadPlus (guard)
 import Css as Css
@@ -8,7 +8,7 @@ import Data.Array (null)
 import Data.Compactable (compact)
 import Data.Filterable (filter)
 import Data.Lens ((^.))
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.Maybe (fromMaybe, isJust, maybe)
 import Data.String (Pattern(..), contains, toLower)
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, span_, text)

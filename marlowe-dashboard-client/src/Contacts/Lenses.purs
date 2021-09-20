@@ -15,12 +15,11 @@ module Contacts.Lenses
   , _pubKeyHash
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)

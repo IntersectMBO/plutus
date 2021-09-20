@@ -6,9 +6,8 @@ module Capability.Websocket
   , unsubscribeFromContract
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
-import Data.Either (Either(..))
 import Halogen (HalogenM, raise)
 import MainFrame.Types (Msg(..))
 import Types (CombinedWSStreamToServer(..))

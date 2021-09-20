@@ -13,14 +13,12 @@ module Contract.Types
   , scrollContainerRef
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
-import Data.Tuple (Tuple)
 import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution

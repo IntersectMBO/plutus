@@ -12,13 +12,12 @@ module Contacts.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)

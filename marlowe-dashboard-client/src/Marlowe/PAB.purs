@@ -4,7 +4,7 @@ module Marlowe.PAB
   , PlutusAppId(..)
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype)

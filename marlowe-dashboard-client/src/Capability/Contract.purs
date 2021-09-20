@@ -12,7 +12,7 @@ module Capability.Contract
   , getContractDefinitions
   ) where
 
-import Prelude
+import Prologue
 import API.Contract as API
 import API.Lenses (_cicCurrentState, _hooks, _observableState)
 import AppM (AppM)

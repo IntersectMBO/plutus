@@ -13,7 +13,7 @@ module Dashboard.Lenses
   , _templateState
   ) where
 
-import Prelude
+import Prologue
 import Contract.Types (State) as Contract
 import Dashboard.Types (Card, ContractFilter, State, WalletCompanionStatus)
 import Data.Lens (Lens', Traversal', set, wander)
@@ -21,7 +21,6 @@ import Data.Lens.At (at)
 import Data.Lens.Prism.Maybe (_Just)
 import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (PlutusAppId)
 import Template.Types (State) as Template
