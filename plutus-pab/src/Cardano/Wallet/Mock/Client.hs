@@ -6,10 +6,10 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
-module Cardano.Wallet.Client where
+module Cardano.Wallet.Mock.Client where
 
-import           Cardano.Wallet.API          (API)
-import           Cardano.Wallet.Types        (WalletInfo (..))
+import           Cardano.Wallet.Mock.API     (API)
+import           Cardano.Wallet.Mock.Types   (WalletInfo (..))
 import           Control.Monad               (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error   (Error, throwError)

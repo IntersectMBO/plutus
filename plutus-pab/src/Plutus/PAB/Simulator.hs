@@ -69,7 +69,7 @@ module Plutus.PAB.Simulator(
     , waitForValidatedTxCount
     ) where
 
-import qualified Cardano.Wallet.Mock                            as MockWallet
+import qualified Cardano.Wallet.Mock.Handlers                   as MockWallet
 import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
