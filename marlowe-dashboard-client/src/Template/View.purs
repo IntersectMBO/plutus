@@ -128,7 +128,7 @@ contractSelection =
               [ text contractTemplate.metaData.contractName ]
           , p
               [ classNames [ "font-xs" ] ]
-              $ markdownToHTML contractTemplate.metaData.contractDescription
+              $ markdownToHTML contractTemplate.metaData.contractShortDescription
           ]
       , icon_ Icon.Next
       ]
@@ -144,7 +144,8 @@ contractOverview contractTemplate =
             [ contractIcon contractTemplate.metaData.contractType
             , text $ contractTemplate.metaData.contractName <> " overview"
             ]
-        , p_ $ markdownToHTML contractTemplate.metaData.contractDescription
+        , p [ classNames [ "mb-4" ] ] $ markdownToHTML contractTemplate.metaData.contractShortDescription
+        , p_ $ markdownToHTML contractTemplate.metaData.contractLongDescription
         ]
     , div
         [ classNames [ "flex", "items-baseline", "p-4", "border-gray", "border-t" ] ]
@@ -230,7 +231,7 @@ contractReview assets state =
     valueContentInputs = view _valueContentInputs state
   in
     div
-      [ classNames [ "flex", "flex-col", "p-4", "gap-4" ] ]
+      [ classNames [ "flex", "flex-col", "p-4", "gap-4", "max-h-full", "overflow-y-auto" ] ]
       [ div
           [ classNames [ "rounded", "shadow" ] ]
           [ h3

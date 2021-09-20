@@ -38,6 +38,8 @@ data ThreadToken = ThreadToken
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+
+PlutusTx.makeIsDataIndexed ''ThreadToken [('ThreadToken,0)]
 PlutusTx.makeLift ''ThreadToken
 
 checkPolicy :: TxOutRef -> (ValidatorHash, MintingPolarity) -> V.ScriptContext -> Bool

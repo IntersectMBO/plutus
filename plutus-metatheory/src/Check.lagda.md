@@ -8,6 +8,17 @@ module Check where
 ```
 
 ```
+open import Data.Nat hiding (_*_)
+open import Function hiding (_∋_)
+open import Data.String
+open import Data.Fin
+open import Data.Product renaming (_,_ to _,,_) hiding (map)
+open import Data.Vec hiding ([_];_>>=_) hiding (map)
+import Data.List as L
+open import Data.Sum
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Nullary
+
 open import Scoped
 open import Type
 open import Type.BetaNormal
@@ -19,18 +30,8 @@ open import Type.BetaNBE.Soundness
 open import Algorithmic
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal.Equality
-open import Builtin.Constant.Type
-
-open import Function hiding (_∋_)
-open import Data.String
-open import Data.Nat hiding (_*_)
-open import Data.Fin
-open import Data.Product renaming (_,_ to _,,_) hiding (map)
-open import Data.Vec hiding ([_];_>>=_) hiding (map)
-import Data.List as L
-open import Data.Sum
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Relation.Nullary
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
+import Builtin.Constant.Type ℕ ScopedTy as S
 ```
 
 ```
@@ -134,6 +135,21 @@ isMu p = do
 
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
+inferKindCon : ∀ Φ (c : S.TyCon (len⋆ Φ)) → Either TypeError (T.TyCon Φ)
+
+inferKindCon Φ S.integer = inj₂ T.integer
+inferKindCon Φ S.bytestring = inj₂ T.bytestring
+inferKindCon Φ S.string = inj₂ T.string
+inferKindCon Φ S.unit = inj₂ T.unit
+inferKindCon Φ S.bool = inj₂ T.bool
+inferKindCon Φ (S.list A) = do
+  A ← isStar (inferKind Φ A)
+  return (T.list A)
+inferKindCon Φ (S.pair A B) = do
+  A ← isStar (inferKind Φ A)
+  B ← isStar (inferKind Φ B)  
+  return (T.pair A B)
+inferKindCon Φ S.Data = inj₂ T.Data
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
@@ -155,7 +171,9 @@ inferKind Φ (A · B) = do
   (K ,, J ,, A) ← isFunKind (inferKind Φ A)
   B ← checkKind Φ B K
   return (J ,, nf (embNf A · embNf B))
-inferKind Φ (con tc) = return (* ,, con tc)
+inferKind Φ (con tc) = do
+  tc ← inferKindCon Φ tc
+  return (* ,, con tc)
 inferKind Φ (μ A B) = do
   K ,, A ← isPat (inferKind Φ A)
   B ← checkKind Φ B K
@@ -185,35 +203,79 @@ meqTyVar (S α) (S α') = do
 meqTyVar Z     (S α') = inj₁ λ()
 meqTyVar (S α) Z      = inj₁ λ()
 
-meqTyCon : (c c' : TyCon) → Either (¬ (c ≡ c')) (c ≡ c')
-meqTyCon integer    integer    = inj₂ refl
-meqTyCon bytestring bytestring = inj₂ refl
-meqTyCon string     string     = inj₂ refl
-meqTyCon bool       bool       = inj₂ refl
-meqTyCon unit       unit       = inj₂ refl
-meqTyCon integer    bytestring = inj₁ λ()
-meqTyCon integer    string     = inj₁ λ()
-meqTyCon integer    unit       = inj₁ λ()
-meqTyCon integer    bool       = inj₁ λ()
-meqTyCon bytestring integer    = inj₁ λ()
-meqTyCon bytestring string     = inj₁ λ()
-meqTyCon bytestring unit       = inj₁ λ()
-meqTyCon bytestring bool       = inj₁ λ()
-meqTyCon string     integer    = inj₁ λ()
-meqTyCon string     bytestring = inj₁ λ()
-meqTyCon string     unit       = inj₁ λ()
-meqTyCon string     bool       = inj₁ λ()
-meqTyCon unit       integer    = inj₁ λ()
-meqTyCon unit       bytestring = inj₁ λ()
-meqTyCon unit       string     = inj₁ λ()
-meqTyCon unit       bool       = inj₁ λ()
-meqTyCon bool       integer    = inj₁ λ()
-meqTyCon bool       bytestring = inj₁ λ()
-meqTyCon bool       string     = inj₁ λ()
-meqTyCon bool       unit       = inj₁ λ()
-
 meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
+meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
+
+meqTyCon T.integer    T.integer      = inj₂ refl
+meqTyCon T.bytestring T.bytestring   = inj₂ refl
+meqTyCon T.string     T.string       = inj₂ refl
+meqTyCon T.bool       T.bool         = inj₂ refl
+meqTyCon T.unit       T.unit         = inj₂ refl
+meqTyCon T.integer    T.bytestring   = inj₁ λ()
+meqTyCon T.integer    T.string       = inj₁ λ()
+meqTyCon T.integer    T.unit         = inj₁ λ()
+meqTyCon T.integer    T.bool         = inj₁ λ()
+meqTyCon T.bytestring T.integer      = inj₁ λ()
+meqTyCon T.bytestring T.string       = inj₁ λ()
+meqTyCon T.bytestring T.unit         = inj₁ λ()
+meqTyCon T.bytestring T.bool         = inj₁ λ()
+meqTyCon T.string     T.integer      = inj₁ λ()
+meqTyCon T.string     T.bytestring   = inj₁ λ()
+meqTyCon T.string     T.unit         = inj₁ λ()
+meqTyCon T.string     T.bool         = inj₁ λ()
+meqTyCon T.unit       T.integer      = inj₁ λ()
+meqTyCon T.unit       T.bytestring   = inj₁ λ()
+meqTyCon T.unit       T.string       = inj₁ λ()
+meqTyCon T.unit       T.bool         = inj₁ λ()
+meqTyCon T.bool       T.integer      = inj₁ λ()
+meqTyCon T.bool       T.bytestring   = inj₁ λ()
+meqTyCon T.bool       T.string       = inj₁ λ()
+meqTyCon T.bool       T.unit         = inj₁ λ()
+meqTyCon (T.pair A B) T.integer      = inj₁ λ()
+meqTyCon T.Data       T.integer      = inj₁ λ()
+meqTyCon (T.list A)   T.bytestring   = inj₁ λ()
+meqTyCon (T.pair A B) T.bytestring   = inj₁ λ()
+meqTyCon T.Data       T.bytestring   = inj₁ λ()
+meqTyCon (T.list A)   T.string       = inj₁ λ()
+meqTyCon (T.pair A B) T.string       = inj₁ λ()
+meqTyCon T.Data       T.string       = inj₁ λ()
+meqTyCon (T.list A)   T.unit         = inj₁ λ()
+meqTyCon (T.pair A B) T.unit         = inj₁ λ()
+meqTyCon T.Data       T.unit         = inj₁ λ()
+meqTyCon (T.list A)   T.bool         = inj₁ λ()
+meqTyCon (T.pair A B) T.bool         = inj₁ λ()
+meqTyCon T.Data       T.bool         = inj₁ λ()
+meqTyCon (T.list A)   T.integer      = inj₁ λ()
+meqTyCon T.integer    (T.list A)     = inj₁ λ()
+meqTyCon T.bytestring (T.list A)     = inj₁ λ()
+meqTyCon T.string     (T.list A)     = inj₁ λ()
+meqTyCon T.unit       (T.list A)     = inj₁ λ()
+meqTyCon T.bool       (T.list A)     = inj₁ λ()
+meqTyCon (T.list A)   (T.list A')    = do
+  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
+  return refl
+meqTyCon (T.pair A B) (T.list A')    = inj₁ λ()
+meqTyCon T.Data       (T.list A)     = inj₁ λ()
+meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
+meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
+meqTyCon T.string     (T.pair A' B') = inj₁ λ()
+meqTyCon T.unit       (T.pair A' B') = inj₁ λ()
+meqTyCon T.bool       (T.pair A' B') = inj₁ λ()
+meqTyCon (T.list A)   (T.pair A' B') = inj₁ λ()
+meqTyCon (T.pair A B) (T.pair A' B') = do
+  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
+  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
+  return refl
+meqTyCon T.Data       (T.pair A' B') = inj₁ λ()
+meqTyCon T.integer    T.Data = inj₁ λ()
+meqTyCon T.bytestring T.Data = inj₁ λ()
+meqTyCon T.string     T.Data = inj₁ λ()
+meqTyCon T.unit       T.Data = inj₁ λ()
+meqTyCon T.bool       T.Data = inj₁ λ()
+meqTyCon (T.list A)   T.Data = inj₁ λ()
+meqTyCon (T.pair A B) T.Data = inj₁ λ()
+meqTyCon T.Data       T.Data = inj₂ refl
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
@@ -280,15 +342,15 @@ inv-complete {A = A}{A' = A'} p = trans≡β
 
 open import Function
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.RenamingSubstitution
 
-inferTypeCon : ∀{Φ} → TermCon → Σ TyCon λ c → A.TermCon {Φ} (con c) 
-inferTypeCon (integer i)    = integer ,, A.integer i
-inferTypeCon (bytestring b) = bytestring ,, A.bytestring b
-inferTypeCon (string s)     = string ,, A.string s
-inferTypeCon (bool b)       = bool ,, A.bool b
-inferTypeCon unit           = unit ,, A.unit
+inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
+inferTypeCon (integer i)    = T.integer ,, A.integer i
+inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
+inferTypeCon (string s)     = T.string ,, A.string s
+inferTypeCon (bool b)       = T.bool ,, A.bool b
+inferTypeCon unit           = T.unit ,, A.unit
+inferTypeCon (Data d)       = T.Data ,, A.Data d
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
@@ -304,7 +366,7 @@ checkType Γ L A = do
 inferTypeBuiltin : ∀{Φ m n}{Γ : Ctx Φ}(bn : Builtin)
   → Tel⋆ (len⋆ Φ) m → Scoped.Tel (len Γ) n
   → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
-inferTypeBuiltin b [] [] = let Φ ,, As ,, C = SIG b in
+inferTypeBuiltin b [] [] = let Φ ,, As ,, C = ISIG b in
   inj₂ (_ ,, ibuiltin b)
 inferTypeBuiltin _ _ _ = inj₁ builtinError
   

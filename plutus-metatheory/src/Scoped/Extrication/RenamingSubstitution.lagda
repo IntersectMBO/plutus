@@ -5,6 +5,7 @@ module Scoped.Extrication.RenamingSubstitution where
 erasure commutes with renaming/substitution
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Data.Nat
@@ -22,6 +23,8 @@ open import Scoped.Extrication
 open import Algorithmic.RenamingSubstitution as AS
 open import Scoped.RenamingSubstitution as SS
 open import Builtin
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as AC
+import Builtin.Constant.Type ℕ ScopedTy as SC
 
 -- type renamings
 
@@ -73,13 +76,26 @@ ren-extricateNe⋆ :  ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → (A : Γ ⊢Ne⋆ J)
   → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNe⋆ A) ≡ extricateNe⋆ (renNe ρ⋆ A)
+ren-extricateTyConNf⋆ :  ∀{Γ Δ}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (A : AC.TyCon Γ)
+  → renTyCon⋆ (extricateRenNf⋆ ρ⋆) (extricateTyConNf⋆ A) ≡ extricateTyConNf⋆ (renNfTyCon ρ⋆ A)
+
+ren-extricateTyConNf⋆ ρ⋆ AC.integer = refl
+ren-extricateTyConNf⋆ ρ⋆ AC.bytestring = refl
+ren-extricateTyConNf⋆ ρ⋆ AC.string = refl
+ren-extricateTyConNf⋆ ρ⋆ AC.unit = refl
+ren-extricateTyConNf⋆ ρ⋆ AC.bool = refl
+ren-extricateTyConNf⋆ ρ⋆ (AC.list A) = cong SC.list (ren-extricateNf⋆ ρ⋆ A)
+ren-extricateTyConNf⋆ ρ⋆ (AC.pair A B) = cong₂ SC.pair (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
+ren-extricateTyConNf⋆ ρ⋆ AC.Data = refl
+
 ren-extricateNe⋆ ρ⋆ (` x)   = cong
   `
   (trans (lem-extricateVar⋆ ρ⋆ (proj₂ (backVar (extricateVar⋆ x))) (lem-backVar₁ x))
   (cong (extricateVar⋆ ∘ ρ⋆) (lem-backVar x)))
 ren-extricateNe⋆ ρ⋆ (A · B) =
   cong₂ _·_ (ren-extricateNe⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
-
 ren-extricateNf⋆ ρ⋆ (Π A)  =
   cong (Π _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A))
@@ -90,7 +106,7 @@ ren-extricateNf⋆ ρ⋆ (ƛ A)  =
   cong (ƛ _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
-ren-extricateNf⋆ ρ⋆ (con c)  = refl
+ren-extricateNf⋆ ρ⋆ (con c)  = cong con (ren-extricateTyConNf⋆ ρ⋆ c)
 ren-extricateNf⋆ ρ⋆ (μ A B)  =
   cong₂ μ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 

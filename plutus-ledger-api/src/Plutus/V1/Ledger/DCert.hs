@@ -24,6 +24,7 @@ import           GHC.Generics                (Generic)
 import           Plutus.V1.Ledger.Credential (StakingCredential)
 import           Plutus.V1.Ledger.Crypto     (PubKeyHash)
 import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx.Prelude            as P
 
 -- | A representation of the ledger DCert. Some information is digested, and
 --   not included
@@ -49,6 +50,17 @@ data DCert
     DCertMir
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
+
+instance P.Eq DCert where
+    {-# INLINABLE (==) #-}
+    DCertDelegRegKey sc == DCertDelegRegKey sc'                = sc P.== sc'
+    DCertDelegDeRegKey sc == DCertDelegDeRegKey sc'            = sc P.== sc'
+    DCertDelegDelegate sc pkh == DCertDelegDelegate sc' pkh'   = sc P.== sc' && pkh P.== pkh'
+    DCertPoolRegister pid pvfr == DCertPoolRegister pid' pvfr' = pid P.== pid' && pvfr P.== pvfr'
+    DCertPoolRetire pkh i == DCertPoolRetire pkh' i'           = pkh P.== pkh' && i P.== i'
+    DCertGenesis == DCertGenesis                               = True
+    DCertMir == DCertMir                                       = True
+    _ == _                                                     = False
 
 instance Pretty DCert where
   pretty = viaShow

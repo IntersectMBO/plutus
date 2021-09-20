@@ -41,6 +41,7 @@ module PlutusCore.Pretty
     , PrettyConfigClassic (..)
     , PrettyClassicBy
     , PrettyClassic
+    , consAnnIf
     , prettyClassicDef
     , prettyClassicDebug
     -- * Readable view

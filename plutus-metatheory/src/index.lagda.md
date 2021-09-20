@@ -62,7 +62,6 @@ import Type
 import Type.RenamingSubstitution
 import Type.Equality
 import Type.ReductionS
-import Type.ReductionF
 import Type.ReductionC
 import Type.CC
 import Type.CK
@@ -91,7 +90,6 @@ types such as integers and bytestrings and operations on them.
 
 ```
 import Builtin
-import Builtin.Signature
 import Builtin.Constant.Type
 import Builtin.Constant.Term
 ```
@@ -127,6 +125,8 @@ types
 import Algorithmic
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
+import Algorithmic.ReductionEC
+
 import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Completeness
@@ -148,15 +148,10 @@ Extrinsically typed terms, reduction and evaluation
 import Scoped
 import Scoped.RenamingSubstitution
 
-import Scoped.Reduction
-
 import Scoped.Extrication
 import Scoped.Extrication.RenamingSubstitution
---import Scoped.Extrication.Reduction
 import Scoped.Erasure
 --import Scoped.Erasure.RenamingSubstitution
---import Scoped.Erasure.Reduction
-import Scoped.CK
 ```
 
 ## Untyped terms

@@ -14,16 +14,16 @@ explicitRefunds = False
 seller, buyer, arbiter :: Party
 buyer = Role "Buyer"
 seller = Role "Seller"
-arbiter = Role "Arbiter"
+arbiter = Role "Mediator"
 
 price :: Value
 price = ConstantParam "Price"
 
 depositTimeout, disputeTimeout, answerTimeout, arbitrageTimeout :: Timeout
-depositTimeout = SlotParam "Buyer's deposit timeout"
-disputeTimeout = SlotParam "Buyer's dispute timeout"
-answerTimeout = SlotParam "Seller's response timeout"
-arbitrageTimeout = SlotParam "Timeout for arbitrage"
+depositTimeout = SlotParam "Payment deadline"
+disputeTimeout = SlotParam "Complaint response deadline"
+answerTimeout = SlotParam "Complaint deadline"
+arbitrageTimeout = SlotParam "Mediation deadline"
 
 choice :: ChoiceName -> Party -> Integer -> Contract -> Case
 choice choiceName chooser choiceValue = Case (Choice (ChoiceId choiceName chooser)

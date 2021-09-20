@@ -13,8 +13,9 @@ example = emptyContractMetadata
 escrow :: MetaData
 escrow =
   { contractType: Escrow
-  , contractName: "Simple escrow"
-  , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller*. If there is a disagreement, an *Arbiter* will decide whether the money is refunded or paid to the *Seller*."
+  , contractName: "Purchase"
+  , contractShortDescription: "In this contract a _**seller**_ wants to sell an item (like a bicycle) to a _**buyer**_ for a _price_."
+  , contractLongDescription: "Neither trusts each other, but they both trust a _**mediator**_. The _**buyer**_ pays the _price_ into the contract account: if both the _**buyer**_ and the _**seller**_ agree that the _**buyer**_ has received the item, then the _**seller**_ receives the _price_; if not, then the _**mediator**_ ensures that the _**buyer**_ gets their money back."
   , choiceInfo:
       ( Map.fromFoldable
           [ "Confirm problem"
@@ -23,42 +24,42 @@ escrow =
                 }
           , "Dismiss claim"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The *Arbiter* does not see any problem with the exchange and the *Seller* must be paid."
+                , choiceDescription: "The _**Mediator**_ does not see any problem with the exchange and the _**Seller**_ must be paid."
                 }
           , "Dispute problem"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The *Seller* disagrees with the *Buyer* about the claim that something went wrong."
+                , choiceDescription: "The _**Seller**_ disagrees with the _**Buyer**_ about the claim that something went wrong."
                 }
           , "Everything is alright"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The transaction was uneventful, *Buyer* agrees to pay the *Seller*."
+                , choiceDescription: "The transaction was uneventful, _**Buyer**_ agrees to pay the _**Seller**_."
                 }
           , "Report problem"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+                , choiceDescription: "The _**Buyer**_ claims not having received the product that was paid for as agreed and would like a refund."
                 }
           ]
       )
   , roleDescriptions:
       ( Map.fromFoldable
-          [ "Arbiter" /\ "The party that will choose who gets the money in the event of a disagreement between the *Buyer* and the *Seller* about the outcome."
-          , "Buyer" /\ "The party that wants to buy the item. Payment is made to the *Seller* if they acknowledge receiving the item."
-          , "Seller" /\ "The party that wants to sell the item. They receive the payment if the exchange is uneventful."
+          [ "Mediator" /\ "The mediator decides who is right in the case of dispute."
+          , "Buyer" /\ "The buyer of the item."
+          , "Seller" /\ "The seller of the item."
           ]
       )
   , slotParameterDescriptions:
       ( OMap.fromFoldable
-          [ "Buyer's deposit timeout" /\ "Deadline by which the *Buyer* must deposit the selling *Price* in the contract."
-          , "Buyer's dispute timeout" /\ "Deadline by which, if the *Buyer* has not opened a dispute, the *Seller* will be paid."
-          , "Seller's response timeout" /\ "Deadline by which, if the *Seller* has not responded to the dispute, the *Buyer* will be refunded."
-          , "Timeout for arbitrage" /\ "Deadline by which, if the *Arbiter* has not resolved the dispute, the *Buyer* will be refunded."
+          [ "Payment deadline" /\ "The _**buyer**_ must pay the _price_ of the item by this time, otherwise the contract is cancelled."
+          , "Complaint deadline" /\ "The _**buyer**_ can only complain until this deadline, otherwise the contract will assume the transaction went smoothly and pay the _**seller**_."
+          , "Complaint response deadline" /\ "If the _**buyer**_ complained, the _**seller**_ must respond before this deadline, otherwise the contract will assume there was a problem with the transaction and refund the _**buyer**_."
+          , "Mediation deadline" /\ "If the _**buyer**_ and the _**seller**_ disagree, the _**mediator**_ must weigh in before this deadline, otherwise the contract will assume there was a problem with the transaction and refund the _**buyer**_."
           ]
       )
   , valueParameterInfo:
       ( OMap.fromFoldable
           [ "Price"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "Amount of Lovelace to be paid by the *Buyer* for the item."
+                , valueParameterDescription: "The price of the item."
                 }
           ]
       )
@@ -68,7 +69,8 @@ escrowWithCollateral :: MetaData
 escrowWithCollateral =
   { contractType: Escrow
   , contractName: "Escrow with collateral"
-  , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
+  , contractShortDescription: "In this contract a _**seller**_ wants to sell an item (like a bicycle) to a _**buyer**_ for a _price_."
+  , contractLongDescription: "In order to incentivise collaboration between the _**seller**_ and the _**buyer**_, at the beginning of the contract both parties deposit the _collateral amount_ that is burned if the parties disagree."
   , choiceInfo:
       ( Map.fromFoldable
           [ "Confirm problem"
@@ -77,15 +79,15 @@ escrowWithCollateral =
                 }
           , "Dispute problem"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The *Seller* disagrees with the *Buyer* about the claim that something went wrong and the collateral will be burnt."
+                , choiceDescription: "The _**Seller**_ disagrees with the _**Buyer**_ about the claim that something went wrong and the collateral will be burnt."
                 }
           , "Everything is alright"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The exchange was successful and the *Buyer* agrees to pay the *Seller*."
+                , choiceDescription: "The exchange was successful and the _**Buyer**_ agrees to pay the _**Seller**_."
                 }
           , "Report problem"
               /\ { choiceFormat: DefaultFormat
-                , choiceDescription: "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+                , choiceDescription: "The _**Buyer**_ claims not having received the product that was paid for as agreed and would like a refund."
                 }
           ]
       )
@@ -97,11 +99,11 @@ escrowWithCollateral =
       )
   , slotParameterDescriptions:
       ( OMap.fromFoldable
-          [ "Collateral deposit by seller timeout" /\ "The deadline by which the *Seller* must deposit the *Collateral amount* in the contract."
-          , "Deposit of collateral by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Collateral amount* in the contract."
-          , "Deposit of price by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Price* in the contract."
-          , "Dispute by buyer timeout" /\ "The deadline by which, if the *Buyer* has not opened a dispute, the *Seller* will be paid."
-          , "Seller's response timeout" /\ "The deadline by which, if the *Seller* has not responded to the dispute, the *Buyer* will be refunded."
+          [ "Collateral deposit by seller timeout" /\ "The deadline by which the _**Seller**_ must deposit the _**Collateral amount**_ in the contract."
+          , "Deposit of collateral by buyer timeout" /\ "The deadline by which the _**Buyer**_ must deposit the _**Collateral amount**_ in the contract."
+          , "Deposit of price by buyer timeout" /\ "The deadline by which the _**Buyer**_ must deposit the _**Price**_ in the contract."
+          , "Dispute by buyer timeout" /\ "The deadline by which, if the _**Buyer**_ has not opened a dispute, the _**Seller**_ will be paid."
+          , "Complaint deadline" /\ "The deadline by which, if the _**Seller**_ has not responded to the dispute, the _**Buyer**_ will be refunded."
           ]
       )
   , valueParameterInfo:
@@ -112,7 +114,7 @@ escrowWithCollateral =
                 }
           , "Price"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "The amount of Lovelace to be paid by the *Buyer* as part of the exchange."
+                , valueParameterDescription: "The amount of Lovelace to be paid by the _**Buyer**_ as part of the exchange."
                 }
           ]
       )
@@ -121,30 +123,31 @@ escrowWithCollateral =
 zeroCouponBond :: MetaData
 zeroCouponBond =
   { contractType: ZeroCouponBond
-  , contractName: "Zero Coupon Bond"
-  , contractDescription: "A simple loan. The *Investor* pays the *Issuer* the *Discounted price* at the start, and is repaid the full *Notional price* at the end."
+  , contractName: "Loan"
+  , contractShortDescription: "A simple loan: the _**borrower**_ borrows the _amount_ from the _**lender**_, and at the _payback deadline_ pays back the _amount_ plus _interest_."
+  , contractLongDescription: "This is a high risk/high reward contract. There is no guarantee that the _**borrower**_ will pay back the loan. However there is an opportunity for the _**lender**_ to set a high _interest_ rate at the cost of taking on this risk."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
-          [ "Investor" /\ "The party that buys the bond at a discounted price, i.e. makes the loan."
-          , "Issuer" /\ "The party that issues the bond, i.e. receives the loan."
+          [ "Lender" /\ "The party that lends the _amount_."
+          , "Borrower" /\ "The party that borrows the _amount_."
           ]
       )
   , slotParameterDescriptions:
       ( OMap.fromFoldable
-          [ "Initial exchange deadline" /\ "The *Investor* must deposit the discounted price of the bond before this deadline or the offer will expire."
-          , "Maturity exchange deadline" /\ "The *Issuer* must deposit the full price of the bond before this deadline or it will default."
+          [ "Loan deadline" /\ "The _**lender**_ needs to deposit the _amount_ by this time."
+          , "Payback deadline" /\ "The _**borrower**_ needs to deposit the repayment (_amount_ plus _interest_) by this time."
           ]
       )
   , valueParameterInfo:
       ( OMap.fromFoldable
-          [ "Discounted price"
+          [ "Interest"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "The price in Lovelace of the Zero Coupon Bond at the start date."
+                , valueParameterDescription: "The interest paid by the _**borrower**_."
                 }
-          , "Notional price"
+          , "Amount"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "The full price in Lovelace of the Zero Coupon Bond."
+                , valueParameterDescription: "The amount borrowed by the _**borrower**_."
                 }
           ]
       )
@@ -154,13 +157,14 @@ couponBondGuaranteed :: MetaData
 couponBondGuaranteed =
   { contractType: CouponBondGuaranteed
   , contractName: "Coupon Bond Guaranteed"
-  , contractDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
+  , contractShortDescription: "Debt agreement between an _**Lender**_ and an _**Borrower**_ that must be repaid in 3 instalments."
+  , contractLongDescription: "_**Lender**_ will advance the _**Principal**_ amount at the beginning of the contract, and the _**Borrower**_ will pay back _**Interest instalment**_ every 30 slots and the _**Principal**_ amount by the end of 3 instalments. The debt is backed by a collateral provided by the _**Guarantor**_ which will be refunded as long as the _**Borrower**_ pays back on time."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
-          [ "Guarantor" /\ "Provides a collateral in case the *Issuer* defaults."
-          , "Investor" /\ "Provides the money that the *Issuer* borrows."
-          , "Issuer" /\ "Borrows the money provided by the *Investor* and returns it together with three *Interest instalment*s."
+          [ "Guarantor" /\ "Provides a collateral in case the _**Borrower**_ defaults."
+          , "Lender" /\ "Provides the money that the _**Borrower**_ borrows."
+          , "Borrower" /\ "Borrows the money provided by the _**Lender**_ and returns it together with three _**Interest instalment**_s."
           ]
       )
   , slotParameterDescriptions: mempty
@@ -168,11 +172,11 @@ couponBondGuaranteed =
       ( OMap.fromFoldable
           [ "Interest instalment"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "Amount of Lovelace that will be paid by the *Issuer* every 30 slots for 3 iterations."
+                , valueParameterDescription: "Amount of Lovelace that will be paid by the _**Borrower**_ every 30 slots for 3 iterations."
                 }
           , "Principal"
               /\ { valueParameterFormat: lovelaceFormat
-                , valueParameterDescription: "Amount of Lovelace that will be borrowed by the *Issuer*."
+                , valueParameterDescription: "Amount of Lovelace that will be borrowed by the _**Borrower**_."
                 }
           ]
       )
@@ -182,7 +186,8 @@ swap :: MetaData
 swap =
   { contractType: Swap
   , contractName: "Swap of Ada and dollar tokens"
-  , contractDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
+  , contractShortDescription: "Atomically exchange of Ada and dollar tokens."
+  , contractLongDescription: "Waits until one party deposits Ada and the other party deposits dollar tokens. If both parties collaborate it carries the exchange atomically, otherwise parties are refunded."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
@@ -213,55 +218,101 @@ swap =
 contractForDifferences :: MetaData
 contractForDifferences =
   { contractType: ContractForDifferences
-  , contractName: "Contract for Differences"
-  , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
+  , contractName: "CFD"
+  , contractShortDescription: "Contract For Differences. Two parties deposit Ada in a contract and after some time the Ada is redistributed among them depending on the change in price of an asset as reported by a third party (_**oracle**_)."
+  , contractLongDescription: "At the beginning of the contract, _**party**_ and _**counterparty**_ deposit some Ada in the contract. At the end of the contract, all Ada deposited is redistributed depending on the change in price in Ada of an asset (as reported by the _**oracle**_). If the price in Ada of the asset increases, the difference goes to _**counterparty**_; if it decreases, the difference goes to _**party**_, up to a maximum of the amount deposited at the beginning."
   , choiceInfo:
       ( Map.fromFoldable
-          [ "Price at beginning"
-              /\ { choiceFormat: lovelaceFormat
-                , choiceDescription: "Trade price at the beginning of the contract."
+          [ "Price in first window"
+              /\ { choiceFormat: DecimalFormat 6 "₳"
+                , choiceDescription: "Price in ADA of the asset in the first window."
                 }
-          , "Price at end"
-              /\ { choiceFormat: lovelaceFormat
-                , choiceDescription: "Trade price at the end of the contract."
+          , "Price in second window"
+              /\ { choiceFormat: DecimalFormat 6 "₳"
+                , choiceDescription: "Price in ADA of the asset in the second window."
                 }
           ]
       )
   , roleDescriptions:
       ( Map.fromFoldable
-          [ "Counterparty" /\ "Party that gets the difference in trade price if it increases."
-          , "Oracle" /\ "Party that provides the trade price in real time."
-          , "Party" /\ "Party that gets the difference in trade price if it decreases."
+          [ "Counterparty" /\ "The _**counterparty**_ will get the difference in the price of the asset if it increases."
+          , "Party" /\ "The _**party**_ will get the difference in the price of the asset if it decreases."
+          , "Oracle" /\ "The _**oracle**_ provides the price of the asset at the beginning (first window) and at the end (second window) of the contract (in this case the _**oracle**_ provides the conversion rate between Ada and dollars)."
           ]
       )
-  , slotParameterDescriptions: mempty
-  , valueParameterInfo: mempty
+  , slotParameterDescriptions:
+      ( OMap.fromFoldable
+          [ "Party deposit deadline" /\ "The _amount paid by party_ must be deposited by this deadline, otherwise the contract is cancelled."
+          , "Counterparty deposit deadline" /\ "The _amount paid by counterparty_ must be deposited by this deadline, otherwise the contract is cancelled and money is refunded."
+          , "First window beginning" /\ "The first _**oracle**_ reading must be taken after this."
+          , "First window deadline" /\ "The first _**oracle**_ reading must be taken before this, otherwise the contract is cancelled and money is refunded."
+          , "Second window beginning" /\ "The second _**oracle**_ reading must be taken after this."
+          , "Second window deadline" /\ "The second _**oracle**_ reading must be taken before this, otherwise the contract is cancelled and money is refunded."
+          ]
+      )
+  , valueParameterInfo:
+      ( OMap.fromFoldable
+          [ "Amount paid by party"
+              /\ { valueParameterFormat: DecimalFormat 6 "₳"
+                , valueParameterDescription: "Amount that the _**party**_ will deposit at the beginning of the contract."
+                }
+          , "Amount paid by counterparty"
+              /\ { valueParameterFormat: DecimalFormat 6 "₳"
+                , valueParameterDescription: "Amount that the _**counterparty**_ will deposit at the beginning of the contract."
+                }
+          ]
+      )
   }
 
 contractForDifferencesWithOracle :: MetaData
 contractForDifferencesWithOracle =
   { contractType: ContractForDifferences
-  , contractName: "Contract for Differences with Oracle"
-  , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots these assets are redistributed depending on the change in price of 100 Ada worth of dollars between the start and the end of the contract. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
+  , contractName: "CFD with Oracle"
+  , contractShortDescription: "Contract For Differences with Oracle. Two parties deposit Ada in a contract and after some time the Ada is redistributed among them depending on the change in price of an asset."
+  , contractLongDescription: "At the beginning of the contract, _**party**_ and _**counterparty**_ deposit some Ada in the contract. At the end of the contract, all Ada deposited is redistributed depending on the change in price in dollars of an asset (as reported by the _**oracle**_). The asset in this contract is an amount of Ada. If the price in dollars of the asset increases, the difference goes to _**counterparty**_; if it decreases, the difference goes to _**party**_, up to a maximum of the amount deposited at the beginning."
   , choiceInfo:
       ( Map.fromFoldable
           [ "dir-adausd"
               /\ { choiceFormat: oracleRatioFormat "ADA/USD"
-                , choiceDescription: "Exchange rate ADA/USD at the beginning of the contract."
+                , choiceDescription: "Exchange rate ADA/USD in the first window."
                 }
           , "inv-adausd"
               /\ { choiceFormat: oracleRatioFormat "USD/ADA"
-                , choiceDescription: "Exchange rate USD/ADA at the end of the contract."
+                , choiceDescription: "Exchange rate USD/ADA in the second window."
                 }
           ]
       )
   , roleDescriptions:
       ( Map.fromFoldable
-          [ "Counterparty" /\ "Party that gets the difference in trade price if it increases."
-          , "Party" /\ "Party that gets the difference in trade price if it decreases."
-          , "kraken" /\ "Oracle party that provides the exchange rate for ADA/USD."
+          [ "Counterparty" /\ "The _**counterparty**_ will get the difference in the price of the asset if it increases."
+          , "Party" /\ "The _**party**_ will get the difference in the price of the asset if it decreases."
+          , "kraken" /\ "The _**oracle**_ provides the price of the asset at the beginning (first window) and at the end (second window) of the contract (in this case the _**oracle**_ provides the conversion rate between Ada and dollars)."
           ]
       )
-  , slotParameterDescriptions: mempty
-  , valueParameterInfo: mempty
+  , slotParameterDescriptions:
+      ( OMap.fromFoldable
+          [ "Party deposit deadline" /\ "The _amount paid by party_ must be deposited by this deadline, otherwise the contract is cancelled."
+          , "Counterparty deposit deadline" /\ "The _amount paid by counterparty_ must be deposited by this deadline, otherwise the contract is cancelled and money is refunded."
+          , "First window beginning" /\ "The first _**oracle**_ reading must be taken after this."
+          , "First window deadline" /\ "The first _**oracle**_ reading must be taken before this, otherwise the contract is cancelled and money is refunded."
+          , "Second window beginning" /\ "The second _**oracle**_ reading must be taken after this."
+          , "Second window deadline" /\ "The second _**oracle**_ reading must be taken before this, otherwise the contract is cancelled and money is refunded."
+          ]
+      )
+  , valueParameterInfo:
+      ( OMap.fromFoldable
+          [ "Amount paid by party"
+              /\ { valueParameterFormat: DecimalFormat 6 "₳"
+                , valueParameterDescription: "Amount that the _**party**_ will deposit at the beginning of the contract."
+                }
+          , "Amount paid by counterparty"
+              /\ { valueParameterFormat: DecimalFormat 6 "₳"
+                , valueParameterDescription: "Amount that the _**counterparty**_ will deposit at the beginning of the contract."
+                }
+          , "Amount of Ada to use as asset"
+              /\ { valueParameterFormat: DecimalFormat 6 "₳"
+                , valueParameterDescription: "Amount of Ada whose price in dollars change to monitor."
+                }
+          ]
+      )
   }

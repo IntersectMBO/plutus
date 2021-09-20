@@ -22,7 +22,6 @@ import           PlutusCore.Core
 import           PlutusCore.Data
 import           PlutusCore.DeBruijn
 import           PlutusCore.Lexer.Type
-import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
 
 import           Codec.Serialise       (Serialise, deserialiseOrFail, serialise)

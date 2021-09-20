@@ -74,7 +74,7 @@ feature and have meta-constructors as built-in functions.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni (Esc Integer)
     DefaultUniByteString :: DefaultUni (Esc BS.ByteString)
-    DefaultUniString       :: DefaultUni (Esc Text.Text)
+    DefaultUniString     :: DefaultUni (Esc Text.Text)
     DefaultUniUnit       :: DefaultUni (Esc ())
     DefaultUniBool       :: DefaultUni (Esc Bool)
     DefaultUniProtoList  :: DefaultUni (Esc [])

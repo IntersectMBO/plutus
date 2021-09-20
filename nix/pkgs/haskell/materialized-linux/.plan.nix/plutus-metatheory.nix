@@ -47,6 +47,7 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
@@ -82,6 +83,7 @@
           "MAlonzo/Code/Algebra/Structures"
           "MAlonzo/Code/Algebra/Structures/Biased"
           "MAlonzo/Code/Algorithmic"
+          "MAlonzo/Code/Algorithmic/Properties"
           "MAlonzo/Code/Algorithmic/CEKV"
           "MAlonzo/Code/Algorithmic/ReductionEC"
           "MAlonzo/Code/Algorithmic/CC"
@@ -92,7 +94,6 @@
           "MAlonzo/Code/Builtin"
           "MAlonzo/Code/Builtin/Constant/Term"
           "MAlonzo/Code/Builtin/Constant/Type"
-          "MAlonzo/Code/Builtin/Signature"
           "MAlonzo/Code/Category/Applicative/Indexed"
           "MAlonzo/Code/Category/Functor"
           "MAlonzo/Code/Category/Monad/Indexed"
@@ -208,10 +209,7 @@
           "MAlonzo/Code/Relation/Nullary/Sum"
           "MAlonzo/Code/Relation/Unary/Properties"
           "MAlonzo/Code/Scoped"
-          "MAlonzo/Code/Scoped/CK"
           "MAlonzo/Code/Scoped/Extrication"
-          "MAlonzo/Code/Scoped/Reduction"
-          "MAlonzo/Code/Scoped/RenamingSubstitution"
           "MAlonzo/Code/Type"
           "MAlonzo/Code/Type/BetaNBE"
           "MAlonzo/Code/Type/BetaNBE/Completeness"

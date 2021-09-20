@@ -33,13 +33,6 @@ eraseVar Z     = zero
 eraseVar (S x) = suc (eraseVar x)
 eraseVar (T x) = eraseVar x
 
-eraseTC : Scoped.TermCon → Untyped.TermCon
-eraseTC (integer i)    = integer i
-eraseTC (bytestring b) = bytestring b
-eraseTC (string s)     = string s
-eraseTC (bool b)       = bool b
-eraseTC unit           = unit
-
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢
 
 {-
@@ -57,7 +50,7 @@ eraseTm (Λ K t)                = delay (eraseTm t)
 eraseTm (t ·⋆ A)               = force (eraseTm t)
 eraseTm (ƛ A t)                = ƛ (eraseTm t)
 eraseTm (t · u)                = eraseTm t · eraseTm u
-eraseTm (con c)                = con (eraseTC c)
+eraseTm (con c)                = con c
 eraseTm (error A)              = error
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t

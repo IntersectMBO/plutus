@@ -29,26 +29,20 @@ counterparty = Role "Counterparty"
 oracle :: Party
 oracle = Role "kraken"
 
-partyDepositAmount :: BigInteger
-partyDepositAmount = (fromInt 100000000)
-
-counterpartyDepositAmount :: BigInteger
-counterpartyDepositAmount = (fromInt 100000000)
-
 partyDeposit :: Value
-partyDeposit = Constant partyDepositAmount
+partyDeposit = ConstantParam "Amount paid by party"
 
 counterpartyDeposit :: Value
-counterpartyDeposit = Constant counterpartyDepositAmount
+counterpartyDeposit = ConstantParam "Amount paid by counterparty"
 
 bothDeposits :: Value
-bothDeposits = Constant (partyDepositAmount + counterpartyDepositAmount)
+bothDeposits = AddValue partyDeposit counterpartyDeposit
 
 priceBeginning :: Value
-priceBeginning = Constant (fromInt 100000000)
+priceBeginning = ConstantParam "Amount of Ada to use as asset"
 
 priceEnd :: ValueId
-priceEnd = ValueId "Price at end"
+priceEnd = ValueId "Price in second window"
 
 exchangeBeginning :: ChoiceId
 exchangeBeginning = ChoiceId "dir-adausd" oracle
@@ -94,11 +88,12 @@ transferUpToDeposit from payerDeposit to amount = Pay from (Account to) ada (Con
 
 extendedContract :: Contract
 extendedContract =
-  initialDeposit party partyDeposit (Slot $ fromInt 300) Close
-    $ initialDeposit counterparty counterpartyDeposit (Slot $ fromInt 600) Close
-    $ oracleInput exchangeBeginning (Slot $ fromInt 900) Close
-    $ wait (Slot $ fromInt 1500)
-    $ oracleInput exchangeEnd (Slot $ fromInt 1800) Close
+  initialDeposit party partyDeposit (SlotParam "Party deposit deadline") Close
+    $ initialDeposit counterparty counterpartyDeposit (SlotParam "Counterparty deposit deadline") Close
+    $ wait (SlotParam "First window beginning")
+    $ oracleInput exchangeBeginning (SlotParam "First window deadline") Close
+    $ wait (SlotParam "Second window beginning")
+    $ oracleInput exchangeEnd (SlotParam "Second window deadline") Close
     $ recordEndPrice priceEnd exchangeBeginning exchangeEnd
     $ gtLtEq priceBeginning (UseValue priceEnd)
         ( recordDifference decreaseInPrice priceBeginning (UseValue priceEnd)

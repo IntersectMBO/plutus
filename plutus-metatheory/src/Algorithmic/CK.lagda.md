@@ -12,6 +12,7 @@ open import Data.List.Properties
 open import Relation.Binary.PropositionalEquality using (inspect;sym;trans;_≡_;refl;cong)
   renaming ([_] to [[_]];subst to substEq)
 open import Data.Unit using (tt)
+open import Data.Integer
 open import Data.Product renaming (_,_ to _,,_)
 import Data.Sum as Sum
 open import Data.Empty
@@ -21,8 +22,6 @@ open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Algorithmic
 open import Builtin
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Type.BetaNBE.RenamingSubstitution
@@ -95,8 +94,8 @@ step ((s , -·⋆ A) ◅ V-IΠ b {as' = x ∷ as'} p bt) =
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
-open import Data.Nat
-
+open import Data.Nat hiding (_*_)
+ 
 stepper : ℕ → ∀{T}
   → State T
   → Either RuntimeError (State T)
@@ -234,3 +233,6 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
   (thm64b _ s' p)
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+
+test : State (con unit)
+test = ε ▻ (ƛ (con unit) · (ibuiltin iData · con (integer (+ 0))))

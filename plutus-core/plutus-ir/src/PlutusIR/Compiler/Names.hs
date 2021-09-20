@@ -29,6 +29,10 @@ typeReplacements = replacements ++ [
     , ("(,,)", "Tuple3")
     , ("(,,,)", "Tuple4")
     , ("(,,,,)", "Tuple5")
+    , ("(#,#)", "UTuple2")
+    , ("(#,,#)", "UTuple3")
+    , ("(#,,,#)", "UTuple4")
+    , ("(#,,,,#)", "UTuple5")
     ]
 
 termReplacements :: [(T.Text, T.Text)]
@@ -40,6 +44,10 @@ termReplacements = replacements ++ [
     , ("(,,)", "Tuple3")
     , ("(,,,)", "Tuple4")
     , ("(,,,,)", "Tuple5")
+    , ("(#,#)", "UTuple2")
+    , ("(#,,#)", "UTuple3")
+    , ("(#,,,#)", "UTuple4")
+    , ("(#,,,,#)", "UTuple5")
     ]
 
 data NameKind = TypeName | TermName

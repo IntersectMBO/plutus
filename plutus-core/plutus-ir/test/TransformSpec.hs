@@ -12,6 +12,7 @@ import           PlutusCore.Quote
 import qualified PlutusCore                         as PLC
 import qualified PlutusCore.Pretty                  as PLC
 
+import qualified PlutusIR.Analysis.RetainedSize     as RetainedSize
 import           PlutusIR.Parser
 import qualified PlutusIR.Transform.Beta            as Beta
 import qualified PlutusIR.Transform.DeadCode        as DeadCode
@@ -35,6 +36,7 @@ transform = testNested "transform" [
     , beta
     , unwrapCancel
     , deadCode
+    , retainedSize
     , rename
     ]
 
@@ -142,6 +144,37 @@ deadCode =
     , "recBindingComplex"
     ]
 
+retainedSize :: TestNested
+retainedSize =
+    testNested "retainedSize"
+    $ map (goldenPir renameAndAnnotate $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "typeLet"
+    , "termLet"
+    , "strictLet"
+    , "nonstrictLet"
+    -- @Maybe@ is referenced, so it retains all of the data type.
+    , "datatypeLiveType"
+    -- @Nothing@ is referenced, so it retains all of the data type.
+    , "datatypeLiveConstr"
+    -- @match_Maybe@ is referenced, so it retains all of the data type.
+    , "datatypeLiveDestr"
+    , "datatypeDead"
+    , "singleBinding"
+    , "builtinBinding"
+    , "etaBuiltinBinding"
+    , "etaBuiltinBindingUsed"
+    , "nestedBindings"
+    , "nestedBindingsIndirect"
+    , "recBindingSimple"
+    , "recBindingComplex"
+    ] where
+        displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
+        renameAndAnnotate
+            = PLC.AttachPrettyConfig displayAnnsConfig
+            . RetainedSize.annotateWithRetainedSize
+            . runQuote
+            . PLC.rename
+
 rename :: TestNested
 rename =
     testNested "rename"
@@ -151,4 +184,4 @@ rename =
     , "paramShadowedDataNonRec"
     , "paramShadowedDataRec"
     ] where
-        debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName
+        debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False

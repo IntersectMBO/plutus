@@ -3,11 +3,13 @@ module Type.BetaNBE.Soundness where
 \end{code}
 
 \begin{code}
+open import Utils
 open import Type
 open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq)
@@ -179,6 +181,20 @@ Fundamental Theorem of Logical Relations for SR
 evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (sub σ A) (eval A η)
+
+evalSRTyCon : ∀{Φ Ψ}(c : Syn.TyCon Φ){σ : Sub Φ Ψ}{η : Env Φ Ψ}
+  → SREnv σ η
+  → subTyCon σ c ≡βTyCon embNfTyCon (evalTyCon c η)
+evalSRTyCon Syn.integer p = refl≡β _
+evalSRTyCon Syn.bytestring p = refl≡β _
+evalSRTyCon Syn.string p = refl≡β _
+evalSRTyCon Syn.unit p = refl≡β _
+evalSRTyCon Syn.bool p = refl≡β _
+evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
+evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
+evalSRTyCon Syn.Data p = refl≡β _
+
+
 evalSR (` α)                   p = p α
 evalSR (Π B)                   p = Π≡β (evalSR B (SRweak p))
 evalSR (A ⇒ B)                 p = ⇒≡β (evalSR A p) (evalSR B p)
@@ -201,14 +217,14 @@ evalSR (ƛ B)   {σ}{η}          p =
     (evalSR B (SR,,⋆ (renSR ρ ∘ p) q))
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR (μ A B)     p = μ≡β (reifySR (evalSR A p)) (reifySR (evalSR B p))
-evalSR (con tcn)   p = refl≡β _
+evalSR (con c)     p = con≡β (evalSRTyCon c p)
 \end{code}
 
 Identity SREnv
 
 \begin{code}
 idSR : ∀{Φ} → SREnv ` (idEnv Φ)
-idSR = reflectSR ∘ refl≡β ∘ `
+idSR = reflectSR ∘ _≡β_.refl≡β ∘ `
 \end{code}
 
 Soundness Result
