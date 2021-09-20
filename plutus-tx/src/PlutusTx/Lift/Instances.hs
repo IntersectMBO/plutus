@@ -28,7 +28,9 @@ import           Data.Proxy
 import qualified Data.Text           as Text
 
 import           GHC.TypeLits        (ErrorMessage (..), TypeError)
-import           Prelude
+
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude             as Haskell
 
 -- Derived instances
 
@@ -71,11 +73,11 @@ liftBuiltin = pure . mkConstant ()
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Typeable uni Int where
-    typeRep = Prelude.error "unsupported"
+    typeRep = Haskell.error "unsupported"
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Lift uni Int where
-    lift = Prelude.error "unsupported"
+    lift = Haskell.error "unsupported"
 
 instance uni `PLC.Includes` Integer => Typeable uni Integer where
     typeRep = typeRepBuiltin

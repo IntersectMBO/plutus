@@ -10,6 +10,8 @@ import qualified Language.Haskell.TH        as TH
 import qualified Language.Haskell.TH.Syntax as TH
 import           PlutusTx.Code
 import           PlutusTx.Plugin.Utils
+
+-- We do not use qualified import because the whole module contains off-chain code
 import           Prelude
 
 

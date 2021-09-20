@@ -21,14 +21,14 @@ module PlutusTx.List (
     dropWhile
     ) where
 
-import                          PlutusTx.Bool     (Bool (..), otherwise, (||))
-import                          PlutusTx.Builtins (Integer)
-import                qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.ErrorCodes
-import                          PlutusTx.Eq       (Eq, (==))
-import {-# SOURCE #-}           PlutusTx.Maybe    (Maybe (..))
-import {-# SOURCE #-}           PlutusTx.Ord      ((<), (<=))
-import                          PlutusTx.Trace    (traceError)
+import                          PlutusTx.Bool       (Bool (..), otherwise, (||))
+import                          PlutusTx.Builtins   (Integer)
+import                qualified PlutusTx.Builtins   as Builtins
+import                          PlutusTx.Eq         (Eq, (==))
+import                          PlutusTx.ErrorCodes
+import {-# SOURCE #-}           PlutusTx.Maybe      (Maybe (..))
+import {-# SOURCE #-}           PlutusTx.Ord        ((<), (<=))
+import                          PlutusTx.Trace      (traceError)
 
 {- HLINT ignore -}
 

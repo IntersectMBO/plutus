@@ -1,8 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Either (Either(..), isLeft, isRight, either) where
 
-import           PlutusTx.Bool (Bool (..))
+{-
+We export off-chain Haskell's Either type as on-chain Plutus's Either type since they are the same.
+-}
 
+import           PlutusTx.Bool (Bool (..))
 import           Prelude       (Either (..))
 
 

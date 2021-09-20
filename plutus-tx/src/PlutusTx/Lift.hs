@@ -43,7 +43,9 @@ import           Control.Monad.Reader            hiding (lift)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Typeable                   as GHC
-import           Prelude
+
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                         as Haskell
 
 type PrettyPrintable uni fun = ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 

@@ -2,6 +2,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Ord (Ord(..), Ordering(..)) where
 
+{-
+We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type since they are the same.
+-}
+
 import                          PlutusTx.Bool      (Bool (..))
 import                qualified PlutusTx.Builtins  as Builtins
 import                          PlutusTx.Either    (Either (..))

@@ -75,6 +75,7 @@
           "PlutusTx/Lattice"
           "PlutusTx/List"
           "PlutusTx/Ord"
+          "PlutusTx/Integer"
           "PlutusTx/Maybe"
           "PlutusTx/Monoid"
           "PlutusTx/Numeric"

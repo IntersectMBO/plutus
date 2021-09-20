@@ -24,7 +24,9 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, u
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import           Data.Text                                (Text)
-import           Prelude
+
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                                  as Haskell
 
 -- | Evaluate a program in the CEK machine with the usual text dynamic builtins.
 evaluateCek
