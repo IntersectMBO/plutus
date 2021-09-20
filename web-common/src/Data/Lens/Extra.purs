@@ -1,17 +1,14 @@
 module Data.Lens.Extra (hasable, useable, peruse, toArrayOf, toSetOf) where
 
-import Control.Category ((<<<))
+import Prologue
 import Control.Monad.State.Class (class MonadState, gets)
 import Data.Array as Array
-import Data.HeytingAlgebra (class HeytingAlgebra)
 import Data.Lens (APrism, is, has, toListOf)
 import Data.Lens.Fold (Fold, preview)
 import Data.List (List)
-import Data.Maybe (Maybe)
 import Data.Maybe.First (First)
 import Data.Monoid.Disj (Disj)
 import Data.Monoid.Endo (Endo)
-import Data.Ord (class Ord)
 import Data.Set (Set)
 import Data.Set as Set
 

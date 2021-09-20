@@ -2,7 +2,7 @@ module Bootstrap.Extra where
 
 import Halogen.HTML (ClassName(..), HTML, IProp, PropName(..), pre, prop)
 import Halogen.HTML.Properties (class_)
-import Prologue (show)
+import Prologue
 
 clickable :: ClassName
 clickable = ClassName "clickable"

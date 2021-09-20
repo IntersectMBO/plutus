@@ -2,7 +2,6 @@ module MainFrame.State (mkMainFrame) where
 
 import Prologue
 import Control.Monad.Reader (class MonadAsk)
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (Component, HalogenM, defaultEval, mkComponent, mkEval)

@@ -4,7 +4,6 @@ import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
-import Data.Maybe (Maybe)
 import Data.String (fromCodePointArray, toCodePointArray)
 import Halogen.Classes (blocklyIcon, readMoreIconWhite)
 import Halogen.Classes as Classes

@@ -11,7 +11,6 @@ module Marlowe.Monaco
 
 import Prologue
 import Data.Function.Uncurried (Fn1, Fn2, Fn3, runFn1, runFn2, runFn3)
-import Data.Maybe (Maybe(..))
 import Data.Unfoldable as Unfoldable
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)

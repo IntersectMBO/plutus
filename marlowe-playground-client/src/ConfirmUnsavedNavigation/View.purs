@@ -4,7 +4,6 @@ import Prologue hiding (div)
 import Halogen.HTML (ClassName(..), ComponentHTML, button, div, div_, p_, text)
 import ConfirmUnsavedNavigation.Types as CN
 import Data.Lens ((^.))
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen.Classes (btn, btnSecondary, modalContent, spaceRight, uppercase)
 import Halogen.HTML.Events (onClick)

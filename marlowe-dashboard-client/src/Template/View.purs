@@ -1,14 +1,13 @@
 module Template.View (contractTemplateCard) where
 
-import Prologue hiding (div)
+import Prologue hiding (Either(..), div)
 import Css as Css
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Map.Ordered.OMap as OMap
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple)
+import Data.Maybe (fromMaybe)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen.Css (classNames)

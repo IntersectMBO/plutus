@@ -5,7 +5,6 @@ module Modal.View
 import Prologue hiding (div)
 import ConfirmUnsavedNavigation.View (render) as ConfirmUnsavedNavigation
 import Data.Lens ((^.))
-import Data.Maybe (Maybe(..))
 import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
 import GistButtons (authButton)

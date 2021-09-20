@@ -18,7 +18,6 @@ import Prologue
 import Data.Lens (Lens', Traversal', _Just, traversed)
 import Data.Lens.Record (prop)
 import Data.List (List)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution.Types (ContractAndState, PastState, PendingTimeouts, State, TimeoutInfo)
 import Marlowe.Semantics (Contract, Payment, Slot, TransactionInput, Accounts)

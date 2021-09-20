@@ -22,12 +22,11 @@ import Data.List as List
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
-import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Holes (Contract(..), Term(..), TransactionOutput(..), computeTransaction, fromTerm, reduceContractUntilQuiescent)
 import Marlowe.Holes as T

@@ -23,18 +23,18 @@ module Cursor
   , right
   ) where
 
+import Prologue hiding (clamp)
 import Control.Monad.Gen.Class (chooseInt)
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Traversal', wander)
 import Data.Lens.Index (class Index)
-import Data.Maybe (Maybe, fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Ord as Ord
 import Data.Traversable (class Traversable, sequenceDefault, traverse)
 import Foreign (ForeignError(..), fail, readArray, readInt)
 import Foreign.Class (class Decode, class Encode, decode, encode)
-import Prologue (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<$>), (<<<), (<>), (>=), (>>>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
 

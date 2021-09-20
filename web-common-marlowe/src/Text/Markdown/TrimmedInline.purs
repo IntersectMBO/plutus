@@ -6,7 +6,6 @@ import Prologue
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, evalStateT, get, modify)
 import Data.Array as A
-import Data.Either (Either(..))
 import Data.Identity (Identity)
 import Data.List (List(..))
 import Data.List as L

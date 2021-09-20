@@ -2,7 +2,6 @@ module LoadingSubmitButton.View (render) where
 
 import Prologue hiding (div)
 import Css as Css
-import Data.Maybe (Maybe(..))
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, div, text, button)
 import Halogen.HTML.Events (onClick)

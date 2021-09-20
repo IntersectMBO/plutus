@@ -4,9 +4,7 @@ module Blockly.Generator where
 import Prologue
 import Blockly.Types (Block, Blockly, Workspace)
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn1, Fn3, Fn4, Fn5, Fn6, runFn1, runFn3, runFn4, runFn5, runFn6)
-import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
 import Partial.Unsafe (unsafePartial)

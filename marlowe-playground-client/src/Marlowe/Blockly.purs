@@ -15,7 +15,7 @@ import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either, note')
+import Data.Either (note')
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
@@ -26,9 +26,8 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.TraversableWithIndex (forWithIndex)
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Foreign.Object as Object
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..))

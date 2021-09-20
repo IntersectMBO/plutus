@@ -3,7 +3,7 @@ module Action.Validation (actionIsValid) where
 import Data.Array as Array
 import Data.Lens (view)
 import Playground.Types (ContractCall(..), SimulatorWallet)
-import Prologue ((==), (&&), (<<<))
+import Prologue
 import Schema.Types (FormArgument)
 import Validation (isValid)
 import Wallet.Emulator.Wallet (Wallet)

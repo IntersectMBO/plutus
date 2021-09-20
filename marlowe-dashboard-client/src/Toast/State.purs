@@ -7,7 +7,6 @@ import Prologue
 import Data.Foldable (for_)
 import Data.Lens (assign)
 import Data.Lens.Extra (peruse)
-import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Milliseconds(..))
 import Effect.Aff (error)
 import Effect.Aff as Aff

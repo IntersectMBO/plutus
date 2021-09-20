@@ -10,7 +10,6 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco

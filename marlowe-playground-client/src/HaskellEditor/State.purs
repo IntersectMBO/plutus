@@ -10,11 +10,11 @@ import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (catMaybes)
-import Data.Either (Either(..), hush)
+import Data.Either (hush)
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, over, set, use)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)

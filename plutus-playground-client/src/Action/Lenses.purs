@@ -11,7 +11,7 @@ import Data.Lens.Record (prop)
 import Data.Newtype (unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Plutus.V1.Ledger.Slot (Slot)
-import Prologue ((<<<))
+import Prologue
 
 _caller :: forall r a. Lens' { caller :: a | r } a
 _caller = prop (SProxy :: SProxy "caller")

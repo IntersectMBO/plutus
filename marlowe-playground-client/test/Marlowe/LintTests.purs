@@ -2,12 +2,10 @@ module Marlowe.LintTests where
 
 import Prologue
 import Data.Array (singleton)
-import Data.Either (Either(..))
 import Data.List (List(..))
 import Data.Map as Map
 import Data.Set (toUnfoldable)
 import Data.Traversable (sequence_)
-import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)

@@ -2,7 +2,6 @@ module Router where
 
 import Prologue hiding ((/))
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)
 import Data.Profunctor (dimap)
 import Data.Symbol (SProxy(..))

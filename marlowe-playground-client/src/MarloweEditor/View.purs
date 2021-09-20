@@ -7,7 +7,6 @@ import Data.Array as Array
 import Data.Bifunctor (bimap)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)

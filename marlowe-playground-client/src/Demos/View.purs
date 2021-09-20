@@ -1,7 +1,6 @@
 module Demos.View where
 
 import Prologue hiding (div)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Demos.Types (Action(..), Demo)
 import Effect.Aff.Class (class MonadAff)

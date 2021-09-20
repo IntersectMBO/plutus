@@ -4,9 +4,7 @@ import Bootstrap (active, btn, containerFluid, hidden, justifyContentBetween, ml
 import Chain.Types as Chain
 import Control.Monad.State (evalState)
 import Cursor (Cursor)
-import Data.Either (Either(..))
 import Data.Lens (view)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
@@ -25,7 +23,7 @@ import MainFrame.Lenses (getKnownCurrencies, _contractDemoEditorContents)
 import MainFrame.Types (ChildSlots, HAction(..), State(..), View(..), WebCompilationResult, WebEvaluationResult)
 import Network.RemoteData (RemoteData(..))
 import Playground.Types (ContractDemo(..), Simulation)
-import Prologue (class Eq, const, ($), (<$>), (<<<), (==))
+import Prologue
 import Schema.Types (mkInitialValue)
 import Simulator.View (simulatorTitle, simulationsPane, simulationsNav)
 import StaticData (bufferLocalStorageKey, lookupContractDemo)

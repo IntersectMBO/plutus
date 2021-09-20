@@ -1,6 +1,6 @@
 module Hint.Types where
 
-import Data.Maybe (Maybe)
+import Prologue
 import Halogen (RefLabel(..), SubscriptionId)
 import Halogen.HTML (PlainHTML)
 import Popper (Placement, PopperInstance)

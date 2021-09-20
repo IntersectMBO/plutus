@@ -5,7 +5,6 @@ import Control.Monad.Cont (lift)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Int (round)
 import Data.Lens (assign, set, use)
-import Data.Maybe (Maybe(..))
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Halogen (Component, HalogenM, Slot, getHTMLElementRef, liftEffect, mkComponent, modify_, raise)

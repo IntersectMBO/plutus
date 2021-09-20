@@ -17,7 +17,7 @@ import Data.BigInteger (fromInt)
 import Data.Lens (view, (^.))
 import Data.List (List(..), concat, fromFoldable)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
+import Data.Maybe (fromMaybe, fromMaybe')
 import Data.Tuple.Nested ((/\))
 import Marlowe.Execution.Lenses (_resultingPayments)
 import Marlowe.Execution.Types (NamedAction(..), PastAction(..), PendingTimeouts, State, TimeoutInfo)

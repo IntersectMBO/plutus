@@ -24,7 +24,6 @@ import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt,
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
-import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, preview, set, to, toArrayOf, traversed, view, (^.))
@@ -34,14 +33,13 @@ import Data.Lens.Lens.Tuple (_2)
 import Data.List (toUnfoldable)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.Newtype (unwrap)
 import Data.Ord (abs)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (traverse, traverse_)
-import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable as Unfoldable
 import Effect (Effect)

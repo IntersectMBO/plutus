@@ -16,8 +16,6 @@ import Prologue
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as A
 import Data.Array (catMaybes)
-import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
 import Foreign.Object as Object
 
 data Toolbox

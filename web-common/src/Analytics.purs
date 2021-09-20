@@ -8,7 +8,6 @@ module Analytics
   ) where
 
 import Prologue
-import Data.Maybe (Maybe(..))
 import Data.Traversable (for_)
 import Data.Tuple.Nested ((/\))
 import Data.Undefinable (Undefinable, toUndefinable)

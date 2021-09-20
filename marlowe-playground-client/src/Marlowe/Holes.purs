@@ -18,7 +18,7 @@ import Data.List (List(..), fromFoldable, (:))
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -26,7 +26,6 @@ import Data.String (splitAt, toLower)
 import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\), type (/\))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)

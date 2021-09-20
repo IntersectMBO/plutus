@@ -14,12 +14,10 @@ import Control.Monad.Reader.Class (ask)
 import Dashboard.Lenses (_contracts, _walletDetails)
 import Dashboard.State (dummyState, handleAction, mkInitialState) as Dashboard
 import Dashboard.Types (Action(..), State) as Dashboard
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Map (keys)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Set (toUnfoldable) as Set
 import Data.Time.Duration (Minutes(..))

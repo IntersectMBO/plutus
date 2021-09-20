@@ -3,7 +3,7 @@ module Toast.View (renderToast) where
 import Prologue hiding (div)
 import Css as Css
 import Data.Lens (preview)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Halogen (RefLabel(..))
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, span, span_, text)

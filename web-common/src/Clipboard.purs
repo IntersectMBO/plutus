@@ -7,15 +7,14 @@ module Clipboard
   , showShortCopyLong
   ) where
 
+import Prologue hiding (div)
 import Bootstrap (btn, btnLink, displayFlex, textTruncate, alignItemsCenter)
-import Control.Monad (class Monad)
 import Control.Monad.Reader.Trans (ReaderT)
 import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (lift)
-import Data.Function ((<<<))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -25,7 +24,6 @@ import Halogen.HTML (ClassName(..), HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Prologue (class Show, Unit, const, ($))
 
 data Action
   = CopyToClipboard String

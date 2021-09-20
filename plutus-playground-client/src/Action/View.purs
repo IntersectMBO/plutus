@@ -7,10 +7,8 @@ import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either(..))
 import Data.Lens (review, view)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple(..))
+import Data.Maybe (fromMaybe)
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, button, div, div_, h2_, h3_, input, label, p_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChange, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
@@ -20,7 +18,7 @@ import MainFrame.Types (DragAndDropEventType(..), HAction(..), SimulatorAction)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), SimulatorWallet, _FunctionSchema)
 import Plutus.V1.Ledger.Slot (Slot)
-import Prologue (const, one, show, ($), (+), (<$>), (<<<), (<>), (==))
+import Prologue
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
 import Schema.View (actionArgumentForm)
 import Validation (_argument)

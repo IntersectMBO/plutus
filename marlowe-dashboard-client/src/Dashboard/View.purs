@@ -3,7 +3,7 @@ module Dashboard.View
   , dashboardCard
   ) where
 
-import Prologue hiding (div)
+import Prologue hiding (Either(..), div)
 import Clipboard (Action(..)) as Clipboard
 import Contract.Lenses (_Started, _stateNickname)
 import Contract.State (isContractClosed)
@@ -14,7 +14,7 @@ import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (isJust)
 import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.Tuple.Nested ((/\))

@@ -12,7 +12,6 @@ module Template.Types
 import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.Extended.Metadata (ContractTemplate)

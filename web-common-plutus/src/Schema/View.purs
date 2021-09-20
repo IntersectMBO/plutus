@@ -10,7 +10,7 @@ import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int as Int
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Lens', over, set, view)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.String as String
 import Data.Tuple.Nested ((/\))
 import Halogen (ClassName(..))

@@ -9,7 +9,6 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.List (List(..))
 import Data.List as List
 import Data.Newtype (class Newtype)
-import Data.Tuple (Tuple(..))
 import Foreign (ForeignError(..), fail, readArray)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 

@@ -14,7 +14,6 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
-import Data.Either (Either(..))
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)

@@ -4,7 +4,6 @@ import Prologue
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Data.Bifunctor (class Bifunctor)
 import Data.Bitraversable (class Bifoldable, class Bitraversable, bifoldlDefault, bifoldrDefault, bisequenceDefault)
-import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Prism', prism)
 import Data.Traversable (class Foldable, class Traversable, foldlDefault, foldrDefault, sequenceDefault)

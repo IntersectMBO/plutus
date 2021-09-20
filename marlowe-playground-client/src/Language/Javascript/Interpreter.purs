@@ -3,7 +3,6 @@ module Language.Javascript.Interpreter where
 import Prologue
 import Control.Monad.Except (runExcept)
 import Control.Promise (Promise, toAffE)
-import Data.Either (Either(..))
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)

@@ -5,7 +5,6 @@ module Marlowe.Parser
 
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn5, runFn5)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -14,7 +13,7 @@ import Marlowe.Holes (AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), 
 import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), Slot(..))
 import Monaco (IRange)
-import Prologue (class Show, (<<<), (>>>))
+import Prologue
 
 type HelperFunctions a
   = { mkHole :: String -> IRange -> Term a

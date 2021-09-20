@@ -12,7 +12,6 @@ import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
 import Marlowe.Client (ContractHistory)

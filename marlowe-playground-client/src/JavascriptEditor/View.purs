@@ -7,7 +7,6 @@ import Data.Array as Array
 import Data.Bifunctor (bimap)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
-import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)

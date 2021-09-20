@@ -8,7 +8,6 @@ module Capability.Websocket
 
 import Prologue
 import AppM (AppM)
-import Data.Either (Either(..))
 import Halogen (HalogenM, raise)
 import MainFrame.Types (Msg(..))
 import Types (CombinedWSStreamToServer(..))

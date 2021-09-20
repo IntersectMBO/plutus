@@ -7,7 +7,6 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NEL
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Foreign (F, ForeignError(..), fail)
 import Foreign.Class (class Decode, class Encode, decode, encode)

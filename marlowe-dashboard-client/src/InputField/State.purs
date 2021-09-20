@@ -15,7 +15,7 @@ import Data.BigInteger (BigInteger)
 import Data.BigInteger (fromInt, fromString) as BigInteger
 import Data.Int (pow) as Int
 import Data.Lens (assign, set, use, view)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..), split, splitAt)
 import Data.String (drop, length, take) as String
 import Data.String.Extra (leftPadTo, rightPadTo)

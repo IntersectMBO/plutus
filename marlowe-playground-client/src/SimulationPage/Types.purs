@@ -9,7 +9,6 @@ import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List.Types (NonEmptyList)
-import Data.Maybe (Maybe(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext)
 import Marlowe.Template (IntegerTemplateType)

@@ -5,9 +5,9 @@ import Clipboard (class MonadClipboard)
 import Clipboard as Clipboard
 import Control.Monad.State.Trans (class MonadState)
 import Data.Lens (assign, preview, use)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Plutus.V1.Ledger.TxId (TxId)
-import Prologue (Ordering(..), Unit, bind, compare, discard, pure, ($), (<<<), (<>))
+import Prologue
 import Wallet.Rollup.Types (SequenceId(..))
 
 handleAction :: forall m. MonadClipboard m => MonadState State m => Action -> Maybe AnnotatedBlockchain -> m Unit

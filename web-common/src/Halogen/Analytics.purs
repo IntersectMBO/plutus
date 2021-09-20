@@ -3,7 +3,7 @@ module Halogen.Analytics where
 import Analytics (class IsEvent, analyticsTracking)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM)
-import Prologue (discard, ($))
+import Prologue
 
 withAnalytics ::
   forall state action slots message m a.

@@ -6,8 +6,8 @@ module InputField.Types
   , InputDisplayOptions
   ) where
 
+import Prologue
 import Analytics (class IsEvent)
-import Data.Maybe (Maybe(..))
 import Halogen.HTML (HTML)
 import Marlowe.Extended.Metadata (NumberFormat)
 

@@ -7,7 +7,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Symbol (SProxy(..))

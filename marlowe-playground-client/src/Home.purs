@@ -3,7 +3,6 @@ module Home where
 import Prologue hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has)
-import Data.Maybe (Maybe(..))
 import Halogen (ComponentHTML)
 import Halogen.Classes (arrowLeftDown, arrowLeftUp, arrowRightDown, arrowRightUp, marloweLogo, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, primaryButton, secondaryButton, simulationIconBlack)
 import Halogen.Css (classNames)

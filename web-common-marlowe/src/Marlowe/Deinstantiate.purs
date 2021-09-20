@@ -5,7 +5,6 @@ import Data.Array (filter, zipWith)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (all)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol)
 import Marlowe.Extended as EM
 import Marlowe.Extended.Metadata (ContractTemplate)

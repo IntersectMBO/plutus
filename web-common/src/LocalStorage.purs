@@ -10,11 +10,9 @@ module LocalStorage
 
 import Prologue
 import Control.Coroutine (Producer, producer)
-import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, mkFn3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)

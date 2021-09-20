@@ -1,7 +1,6 @@
 module Halogen.HTML.Events.Extra where
 
 import Prologue
-import Data.Maybe (Maybe(..))
 import Halogen.HTML (IProp)
 import Halogen.HTML.Events (onBlur, onClick, onFocus, onValueInput)
 import Web.Event.Internal.Types (Event)

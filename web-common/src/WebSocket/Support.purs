@@ -14,7 +14,6 @@ import Concurrent.Queue as Queue
 import Control.Monad.Except (runExcept)
 import Control.Monad.Rec.Class (forever)
 import Control.Parallel (parSequence_)
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Newtype (class Newtype, unwrap)
 import Effect (Effect)

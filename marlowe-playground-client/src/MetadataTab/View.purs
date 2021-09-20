@@ -8,7 +8,6 @@ import Data.Lens (Lens', (^.))
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
 import Data.Set (Set, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.Classes (minusBtn, plusBtn, btn)

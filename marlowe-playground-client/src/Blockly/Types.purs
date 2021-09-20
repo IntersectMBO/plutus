@@ -2,7 +2,6 @@ module Blockly.Types where
 
 import Prologue
 import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent, UIEvent, element, SelectEvent)
-import Data.Maybe (Maybe(..))
 
 foreign import data Blockly :: Type
 

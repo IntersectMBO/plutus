@@ -11,7 +11,6 @@ module Capability.PlutusApps.MarloweApp.Types
 
 import Prologue
 import Data.Generic.Rep (class Generic)
-import Data.Tuple (Tuple)
 import Effect.AVar (AVar)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)

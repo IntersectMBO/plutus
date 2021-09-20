@@ -4,7 +4,6 @@ import Prologue
 import AppM (runAppM)
 import Capability.PlutusApps.MarloweApp as MarloweApp
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
-import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.AVar as AVar
 import Effect.Aff (Aff, forkAff)

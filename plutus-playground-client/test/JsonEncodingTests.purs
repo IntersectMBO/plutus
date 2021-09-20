@@ -9,11 +9,9 @@ import Cursor (Cursor)
 import Cursor as Cursor
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either(..))
 import Data.Foldable (product)
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Tuple (Tuple(..))
 import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterResult)

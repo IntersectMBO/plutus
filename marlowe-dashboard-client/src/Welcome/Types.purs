@@ -8,7 +8,6 @@ module Welcome.Types
 import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
-import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId)

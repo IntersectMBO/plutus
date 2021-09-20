@@ -1,7 +1,6 @@
 module Tooltip.Types where
 
 import Prologue
-import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Halogen (RefLabel(..))
 import Popper (Placement, PopperInstance)

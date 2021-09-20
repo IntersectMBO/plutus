@@ -2,7 +2,6 @@ module Halogen.LocalStorage (localStorageEvents) where
 
 import Prologue
 import Control.Coroutine (connect, consumer, runProcess)
-import Data.Maybe (Maybe(..))
 import Effect.Aff (forkAff, killFiber)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (error)

@@ -31,8 +31,6 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
-import Data.Either (Either)
-import Data.Maybe (Maybe)
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Editor.State (handleAction, saveBuffer) as Editor
@@ -53,7 +51,7 @@ import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
-import Prologue (class Applicative, class Apply, class Bind, class Functor, class Monad, Unit, Void, bind, identity, map, pure, unit, void, ($), (<$>), (<<<))
+import Prologue
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)

@@ -6,7 +6,6 @@ module MainFrame.Types
 
 import Prologue
 import Analytics (class IsEvent, defaultEvent)
-import Data.Maybe (Maybe(..))
 
 type State
   = { placeholder :: String

@@ -7,8 +7,7 @@ module Data.Array.Extra
 import Prologue
 import Data.Array as Array
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
-import Data.Maybe (Maybe, fromMaybe)
-import Data.Tuple (fst, snd)
+import Data.Maybe (fromMaybe)
 import Data.Tuple.Nested (type (/\), (/\))
 
 move :: forall a. Int -> Int -> Array a -> Array a

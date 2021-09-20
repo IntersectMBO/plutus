@@ -3,7 +3,6 @@ module Rename.Types where
 import Analytics (class IsEvent)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 
 data Action

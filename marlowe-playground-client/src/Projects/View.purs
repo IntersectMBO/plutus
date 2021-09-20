@@ -3,11 +3,9 @@ module Projects.View (render) where
 import Prologue hiding (div)
 import Data.Array (filter)
 import Data.DateTime.ISO as ISO
-import Data.Either (Either(..))
 import Data.Formatter.DateTime (FormatterCommand(..), format)
 import Data.Lens (to, (^.))
 import Data.List (fromFoldable)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Gist (Gist, gistCreatedAt, gistDescription, gistId, gistUpdatedAt)

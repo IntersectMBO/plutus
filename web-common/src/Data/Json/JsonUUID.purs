@@ -4,7 +4,6 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Iso')
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.UUID (UUID)
 import Data.UUID as UUID

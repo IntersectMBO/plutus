@@ -6,7 +6,6 @@ import Prologue hiding (div)
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _metadataHintInfo, _warnings)
 import Data.Array as Array
 import Data.Lens (to, (^.))
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, paddingRight, underline)

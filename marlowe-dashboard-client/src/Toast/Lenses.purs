@@ -9,7 +9,6 @@ import Prologue
 import Data.Lens (Lens', _Just)
 import Data.Lens.Record (prop)
 import Data.Lens.Traversal (Traversal')
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Halogen (SubscriptionId)
 import Toast.Types (State, ToastMessage, ToastState)

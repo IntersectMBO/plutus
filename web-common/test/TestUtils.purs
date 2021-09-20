@@ -4,7 +4,6 @@ import Prologue
 import Control.Monad.Except (runExcept)
 import Control.Monad.Gen (class MonadGen, chooseInt, oneOf)
 import Data.Bifoldable (class Bifoldable, bifoldMap)
-import Data.Either (Either(..))
 import Data.Foldable (class Foldable, intercalate, length)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (class GenericShow, genericShow)

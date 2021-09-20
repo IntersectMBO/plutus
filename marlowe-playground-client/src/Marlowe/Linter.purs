@@ -26,7 +26,7 @@ import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isNothing, maybe)
+import Data.Maybe (isNothing, maybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (abs)
 import Data.Set (Set)

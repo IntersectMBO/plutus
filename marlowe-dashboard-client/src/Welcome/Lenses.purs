@@ -9,9 +9,9 @@ module Welcome.Lenses
   , _enteringDashboardState
   ) where
 
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)

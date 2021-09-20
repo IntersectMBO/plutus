@@ -21,7 +21,6 @@ import Data.Lens.At (at)
 import Data.Lens.Prism.Maybe (_Just)
 import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (PlutusAppId)
 import Template.Types (State) as Template

@@ -8,7 +8,7 @@ import Clipboard (Action(..)) as Clipboard
 import Css as Css
 import Data.Lens (view, (^.))
 import Data.Map (isEmpty, toUnfoldable)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (isJust)
 import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (toString) as UUID

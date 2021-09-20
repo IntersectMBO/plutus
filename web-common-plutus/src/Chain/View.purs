@@ -3,7 +3,32 @@ module Chain.View
   , txOutOfView
   ) where
 
+import Prologue
 import Chain.Types
+  ( Action(..)
+  , AnnotatedBlockchain
+  , State
+  , _balances
+  , _chainFocus
+  , _chainFocusAppearing
+  , _dereferencedInputs
+  , _findTx
+  , _sequenceId
+  , _tx
+  , _txFee
+  , _txIdOf
+  , _txInRef
+  , _txKeyTxId
+  , _txKeyTxOutRefIdx
+  , _txMint
+  , _txOutRefId
+  , _txOutputs
+  , _txSignatures
+  , _txValidRange
+  , _value
+  , findConsumptionPoint
+  , toBeneficialOwner
+  )
 import Animation (animationClass)
 import Bootstrap (active, card, cardBody_, cardFooter_, cardHeader, cardHeader_, col, col3_, col6_, colLg2, colMd3, colSm6, colXs12, col_, empty, nbsp, row, row_, tableBordered, tableSmall, textTruncate)
 import Bootstrap as Bootstrap
@@ -22,7 +47,7 @@ import Data.Lens (Traversal', _Just, filtered, has, preview, to, view)
 import Data.Lens.Index (ix)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Newtype (unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -36,8 +61,6 @@ import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..))
 import Ledger.Extra (humaniseSlotInterval)
 import Plutus.V1.Ledger.Tx (TxOut(..))
 import Plutus.V1.Ledger.TxId (TxId(..))
-import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Prologue (Ordering(..), const, eq, pure, show, zero, ($), (<$>), (<<<), (<>))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 

@@ -2,7 +2,6 @@ module MainFrame.View where
 
 import Prologue hiding (div)
 import Dashboard.View (dashboardCard, dashboardScreen)
-import Data.Either (Either(..))
 import Data.Lens (view, (^.))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)

@@ -10,7 +10,6 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (view)
 import Data.Maybe (Maybe(Just), fromMaybe)
-import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(ClassName), HTML, div, input, label, text)
 import Halogen.HTML.Elements.Keyed as Keyed

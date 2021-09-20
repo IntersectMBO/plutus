@@ -3,7 +3,6 @@ module GistsTests
   ) where
 
 import Prologue
-import Data.Either (Either(..))
 import Data.Generic.Rep.Show (genericShow)
 import Gist (GistId(..))
 import Gists.Types (parseGistUrl)

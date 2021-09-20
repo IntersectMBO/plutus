@@ -20,9 +20,7 @@ import Chain.Types (Action(..))
 import Chain.Types as Chain
 import Clipboard as Clipboard
 import Cursor (Cursor)
-import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Editor.Types as Editor
@@ -35,7 +33,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Network.RemoteData (RemoteData)
 import Playground.Types (CompilationResult, ContractCall, ContractDemo, EvaluationResult, PlaygroundError, Simulation)
 import Plutus.V1.Ledger.Tx (Tx)
-import Prologue (class Eq, class Show, Unit, show, ($))
+import Prologue
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)

@@ -14,13 +14,12 @@ import Data.Lens.At (class At)
 import Data.Lens.Index (class Index)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Data.Map
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Newtype as Newtype
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..), fst, snd, uncurry)
+import Data.Tuple (uncurry)
 import Foreign.Class (class Decode, class Encode)
 import Foreign.Generic (genericDecode, genericEncode)
 

@@ -11,19 +11,18 @@ import Prologue
 import Data.Array (catMaybes, fold, foldMap, take)
 import Data.Array as Array
 import Data.Array.NonEmpty (index)
-import Data.Either (Either(..), hush)
+import Data.Either (hush)
 import Data.Functor (mapFlipped)
 import Data.Lens (to, view, (^.))
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(..), codePointFromChar, contains, fromCodePointArray, length, takeWhile, toCodePointArray)
 import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
-import Data.Tuple (Tuple(..))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Help (holeText)
 import Marlowe.Extended.Metadata (MetadataHintInfo)

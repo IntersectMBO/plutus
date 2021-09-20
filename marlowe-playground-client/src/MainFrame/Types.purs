@@ -6,12 +6,10 @@ import Auth (AuthStatus)
 import BlocklyComponent.Types as Blockly
 import BlocklyEditor.Types as BE
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
-import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', has, (^.))
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Demos.Types as Demos
