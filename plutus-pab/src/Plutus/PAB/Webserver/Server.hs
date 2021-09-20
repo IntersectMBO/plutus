@@ -18,7 +18,7 @@ module Plutus.PAB.Webserver.Server
     , startServerDebug'
     ) where
 
-import           Cardano.Wallet.Types                   (WalletInfo (..))
+import           Cardano.Wallet.Mock.Types              (WalletInfo (..))
 import           Control.Concurrent                     (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
 import           Control.Concurrent.Availability        (Availability, available, newToken)
 import qualified Control.Concurrent.STM                 as STM

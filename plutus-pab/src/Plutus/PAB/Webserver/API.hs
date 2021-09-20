@@ -10,7 +10,7 @@ module Plutus.PAB.Webserver.API
     , WalletProxy
     ) where
 
-import qualified Cardano.Wallet.API         as Wallet
+import qualified Cardano.Wallet.Mock.API    as Wallet
 import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,

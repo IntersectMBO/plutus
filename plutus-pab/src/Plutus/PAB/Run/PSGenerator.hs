@@ -18,7 +18,7 @@ module Plutus.PAB.Run.PSGenerator
     , pabTypes
     ) where
 
-import           Cardano.Wallet.Types                       (WalletInfo)
+import           Cardano.Wallet.Mock.Types                  (WalletInfo)
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, (&))
 import           Control.Monad.Freer.Extras.Log             (LogLevel, LogMessage)

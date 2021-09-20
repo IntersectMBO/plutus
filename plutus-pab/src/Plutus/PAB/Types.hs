@@ -13,7 +13,7 @@ module Plutus.PAB.Types where
 
 import qualified Cardano.ChainIndex.Types  as ChainIndex
 import           Cardano.Node.Types        (MockServerConfig (..))
-import qualified Cardano.Wallet.Types      as Wallet
+import qualified Cardano.Wallet.Mock.Types as Wallet
 import           Control.Lens.TH           (makePrisms)
 import           Data.Aeson                (FromJSON, ToJSON (..))
 import           Data.Default              (Default, def)
