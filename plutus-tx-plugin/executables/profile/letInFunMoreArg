@@ -1,0 +1,8 @@
+[ [2021-09-20 16:31:56.76050491 UTC] entering addInteger
+, [2021-09-20 16:31:56.760508567 UTC] exiting addInteger
+, [2021-09-20 16:31:56.7605102 UTC] entering addInteger
+, [2021-09-20 16:31:56.760512705 UTC] exiting addInteger
+, [2021-09-20 16:31:56.760513867 UTC] entering addInteger
+, [2021-09-20 16:31:56.760516051 UTC] exiting addInteger
+, [2021-09-20 16:31:56.760517244 UTC] entering multiplyInteger
+, [2021-09-20 16:31:56.760519698 UTC] exiting multiplyInteger ]

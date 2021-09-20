@@ -86,6 +86,7 @@
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             ];
           buildable = true;

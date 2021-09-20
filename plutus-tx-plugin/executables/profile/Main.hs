@@ -13,7 +13,7 @@
 
 module Main where
 import           Common
-import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcProfile)
+import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcProfileExec)
 import           Plugin.Basic.Spec
 
 import qualified PlutusTx.Builtins         as Builtins
@@ -24,11 +24,15 @@ import qualified PlutusCore.Default        as PLC
 
 import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
+import           Data.List                 (stripPrefix, uncons)
+import           Data.Maybe                (fromJust)
 import           Data.Proxy                (Proxy (Proxy))
 import           Data.Text                 (Text)
+import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
+
 
 fact :: Integer -> Integer
 fact n =
@@ -92,21 +96,65 @@ writeLogToFile ::
   [a] ->
   IO ()
 writeLogToFile fileName values = do
-  log <- pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+  let filePath = "plutus-tx-plugin/executables/profile/"<>fileName
+  log <- pretty . view _2 <$> (rethrow $ runUPlcProfileExec values)
   withFile
-    ("plutus-tx-plugin/executables/profile/"<>fileName)
+    filePath
     WriteMode
     (\h -> hPutDoc h log)
+  processed <- processLog filePath
+  writeFile (filePath<>".stacks") $ show (map show processed)
+  pure ()
+
+processLog :: FilePath -> IO [(NominalDiffTime,String)]
+processLog file = do
+  content <- readFile file
+  -- lEvents is in the form of [[t1,t2,t3,entering/exiting,var]]. Time is chopped to 3 parts.
+  let lEvents =
+        map
+          -- @tail@ strips "[" in the first line and "," in the other lines,
+          -- @words@ turns it to a list of [time, enter/exit, var]
+          (tail . words)
+          -- turn to a list of events
+          (lines content)
+      lTimeRaw = map unwords (take 3 lEvents)
+      lTime =
+        map
+          -- stripe “[“ and add “ UTC” to the time so I can use read instance of UTCTime
+          (fromJust . stripPrefix "[" . (++ " UTC") . head )
+          lTimeEvents
+      lUTC (hd:tl) = (read hd :: UTCTime) : lUTC tl
+      lUTC []      = []
+      -- list of enter/exit
+      lEnterOrExit = map (head . tail) lTimeEvents
+      -- list of var
+      lVar = map (head . tail . tail) lTimeEvents
+      lTripleTimeVar = zip3 (lUTC lTime) lEnterOrExit lVar
+      getStacks curStack (hd:tl) = case hd of
+        (time, "entering", var) -> getStacks ((time, var):curStack) tl
+        (time, "exiting", var) ->
+          let curTopVar = snd $ head curStack
+              curTopTime = fst $ head curStack
+          in
+            if  curTopVar == var then
+              let updatedStack = tail curStack in
+              (diffUTCTime time curTopTime,var):getStacks updatedStack tl
+            else error "getStacks: exiting a stack that is not on top of the stack."
+        (time, what, _) -> error $ show what ++ "getStacks: log processed incorrectly. Expecting \"entering\" or \"exiting\"."
+      getStacks [] [] = []
+      getStacks _ [] = error "getStacks: stack isn't empty but log is."
+  pure $ getStacks [] lTripleTimeVar
 
 main :: IO ()
 main = do
   writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "addInt" [toUPlc addIntTest]
-  writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
-  writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  writeLogToFile "id" [toUPlc idTest]
-  writeLogToFile "swap" [toUPlc swapTest]
+  -- writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  -- writeLogToFile "addInt" [toUPlc addIntTest]
+  -- writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
+  -- writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  -- writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  -- writeLogToFile "id" [toUPlc idTest]
+  -- writeLogToFile "swap" [toUPlc swapTest]
+
 
 
