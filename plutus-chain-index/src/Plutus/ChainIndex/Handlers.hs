@@ -19,10 +19,10 @@ module Plutus.ChainIndex.Handlers
 
 import           Codec.Serialise                   (Serialise, deserialise, serialise)
 import           Control.Applicative               (Const (..))
-import           Control.Lens                      (Lens', view)
+import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError)
+import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State         (State, get, put)
 import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
@@ -30,16 +30,14 @@ import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Monoid                       (Ap (..))
 import           Data.Proxy                        (Proxy (..))
-import           Database.Beam                     (Beamable, Identity, SqlSelect, TableEntity, aggregate_, all_,
-                                                    countAll_, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Backend.SQL         (BeamSqlBackendCanSerialize)
+import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
+                                                    filter_, limit_, nub_, select, val_)
 import           Database.Beam.Query               ((==.))
-import           Database.Beam.Schema.Tables       (FieldsFulfillConstraint, zipTables)
+import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
-import           Ledger                            (Address (..), DatumHash (..), MintingPolicyHash (MintingPolicyHash),
-                                                    RedeemerHash (RedeemerHash),
-                                                    StakeValidatorHash (StakeValidatorHash), TxId (..), TxOut (..),
-                                                    ValidatorHash (..))
+import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
+                                                    MintingPolicyHash (..), RedeemerHash (..), StakeValidatorHash (..),
+                                                    TxId (..), TxOut (..), TxOutRef (..), ValidatorHash (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbStore
@@ -47,33 +45,69 @@ import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..)
 import           Plutus.ChainIndex.Tx
 import           Plutus.ChainIndex.Types           (Diagnostics (..))
 import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
-                                                    UtxoIndex, isUnspentOutput, tip)
+                                                    UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
 import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
 -- import           Plutus.V1.Ledger.Scripts          as Scripts
+import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential, ScriptCredential))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
 handleQuery ::
     forall effs.
-    ( Member (State ChainIndexState) effs
-    , Member DbStoreEffect effs
-    , Member (Error ChainIndexError) effs
+    ( Member DbStoreEffect effs
     , Member (LogMsg ChainIndexLog) effs
     ) => ChainIndexQueryEffect
     ~> Eff effs
 handleQuery = \case
-  DatumFromHash (DatumHash (BuiltinByteString dh)) ->
+    DatumFromHash dh                                 -> getDatumFromHash dh
+    ValidatorFromHash (ValidatorHash hash)           -> queryOneScript hash
+    MintingPolicyFromHash (MintingPolicyHash hash)   -> queryOneScript hash
+    RedeemerFromHash (RedeemerHash hash)             -> queryOneScript hash
+    StakeValidatorFromHash (StakeValidatorHash hash) -> queryOneScript hash
+    TxFromTxId txId                                  -> getTxFromTxId txId
+    TxOutFromRef tor                                 -> getTxOutFromRef tor
+    UtxoSetMembership _                              -> undefined
+    UtxoSetAtAddress _                               -> undefined
+    GetTip                                           -> undefined
+
+getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
+getDatumFromHash (DatumHash (BuiltinByteString dh)) =
     queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (datumRows db))
-  ValidatorFromHash (ValidatorHash svh) -> queryOneScript svh
-  MintingPolicyFromHash (MintingPolicyHash svh) -> queryOneScript svh
-  RedeemerFromHash (RedeemerHash svh) -> queryOneScript svh
-  StakeValidatorFromHash (StakeValidatorHash svh) -> queryOneScript svh
---   TxOutFromRef tor -> _
---   TxFromTxId ti -> _
---   UtxoSetMembership tor -> _
---   UtxoSetAtAddress cre -> _
---   GetTip -> _
+
+getTxFromTxId :: Member DbStoreEffect effs => TxId -> Eff effs (Maybe ChainIndexTx)
+getTxFromTxId (TxId (BuiltinByteString txId)) =
+    queryOne . select $ _txRowTx <$> filter_ (\row -> _txRowTxId row ==. val_ txId) (all_ (txRows db))
+
+-- | Get the 'ChainIndexTxOut' for a 'TxOutRef'.
+getTxOutFromRef ::
+  forall effs.
+  ( Member DbStoreEffect effs
+  , Member (LogMsg ChainIndexLog) effs
+  )
+  => TxOutRef
+  -> Eff effs (Maybe ChainIndexTxOut)
+getTxOutFromRef ref@TxOutRef{txOutRefId, txOutRefIdx} = do
+  mTx <- getTxFromTxId txOutRefId
+  -- Find the output in the tx matching the output ref
+  case mTx ^? _Just . citxOutputs . _ValidTx . ix (fromIntegral txOutRefIdx) of
+    Nothing -> logWarn (TxOutNotFound ref) >> pure Nothing
+    Just txout -> do
+      -- The output might come from a public key address or a script address.
+      -- We need to handle them differently.
+      case addressCredential $ txOutAddress txout of
+        PubKeyCredential _ ->
+          pure $ Just $ PublicKeyChainIndexTxOut (txOutAddress txout) (txOutValue txout)
+        ScriptCredential (ValidatorHash vh) -> do
+          case txOutDatumHash txout of
+            Nothing -> do
+              -- If the txout comes from a script address, the Datum should not be Nothing
+              logWarn $ NoDatumScriptAddr txout
+              pure Nothing
+            Just dh -> do
+                v <- maybe (Left (ValidatorHash vh)) Right <$> queryOneScript vh
+                d <- maybe (Left dh) Right <$> getDatumFromHash dh
+                pure $ Just $ ScriptChainIndexTxOut (txOutAddress txout) v d (txOutValue txout)
 
 queryOneScript ::
     ( Member DbStoreEffect effs
@@ -170,16 +204,10 @@ fromTx tx = Db
         fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toByteString k) (toByteString v)) . l $ tx
 
 
-diagnostics ::
-    forall effs.
-    ( Member DbStoreEffect effs
-    -- , Member (Error ChainIndexError) effs
-    -- , Member (LogMsg ChainIndexLog) effs
-    )
-    => Eff effs Diagnostics
+diagnostics :: Member DbStoreEffect effs => Eff effs Diagnostics
 diagnostics = do
     numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (txRows db))
-    txIds <- selectList . select $ _txRowHash <$> limit_ 10 (all_ (txRows db))
+    txIds <- selectList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowHash <$> all_ (addressRows db)
 

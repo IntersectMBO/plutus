@@ -38,6 +38,7 @@ import qualified Cardano.Api               as C
 import           Cardano.Crypto.Hash       (SHA256, digest)
 import qualified Codec.CBOR.Write          as Write
 import           Codec.Serialise           (Serialise (..))
+import           Codec.Serialise.Decoding  (Decoder, decodeBytes, decodeSimple)
 import           Codec.Serialise.Encoding  (Encoding (..), Tokens (..))
 import           Control.Applicative       ((<|>))
 import           Control.Lens              hiding ((.=))
@@ -168,18 +169,29 @@ instance Eq SomeCardanoApiTx where
 deriving instance Show SomeCardanoApiTx
 
 instance Serialise SomeCardanoApiTx where
-  encode (SomeTx tx eraInMode) = Encoding (TkBytes (C.serialiseToCBOR tx)) <> encode eraInMode
-  decode = undefined
-
-instance Serialise (C.EraInMode era mode) where
-  encode C.ByronEraInByronMode     = Encoding (TkSimple 0)
-  encode C.ShelleyEraInShelleyMode = Encoding (TkSimple 1)
-  encode C.ByronEraInCardanoMode   = Encoding (TkSimple 2)
-  encode C.ShelleyEraInCardanoMode = Encoding (TkSimple 3)
-  encode C.AllegraEraInCardanoMode = Encoding (TkSimple 4)
-  encode C.MaryEraInCardanoMode    = Encoding (TkSimple 5)
-  encode C.AlonzoEraInCardanoMode  = Encoding (TkSimple 6)
-  decode = undefined
+  encode (SomeTx tx eraInMode) = encodedMode eraInMode <> Encoding (TkBytes (C.serialiseToCBOR tx))
+    where
+      encodedMode :: C.EraInMode era C.CardanoMode -> Encoding
+      encodedMode C.ByronEraInCardanoMode   = Encoding (TkSimple 2)
+      encodedMode C.ShelleyEraInCardanoMode = Encoding (TkSimple 3)
+      encodedMode C.AllegraEraInCardanoMode = Encoding (TkSimple 4)
+      encodedMode C.MaryEraInCardanoMode    = Encoding (TkSimple 5)
+      encodedMode C.AlonzoEraInCardanoMode  = Encoding (TkSimple 6)
+  decode = do
+    w <- decodeSimple
+    case w of
+      2 -> decodeTx C.AsByronEra C.ByronEraInCardanoMode
+      3 -> decodeTx C.AsShelleyEra C.ShelleyEraInCardanoMode
+      4 -> decodeTx C.AsAllegraEra C.AllegraEraInCardanoMode
+      5 -> decodeTx C.AsMaryEra C.MaryEraInCardanoMode
+      6 -> decodeTx C.AsAlonzoEra C.AlonzoEraInCardanoMode
+      _ -> fail "Unexpected value while decoding Cardano.Api.EraInMode"
+    where
+      decodeTx :: C.IsCardanoEra era => C.AsType era -> C.EraInMode era C.CardanoMode -> Decoder s SomeCardanoApiTx
+      decodeTx asType eraInMode = do
+        bytes <- decodeBytes
+        tx <- either (const $ fail "Failed to decode Cardano.Api.Tx") pure $ C.deserialiseFromCBOR (C.AsTx asType) bytes
+        pure $ SomeTx tx eraInMode
 
 instance ToJSON SomeCardanoApiTx where
   toJSON (SomeTx tx eraInMode) =

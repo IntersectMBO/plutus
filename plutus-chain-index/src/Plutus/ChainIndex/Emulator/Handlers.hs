@@ -32,10 +32,8 @@ import           Data.Maybe                           (catMaybes, fromMaybe)
 import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
 import qualified Data.Set                             as Set
 import           GHC.Generics                         (Generic)
-import           Ledger                               (Address (addressCredential),
-                                                       ChainIndexTxOut (PublicKeyChainIndexTxOut), TxId,
+import           Ledger                               (Address (addressCredential), ChainIndexTxOut (..), TxId,
                                                        TxOut (txOutAddress), TxOutRef (..), txOutDatumHash, txOutValue)
-import           Ledger.Tx                            (ChainIndexTxOut (ScriptChainIndexTxOut))
 import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))

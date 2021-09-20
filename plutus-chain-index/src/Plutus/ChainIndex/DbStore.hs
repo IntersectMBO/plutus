@@ -1,5 +1,8 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
@@ -10,12 +13,9 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
-{-# options_ghc -Wno-missing-signatures #-}
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE UndecidableInstances #-}
-
+{-# LANGUAGE ViewPatterns         #-}
+{-# options_ghc -Wno-missing-signatures #-}
 {-
 
 A beam-specific effect for writing to a beam database. Here we explicitly construct the
@@ -84,7 +84,7 @@ instance Table ScriptRowT where
 
 data TxRowT f
   = TxRow
-    { _txRowHash :: Columnar f ByteString
+    { _txRowTxId :: Columnar f ByteString
     , _txRowTx   :: Columnar f ByteString
     } deriving (Generic, Beamable)
 
@@ -92,7 +92,7 @@ type TxRow = TxRowT Identity
 
 instance Table TxRowT where
   data PrimaryKey TxRowT f = TxRowId (Columnar f ByteString) deriving (Generic, Beamable)
-  primaryKey = TxRowId . _txRowHash
+  primaryKey = TxRowId . _txRowTxId
 
 data AddressRowT f
   = AddressRow
@@ -174,15 +174,21 @@ handleDbStore ::
   -> DbStoreEffect
   ~> Eff effs
 handleDbStore trace conn eff = do
-  case eff of
-    AddRows table records ->
-        runBeam trace conn $ runInsert $ insertOnConflict table (insertValues records) anyConflict onConflictDoNothing
+    case eff of
+        AddRows table records ->
+            runBeam trace conn $ insertBatched records
+                where
+                  -- Workaround for "too many SQL variables" sqlite error
+                  insertBatched [] = pure ()
+                  insertBatched (splitAt 400 -> (batch, rest)) = do
+                      runInsert $ insertOnConflict table (insertValues batch) anyConflict onConflictDoNothing
+                      insertBatched rest
 
-    SelectList q -> runBeam trace conn $ runSelectReturningList q
+        SelectList q -> runBeam trace conn $ runSelectReturningList q
 
-    SelectOne q -> runBeam trace conn $ runSelectReturningOne q
+        SelectOne q -> runBeam trace conn $ runSelectReturningOne q
 
-    UpdateRow q -> runBeam trace conn $ runUpdate q
+        UpdateRow q -> runBeam trace conn $ runUpdate q
 
 runBeam ::
   forall effs.
