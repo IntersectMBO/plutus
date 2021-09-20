@@ -181,7 +181,7 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
     follow client params = \case
         Finished -> do
             logDebug @String ("Contract finished " <> show params)
-            pure $ Left () -- close the contract
+            pure (Right InProgress) -- do not close the contract so we can see it in Marlowe Run history
         InProgress -> do
             result <- SM.waitForUpdateTimeout @_ @MarloweInput client never >>= awaitPromise
             case result of
