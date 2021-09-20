@@ -6,7 +6,6 @@ module Component.Input.View
 
 import Prelude
 import Component.Input.Types (Input, InputType(..))
-import Css as Css
 import Data.Maybe (Maybe(..), isNothing, maybe)
 import Data.Traversable (sequence)
 import Halogen as H
@@ -59,16 +58,17 @@ renderWithChildren input renderChildren =
       ]
   where
   containerStyles =
-    [ "flex"
-    , "items-baseline"
-    , "w-full"
-    , "p-4"
+    [ "border-2"
+    , "duration-200"
+    , "flex"
     , "gap-1"
-    , "rounded-sm"
-    , "border-2"
+    , "items-baseline"
+    , "p-4"
     , "relative"
+    , "rounded-sm"
+    , "transition-all"
+    , "w-full"
     ]
-      <> Css.withAnimation
       <> if input.noHighlight || isNothing input.onChange then
           [ if input.invalid then "border-red" else "border-gray" ]
         else
@@ -83,14 +83,15 @@ renderWithChildren input renderChildren =
                 [ "border-gray", "ring-purple" ]
 
   inputStyles =
-    [ "flex-1"
-    , "p-0"
-    , "border-0"
-    , "outline-none"
+    [ "border-0"
+    , "duration-200"
+    , "flex-1"
     , "focus:outline-none"
-    , "ring-0"
     , "focus:ring-0"
     , "leading-none"
+    , "outline-none"
+    , "p-0"
+    , "ring-0"
     , "text-black"
+    , "transition-all"
     ]
-      <> Css.withAnimation
