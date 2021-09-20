@@ -25,7 +25,7 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
 import Tooltip.Types (ReferenceId)
 import Types (CombinedWSStreamToServer)
-import WalletData.Types (WalletDetails, WalletLibrary)
+import Contacts.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 import Welcome.Types (Action, State) as Welcome

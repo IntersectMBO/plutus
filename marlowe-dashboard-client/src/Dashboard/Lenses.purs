@@ -1,5 +1,5 @@
 module Dashboard.Lenses
-  ( _walletDataState
+  ( _contactsState
   , _walletDetails
   , _walletCompanionStatus
   , _menuOpen
@@ -25,11 +25,11 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (PlutusAppId)
 import Template.Types (State) as Template
-import WalletData.Types (State) as WalletData
-import WalletData.Types (WalletDetails)
+import Contacts.Types (State) as Contacts
+import Contacts.Types (WalletDetails)
 
-_walletDataState :: Lens' State WalletData.State
-_walletDataState = prop (SProxy :: SProxy "walletDataState")
+_contactsState :: Lens' State Contacts.State
+_contactsState = prop (SProxy :: SProxy "contactsState")
 
 _walletDetails :: Lens' State WalletDetails
 _walletDetails = prop (SProxy :: SProxy "walletDetails")

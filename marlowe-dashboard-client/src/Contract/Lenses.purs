@@ -29,7 +29,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (Party)
-import WalletData.Types (WalletNickname)
+import Contacts.Types (WalletNickname)
 
 _Starting :: Prism' State StartingState
 _Starting =

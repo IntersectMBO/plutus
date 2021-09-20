@@ -9,6 +9,7 @@ module Dashboard.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Clipboard (Action) as Clipboard
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
@@ -19,11 +20,11 @@ import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (MarloweData, MarloweParams, Slot)
 import Template.Types (Action, State) as Template
-import WalletData.Types (Action, State) as WalletData
-import WalletData.Types (WalletDetails, WalletNickname)
+import Contacts.Types (Action, State) as Contacts
+import Contacts.Types (WalletDetails, WalletNickname)
 
 type State
-  = { walletDataState :: WalletData.State
+  = { contactsState :: Contacts.State
     , walletDetails :: WalletDetails
     , walletCompanionStatus :: WalletCompanionStatus
     , menuOpen :: Boolean
@@ -45,7 +46,7 @@ derive instance eqWalletCompanionStatus :: Eq WalletCompanionStatus
 data Card
   = TutorialsCard
   | CurrentWalletCard
-  | WalletDataCard
+  | ContactsCard
   | ContractTemplateCard
   | ContractActionConfirmationCard PlutusAppId NamedAction
 
@@ -64,7 +65,7 @@ type Input
 
 data Action
   = PutdownWallet
-  | WalletDataAction WalletData.Action
+  | ContactsAction Contacts.Action
   | ToggleMenu
   | OpenCard Card
   | CloseCard
@@ -78,13 +79,15 @@ data Action
   | TemplateAction Template.Action
   | ContractAction PlutusAppId Contract.Action
   | SetContactForRole String WalletNickname
+  | ClipboardAction Clipboard.Action
 
 -- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
-  toEvent (WalletDataAction walletDataAction) = toEvent walletDataAction
+  toEvent (ContactsAction contactsAction) = toEvent contactsAction
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing
+  toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"
   toEvent CloseCard = Nothing
   toEvent (SetContractFilter _) = Just $ defaultEvent "FilterContracts"
   toEvent (SelectContract _) = Just $ defaultEvent "OpenContract"

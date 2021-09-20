@@ -71,8 +71,8 @@ import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Types (AjaxResponse, DecodedAjaxResponse)
-import WalletData.Lenses (_companionAppId, _marloweAppId, _pubKey, _pubKeyHash, _wallet, _walletInfo)
-import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
+import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKey, _pubKeyHash, _wallet, _walletInfo)
+import Contacts.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
 
 -- The `ManageMarlowe` class provides a window on the `ManageContract`, `ManageWallet`, and
 -- `ManageWebsocket` capabilities with functions specific to Marlowe. Or rather, it does when the

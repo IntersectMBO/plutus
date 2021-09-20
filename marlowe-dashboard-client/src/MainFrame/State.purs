@@ -40,7 +40,7 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusT
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
-import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
+import Contacts.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome

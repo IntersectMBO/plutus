@@ -1,4 +1,4 @@
-module WalletData.State
+module Contacts.State
   ( mkInitialState
   , defaultWalletDetails
   , handleAction
@@ -44,8 +44,8 @@ import Marlowe.Semantics (Assets, Token(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (errorToast, successToast)
 import Types (WebData)
-import WalletData.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
-import WalletData.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
+import Contacts.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
+import Contacts.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
 
 mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
@@ -83,7 +83,7 @@ handleAction ::
   Toast m =>
   MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction CloseWalletDataCard = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
+handleAction CloseContactsCard = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
 
 handleAction (SetCardSection cardSection) = do
   case cardSection of

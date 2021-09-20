@@ -4,12 +4,13 @@ module Dashboard.View
   ) where
 
 import Prelude hiding (div)
+import Clipboard (Action(..)) as Clipboard
 import Contract.Lenses (_Started, _stateNickname)
 import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _contactsState)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
@@ -22,10 +23,10 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (mapComponentAction, renderSubmodule)
-import Halogen.HTML (HTML, a, button, div, div_, footer, h2, h3, h4, header, img, input, label, main, nav, p, span, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, h2, h3, h4, header, img, main, nav, p, span, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), href, id_, readOnly, src, type_, value)
+import Halogen.HTML.Properties (href, id_, src)
 import Humanize (humanizeValue)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Types (ChildSlots)
@@ -38,10 +39,11 @@ import Prim.TypeError (class Warn, Text)
 import Template.View (contractTemplateCard)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
-import WalletData.State (adaToken, getAda)
-import WalletData.Types (WalletDetails)
-import WalletData.View (walletDataCard)
+import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletDetails)
+import Contacts.View (contactsCard)
+import Component.WalletId as WalletId
 
 dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 dashboardScreen { currentSlot, tzOffset } state =
@@ -98,7 +100,7 @@ dashboardCard currentSlot state = case view _card state of
     let
       cardOpen = state ^. _cardOpen
 
-      walletLibrary = state ^. (_walletDataState <<< _walletLibrary)
+      walletLibrary = state ^. (_contactsState <<< _walletLibrary)
 
       currentWallet = state ^. _walletDetails
 
@@ -116,7 +118,7 @@ dashboardCard currentSlot state = case view _card state of
               , case card of
                   TutorialsCard -> tutorialsCard
                   CurrentWalletCard -> currentWalletCard currentWallet
-                  WalletDataCard -> renderSubmodule _walletDataState WalletDataAction (walletDataCard currentWallet) state
+                  ContactsCard -> renderSubmodule _contactsState ContactsAction (contactsCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
                   ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId <<< _Started) (ContractAction followerAppId) (actionConfirmationCard assets action) state
               ]
@@ -148,7 +150,7 @@ dashboardHeader walletNickname menuOpen =
             ]
         , nav
             [ classNames [ "flex", "items-center" ] ]
-            [ navigation (OpenCard WalletDataCard) Icon.Contacts "contactsHeader"
+            [ navigation (OpenCard ContactsCard) Icon.Contacts "contactsHeader"
             , tooltip "Contacts" (RefId "contactsHeader") Bottom
             , navigation (OpenCard TutorialsCard) Icon.Tutorials "tutorialsHeader"
             , tooltip "Tutorials" (RefId "tutorialsHeader") Bottom
@@ -430,26 +432,19 @@ currentWalletCard walletDetails =
     companionAppId = view _companionAppId walletDetails
 
     assets = view _assets walletDetails
+
+    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
   in
-    div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto" ] ]
+    div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
-          [ text $ "Wallet " <> walletNickname ]
-      , div [ classNames [ "p-4", "overflow-y-auto" ] ]
-          [ div
-              [ classNames Css.hasNestedLabel ]
-              [ label
-                  [ classNames Css.nestedLabel ]
-                  [ text "Wallet ID" ]
-              , input
-                  [ type_ InputText
-                  , classNames $ Css.input true <> [ "mb-4" ]
-                  , value $ UUID.toString $ unwrap companionAppId
-                  , readOnly true
-                  ]
-              ]
-          , div
-              [ classNames [ "mb-4" ] ]
+          [ text "My wallet" ]
+      , div [ classNames [ "p-4", "overflow-y-auto", "overflow-x-hidden", "space-y-4" ] ]
+          [ h3
+              [ classNames [ "font-semibold", "text-lg" ] ]
+              [ text walletNickname ]
+          , copyWalletId <$> WalletId.render WalletId.defaultInput { label = "Wallet ID", value = companionAppId }
+          , div_
               [ h4
                   [ classNames [ "font-semibold" ] ]
                   [ text "Balance:" ]
@@ -459,7 +454,7 @@ currentWalletCard walletDetails =
               ]
           ]
       , div
-          [ classNames [ "p-4", "flex", "gap-4", "border-t border-gray" ] ]
+          [ classNames [ "p-4", "flex", "gap-4" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1" ]
               , onClick_ CloseCard

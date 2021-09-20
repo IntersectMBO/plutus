@@ -43,7 +43,7 @@ import Marlowe.Semantics (Party(..), Slot, TokenName)
 import Marlowe.Template (TemplateContent(..), _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInput, _roleWalletInputs, _slotContentInput, _slotContentInputs, _valueContentInput, _valueContentInputs)
 import Template.Types (Action(..), ContractNicknameError(..), ContractSetupStage(..), Input, RoleError(..), SlotError(..), State, ValueError(..))
-import WalletData.Types (WalletLibrary)
+import Contacts.Types (WalletLibrary)
 import Web.HTML.HTMLElement (focus)
 
 -- see note [dummyState] in MainFrame.State

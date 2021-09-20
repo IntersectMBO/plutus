@@ -1,4 +1,4 @@
-module WalletData.Types
+module Contacts.Types
   ( State
   , WalletLibrary
   , WalletNickname
@@ -142,7 +142,7 @@ instance inputeFieldErrorWalletIdError :: InputFieldError WalletIdError where
   inputErrorToString NonexistentWalletId = "Wallet not found"
 
 data Action
-  = CloseWalletDataCard
+  = CloseContactsCard
   | SetCardSection CardSection
   | SaveWallet (Maybe String)
   | CancelNewContactForRole
@@ -153,7 +153,7 @@ data Action
   | ClipboardAction Clipboard.Action
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent CloseWalletDataCard = Just $ defaultEvent "CloseWalletDataCard"
+  toEvent CloseContactsCard = Just $ defaultEvent "CloseContactsCard"
   toEvent (SetCardSection _) = Just $ defaultEvent "SetCardSection"
   toEvent (SaveWallet _) = Just $ defaultEvent "SaveWallet"
   toEvent CancelNewContactForRole = Nothing

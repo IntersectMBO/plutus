@@ -10,6 +10,7 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (handleAction) as Clipboard
 import Clipboard (class MonadClipboard)
 import Contract.Lenses (_Started, _Starting, _marloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
@@ -17,7 +18,7 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State(..), StartingState) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletCompanionStatus, _walletDataState, _walletDetails)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletCompanionStatus, _contactsState, _walletDetails)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Array (null)
 import Data.Either (Either(..))
@@ -30,12 +31,10 @@ import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, delete, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (delete, fromFoldable, isEmpty) as Set
-import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (for)
 import Data.Tuple (Tuple, fst)
 import Data.Tuple.Nested ((/\))
-import Effect.Aff (delay)
-import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
@@ -55,11 +54,11 @@ import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Template.Types (ContractSetupStage(..))
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
-import WalletData.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
-import WalletData.State (defaultWalletDetails)
-import WalletData.State (handleAction, mkInitialState) as WalletData
-import WalletData.Types (Action(..), State) as WalletData
-import WalletData.Types (CardSection(..), WalletDetails, WalletLibrary)
+import Contacts.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
+import Contacts.State (defaultWalletDetails)
+import Contacts.State (handleAction, mkInitialState) as Contacts
+import Contacts.Types (Action(..), State) as Contacts
+import Contacts.Types (CardSection(..), WalletDetails, WalletLibrary)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -74,7 +73,7 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
       in
         Contract.mkInitialState walletDetails currentSlot nickname contractHistory
   in
-    { walletDataState: WalletData.mkInitialState walletLibrary
+    { contactsState: Contacts.mkInitialState walletLibrary
     , walletDetails
     , walletCompanionStatus: FirstUpdatePending
     , menuOpen: false
@@ -98,23 +97,27 @@ handleAction ::
   MonadClipboard m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction _ PutdownWallet = do
-  walletLibrary <- use (_walletDataState <<< _walletLibrary)
+  walletLibrary <- use (_contactsState <<< _walletLibrary)
   walletDetails <- use _walletDetails
   contracts <- use _contracts
   callMainFrameAction $ MainFrame.EnterWelcomeState walletLibrary walletDetails contracts
 
-handleAction _ (WalletDataAction walletDataAction) = case walletDataAction of
-  WalletData.CancelNewContactForRole -> assign _card $ Just ContractTemplateCard
-  _ -> toWalletData $ WalletData.handleAction walletDataAction
+handleAction _ (ContactsAction contactsAction) = case contactsAction of
+  Contacts.CancelNewContactForRole -> assign _card $ Just ContractTemplateCard
+  _ -> toContacts $ Contacts.handleAction contactsAction
 
 handleAction _ ToggleMenu = modifying _menuOpen not
+
+handleAction _ (ClipboardAction action) = do
+  Clipboard.handleAction action
+  addToast $ successToast "Copied to clipboard"
 
 handleAction input (OpenCard card) = do
   -- first we set the card and reset the contact and template card states to their first section
   -- (we could check the card and only reset if relevant, but it doesn't seem worth the bother)
   modify_
     $ set _card (Just card)
-    <<< set (_walletDataState <<< _cardSection) Home
+    <<< set (_contactsState <<< _cardSection) Home
     <<< set (_templateState <<< _contractSetupStage) Start
   -- then we set the card to open (and close the mobile menu) in a separate `modify_`, so that the
   -- CSS transition animation works
@@ -137,7 +140,7 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
     walletDetails <- use _walletDetails
     -- update the wallet library
     storedWalletLibrary <- getWalletLibrary
-    assign (_walletDataState <<< _walletLibrary) storedWalletLibrary
+    assign (_contactsState <<< _walletLibrary) storedWalletLibrary
     -- update the current wallet details to match those from the wallet library
     let
       mStoredWalletDetails = lookup (view _walletNickname walletDetails) storedWalletLibrary
@@ -324,8 +327,8 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
 handleAction input@{ currentSlot } (TemplateAction templateAction) = case templateAction of
   Template.OpenCreateWalletCard tokenName -> do
     modify_
-      $ set _card (Just $ WalletDataCard)
-      <<< set (_walletDataState <<< _cardSection) (NewWallet $ Just tokenName)
+      $ set _card (Just $ ContactsCard)
+      <<< set (_contactsState <<< _cardSection) (NewWallet $ Just tokenName)
   Template.StartContract -> do
     templateState <- use _templateState
     case instantiateExtendedContract currentSlot templateState of
@@ -333,7 +336,7 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
       Just contract -> do
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
         walletDetails <- use _walletDetails
-        walletLibrary <- use (_walletDataState <<< _walletLibrary)
+        walletLibrary <- use (_contactsState <<< _walletLibrary)
         roleWalletInputs <- use (_templateState <<< _roleWalletInputs)
         let
           roleWallets = map (view _value) roleWalletInputs
@@ -360,16 +363,16 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
                 assign _templateState Template.initialState
   _ -> do
-    walletLibrary <- use (_walletDataState <<< _walletLibrary)
+    walletLibrary <- use (_contactsState <<< _walletLibrary)
     toTemplate $ Template.handleAction { currentSlot, walletLibrary } templateAction
 
--- This action is a bridge from the WalletData to the Template modules. It is used to create a
+-- This action is a bridge from the Contacts to the Template modules. It is used to create a
 -- contract for a specific role during contract setup.
 handleAction input (SetContactForRole tokenName walletNickname) = do
   handleAction input $ TemplateAction Template.UpdateRoleWalletValidators
   handleAction input $ TemplateAction $ Template.RoleWalletInputAction tokenName $ InputField.SetValue walletNickname
   -- we assign the card directly rather than calling the OpenCard action, because this action is
-  -- triggered when the WalletDataCard is open, and we don't want to animate opening and closing
+  -- triggered when the ContactsCard is open, and we don't want to animate opening and closing
   -- cards - we just want to switch instantly back to this card
   assign _card $ Just ContractTemplateCard
 
@@ -386,12 +389,12 @@ handleAction input@{ currentSlot, tzOffset } (ContractAction followerAppId contr
     _ -> toContract followerAppId $ Contract.handleAction contractInput contractAction
 
 ------------------------------------------------------------
-toWalletData ::
+toContacts ::
   forall m msg slots.
   Functor m =>
-  HalogenM WalletData.State WalletData.Action slots msg m Unit ->
+  HalogenM Contacts.State Contacts.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
-toWalletData = mapSubmodule _walletDataState WalletDataAction
+toContacts = mapSubmodule _contactsState ContactsAction
 
 toTemplate ::
   forall m msg slots.

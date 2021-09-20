@@ -67,9 +67,9 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract, MarloweData, MarloweParams, Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _marloweContract, _marloweState, _minSlot, _rolesCurrency)
 import Marlowe.Semantics (Input(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
-import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
-import WalletData.State (adaToken)
-import WalletData.Types (WalletDetails, WalletNickname)
+import Contacts.Lenses (_assets, _pubKeyHash, _walletInfo)
+import Contacts.State (adaToken)
+import Contacts.Types (WalletDetails, WalletNickname)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)

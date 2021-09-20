@@ -11,10 +11,11 @@ import Clipboard (Action) as Clipboard
 import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
+import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNickname, WalletNicknameError)
+import Contacts.Types (WalletDetails, WalletLibrary, WalletNickname, WalletNicknameError)
 
--- TODO (possibly): The WalletData submodule used in the Dashboard has some properties and
+-- TODO (possibly): The Contacts submodule used in the Dashboard has some properties and
 -- functionality that's similar to some of what goes on here. It might be worth generalising it so
 -- it works in both cases, and including it as a submodule here too.
 type State
@@ -30,7 +31,7 @@ type State
     , walletLibrary :: WalletLibrary
     , walletNicknameOrIdInput :: InputField.State WalletNicknameOrIdError
     , walletNicknameInput :: InputField.State WalletNicknameError
-    , walletIdInput :: InputField.State WalletIdError
+    , walletId :: PlutusAppId
     , remoteWalletDetails :: WebData WalletDetails
     , enteringDashboardState :: Boolean
     }
@@ -61,7 +62,6 @@ data Action
   | WalletNicknameOrIdInputAction (InputField.Action WalletNicknameOrIdError)
   | OpenUseWalletCardWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
-  | WalletIdInputAction (InputField.Action WalletIdError)
   | UseWallet WalletNickname
   | ClearLocalStorage
   | ClipboardAction Clipboard.Action
@@ -74,7 +74,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (WalletNicknameOrIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (OpenUseWalletCardWithDetails _) = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
-  toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (UseWallet _) = Just $ defaultEvent "UseWallet"
   toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"
   toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

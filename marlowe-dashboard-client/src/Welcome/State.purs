@@ -14,11 +14,11 @@ import Clipboard (handleAction) as Clipboard
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, set, use, view)
+import Data.Lens (assign, modifying, set, use, view, (^.))
 import Data.Map (filter, findMin, insert, lookup)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.UUID (toString) as UUID
+import Data.UUID (emptyUUID, toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
@@ -28,16 +28,17 @@ import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.PAB (PlutusAppId(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import Types (WebData)
-import WalletData.Lenses (_companionAppId, _walletNickname)
-import WalletData.State (parsePlutusAppId, walletNicknameError)
-import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
+import Contacts.Lenses (_companionAppId, _walletNickname)
+import Contacts.State (parsePlutusAppId, walletNicknameError)
+import Contacts.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State, WalletNicknameOrIdError(..))
 
 -- see note [dummyState] in MainFrame.State
@@ -51,7 +52,7 @@ mkInitialState walletLibrary =
   , cardOpen: false
   , walletNicknameOrIdInput: InputField.mkInitialState Nothing
   , walletNicknameInput: InputField.mkInitialState Nothing
-  , walletIdInput: InputField.mkInitialState Nothing
+  , walletId: PlutusAppId UUID.emptyUUID
   , remoteWalletDetails: NotAsked
   , enteringDashboardState: false
   }
@@ -78,9 +79,9 @@ handleAction CloseCard = do
     $ set _remoteWalletDetails NotAsked
     <<< set _enteringDashboardState false
     <<< set _cardOpen false
+    <<< set _walletId dummyState.walletId
   handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
   handleAction $ WalletNicknameInputAction $ InputField.Reset
-  handleAction $ WalletIdInputAction $ InputField.Reset
 
 handleAction GenerateWallet = do
   walletLibrary <- use _walletLibrary
@@ -92,7 +93,7 @@ handleAction GenerateWallet = do
     Right walletDetails -> do
       handleAction $ WalletNicknameInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
-      handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
+      assign _walletId $ walletDetails ^. _companionAppId
       handleAction $ OpenCard UseNewWalletCard
 
 handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
@@ -112,17 +113,16 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
           Right walletDetails -> do
             -- check whether this wallet ID is already in the walletLibrary ...
             walletLibrary <- use _walletLibrary
-            case findMin $ filter (\details -> UUID.toString (unwrap (view _companionAppId details)) == walletNicknameOrId) walletLibrary of
+            assign _walletId plutusAppId
+            case findMin $ filter (\w -> w ^. _companionAppId == plutusAppId) walletLibrary of
               Just { key, value } -> do
                 -- if so, open the UseWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.SetValue key
-                handleAction $ WalletIdInputAction $ InputField.SetValue walletNicknameOrId
                 handleAction $ OpenCard UseWalletCard
               Nothing -> do
                 -- otherwise open the UseNewWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.Reset
                 handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
-                handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
                 handleAction $ OpenCard UseNewWalletCard
     InputField.SetValueFromDropdown walletNicknameOrId -> do
       -- in this case we know it's a wallet nickname, and we want to open the use card
@@ -140,12 +140,10 @@ handleAction (OpenUseWalletCardWithDetails walletDetails) = do
     Right _ -> do
       handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
-      handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
+      assign _walletId $ walletDetails ^. _companionAppId
       handleAction $ OpenCard UseWalletCard
 
 handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
-
-handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
 
 handleAction (UseWallet walletNickname) = do
   assign _enteringDashboardState true
@@ -188,13 +186,6 @@ toWalletNicknameInput ::
   HalogenM (InputField.State WalletNicknameError) (InputField.Action WalletNicknameError) slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toWalletNicknameInput = mapSubmodule _walletNicknameInput WalletNicknameInputAction
-
-toWalletIdInput ::
-  forall m msg slots.
-  Functor m =>
-  HalogenM (InputField.State WalletIdError) (InputField.Action WalletIdError) slots msg m Unit ->
-  HalogenM State Action slots msg m Unit
-toWalletIdInput = mapSubmodule _walletIdInput WalletIdInputAction
 
 ------------------------------------------------------------
 walletNicknameOrIdError :: WebData WalletDetails -> String -> Maybe WalletNicknameOrIdError

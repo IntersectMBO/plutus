@@ -27,7 +27,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, p_, span, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (IProp, InputType(..), enabled, id_, placeholder, ref, type_, value)
@@ -52,7 +52,7 @@ import Popper (Placement(..))
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.State (adaToken, getAda)
+import Contacts.State (adaToken, getAda)
 
 -------------------------------------------------------------------------------
 -- Top-level views
@@ -68,7 +68,7 @@ contractPreviewCard currentSlot state =
     stepPanel = case state of
       Started started ->
         div
-          [ classNames [ "px-4", "py-2", "border-gray", "border-b" ] ]
+          [ classNames [ "px-4", "py-2" ] ]
           [ p
               [ classNames [ "text-xs", "font-semibold" ] ]
               [ text $ "Current step:" <> show (currentStep started + 1) ]
@@ -81,8 +81,6 @@ contractPreviewCard currentSlot state =
           [ classNames
               [ "px-4"
               , "py-2"
-              , "border-gray"
-              , "border-b"
               , "flex"
               , "items-center"
               , "justify-between"
@@ -93,18 +91,11 @@ contractPreviewCard currentSlot state =
               [ text $ "Starting contract…" ]
           , Progress.view Progress.defaultSpec
           ]
-
-    actionPanel = case state of
-      Started started ->
-        div
-          [ classNames [ "h-dashboard-card-actions", "overflow-y-auto" ] ]
-          [ currentStepActions (currentStep started + 1) started ]
-      Starting _ -> startingStepActions
   in
     div
-      [ classNames [ "shadow", "bg-white", "rounded" ] ]
+      [ classNames [ "shadow", "bg-white", "rounded", "divide-y", "divide-gray" ] ]
       [ div
-          [ classNames [ "flex", "gap-2", "px-4", "py-2", "border-gray", "border-b" ] ]
+          [ classNames [ "flex", "gap-2", "px-4", "py-2" ] ]
           [ div
               [ classNames [ "flex-1" ] ]
               [ h3
@@ -127,7 +118,12 @@ contractPreviewCard currentSlot state =
               [ icon Icon.ArrowRight [ "text-28px" ] ]
           ]
       , stepPanel
-      , actionPanel
+      , div
+          [ classNames [ "h-dashboard-card-actions", "overflow-y-auto", "p-4" ] ]
+          [ case state of
+              Started started -> currentStepActions (currentStep started + 1) started
+              Starting _ -> startingStepActions
+          ]
       ]
 
 contractScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
@@ -149,7 +145,7 @@ contractScreen viewInput state =
         in
           mapWithIndex cardForStep $ pastStepsCards <> currentStepCard
       Starting _ ->
-        [ card [ "mx-2", "shadow-sm", "md:shadow-lg" ]
+        [ card [ "shadow-sm", "md:shadow-lg" ]
             [ tabBar Tasks Nothing
             , cardBody []
                 [ titleBar []
@@ -213,28 +209,28 @@ actionConfirmationCard assets namedAction state =
       CloseContract -> "Pay to close"
       _ -> "Fixme, this should not happen"
 
-    detailItem titleHtml amountHtml hasLeftItem =
-      div [ classNames ([ "flex", "flex-col", "flex-1", "mb-2" ] <> applyWhen hasLeftItem [ "pl-2", "border-l", "border-gray" ]) ]
-        [ span [ classNames [ "text-xs" ] ] titleHtml
-        , span [ classNames [ "font-semibold" ] ] amountHtml
+    detailItem itemTitle itemAmount =
+      div [ classNames [ "flex", "flex-col", "flex-1", "px-2" ] ]
+        [ span [ classNames [ "text-xs" ] ] [ text itemTitle ]
+        , span [ classNames [ "font-semibold" ] ] [ text itemAmount ]
         ]
 
-    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text $ humanizeValue adaToken transactionFee ]
+    transactionFeeItem = detailItem "Transaction fee *:" $ humanizeValue adaToken transactionFee
 
     actionAmountItems = case namedAction of
       MakeDeposit _ _ token amount ->
-        [ detailItem [ text "Deposit amount:" ] [ text $ humanizeValue token amount ] false
-        , transactionFeeItem true
+        [ detailItem "Deposit amount:" $ humanizeValue token amount
+        , transactionFeeItem
         ]
       MakeChoice _ _ (Just option) ->
-        [ detailItem [ text "You are choosing:" ] [ text $ "[ option " <> show option <> " ]" ] false
-        , transactionFeeItem true
+        [ detailItem "You are choosing:" $ "[ option " <> show option <> " ]"
+        , transactionFeeItem
         ]
       CloseContract ->
-        [ detailItem [ text "You are closing the contract" ] mempty false
-        , transactionFeeItem true
+        [ detailItem "You are closing the contract" ""
+        , transactionFeeItem
         ]
-      _ -> [ transactionFeeItem false ]
+      _ -> [ transactionFeeItem ]
 
     -- TODO: when we allow custom currency other than ada, we won't be able to add the deposit amount
     -- to the transaction fee (always in ada)
@@ -245,35 +241,37 @@ actionConfirmationCard assets namedAction state =
     hasSufficientFunds = getAda assets >= totalToPay
   in
     div
-      [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto-auto" ] ]
+      [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto-auto", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
           [ text $ "Step " <> (show stepNumber) <> " " <> title ]
       , div
-          [ classNames [ "p-4" ] ]
+          [ classNames [ "p-4", "space-y-2" ] ]
           [ h3
               [ classNames [ "font-semibold" ] ]
               [ text $ title <> " summary" ]
-          , div [ classNames [ "flex", "border-b", "border-gray", "mt-4" ] ]
+          , div [ classNames [ "flex", "border-b", "border-gray", "py-2", "divide-x", "divide-gray" ] ]
               actionAmountItems
           ]
       , div_
           [ div
-              [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-4", "border-gray", "border-t", "border-b" ] ]
+              [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-4" ] ]
               [ span_ [ text "Demo wallet balance:" ]
               , span_ [ text $ humanizeValue adaToken $ getAda assets ]
               ]
           , div
-              [ classNames [ "p-4" ] ]
-              [ h3
-                  [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
-                  [ text "Confirm payment of:" ]
-              , div
-                  [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-                  [ text $ humanizeValue adaToken totalToPay ]
-              , div [ classNames [ "flex", "justify-center" ] ]
+              [ classNames [ "p-4", "space-y-4" ] ]
+              [ div_
+                  [ h3
+                      [ classNames [ "text-sm", "font-semibold" ] ]
+                      [ text "Confirm payment of:" ]
+                  , div
+                      [ classNames [ "text-purple", "font-semibold", "text-2xl" ] ]
+                      [ text $ humanizeValue adaToken totalToPay ]
+                  ]
+              , div [ classNames [ "flex", "justify-center", "gap-2" ] ]
                   [ button
-                      [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
+                      [ classNames $ Css.secondaryButton <> [ "flex-1" ]
                       , onClick_ CancelConfirmation
                       ]
                       [ text "Cancel" ]
@@ -289,7 +287,7 @@ actionConfirmationCard assets namedAction state =
                       }
                   ]
               , div
-                  [ classNames [ "my-4", "text-sm", "text-red" ] ]
+                  [ classNames [ "text-sm", "text-red" ] ]
                   if hasSufficientFunds then
                     []
                   else
@@ -297,7 +295,7 @@ actionConfirmationCard assets namedAction state =
               ]
           ]
       , div
-          [ classNames [ "p-4", "border-t", "border-gray", "text-sm" ] ]
+          [ classNames [ "p-4", "text-sm" ] ]
           [ text "* Transaction fees are fixed at 10 lovelace in the demo, but will vary in the real app." ]
       ]
 
@@ -406,11 +404,10 @@ renderPastStep viewInput state stepNumber step =
                     , stepStatusText "Completed" [ "text-green" ]
                     ]
             ]
-        , cardContent []
-            $ case step.tab, step of
-                Tasks, { state: TransactionStep txInput } -> [ renderPastStepTasksTab viewInput stepNumber state txInput step ]
-                Tasks, { state: TimeoutStep timeoutInfo } -> [ renderTimeout viewInput state stepNumber timeoutInfo ]
-                Balances, { balances } -> [ renderBalances stepNumber state balances ]
+        , case step.tab, step of
+            Tasks, { state: TransactionStep txInput } -> cardContent [ "p-4" ] [ renderPastStepTasksTab viewInput stepNumber state txInput step ]
+            Tasks, { state: TimeoutStep timeoutInfo } -> cardContent [ "p-4" ] [ renderTimeout viewInput state stepNumber timeoutInfo ]
+            Balances, { balances } -> cardContent [] [ renderBalances stepNumber state balances ]
         ]
   ]
 
@@ -455,19 +452,19 @@ renderPastStepTasksTab viewInput stepNumber state txInput step =
 
     resultingPayments = step ^. _resultingPayments
   in
-    div [ classNames [ "px-4" ] ]
-      $ if Array.length actionsByParticipant == 0 then
-          -- TODO: See if we can reach this state and what text describes it better.
-          [ div [ classNames [ "bg-white", "rounded", "shadow-sm", "my-4" ] ]
-              [ text "An empty transaction was made to advance this step" ]
-          ]
-        else
-          append
-            (renderPartyPastActions viewInput state <$> actionsByParticipant)
-            if length resultingPayments == 0 then
-              []
-            else
-              [ renderPaymentSummary stepNumber state step ]
+    div [ classNames [ "space-y-4" ] ]
+      if Array.length actionsByParticipant == 0 then
+        -- TODO: See if we can reach this state and what text describes it better.
+        [ div [ classNames [ "bg-white", "rounded", "shadow-sm" ] ]
+            [ text "An empty transaction was made to advance this step" ]
+        ]
+      else
+        append
+          (renderPartyPastActions viewInput state <$> actionsByParticipant)
+          if length resultingPayments == 0 then
+            []
+          else
+            [ renderPaymentSummary stepNumber state step ]
 
 renderPaymentSummary :: forall p. Int -> StartedState -> PreviousStep -> HTML p Action
 renderPaymentSummary stepNumber state step =
@@ -484,7 +481,7 @@ renderPaymentSummary stepNumber state step =
 
     expandIcon = if expanded then Icon.ExpandLess else Icon.ExpandMore
   in
-    div [ classNames [ "bg-white", "rounded", "shadow-sm", "my-4" ] ]
+    div [ classNames [ "bg-white", "rounded", "shadow-sm", "divide-y", "divide-gray" ] ]
       ( append
           [ a
               [ classNames [ "px-4", "py-2", "flex", "justify-between", "items-center", "text-xs", "font-semibold", "select-none" ]
@@ -497,7 +494,7 @@ renderPaymentSummary stepNumber state step =
           if not expanded then
             []
           else
-            [ div [ classNames [ "px-4", "border-t", "border-gray" ] ]
+            [ div [ classNames [ "px-4" ] ]
                 ( movements <#> \movement -> div [ classNames [ "py-4" ] ] [ renderMovement state movement ]
                 )
             ]
@@ -524,8 +521,8 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
     transactionTime = maybe "-" (formatTime tzOffset) mTransactionDateTime
 
     renderPartyHeader =
-      div [ classNames [ "flex", "justify-between", "items-center", "border-b", "border-gray", "px-3", "pb-4" ] ]
-        [ renderParty [] state party
+      div [ classNames [ "flex", "justify-between", "items-center", "p-4" ] ]
+        [ renderParty state party
         , div [ classNames [ "flex", "flex-col", "items-end", "text-xxs", "font-semibold" ] ]
             [ span_ [ text transactionDate ]
             , span_ [ text $ transactionTime <> " (" <> humanizeOffset tzOffset <> ")" ]
@@ -533,8 +530,8 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
         ]
 
     renderFeesSummary =
-      div [ classNames [ "pt-4", "px-3", "border-t", "border-gray", "flex", "items-center", "text-xs" ] ]
-        [ icon Icon.Language [ "text-lightpurple", "text-lg", "mr-1" ]
+      div [ classNames [ "p-4", "flex", "items-center", "text-xs", "gap-1" ] ]
+        [ icon Icon.Language [ "text-lightpurple", "text-lg" ]
         , span [ classNames [ "font-semibold" ] ]
             [ text "Total fees:"
             ]
@@ -542,7 +539,7 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
         ]
 
     renderActionsBody =
-      div [ classNames [ "py-4", "px-3" ] ]
+      div [ classNames [ "p-4", "space-y-4" ] ]
         (map renderPastAction inputs)
 
     renderPastAction = case _ of
@@ -559,7 +556,7 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
           ]
       _ -> div_ []
   in
-    div [ classNames [ "mt-4", "bg-white", "rounded", "shadow-sm", "py-4" ] ]
+    div [ classNames [ "bg-white", "rounded", "shadow-sm", "divide-y", "divide-gray" ] ]
       [ renderPartyHeader
       , renderActionsBody
       , renderFeesSummary
@@ -576,9 +573,9 @@ renderTimeout { tzOffset } state stepNumber timeoutInfo =
 
     header =
       div
-        [ classNames [ "py-2", "px-3", "w-full", "flex", "justify-between" ] ]
-        [ div [ classNames [ "flex", "items-center", "text-xs" ] ]
-            [ icon Icon.Timer [ "mr-1" ]
+        [ classNames [ "p-2", "gap-2", "w-full", "flex", "justify-between" ] ]
+        [ div [ classNames [ "flex", "items-center", "text-xs", "gap-1" ] ]
+            [ icon_ Icon.Timer
             , span [ classNames [ "font-semibold" ] ] [ text "Timed out" ]
             ]
         , div [ classNames [ "flex", "flex-col", "items-end", "text-xxs", "font-semibold" ] ]
@@ -588,10 +585,10 @@ renderTimeout { tzOffset } state stepNumber timeoutInfo =
         ]
 
     body =
-      div [ classNames [ "py-2", "px-3", "border-t", "border-gray" ] ]
+      div [ classNames [ "p-2", "space-y-2" ] ]
         $ renderMissingActions state timeoutInfo
   in
-    div [ classNames [ "mt-4", "bg-white", "rounded", "shadow-sm", "mx-4", "flex", "flex-col", "items-center" ] ]
+    div [ classNames [ "divide-y", "divide-gray", "bg-white", "rounded", "shadow-sm", "flex", "flex-col", "items-center" ] ]
       [ header
       , body
       ]
@@ -620,12 +617,12 @@ renderPartyMissingActions state party actions =
 
     actionsSeparatedByOr =
       intercalate
-        [ div [ classNames [ "font-semibold", "my-2", "text-xs" ] ] [ text "or" ]
+        [ div [ classNames [ "font-semibold", "text-xs" ] ] [ text "or" ]
         ]
         (Array.singleton <<< renderMissingAction <$> actions)
   in
-    div [ classNames [ "border-l-2", "border-black", "pl-2", "mt-3" ] ]
-      $ Array.cons (renderParty [ "mb-2" ] state party) actionsSeparatedByOr
+    div [ classNames [ "border-l-2", "border-black", "pl-2", "space-y-2" ] ]
+      $ Array.cons (renderParty state party) actionsSeparatedByOr
 
 renderCurrentStep ::
   forall m.
@@ -642,10 +639,6 @@ renderCurrentStep viewInput state =
     contractIsClosed = isContractClosed (Started state)
 
     mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
-
-    cardBg = case state.tab of
-      Tasks -> "bg-white"
-      Balances -> "bg-gray"
   in
     [ tabBar state.tab $ Just (SelectTab stepNumber)
     , cardBody []
@@ -660,26 +653,25 @@ renderCurrentStep viewInput state =
                         , icon Icon.Timer []
                         ]
               ]
-          , cardContent [ cardBg ]
-              $ case state.tab of
-                  Tasks -> [ currentStepActions stepNumber state ]
-                  Balances ->
-                    let
-                      participants = state ^. _participants
+          , case state.tab of
+              Tasks -> cardContent [ "bg-wite", "p-4" ] [ currentStepActions stepNumber state ]
+              Balances ->
+                let
+                  participants = state ^. _participants
 
-                      balancesAtStart = state ^. (_executionState <<< _semanticState <<< _accounts)
+                  balancesAtStart = state ^. (_executionState <<< _semanticState <<< _accounts)
 
-                      atStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
+                  atStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
 
-                      atEnd = if isJust state.pendingTransaction then Just atStart else Nothing
-                    in
-                      [ renderBalances stepNumber state { atStart, atEnd } ]
+                  atEnd = if isJust state.pendingTransaction then Just atStart else Nothing
+                in
+                  cardContent [ "bg-gray" ] [ renderBalances stepNumber state { atStart, atEnd } ]
           ]
     ]
 
 startingStepActions :: forall p a. HTML p a
 startingStepActions =
-  div [ classNames [ "py-6", "px-4", "space-y-6" ] ]
+  div [ classNames [ "space-y-6" ] ]
     [ placeholderAccount
     , placeholderContent
     ]
@@ -699,7 +691,7 @@ startingStepActions =
 currentStepActions :: forall m. MonadAff m => Int -> StartedState -> ComponentHTML Action ChildSlots m
 currentStepActions stepNumber state = case isContractClosed (Started state), isJust state.pendingTransaction, state.namedActions of
   true, _, _ ->
-    div [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center", "p-4" ] ]
+    div [ classNames [ "h-full", "flex", "flex-col", "justify-center", "items-center" ] ]
       [ icon Icon.TaskAlt [ "text-green", "text-big-icon" ]
       , div
           -- The bottom margin on this div means the whole thing isn't perfectly centered vertically.
@@ -714,26 +706,26 @@ currentStepActions stepNumber state = case isContractClosed (Started state), isJ
   _, true, _ ->
     -- FIXME: when we have a design for this, we can include more information (probably making this look more like
     -- the past step card)
-    div [ classNames [ "px-4", "mt-4" ] ]
+    div_
       [ text "Your transaction has been submitted. You will be notified when confirmation is received." ]
   _, _, [] ->
     let
       purpleDot extraCss = div [ classNames $ [ "rounded-full", "bg-lightpurple", "w-3", "h-3", "animate-grow" ] <> extraCss ] []
     in
       div
-        [ classNames [ "p-4", "text-xs", "flex", "flex-col", "h-full" ] ]
+        [ classNames [ "text-xs", "flex", "flex-col", "h-full", "gap-2" ] ]
         [ h4 [ classNames [ "font-semibold" ] ] [ text "Please wait…" ]
-        , p [ classNames [ "mt-2" ] ]
+        , p_
             [ text "There are no tasks to complete at this step. The contract will progress automatically when the timeout passes." ]
-        , div [ classNames [ "flex-grow", "flex", "justify-center", "items-center" ] ]
-            [ purpleDot [ "mr-2" ]
+        , div [ classNames [ "flex-grow", "flex", "justify-center", "items-center", "gap-2" ] ]
+            [ purpleDot []
             , purpleDot [ "animate-delay-150" ]
-            , purpleDot [ "ml-2", "animate-delay-300" ]
+            , purpleDot [ "animate-delay-300" ]
             ]
         ]
   _, _, namedActions ->
     div
-      [ classNames [ "px-4", "pb-4" ] ]
+      [ classNames [ "space-y-4" ] ]
       $ uncurry (renderPartyTasks state)
       <$> namedActions
 
@@ -753,14 +745,14 @@ renderMovement :: StartedState -> Movement -> forall p a. HTML p a
 renderMovement state movement =
   let
     fromParty = case movement of
-      PayIn from _ _ _ -> renderParty [] state from
+      PayIn from _ _ _ -> renderParty state from
       Transfer from _ _ _ -> renderPartyAccount [] state from
       PayOut from _ _ _ -> renderPartyAccount [] state from
 
     toParty = case movement of
       PayIn _ to _ _ -> renderPartyAccount [] state to
       Transfer _ to _ _ -> renderPartyAccount [] state to
-      PayOut _ to _ _ -> renderParty [] state to
+      PayOut _ to _ _ -> renderParty state to
 
     token = case movement of
       PayIn _ _ t _ -> t
@@ -800,7 +792,6 @@ firstLetterInCircle { styles, name } =
           , "w-5"
           , "h-5"
           , "text-center"
-          , "mr-1"
           , "font-semibold"
           ]
         <> styles
@@ -809,14 +800,14 @@ firstLetterInCircle { styles, name } =
 
 -- TODO: In zeplin all participants have a different color. We need to decide how are we going to assing
 --       colors to users. For now they all have purple
-renderParty :: forall p a. Array String -> StartedState -> Party -> HTML p a
-renderParty styles state party =
+renderParty :: forall p a. StartedState -> Party -> HTML p a
+renderParty state party =
   let
     participantName = participantWithNickname state party
 
     userParties = state ^. _userParties
   in
-    div [ classNames $ [ "text-xs", "flex" ] <> styles ]
+    div [ classNames $ [ "text-xs", "flex", "gap-1" ] ]
       [ firstLetterInCircle { styles: [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ], name: participantName }
       , div [ classNames [ "font-semibold" ] ]
           [ text $ if Set.member party userParties then participantName <> " (you)" else participantName
@@ -842,12 +833,12 @@ renderPartyTasks state party actions =
   let
     actionsSeparatedByOr =
       intercalate
-        [ div [ classNames [ "font-semibold", "text-center", "my-2", "text-xs" ] ] [ text "OR" ]
+        [ div [ classNames [ "font-semibold", "text-center", "text-xs" ] ] [ text "OR" ]
         ]
         (Array.singleton <<< renderAction state party <$> actions)
   in
-    div [ classNames [ "mt-3" ] ]
-      ([ renderParty [ "mb-2" ] state party ] <> actionsSeparatedByOr)
+    div [ classNames [ "space-y-2" ] ]
+      ([ renderParty state party ] <> actionsSeparatedByOr)
 
 -- FIXME: This was added to allow anybody being able to do any actions for debug purposes...
 --        Remove once the PAB is connected
@@ -881,10 +872,10 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
 
     description = fromDescription <> " a deposit into " <> toDescription <> " account"
   in
-    div_
+    div [ classNames [ "space-y-2" ] ]
       [ shortDescription isActiveParticipant description
       , button
-          [ classNames $ Css.button <> Css.withAnimation <> [ "flex", "justify-between", "w-full", "mt-2" ]
+          [ classNames $ Css.button <> Css.withAnimation <> [ "flex", "justify-between", "w-full" ]
               <> if isActiveParticipant || debugMode then
                   Css.bgBlueGradient <> Css.withShadow
                 else
@@ -924,7 +915,6 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
             $ [ "flex"
               , "w-full"
               , "rounded"
-              , "mt-2"
               , "overflow-hidden"
               , "focus-within:ring-1"
               , "ring-black"
@@ -957,7 +947,7 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     singleInput = \_ ->
       button
-        [ classNames $ Css.button <> Css.withAnimation <> [ "w-full", "mt-2" ]
+        [ classNames $ Css.button <> Css.withAnimation <> [ "w-full" ]
             <> if isActiveParticipant || debugMode then
                 Css.bgBlueGradient <> Css.withShadow
               else
@@ -968,7 +958,7 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
         [ span_ [ text choiceIdKey ]
         ]
   in
-    div_
+    div [ classNames [ "space-y-2" ] ]
       [ choiceDescription
       , if minBound == maxBound then
           singleInput unit
@@ -986,11 +976,11 @@ renderAction state party CloseContract =
 
     isActiveParticipant = Set.member party userParties
   in
-    div_
+    div [ classNames [ "space-y-2" ] ]
       -- FIXME: revisit the text
       [ shortDescription isActiveParticipant "The contract is still open and needs to be manually closed by any participant for the remainder of the balances to be distributed (charges may apply)"
       , button
-          [ classNames $ Css.button <> Css.withAnimation <> [ "w-full", "mt-2" ]
+          [ classNames $ Css.button <> Css.withAnimation <> [ "w-full" ]
               <> if isActiveParticipant || debugMode then
                   Css.bgBlueGradient <> Css.withShadow
                 else
@@ -1022,30 +1012,30 @@ renderBalances stepNumber state stepBalance =
             )
             stepBalance.atEnd
   in
-    div [ classNames [ "text-xs" ] ]
+    div [ classNames [ "text-xs", "space-y-4" ] ]
       [ div
-          [ classNames [ "bg-white", "py-1", "px-4", "mb-5", "flex", "items-center" ] ]
-          [ icon Icon.ReadMore [ "mr-1" ]
+          [ classNames [ "bg-white", "py-1", "px-4", "gap-1", "flex", "items-center" ] ]
+          [ icon_ Icon.ReadMore
           , span [ classNames [ "font-semibold" ] ] [ text "Balances of contract accounts" ]
           , hint [ "relative", "-top-1" ] ("balances-" <> show stepNumber) Auto
               -- FIXME: Revisit copy
               
               $ div_ [ text "This tab shows the amount of tokens that each role has in the contract account. A deposit is needed to get tokens from a wallet into the contract account, and a payment is needed to redeem tokens from the contract account into a user's wallet" ]
           ]
-      , div [ classNames [ "px-4" ] ]
+      , div [ classNames [ "px-4", "space-y-3" ] ]
           ( accounts'
               <#> ( \((party /\ token) /\ balance) ->
                     let
                       participantName = participantWithNickname state party
                     in
-                      div [ classNames [ "grid", "grid-cols-2", "gap-y-1", "py-3", "px-4", "mb-3", "shadow-sm", "bg-white", "rounded" ] ]
+                      div [ classNames [ "grid", "grid-cols-2", "gap-y-1", "py-3", "px-4", "shadow-sm", "bg-white", "rounded" ] ]
                         ( append
-                            [ div [ classNames [ "flex" ] ]
+                            [ div [ classNames [ "flex", "gap-1" ] ]
                                 [ accountIndicator
                                     { colorStyles:
-                                        [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "mr-1" ]
+                                        [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
                                     , otherStyles:
-                                        [ "mr-1" ]
+                                        []
                                     , name: participantName
                                     }
                                 , span [ classNames [ "font-semibold" ] ] [ text participantName ]
@@ -1107,7 +1097,6 @@ card =
       , "transition-transform"
       , "duration-100"
       , "ease-out"
-      , "mb-3"
       ]
 
 tabBar :: forall p action. Tab -> Maybe (Tab -> action) -> HTML p action
@@ -1142,10 +1131,10 @@ tabBar current onClick =
     div [ classNames css ] [ tab Tasks, tab Balances ]
 
 cardBody :: forall p action. Array String -> Array (HTML p action) -> HTML p action
-cardBody = div `withBaseCss` [ "bg-white", "grid", "grid-rows-auto-1fr" ]
+cardBody = div `withBaseCss` [ "bg-white", "grid", "grid-rows-auto-1fr", "divide-y", "divide-lightgray" ]
 
 titleBar :: forall p action. Array String -> Array (HTML p action) -> HTML p action
-titleBar = div `withBaseCss` [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ]
+titleBar = div `withBaseCss` [ "py-2.5", "px-4", "flex", "items-center" ]
 
 cardContent :: forall p action. Array String -> Array (HTML p action) -> HTML p action
 cardContent = div `withBaseCss` [ "overflow-y-auto" ]
@@ -1160,7 +1149,7 @@ stepTitle s =
     [ text s ]
 
 stepStatus :: forall p action. Array String -> Array (HTML p action) -> HTML p action
-stepStatus = div `withBaseCss` [ "h-10", "flex", "items-center", "space-x-2" ]
+stepStatus = div `withBaseCss` [ "h-10", "flex", "items-center", "gap-2" ]
 
 stepStatusText :: forall p action. String -> Array String -> HTML p action
 stepStatusText message css =

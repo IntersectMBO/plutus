@@ -40,7 +40,7 @@ import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
 import Types (AjaxResponse)
 import Wallet.Types (_EndpointDescription)
-import WalletData.Types (PubKeyHash)
+import Contacts.Types (PubKeyHash)
 
 class MarloweApp m where
   createContract :: PlutusAppId -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
