@@ -57,6 +57,7 @@ import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachineClient (..), Void,
                                                WaitingResult (..), getStates)
 import qualified Plutus.Contract.StateMachine as SM
+import           Plutus.Contract.Wallet       (getUnspentOutput)
 import qualified Plutus.Contracts.Currency    as Currency
 import qualified PlutusTx
 import qualified PlutusTx.AssocMap            as AssocMap
@@ -78,7 +79,6 @@ data MarloweError =
     | TransitionError (SM.InvalidTransition MarloweData MarloweInput)
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
-    | RolesCurrencyError ContractError
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -245,7 +245,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
     create = endpoint @"create" $ \(owners, contract) -> catchError "create" $ do
         -- Create a transaction with the role tokens and pay them to the contract creator
         -- See Note [The contract is not ready]
-        (params, distributeRoleTokens) <- setupMarloweParams owners contract
+        (params, distributeRoleTokens, lkps) <- setupMarloweParams owners contract
         slot <- currentSlot
         let StateMachineClient{scInstance} = mkMarloweClient params
         let marloweData = MarloweData {
@@ -254,7 +254,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         let payValue = adaValueOf 0
         let SM.StateMachineInstance{SM.typedValidator} = scInstance
         let tx = mustPayToTheScript marloweData payValue <> distributeRoleTokens
-        let lookups = Constraints.typedValidatorLookups typedValidator
+        let lookups = Constraints.typedValidatorLookups typedValidator <> lkps
         -- Create the Marlowe contract and pay the role tokens to the owners
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
@@ -387,27 +387,41 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
 setupMarloweParams
     :: forall s e i o.
     (AsMarloweError e)
-    => RoleOwners -> Marlowe.Contract -> Contract MarloweContractState s e (MarloweParams, TxConstraints i o)
+    => RoleOwners
+    -> Marlowe.Contract
+    -> Contract MarloweContractState s e
+        (MarloweParams, TxConstraints i o, ScriptLookups (SM.StateMachine MarloweData MarloweInput))
 setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     creator <- pubKeyHash <$> ownPubKey
+    let ownAddress = pubKeyHashAddress creator
     let roles = extractContractRoles contract
     if Set.null roles
     then do
         let params = MarloweParams
                 { rolesCurrency = adaSymbol
                 , rolePayoutValidatorHash = defaultRolePayoutValidatorHash }
-        pure (params, mempty)
+        pure (params, mempty, mempty)
     else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
     then do
         let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
-        cur <- mapError (\(Currency.CurContractError ce) -> RolesCurrencyError ce) $ Currency.mintContract creator tokens
-        let rolesSymbol = Currency.currencySymbol cur
+        txOutRef@(Ledger.TxOutRef h i) <- getUnspentOutput
+        utxo <- utxoAt ownAddress
+        let theCurrency = Currency.OneShotCurrency
+                { curRefTransactionOutput = (h, i)
+                , curAmounts              = AssocMap.fromList tokens
+                }
+            curVali     = Currency.curPolicy theCurrency
+            lookups     = Constraints.mintingPolicy curVali
+                            <> Constraints.unspentOutputs utxo
+            mintTx      = Constraints.mustSpendPubKeyOutput txOutRef
+                            <> Constraints.mustMintValue (Currency.mintedValue theCurrency)
+        let rolesSymbol = Ledger.scriptCurrencySymbol curVali
         let giveToParty (role, pkh) = Constraints.mustPayToPubKey pkh (Val.singleton rolesSymbol role 1)
         let distributeRoleTokens = foldMap giveToParty (AssocMap.toList owners)
         let params = MarloweParams
                 { rolesCurrency = rolesSymbol
                 , rolePayoutValidatorHash = mkRolePayoutValidatorHash rolesSymbol }
-        pure (params, distributeRoleTokens)
+        pure (params, mintTx <> distributeRoleTokens, lookups)
     else do
         let missingRoles = roles `Set.difference` Set.fromList (AssocMap.keys owners)
         let message = T.pack $ "You didn't specify owners of these roles: " <> show missingRoles

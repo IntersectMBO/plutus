@@ -233,7 +233,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
                         (Slot 40) Close)
                     ] (Slot 30) Close)
             ] (Slot 20) Close
-        (params, _ :: TxConstraints MarloweInput MarloweData) =
+        (params, _ :: TxConstraints MarloweInput MarloweData, _) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
                         (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
                         contract
