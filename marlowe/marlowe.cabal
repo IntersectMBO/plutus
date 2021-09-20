@@ -64,11 +64,9 @@ library
     plutus-ledger,
     plutus-use-cases,
     text,
-    vector,
     sbv >= 8.4,
     scientific -any,
     wl-pprint -any,
-    freer-simple -any,
     semigroups -any
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any
@@ -78,6 +76,7 @@ library
     Language.Marlowe.Semantics
     Language.Marlowe.Client
     Language.Marlowe.Util
+    Language.Marlowe.Scripts
     Language.Marlowe.Pretty
     Language.Marlowe.Analysis.FSSemantics
   other-modules:

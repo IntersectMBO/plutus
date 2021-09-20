@@ -49,11 +49,9 @@
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
           (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
-          (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
-          (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
@@ -63,6 +61,7 @@
           "Language/Marlowe/Semantics"
           "Language/Marlowe/Client"
           "Language/Marlowe/Util"
+          "Language/Marlowe/Scripts"
           "Language/Marlowe/Pretty"
           "Language/Marlowe/Analysis/FSSemantics"
           ];

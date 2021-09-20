@@ -39,6 +39,8 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
+import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
+                                                        typedValidator)
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
