@@ -27,7 +27,7 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule                (Cas
                                                                              calculationDay, paymentDay)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
 import           Language.Marlowe.ACTUS.Model.POF.Payoff                    (payoff)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (maturity, schedule)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        as S (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransition
 
 -- |'genProjectedCashflows' generates a list of projected cashflows for
@@ -65,10 +65,10 @@ genProjectedCashflows getRiskFactors ct@ContractTermsPoly {..} =
                   let rf = getRiskFactors ev t
                   stateTransition ev rf t st <&> (,ev',t')
 
-                context = CtxSTF ct fpSchedule prSchedule
+                context = CtxSTF ct fpSchedule prSchedule mat
 
-                fpSchedule = schedule FP ct -- stf rely on the fee payment schedule
-                prSchedule = schedule PR ct -- stf rely on the principal redemption schedule
+                fpSchedule = calculationDay <$> schedule FP ct -- stf rely on the fee payment schedule
+                prSchedule = calculationDay <$> schedule PR ct -- stf rely on the principal redemption schedule
 
             -- payoffs
 
@@ -97,6 +97,8 @@ genProjectedCashflows getRiskFactors ct@ContractTermsPoly {..} =
     )
     (initialize ct)
   where
+    mat = S.maturity ct
+
     filtersSchedules :: (EventType, ShiftedDay) -> Bool
     filtersSchedules (_, ShiftedDay {..}) = isNothing ct_TD || Just calculationDay <= ct_TD
 
@@ -108,7 +110,7 @@ genProjectedCashflows getRiskFactors ct@ContractTermsPoly {..} =
         NAM -> isNothing ct_PRD || ev == PRD || Just calculationDay > ct_PRD
         ANN ->
           let b1 = isNothing ct_PRD || ev == PRD || Just calculationDay > ct_PRD
-              b2 = let m = ct_MD <|> ct_AD <|> maturity ct in isNothing m || Just calculationDay <= m
+              b2 = let m = ct_MD <|> ct_AD <|> mat in isNothing m || Just calculationDay <= m
            in b1 && b2
 
     postProcessSchedule :: [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]

@@ -3,12 +3,12 @@
 
 module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
-  --, plusCycle
-  --, minusCycle
   , (<+>)
   , (<->)
   , sup
   , inf
+  , sup'
+  , inf'
   , remove
   , applyEOMC
   , moveToEndOfMonth
@@ -43,6 +43,14 @@ inf set threshold =
 sup :: [ShiftedDay] -> LocalTime -> Maybe ShiftedDay
 sup set threshold =
   maximumMaybe [t | t <- set, calculationDay t < threshold]
+
+inf' :: (Ord a) => [a] -> a -> Maybe a
+inf' set threshold =
+  minimumMaybe [t | t <- set, t > threshold]
+
+sup' :: (Ord a) => [a] -> a -> Maybe a
+sup' set threshold =
+  maximumMaybe [t | t <- set, t < threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)

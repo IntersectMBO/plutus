@@ -61,7 +61,7 @@ datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secon
 
 contractTermsGen :: Gen ContractTerms
 contractTermsGen = do
-    contracttype <- elements [PAM]
+    contracttype <- elements [PAM, LAM, NAM, ANN]
     sd <- date
     ied <- date
 

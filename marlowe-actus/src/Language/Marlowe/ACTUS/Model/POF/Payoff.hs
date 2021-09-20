@@ -1,15 +1,24 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.Model.POF.Payoff where
+module Language.Marlowe.ACTUS.Model.POF.Payoff
+  ( payoff )
+where
 
-import           Data.Time                                         (LocalTime)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactors, RiskFactorsPoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms, ContractTermsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
-import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y))
+import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), ActusOps (..), RoleSignOps (..),
+                                                                    YearFractionOps (_y))
 
-payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTime -> Double
+-- |'payoff' function for ACTUS contracts
+payoff :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a) =>
+     EventType             -- ^ Event type
+  -> RiskFactorsPoly a     -- ^ Risk factors
+  -> ContractTermsPoly a b -- ^ Contract terms (immutable)
+  -> ContractStatePoly a b -- ^ Contract state
+  -> b                     -- ^ Time
+  -> a                     -- ^ Payoff amount
 -- IED
 payoff
   IED
@@ -29,7 +38,7 @@ payoff
       ct_CNTRL = cntrl
     }
   _
-  _ = _POF_IED_PAM o_rf_CURS cntrl notionalPrincipal 0.0
+  _ = _POF_IED_PAM o_rf_CURS cntrl notionalPrincipal _zero
 -- PR
 payoff
   PR
@@ -180,4 +189,4 @@ payoff
   t =
     let y_sd_t = _y dayCountConvention sd t md
      in _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
-payoff _ _ _ _ _ = 0.0
+payoff _ _ _ _ _ = _zero

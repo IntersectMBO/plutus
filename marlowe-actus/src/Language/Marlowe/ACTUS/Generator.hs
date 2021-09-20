@@ -166,7 +166,7 @@ genFsContract' ct =
         -- orcale
         let oracle = let ac = context <$> constraints ct in inquiryFs ev ("_" ++ show i) date "oracle" ac
 
-        -- state transformaton
+        -- state transformation
         stf <- stateToContract <$> stateTransition ev rf prevDate cd st
 
         -- payoff
