@@ -553,7 +553,7 @@ instance ContractModel state => StateModel (ModelState state) where
     nextState s Unilateral{} _          = s
 
     precondition s (ContractAction cmd) = precondition s cmd
-    precondition _ Unilateral{} = True
+    precondition _ Unilateral{}         = True
 
     perform s (ContractAction cmd) _env = () <$ runEmulator (\ h -> perform (handle h) s cmd)
     perform _ (Unilateral w) _env = () <$ runEmulator (\ h -> do
