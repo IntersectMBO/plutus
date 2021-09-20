@@ -10,16 +10,16 @@ where
 import           Control.Monad.Reader
 import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time                                              (LocalTime)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactorsMarlowe,
+                                                                         RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStateMarlowe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
+import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweTime)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
-
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactorsPoly (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                   (ContractStateMarlowe, RiskFactorsMarlowe,
-                                                                         constnt, enum, marloweTime)
 
 data CtxSTF = CtxSTF
   { contractTerms :: ContractTerms

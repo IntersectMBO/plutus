@@ -1,9 +1,8 @@
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
 import           Data.Time                                        (LocalTime)
+import           Language.Marlowe                                 (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (PRF)
-
-type ContractState = ContractStatePoly Double LocalTime
 
 {-| ACTUS contract states are defined in
     https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-states.json
@@ -22,3 +21,6 @@ data ContractStatePoly a b = ContractStatePoly
   , prnxt :: a    -- ^ Next Principal Redemption Payment (PRNXT): The value at which principal is being repaid
   , ipcb  :: a    -- ^ Interest Calculation Base (IPCB)
   } deriving (Show)
+
+type ContractState = ContractStatePoly Double LocalTime
+type ContractStateMarlowe = ContractStatePoly (Value Observation) (Value Observation)

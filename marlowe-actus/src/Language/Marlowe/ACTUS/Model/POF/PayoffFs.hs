@@ -5,12 +5,12 @@ module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 import           Data.Maybe                                        (fromMaybe)
 import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation, Value)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsMarlowe,
+                                                                    RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStateMarlowe, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms, ContractTermsPoly (..),
                                                                     FEB (..))
-import           Language.Marlowe.ACTUS.MarloweCompat              (ContractStateMarlowe, RiskFactorsMarlowe, constnt,
-                                                                    enum)
+import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
                                                                     marloweFixedPoint)

@@ -33,13 +33,13 @@ import           Language.Marlowe                                           (Act
 import           Language.Marlowe.ACTUS.Analysis                            (genProjectedCashflows)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors,
                                                                              RiskFactorsPoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
                                                                              Assertions (..), ContractTerms,
                                                                              ContractTermsPoly (..),
                                                                              TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, stateInitialisation,
+import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, marloweTime,
                                                                              timeToSlotNumber, toMarloweFixedPoint,
                                                                              useval)
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability   (validateTerms)
@@ -264,6 +264,19 @@ genFsContract' ct =
 
     initializeStateFs :: Contract -> Contract
     initializeStateFs cont = maybe cont (flip stateInitialisation cont) (initialize ct)
+
+    stateInitialisation :: ContractState -> Contract -> Contract
+    stateInitialisation ContractStatePoly {..} continue =
+      letval "tmd" 0 (marloweTime tmd) $
+        letval "nt" 0 (constnt nt) $
+          letval "ipnr" 0 (constnt ipnr) $
+            letval "ipac" 0 (constnt ipac) $
+              letval "feac" 0 (constnt feac) $
+                letval "nsc" 0 (constnt nsc) $
+                  letval "isc" 0 (constnt isc) $
+                    letval "sd" 0 (marloweTime sd) $
+                      letval "prnxt" 0 (constnt prnxt) $
+                        letval "ipcb" 0 (constnt ipcb) continue
 
     inquiryFs :: EventType -> String -> Slot -> String -> Maybe AssertionContext -> Contract -> Contract
     inquiryFs ev timePosfix date oracle context continue =
