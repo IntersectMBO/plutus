@@ -190,8 +190,7 @@ getStartedHelpCard =
       [ classNames $ Css.embeddedVideoContainer <> [ "rounded", "overflow-hidden" ] ]
       [ iframe
           [ classNames Css.embeddedVideo
-          -- FIXME: add link to the right video (when it's ready)
-          , src "https://www.youtube.com/embed/WB-bYHleFYY"
+          , src "https://www.youtube.com/embed/PJLtKJJMH0U"
           , title "Get started video"
           ]
       ]
@@ -200,15 +199,6 @@ getStartedHelpCard =
 generateWalletHelpCard :: forall p. Array (HTML p Action)
 generateWalletHelpCard =
   [ div
-      [ classNames Css.embeddedVideoContainer ]
-      [ iframe
-          [ classNames Css.embeddedVideo
-          -- FIXME: add link to the right video (when it's ready)
-          , src "https://www.youtube.com/embed/WB-bYHleFYY"
-          , title "YouTube video player"
-          ]
-      ]
-  , div
       [ classNames [ "p-5", "pb-6", "lg:pb-8", "space-y-4" ] ]
       [ h2
           [ classNames [ "font-semibold" ] ]
@@ -216,13 +206,8 @@ generateWalletHelpCard =
       , p_
           [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
       , div
-          [ classNames [ "flex", "gap-4" ] ]
+          [ classNames [ "flex" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1" ]
-              , onClick_ CloseCard
-              ]
-              [ text "Cancel" ]
-          , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , onClick_ CloseCard
               ]

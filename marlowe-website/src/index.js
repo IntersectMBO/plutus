@@ -148,9 +148,7 @@ function fixCrossLinks() {
   };
 
   const crossLinks = document.querySelectorAll("a[data-marlowe-component]");
-  console.log(crossLinks);
   for (const crossLink of crossLinks) {
-    console.log(crossLink);
     crossLink.href = urls[crossLink.dataset.marloweComponent];
   }
 }
