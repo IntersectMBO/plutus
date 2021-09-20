@@ -40,7 +40,8 @@ import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
-import           Control.Monad.Freer.Extras.Log                 (mapLog)
+import           Control.Monad.Freer.Extras.Log                 (LogMsg (..), mapLog)
+import qualified Control.Monad.Freer.Extras.Log                 as L
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import           Data.Aeson                                     (FromJSON, ToJSON)
 import           Data.Coerce                                    (coerce)
@@ -68,10 +69,10 @@ import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb
 import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..), PABMultiAgentMsg (UserLog))
 import           Plutus.PAB.Timeout                             (Timeout (..))
-import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
-                                                                 WebserverConfig (..), chainIndexConfig, dbConfig,
-                                                                 endpointTimeout, nodeServerConfig, pabWebserverConfig,
-                                                                 walletServerConfig)
+import           Plutus.PAB.Types                               (Config (..), DbConfig (..), MetaLoggingConfig (..),
+                                                                 PABError (..), WebserverConfig (..), chainIndexConfig,
+                                                                 dbConfig, endpointTimeout, nodeServerConfig,
+                                                                 pabWebserverConfig, walletServerConfig)
 import           Servant.Client                                 (ClientEnv, mkClientEnv)
 
 ------------------------------------------------------------
@@ -94,6 +95,7 @@ appEffectHandlers
   :: forall a.
   ( FromJSON a
   , ToJSON a
+  , Show a
   , HasDefinitions a
   , Typeable a
   )
@@ -102,7 +104,7 @@ appEffectHandlers
   -> Trace IO (PABLogMsg (Builtin a))
   -> BuiltinHandler a
   -> EffectHandlers (Builtin a) (AppEnv a)
-appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
+appEffectHandlers storageBackend config@Config{metaLoggingConfig=MetaLoggingConfig{exitOnError}} trace BuiltinHandler{contractHandler} =
     EffectHandlers
         { initialiseEnvironment = do
             env <- liftIO $ mkEnv trace config
@@ -114,6 +116,7 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
         , handleLogMessages =
             interpret (handleLogMsgTrace trace)
             . reinterpret (mapLog SMultiAgent)
+            . if exitOnError then maybeExitOnError else id
 
         , handleContractEffect =
             interpret (handleLogMsgTrace trace)
@@ -175,6 +178,7 @@ runApp ::
     forall a b.
     ( FromJSON a
     , ToJSON a
+    , Show a
     , HasDefinitions a
     , Typeable a
     )
@@ -215,6 +219,22 @@ mkEnv appTrace appConfig@Config { dbConfig
 
 logDebugString :: Trace IO (PABLogMsg t) -> Text -> IO ()
 logDebugString trace = logDebug trace . SMultiAgent . UserLog
+
+-- | Exit the program immediately, if we encounter an error higher than or
+-- equal to 'Error', otherwise, just retain the log.
+maybeExitOnError ::
+  forall effs a.
+  ( Show a
+  )
+  => Eff (LogMsg a ': effs)
+  ~> Eff (LogMsg a ': effs)
+maybeExitOnError = reinterpret $ \l' ->
+  case l' of
+      LMessage L.LogMessage{L._logLevel=level, L._logMessageContent=c}
+        | level >= L.Error ->
+          let s = "Failing due to a logged error. Error: " ++ show c
+           in error s
+        | otherwise -> mapLog id l'
 
 -- | Initialize/update the database to hold our effects.
 migrate :: Trace IO (PABLogMsg (Builtin a)) -> DbConfig -> IO ()

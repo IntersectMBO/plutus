@@ -64,6 +64,9 @@ let
       };
     };
 
+    metaLoggingConfig = {
+      exitOnError = false;
+    };
   };
 
   pabYaml = pkgs.writeText "pab.yaml" (builtins.toJSON pabConfig);

@@ -104,6 +104,25 @@ defaultDbConfig
 instance Default DbConfig where
   def = defaultDbConfig
 
+data MetaLoggingConfig =
+    MetaLoggingConfig
+      { exitOnError :: Bool
+      -- ^ If we ever log an error, instead of doing that, just error out
+      -- immediately.
+      }
+  deriving (Show, Eq, Generic)
+  deriving anyclass (ToJSON, FromJSON)
+
+-- | Default logging (meta) config
+defaultMetaLoggingConfig :: MetaLoggingConfig
+defaultMetaLoggingConfig
+  = MetaLoggingConfig
+      { exitOnError = False
+      }
+
+instance Default MetaLoggingConfig where
+  def = defaultMetaLoggingConfig
+
 data Config =
     Config
         { dbConfig                :: DbConfig
@@ -112,6 +131,7 @@ data Config =
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
+        , metaLoggingConfig       :: MetaLoggingConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
 
@@ -124,6 +144,7 @@ defaultConfig =
     , pabWebserverConfig = def
     , chainIndexConfig = def
     , requestProcessingConfig = def
+    , metaLoggingConfig = def
     }
 
 instance Default Config where

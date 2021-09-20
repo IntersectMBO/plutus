@@ -69,6 +69,10 @@ let
         getWallet = "1";
       };
     };
+
+    metaLoggingConfig = {
+      exitOnError = false;
+    };
   });
 
   # Note: The db is dropped as a workaround for a problem with

@@ -58,7 +58,7 @@ import           Plutus.PAB.Run.Cli                  (ConfigCommandArgs (..), ru
 import           Plutus.PAB.Run.Command              (ConfigCommand (..), allServices)
 import           Plutus.PAB.Run.CommandParser        (AppOpts (..))
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes (..))
-import           Plutus.PAB.Types                    (Config (..))
+import           Plutus.PAB.Types                    (Config (..), MetaLoggingConfig (..))
 import qualified Plutus.PAB.Types                    as PAB.Types
 import           Plutus.PAB.Webserver.API            (API)
 import           Plutus.PAB.Webserver.Client         (InstanceClient (..), PabClient (..), pabClient)
@@ -106,6 +106,9 @@ defaultPabConfig
       -- (not unreasonably...)
       { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 60 }
       , nodeServerConfig = def { Node.Types.mscSocketPath = "/tmp/node-server.sock" }
+      -- In tests, we _always_ want to exit if we logged an error. This
+      -- ensures that the tests fail.
+      , metaLoggingConfig = def { exitOnError = True }
       }
 
 -- | Bump all the default ports, and any other needed things so that we

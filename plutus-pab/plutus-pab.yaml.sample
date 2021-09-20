@@ -49,6 +49,9 @@ signingProcessConfig:
 metadataServerConfig:
   mdBaseUrl: http://localhost:9085
 
+metaLoggingConfig:
+  exitOnError: False
+
 # Optional EKG Server Config
 # ----
 # monitoringConfig:

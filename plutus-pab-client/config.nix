@@ -58,4 +58,6 @@
   metadataServerConfig:
     mdBaseUrl: http://localhost:${ metadata-server-port }
 
+  metaLoggingConfig:
+    exitOnError: False
 ''
