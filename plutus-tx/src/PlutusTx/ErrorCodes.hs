@@ -12,47 +12,47 @@ They help to trace the errors in on-chain code.
 -- | The error happens in TH generation of indexed data
 {-# INLINABLE reconstructCaseError #-}
 reconstructCaseError :: Builtins.BuiltinString
-reconstructCaseError = "PT01"
+reconstructCaseError = "PT1"
 
 -- | Error case of 'unsafeFromBuiltinData'
 {-# INLINABLE voidIsNotSupportedError #-}
 voidIsNotSupportedError :: Builtins.BuiltinString
-voidIsNotSupportedError = "PT02"
+voidIsNotSupportedError = "PT2"
 
 -- | Ratio number can't have a zero denominator
 {-# INLINABLE ratioHasZeroDenominatorError #-}
 ratioHasZeroDenominatorError :: Builtins.BuiltinString
-ratioHasZeroDenominatorError = "PT03"
+ratioHasZeroDenominatorError = "PT3"
 
 -- | 'round' got an incorrect input
 {-# INLINABLE roundDefaultDefnError #-}
 roundDefaultDefnError :: Builtins.BuiltinString
-roundDefaultDefnError = "PT04"
+roundDefaultDefnError = "PT4"
 
 -- | 'check' input is 'False'
 {-# INLINABLE checkHasFailedError #-}
 checkHasFailedError :: Builtins.BuiltinString
-checkHasFailedError = "PT05"
+checkHasFailedError = "PT5"
 
 -- | PlutusTx.List.!!: negative index
 {-# INLINABLE negativeIndexError #-}
 negativeIndexError :: Builtins.BuiltinString
-negativeIndexError = "PT06"
+negativeIndexError = "PT6"
 
 -- | PlutusTx.List.!!: index too large
 {-# INLINABLE indexTooLargeError #-}
 indexTooLargeError :: Builtins.BuiltinString
-indexTooLargeError = "PT07"
+indexTooLargeError = "PT7"
 
 -- | PlutusTx.List.head: empty list
 {-# INLINABLE headEmptyListError #-}
 headEmptyListError :: Builtins.BuiltinString
-headEmptyListError = "PT08"
+headEmptyListError = "PT8"
 
 -- | PlutusTx.List.tail: empty list
 {-# INLINABLE tailEmptyListError #-}
 tailEmptyListError :: Builtins.BuiltinString
-tailEmptyListError = "PT09"
+tailEmptyListError = "PT9"
 
 -- | PlutusTx.Enum.().succ: bad argument
 {-# INLINABLE succVoidBadArgumentError #-}
