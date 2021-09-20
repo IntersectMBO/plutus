@@ -1,6 +1,7 @@
 module Simulator.Lenses where
 
-import Prologue
+import Prelude
+import Data.Either (Either(..))
 import Data.Lens (Lens', Optic', Prism', Traversal', lens, preview, prism, set)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -10,6 +11,7 @@ import Data.Lens.Record (prop)
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))

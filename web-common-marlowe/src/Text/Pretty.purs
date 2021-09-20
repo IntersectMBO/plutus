@@ -14,7 +14,7 @@ module Text.Pretty
   , genericPretty
   ) where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Foldable (any, intercalate)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)

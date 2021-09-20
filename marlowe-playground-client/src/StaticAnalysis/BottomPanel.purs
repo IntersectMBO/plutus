@@ -4,13 +4,14 @@ module StaticAnalysis.BottomPanel
   , clearButton
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Data.BigInteger (BigInteger)
 import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.String (trim)
 import Data.Tuple.Nested ((/\))

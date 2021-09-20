@@ -11,7 +11,7 @@ module Marlowe.Linter
   , _location
   ) where
 
-import Prologue
+import Prelude
 import Control.Monad.State as CMS
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
@@ -26,7 +26,7 @@ import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (isNothing, maybe)
+import Data.Maybe (Maybe(..), isNothing, maybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (abs)
 import Data.Set (Set)

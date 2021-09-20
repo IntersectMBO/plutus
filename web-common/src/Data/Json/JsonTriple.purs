@@ -1,6 +1,6 @@
 module Data.Json.JsonTriple where
 
-import Prologue
+import Prelude
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.List (List(..))

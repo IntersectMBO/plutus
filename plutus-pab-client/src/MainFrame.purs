@@ -5,7 +5,7 @@ module MainFrame
   , initialState
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
@@ -17,16 +17,18 @@ import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter, find)
 import Data.BigInteger as BigInteger
+import Data.Either (Either(..))
 import Data.Lens (Lens', _1, _2, assign, modifying, to, use, view, preview)
 import Data.Lens.At (at)
 import Data.Lens.Extra (peruse, toSetOf)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.RawJson (RawJson(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (for_, sequence, traverse_)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (encodeJSON)

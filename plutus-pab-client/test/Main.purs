@@ -1,7 +1,7 @@
 module Test.Main where
 
 import Effect (Effect)
-import Prologue
+import Prelude
 --import JsonEncodingTests as JsonEncodingTests
 --import MainFrameTests as MainFrameTests
 import Test.Unit.Main (runTest)

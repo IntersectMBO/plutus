@@ -7,6 +7,7 @@ module Popper
   ) where
 
 import Popper.Types
+import Prelude
 import Popper.Internal (createPopper, forceUpdate, destroyPopper, arrow, computeStyles, applyStyles, eventListeners, popperOffsets, offset, preventOverflow, flipPlacement) as ExportedInternal
 
 defaultModifiers :: Array Modifier

@@ -1,12 +1,12 @@
 module Marlowe.Extended where
 
-import Prologue
+import Prelude
 import Decode.Helpers ((<|>))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
 import Data.Set (Set)
 import Data.Set as Set

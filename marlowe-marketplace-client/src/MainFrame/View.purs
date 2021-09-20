@@ -1,6 +1,6 @@
 module MainFrame.View where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Css (classNames)
 import Halogen (ComponentHTML)
 import Halogen.HTML (div, h1, text)

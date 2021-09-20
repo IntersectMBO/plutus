@@ -1,6 +1,6 @@
 module Projects.State where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Reader (class MonadAsk, runReaderT, asks)
 import Data.Array (sortBy)

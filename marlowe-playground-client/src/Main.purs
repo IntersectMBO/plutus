@@ -1,7 +1,8 @@
 module Main where
 
-import Prologue
+import Prelude
 import AppM (runAppM)
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)

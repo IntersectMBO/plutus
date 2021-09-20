@@ -1,7 +1,7 @@
 -- TODO: rename modules from BlocklyEditor -> MarloweBlocklyEditor
 module BlocklyEditor.State where
 
-import Prologue
+import Prelude
 import BlocklyComponent.Types as Blockly
 import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode, _metadataHintInfo, _warnings)
 import BottomPanel.State (handleAction) as BottomPanel
@@ -12,10 +12,10 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
-import Data.Either (hush, note)
+import Data.Either (Either(..), hush, note)
 import Data.Lens (assign, modifying, over, set, use, view)
 import Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Env (Env)

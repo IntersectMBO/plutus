@@ -13,9 +13,11 @@ import Bootstrap (active, alertDanger_, btn, empty, floatRight, nav, navItem, na
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Maybe (Maybe(..))
 import Data.String as String
 import Halogen (RefLabel(RefLabel))
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, span, text, ul, li)
@@ -29,7 +31,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import MainFrame.Lenses (_functionSchema, _result)
 import MainFrame.Types (HAction(..), View(..), SimulatorAction, WebCompilationResult, WebEvaluationResult)
 import Playground.Types (PlaygroundError(..), Simulation(..), SimulatorWallet)
-import Prologue
+import Prelude (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
 import Wallet.View (walletsPane)
 import Web.Event.Event (Event)
 

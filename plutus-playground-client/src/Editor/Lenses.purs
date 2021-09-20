@@ -12,11 +12,12 @@ module Editor.Lenses
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Editor.Types (State)
 import Halogen.Monaco (KeyBindings)
 import Language.Haskell.Interpreter (SourceCode)
-import Prologue
+import Prelude ((<<<))
 
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")

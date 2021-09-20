@@ -2,11 +2,12 @@ module View.Events
   ( utxoIndexPane
   ) where
 
-import Prologue
+import Prelude
 import Bootstrap (cardBody_, cardHeader_, card_)
 import Chain.View as Chain
 import Data.Lens (view)
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.HTML (HTML, h2_, text)
 import Ledger.Index (UtxoIndex)

@@ -1,6 +1,6 @@
 module Data.Map.Lens where
 
-import Prologue
+import Prelude
 import Data.Lens (Getter', to)
 import Data.Map (Map)
 import Data.Map as Map

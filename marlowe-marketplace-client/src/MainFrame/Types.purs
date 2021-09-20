@@ -4,8 +4,9 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prologue
+import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Data.Maybe (Maybe(..))
 
 type State
   = { placeholder :: String

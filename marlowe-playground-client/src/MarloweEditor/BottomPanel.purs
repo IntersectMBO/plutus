@@ -2,10 +2,11 @@ module MarloweEditor.BottomPanel
   ( panelContents
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Lens (to, (^.))
+import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))

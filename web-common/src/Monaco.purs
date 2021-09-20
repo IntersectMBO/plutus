@@ -1,15 +1,17 @@
 module Monaco where
 
-import Prologue
+import Prelude
 import Data.Function.Uncurried (Fn1, Fn2, Fn5, runFn1, runFn2, runFn5)
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Data.String.Regex (Regex)
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
 import Foreign (unsafeFromForeign, unsafeToForeign)

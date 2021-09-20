@@ -5,7 +5,7 @@ module SimulationPage.State
   , mkState
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
@@ -15,7 +15,7 @@ import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
-import Data.Either (hush)
+import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
 import Data.Lens (_Just, assign, modifying, use)
 import Data.Lens.Extra (peruse)
@@ -23,10 +23,11 @@ import Data.List.NonEmpty (last)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
 import Data.String (splitAt)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)

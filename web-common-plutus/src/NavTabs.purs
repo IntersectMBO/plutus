@@ -1,11 +1,12 @@
 module NavTabs where
 
 import Bootstrap (active, container, hidden, navItem_, navLink, navTabs_)
+import Data.Maybe (Maybe(..))
 import Data.String as String
 import Halogen.HTML (HTML, a, div, div_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, id_)
-import Prologue hiding (div)
+import Prelude (class Eq, class Show, const, show, ($), (<$>), (<>), (==))
 
 mainTabBar ::
   forall view r p i.

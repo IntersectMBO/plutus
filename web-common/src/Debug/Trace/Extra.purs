@@ -1,6 +1,6 @@
 module Debug.Trace.Extra where
 
-import Prologue
+import Prelude
 import Debug.Trace (class DebugWarning)
 
 -- | Similar to Debug.Trace.trace but also reports the time taken to evaluate the thunk

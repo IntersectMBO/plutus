@@ -1,6 +1,6 @@
 module Marlowe.BlocklyTests where
 
-import Prologue
+import Prelude
 import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (getInputWithName, inputList)
 import Blockly.Headless as Headless
@@ -9,7 +9,9 @@ import Blockly.Internal as Blockly
 import Blockly.Types (BlocklyState)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Data.Bifunctor (lmap, rmap)
+import Data.Either (Either)
 import Data.Foldable (for_)
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)

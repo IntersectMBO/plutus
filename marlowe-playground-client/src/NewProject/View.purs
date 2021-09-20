@@ -1,7 +1,8 @@
 module NewProject.View where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Data.Lens ((^.))
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (fontSemibold, marloweLogo, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, textBase, textSm)

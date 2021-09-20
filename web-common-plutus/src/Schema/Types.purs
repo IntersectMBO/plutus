@@ -1,6 +1,6 @@
 module Schema.Types where
 
-import Prologue
+import Prelude
 import Chain.Types (_value)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -12,12 +12,13 @@ import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (_2, _Just, over, set)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.RawJson (RawJson)
 import Data.String.Extra as String
 import Data.Traversable (sequence, traverse)
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Foreign (Foreign)
 import Foreign.Class (encode)

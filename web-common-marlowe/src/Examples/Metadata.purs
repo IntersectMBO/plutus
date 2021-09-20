@@ -1,6 +1,6 @@
 module Examples.Metadata where
 
-import Prologue
+import Prelude
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (ContractType(..))

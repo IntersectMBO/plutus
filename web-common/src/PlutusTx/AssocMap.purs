@@ -1,6 +1,6 @@
 module PlutusTx.AssocMap where
 
-import Prologue
+import Prelude
 import AjaxUtils (defaultJsonOptions)
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)
@@ -14,12 +14,13 @@ import Data.Lens.At (class At)
 import Data.Lens.Index (class Index)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Data.Map
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Newtype as Newtype
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (sequence)
-import Data.Tuple (uncurry)
+import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Foreign.Class (class Decode, class Encode)
 import Foreign.Generic (genericDecode, genericEncode)
 

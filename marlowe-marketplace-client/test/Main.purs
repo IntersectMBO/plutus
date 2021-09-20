@@ -1,6 +1,6 @@
 module Test.Main where
 
-import Prologue
+import Prelude
 import Effect (Effect)
 import Test.Unit.Main (runTest)
 

@@ -2,14 +2,16 @@ module PlutusTx.AssocMapTests
   ( all
   ) where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (preview, set)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import PlutusTx.AssocMap (Map(..), fromTuples, unionWith)
 import Ledger.Extra (sum)

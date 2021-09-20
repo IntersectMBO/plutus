@@ -1,6 +1,6 @@
 module Main where
 
-import Prologue
+import Prelude
 import Control.Coroutine (consumer)
 import Data.Maybe (Maybe(Nothing))
 import Effect (Effect)

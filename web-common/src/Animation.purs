@@ -67,7 +67,7 @@ import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Halogen (HalogenM)
 import Halogen.HTML (ClassName(..))
-import Prologue
+import Prelude (bind, discard, pure, ($), (<>))
 
 class MonadAnimate m state where
   animate :: forall a. (Lens' state Boolean) -> m a -> m a

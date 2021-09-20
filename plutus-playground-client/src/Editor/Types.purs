@@ -6,11 +6,12 @@ module Editor.Types
   ) where
 
 import Data.Enum (enumFromTo)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Halogen.Monaco (KeyBindings(..), Message)
 import Language.Haskell.Interpreter (SourceCode)
 import Monaco (IPosition)
-import Prologue
+import Prelude (bottom, top)
 import Web.HTML.Event.DragEvent (DragEvent)
 import Web.UIEvent.MouseEvent (MouseEvent)
 

@@ -1,11 +1,12 @@
 module Hint.State (component, hint) where
 
-import Prologue
+import Prelude
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Array (all)
 import Data.Foldable (for_)
 import Data.Int (toNumber)
 import Data.Lens (assign, set, use)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Effect.Aff.Class (class MonadAff)

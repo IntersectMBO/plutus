@@ -3,9 +3,10 @@ module Data.Map.Extra
   , findIndex
   ) where
 
-import Prologue
+import Prelude
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
 import Data.Map (Map, keys, singleton)
+import Data.Maybe (Maybe)
 import Data.Set (filter, findMin)
 
 mapIndex :: forall f v k1 k2. FoldableWithIndex k1 f => Ord k2 => (k1 -> k2) -> f v -> Map k2 v

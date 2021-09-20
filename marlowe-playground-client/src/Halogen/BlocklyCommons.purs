@@ -2,15 +2,17 @@
 -- ActusBlocklyEditor and this module could be called solely Blockly
 module Halogen.BlocklyCommons where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Internal (addChangeListener, removeChangeListener)
 import Blockly.Types (BlocklyEvent, BlocklyState, Workspace, isDragStart, isDragStop)
 import Blockly.Types as BT
+import Data.Either (Either(..))
 import Data.Foldable (foldl, oneOf)
 import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
 import Data.List (List(..), (:))
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for_)
 import Effect (Effect)

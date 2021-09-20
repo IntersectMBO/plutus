@@ -1,9 +1,10 @@
 module Simulator.Types where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Marlowe.Template (TemplateContent)

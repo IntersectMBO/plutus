@@ -1,6 +1,6 @@
 module ValueEditor where
 
-import Prologue hiding (div, min)
+import Prelude hiding (div, min)
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -10,6 +10,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (view)
 import Data.Maybe (Maybe(Just), fromMaybe)
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(ClassName), HTML, div, input, label, text)
 import Halogen.HTML.Elements.Keyed as Keyed

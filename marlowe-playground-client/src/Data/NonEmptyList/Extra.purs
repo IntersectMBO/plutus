@@ -1,8 +1,9 @@
 module Data.NonEmptyList.Extra where
 
-import Prologue
+import Prelude
 import Data.List.NonEmpty (cons, fromList, head, tail)
 import Data.List.Types (NonEmptyList)
+import Data.Maybe (Maybe(..))
 
 -- | Apply a function to the head of a non-empty list and attach the result to the front
 -- | of the list

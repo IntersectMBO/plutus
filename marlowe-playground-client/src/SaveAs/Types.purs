@@ -1,9 +1,10 @@
 module SaveAs.Types where
 
-import Prologue
+import Prelude
 import Analytics (class IsEvent)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Network.RemoteData (RemoteData(..))
 

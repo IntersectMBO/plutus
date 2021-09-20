@@ -1,6 +1,6 @@
 module Material.Progress.Circular where
 
-import Prologue
+import Prelude
 import Data.Int (toNumber)
 import Halogen.Css as HC
 import Halogen.HTML as HH

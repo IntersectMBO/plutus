@@ -7,9 +7,10 @@ module Halogen.Monaco
   , monacoComponent
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
 import Control.Monad.Trans.Class (lift)
+import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
@@ -18,6 +19,7 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Lens (Lens', use, view)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for_, traverse)
 import Effect (Effect)

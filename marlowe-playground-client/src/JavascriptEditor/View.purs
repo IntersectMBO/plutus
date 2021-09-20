@@ -1,12 +1,13 @@
 module JavascriptEditor.View where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Bifunctor (bimap)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
+import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)

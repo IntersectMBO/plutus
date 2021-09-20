@@ -1,6 +1,6 @@
 module Chain.Types where
 
-import Prologue
+import Prelude
 import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
@@ -9,6 +9,7 @@ import Data.Lens (Fold', Iso', Lens', Prism', Traversal', anyOf, filtered, previ
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Plutus.V1.Ledger.Address (Address(..))

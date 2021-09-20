@@ -2,14 +2,16 @@ module Schema.TypesTests
   ( all
   ) where
 
-import Prologue
+import Prelude
 import Data.BigInteger as BigInteger
 import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.List (List(..))
 import Data.List.NonEmpty (NonEmptyList(..))
+import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (Aff)
 import Foreign (Foreign)

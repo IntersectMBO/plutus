@@ -3,7 +3,7 @@ module StaticDataTests
   ) where
 
 import Control.Monad.Except (runExcept)
-import Prologue
+import Prelude (($))
 import StaticData (mkContractDemos)
 import Test.Unit (TestSuite, suite, test)
 import TestUtils (assertRight)

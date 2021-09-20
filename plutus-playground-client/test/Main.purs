@@ -1,6 +1,6 @@
 module Test.Main where
 
-import Prologue
+import Prelude
 import JsonEncodingTests as JsonEncodingTests
 import ChainTests as ChainTests
 import CursorTests as CursorTests

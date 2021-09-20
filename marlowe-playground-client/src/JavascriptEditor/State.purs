@@ -4,17 +4,18 @@ module JavascriptEditor.State
   , editorGetValue
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Lens (assign, modifying, over, set, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Data.String (drop, joinWith, length, take)
 import Data.Tuple.Nested ((/\))

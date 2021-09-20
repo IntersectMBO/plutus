@@ -1,6 +1,6 @@
 module View.Contracts where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col2_, col4_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
 import Clipboard (showShortCopyLong)
@@ -8,6 +8,8 @@ import Data.Array (mapWithIndex, null)
 import Data.Foldable.Extra (interleave)
 import Data.Lens (_1, view)
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, h2_, h3_, table, text, th, thead_, tr_, td_, tbody_)
 import Halogen.HTML.Events (onClick)

@@ -1,10 +1,11 @@
 module Tooltip.State (component, tooltip) where
 
-import Prologue
+import Prelude
 import Control.Bind (bindFlipped)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Foldable (for_)
 import Data.Lens (assign, set, use)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)

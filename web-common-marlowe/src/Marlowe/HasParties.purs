@@ -1,6 +1,6 @@
 module Marlowe.HasParties where
 
-import Prologue
+import Prelude
 import Data.Array (foldMap)
 import Data.Set (Set)
 import Data.Set as Set

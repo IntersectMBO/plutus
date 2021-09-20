@@ -5,7 +5,7 @@ module Examples.PureScript.ContractForDifferences
   , extendedContract
   ) where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
 import Data.Map (Map)

@@ -2,7 +2,7 @@ module Data.Foldable.ExtraTests
   ( all
   ) where
 
-import Prologue
+import Prelude
 import Data.Array (replicate, length)
 import Data.Foldable (foldMap, null)
 import Data.Foldable.Extra (interleave, countConsecutive)

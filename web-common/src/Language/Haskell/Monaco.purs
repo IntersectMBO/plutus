@@ -1,6 +1,7 @@
 module Language.Haskell.Monaco where
 
-import Prologue
+import Prelude
+import Data.Maybe (Maybe(..))
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
 import Monaco (Editor, IStandaloneThemeData, LanguageExtensionPoint(..), MonarchLanguage, Theme)

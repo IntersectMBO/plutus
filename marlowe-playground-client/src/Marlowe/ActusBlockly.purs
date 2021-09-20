@@ -1,6 +1,6 @@
 module Marlowe.ActusBlockly where
 
-import Prologue
+import Prelude
 import Blockly.Generator (Generator, getFieldValue, getType, insertGeneratorFunction, mkGenerator, statementToCode)
 import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, defaultBlockDefinition, style, x, xml, y)
 import Blockly.Types (Block, Blockly)
@@ -11,6 +11,7 @@ import Data.Bifunctor (lmap, rmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Date (exactDate)
+import Data.Either (Either)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding, toEnum)
 import Data.FloatParser (parseFloat)
@@ -21,7 +22,7 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Traversable (sequence, traverse_)
 import Effect (Effect)

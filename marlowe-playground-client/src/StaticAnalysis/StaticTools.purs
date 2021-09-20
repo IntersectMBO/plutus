@@ -8,7 +8,7 @@ module StaticAnalysis.StaticTools
   , zipperToContractPath
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Analytics (class IsEvent, analyticsTracking)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
@@ -17,6 +17,7 @@ import Data.BigInteger (BigInteger, toNumber)
 import Data.Lens (assign, use)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.Types (NonEmptyList(..))
+import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
 import Data.Traversable (traverse)
 import Data.Tuple.Nested (type (/\), (/\))

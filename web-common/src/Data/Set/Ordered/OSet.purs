@@ -1,6 +1,6 @@
 module Data.Set.Ordered.OSet (OSet, fromFoldable, filter, insert) where
 
-import Prologue
+import Prelude
 import Data.Array as Array
 import Data.Foldable (class Foldable)
 

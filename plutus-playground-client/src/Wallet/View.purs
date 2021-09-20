@@ -7,6 +7,8 @@ import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, floa
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Halogen.HTML (ClassName(ClassName), HTML, br_, button, div, div_, h2_, h3_, h4_, p_, span, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onClick)
@@ -16,7 +18,7 @@ import MainFrame.Types (HAction(..), WalletEvent(..))
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
 import Plutus.V1.Ledger.Value (Value)
-import Prologue
+import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)

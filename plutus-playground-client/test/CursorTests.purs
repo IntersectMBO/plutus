@@ -2,7 +2,7 @@ module CursorTests
   ( all
   ) where
 
-import Prologue
+import Prelude
 import Cursor (Cursor)
 import Cursor as Cursor
 import Data.Array as Array
@@ -10,9 +10,10 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (over, preview)
 import Data.Lens.Index (ix)
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.NonEmpty (NonEmpty(NonEmpty))
 import Data.String.Extra (unlines)
+import Data.Tuple (Tuple(..))
 import Test.QuickCheck (class Arbitrary, arbitrary, withHelp, (<?>), (===))
 import Test.QuickCheck.Gen (Gen, arrayOf, elements)
 import Test.Unit (TestSuite, suite, test)

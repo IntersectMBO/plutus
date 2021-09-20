@@ -3,10 +3,17 @@ module Data.Foldable.Extra
   , countConsecutive
   ) where
 
-import Prologue
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Tuple.Nested
+import Control.Applicative (class Applicative, pure)
 import Data.Array as Array
+import Data.Boolean (otherwise)
+import Data.Eq (class Eq, (==))
 import Data.Foldable (class Foldable, foldl, intercalate)
+import Data.Function ((>>>))
+import Data.Functor (map)
+import Data.Maybe (Maybe(..))
+import Data.Monoid (class Monoid, mempty)
+import Data.Semiring ((+))
 
 interleave :: forall m a. Applicative m => Foldable m => Monoid (m a) => a -> m a -> m a
 interleave sep xs = intercalate (pure sep) (map pure xs)

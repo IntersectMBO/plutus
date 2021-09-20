@@ -4,10 +4,11 @@ module Data.Array.Extra
   , collapse
   ) where
 
-import Prologue
+import Prelude
 import Data.Array as Array
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe, fromMaybe)
+import Data.Tuple (fst, snd)
 import Data.Tuple.Nested (type (/\), (/\))
 
 move :: forall a. Int -> Int -> Array a -> Array a

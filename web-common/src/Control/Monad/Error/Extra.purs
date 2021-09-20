@@ -1,9 +1,10 @@
 module Control.Monad.Error.Extra where
 
-import Prologue
+import Control.Monad (pure, (=<<))
 import Control.Monad.Except (Except)
 import Control.Monad.Except.Trans (class MonadThrow, ExceptT, runExceptT, throwError)
-import Data.Either (either)
+import Data.Either (Either(..), either)
+import Data.Function (($), (<<<))
 import Data.Newtype (unwrap)
 
 liftEither :: forall f e m a. MonadThrow f m => (e -> f) -> Either e a -> m a

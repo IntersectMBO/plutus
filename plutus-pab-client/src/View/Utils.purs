@@ -5,7 +5,7 @@ module View.Utils
   , streamErrorPane
   ) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (alertDanger_)
 import Data.Array as Array

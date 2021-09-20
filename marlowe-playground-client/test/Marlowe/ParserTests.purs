@@ -1,6 +1,7 @@
 module Marlowe.ParserTests where
 
-import Prologue
+import Prelude
+import Data.Either (Either(..))
 import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Marlowe.Gen (genContract, GenerationOptions(..))

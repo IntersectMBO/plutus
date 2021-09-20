@@ -11,10 +11,11 @@ module Data.String.Extra
 import Data.Array (intercalate)
 import Data.Char as Char
 import Data.Int as Int
+import Data.Monoid (class Monoid, mempty)
 import Data.String (splitAt, toUpper)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
-import Prologue
+import Prelude (map, max, (-), (<>), (==), (>>>))
 
 abbreviate :: Int -> String -> String
 abbreviate n str =

@@ -1,15 +1,16 @@
 module Halogen.Extra where
 
-import Prologue
+import Prelude
 import Control.Applicative.Free (hoistFreeAp)
 import Control.Monad.Free (hoistFree)
 import Control.Monad.State (get)
 import Data.Bifunctor (bimap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (over)
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Halogen (Component, ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, Slot, getHTMLElementRef, mkComponent)

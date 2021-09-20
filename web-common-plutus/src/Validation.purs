@@ -1,6 +1,6 @@
 module Validation where
 
-import Prologue
+import Prelude
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Foldable (class Foldable)
@@ -9,7 +9,9 @@ import Data.Generic.Rep (class Generic)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Lens', view)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple(..))
 import Matryoshka (Algebra, cata)
 import Playground.Types (ContractCall(..), _FunctionSchema)
 import Schema (FormArgumentF(..))

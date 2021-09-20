@@ -1,6 +1,6 @@
 module Marlowe.Template where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)

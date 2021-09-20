@@ -2,7 +2,7 @@
 -- https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API
 module Halogen.Animation where
 
-import Prologue
+import Prelude
 import Control.Promise (Promise, toAffE)
 import Data.Array (filter)
 import Data.Traversable (traverse)

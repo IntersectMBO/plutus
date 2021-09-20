@@ -1,6 +1,6 @@
 module MainFrame.State (component) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
 import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor
@@ -14,13 +14,13 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (either, hush, note)
+import Data.Either (Either(..), either, hush, note)
 import Data.Foldable (fold, for_)
 import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)

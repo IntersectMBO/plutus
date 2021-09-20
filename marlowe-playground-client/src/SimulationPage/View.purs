@@ -1,6 +1,6 @@
 module SimulationPage.View where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, length, reverse, sortWith)
@@ -13,9 +13,10 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (fromMaybe, isJust, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.String (trim)
+import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)

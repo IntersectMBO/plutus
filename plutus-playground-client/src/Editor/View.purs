@@ -9,8 +9,9 @@ module Editor.View
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp)
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Editor.Lenses (_warnings)
 import Editor.State (initEditor)
@@ -27,7 +28,7 @@ import LocalStorage (Key)
 import MainFrame.Lenses (_editorSlot)
 import MainFrame.Types (ChildSlots, HAction(..), View(..), WebCompilationResult)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Prologue
+import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Web.UIEvent.MouseEvent (MouseEvent, pageY)
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action

@@ -2,7 +2,7 @@ module MainFrameTests
   ( all
   ) where
 
-import Prologue
+import Prelude
 import Types (HAction(..), Query, State, _currentView)
 import Animation (class MonadAnimate)
 import Clipboard (class MonadClipboard)
@@ -11,11 +11,13 @@ import Control.Monad.RWS (RWSResult(..), RWST(..), runRWST)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.Trans.Class (class MonadTrans)
+import Data.Either (Either(..))
 import Data.Lens (_1, appendModifying, view)
 import Data.Lens.Record (prop)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
+import Data.Tuple (Tuple(..))
 import Effect.Exception (Error)
 import MainFrame (handleQuery, handleAction)
 import MainFrame as MainFrame

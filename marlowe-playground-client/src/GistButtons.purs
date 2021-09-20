@@ -1,8 +1,9 @@
 module GistButtons (authButton) where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole)
 import Data.Lens (to, view, (^.))
+import Data.Maybe (Maybe(..))
 import Gists.View (idPublishGist)
 import Halogen.Classes (modalContent)
 import Halogen.Css (classNames)

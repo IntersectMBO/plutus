@@ -9,15 +9,16 @@ module Marlowe.Slot
   , secondsDiff
   ) where
 
-import Prologue
+import Prelude
 import Data.BigInteger (fromInt)
 import Data.BigInteger as BigInteger
 import Data.DateTime (DateTime, adjust, diff)
 import Data.DateTime.Instant (instant, toDateTime)
+import Data.Either (Either(..))
 import Data.Formatter.DateTime (Formatter, FormatterCommand(..), unformat) as FDT
 import Data.Int (round)
 import Data.List (fromFoldable)
-import Data.Maybe (fromJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Newtype (unwrap)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Effect (Effect)

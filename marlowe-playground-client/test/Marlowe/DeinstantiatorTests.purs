@@ -1,9 +1,9 @@
 module Marlowe.DeinstantiatorTests where
 
-import Prologue
+import Prelude
 import Data.BigInteger (fromInt)
 import Data.Map as Map
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple.Nested ((/\))
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral

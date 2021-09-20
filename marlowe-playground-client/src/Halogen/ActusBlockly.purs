@@ -1,6 +1,6 @@
 module Halogen.ActusBlockly where
 
-import Prologue hiding (div)
+import Prelude hiding (div)
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly.Internal as Blockly
@@ -9,14 +9,15 @@ import Blockly.Types as BT
 import Bootstrap (btn)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
-import Data.Either (note)
+import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
 import Data.List (List)
-import Data.Maybe (isJust)
+import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)

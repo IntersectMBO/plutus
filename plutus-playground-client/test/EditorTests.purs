@@ -4,7 +4,7 @@ module EditorTests
 
 import Data.Traversable (traverse_)
 import Editor.Types (allKeyBindings, readKeyBindings)
-import Prologue
+import Prelude
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 

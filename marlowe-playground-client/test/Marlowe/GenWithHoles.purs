@@ -1,6 +1,6 @@
 module Marlowe.GenWithHoles where
 
-import Prologue
+import Prelude
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen, chooseBool, chooseFloat, chooseInt, resize, sized)
 import Control.Monad.Reader (class MonadAsk, class MonadReader, ReaderT(..), runReaderT)

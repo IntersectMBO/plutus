@@ -1,9 +1,10 @@
 module View.Pretty where
 
-import Prologue
+import Prelude
 import Bootstrap (alertDanger_, nbsp)
 import ContractExample (ExampleContracts)
 import Data.Array (length)
+import Data.Either (Either(..))
 import Data.Lens (view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map

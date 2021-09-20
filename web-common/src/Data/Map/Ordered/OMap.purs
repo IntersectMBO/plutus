@@ -1,14 +1,14 @@
 module Data.Map.Ordered.OMap (OMap, alter, delete, fromFoldable, fromFoldableWithIndex, insert, isEmpty, keys, lookup, singleton, toUnfoldable, unionWith) where
 
-import Prologue
+import Prelude
 import Data.Array as Array
 import Data.Bifunctor (rmap)
 import Data.Foldable (class Foldable, foldMap)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
 import Data.Map as Map
-import Data.Maybe (fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set as Set
-import Data.Tuple (uncurry)
+import Data.Tuple (fst, snd, uncurry)
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.Unfoldable (class Unfoldable)
 import Foreign.Generic (class Decode, class Encode, F, decode, encode)

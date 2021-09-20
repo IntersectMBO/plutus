@@ -1,6 +1,6 @@
 module Types where
 
-import Prologue
+import Prelude
 import Chain.Types as Chain
 import Clipboard as Clipboard
 import Control.Monad.Gen as Gen
@@ -13,6 +13,7 @@ import Data.Lens (Getter', Iso', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))

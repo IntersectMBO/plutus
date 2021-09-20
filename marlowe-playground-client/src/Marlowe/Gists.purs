@@ -7,12 +7,12 @@ module Marlowe.Gists
   , PlaygroundFiles
   ) where
 
-import Prologue
+import Prelude
 import Blockly.Internal (XML)
 import Data.Array (catMaybes)
 import Data.Lens (has, view)
 import Data.Lens.Index (ix)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (unwrap, wrap)
 import Gist (Gist, NewGist(NewGist), NewGistFile(..), gistFileContent, gistFiles)
 

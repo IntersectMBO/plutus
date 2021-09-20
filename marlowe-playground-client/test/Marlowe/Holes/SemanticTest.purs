@@ -1,12 +1,12 @@
 module Marlowe.Holes.SemanticTest where
 
-import Prologue
+import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (hush)
 import Data.List (List(..), (:))
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (maybe')
+import Data.Maybe (Maybe(..), maybe')
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.PureScript.ContractForDifferences as ContractForDifferences
 import Examples.PureScript.Escrow as Escrow
