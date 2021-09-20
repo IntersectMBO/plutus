@@ -530,6 +530,10 @@ instance ContractModel state => StateModel (ModelState state) where
     data Action (ModelState state) a where
         ContractAction :: Action state -> StateModel.Action (ModelState state) ()
         Unilateral :: Wallet -> StateModel.Action (ModelState state) ()
+          -- ^ This action disables all wallets other than the given wallet, by freezing their
+          --   contract instances and removing their private keys from the emulator state. This can
+          --   be used to check that a wallet can *unilaterally* achieve a desired outcome, without
+          --   the help of other wallets.
 
     type ActionMonad (ModelState state) = ContractMonad state
 

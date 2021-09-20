@@ -239,6 +239,11 @@ instance ContractModel AuctionModel where
     perform _ _ Init = delay 3
     perform _ _ (WaitUntil slot) = void $ Trace.waitUntilSlot slot
     perform handle _ (Bid w bid) = do
+        -- FIXME: You cannot bid in certain slots when the off-chain code is busy, so to make the
+        --        tests pass we send two identical bids in consecutive slots. The off-chain code is
+        --        never busy for more than one slot at a time so at least one of the bids is
+        --        guaranteed to go through. If both reaches the off-chain code the second will be
+        --        discarded since it's not higher than the current highest bid.
         Trace.callEndpoint @"bid" (handle $ BuyerH w) (Ada.lovelaceOf bid)
         delay 1
         Trace.callEndpoint @"bid" (handle $ BuyerH w) (Ada.lovelaceOf bid)
@@ -312,8 +317,6 @@ tests =
             .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
             .&&. walletFundsChange w3 mempty)
             auctionTrace2
-        -- FIXME: Fails because you cannot bid in certain slots when the off-chain code is busy.
         , testProperty "QuickCheck property" $
-            withMaxSuccess 1 $ classify True "FIXME" True
-            -- withMaxSuccess 10 prop_FinishAuction
+            withMaxSuccess 10 prop_FinishAuction
         ]

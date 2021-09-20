@@ -71,7 +71,7 @@ data EmulatorControl r where
     ThawContractInstance :: ContractInstanceId -> EmulatorControl ()
     ChainState :: EmulatorControl ChainState
     GetSlotConfig :: EmulatorControl SlotConfig
-    DiscardWallets :: (Wallet -> Bool) -> EmulatorControl ()
+    DiscardWallets :: (Wallet -> Bool) -> EmulatorControl ()  -- ^ Discard wallets matching the predicate.
 
 -- | Interpret the 'EmulatorControl' effect in the 'MultiAgentEffect' and
 --   scheduler system calls.
