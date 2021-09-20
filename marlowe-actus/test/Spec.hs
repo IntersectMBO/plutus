@@ -27,10 +27,10 @@ main = do
       "ACTUS test cases"
       [ testGroup
           "ACTUS test-framework"
-          [ Spec.Marlowe.ACTUS.TestFramework.tests "PAM" pamTests,
-            Spec.Marlowe.ACTUS.TestFramework.tests "LAM" lamTests,
-            Spec.Marlowe.ACTUS.TestFramework.tests "NAM" namTests,
-            Spec.Marlowe.ACTUS.TestFramework.tests "ANN" annTests
+          [ Spec.Marlowe.ACTUS.TestFramework.tests "PAM" pamTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "LAM" lamTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "NAM" namTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "ANN" annTests
           ],
         testGroup
           "ACTUS examples"

@@ -3,8 +3,8 @@
 
 module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
-  , plusCycle
-  , minusCycle
+  --, plusCycle
+  --, minusCycle
   , (<+>)
   , (<->)
   , sup

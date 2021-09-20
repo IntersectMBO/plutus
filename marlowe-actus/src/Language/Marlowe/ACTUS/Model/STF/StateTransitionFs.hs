@@ -1,24 +1,37 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs (stateTransitionFs) where
+module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs
+  (
+    stateTransition
+  , CtxSTF (..)
+  )
+where
 
+import           Control.Monad.Reader
 import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
-import           Language.Marlowe                                       (Contract)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                   (ContractStateMarlowe, RiskFactorsMarlowe,
-                                                                         constnt, enum, letval, marloweTime,
-                                                                         stateTransitionMarlowe)
+                                                                         constnt, enum, marloweTime)
 
-stateTransitionFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> LocalTime -> LocalTime -> Contract -> Contract
-stateTransitionFs
+data CtxSTF = CtxSTF
+  { contractTerms :: ContractTerms
+  , fpSchedule    :: [ShiftedDay]
+  , prSchedule    :: [ShiftedDay]
+  }
+
+stateTransition :: EventType -> RiskFactorsMarlowe -> LocalTime -> LocalTime -> ContractStateMarlowe -> Reader CtxSTF ContractStateMarlowe
+stateTransition ev rf t1 t2 st = ask >>= \CtxSTF{..} -> return $ stateTransitionFs' ev rf contractTerms t1 t2 st fpSchedule prSchedule
+
+stateTransitionFs' :: EventType -> RiskFactorsMarlowe -> ContractTerms -> LocalTime -> LocalTime -> ContractStateMarlowe -> [ShiftedDay] -> [ShiftedDay] -> ContractStateMarlowe
+stateTransitionFs'
   ev
   RiskFactorsPoly{..}
   ct@ContractTerms
@@ -27,10 +40,12 @@ stateTransitionFs
       ct_IPANX = Just ipanx,
       ..
     }
-  t
   prevDate
   curDate
-  continue = addComment $ stateTransitionMarlowe ev t continue $ stf ct
+  st'
+  fpSchedule
+  prSchedule
+  = stf ct ev st'
     where
       stf :: ContractTerms -> EventType -> ContractStateMarlowe -> ContractStateMarlowe
 
@@ -204,12 +219,10 @@ stateTransitionFs
       nextRateReset = constnt <$> ct_RRNXT
 
       time = marloweTime curDate
-      fpSchedule = schedule FP ct
-      prSchedule = schedule PR ct
 
-      tfp_minus = maybe curDate calculationDay ((\sc -> sup sc curDate) =<< fpSchedule)
-      tfp_plus = maybe curDate calculationDay ((\sc -> inf sc curDate) =<< fpSchedule)
-      tpr_plus = maybe curDate calculationDay ((\sc -> inf sc curDate) =<< prSchedule)
+      tfp_minus = maybe curDate calculationDay (sup fpSchedule curDate)
+      tfp_plus = maybe curDate calculationDay (inf fpSchedule curDate)
+      tpr_plus = maybe curDate calculationDay (inf prSchedule curDate)
 
       y_tfpminus_t = constnt $ _y dayCountConvention tfp_minus curDate ct_MD
       y_tfpminus_tfpplus = constnt $ _y dayCountConvention tfp_minus tfp_plus ct_MD
@@ -217,15 +230,8 @@ stateTransitionFs
       y_sd_t = constnt $ _y dayCountConvention prevDate curDate ct_MD
       y_t = constnt $ _y dayCountConvention curDate tpr_plus ct_MD
 
-      prDates = maybe [] (map calculationDay) prSchedule ++ maybeToList (maturity ct)
+      prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
       prDatesAfterSd = filter (\d -> d > curDate) prDates
       ti = zipWith (\tn tm -> constnt $ _y dayCountConvention tn tm ct_MD) prDatesAfterSd (tail prDatesAfterSd)
 
-      addComment cont = case ev of
-        IED -> letval "IED" t (constnt 0) cont
-        MD  -> letval "MD" t (constnt 0) cont
-        IP  -> letval ("IP:" ++ show curDate ++ show prevDate) t (constnt 0) cont
-        RR  -> letval ("RR:" ++ show curDate) t (constnt 0) cont
-        FP  -> letval ("FP:" ++ show curDate) t (constnt 0) cont
-        _   -> cont
-stateTransitionFs _ _ _ _ _ _ c = c
+stateTransitionFs' _ _ _ _ _ st _ _  = st

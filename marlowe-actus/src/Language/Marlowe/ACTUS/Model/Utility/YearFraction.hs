@@ -8,7 +8,7 @@ import           Data.Time                                        (Day, LocalTim
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360, DCC_E30_360ISDA))
 
 yearFraction :: DCC -> LocalTime -> LocalTime -> Maybe LocalTime -> Double
-yearFraction dcc x y o = yearFraction' dcc (localDay x) (localDay $ clip y) (localDay <$> o)
+yearFraction dcc x y o = yearFraction' dcc (localDay x) (localDay $ clipToMidnight y) (localDay <$> o)
 
 yearFraction' :: DCC -> Day -> Day -> Maybe Day -> Double
 yearFraction' DCC_A_AISDA startDay endDay _
@@ -91,7 +91,7 @@ yearFraction' dcc _ _ _ =
 isLastDayOfMonth :: Integer -> Int -> Int -> Bool
 isLastDayOfMonth year month day = day == gregorianMonthLength year month
 
--- |clip, if one second before midnight - see note in ACTUS specification (2.8. Date/Time)
-clip :: LocalTime -> LocalTime
-clip lt@LocalTime {..} | localTimeOfDay == TimeOfDay 23 59 59 = addLocalTime 1 lt
-clip lt  = lt
+-- |Advance to midnight, if one second before midnight - see note in ACTUS specification (2.8. Date/Time)
+clipToMidnight :: LocalTime -> LocalTime
+clipToMidnight lt@LocalTime {..} | localTimeOfDay == TimeOfDay 23 59 59 = addLocalTime 1 lt
+clipToMidnight lt  = lt

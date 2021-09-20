@@ -28,11 +28,11 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator   (apply
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction        (yearFraction)
 import           Language.Marlowe.ACTUS.Ops                               (YearFractionOps (_y))
 
-schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
+schedule :: EventType -> ContractTerms -> [ShiftedDay]
 schedule ev c = schedule' ev c { ct_MD = maturity c }
   where
 
-    schedule' :: EventType -> ContractTerms -> Maybe [ShiftedDay]
+    schedule' :: EventType -> ContractTerms -> [ShiftedDay]
     schedule' IED  ct@ContractTerms{ contractType = PAM } = _SCHED_IED_PAM ct
     schedule' MD   ct@ContractTerms{ contractType = PAM } = _SCHED_MD_PAM ct
     schedule' PP   ct@ContractTerms{ contractType = PAM } = _SCHED_PP_PAM ct
@@ -92,7 +92,7 @@ schedule ev c = schedule' ev c { ct_MD = maturity c }
     schedule' SC   ct@ContractTerms{ contractType = ANN } = _SCHED_SC_PAM ct
     schedule' PRF  ct@ContractTerms{ contractType = ANN } = _SCHED_PRF_ANN ct
 
-    schedule' _ _                                         = Nothing
+    schedule' _ _                                         = []
 
 maturity :: ContractTerms -> Maybe LocalTime
 maturity ContractTerms {contractType = PAM, ..} = ct_MD

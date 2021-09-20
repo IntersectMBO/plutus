@@ -41,6 +41,7 @@ library
     text,
     vector,
     marlowe -any,
+    mtl -any,
     time -any,
     sort -any,
     validation -any
@@ -53,6 +54,7 @@ library
     Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.Generator
     Language.Marlowe.ACTUS.Analysis
+    Language.Marlowe.ACTUS.Ops
     Language.Marlowe.ACTUS.Definitions.BusinessEvents
     Language.Marlowe.ACTUS.Definitions.ContractTerms
     Language.Marlowe.ACTUS.Definitions.ContractState
@@ -73,8 +75,6 @@ library
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
     Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
-  other-modules:
-    Language.Marlowe.ACTUS.Ops
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wunused-packages
     -Wincomplete-uni-patterns -Wincomplete-record-updates

@@ -96,9 +96,9 @@ initialize ct@ContractTerms {..} =
     prSchedule = schedule PR ct
 
     t0 = ct_SD
-    tfp_minus = maybe t0 calculationDay ((\sc -> sup sc t0) =<< fpSchedule)
-    tfp_plus = maybe t0 calculationDay ((\sc -> inf sc t0) =<< fpSchedule)
-    tminus = maybe t0 calculationDay ((\sc -> sup sc t0) =<< ipSchedule)
+    tfp_minus = maybe t0 calculationDay (sup fpSchedule t0)
+    tfp_plus = maybe t0 calculationDay (inf fpSchedule t0)
+    tminus = maybe t0 calculationDay (sup ipSchedule t0)
 
     r :: CR -> Double
     r = contractRoleSign
@@ -150,7 +150,7 @@ initialize ct@ContractTerms {..} =
             frac = annuity nominalInterestRate ti
          in Just $ frac * scale
         where
-          prDates = maybe [] (map calculationDay) prSchedule ++ maybeToList (maturity ct)
+          prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
           ti = zipWith (\tn tm -> _y dayCountConvention tn tm md) prDates (tail prDates)
     nextPrincipalRedemptionPayment _ = Nothing
 

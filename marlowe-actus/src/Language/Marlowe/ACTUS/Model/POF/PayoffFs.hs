@@ -6,14 +6,16 @@ import           Data.Maybe                                        (fromMaybe)
 import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..), FEB (..))
-import           Language.Marlowe.ACTUS.MarloweCompat              (RiskFactorsMarlowe, constnt, enum, useval)
+import           Language.Marlowe.ACTUS.MarloweCompat              (ContractStateMarlowe, RiskFactorsMarlowe, constnt,
+                                                                    enum)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
                                                                     marloweFixedPoint)
 import           Prelude                                           hiding (Fractional, Num, (*), (+), (-), (/))
 
-payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> Integer -> LocalTime -> LocalTime -> Maybe (Value Observation)
+payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> ContractStateMarlowe -> LocalTime -> LocalTime -> Maybe (Value Observation)
 payoffFs
   ev
   RiskFactorsPoly {..}
@@ -23,7 +25,7 @@ payoffFs
       ct_DCC = Just dayCountConvention,
       ..
     }
-  t_minus
+  ContractStatePoly {..}
   prevDate
   curDate =
     let pof = case contractType of
@@ -80,13 +82,5 @@ payoffFs
       priceAtPurchaseDate = constnt (fromMaybe 0.0 ct_PPRD)
       priceAtTerminationDate = constnt (fromMaybe 0.0 ct_PTD)
       penaltyRate = constnt (fromMaybe 0.0 ct_PYRT)
-      nsc = useval "nsc" t_minus
-      nt = useval "nt" t_minus
-      isc = useval "isc" t_minus
-      ipac = useval "ipac" t_minus
-      feac = useval "feac" t_minus
-      ipnr = useval "ipnr" t_minus
-      ipcb = useval "ipcb" t_minus
-      prnxt = useval "prnxt" t_minus
       y_sd_t = constnt $ _y dayCountConvention prevDate curDate ct_MD
 payoffFs _ _ _ _ _ _ = Nothing

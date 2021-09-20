@@ -43,16 +43,15 @@ The contract in ACTUS is specified as follows - only the relevant parameters are
 
 ```
 ContractTerms
-  {
-    contractType = PAM,
-    ct_IED = Just $ fromGregorian 2020 01 01,
-    ct_MD = Just $ fromGregorian 2030 01 01,
-    ct_NT = Just 10000.0,
-    ct_DCC = Just DCC_E30_360,
-    ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_IPANX = Just $ fromGregorian 2020 01 01,
-    ct_IPNR = Just 0.02,
-    ...
+  { contractType = PAM
+  , ct_IED       = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_MD        = iso8601ParseM "2030-01-01T00:00:00"
+  , ct_NT        = Just 10000.0
+  , ct_DCC       = Just DCC_E30_360
+  , ct_IPCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_IPANX     = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_IPNR      = Just 0.02
+  ...
   }
 ```
 
@@ -85,20 +84,20 @@ The contract in ACTUS is specified as follows - only the relevant parameters are
 
 ```
 ContractTerms
-  { contractType = LAM,
-    ct_IED = Just $ fromGregorian 2020 01 01,
-    ct_MD = Just $ fromGregorian 2030 01 01,
-    ct_PRNXT = Just 1000.0,
-    ct_NT = Just 10000.0,
-    ct_DCC = Just DCC_E30_360,
-    ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_IPANX = Just $ fromGregorian 2020 01 01,
-    ct_IPNR = Just 0.02,
-    ct_IPAC = Just 0.0,
-    ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_PRANX = Just $ fromGregorian 2021 01 01,
-    ct_IPCB = Just IPCB_NT,
-    ...
+  { contractType = LAM
+  , ct_IED       = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_MD        = iso8601ParseM "2030-01-01T00:00:00"
+  , ct_PRNXT     = Just 1000.0
+  , ct_NT        = Just 10000.0
+  , ct_DCC       = Just DCC_E30_360
+  , ct_IPCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_IPANX     = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_IPNR      = Just 0.02
+  , ct_IPAC      = Just 0.0
+  , ct_PRCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_PRANX     = iso8601ParseM "2021-01-01T00:00:00"
+  , ct_IPCB      = Just IPCB_NT
+  ...
   }
 ```
 
@@ -130,20 +129,20 @@ The contract in ACTUS is specified as follows - only the relevant parameters are
 
 ```
 ContractTerms
-  { contractType = NAM,
-    ct_IED = Just $ fromGregorian 2020 01 01,
-    ct_MD = Just $ fromGregorian 2030 01 01,
-    ct_PRNXT = Just 1000.0,
-    ct_NT = Just 10000.0,
-    ct_DCC = Just DCC_E30_360,
-    ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_IPANX = Just $ fromGregorian 2020 01 01,
-    ct_IPNR = Just 0.02,
-    ct_IPAC = Just 0.0,
-    ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_PRANX = Just $ fromGregorian 2021 01 01,
-    ct_IPCB = Just IPCB_NT,
-    ...
+  { contractType = NAM
+  , ct_IED       = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_MD        = iso8601ParseM "2030-01-01T00:00:00"
+  , ct_PRNXT     = Just 1000.0
+  , ct_NT        = Just 10000.0
+  , ct_DCC       = Just DCC_E30_360
+  , ct_IPCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_IPANX     = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_IPNR      = Just 0.02
+  , ct_IPAC      = Just 0.0
+  , ct_PRCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_PRANX     = iso8601ParseM "2021-01-01T00:00:00"
+  , ct_IPCB      = Just IPCB_NT
+  ...
   }
 ```
 
@@ -175,20 +174,20 @@ The contract in ACTUS is specified as follows - only the relevant parameters are
 
 ```
 ContractTerms
-  { contractType = ANN,
-    ct_IED = Just $ fromGregorian 2020 01 01,
-    ct_MD = Just $ fromGregorian 2030 01 01,
-    ct_PRNXT = Just 1000.0,
-    ct_NT = Just 10000.0,
-    ct_DCC = Just DCC_E30_360,
-    ct_IPCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_IPANX = Just $ fromGregorian 2020 01 01,
-    ct_IPNR = Just 0.02,
-    ct_IPAC = Just 0.0,
-    ct_PRCL = Just $ Cycle 1 P_Y ShortStub False,
-    ct_PRANX = Just $ fromGregorian 2021 01 01,
-    ct_IPCB = Just IPCB_NT,
-    ...
+  { contractType = ANN
+  , ct_IED       = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_MD        = iso8601ParseM "2030-01-01T00:00:00"
+  , ct_PRNXT     = Just 1000.0
+  , ct_NT        = Just 10000.0
+  , ct_DCC       = Just DCC_E30_360
+  , ct_IPCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_IPANX     = iso8601ParseM "2020-01-01T00:00:00"
+  , ct_IPNR      = Just 0.02
+  , ct_IPAC      = Just 0.0
+  , ct_PRCL      = Just $ Cycle 1 P_Y ShortStub False
+  , ct_PRANX     = iso8601ParseM "2021-01-01T00:00:00"
+  , ct_IPCB      = Just IPCB_NT
+  ...
   }
 ```
 

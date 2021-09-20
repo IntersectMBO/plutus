@@ -9,57 +9,57 @@ import           Data.Maybe       (fromMaybe)
 import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
 
- -- ContractType
-data CT = PAM -- principal at maturity
-        | LAM -- linear amortizer
-        | NAM -- negative amortizer
-        | ANN -- annuity
+-- |ContractType
+data CT = PAM -- ^ Principal at maturity
+        | LAM -- ^ Linear amortizer
+        | NAM -- ^ Negative amortizer
+        | ANN -- ^ Annuity
         deriving stock (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- ContractRole
-data CR = CR_RPA -- real position asset
-        | CR_RPL -- real position liability
-        | CR_CLO -- role of a collateral
-        | CR_CNO -- role of a close-out-netting
-        | CR_COL -- role of an underlying to a collateral
-        | CR_LG  -- long position
-        | CR_ST  -- short position
-        | CR_BUY -- protection buyer
-        | CR_SEL -- protection seller
-        | CR_RFL -- receive first leg
-        | CR_PFL -- pay first leg
-        | CR_RF  -- receive fix leg
-        | CR_PF  -- pay fix leg
+-- |ContractRole
+data CR = CR_RPA -- ^ Real position asset
+        | CR_RPL -- ^ Real position liability
+        | CR_CLO -- ^ Role of a collateral
+        | CR_CNO -- ^ Role of a close-out-netting
+        | CR_COL -- ^ Role of an underlying to a collateral
+        | CR_LG  -- ^ Long position
+        | CR_ST  -- ^ Short position
+        | CR_BUY -- ^ Protection buyer
+        | CR_SEL -- ^ Protection seller
+        | CR_RFL -- ^ Receive first leg
+        | CR_PFL -- ^ Pay first leg
+        | CR_RF  -- ^ Receive fix leg
+        | CR_PF  -- ^ Pay fix leg
         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- DayCountConvention
-data DCC = DCC_A_AISDA     -- Actual/Actual ISDA
-         | DCC_A_360       -- Actual/360
-         | DCC_A_365       -- Actual/365
-         | DCC_E30_360ISDA -- 30E/360 ISDA
-         | DCC_E30_360     -- 30E/360
-         | DCC_B_252       -- Business / 252
+-- |DayCountConvention
+data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
+         | DCC_A_360       -- ^ Actual/360
+         | DCC_A_365       -- ^ Actual/365
+         | DCC_E30_360ISDA -- ^ 30E/360 ISDA
+         | DCC_E30_360     -- ^ 30E/360
+         | DCC_B_252       -- ^ Business / 252
          deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- EndOfMonthConvention
-data EOMC = EOMC_EOM -- end of month
-          | EOMC_SD  -- same day
+-- |EndOfMonthConvention
+data EOMC = EOMC_EOM -- ^ End of month
+          | EOMC_SD  -- ^ Same day
           deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- BusinessDayConvention
-data BDC = BDC_NULL -- no shift
-         | BDC_SCF  -- shift/calculate following
-         | BDC_SCMF -- shift/calculate modified following
-         | BDC_CSF  -- calculate/shift following
-         | BDC_CSMF -- calculate/shift modified following
-         | BDC_SCP  -- shift/calculate preceding
-         | BDC_SCMP -- shift/calculate modified preceding
-         | BDC_CSP  -- calculate/shift preceding
-         | BDC_CSMP -- calculate/shift modified preceding
+-- |BusinessDayConvention
+data BDC = BDC_NULL -- ^ No shift
+         | BDC_SCF  -- ^ Shift/calculate following
+         | BDC_SCMF -- ^ Shift/calculate modified following
+         | BDC_CSF  -- ^ Calculate/shift following
+         | BDC_CSMF -- ^ Calculate/shift modified following
+         | BDC_SCP  -- ^ Shift/calculate preceding
+         | BDC_SCMP -- ^ Shift/calculate modified preceding
+         | BDC_CSP  -- ^ Calculate/shift preceding
+         | BDC_CSMP -- ^ Calculate/shift modified preceding
          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data Calendar = CLDR_MF -- monday to friday
-              | CLDR_NC -- no calendar
+data Calendar = CLDR_MF -- ^ Monday to Friday
+              | CLDR_NC -- ^ No calendar
               deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
@@ -70,46 +70,46 @@ data ScheduleConfig = ScheduleConfig
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
--- ContractPerformance
-data PRF = PRF_PF -- performant
-         | PRF_DL -- delayed
-         | PRF_DQ -- delinquent
-         | PRF_DF -- default
+-- |ContractPerformance
+data PRF = PRF_PF -- ^ Performant
+         | PRF_DL -- ^ Delayed
+         | PRF_DQ -- ^ Delinquent
+         | PRF_DF -- ^ Default
          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- FeeBasis
-data FEB = FEB_A -- absolute value
-         | FEB_N -- notional of underlying
+-- |FeeBasis
+data FEB = FEB_A -- ^ Absolute value
+         | FEB_N -- ^ Notional of underlying
          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
- -- InterestCalculationBase
-data IPCB = IPCB_NT    -- calculation base always equals to NT
-          | IPCB_NTIED -- notional remains constant amount as per IED
-          | IPCB_NTL   -- calculation base is notional base laged
+-- |InterestCalculationBase
+data IPCB = IPCB_NT    -- ^ Calculation base always equals to NT
+          | IPCB_NTIED -- ^ Notional remains constant amount as per IED
+          | IPCB_NTL   -- ^ Calculation base is notional base laged
           deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- ScalingEffect
-data SCEF = SE_000 -- no scaling
-          | SE_I00 -- only interest payments scaled
-          | SE_0N0 -- only nominal payments scaled
-          | SE_00M -- only maximum deferred amount scaled
-          | SE_IN0 -- interest and nominal payments scaled
-          | SE_0NM -- nominal and maximum deferred amount scaled
-          | SE_I0M -- interest and maximum deferred amount scaled
-          | SE_INM -- interest, nominal and maximum deferred amount scaled
+-- |ScalingEffect
+data SCEF = SE_000 -- ^ No scaling
+          | SE_I00 -- ^ Only interest payments scaled
+          | SE_0N0 -- ^ Only nominal payments scaled
+          | SE_00M -- ^ Only maximum deferred amount scaled
+          | SE_IN0 -- ^ Interest and nominal payments scaled
+          | SE_0NM -- ^ Nominal and maximum deferred amount scaled
+          | SE_I0M -- ^ Interest and maximum deferred amount scaled
+          | SE_INM -- ^ Interest, nominal and maximum deferred amount scaled
           deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
- -- PenaltyType
-data PYTP = PYTP_A -- absolute
-          | PYTP_N -- nominal rate
-          | PYTP_I -- current interest rate differential
-          | PYTP_O -- no penalty
+-- |PenaltyType
+data PYTP = PYTP_A -- ^ Absolute
+          | PYTP_N -- ^ Nominal rate
+          | PYTP_I -- ^ Current interest rate differential
+          | PYTP_O -- ^ No penalty
           deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
--- PrepaymentEffect
-data PPEF = PPEF_N -- no prepayment
-          | PPEF_A -- prepayment allowed, prepayment results in reduction of PRNXT while MD remains
-          | PPEF_M -- prepayment allowed, prepayment results in reduction of MD while PRNXT remains
+-- |PrepaymentEffect
+data PPEF = PPEF_N -- ^ No prepayment
+          | PPEF_A -- ^ Prepayment allowed, prepayment results in reduction of PRNXT while MD remains
+          | PPEF_M -- ^ Prepayment allowed, prepayment results in reduction of MD while PRNXT remains
           deriving (Show, Read, Eq, Ord, Generic)
           deriving anyclass (FromJSON, ToJSON)
 
@@ -118,22 +118,22 @@ data CalendarType = NoCalendar
                   | CustomCalendar {holidays :: [Day]}
                   deriving (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
- -- CyclePeriod
-data Period = P_D -- day
-            | P_W -- week
-            | P_M -- month
-            | P_Q -- quarter
-            | P_H -- half year
-            | P_Y -- year
+-- |CyclePeriod
+data Period = P_D -- ^ Day
+            | P_W -- ^ Week
+            | P_M -- ^ Month
+            | P_Q -- ^ Quarter
+            | P_H -- ^ Half year
+            | P_Y -- ^ Year
             deriving (Show, Read, Eq, Ord, Generic)
             deriving anyclass (FromJSON, ToJSON)
 
- -- CycleStub
-data Stub = ShortStub -- short last stub
-          | LongStub  -- long last stub
+-- |CycleStub
+data Stub = ShortStub -- ^ Short last stub
+          | LongStub  -- ^ Long last stub
           deriving (Show, Eq, Ord, Generic) deriving anyclass (FromJSON, ToJSON)
 
- -- Cycle
+-- |Cycle
 data Cycle = Cycle
   { n             :: Integer
   , p             :: Period
@@ -184,73 +184,75 @@ data ContractTerms = ContractTerms
   , ct_CURS          :: Maybe String
 
   -- Calendar
-  , ct_IED           :: Maybe LocalTime -- Initial Exchange Date
-  , ct_DCC           :: Maybe DCC       -- Day Count Convention
+  , ct_IED           :: Maybe LocalTime -- ^ Initial Exchange Date
+  , ct_DCC           :: Maybe DCC       -- ^ Day Count Convention
   , scfg             :: ScheduleConfig
 
   -- Contract Identification
-  , ct_SD            :: LocalTime       -- Status Date
+  , ct_SD            :: LocalTime       -- ^ Status Date
 
   -- Counterparty
-  , ct_PRF           :: Maybe PRF       -- Contract Performance
+  , ct_PRF           :: Maybe PRF       -- ^ Contract Performance
 
   -- Fees
-  , ct_FECL          :: Maybe Cycle     -- Cycle Of Fee
-  , ct_FEANX         :: Maybe LocalTime -- Cycle Anchor Date Of Fee
-  , ct_FEAC          :: Maybe Double    -- Fee Accrued
-  , ct_FEB           :: Maybe FEB       -- Fee Basis
-  , ct_FER           :: Maybe Double    -- Fee Rate
+  , ct_FECL          :: Maybe Cycle     -- ^ Cycle Of Fee
+  , ct_FEANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Fee
+  , ct_FEAC          :: Maybe Double    -- ^ Fee Accrued
+  , ct_FEB           :: Maybe FEB       -- ^ Fee Basis
+  , ct_FER           :: Maybe Double    -- ^ Fee Rate
 
   -- Interest
-  , ct_IPANX         :: Maybe LocalTime -- Cycle Anchor Date Of Interest Payment
-  , ct_IPCL          :: Maybe Cycle     -- Cycle Of Interest Payment
-  , ct_IPAC          :: Maybe Double    -- Accrued Interest
-  , ct_IPCED         :: Maybe LocalTime -- Capitalization End Date
-  , ct_IPCBANX       :: Maybe LocalTime -- Cycle Anchor Date Of Interest Calculation Base
-  , ct_IPCBCL        :: Maybe Cycle     -- Cycle Of Interest Calculation Base
-  , ct_IPCB          :: Maybe IPCB      -- Interest Calculation Base
-  , ct_IPCBA         :: Maybe Double    -- Interest Calculation Base Amount
-  , ct_IPNR          :: Maybe Double    -- Nominal Interest Rate
-  , ct_SCIP          :: Maybe Double    -- Interest Scaling Multiplier
+  , ct_IPANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Interest Payment
+  , ct_IPCL          :: Maybe Cycle     -- ^ Cycle Of Interest Payment
+  , ct_IPAC          :: Maybe Double    -- ^ Accrued Interest
+  , ct_IPCED         :: Maybe LocalTime -- ^ Capitalization End Date
+  , ct_IPCBANX       :: Maybe LocalTime -- ^ Cycle Anchor Date Of Interest Calculation Base
+  , ct_IPCBCL        :: Maybe Cycle     -- ^ Cycle Of Interest Calculation Base
+  , ct_IPCB          :: Maybe IPCB      -- ^ Interest Calculation Base
+  , ct_IPCBA         :: Maybe Double    -- ^ Interest Calculation Base Amount
+  , ct_IPNR          :: Maybe Double    -- ^ Nominal Interest Rate
+  , ct_SCIP          :: Maybe Double    -- ^ Interest Scaling Multiplier
 
   -- Notional Principal
-  , ct_NT            :: Maybe Double    -- Notional Principal
-  , ct_PDIED         :: Maybe Double    -- Premium Discount At IED
-  , ct_MD            :: Maybe LocalTime -- Maturity Date
-  , ct_AD            :: Maybe LocalTime -- Amortization Date
-  , ct_PRANX         :: Maybe LocalTime -- Cycle Anchor Date Of Principal Redemption
-  , ct_PRCL          :: Maybe Cycle     -- Cycle Of Principal Redemption
-  , ct_PRNXT         :: Maybe Double    -- Next Principal Redemption Payment
-  , ct_PRD           :: Maybe LocalTime -- Purchase Date
-  , ct_PPRD          :: Maybe Double    -- Price At Purchase Date
-  , ct_TD            :: Maybe LocalTime -- Termination Date
-  , ct_PTD           :: Maybe Double    -- Price At Termination Date
-  , ct_SCIED         :: Maybe Double    -- Scaling Index At Status Date
-  , ct_SCANX         :: Maybe LocalTime -- Cycle Anchor Date Of Scaling Index
-  , ct_SCCL          :: Maybe Cycle     -- Cycle Of Scaling Index
-  , ct_SCEF          :: Maybe SCEF      -- Scaling Effect
-  , ct_SCCDD         :: Maybe Double    -- Scaling Index At Contract Deal Date
-  , ct_SCMO          :: Maybe String    -- Market Object Code Of Scaling Index
-  , ct_SCNT          :: Maybe Double    -- Notional Scaling Multiplier
+  , ct_NT            :: Maybe Double    -- ^ Notional Principal
+  , ct_PDIED         :: Maybe Double    -- ^ Premium Discount At IED
+  , ct_MD            :: Maybe LocalTime -- ^ Maturity Date
+  , ct_AD            :: Maybe LocalTime -- ^ Amortization Date
+  , ct_PRANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Principal Redemption
+  , ct_PRCL          :: Maybe Cycle     -- ^ Cycle Of Principal Redemption
+  , ct_PRNXT         :: Maybe Double    -- ^ Next Principal Redemption Payment
+  , ct_PRD           :: Maybe LocalTime -- ^ Purchase Date
+  , ct_PPRD          :: Maybe Double    -- ^ Price At Purchase Date
+  , ct_TD            :: Maybe LocalTime -- ^ Termination Date
+  , ct_PTD           :: Maybe Double    -- ^ Price At Termination Date
+
+  -- Scaling Index
+  , ct_SCIED         :: Maybe Double    -- ^ Scaling Index At Status Date
+  , ct_SCANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Scaling Index
+  , ct_SCCL          :: Maybe Cycle     -- ^ Cycle Of Scaling Index
+  , ct_SCEF          :: Maybe SCEF      -- ^ Scaling Effect
+  , ct_SCCDD         :: Maybe Double    -- ^ Scaling Index At Contract Deal Date
+  , ct_SCMO          :: Maybe String    -- ^ Market Object Code Of Scaling Index
+  , ct_SCNT          :: Maybe Double    -- ^ Notional Scaling Multiplier
 
   -- Optionality
-  , ct_OPCL          :: Maybe Cycle     -- Cycle Of Optionality
-  , ct_OPANX         :: Maybe LocalTime -- Cycle Anchor Date Of Optionality
-  , ct_PYRT          :: Maybe Double    -- Penalty Rate
-  , ct_PYTP          :: Maybe PYTP      -- Penalty Type
-  , ct_PPEF          :: Maybe PPEF      -- Prepayment Effect
+  , ct_OPCL          :: Maybe Cycle     -- ^ Cycle Of Optionality
+  , ct_OPANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Optionality
+  , ct_PYRT          :: Maybe Double    -- ^ Penalty Rate
+  , ct_PYTP          :: Maybe PYTP      -- ^ Penalty Type
+  , ct_PPEF          :: Maybe PPEF      -- ^ Prepayment Effect
 
   -- Rate Reset
-  , ct_RRCL          :: Maybe Cycle     -- Cycle Of Rate Reset
-  , ct_RRANX         :: Maybe LocalTime -- Cycle Anchor Date Of Rate Reset
-  , ct_RRNXT         :: Maybe Double    -- Next Reset Rate
-  , ct_RRSP          :: Maybe Double    -- Rate Spread
-  , ct_RRMLT         :: Maybe Double    -- Rate Multiplier
-  , ct_RRPF          :: Maybe Double    -- Period Floor
-  , ct_RRPC          :: Maybe Double    -- Period Cap
-  , ct_RRLC          :: Maybe Double    -- Life Cap
-  , ct_RRLF          :: Maybe Double    -- Life Floor
-  , ct_RRMO          :: Maybe String    -- Market Object Code Of Rate Reset
+  , ct_RRCL          :: Maybe Cycle     -- ^ Cycle Of Rate Reset
+  , ct_RRANX         :: Maybe LocalTime -- ^ Cycle Anchor Date Of Rate Reset
+  , ct_RRNXT         :: Maybe Double    -- ^ Next Reset Rate
+  , ct_RRSP          :: Maybe Double    -- ^ Rate Spread
+  , ct_RRMLT         :: Maybe Double    -- ^ Rate Multiplier
+  , ct_RRPF          :: Maybe Double    -- ^ Period Floor
+  , ct_RRPC          :: Maybe Double    -- ^ Period Cap
+  , ct_RRLC          :: Maybe Double    -- ^ Life Cap
+  , ct_RRLF          :: Maybe Double    -- ^ Life Floor
+  , ct_RRMO          :: Maybe String    -- ^ Market Object Code Of Rate Reset
 
   -- enable settlement currency
   , enableSettlement :: Bool

@@ -1,7 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.Model.STF.StateTransition where
+module Language.Marlowe.ACTUS.Model.STF.StateTransition
+  (
+    stateTransition
+  , CtxSTF (..)
+  )
+where
 
+import           Control.Monad.Reader                                   (Reader, ask)
 import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors,
@@ -9,13 +15,22 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventTy
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
-stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTime -> ContractState
-stateTransition
+data CtxSTF = CtxSTF
+  { contractTerms :: ContractTerms
+  , fpSchedule    :: [ShiftedDay]
+  , prSchedule    :: [ShiftedDay]
+  }
+
+stateTransition :: EventType -> RiskFactors -> LocalTime -> ContractState -> Reader CtxSTF ContractState
+stateTransition ev rf lt cs = ask >>= \CtxSTF{..} -> return $ stateTransition' ev rf contractTerms cs lt fpSchedule prSchedule
+
+stateTransition' :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTime -> [ShiftedDay] -> [ShiftedDay] -> ContractState
+stateTransition'
   ev
   RiskFactorsPoly {..}
   ct@ContractTerms
@@ -24,7 +39,7 @@ stateTransition
       ..
     }
   st@ContractStatePoly {..}
-  t = stf ev ct
+  t fpSchedule prSchedule = stf ev ct
     where
       stf :: EventType -> ContractTerms -> ContractState
       stf AD _ = _STF_AD_PAM st t y_sd_t
@@ -154,12 +169,10 @@ stateTransition
       stf _ _ = st
 
       feeRate = fromMaybe 0.0 ct_FER
-      fpSchedule = schedule FP ct
-      prSchedule = schedule PR ct
 
-      tfp_minus = maybe t calculationDay ((\sc -> sup sc t) =<< fpSchedule)
-      tfp_plus = maybe t calculationDay ((\sc -> inf sc t) =<< fpSchedule)
-      tpr_plus = maybe t calculationDay ((\sc -> inf sc t) =<< prSchedule)
+      tfp_minus = maybe t calculationDay (sup fpSchedule t)
+      tfp_plus = maybe t calculationDay (inf fpSchedule t)
+      tpr_plus = maybe t calculationDay (inf prSchedule t)
 
       y_sd_t = _y dayCountConvention sd t ct_MD
       y_tfpminus_t = _y dayCountConvention tfp_minus t ct_MD
@@ -167,7 +180,7 @@ stateTransition
       y_ipanx_t = _y dayCountConvention interestPaymentAnchor t ct_MD
       y_t = _y dayCountConvention t tpr_plus ct_MD
 
-      prDates = maybe [] (map calculationDay) prSchedule ++ maybeToList (maturity ct)
+      prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
       prDatesAfterSd = filter (\d -> d > sd) prDates
       ti = zipWith (\tn tm -> _y dayCountConvention tn tm ct_MD) prDatesAfterSd (tail prDatesAfterSd)
-stateTransition _ _ _ s _ = s
+stateTransition' _ _ _ s _ _ _ = s
