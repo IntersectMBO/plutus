@@ -16,6 +16,7 @@ module Spec.GameStateMachine
   ( tests, successTrace, successTrace2, failTrace
   , prop_Game, propGame'
   , prop_NoLockedFunds
+  , prop_CheckNoLockedFundsProof
   ) where
 
 import           Control.Lens
@@ -211,6 +212,29 @@ noLockedFunds = do
 -- | Check that we can always get the money out of the guessing game (by guessing correctly).
 prop_NoLockedFunds :: Property
 prop_NoLockedFunds = forAllDL noLockedFunds prop_Game
+
+noLockProof :: NoLockedFundsProof GameModel
+noLockProof = NoLockedFundsProof{
+      nlfpMainStrategy   = mainStrat,
+      nlfpWalletStrategy = walletStrat }
+    where
+        mainStrat = do
+            hasTok <- viewContractState hasToken
+            secret <- viewContractState currentSecret
+            val    <- viewContractState gameValue
+            case hasTok of
+                Nothing -> return ()
+                Just w  -> action (Guess w secret "" val)
+
+        walletStrat w = do
+            hasTok <- (== Just w) <$> viewContractState hasToken
+            secret <- viewContractState currentSecret
+            val    <- viewContractState gameValue
+            when hasTok $ action (Guess w secret "" val)
+
+prop_CheckNoLockedFundsProof:: Property
+prop_CheckNoLockedFundsProof = checkNoLockedFundsProof defaultCheckOptions handleSpec noLockProof
+
 
 -- * Unit tests
 
