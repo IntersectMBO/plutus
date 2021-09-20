@@ -104,6 +104,7 @@ import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
 import           PlutusTx.Enum        as Enum
 import           PlutusTx.Eq          as Eq
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Foldable    as Foldable
 import           PlutusTx.Functor     as Functor
 import           PlutusTx.IsData
@@ -139,7 +140,7 @@ import           Prelude              (Integer, dropWhile, flip, otherwise, retu
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
-check b = if b then () else traceError "Pd" {-"Check has failed"-}
+check b = if b then () else traceError checkHasFailedError
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards
