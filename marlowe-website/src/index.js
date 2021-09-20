@@ -104,7 +104,7 @@ function initializeContractCarousel() {
 
   const selectors = Array.from(document.getElementById("carousel-selectors").children);
   const items = Array.from(document.getElementById("carousel-items").children);
-  console.log(items);
+
   let selectedItem = 0;
   function select(index) {
     selectors[selectedItem].classList.remove("active");
