@@ -3,9 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ViewPatterns          #-}
 
 module Plutus.ChainIndex.TxIdState(
     increaseDepth
@@ -25,22 +23,23 @@ import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
 import           Ledger                      (OnChainTx, TxId, eitherTx)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..), citxOutputs, citxTxId)
-import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxConfirmedState (..),
-                                              TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..))
+import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), RollbackState (..), Tip (..),
+                                              TxConfirmedState (..), TxIdState (..), TxStatus, TxStatusFailure (..),
+                                              TxValidity (..))
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..),
                                               rollbackWith, tip, utxoState, viewTip)
 
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
 initialStatus :: OnChainTx -> TxStatus
-initialStatus =
-  TentativelyConfirmed 0 . eitherTx (const TxInvalid) (const TxValid)
+initialStatus tx =
+  TentativelyConfirmed 0 (eitherTx (const TxInvalid) (const TxValid) tx) ()
 
 -- | Increase the depth of a tentatively confirmed transaction
 increaseDepth :: TxStatus -> TxStatus
-increaseDepth (TentativelyConfirmed d s)
-  | d < succ chainConstant = TentativelyConfirmed (d + 1) s
-  | otherwise              = Committed s
+increaseDepth (TentativelyConfirmed d s ())
+  | d < succ chainConstant = TentativelyConfirmed (d + 1) s ()
+  | otherwise              = Committed s ()
 increaseDepth e            = e
 
 -- TODO: Configurable!
@@ -68,13 +67,13 @@ transactionStatus currentBlock txIdState txId
 
        (Just TxConfirmedState{blockAdded=Last (Just block'), validity=Last (Just validity')}, Nothing) ->
          if isCommitted block'
-            then Right $ Committed validity'
-            else Right $ newStatus block' validity'
+            then Right $ Committed validity' ()
+            else Right $ newStatus block' validity' ()
 
        (Just TxConfirmedState{timesConfirmed=confirms, blockAdded=Last (Just block'), validity=Last (Just validity')}, Just deletes) ->
          if confirms > deletes
             -- It's fine, it's confirmed
-            then Right $ newStatus block' validity'
+            then Right $ newStatus block' validity' ()
             -- Otherwise, throw an error if it looks deleted but we're too far
             -- into the future.
             else if isCommitted block'
@@ -111,13 +110,13 @@ validityFromChainIndex tx =
     ValidTx _ -> TxValid
 
 fromTx :: BlockNumber -> ChainIndexTx -> TxIdState
-fromTx blockAdded tx =
+fromTx blockNumber tx =
   TxIdState
     { txnsConfirmed =
         Map.singleton
           (tx ^. citxTxId)
           (TxConfirmedState { timesConfirmed = Sum 1
-                            , blockAdded = Last . Just $ blockAdded
+                            , blockAdded = Last . Just $ blockNumber
                             , validity = Last . Just $ validityFromChainIndex tx })
     , txnsDeleted = mempty
     }

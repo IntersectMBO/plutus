@@ -8,5 +8,7 @@ import           Plutus.ChainIndex.Effects         as Export
 import           Plutus.ChainIndex.Handlers        as Export
 import           Plutus.ChainIndex.Tx              as Export
 import           Plutus.ChainIndex.TxIdState       as Export hiding (fromBlock, fromTx, rollback)
+import           Plutus.ChainIndex.TxOutBalance    as Export hiding (fromBlock, fromTx, isSpentOutput, isUnspentOutput,
+                                                              rollback)
 import           Plutus.ChainIndex.Types           as Export
-import           Plutus.ChainIndex.UtxoState       as Export hiding (fromBlock, fromTx, rollback)
+import           Plutus.ChainIndex.UtxoState       as Export

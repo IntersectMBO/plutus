@@ -8,6 +8,7 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -52,9 +53,11 @@ import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
 import           Ledger.Blockchain                    (OnChainTx (..))
 import           Ledger.Tx                            (Address, TxIn (..), TxOut (..), TxOutRef, txId)
-import           Plutus.ChainIndex                    (ChainIndexQueryEffect, ChainIndexTx, TxStatus (..),
-                                                       TxValidity (..), _ValidTx, citxInputs, citxOutputs,
-                                                       fromOnChainTx)
+import           Plutus.ChainIndex                    (ChainIndexQueryEffect,
+                                                       ChainIndexTx (ChainIndexTx, _citxOutputs, _citxTxId),
+                                                       ChainIndexTxOutputs (InvalidTx, ValidTx), RollbackState (..),
+                                                       TxOutState (..), TxValidity (..), _ValidTx, citxInputs,
+                                                       citxOutputs, fromOnChainTx, txOutRefs)
 import           Plutus.Contract                      (Contract (..))
 import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), matches)
 import qualified Plutus.Contract.Effects              as E
@@ -265,7 +268,10 @@ processNewTransactions ::
 processNewTransactions txns = do
     updateTxStatus @w @s @e txns
 
-    let blck = indexBlock $ fmap fromOnChainTx txns
+    let ciTxns = fmap fromOnChainTx txns
+    updateTxOutStatus @w @s @e ciTxns
+
+    let blck = indexBlock ciTxns
     updateTxOutSpent @w @s @e blck
     updateTxOutProduced @w @s @e blck
 
@@ -290,10 +296,49 @@ updateTxStatus txns = do
     let mpReq Request{rqID, itID, rqRequest=txid} =
             case Map.lookup txid statusMap of
                 Nothing -> Nothing
-                Just newStatus -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=AwaitTxStatusChangeResp txid (Committed newStatus)}
+                Just newStatus -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=AwaitTxStatusChangeResp txid (Committed newStatus ())}
         txStatusHk = listToMaybe $ mapMaybe mpReq hks
     traverse_ (addResponse @w @s @e) txStatusHk
     logResponse @w @s @e False txStatusHk
+
+-- | Update the contract instance with transaction outputs status information
+-- from the new block.
+--
+-- Currently, all tx outputs of a block will either go to the state
+-- 'TxOutConfirmedUnspent' or 'TxOutConfirmedSpent' (we don't currently
+-- represent the @TentativelyConfirmed@ state in the emulator.
+updateTxOutStatus ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [ChainIndexTx] -- ^ Block of transactions
+    -> Eff effs ()
+updateTxOutStatus txns = do
+    -- Check whether the contract instance is waiting for a status change of a
+    -- transaction output of any of the new transactions. If that is the case,
+    -- call 'addResponse' to sent the response.
+    let getSpentOutputs = Set.toList . Set.map txInRef . view citxInputs
+        -- If the tx is invalid, there is not outputs
+        txWithTxOutStatus tx@ChainIndexTx {_citxTxId, _citxOutputs = InvalidTx} =
+          fmap (, Committed TxInvalid (Spent _citxTxId)) $ getSpentOutputs tx
+        txWithTxOutStatus tx@ChainIndexTx {_citxTxId, _citxOutputs = ValidTx {}} =
+             fmap (, Committed TxValid (Spent _citxTxId)) (getSpentOutputs tx)
+          <> fmap (, Committed TxValid Unspent) (txOutRefs tx)
+        statusMap = Map.fromList $ foldMap txWithTxOutStatus txns
+    hks <- mapMaybe (traverse (preview E._AwaitTxOutStatusChangeReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=txOutRef} =
+            case Map.lookup txOutRef statusMap of
+                Nothing        -> Nothing
+                Just newStatus ->
+                    Just Response { rspRqID=rqID
+                                  , rspItID=itID
+                                  , rspResponse=E.AwaitTxOutStatusChangeResp txOutRef newStatus
+                                  }
+        utxoResp = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) utxoResp
+    logResponse @w @s @e False utxoResp
 
 -- | Update the contract instance with transaction output information from the
 --   new block.
