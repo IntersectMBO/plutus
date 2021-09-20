@@ -14,7 +14,7 @@ module Marlowe.Execution.Lenses
   , _continuationContract
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens', Traversal', _Just, traversed)
 import Data.Lens.Record (prop)
 import Data.List (List)

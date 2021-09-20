@@ -10,7 +10,7 @@ module Contract.State
   , applyTimeout
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoContractNicknames)

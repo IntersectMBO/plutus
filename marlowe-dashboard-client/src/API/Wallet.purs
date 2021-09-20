@@ -6,7 +6,7 @@ module API.Wallet
   , signTransaction
   ) where
 
-import Prelude
+import Prologue
 import API.Request (doGetRequest, doEmptyPostRequest, doPostRequest)
 import API.Url (toUrlPiece)
 import Cardano.Wallet.Types (WalletInfo)

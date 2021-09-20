@@ -9,7 +9,7 @@ module Marlowe.Slot
   , secondsDiff
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (fromInt)
 import Data.BigInteger as BigInteger
 import Data.DateTime (DateTime, adjust, diff)

@@ -2,7 +2,7 @@ module BlocklyEditor.BottomPanel
   ( panelContents
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _metadataHintInfo, _warnings)
 import Data.Array as Array
 import Data.Lens (to, (^.))

@@ -1,7 +1,7 @@
 -- TODO: Rename to Marlowe.Term
 module Marlowe.Holes where
 
-import Prelude
+import Prologue
 import Data.Array (foldMap, mapMaybe)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)

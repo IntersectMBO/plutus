@@ -6,7 +6,7 @@ module Examples.PureScript.Swap
   , defaultSlotContent
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
 import Data.Map (Map)

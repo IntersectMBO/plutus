@@ -4,7 +4,7 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent)
 import Data.Maybe (Maybe(..))
 

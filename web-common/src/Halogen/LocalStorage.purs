@@ -1,6 +1,6 @@
 module Halogen.LocalStorage (localStorageEvents) where
 
-import Prelude
+import Prologue
 import Control.Coroutine (connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect.Aff (forkAff, killFiber)

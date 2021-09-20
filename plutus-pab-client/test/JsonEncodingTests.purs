@@ -2,7 +2,7 @@ module JsonEncodingTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Plutus.PAB.Effects.Contract.ContractTest (TestContracts)
 import Plutus.PAB.Webserver.Types (FullReport, ContractSignatureResponse)
 import Test.Unit (TestSuite, suite, test)

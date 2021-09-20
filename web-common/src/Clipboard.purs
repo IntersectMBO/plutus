@@ -25,7 +25,7 @@ import Halogen.HTML (ClassName(..), HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Prelude (class Show, Unit, const, ($))
+import Prologue (class Show, Unit, const, ($))
 
 data Action
   = CopyToClipboard String

@@ -2,7 +2,7 @@ module BottomPanel.State
   ( handleAction
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.Types (Action(..), State, _panelView, _showBottomPanel)
 import Data.Lens (assign, set)
 import Halogen (HalogenM, modify_)

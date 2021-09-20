@@ -1,6 +1,6 @@
 module Demos.Types where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)

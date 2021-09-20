@@ -1,6 +1,6 @@
 module MonadApp where
 
-import Prelude
+import Prologue
 import Types (HAction, Output(..), State, WebData, _contractInstanceIdString)
 import Affjax (Request, Response, defaultRequest)
 import Affjax.RequestBody (string)

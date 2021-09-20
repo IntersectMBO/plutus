@@ -4,7 +4,7 @@ module JavascriptEditor.State
   , editorGetValue
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)

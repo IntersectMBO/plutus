@@ -9,7 +9,7 @@ module Template.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))

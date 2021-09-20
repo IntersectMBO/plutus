@@ -1,6 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (class MonadAsk)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)

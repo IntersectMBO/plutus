@@ -13,7 +13,7 @@ module Capability.MarloweStorage
   , insertWalletRoleContracts
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Control.Monad.Except (lift, runExcept)
 import Data.Array (find)

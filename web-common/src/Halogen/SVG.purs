@@ -1,6 +1,6 @@
 module Halogen.SVG where
 
-import Prelude
+import Prologue
 import DOM.HTML.Indexed (Interactive)
 import Data.Array as Array
 import Data.Newtype (unwrap)

@@ -5,7 +5,7 @@ by the Marlowe Run frontend.
 -}
 module Marlowe.Client where
 
-import Prelude
+import Prologue
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)

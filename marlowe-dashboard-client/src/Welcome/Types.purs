@@ -5,7 +5,7 @@ module Welcome.Types
   , WalletNicknameOrIdError(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Data.Maybe (Maybe(..))

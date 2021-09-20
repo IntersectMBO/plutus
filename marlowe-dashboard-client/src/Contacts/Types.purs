@@ -12,7 +12,7 @@ module Contacts.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)

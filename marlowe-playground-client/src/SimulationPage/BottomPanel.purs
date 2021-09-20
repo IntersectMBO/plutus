@@ -1,6 +1,6 @@
 module SimulationPage.BottomPanel (panelContents) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap)

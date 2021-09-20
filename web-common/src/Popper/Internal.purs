@@ -14,7 +14,7 @@ module Popper.Internal
   , flipPlacement
   ) where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.Function.Uncurried (Fn0, Fn1, Fn2, runFn0, runFn1, runFn2)
 import Data.Tuple (Tuple(..))

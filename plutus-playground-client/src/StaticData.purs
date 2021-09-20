@@ -17,7 +17,7 @@ import Foreign.Generic (decodeJSON)
 import LocalStorage (Key(..))
 import Playground.Types (ContractDemo)
 import Playground.Usecases (contractDemos)
-import Prelude ((<<<), (==))
+import Prologue ((<<<), (==))
 
 mkContractDemos :: F (Array ContractDemo)
 mkContractDemos = do

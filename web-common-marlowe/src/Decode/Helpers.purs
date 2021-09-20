@@ -1,6 +1,6 @@
 module Decode.Helpers where
 
-import Prelude
+import Prologue
 import Control.Monad.Except (ExceptT(..))
 import Data.Either (Either(..))
 import Data.Identity (Identity(..))

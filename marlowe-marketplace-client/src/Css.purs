@@ -5,7 +5,7 @@ module Css
   , hideWhen
   ) where
 
-import Prelude
+import Prologue
 import Halogen (ClassName(ClassName))
 import Halogen.HTML.Properties (IProp, classes)
 

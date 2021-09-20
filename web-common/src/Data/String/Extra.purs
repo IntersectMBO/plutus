@@ -15,7 +15,7 @@ import Data.Monoid (class Monoid, mempty)
 import Data.String (splitAt, toUpper)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
-import Prelude (map, max, (-), (<>), (==), (>>>))
+import Prologue (map, max, (-), (<>), (==), (>>>))
 
 abbreviate :: Int -> String -> String
 abbreviate n str =

@@ -1,6 +1,6 @@
 module Marlowe.Semantics where
 
-import Prelude
+import Prologue
 import Decode.Helpers ((<|>))
 import Control.Monad.Except.Trans (ExceptT)
 import Data.Array (catMaybes)

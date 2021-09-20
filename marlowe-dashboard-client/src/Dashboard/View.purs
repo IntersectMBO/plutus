@@ -3,7 +3,7 @@ module Dashboard.View
   , dashboardCard
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
 import Contract.Lenses (_Started, _stateNickname)
 import Contract.State (isContractClosed)

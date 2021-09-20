@@ -5,7 +5,7 @@ module Bridge
   , toBack
   ) where
 
-import Prelude
+import Prologue
 import Cardano.Wallet.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)

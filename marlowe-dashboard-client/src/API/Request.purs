@@ -5,7 +5,7 @@ module API.Request
   , doGetRequest
   ) where
 
-import Prelude
+import Prologue
 import Affjax (Request, Response, defaultRequest)
 import Affjax.RequestBody (string)
 import Control.Monad.Error.Class (class MonadError)

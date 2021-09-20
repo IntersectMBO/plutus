@@ -22,7 +22,7 @@ import LocalStorage (Key, getItem, setItem)
 import MainFrame.Lenses (_editorSlot)
 import MainFrame.Types (ChildSlots)
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
-import Prelude (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
+import Prologue (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
 import StaticData (keybindingsLocalStorageKey)
 import Web.Event.Extra (preventDefault, readFileFromDragEvent)
 import Web.UIEvent.MouseEvent (pageY)

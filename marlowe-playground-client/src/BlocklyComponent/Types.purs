@@ -1,6 +1,6 @@
 module BlocklyComponent.Types where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Blockly.Dom (Block)
 import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Toolbox (Toolbox)

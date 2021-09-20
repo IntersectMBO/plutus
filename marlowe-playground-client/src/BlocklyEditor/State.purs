@@ -1,7 +1,7 @@
 -- TODO: rename modules from BlocklyEditor -> MarloweBlocklyEditor
 module BlocklyEditor.State where
 
-import Prelude
+import Prologue
 import BlocklyComponent.Types as Blockly
 import BlocklyEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _errorMessage, _hasHoles, _marloweCode, _metadataHintInfo, _warnings)
 import BottomPanel.State (handleAction) as BottomPanel

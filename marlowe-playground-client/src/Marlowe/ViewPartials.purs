@@ -1,6 +1,6 @@
 module Marlowe.ViewPartials where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Array (mapWithIndex)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)

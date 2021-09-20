@@ -1,6 +1,6 @@
 module Marlowe.LintTests where
 
-import Prelude
+import Prologue
 import Data.Array (singleton)
 import Data.Either (Either(..))
 import Data.List (List(..))

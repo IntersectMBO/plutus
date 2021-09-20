@@ -1,6 +1,6 @@
 module Data.NonEmptyList.Extra where
 
-import Prelude
+import Prologue
 import Data.List.NonEmpty (cons, fromList, head, tail)
 import Data.List.Types (NonEmptyList)
 import Data.Maybe (Maybe(..))

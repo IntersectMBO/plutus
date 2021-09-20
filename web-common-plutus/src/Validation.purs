@@ -1,6 +1,6 @@
 module Validation where
 
-import Prelude
+import Prologue
 import Data.Array (elem, mapWithIndex)
 import Data.Array as Array
 import Data.Foldable (class Foldable)

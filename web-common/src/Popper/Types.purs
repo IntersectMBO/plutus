@@ -1,6 +1,6 @@
 module Popper.Types where
 
-import Prelude
+import Prologue
 import Control.Alt ((<|>))
 import Data.Maybe (Maybe(..))
 import Web.HTML (HTMLElement)

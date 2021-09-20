@@ -1,6 +1,6 @@
 module Chain.Types where
 
-import Prelude
+import Prologue
 import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)

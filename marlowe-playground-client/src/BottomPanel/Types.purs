@@ -1,6 +1,6 @@
 module BottomPanel.Types where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Lens (Lens')

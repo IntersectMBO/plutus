@@ -4,7 +4,7 @@ module Data.Array.Extra
   , collapse
   ) where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
 import Data.Maybe (Maybe, fromMaybe)

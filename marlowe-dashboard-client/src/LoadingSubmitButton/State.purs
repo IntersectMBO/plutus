@@ -1,6 +1,6 @@
 module LoadingSubmitButton.State (loadingSubmitButton) where
 
-import Prelude
+import Prologue
 import Control.Monad.Cont (lift)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Int (round)

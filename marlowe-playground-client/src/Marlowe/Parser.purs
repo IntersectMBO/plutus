@@ -14,7 +14,7 @@ import Marlowe.Holes (AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), 
 import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), Slot(..))
 import Monaco (IRange)
-import Prelude (class Show, (<<<), (>>>))
+import Prologue (class Show, (<<<), (>>>))
 
 type HelperFunctions a
   = { mkHole :: String -> IRange -> Term a

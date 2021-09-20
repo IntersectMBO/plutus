@@ -1,6 +1,6 @@
 module Hint.State (component, hint) where
 
-import Prelude
+import Prologue
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Array (all)
 import Data.Foldable (for_)

@@ -2,7 +2,7 @@ module Data.String.ExtraTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.QuickCheck (arbitrary, (<=?), (===))

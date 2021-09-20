@@ -1,6 +1,6 @@
 module Schema.Types where
 
-import Prelude
+import Prologue
 import Chain.Types (_value)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)

@@ -1,6 +1,6 @@
 module Home where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has)
 import Data.Maybe (Maybe(..))

@@ -6,7 +6,7 @@ import Data.String as String
 import Halogen.HTML (HTML, a, div, div_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, id_)
-import Prelude (class Eq, class Show, const, show, ($), (<$>), (<>), (==))
+import Prologue (class Eq, class Show, const, show, ($), (<$>), (<>), (==))
 
 mainTabBar ::
   forall view r p i.

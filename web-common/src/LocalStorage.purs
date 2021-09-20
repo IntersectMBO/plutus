@@ -8,7 +8,7 @@ module LocalStorage
   , RawStorageEvent
   ) where
 
-import Prelude
+import Prologue
 import Control.Coroutine (Producer, producer)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, mkFn3)

@@ -7,7 +7,7 @@ module Dashboard.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Contract.Types (Action, State) as Contract

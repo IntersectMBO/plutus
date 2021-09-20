@@ -12,7 +12,7 @@ import Data.Symbol (SProxy(..))
 import Playground.Types (SimulatorWallet, _SimulatorWallet)
 import Plutus.V1.Ledger.Crypto (PubKey, _PubKey)
 import Plutus.V1.Ledger.Value (Value)
-import Prelude ((<<<))
+import Prologue ((<<<))
 import Wallet.Emulator.Wallet (Wallet, _Wallet)
 
 _simulatorWalletWallet :: Lens' SimulatorWallet Wallet

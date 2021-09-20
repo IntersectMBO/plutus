@@ -12,7 +12,7 @@ import Plutus.V1.Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperB
 import Plutus.V1.Ledger.Slot (Slot(..))
 import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Prelude (show, (+), (<<<), (<>))
+import Prologue (show, (+), (<<<), (<>))
 
 humaniseSlotInterval :: Interval Slot -> String
 humaniseSlotInterval interval = case from, to of

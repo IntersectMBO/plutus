@@ -2,7 +2,7 @@ module ChainTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Data.Array (mapWithIndex)
 import Data.BigInteger as BigInteger
 import Data.Maybe (Maybe(..))

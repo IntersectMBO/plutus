@@ -1,6 +1,6 @@
 module Tooltip.State (component, tooltip) where
 
-import Prelude
+import Prologue
 import Control.Bind (bindFlipped)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Foldable (for_)

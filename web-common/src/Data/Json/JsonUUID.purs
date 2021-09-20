@@ -10,7 +10,7 @@ import Data.UUID (UUID)
 import Data.UUID as UUID
 import Foreign (fail, ForeignError(TypeMismatch), readString)
 import Foreign.Class (class Decode, class Encode, encode)
-import Prelude
+import Prologue
 
 newtype JsonUUID
   = JsonUUID UUID

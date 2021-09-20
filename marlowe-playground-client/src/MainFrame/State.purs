@@ -1,6 +1,6 @@
 module MainFrame.State (component) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
 import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor

@@ -1,6 +1,6 @@
 module JavascriptEditor.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array

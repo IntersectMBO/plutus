@@ -1,6 +1,6 @@
 module LoadingSubmitButton.View (render) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Css as Css
 import Data.Maybe (Maybe(..))
 import Halogen.Css (classNames)

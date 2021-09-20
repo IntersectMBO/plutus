@@ -1,6 +1,6 @@
 module Marlowe.DeinstantiatorTests where
 
-import Prelude
+import Prologue
 import Data.BigInteger (fromInt)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)

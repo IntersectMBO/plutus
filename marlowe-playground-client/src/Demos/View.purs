@@ -1,6 +1,6 @@
 module Demos.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Demos.Types (Action(..), Demo)

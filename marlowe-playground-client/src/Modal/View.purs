@@ -2,7 +2,7 @@ module Modal.View
   ( modal
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import ConfirmUnsavedNavigation.View (render) as ConfirmUnsavedNavigation
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))

@@ -1,6 +1,6 @@
 module Tooltip.Lenses where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens', Traversal')
 import Data.Lens.Record (prop)
 import Data.Map (Map)

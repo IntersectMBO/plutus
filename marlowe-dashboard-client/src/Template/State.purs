@@ -6,7 +6,7 @@ module Template.State
   , templateSetupIsValid
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)

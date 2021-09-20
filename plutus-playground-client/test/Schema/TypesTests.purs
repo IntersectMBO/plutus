@@ -2,7 +2,7 @@ module Schema.TypesTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger as BigInteger
 import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))

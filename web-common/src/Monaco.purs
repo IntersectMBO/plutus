@@ -1,6 +1,6 @@
 module Monaco where
 
-import Prelude
+import Prologue
 import Data.Function.Uncurried (Fn1, Fn2, Fn5, runFn1, runFn2, runFn5)
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens')

@@ -8,7 +8,7 @@ module StaticAnalysis.StaticTools
   , zipperToContractPath
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Analytics (class IsEvent, analyticsTracking)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)

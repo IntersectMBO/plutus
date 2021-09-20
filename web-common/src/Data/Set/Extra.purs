@@ -1,6 +1,6 @@
 module Data.Set.Extra where
 
-import Prelude
+import Prologue
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Set (Set)

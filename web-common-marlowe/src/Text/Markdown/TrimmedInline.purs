@@ -2,7 +2,7 @@ module Text.Markdown.TrimmedInline
   ( markdownToHTML
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, evalStateT, get, modify)
 import Data.Array as A

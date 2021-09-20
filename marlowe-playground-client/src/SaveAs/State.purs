@@ -1,6 +1,6 @@
 module SaveAs.State where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)

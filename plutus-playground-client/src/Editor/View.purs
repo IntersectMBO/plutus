@@ -28,7 +28,7 @@ import LocalStorage (Key)
 import MainFrame.Lenses (_editorSlot)
 import MainFrame.Types (ChildSlots, HAction(..), View(..), WebCompilationResult)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
+import Prologue (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Web.UIEvent.MouseEvent (MouseEvent, pageY)
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action

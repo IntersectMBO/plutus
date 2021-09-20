@@ -3,7 +3,7 @@ module Welcome.View
   , welcomeCard
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
 import Css as Css
 import Data.Lens (view, (^.))

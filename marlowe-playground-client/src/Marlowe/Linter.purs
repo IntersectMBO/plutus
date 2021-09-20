@@ -11,7 +11,7 @@ module Marlowe.Linter
   , _location
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.State as CMS
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)

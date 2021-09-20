@@ -4,7 +4,7 @@ module Contract.View
   , actionConfirmationCard
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _stateMetadata, _stateNickname, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), StartedState, State(..), StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)

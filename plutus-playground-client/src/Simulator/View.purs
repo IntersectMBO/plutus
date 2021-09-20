@@ -31,7 +31,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import MainFrame.Lenses (_functionSchema, _result)
 import MainFrame.Types (HAction(..), View(..), SimulatorAction, WebCompilationResult, WebEvaluationResult)
 import Playground.Types (PlaygroundError(..), Simulation(..), SimulatorWallet)
-import Prelude (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
+import Prologue (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
 import Wallet.View (walletsPane)
 import Web.Event.Event (Event)
 

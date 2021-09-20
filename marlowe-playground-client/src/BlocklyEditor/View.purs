@@ -1,6 +1,6 @@
 module BlocklyEditor.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Blockly.Internal (block, blockType, style, x, xml, y)
 import BlocklyComponent.State as Blockly
 import BlocklyEditor.BottomPanel (panelContents)

@@ -7,7 +7,7 @@ module Material.Icons
   , iconClass
   ) where
 
-import Prelude
+import Prologue
 import Halogen.HTML (ClassName(ClassName), HTML, span, text)
 import Halogen.HTML.Properties (classes)
 import Data.Array (cons)

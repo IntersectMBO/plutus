@@ -1,6 +1,6 @@
 module NewProject.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)

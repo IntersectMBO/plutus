@@ -1,6 +1,6 @@
 module Language.Javascript.Interpreter where
 
-import Prelude
+import Prologue
 import Control.Monad.Except (runExcept)
 import Control.Promise (Promise, toAffE)
 import Data.Either (Either(..))

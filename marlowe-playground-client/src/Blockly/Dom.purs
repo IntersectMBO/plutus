@@ -65,7 +65,7 @@
 -- </xml>
 module Blockly.Dom where
 
-import Prelude
+import Prologue
 import Blockly.Internal (workspaceToDom)
 import Blockly.Types (BlocklyState)
 import Control.Monad.Error.Extra (toMonadThrow)

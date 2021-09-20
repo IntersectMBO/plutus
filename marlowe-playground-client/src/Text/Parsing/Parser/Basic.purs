@@ -1,6 +1,6 @@
 module Text.Parsing.StringParser.Basic where
 
-import Prelude hiding (between)
+import Prologue hiding (between)
 import Control.Alternative ((<|>))
 import Data.Array (foldl, many, some, (:))
 import Data.Array as Array

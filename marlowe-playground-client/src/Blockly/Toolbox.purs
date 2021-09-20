@@ -12,7 +12,7 @@ module Blockly.Toolbox
   , rename
   ) where
 
-import Prelude
+import Prologue
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as A
 import Data.Array (catMaybes)

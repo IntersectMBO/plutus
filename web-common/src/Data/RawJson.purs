@@ -1,6 +1,6 @@
 module Data.RawJson where
 
-import Prelude
+import Prologue
 import Control.Alternative ((<|>))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)

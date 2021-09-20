@@ -2,7 +2,7 @@
 -- ActusBlocklyEditor and this module could be called solely Blockly
 module Halogen.BlocklyCommons where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Internal (addChangeListener, removeChangeListener)
 import Blockly.Types (BlocklyEvent, BlocklyState, Workspace, isDragStart, isDragStop)

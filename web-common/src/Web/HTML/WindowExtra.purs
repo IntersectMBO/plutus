@@ -8,7 +8,7 @@ module Web.HTML.WindowExtra
   , MediaQueryList
   ) where
 
-import Prelude
+import Prologue
 import Effect (Effect)
 import Effect.Uncurried as FU
 import Foreign (Foreign)

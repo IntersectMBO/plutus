@@ -1,6 +1,6 @@
 module Data.Json.JsonTuple where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)

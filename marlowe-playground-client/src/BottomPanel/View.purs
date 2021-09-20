@@ -1,6 +1,6 @@
 module BottomPanel.View (render) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.Types (Action(..), State, _panelView, _showBottomPanel)
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))

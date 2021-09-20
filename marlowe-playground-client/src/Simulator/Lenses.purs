@@ -1,6 +1,6 @@
 module Simulator.Lenses where
 
-import Prelude
+import Prologue
 import Data.Either (Either(..))
 import Data.Lens (Lens', Optic', Prism', Traversal', lens, preview, prism, set)
 import Data.Lens.At (at)

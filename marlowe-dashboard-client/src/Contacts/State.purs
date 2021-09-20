@@ -9,7 +9,7 @@ module Contacts.State
   , parsePlutusAppId
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, lookupWalletDetails, lookupWalletInfo)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoWalletLibrary)

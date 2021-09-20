@@ -2,7 +2,7 @@ module PlutusTx.AssocMapTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Json.JsonTuple (JsonTuple)

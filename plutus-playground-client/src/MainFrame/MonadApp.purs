@@ -53,7 +53,7 @@ import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
-import Prelude (class Applicative, class Apply, class Bind, class Functor, class Monad, Unit, Void, bind, identity, map, pure, unit, void, ($), (<$>), (<<<))
+import Prologue (class Applicative, class Apply, class Bind, class Functor, class Monad, Unit, Void, bind, identity, map, pure, unit, void, ($), (<$>), (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)

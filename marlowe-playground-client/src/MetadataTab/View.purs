@@ -1,6 +1,6 @@
 module MetadataTab.View (metadataView) where
 
-import Prelude hiding (div, min)
+import Prologue hiding (div, min)
 import Data.Array (concat, concatMap)
 import Data.Foldable (foldMap)
 import Data.Int as Int

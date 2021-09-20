@@ -1,6 +1,6 @@
 module BlocklyComponent.State (blocklyComponent) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Blockly.Dom (explainError, getDom)
 import Blockly.Events (newElementId)
 import Blockly.Generator (newBlock)

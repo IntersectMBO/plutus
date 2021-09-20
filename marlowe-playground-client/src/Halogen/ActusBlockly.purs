@@ -1,6 +1,6 @@
 module Halogen.ActusBlockly where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly.Internal as Blockly

@@ -7,7 +7,7 @@ module InputField.State
   , validate
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (head, last)
 import Data.Array (length, take) as Array

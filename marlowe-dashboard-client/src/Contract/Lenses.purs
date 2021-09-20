@@ -19,7 +19,7 @@ module Contract.Lenses
   , _stateParticipants
   ) where
 
-import Prelude
+import Prologue
 import Contract.Types (StartedState, State(..), StartingState)
 import Data.Lens (Lens', Prism', lens', prism')
 import Data.Lens.Record (prop)

@@ -9,7 +9,7 @@ import Data.Either (Either(..))
 import Effect (Effect)
 import Effect.Aff (Aff, Canceler, Error, makeAff)
 import Effect.Uncurried (EffectFn3, runEffectFn3)
-import Prelude (Unit, ($), (<<<))
+import Prologue (Unit, ($), (<<<))
 import Web.Event.Event (Event)
 import Web.Event.Event (preventDefault) as WebEvent
 import Web.HTML.Event.DragEvent (DragEvent)

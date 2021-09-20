@@ -5,7 +5,7 @@ module MainFrame
   , initialState
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)

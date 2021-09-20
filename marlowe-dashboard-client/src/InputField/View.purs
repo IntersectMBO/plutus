@@ -1,6 +1,6 @@
 module InputField.View (renderInput) where
 
-import Prelude hiding (div, min)
+import Prologue hiding (div, min)
 import Control.Alt ((<|>))
 import Control.MonadPlus (guard)
 import Css as Css

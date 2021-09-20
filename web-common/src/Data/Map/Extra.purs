@@ -3,7 +3,7 @@ module Data.Map.Extra
   , findIndex
   ) where
 
-import Prelude
+import Prologue
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
 import Data.Map (Map, keys, singleton)
 import Data.Maybe (Maybe)

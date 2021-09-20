@@ -2,7 +2,7 @@ module BridgeTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Except (runExcept)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))

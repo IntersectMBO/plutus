@@ -1,6 +1,6 @@
 module Toast.View (renderToast) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Css as Css
 import Data.Lens (preview)
 import Data.Maybe (Maybe(..), fromMaybe)

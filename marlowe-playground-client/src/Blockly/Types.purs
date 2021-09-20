@@ -1,6 +1,6 @@
 module Blockly.Types where
 
-import Prelude
+import Prologue
 import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent, UIEvent, element, SelectEvent)
 import Data.Maybe (Maybe(..))
 

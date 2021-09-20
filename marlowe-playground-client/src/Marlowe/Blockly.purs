@@ -1,6 +1,6 @@
 module Marlowe.Blockly where
 
-import Prelude
+import Prologue
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
 import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, isWorkspaceEmpty, render, typedArguments)

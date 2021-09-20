@@ -7,7 +7,7 @@ module StaticAnalysis.Reachability
   , stepPrefixMap
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State as CMS
 import Data.Lens (assign, use)

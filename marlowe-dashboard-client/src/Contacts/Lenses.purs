@@ -15,7 +15,7 @@ module Contacts.Lenses
   , _pubKeyHash
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)

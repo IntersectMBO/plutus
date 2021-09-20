@@ -1,6 +1,6 @@
 module Projects.Types where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, Event)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)

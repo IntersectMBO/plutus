@@ -1,6 +1,6 @@
 module Types where
 
-import Prelude
+import Prologue
 import Chain.Types as Chain
 import Clipboard as Clipboard
 import Control.Monad.Gen as Gen

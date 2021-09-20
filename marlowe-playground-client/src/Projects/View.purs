@@ -1,6 +1,6 @@
 module Projects.View (render) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Array (filter)
 import Data.DateTime.ISO as ISO
 import Data.Either (Either(..))

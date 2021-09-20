@@ -1,6 +1,6 @@
 module View (render) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Bootstrap (col12_, col5_, container_, row_)
 import Chain.Types as Chain
 import Data.Lens (traversed, view)

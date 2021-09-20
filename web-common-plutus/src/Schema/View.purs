@@ -1,6 +1,6 @@
 module Schema.View (actionArgumentForm) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, row_, textMuted, validFeedback_, wasValidated)
 import Bootstrap as Bootstrap
 import Data.Array as Array

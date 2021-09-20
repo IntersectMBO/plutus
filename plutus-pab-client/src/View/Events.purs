@@ -2,7 +2,7 @@ module View.Events
   ( utxoIndexPane
   ) where
 
-import Prelude
+import Prologue
 import Bootstrap (cardBody_, cardHeader_, card_)
 import Chain.View as Chain
 import Data.Lens (view)

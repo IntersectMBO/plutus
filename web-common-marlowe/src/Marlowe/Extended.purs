@@ -1,6 +1,6 @@
 module Marlowe.Extended where
 
-import Prelude
+import Prologue
 import Decode.Helpers ((<|>))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)

@@ -1,7 +1,7 @@
 -- A separate module for types that are shared between Simulation and Simulation.BottomPanel
 module SimulationPage.Types where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import BottomPanel.Types as BottomPanel

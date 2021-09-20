@@ -4,7 +4,7 @@ module Examples.PureScript.CouponBondGuaranteed
   , extendedContract
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, fromInt)
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))

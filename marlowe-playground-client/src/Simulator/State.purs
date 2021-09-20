@@ -10,7 +10,7 @@ module Simulator.State
   , getAllActions
   ) where
 
-import Prelude
+import Prologue
 import Control.Bind (bindFlipped)
 import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, snoc, sort, toUnfoldable, uncons)

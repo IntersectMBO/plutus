@@ -4,7 +4,7 @@ module Welcome.State
   , handleAction
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStorage, insertIntoWalletLibrary)

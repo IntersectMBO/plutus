@@ -18,7 +18,7 @@ import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, for, href, id_, target, type_, value)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (const, ($), (<$>), (<<<), (<>), (=<<))
+import Prologue (const, ($), (<$>), (<<<), (<>), (=<<))
 import Servant.PureScript.Ajax (AjaxError)
 
 idPublishGist :: forall r i. IProp ( id :: String | r ) i

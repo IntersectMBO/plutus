@@ -7,7 +7,7 @@ module Halogen.Monaco
   , monacoComponent
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
 import Control.Monad.Trans.Class (lift)
 import Data.Either (Either(..))

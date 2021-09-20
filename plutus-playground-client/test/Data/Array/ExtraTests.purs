@@ -2,7 +2,7 @@ module Data.Array.ExtraTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Data.Array (length)
 import Data.Array.Extra (collapse, move)
 import Data.Map (Map)

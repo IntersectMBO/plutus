@@ -1,6 +1,6 @@
 module Marlowe.ActusBlockly where
 
-import Prelude
+import Prologue
 import Blockly.Generator (Generator, getFieldValue, getType, insertGeneratorFunction, mkGenerator, statementToCode)
 import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, defaultBlockDefinition, style, x, xml, y)
 import Blockly.Types (Block, Blockly)

@@ -1,6 +1,6 @@
 module Halogen.Extra where
 
-import Prelude
+import Prologue
 import Control.Applicative.Free (hoistFreeAp)
 import Control.Monad.Free (hoistFree)
 import Control.Monad.State (get)

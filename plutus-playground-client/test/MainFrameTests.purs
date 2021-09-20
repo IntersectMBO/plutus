@@ -2,7 +2,7 @@ module MainFrameTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Animation (class MonadAnimate)
 import Auth (AuthRole(..), AuthStatus(..))
 import Clipboard (class MonadClipboard)

@@ -12,7 +12,7 @@ import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (HAction(..))
-import Prelude (Unit, bind, discard, pure, show, ($), (<>))
+import Prologue (Unit, bind, discard, pure, show, ($), (<>))
 
 main :: Effect Unit
 main = do

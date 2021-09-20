@@ -1,6 +1,6 @@
 module Marlowe.Holes.SemanticTest where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (hush)
 import Data.List (List(..), (:))

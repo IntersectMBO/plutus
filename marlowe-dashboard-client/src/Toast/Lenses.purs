@@ -5,7 +5,7 @@ module Toast.Lenses
   , _timeoutSubscription
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens', _Just)
 import Data.Lens.Record (prop)
 import Data.Lens.Traversal (Traversal')

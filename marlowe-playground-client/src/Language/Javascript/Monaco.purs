@@ -1,6 +1,6 @@
 module Language.Javascript.Monaco where
 
-import Prelude
+import Prologue
 import Data.Maybe (Maybe(..))
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)

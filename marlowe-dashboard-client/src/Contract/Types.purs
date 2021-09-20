@@ -13,7 +13,7 @@ module Contract.Types
   , scrollContainerRef
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)

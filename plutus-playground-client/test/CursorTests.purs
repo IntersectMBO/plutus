@@ -2,7 +2,7 @@ module CursorTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Cursor (Cursor)
 import Cursor as Cursor
 import Data.Array as Array

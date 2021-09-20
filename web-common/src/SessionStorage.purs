@@ -4,7 +4,7 @@ import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
-import Prelude
+import Prologue
 import LocalStorage (Key)
 
 foreign import _setItem :: EffectFn2 Key String Unit

@@ -7,7 +7,7 @@ module Web.Dom.ElementExtra
   , debouncedOnScroll
   ) where
 
-import Prelude
+import Prologue
 import Effect (Effect)
 import Web.DOM (Element)
 

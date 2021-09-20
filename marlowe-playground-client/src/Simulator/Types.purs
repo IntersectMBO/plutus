@@ -1,6 +1,6 @@
 module Simulator.Types where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)

@@ -11,7 +11,7 @@ module Capability.PlutusApps.MarloweApp
   , onNewActiveEndpoints
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Bridge (toBack)
 import Capability.Contract (invokeEndpoint) as Contract

@@ -1,6 +1,6 @@
 module Marlowe.Deinstantiate where
 
-import Prelude
+import Prologue
 import Data.Array (filter, zipWith)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (all)

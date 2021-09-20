@@ -11,7 +11,7 @@ module Marlowe.Execution.State
   , getAllPayments
   ) where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Lens (view, (^.))

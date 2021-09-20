@@ -1,7 +1,7 @@
 -- TODO: Move these tests to marlowe-commons
 module Marlowe.ContractTests where
 
-import Prelude
+import Prologue
 import Control.Bind (bindFlipped)
 import Control.Monad.Gen (class MonadGen, chooseInt, elements, oneOf)
 import Control.Monad.Rec.Class (class MonadRec)

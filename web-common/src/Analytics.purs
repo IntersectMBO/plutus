@@ -7,7 +7,7 @@ module Analytics
   , analyticsTracking
   ) where
 
-import Prelude
+import Prologue
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for_)
 import Data.Tuple.Nested ((/\))

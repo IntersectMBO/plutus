@@ -7,7 +7,7 @@ module Marlowe.LinterText
   , marloweHoleToSuggestionText
   ) where
 
-import Prelude
+import Prologue
 import Data.Array (catMaybes, fold, foldMap, take)
 import Data.Array as Array
 import Data.Array.NonEmpty (index)

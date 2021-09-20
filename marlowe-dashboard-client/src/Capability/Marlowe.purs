@@ -17,7 +17,7 @@ module Capability.Marlowe
   , unsubscribeFromPlutusApp
   ) where
 
-import Prelude
+import Prologue
 import API.Lenses (_cicContract, _cicCurrentState, _cicDefinition, _cicWallet, _observableState)
 import Affjax (defaultRequest)
 import AppM (AppM)

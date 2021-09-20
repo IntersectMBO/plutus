@@ -1,6 +1,6 @@
 module Halogen.ElementResize where
 
-import Prelude
+import Prologue
 import Data.Array (head)
 import Data.Foldable (for_)
 import Effect.Aff.Class (class MonadAff)

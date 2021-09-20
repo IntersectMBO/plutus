@@ -1,6 +1,6 @@
 module TestUtils where
 
-import Prelude
+import Prologue
 import Control.Monad.Except (runExcept)
 import Control.Monad.Gen (class MonadGen, chooseInt, oneOf)
 import Data.Bifoldable (class Bifoldable, bifoldMap)

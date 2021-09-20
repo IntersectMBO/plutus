@@ -1,6 +1,6 @@
 module PlutusTx.AssocMap where
 
-import Prelude
+import Prologue
 import AjaxUtils (defaultJsonOptions)
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldl, foldr)

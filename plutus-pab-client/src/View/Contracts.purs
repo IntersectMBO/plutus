@@ -1,6 +1,6 @@
 module View.Contracts where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col2_, col4_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
 import Clipboard (showShortCopyLong)

@@ -1,6 +1,6 @@
 module Tooltip.Types where
 
-import Prelude
+import Prologue
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Halogen (RefLabel(..))

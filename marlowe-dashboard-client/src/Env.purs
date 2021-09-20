@@ -3,7 +3,7 @@ module Env
   , DataProvider(..)
   ) where
 
-import Prelude
+import Prologue
 import Effect.AVar (AVar)
 import Halogen (SubscriptionId)
 import Plutus.PAB.Webserver (SPParams_)

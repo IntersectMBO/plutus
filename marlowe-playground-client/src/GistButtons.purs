@@ -1,6 +1,6 @@
 module GistButtons (authButton) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole)
 import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..))

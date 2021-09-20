@@ -13,7 +13,7 @@ module Dashboard.Lenses
   , _templateState
   ) where
 
-import Prelude
+import Prologue
 import Contract.Types (State) as Contract
 import Dashboard.Types (Card, ContractFilter, State, WalletCompanionStatus)
 import Data.Lens (Lens', Traversal', set, wander)

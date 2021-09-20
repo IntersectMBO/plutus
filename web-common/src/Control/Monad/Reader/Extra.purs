@@ -1,6 +1,6 @@
 module Control.Monad.Reader.Extra where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Control.Monad.Reader.Class (class MonadAsk, asks)
 

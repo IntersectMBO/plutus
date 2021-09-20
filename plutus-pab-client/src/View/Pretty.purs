@@ -1,6 +1,6 @@
 module View.Pretty where
 
-import Prelude
+import Prologue
 import Bootstrap (alertDanger_, nbsp)
 import ContractExample (ExampleContracts)
 import Data.Array (length)

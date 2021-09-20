@@ -1,6 +1,6 @@
 module Router where
 
-import Prelude hiding ((/))
+import Prologue hiding ((/))
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)

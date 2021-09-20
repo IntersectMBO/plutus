@@ -1,6 +1,6 @@
 -- | A custom prelude that re-exports the most commonly implorted modules.
 module Prologue
-  ( module Prelude
+  ( module Prologue
   , module Data.Either
   , module Data.Generic.Rep
   , module Data.Lens
@@ -12,7 +12,7 @@ module Prologue
   , module Effect.Aff
   ) where
 
-import Prelude
+import Prologue
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Lens

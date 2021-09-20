@@ -7,7 +7,7 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (State) as Contract
 import Dashboard.Types (Action, State) as Dashboard

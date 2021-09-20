@@ -1,6 +1,6 @@
 module Marlowe.Extended.Metadata where
 
-import Prelude
+import Prologue
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')

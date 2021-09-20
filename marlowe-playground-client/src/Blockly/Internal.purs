@@ -1,6 +1,6 @@
 module Blockly.Internal where
 
-import Prelude
+import Prologue
 import Blockly.Toolbox (Toolbox, encodeToolbox)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Data.Argonaut.Core (Json)

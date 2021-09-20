@@ -13,7 +13,7 @@ module Web.DOM.ResizeObserver
   , disconnect
   ) where
 
-import Prelude
+import Prologue
 import Effect (Effect)
 import Web.DOM (Element)
 import Web.HTML.HTMLElement (DOMRect)

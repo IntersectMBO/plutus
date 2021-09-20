@@ -17,7 +17,7 @@ import Data.Symbol (SProxy(..))
 import Editor.Types (State)
 import Halogen.Monaco (KeyBindings)
 import Language.Haskell.Interpreter (SourceCode)
-import Prelude ((<<<))
+import Prologue ((<<<))
 
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")

@@ -9,7 +9,7 @@ module Capability.PlutusApps.MarloweApp.Types
   , MarloweAppEndpointMutexEnv
   ) where
 
-import Prelude
+import Prologue
 import Data.Generic.Rep (class Generic)
 import Data.Tuple (Tuple)
 import Effect.AVar (AVar)

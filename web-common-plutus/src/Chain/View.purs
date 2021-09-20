@@ -37,7 +37,7 @@ import Ledger.Extra (humaniseSlotInterval)
 import Plutus.V1.Ledger.Tx (TxOut(..))
 import Plutus.V1.Ledger.TxId (TxId(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Prelude (Ordering(..), const, eq, pure, show, zero, ($), (<$>), (<<<), (<>))
+import Prologue (Ordering(..), const, eq, pure, show, zero, ($), (<$>), (<<<), (<>))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 

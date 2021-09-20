@@ -1,6 +1,6 @@
 module Tooltip.View (render) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Halogen.Css (classNames, hideWhen)
 import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (ref)

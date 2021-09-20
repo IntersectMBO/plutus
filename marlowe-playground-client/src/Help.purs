@@ -12,7 +12,7 @@ import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p, p_, span, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
 import Marlowe.Holes as Holes
-import Prelude hiding (div)
+import Prologue hiding (div)
 
 data HelpContext
   = MarloweHelp

@@ -34,7 +34,7 @@ import Data.Ord as Ord
 import Data.Traversable (class Traversable, sequenceDefault, traverse)
 import Foreign (ForeignError(..), fail, readArray, readInt)
 import Foreign.Class (class Decode, class Encode, decode, encode)
-import Prelude (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<$>), (<<<), (<>), (>=), (>>>))
+import Prologue (class Eq, class Functor, class Ord, class Show, bind, map, otherwise, pure, show, (#), ($), (+), (-), (<$>), (<<<), (<>), (>=), (>>>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf)
 

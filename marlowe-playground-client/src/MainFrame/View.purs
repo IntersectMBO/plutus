@@ -1,6 +1,6 @@
 module MainFrame.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import BlocklyEditor.View as BlocklyEditor
 import Data.Lens (has, (^.))

@@ -10,7 +10,7 @@ module Template.Lenses
   , _valueContentInput
   ) where
 
-import Prelude
+import Prologue
 import Data.Lens (Lens', Traversal')
 import Data.Lens.At (at)
 import Data.Lens.Prism.Maybe (_Just)

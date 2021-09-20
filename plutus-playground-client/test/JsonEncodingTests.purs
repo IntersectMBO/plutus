@@ -2,7 +2,7 @@ module JsonEncodingTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Auth (AuthStatus)
 import Control.Monad.Except (runExcept)
 import Cursor (Cursor)

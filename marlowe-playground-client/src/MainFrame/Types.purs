@@ -1,6 +1,6 @@
 module MainFrame.Types where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
 import BlocklyComponent.Types as Blockly

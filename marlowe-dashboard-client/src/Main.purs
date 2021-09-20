@@ -1,6 +1,6 @@
 module Main where
 
-import Prelude
+import Prologue
 import AppM (runAppM)
 import Capability.PlutusApps.MarloweApp as MarloweApp
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)

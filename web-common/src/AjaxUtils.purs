@@ -7,7 +7,7 @@ module AjaxUtils
   , defaultJsonOptions
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Bootstrap (alertDanger_, btn, floatRight)
 import Data.Foldable (intercalate)
 import Data.Maybe (Maybe(Just))

@@ -2,7 +2,7 @@ module MainFrameTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Types (HAction(..), Query, State, _currentView)
 import Animation (class MonadAnimate)
 import Clipboard (class MonadClipboard)

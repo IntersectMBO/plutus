@@ -1,6 +1,6 @@
 module Network.StreamData where
 
-import Prelude
+import Prologue
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Data.Bifunctor (class Bifunctor)
 import Data.Bitraversable (class Bifoldable, class Bitraversable, bifoldlDefault, bifoldrDefault, bisequenceDefault)

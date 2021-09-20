@@ -12,7 +12,7 @@ module Humanize
   , contractIcon
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, toNumber)
 import Data.DateTime (DateTime, adjust)
 import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime

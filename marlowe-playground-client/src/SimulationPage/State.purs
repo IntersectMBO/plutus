@@ -5,7 +5,7 @@ module SimulationPage.State
   , mkState
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)

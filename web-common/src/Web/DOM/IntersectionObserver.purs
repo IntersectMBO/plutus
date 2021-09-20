@@ -11,7 +11,7 @@ module Web.DOM.IntersectionObserver
   , disconnect
   ) where
 
-import Prelude
+import Prologue
 import Effect (Effect)
 import Prim.Row (class Union)
 import Web.DOM (Element)

@@ -1,6 +1,6 @@
 module Data.Map.Ordered.OMap (OMap, alter, delete, fromFoldable, fromFoldableWithIndex, insert, isEmpty, keys, lookup, singleton, toUnfoldable, unionWith) where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.Bifunctor (rmap)
 import Data.Foldable (class Foldable, foldMap)

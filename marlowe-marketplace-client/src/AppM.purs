@@ -1,6 +1,6 @@
 module AppM where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)

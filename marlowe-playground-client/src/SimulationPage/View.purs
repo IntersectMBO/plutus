@@ -1,6 +1,6 @@
 module SimulationPage.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, length, reverse, sortWith)

@@ -1,6 +1,6 @@
 module Main where
 
-import Prelude
+import Prologue
 import AppM (runAppM)
 import Effect (Effect)
 import Effect.Aff (Aff)

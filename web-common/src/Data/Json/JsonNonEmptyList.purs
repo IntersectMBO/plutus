@@ -1,6 +1,6 @@
 module Data.Json.JsonNonEmptyList where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMap, foldlDefault, foldrDefault)
 import Data.Generic.Rep (class Generic)

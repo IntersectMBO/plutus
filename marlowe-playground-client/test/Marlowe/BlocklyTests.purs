@@ -1,6 +1,6 @@
 module Marlowe.BlocklyTests where
 
-import Prelude
+import Prologue
 import Blockly.Dom (explainError, getDom)
 import Blockly.Generator (getInputWithName, inputList)
 import Blockly.Headless as Headless

@@ -8,7 +8,7 @@ module WebSocket.Support
   , ToSocket(..)
   ) where
 
-import Prelude
+import Prologue
 import Concurrent.Queue (Queue)
 import Concurrent.Queue as Queue
 import Control.Monad.Except (runExcept)

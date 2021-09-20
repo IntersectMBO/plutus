@@ -8,7 +8,7 @@ module Marlowe.Execution.Types
   , NamedAction(..)
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger)
 import Data.List (List)
 import Data.Map (Map)

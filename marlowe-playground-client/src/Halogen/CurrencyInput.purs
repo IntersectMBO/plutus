@@ -1,6 +1,6 @@
 module Halogen.CurrencyInput where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Array (filter)
 import Data.BigInteger (BigInteger, fromString)
 import Data.Maybe (Maybe(..), maybe)
