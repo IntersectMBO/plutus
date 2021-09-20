@@ -171,7 +171,7 @@ assertTestResult
 testToContractTerms :: TestCase -> ContractTerms
 testToContractTerms TestCase{terms = t} =
   let terms' = termsToString t
-  in ContractTerms
+  in ContractTermsPoly
      {
        contractId       = terms' Map.! "contractID"
      , contractType     = read $ terms' Map.! "contractType" :: CT

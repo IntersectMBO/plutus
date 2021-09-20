@@ -15,9 +15,9 @@ import           Data.Maybe                                             (isJust,
 import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, CT (..), ContractTerms (..), Cycle (..),
-                                                                         DCC, FEB (..), IPCB (..), SCEF (..),
-                                                                         ScheduleConfig)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, CT (..), ContractTerms,
+                                                                         ContractTermsPoly (..), Cycle (..), DCC,
+                                                                         FEB (..), IPCB (..), SCEF (..), ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
@@ -31,7 +31,7 @@ import           Language.Marlowe.ACTUS.Ops                             (YearFra
 
 -- |init initializes the state variables at t0
 initialize :: ContractTerms -> Maybe ContractState
-initialize ct@ContractTerms {..} =
+initialize ct@ContractTermsPoly {..} =
   let mat = maturity ct
    in do
         tmd <- mat
@@ -124,10 +124,10 @@ initialize ct@ContractTerms {..} =
     scef_Ixx _      = False
 
     nextPrincipalRedemptionPayment :: ContractTerms -> Maybe Double
-    nextPrincipalRedemptionPayment ContractTerms {contractType = PAM} = Just 0.0
-    nextPrincipalRedemptionPayment ContractTerms {ct_PRNXT = prnxt@(Just _)} = prnxt
+    nextPrincipalRedemptionPayment ContractTermsPoly {contractType = PAM} = Just 0.0
+    nextPrincipalRedemptionPayment ContractTermsPoly {ct_PRNXT = prnxt@(Just _)} = prnxt
     nextPrincipalRedemptionPayment
-      ContractTerms
+      ContractTermsPoly
         { contractType = LAM,
           ct_PRNXT = Nothing,
           ct_MD = Just maturityDate,
@@ -137,7 +137,7 @@ initialize ct@ContractTerms {..} =
           scfg = scheduleConfig
         } = Just $ notionalPrincipal / fromIntegral (length $ _S principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
     nextPrincipalRedemptionPayment
-      ContractTerms
+      ContractTermsPoly
         { contractType = ANN,
           ct_PRNXT = Nothing,
           ct_IPAC = Just interestAccrued,
@@ -156,39 +156,39 @@ initialize ct@ContractTerms {..} =
 
     interestPaymentCalculationBase :: ContractTerms -> Maybe Double
     interestPaymentCalculationBase
-        ContractTerms
+        ContractTermsPoly
             { contractType = LAM,
               ct_IED = Just initialExchangeDate
             } | t0 < initialExchangeDate = Just 0.0
     interestPaymentCalculationBase
-        ContractTerms
+        ContractTermsPoly
             { ct_NT = Just notionalPrincipal,
               ct_IPCB = Just ipcb
             } | ipcb == IPCB_NT = Just $ r ct_CNTRL * notionalPrincipal
     interestPaymentCalculationBase
-        ContractTerms
+        ContractTermsPoly
             { ct_IPCBA = Just ipcba
             } = Just $ r ct_CNTRL * ipcba
     interestPaymentCalculationBase _ = Nothing
 
     feeAccrued :: ContractTerms -> Maybe Double
     feeAccrued
-        ContractTerms
+        ContractTermsPoly
             { ct_FER = Nothing
             } = Just 0.0
     feeAccrued
-        ContractTerms
+        ContractTermsPoly
             { ct_FEAC = feac@(Just _)
             } = feac
     feeAccrued
-        ContractTerms
+        ContractTermsPoly
             { ct_FEB = Just FEB_N,
               ct_DCC = Just dayCountConvention,
               ct_FER = Just fer,
               ct_NT = Just notionalPrincipal
             } = Just $ y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
     feeAccrued
-        ContractTerms
+        ContractTermsPoly
             { ct_DCC = Just dayCountConvention,
               ct_FER = Just fer
             } = Just $ y dayCountConvention tfp_minus t0 ct_MD / y dayCountConvention tfp_minus tfp_plus ct_MD * fer

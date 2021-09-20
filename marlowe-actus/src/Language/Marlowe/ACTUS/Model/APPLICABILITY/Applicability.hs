@@ -4,13 +4,14 @@ module Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability where
 
 import           Data.Maybe                                                    (isJust)
 import           Data.Validation
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms              (CT (..), ContractTerms (..),
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms              (CT (..), ContractTerms,
+                                                                                ContractTermsPoly (..),
                                                                                 ScheduleConfig (..),
                                                                                 TermValidationError (..))
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
 
 validateTerms :: ContractTerms -> Validation [TermValidationError] ContractTerms
-validateTerms ct@ContractTerms {contractType = PAM, ..} =
+validateTerms ct@ContractTermsPoly {contractType = PAM, ..} =
   ct
     <$ _NN ct_IED ct "initial exchange date"
     <* _NN ct_DCC ct "day count convention"
@@ -38,7 +39,7 @@ validateTerms ct@ContractTerms {contractType = PAM, ..} =
     <* _NN_I_1 [isJust ct_SCEF, isJust ct_SCIED, isJust ct_SCCDD] ct ["scaling effect", "scaling index at status date", "scaling index at contract deal date"]
     <* _X_I_1 [isJust ct_PYRT, isJust ct_PYTP] [isJust ct_PPEF] ct ["penalty rate", "penalty type"] ["prepayment effect"]
 
-validateTerms ct@ContractTerms {contractType = LAM, ..} =
+validateTerms ct@ContractTermsPoly {contractType = LAM, ..} =
   ct
     <$ _NN ct_IED ct "initial exchange date"
     <* _NN ct_DCC ct "day count convention"
@@ -68,7 +69,7 @@ validateTerms ct@ContractTerms {contractType = LAM, ..} =
     <* _NN_I_1 [isJust ct_SCEF, isJust ct_SCIED, isJust ct_SCCDD] ct ["scaling effect", "scaling index at status date", "scaling index at contract deal date"]
     <* _X_I_1 [isJust ct_PYRT, isJust ct_PYTP] [isJust ct_PPEF] ct ["penalty rate", "penalty type"] ["prepayment effect"]
 
-validateTerms ct@ContractTerms {contractType = NAM, ..} =
+validateTerms ct@ContractTermsPoly {contractType = NAM, ..} =
   ct
     <$ _NN ct_IED ct "initial exchange date"
     <* _NN ct_DCC ct "day count convention"
@@ -100,7 +101,7 @@ validateTerms ct@ContractTerms {contractType = NAM, ..} =
     <* _NN_I_1 [isJust ct_SCEF, isJust ct_SCIED, isJust ct_SCCDD] ct ["scaling effect", "scaling index at status date", "scaling index at contract deal date"]
     <* _X_I_1 [isJust ct_PYRT, isJust ct_PYTP] [isJust ct_PPEF] ct ["penalty rate", "penalty type"] ["prepayment effect"]
 
-validateTerms ct@ContractTerms {contractType = ANN, ..} =
+validateTerms ct@ContractTermsPoly {contractType = ANN, ..} =
   ct
     <$ _NN ct_IED ct "initial exchange date"
     <* _NN ct_DCC ct "day count convention"

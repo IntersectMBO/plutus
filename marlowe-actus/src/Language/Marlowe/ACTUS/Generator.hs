@@ -35,7 +35,8 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (Eve
                                                                              RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Assertion (..), AssertionContext (..),
-                                                                             Assertions (..), ContractTerms (..),
+                                                                             Assertions (..), ContractTerms,
+                                                                             ContractTermsPoly (..),
                                                                              TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, stateInitialisation,
@@ -316,7 +317,7 @@ genFsContract' ct =
         }
 
     genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
-    genZeroRiskAssertions terms@ContractTerms {ct_DCC = Just dcc, ..} NpvAssertionAgainstZeroRiskBond {..} continue =
+    genZeroRiskAssertions terms@ContractTermsPoly {ct_DCC = Just dcc, ..} NpvAssertionAgainstZeroRiskBond {..} continue =
       let cfs = genProjectedCashflows defaultRiskFactors terms
 
           dateToYearFraction :: LocalTime -> Double

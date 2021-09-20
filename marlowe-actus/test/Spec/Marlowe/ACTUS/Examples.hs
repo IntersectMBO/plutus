@@ -44,7 +44,7 @@ tests = testGroup "Marlowe represenation of sample ACTUS contracts"
 example01 :: IO ()
 example01 =
   let ct =
-        ContractTerms
+        ContractTermsPoly
           { contractId = "0",
             contractType = PAM,
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
@@ -175,7 +175,7 @@ example01 =
 example02 :: IO ()
 example02 =
   let ct =
-        ContractTerms
+        ContractTermsPoly
           { contractId = "0",
             contractType = LAM,
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
@@ -306,7 +306,7 @@ example02 =
 example03 :: IO ()
 example03 =
   let ct =
-        ContractTerms
+        ContractTermsPoly
           { contractId = "0",
             contractType = NAM,
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
@@ -437,7 +437,7 @@ example03 =
 example04 :: IO ()
 example04 =
   let ct =
-        ContractTerms
+        ContractTermsPoly
           { contractId = "0",
             contractType = ANN,
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",

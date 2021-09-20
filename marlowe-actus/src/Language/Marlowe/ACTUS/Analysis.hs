@@ -21,7 +21,8 @@ import           Data.Sort                                                  (sor
 import           Data.Time                                                  (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors)
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (..), ContractTerms,
+                                                                             ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
                                                                              calculationDay, paymentDay)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
@@ -37,7 +38,7 @@ genProjectedCashflows ::
   (EventType -> LocalTime -> RiskFactors) -- ^ Risk factors as a function of event type and time
   -> ContractTerms                        -- ^ ACTUS contract terms
   -> [CashFlow]                           -- ^ List of projected cash flows
-genProjectedCashflows getRiskFactors ct@ContractTerms {..} =
+genProjectedCashflows getRiskFactors ct@ContractTermsPoly {..} =
   maybe
     []
     ( \st0 ->

@@ -7,9 +7,9 @@ import           Data.Functor                                           ((<&>))
 import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromMaybe, isJust, isNothing, maybeToList)
 import           Data.Time.LocalTime                                    (addLocalTime)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), Cycle (..),
-                                                                         IPCB (IPCB_NTL), PPEF (..), PYTP (..),
-                                                                         SCEF (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms, ContractTermsPoly (..),
+                                                                         Cycle (..), IPCB (IPCB_NTL), PPEF (..),
+                                                                         PYTP (..), SCEF (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
@@ -18,7 +18,7 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generat
 
 _SCHED_IED_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_IED_PAM
-  ContractTerms
+  ContractTermsPoly
     { scfg = scheduleConfig,
       ct_IED = Just initialExchangeDate
     } = [applyBDCWithCfg scheduleConfig initialExchangeDate]
@@ -26,23 +26,23 @@ _SCHED_IED_PAM _ = []
 
 _SCHED_MD_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_MD_PAM
-  ContractTerms
+  ContractTermsPoly
     { scfg = scheduleConfig,
       ct_MD = Just maturityDate
     } = [applyBDCWithCfg scheduleConfig maturityDate]
 _SCHED_MD_PAM _ = []
 
 _SCHED_PP_PAM :: ContractTerms -> [ShiftedDay]
-_SCHED_PP_PAM ContractTerms {ct_PPEF = Just PPEF_N} = []
+_SCHED_PP_PAM ContractTermsPoly {ct_PPEF = Just PPEF_N} = []
 _SCHED_PP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_OPANX = Just cycleAnchorDateOfOptionality,
       ct_OPCL = Just cycleOfOptionality,
       ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorDateOfOptionality cycleOfOptionality maturityDate scheduleConfig
 _SCHED_PP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_OPANX = Nothing,
       ct_OPCL = Just cycleOfOptionality,
       ct_MD = Just maturityDate,
@@ -52,21 +52,21 @@ _SCHED_PP_PAM
 _SCHED_PP_PAM _ = []
 
 _SCHED_PY_PAM :: ContractTerms -> [ShiftedDay]
-_SCHED_PY_PAM ContractTerms{ct_PYTP = Just PYTP_O} = []
-_SCHED_PY_PAM ct                                   = _SCHED_PP_PAM ct
+_SCHED_PY_PAM ContractTermsPoly{ct_PYTP = Just PYTP_O} = []
+_SCHED_PY_PAM ct                                       = _SCHED_PP_PAM ct
 
 _SCHED_FP_PAM :: ContractTerms -> [ShiftedDay]
-_SCHED_FP_PAM ContractTerms {ct_FER = Nothing} = []
-_SCHED_FP_PAM ContractTerms {ct_FER = Just 0.0} = []
+_SCHED_FP_PAM ContractTermsPoly {ct_FER = Nothing} = []
+_SCHED_FP_PAM ContractTermsPoly {ct_FER = Just 0.0} = []
 _SCHED_FP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_FEANX = Just cycleAnchorDateOfFee,
       ct_FECL = Just cycleOfFee,
       ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorDateOfFee cycleOfFee {includeEndDay = True} maturityDate scheduleConfig
 _SCHED_FP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_FEANX = Nothing,
       ct_FECL = Just cycleOfFee,
       ct_MD = Just maturityDate,
@@ -77,7 +77,7 @@ _SCHED_FP_PAM _ = []
 
 _SCHED_PRD_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_PRD_PAM
-  ContractTerms
+  ContractTermsPoly
     { scfg = scheduleConfig,
       ct_PRD = Just purchaseDate
     } = [applyBDCWithCfg scheduleConfig purchaseDate]
@@ -85,7 +85,7 @@ _SCHED_PRD_PAM _ = []
 
 _SCHED_TD_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_TD_PAM
-  ContractTerms
+  ContractTermsPoly
     { scfg = scheduleConfig,
       ct_TD = Just terminationDate
     } = [applyBDCWithCfg scheduleConfig terminationDate]
@@ -93,7 +93,7 @@ _SCHED_TD_PAM _ = []
 
 _SCHED_IP_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_IP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPANX = Just cycleAnchorOfInterestPayment,
       ct_IPCL = Just cycleOfInterestPayment,
       ct_MD = Just maturityDate,
@@ -103,7 +103,7 @@ _SCHED_IP_PAM
     let s = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestPayment cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
      in filter (\d -> Just (calculationDay d) > capitalizationEndDate) s
 _SCHED_IP_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPANX = Nothing,
       ct_IPCL = Just cycleOfInterestPayment,
       ct_MD = Just maturityDate,
@@ -117,7 +117,7 @@ _SCHED_IP_PAM _ = []
 
 _SCHED_IPCI_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_IPCI_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPANX = Just cycleAnchorOfInterestPayment,
       ct_IPCL = Just cycleOfInterestPayment,
       ct_MD = Just maturityDate,
@@ -127,7 +127,7 @@ _SCHED_IPCI_PAM
     let s = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestPayment cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
      in filter (\d -> calculationDay d < capitalizationEndDate) s ++ [applyBDCWithCfg scheduleConfig capitalizationEndDate]
 _SCHED_IPCI_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPANX = Nothing,
       ct_IPCL = Just cycleOfInterestPayment,
       ct_MD = Just maturityDate,
@@ -141,7 +141,7 @@ _SCHED_IPCI_PAM _ = []
 
 _SCHED_RR_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_RR_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Just cycleAnchorOfRateReset,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Just _,
@@ -152,7 +152,7 @@ _SCHED_RR_PAM
     let tt = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
      in fromMaybe [] (inf tt statusDate <&> flip remove tt)
 _SCHED_RR_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Just cycleAnchorOfRateReset,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Nothing,
@@ -160,7 +160,7 @@ _SCHED_RR_PAM
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
 _SCHED_RR_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Nothing,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Just _,
@@ -172,7 +172,7 @@ _SCHED_RR_PAM
     let tt = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfRateReset) cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
      in fromMaybe [] (inf tt statusDate <&> flip remove tt)
 _SCHED_RR_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Nothing,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Nothing,
@@ -184,7 +184,7 @@ _SCHED_RR_PAM _ = []
 
 _SCHED_RRF_PAM :: ContractTerms -> [ShiftedDay]
 _SCHED_RRF_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Just cycleAnchorOfRateReset,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Just _,
@@ -195,7 +195,7 @@ _SCHED_RRF_PAM
     let tt = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
      in maybeToList (L.find (\ShiftedDay{..} -> calculationDay > statusDate) tt)
 _SCHED_RRF_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_RRANX = Nothing,
       ct_RRCL = Just cycleOfRateReset,
       ct_RRNXT = Just _,
@@ -209,16 +209,16 @@ _SCHED_RRF_PAM
 _SCHED_RRF_PAM _ = []
 
 _SCHED_SC_PAM :: ContractTerms -> [ShiftedDay]
-_SCHED_SC_PAM ContractTerms {ct_SCEF = Just SE_000} = []
+_SCHED_SC_PAM ContractTermsPoly {ct_SCEF = Just SE_000} = []
 _SCHED_SC_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_SCANX = Just cycleAnchorOfScalingIndex,
       ct_SCCL = Just cycleOfScalingIndex,
       ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorOfScalingIndex cycleOfScalingIndex {includeEndDay = False} maturityDate scheduleConfig
 _SCHED_SC_PAM
-  ContractTerms
+  ContractTermsPoly
     { ct_SCANX = Nothing,
       ct_SCCL = Just cycleOfScalingIndex,
       ct_MD = Just maturityDate,
@@ -231,14 +231,14 @@ _SCHED_SC_PAM _ = []
 
 _SCHED_PR_LAM :: ContractTerms -> [ShiftedDay]
 _SCHED_PR_LAM
-  ContractTerms
+  ContractTermsPoly
     { ct_PRANX = Just cycleAnchorOfPrincipalRedemption,
       ct_PRCL = Just cycleOfPrincipalRedemption,
       ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorOfPrincipalRedemption cycleOfPrincipalRedemption {includeEndDay = False} maturityDate scheduleConfig
 _SCHED_PR_LAM
-  ContractTerms
+  ContractTermsPoly
     { ct_PRANX = Nothing,
       ct_PRCL = Just cycleOfPrincipalRedemption,
       ct_MD = Just maturityDate,
@@ -249,23 +249,23 @@ _SCHED_PR_LAM _ = []
 
 _SCHED_MD_LAM :: ContractTerms -> [ShiftedDay]
 _SCHED_MD_LAM
-  ContractTerms
+  ContractTermsPoly
     { ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = [applyBDCWithCfg scheduleConfig maturityDate]
 _SCHED_MD_LAM _ = []
 
 _SCHED_IPCB_LAM :: ContractTerms -> [ShiftedDay]
-_SCHED_IPCB_LAM ContractTerms {..} | ct_IPCB /= Just IPCB_NTL = []
+_SCHED_IPCB_LAM ContractTermsPoly {..} | ct_IPCB /= Just IPCB_NTL = []
 _SCHED_IPCB_LAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPCBANX = Just cycleAnchorOfInterestBaseCalculation,
       ct_IPCBCL = Just cycleOfInterestBaseCalculation,
       ct_MD = Just maturityDate,
       scfg = scheduleConfig
     } = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestBaseCalculation cycleOfInterestBaseCalculation {includeEndDay = False} maturityDate scheduleConfig
 _SCHED_IPCB_LAM
-  ContractTerms
+  ContractTermsPoly
     { ct_IPCBANX = Nothing,
       ct_IPCBCL = Just cycleOfInterestBaseCalculation,
       ct_MD = Just maturityDate,
@@ -277,7 +277,7 @@ _SCHED_IPCB_LAM _ = []
 -- Negative Amortizer (NAM)
 
 _SCHED_IP_NAM :: ContractTerms -> [ShiftedDay]
-_SCHED_IP_NAM ContractTerms {..} =
+_SCHED_IP_NAM ContractTermsPoly {..} =
   let s
         | isNothing ct_PRANX = liftA2 (<+>) ct_IED ct_PRCL
         | otherwise = ct_PRANX
@@ -304,7 +304,7 @@ _SCHED_IP_NAM ContractTerms {..} =
    in fromMaybe [] result'
 
 _SCHED_IPCI_NAM :: ContractTerms -> [ShiftedDay]
-_SCHED_IPCI_NAM ContractTerms {..} =
+_SCHED_IPCI_NAM ContractTermsPoly {..} =
   let s
         | isNothing ct_PRANX = liftA2 (<+>) ct_IED ct_PRCL
         | otherwise = ct_PRANX
@@ -335,7 +335,7 @@ _SCHED_IPCI_NAM ContractTerms {..} =
 
 _SCHED_PRF_ANN :: ContractTerms -> [ShiftedDay]
 _SCHED_PRF_ANN
-  ct@ContractTerms
+  ct@ContractTermsPoly
     { ct_PRANX = Just cycleAnchorOfPrincipalRedemption,
       ct_PRNXT = Nothing,
       ct_IED = Just initialExchangeDate

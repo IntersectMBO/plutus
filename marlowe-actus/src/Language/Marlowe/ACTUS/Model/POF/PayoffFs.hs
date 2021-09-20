@@ -7,7 +7,8 @@ import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..), FEB (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms, ContractTermsPoly (..),
+                                                                    FEB (..))
 import           Language.Marlowe.ACTUS.MarloweCompat              (ContractStateMarlowe, RiskFactorsMarlowe, constnt,
                                                                     enum)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
@@ -19,7 +20,7 @@ payoffFs :: EventType -> RiskFactorsMarlowe -> ContractTerms -> ContractStateMar
 payoffFs
   ev
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_NT = Just np,
       ct_PYTP = Just pytp,
       ct_DCC = Just dayCountConvention,

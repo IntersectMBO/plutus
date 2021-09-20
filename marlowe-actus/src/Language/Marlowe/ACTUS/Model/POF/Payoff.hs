@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.Model.POF.Payoff where
 import           Data.Time                                         (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactors, RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTerms, ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y))
 
@@ -14,7 +14,7 @@ payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> LocalTim
 payoff
   IED
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_NT = Just notionalPrincipal,
       ct_PDIED = Just pdied,
       ct_CNTRL = cntrl
@@ -24,7 +24,7 @@ payoff
 payoff
   IED
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_NT = Just notionalPrincipal,
       ct_CNTRL = cntrl
     }
@@ -34,7 +34,7 @@ payoff
 payoff
   PR
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = LAM,
       ct_CNTRL = cntrl
     }
@@ -43,7 +43,7 @@ payoff
 payoff
   PR
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = NAM,
       ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
@@ -56,7 +56,7 @@ payoff
 payoff
   PR
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = ANN,
       ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
@@ -74,7 +74,7 @@ payoff PP RiskFactorsPoly {..} _ _ _ = _POF_PP_PAM o_rf_CURS pp_payoff
 payoff
   PY
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_PYTP = Just pytp,
       ct_PYRT = Just pyrt,
       ct_DCC = Just dayCountConvention,
@@ -89,7 +89,7 @@ payoff
 payoff
   FP
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
       ct_FEB = Just feb,
@@ -104,7 +104,7 @@ payoff
 payoff
   PRD
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = PAM,
       ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
@@ -118,7 +118,7 @@ payoff
 payoff
   PRD
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
       ct_PPRD = Just pprd,
@@ -132,7 +132,7 @@ payoff
 payoff
   TD
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = PAM,
       ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
@@ -146,7 +146,7 @@ payoff
 payoff
   TD
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
       ct_CNTRL = cntrl,
       ct_PTD = Just ptd,
@@ -160,7 +160,7 @@ payoff
 payoff
   IP
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { contractType = PAM,
       ct_DCC = Just dayCountConvention,
       ct_MD = md
@@ -172,7 +172,7 @@ payoff
 payoff
   IP
   RiskFactorsPoly {..}
-  ContractTerms
+  ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
       ct_MD = md
     }
