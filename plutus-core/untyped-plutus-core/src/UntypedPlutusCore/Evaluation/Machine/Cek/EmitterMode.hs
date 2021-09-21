@@ -18,14 +18,14 @@ noEmitter = EmitterMode $ pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
 logEmitter :: EmitterMode uni fun
 logEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
+    let emitter str = CekM $ modifySTRef logsRef (`DList.snoc` str)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 -- | Emits log with timestamp.
 logWithTimeEmitter :: EmitterMode uni fun
 logWithTimeEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ do
+    let emitter str = CekM $ do
             time <- unsafeIOToST getCurrentTime
             let withTime = "[" <> pack (show time) <> "]" <> " " <> str
             modifySTRef logsRef (`DList.snoc` withTime)
