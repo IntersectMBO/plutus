@@ -1,3 +1,4 @@
+-- | Plutus Tx basic functions.
 module PlutusTx.Base (fst, snd, curry, uncurry, ($), flip, until, (.), const, id) where
 
 import           PlutusTx.Bool
