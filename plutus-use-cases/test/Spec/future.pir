@@ -3142,16 +3142,16 @@
                         [
                           { CConsMultiplicativeMonoid Bool }
                           (lam
-                            ds
+                            l
                             Bool
                             (lam
-                              x
+                              r
                               Bool
                               {
                                 [
                                   [
-                                    { [ Bool_match ds ] (all dead (type) Bool) }
-                                    (abs dead (type) x)
+                                    { [ Bool_match l ] (all dead (type) Bool) }
+                                    (abs dead (type) r)
                                   ]
                                   (abs dead (type) False)
                                 ]
@@ -3601,10 +3601,10 @@
                                                                                       Bool
                                                                                     }
                                                                                     (lam
-                                                                                      ds
+                                                                                      l
                                                                                       Bool
                                                                                       (lam
-                                                                                        ds
+                                                                                        r
                                                                                         Bool
                                                                                         {
                                                                                           [
@@ -3612,7 +3612,7 @@
                                                                                               {
                                                                                                 [
                                                                                                   Bool_match
-                                                                                                  ds
+                                                                                                  l
                                                                                                 ]
                                                                                                 (all
                                                                                                   dead
@@ -3629,7 +3629,7 @@
                                                                                             (abs
                                                                                               dead
                                                                                               (type)
-                                                                                              ds
+                                                                                              r
                                                                                             )
                                                                                           ]
                                                                                           (all
