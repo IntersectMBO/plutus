@@ -12,20 +12,16 @@ module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
 where
 
 import           Data.Maybe                                             (isJust, isNothing, maybeToList)
-import           Data.Time                                              (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, CT (..), ContractTerms,
-                                                                         ContractTermsPoly (..), Cycle (..), DCC,
-                                                                         FEB (..), IPCB (..), SCEF (..), ScheduleConfig)
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..),
+                                                                         Cycle (..), FEB (..), IPCB (..), SCEF (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
-import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign  (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          sup)
-import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
-import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
+import           Language.Marlowe.ACTUS.Ops                             (RoleSignOps (_r), YearFractionOps (_y))
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -39,7 +35,7 @@ initialize ct@ContractTermsPoly {..} =
         nt <-
           let nt
                 | ct_IED > Just t0 = Just 0.0
-                | otherwise = (\x -> r ct_CNTRL * x) <$> ct_NT
+                | otherwise = (\x -> _r ct_CNTRL * x) <$> ct_NT
            in nt
 
         ipnr <-
@@ -52,7 +48,7 @@ initialize ct@ContractTermsPoly {..} =
           let ipac
                 | isNothing ct_IPNR = Just 0.0
                 | isJust ct_IPAC = ct_IPAC
-                | otherwise = (\d -> y d tminus t0 ct_MD * nt * ipnr) <$> ct_DCC
+                | otherwise = (\d -> _y d tminus t0 ct_MD * nt * ipnr) <$> ct_DCC
            in ipac
 
         feac <- feeAccrued ct { ct_MD = mat }
@@ -100,15 +96,6 @@ initialize ct@ContractTermsPoly {..} =
     tfp_plus = maybe t0 calculationDay (inf fpSchedule t0)
     tminus = maybe t0 calculationDay (sup ipSchedule t0)
 
-    r :: CR -> Double
-    r = contractRoleSign
-
-    y :: DCC -> LocalTime -> LocalTime -> Maybe LocalTime -> Double
-    y = yearFraction
-
-    _S :: LocalTime -> Cycle -> LocalTime -> ScheduleConfig -> ShiftedSchedule
-    _S = generateRecurrentScheduleWithCorrections
-
     scef_xNx :: SCEF -> Bool
     scef_xNx SE_0N0 = True
     scef_xNx SE_0NM = True
@@ -135,7 +122,8 @@ initialize ct@ContractTermsPoly {..} =
           ct_PRCL = Just principalRedemptionCycle,
           ct_PRANX = Just principalRedemptionAnchor,
           scfg = scheduleConfig
-        } = Just $ notionalPrincipal / fromIntegral (length $ _S principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
+        } = Just $ notionalPrincipal / fromIntegral (length $
+              generateRecurrentScheduleWithCorrections principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
     nextPrincipalRedemptionPayment
       ContractTermsPoly
         { contractType = ANN,
@@ -164,11 +152,11 @@ initialize ct@ContractTermsPoly {..} =
         ContractTermsPoly
             { ct_NT = Just notionalPrincipal,
               ct_IPCB = Just ipcb
-            } | ipcb == IPCB_NT = Just $ r ct_CNTRL * notionalPrincipal
+            } | ipcb == IPCB_NT = Just $ _r ct_CNTRL * notionalPrincipal
     interestPaymentCalculationBase
         ContractTermsPoly
             { ct_IPCBA = Just ipcba
-            } = Just $ r ct_CNTRL * ipcba
+            } = Just $ _r ct_CNTRL * ipcba
     interestPaymentCalculationBase _ = Nothing
 
     feeAccrued :: ContractTerms -> Maybe Double
@@ -186,10 +174,10 @@ initialize ct@ContractTermsPoly {..} =
               ct_DCC = Just dayCountConvention,
               ct_FER = Just fer,
               ct_NT = Just notionalPrincipal
-            } = Just $ y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
+            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
     feeAccrued
         ContractTermsPoly
             { ct_DCC = Just dayCountConvention,
               ct_FER = Just fer
-            } = Just $ y dayCountConvention tfp_minus t0 ct_MD / y dayCountConvention tfp_minus tfp_plus ct_MD * fer
+            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD / _y dayCountConvention tfp_minus tfp_plus ct_MD * fer
     feeAccrued _ = Nothing

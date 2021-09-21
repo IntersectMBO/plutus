@@ -8,11 +8,11 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (.
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (..), ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
-import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), ActusOps (..), RoleSignOps (..),
+import           Language.Marlowe.ACTUS.Ops                        (ActusOps (..), RoleSignOps (..),
                                                                     YearFractionOps (_y))
 
 -- |'payoff' function for ACTUS contracts
-payoff :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a) =>
+payoff :: (RoleSignOps a, YearFractionOps b a) =>
      EventType             -- ^ Event type
   -> RiskFactorsPoly a     -- ^ Risk factors
   -> ContractTermsPoly a b -- ^ Contract terms (constant)

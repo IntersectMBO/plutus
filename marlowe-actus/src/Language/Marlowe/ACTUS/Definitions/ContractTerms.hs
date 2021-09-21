@@ -189,7 +189,7 @@ data ContractTermsPoly a b = ContractTermsPoly
   , scfg             :: ScheduleConfig
 
   -- Contract Identification
-  , ct_SD            :: LocalTime       -- ^ Status Date
+  , ct_SD            :: b               -- ^ Status Date
 
   -- Counterparty
   , ct_PRF           :: Maybe PRF       -- ^ Contract Performance

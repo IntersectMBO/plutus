@@ -18,7 +18,7 @@ _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
     sd = t
 }
 
-_STF_IED_PAM :: (RoleSignOps a, ActusNum a, DateOps b a, ActusOps a) => ContractStatePoly a b -> b -> a -> Maybe a -> Maybe b -> CR -> Maybe a -> a -> ContractStatePoly a b
+_STF_IED_PAM :: (RoleSignOps a, DateOps b a) => ContractStatePoly a b -> b -> a -> Maybe a -> Maybe b -> CR -> Maybe a -> a -> ContractStatePoly a b
 _STF_IED_PAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT =
     let
         nt'                         = _r _CNTRL * _NT
@@ -40,12 +40,12 @@ _STF_MD_PAM st t = st {
     sd = t
 }
 
-_STF_PP_PAM :: (RoleSignOps a, ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_PP_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_PP_PAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
     let st' = _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
     in st' {nt = nt - pp_payoff}
 
-_STF_PY_PAM :: (RoleSignOps a, ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_PY_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_PY_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
     let
         ipac' = ipac + y_sd_t * ipnr * nt
@@ -63,7 +63,7 @@ _STF_FP_PAM st@ContractStatePoly{..} t y_sd_t = st {
     sd = t
 }
 
-_STF_PRD_PAM :: (RoleSignOps a, ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_PRD_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_PRD_PAM = _STF_PY_PAM
 
 _STF_TD_PAM :: ActusOps a => ContractStatePoly a b -> b -> ContractStatePoly a b
@@ -91,7 +91,7 @@ _STF_IPCI_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
         nt = nt + ipac + y_sd_t * nt * ipnr
     }
 
-_STF_RR_PAM :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> ContractStatePoly a b
+_STF_RR_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> ContractStatePoly a b
 _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO =
     let
         ipac' = ipac + y_sd_t * ipnr * nt
@@ -107,7 +107,7 @@ _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
         ipnr' = _min (_max (ipnr + delta_r) _RRLF) _RRLC
     in st' {ipac = ipac', feac = feac', ipnr = ipnr', sd = t}
 
-_STF_RRF_PAM :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> ContractStatePoly a b
+_STF_RRF_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> ContractStatePoly a b
 _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT =
     let
         st' = _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -115,7 +115,7 @@ _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT
         ipnr = fromMaybe _zero _RRNXT
     }
 
-_STF_SC_PAM :: (RoleSignOps a, ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> SCEF -> a -> a -> ContractStatePoly a b
+_STF_SC_PAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> SCEF -> a -> a -> ContractStatePoly a b
 _STF_SC_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED =
     let
         st' = _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -137,7 +137,7 @@ _STF_CE_PAM = _STF_AD_PAM
 
 -- Linear Amortiser (LAM)
 
-_STF_IED_LAM :: (RoleSignOps a, ActusNum a, ActusOps a, Ord b) => ContractStatePoly a b -> b -> a -> Maybe a -> Maybe b -> CR -> Maybe a -> a -> Maybe IPCB -> Maybe a -> ContractStatePoly a b
+_STF_IED_LAM :: (RoleSignOps a, Ord b) => ContractStatePoly a b -> b -> a -> Maybe a -> Maybe b -> CR -> Maybe a -> a -> Maybe IPCB -> Maybe a -> ContractStatePoly a b
 _STF_IED_LAM st t y_ipanx_t (Just ipnr') _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
     let
         nt'                         = _r _CNTRL * _NT
@@ -156,7 +156,7 @@ _STF_IED_LAM st t y_ipanx_t (Just ipnr') _IPANX _CNTRL _IPAC _NT _IPCB _IPCBA =
     in st { nt = nt', ipnr = ipnr', ipac = ipac', ipcb = ipcb', sd = t }
 _STF_IED_LAM st _ _ Nothing _ _ _ _ _ _ = st
 
-_STF_PR_LAM :: (ActusNum a, ActusOps a, RoleSignOps a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
+_STF_PR_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
 _STF_PR_LAM st@ContractStatePoly{..} t y_sd_t _ _ _FEB _FER _CNTRL _IPCB =
     let
         nt' = nt - _r _CNTRL * (prnxt - _r _CNTRL * _max _zero (_abs prnxt - _abs nt))
@@ -183,7 +183,7 @@ _STF_MD_LAM st t = st {
     sd = t
 }
 
-_STF_PP_LAM :: (RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
+_STF_PP_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
 _STF_PP_LAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
     let
         st' = _STF_PY_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -193,7 +193,7 @@ _STF_PP_LAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_
             _            -> ipcb
     in st' {nt = nt', ipcb = ipcb'}
 
-_STF_PY_LAM :: (RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_PY_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_PY_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
     let
         ipac' = ipac + y_sd_t * ipnr * ipcb
@@ -211,7 +211,7 @@ _STF_FP_LAM st@ContractStatePoly{..} t y_sd_t = st {
     sd = t
 }
 
-_STF_PRD_LAM :: (RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_PRD_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_PRD_LAM = _STF_PY_LAM
 
 _STF_IPCI_LAM :: (ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
@@ -224,12 +224,12 @@ _STF_IPCI_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
             _            -> ipcb
     in st' {nt = nt', ipcb = ipcb'}
 
-_STF_IPCB_LAM :: (RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
+_STF_IPCB_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> ContractStatePoly a b
 _STF_IPCB_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
     let st' = _STF_PRD_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
     in st' { ipcb = nt }
 
-_STF_RR_LAM :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> ContractStatePoly a b
+_STF_RR_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> ContractStatePoly a b
 _STF_RR_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO =
     let
         st' = _STF_PRD_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -239,12 +239,12 @@ _STF_RR_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
         ipnr' = _min (_max (ipnr + delta_r) _RRLF) _RRLC
     in st' {ipnr = ipnr'}
 
-_STF_RRF_LAM :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> ContractStatePoly a b
+_STF_RRF_LAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe a -> ContractStatePoly a b
 _STF_RRF_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT =
     let st' = _STF_PRD_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
     in st' { ipnr = fromMaybe _zero _RRNXT }
 
-_STF_SC_LAM :: (Show c, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> c -> a -> a -> ContractStatePoly a b
+_STF_SC_LAM :: (Show c, RoleSignOps a)  => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> c -> a -> a -> ContractStatePoly a b
 _STF_SC_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCCDD =
     let
         st' = _STF_PY_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
@@ -264,7 +264,7 @@ _STF_SC_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
 
 -- Negative Amortizer (NAM)
 
-_STF_PR_NAM :: (RoleSignOps a, ActusOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
+_STF_PR_NAM :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> a -> Maybe FEB -> a -> CR -> Maybe IPCB -> ContractStatePoly a b
 _STF_PR_NAM st@ContractStatePoly{..} t _ y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
     -- let
     --     st'@ContractStatePoly{ ipac = ipac' } =
@@ -290,7 +290,7 @@ _STF_PR_NAM st@ContractStatePoly{..} t _ y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
 
 -- Annuity (ANN)
 
-_STF_RR_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> [a] -> ContractStatePoly a b
+_STF_RR_ANN :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> a -> a -> a -> a -> a -> a -> [a] -> ContractStatePoly a b
 _STF_RR_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO ti =
   let ipac' = ipac + y_sd_t * ipnr * ipcb
 
@@ -312,7 +312,7 @@ _STF_RR_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
           sd = t
         }
 
-_STF_RRF_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> [a] -> ContractStatePoly a b
+_STF_RRF_ANN :: RoleSignOps a => ContractStatePoly a b -> b -> a -> a -> a -> Maybe FEB -> a -> CR -> a -> [a] -> ContractStatePoly a b
 _STF_RRF_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT ti =
   let ipac' = ipac + y_sd_t * ipnr * ipcb
 
@@ -333,7 +333,7 @@ _STF_RRF_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _
           sd = t
         }
 
-_STF_PRF_ANN :: (ActusOps a, RoleSignOps a, ActusNum a) => ContractStatePoly a b -> b -> a-> a-> a -> Maybe FEB -> a -> CR -> Maybe a -> a -> [a] -> ContractStatePoly a b
+_STF_PRF_ANN :: RoleSignOps a => ContractStatePoly a b -> b -> a-> a-> a -> Maybe FEB -> a -> CR -> Maybe a -> a -> [a] -> ContractStatePoly a b
 _STF_PRF_ANN st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT y_t ti =
   let accruedInterest = ipac + y_sd_t * ipnr * ipcb
 

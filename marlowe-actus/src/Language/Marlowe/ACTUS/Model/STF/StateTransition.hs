@@ -14,8 +14,8 @@ import           Language.Marlowe.ACTUS.Definitions.ContractState       (Contrac
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf', sup')
-import           Language.Marlowe.ACTUS.Ops                             (ActusNum (..), ActusOps (..), DateOps (..),
-                                                                         RoleSignOps (..), YearFractionOps (_y))
+import           Language.Marlowe.ACTUS.Ops                             (ActusOps (..), DateOps (..), RoleSignOps (..),
+                                                                         YearFractionOps (_y))
 
 data CtxSTF a b = CtxSTF
   { contractTerms :: ContractTermsPoly a b
@@ -25,7 +25,7 @@ data CtxSTF a b = CtxSTF
   }
 
 -- |'stateTransition' updates the contract state based on the contract terms in the reader contrext
-stateTransition :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a, DateOps b a, Ord b) =>
+stateTransition :: (RoleSignOps a, YearFractionOps b a, DateOps b a, Ord b) =>
      EventType                                   -- ^ Event type
   -> RiskFactorsPoly a                           -- ^ Risk factors
   -> b                                           -- ^ Time
@@ -33,7 +33,7 @@ stateTransition :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a, 
   -> Reader (CtxSTF a b) (ContractStatePoly a b) -- ^ Updated contract state
 stateTransition ev rf lt cs = ask >>= \CtxSTF{..} -> return $ stateTransition' ev rf contractTerms cs lt fpSchedule prSchedule maturity
 
-stateTransition' :: (ActusNum a, ActusOps a, RoleSignOps a, YearFractionOps b a, DateOps b a, Ord b) =>
+stateTransition' :: (RoleSignOps a, YearFractionOps b a, DateOps b a, Ord b) =>
      EventType
   -> RiskFactorsPoly a
   -> ContractTermsPoly a b
