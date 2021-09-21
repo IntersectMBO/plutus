@@ -17,7 +17,7 @@ module Ledger.Index(
     insertCollateral,
     insertBlock,
     initialise,
-    Validation,
+    Validation(..),
     runValidation,
     lkpValue,
     lkpTxOut,
@@ -27,6 +27,7 @@ module Ledger.Index(
     ValidationPhase(..),
     InOutMatch(..),
     minFee,
+    mkTxInfo,
     -- * Actual validation
     validateTransaction,
     validateTransactionOffChain,

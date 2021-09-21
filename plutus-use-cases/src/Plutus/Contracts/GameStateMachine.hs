@@ -12,7 +12,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 -- | A guessing game that
@@ -52,6 +51,7 @@ import           Plutus.Contract.StateMachine (State (..), Void)
 import qualified Plutus.Contract.StateMachine as SM
 
 import           Plutus.Contract
+import           Plutus.Contract.Secrets
 
 import qualified Prelude                      as Haskell
 
@@ -72,7 +72,7 @@ PlutusTx.makeLift ''ClearString
 -- | Arguments for the @"lock"@ endpoint
 data LockArgs =
     LockArgs
-        { lockArgsSecret :: Haskell.String
+        { lockArgsSecret :: SecretArgument Haskell.String
         -- ^ The secret
         , lockArgsValue  :: Value
         -- ^ Value that is locked by the contract initially
@@ -84,7 +84,7 @@ data GuessArgs =
     GuessArgs
         { guessArgsOldSecret     :: Haskell.String
         -- ^ The guess
-        , guessArgsNewSecret     :: Haskell.String
+        , guessArgsNewSecret     :: SecretArgument Haskell.String
         -- ^ The new secret
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
@@ -204,7 +204,7 @@ guess :: Promise () GameStateMachineSchema GameError ()
 guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} -> do
 
     let guessedSecret = ClearString (toBuiltin (C.pack guessArgsOldSecret))
-        newSecret     = HashedString (sha2_256 (toBuiltin (C.pack guessArgsNewSecret)))
+        newSecret     = HashedString (escape_sha2_256 (toBuiltin . C.pack <$> extractSecret guessArgsNewSecret))
 
     void
         $ SM.runStep client
@@ -212,7 +212,7 @@ guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, gu
 
 lock :: Promise () GameStateMachineSchema GameError ()
 lock = endpoint @"lock" $ \LockArgs{lockArgsSecret, lockArgsValue} -> do
-    let secret = HashedString (sha2_256 (toBuiltin (C.pack lockArgsSecret)))
+    let secret = HashedString (escape_sha2_256 (toBuiltin . C.pack <$> extractSecret lockArgsSecret))
         sym = Scripts.forwardingMintingPolicyHash typedValidator
     _ <- SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ SM.runStep client MintToken

@@ -9,6 +9,7 @@
 
 module Config(
   ChainIndexConfig(..),
+  DecodeConfigException(..),
   defaultConfig,
   -- * Lenses
   socketPath,
@@ -18,6 +19,7 @@ module Config(
   ) where
 
 import           Cardano.Api               (NetworkId (..))
+import           Control.Exception         (Exception)
 import           Control.Lens              (makeLensesFor)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow, vsep, (<+>))
@@ -68,3 +70,6 @@ makeLensesFor [
   ("cicNetworkId", "networkId"),
   ("cicSlotConfig", "slotConfig")
   ] 'ChainIndexConfig
+
+newtype DecodeConfigException = DecodeConfigException String
+  deriving (Show, Exception)

@@ -1,12 +1,15 @@
-(lam
-  x
-  (con integer)
-  (let
-    (nonrec)
-    (termbind (strict) (vardecl j (con integer)) (con integer 1))
-    (termbind
-      (nonstrict) (vardecl i (con integer)) [ [ (builtin addInteger) j ] x ]
+(let
+  (nonrec)
+  (termbind (strict) (vardecl j (con integer)) (con integer 1))
+  (lam
+    x
+    (con integer)
+    (let
+      (nonrec)
+      (termbind
+        (nonstrict) (vardecl i (con integer)) [ [ (builtin addInteger) j ] x ]
+      )
+      i
     )
-    i
   )
 )

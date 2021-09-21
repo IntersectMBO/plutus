@@ -20,17 +20,19 @@ module Plutus.Trace.Effects.EmulatorControl(
     , freezeContractInstance
     , thawContractInstance
     , chainState
+    , discardWallets
     , handleEmulatorControl
     , getSlotConfig
     ) where
 
-import           Control.Lens                           (view)
+import           Control.Lens                           (over, view)
 import           Control.Monad                          (void)
 import           Control.Monad.Freer                    (Eff, Member, type (~>))
 import           Control.Monad.Freer.Coroutine          (Yield)
 import           Control.Monad.Freer.Error              (Error)
-import           Control.Monad.Freer.State              (State, gets)
+import           Control.Monad.Freer.State              (State, gets, modify)
 import           Control.Monad.Freer.TH                 (makeEffect)
+import qualified Data.Map                               as Map
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types            (EmulatorMessage (Freeze), EmulatorThreads)
@@ -69,6 +71,7 @@ data EmulatorControl r where
     ThawContractInstance :: ContractInstanceId -> EmulatorControl ()
     ChainState :: EmulatorControl ChainState
     GetSlotConfig :: EmulatorControl SlotConfig
+    DiscardWallets :: (Wallet -> Bool) -> EmulatorControl ()  -- ^ Discard wallets matching the predicate.
 
 -- | Interpret the 'EmulatorControl' effect in the 'MultiAgentEffect' and
 --   scheduler system calls.
@@ -96,5 +99,6 @@ handleEmulatorControl slotCfg = \case
         void $ mkSysCall @effs2 @EmulatorMessage Normal (Right $ Thaw threadId)
     ChainState -> gets (view EM.chainState)
     GetSlotConfig -> return slotCfg
+    DiscardWallets discard -> modify @EmulatorState $ over EM.walletStates (Map.filterWithKey (\ k _ -> not $ discard k))
 
 makeEffect ''EmulatorControl

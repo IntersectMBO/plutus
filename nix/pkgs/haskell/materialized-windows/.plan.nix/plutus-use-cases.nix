@@ -59,6 +59,7 @@
         modules = [
           "Plutus/Contracts"
           "Plutus/Contracts/Auction"
+          "Plutus/Contracts/SealedBidAuction"
           "Plutus/Contracts/TokenAccount"
           "Plutus/Contracts/Crowdfunding"
           "Plutus/Contracts/Currency"
@@ -189,6 +190,7 @@
           buildable = true;
           modules = [
             "Spec/Auction"
+            "Spec/SealedBidAuction"
             "Spec/Crowdfunding"
             "Spec/Currency"
             "Spec/ErrorHandling"

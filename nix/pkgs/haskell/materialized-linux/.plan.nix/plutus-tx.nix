@@ -66,6 +66,7 @@
           "PlutusTx/Bool"
           "PlutusTx/IsData"
           "PlutusTx/IsData/Class"
+          "PlutusTx/ErrorCodes"
           "PlutusTx/Eq"
           "PlutusTx/Enum"
           "PlutusTx/Either"

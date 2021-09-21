@@ -363,11 +363,10 @@ updateState ContractResponse{newState = State{observableState}, hooks} = do
         InstanceState.clearEndpoints state
         forM_ hooks $ \r -> do
             case rqRequest r of
-                AwaitTxStatusChangeReq txid -> InstanceState.addTransaction txid state
-                ExposeEndpointReq endpoint  -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
-                AwaitUtxoSpentReq txOutRef  -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
-                AwaitUtxoProducedReq addr   -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
-                _                           -> pure ()
+                ExposeEndpointReq endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
+                AwaitUtxoSpentReq txOutRef -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
+                AwaitUtxoProducedReq addr  -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
+                _                          -> pure ()
         InstanceState.setObservableState observableState state
 
 -- | Run the STM-based request handler on a non-empty list

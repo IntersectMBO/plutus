@@ -1,11 +1,11 @@
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Cardano.Wallet.API
+module Cardano.Wallet.Mock.API
     ( API
     ) where
 
-import           Cardano.Wallet.Types        (WalletInfo)
+import           Cardano.Wallet.Mock.Types   (WalletInfo)
 import           Ledger                      (Value)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Tx                   (Tx)

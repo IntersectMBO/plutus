@@ -9,7 +9,6 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module PlutusTx.Ratio(
     Ratio
@@ -33,22 +32,23 @@ module PlutusTx.Ratio(
     , reduce
     ) where
 
-import qualified PlutusTx.Bool     as P
-import qualified PlutusTx.Eq       as P
-import qualified PlutusTx.IsData   as P
-import qualified PlutusTx.Lift     as P
-import qualified PlutusTx.Numeric  as P
-import qualified PlutusTx.Ord      as P
-import qualified PlutusTx.Trace    as P
+import qualified PlutusTx.Bool       as P
+import qualified PlutusTx.Eq         as P
+import qualified PlutusTx.ErrorCodes as P
+import qualified PlutusTx.IsData     as P
+import qualified PlutusTx.Lift       as P
+import qualified PlutusTx.Numeric    as P
+import qualified PlutusTx.Ord        as P
+import qualified PlutusTx.Trace      as P
 
-import qualified PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins   as Builtins
 
-import           Data.Aeson        (FromJSON, ToJSON)
-import           GHC.Generics      (Generic)
-import qualified GHC.Real          as Ratio
-import           Prelude           (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), otherwise, showParen,
-                                    showString, (*))
-import qualified Prelude           as Haskell
+import           Data.Aeson          (FromJSON, ToJSON)
+import           GHC.Generics        (Generic)
+import qualified GHC.Real            as Ratio
+import           Prelude             (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), otherwise, showParen,
+                                      showString, (*))
+import qualified Prelude             as Haskell
 
 data Ratio a = a :% a
     deriving stock (Eq,Generic)
@@ -192,7 +192,8 @@ x % y = reduce (x P.* signum y) (abs y)
 
 -- | Reciprocal fraction
 recip :: Ratio Integer -> Ratio Integer
-recip (x :% y) = ((y P.* signum x) :% abs x)
+recip (x :% y) = reduce n d
+    where (n :% d) = ((y P.* signum x) :% abs x)
 
 -- | Convert an 'Interger' to a 'Rational'
 fromInteger :: Integer -> Ratio Integer
@@ -280,7 +281,7 @@ half = 1 :% 2
 -- their greatest common divisor.
 reduce :: Integer -> Integer -> Ratio Integer
 reduce x y
-    | y P.== 0 = P.traceError "Pe" {-"Ratio has zero denominator"-}
+    | y P.== 0 = P.traceError P.ratioHasZeroDenominatorError
     | True     =
         let d = gcd x y in
         (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
@@ -314,7 +315,7 @@ round x
     | sig P.== P.negate P.one = n
     | sig P.== P.zero         = if even n then n else m
     | sig P.== P.one          = m
-    | otherwise               = P.traceError "Pf" {-"round default defn: Bad value"-}
+    | otherwise               = P.traceError P.roundDefaultDefnError
     where (n, r) = properFraction x
           m      = if r P.< P.zero then n P.- P.one else n P.+ P.one
           sig    = signumR (abs r P.- half)

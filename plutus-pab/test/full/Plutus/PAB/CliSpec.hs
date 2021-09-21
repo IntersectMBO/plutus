@@ -24,9 +24,9 @@ import           Cardano.BM.Setup                    (setupTrace_)
 import qualified Cardano.ChainIndex.Types            as ChainIndex.Types
 import           Cardano.Node.Types                  (NodeMode (..))
 import qualified Cardano.Node.Types                  as Node.Types
-import qualified Cardano.Wallet.Client               as Wallet.Client
-import           Cardano.Wallet.Types                (WalletInfo (..))
-import qualified Cardano.Wallet.Types                as Wallet.Types
+import qualified Cardano.Wallet.Mock.Client          as Wallet.Client
+import           Cardano.Wallet.Mock.Types           (WalletInfo (..))
+import qualified Cardano.Wallet.Mock.Types           as Wallet.Types
 import           Control.Concurrent                  (threadDelay)
 import           Control.Concurrent.Async            (async, cancel)
 import           Control.Concurrent.Availability     (available, newToken, starting)

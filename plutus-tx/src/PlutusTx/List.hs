@@ -19,13 +19,14 @@ module PlutusTx.List (
     nubBy
     ) where
 
-import           PlutusTx.Bool     ((||))
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Eq       (Eq, (==))
-import           PlutusTx.Ord      ((<))
-import           PlutusTx.Trace    (traceError)
-import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
-                                    reverse, tail, take, zip, (!!), (&&), (++), (<), (||))
+import           PlutusTx.Bool       ((||))
+import qualified PlutusTx.Builtins   as Builtins
+import           PlutusTx.Eq         (Eq, (==))
+import           PlutusTx.ErrorCodes
+import           PlutusTx.Ord        ((<), (<=))
+import           PlutusTx.Trace      (traceError)
+import           Prelude             hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
+                                      reverse, tail, take, zip, (!!), (&&), (++), (<), (<=), (||))
 
 {- HLINT ignore -}
 
@@ -104,8 +105,8 @@ findIndex p l = listToMaybe (findIndices p l)
 --
 infixl 9 !!
 (!!) :: [a] -> Integer -> a
-_        !! n | n < 0 = traceError "P9" {-"PlutusTx.List.!!: negative index"-}
-[]       !! _ = traceError "Pa" {-"PlutusTx.List.!!: index too large"-}
+_        !! n | n < 0 = traceError negativeIndexError
+[]       !! _ = traceError indexTooLargeError
 (x : xs) !! i = if Builtins.equalsInteger i 0
     then x
     else xs !! Builtins.subtractInteger i 1
@@ -130,14 +131,14 @@ zip (a:as) (b:bs) = (a,b) : zip as bs
 {-# INLINABLE head #-}
 -- | Plutus Tx version of 'Data.List.head'.
 head :: [a] -> a
-head []      = traceError "Pb" {-"PlutusTx.List.head: empty list"-}
+head []      = traceError headEmptyListError
 head (x : _) = x
 
 {-# INLINABLE tail #-}
 -- | Plutus Tx version of 'Data.List.tail'.
 tail :: [a] -> [a]
 tail (_:as) =  as
-tail []     =  traceError "Pc" {-"PlutusTx.List.tail: empty list"-}
+tail []     =  traceError tailEmptyListError
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.

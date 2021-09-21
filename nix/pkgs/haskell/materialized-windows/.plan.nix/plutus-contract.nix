@@ -111,6 +111,7 @@
           "Plutus/Contract/Util"
           "Plutus/Contract/Wallet"
           "Plutus/Contract/Typed/Tx"
+          "Plutus/Contract/Secrets"
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
           "Wallet/Emulator/Chain"
@@ -162,6 +163,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -183,6 +185,7 @@
             "Spec/Rows"
             "Spec/State"
             "Spec/ThreadToken"
+            "Spec/Secrets"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

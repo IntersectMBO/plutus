@@ -33,7 +33,6 @@ library
     base -any,
     bytestring,
     containers -any,
-    mtl,
     newtype-generics,
     template-haskell -any,
     plutus-tx -any,
@@ -44,8 +43,7 @@ library
     marlowe -any,
     time -any,
     sort -any,
-    validation -any,
-    QuickCheck
+    validation -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -54,7 +52,6 @@ library
   exposed-modules:
     Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.Generator
-    Language.Marlowe.ACTUS.QCGenerator
     Language.Marlowe.ACTUS.Analysis
     Language.Marlowe.ACTUS.Definitions.BusinessEvents
     Language.Marlowe.ACTUS.Definitions.ContractTerms
@@ -69,10 +66,9 @@ library
     Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
     Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-    Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-    Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
     Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
     Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
+    Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
@@ -105,8 +101,7 @@ executable marlowe-shiny
       Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-      Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+      Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction
@@ -162,8 +157,7 @@ executable marlowe-actus-test-kit
       Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-      Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+      Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction

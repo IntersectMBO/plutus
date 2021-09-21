@@ -62,6 +62,7 @@ import           Ledger                                   (Ada, AssetClass, Curr
                                                            POSIXTime, POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash,
                                                            Signature, TokenName, TxId, TxOutRef, ValidatorHash, Value)
 import           Ledger.Bytes                             (LedgerBytes)
+import           Plutus.Contract.Secrets                  (SecretArgument (EndpointSide, UserSide))
 import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude                         as P
@@ -424,3 +425,10 @@ deriving anyclass instance ToArgument WalletNumber
 
 instance ToArgument WalletId where
     toArgument = Fix . FormStringF . Just . show
+
+instance forall a. ToSchema a => ToSchema (SecretArgument a) where
+  toSchema = toSchema @a
+
+instance forall a. ToArgument a => ToArgument (SecretArgument a) where
+  toArgument (UserSide a)     = toArgument a
+  toArgument (EndpointSide _) = Fix $ FormUnsupportedF "endpoint side secrets are not supported in toArgument"

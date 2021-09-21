@@ -395,7 +395,7 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- See Note [Motivation for polymorphic built-in functions].
--- See Note [Implemetation of polymorphic built-in functions].
+-- See Note [Implementation of polymorphic built-in functions].
 -- See Note [Pattern matching on built-in types].
 -- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
 -- an application of a type variable). I.e. the denotation of such a term is the term itself.

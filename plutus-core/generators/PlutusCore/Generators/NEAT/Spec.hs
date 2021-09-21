@@ -20,8 +20,6 @@ module PlutusCore.Generators.NEAT.Spec
   , TestFail (..)
   , testCaseGen
   , bigTest
-  , bigTestTermG_NO_LIST
-  , bigTestTypeG_NO_LIST
   , packAssertion
   , tynames
   , names
@@ -42,7 +40,7 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
 
 import           Control.Monad.Except
 import           Control.Search                           (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                             (Cool, false, toCool, true, (!=>), (&&&))
+import           Data.Coolean                             (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
 import qualified Data.Stream                              as Stream
@@ -339,11 +337,11 @@ instance Show Ctrex where
   show (CtrexKindCheckFail k tyG) =
     printf tpl (show tyG) (show (pretty k))
     where
-      tpl = "Counterexample found: %s :: %s"
+      tpl = "Counterexample found (kind check fail): %s :: %s"
   show (CtrexKindPreservationFail k tyG) =
     printf tpl (show tyG) (show (pretty k))
     where
-      tpl = "Counterexample found: %s :: %s"
+      tpl = "Counterexample found (kind preservation fail): %s :: %s"
   show (CtrexKindMismatch k tyG k' k'') =
     printf
       tpl
@@ -360,7 +358,7 @@ instance Show Ctrex where
   show (CtrexTypeNormalizationFail k tyG) =
     printf tpl (show tyG) (show (pretty k))
     where
-      tpl = "Counterexample found: %s :: %s"
+      tpl = "Counterexample found (type normalisation fail): %s :: %s"
   show (CtrexTypeNormalizationMismatch k tyG ty1 ty2) =
     printf
       tpl
@@ -377,11 +375,11 @@ instance Show Ctrex where
   show (CtrexTypeCheckFail tyG tmG) =
     printf tpl (show tmG) (show tyG)
     where
-      tpl = "Counterexample found: %s :: %s"
+      tpl = "Counterexample found (typecheck fail): %s :: %s"
   show (CtrexTermEvaluationFail tyG tmG) =
     printf tpl (show tmG) (show tyG)
     where
-      tpl = "Counterexample found: %s :: %s"
+      tpl = "Counterexample found (term evaluation fail): %s :: %s"
   show (CtrexTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where
@@ -456,57 +454,3 @@ bigTest s GenOptions{..} t f = testCaseInfo s $ do
   as <- search' genMode genDepth (\a ->  check t a)
   _  <- traverse (f t) as
   return $ show (length as)
-
--- metatheory doesn't currently support the list builtin the ugly code
--- below filters out types (and terms that contain types) that contain
--- the list builtin
-
--- does the type contain a list builtin?
-noListTypeG :: TypeG n -> Cool
-noListTypeG TyVarG{}             = false
-noListTypeG (TyFunG ty1 ty2)     = noListTypeG ty1 &&& noListTypeG ty2
-noListTypeG (TyIFixG ty1 _ ty2)  = noListTypeG ty1 &&& noListTypeG ty2
-noListTypeG (TyForallG _ ty)     = noListTypeG ty
-noListTypeG (TyBuiltinG TyListG) = false
-noListTypeG (TyBuiltinG _)       = true
-noListTypeG (TyLamG ty)          = noListTypeG ty
-noListTypeG (TyAppG ty1 ty2 _)   = noListTypeG ty1 &&& noListTypeG ty2
-
--- does the term contain a list builtin?
-noListTermG :: TermG m n -> Cool
-noListTermG VarG{} = false
-noListTermG (LamAbsG tm) = noListTermG tm
-noListTermG (ApplyG tm1 tm2 ty) =
-  noListTermG tm1 &&& noListTermG tm2 &&& noListTypeG ty
-noListTermG (TyAbsG tm) = noListTermG tm
-noListTermG (TyInstG tm ty1 ty2 _) =
-  noListTermG tm &&& noListTypeG ty1 &&& noListTypeG ty2
-noListTermG ConstantG{} = true
-noListTermG BuiltinG{} = true
-noListTermG (WrapG tm) = noListTermG tm
-noListTermG (UnWrapG ty1 _ ty2 tm) =
-  noListTypeG ty1 &&& noListTypeG ty2 &&& noListTermG tm
-noListTermG (ErrorG ty) = noListTypeG ty
-
--- below: special cases of bigTest that filter out builtin list types
-
-bigTestTermG_NO_LIST :: String
-                -> GenOptions
-                -> ClosedTypeG
-                -> (ClosedTypeG -> ClosedTermG -> Assertion)
-                -> TestTree
-bigTestTermG_NO_LIST s GenOptions{..} t f = testCaseInfo s $ do
-  as <- search' genMode genDepth (\a -> noListTypeG t &&& noListTermG a &&& check t a)
-  _  <- traverse (f t) as
-  return $ show (length as)
-
-bigTestTypeG_NO_LIST :: String
-                -> GenOptions
-                -> Kind ()
-                -> (Kind () -> ClosedTypeG -> Assertion)
-                -> TestTree
-bigTestTypeG_NO_LIST s GenOptions{..} t f = testCaseInfo s $ do
-  as <- search' genMode genDepth (\a -> noListTypeG a &&& check t a)
-  _  <- traverse (f t) as
-  return $ show (length as)
-

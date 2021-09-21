@@ -27,8 +27,8 @@ import           Cardano.BM.Data.Trace                 (Trace)
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.Node.Server                   as NodeServer
 import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
-import qualified Cardano.Wallet.Server                 as WalletServer
-import           Cardano.Wallet.Types
+import qualified Cardano.Wallet.Mock.Server            as WalletServer
+import           Cardano.Wallet.Mock.Types
 import           Control.Concurrent                    (takeMVar)
 import           Control.Concurrent.Async              (Async, async, waitAny)
 import           Control.Concurrent.Availability       (Availability, available, starting)

@@ -10,6 +10,7 @@
 module Main where
 
 import qualified Control.Concurrent.STM              as STM
+import           Control.Exception                   (throwIO)
 import           Control.Lens                        (unto)
 import           Control.Monad.Freer                 (Eff, interpret, reinterpret, run, send)
 import           Control.Monad.Freer.Error           (Error, runError)
@@ -18,12 +19,13 @@ import           Control.Monad.Freer.Extras.Log      (LogLevel (..), LogMessage 
 import           Control.Monad.Freer.State           (State, runState)
 import           Control.Monad.Freer.Writer          (runWriter)
 import           Control.Monad.IO.Class              (liftIO)
+import qualified Data.Aeson                          as A
 import           Data.Foldable                       (for_, traverse_)
 import           Data.Function                       ((&))
 import           Data.Functor                        (void)
 import           Data.Sequence                       (Seq, (<|))
 import           Data.Text.Prettyprint.Doc           (Pretty (..))
-import           Data.Yaml                           (decodeFileThrow)
+import qualified Data.Yaml                           as Y
 import           Options.Applicative                 (execParser)
 import qualified Plutus.ChainIndex.Server            as Server
 
@@ -33,10 +35,9 @@ import           Cardano.BM.Trace                    (Trace, logError)
 
 import           Cardano.Protocol.Socket.Client      (ChainSyncEvent (..), runChainSync)
 import           CommandLine                         (AppConfig (..), Command (..), applyOverrides, cmdWithHelpParser)
-import           Config                              (ChainIndexConfig)
-import qualified Config                              as Config
+import qualified Config
 import           Ledger                              (Slot (..))
-import           Logging                             (defaultConfig, loadConfig)
+import qualified Logging
 import           Plutus.ChainIndex.Compatibility     (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
 import           Plutus.ChainIndex.Effects           (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                       appendBlock, rollback)
@@ -110,33 +111,42 @@ main = do
   -- Parse comand line arguments.
   cmdConfig@AppConfig{acLogConfigPath, acConfigPath, acMinLogLevel, acCommand, acCLIConfigOverrides} <- execParser cmdWithHelpParser
 
-  -- Initialise logging
-  logConfig <- maybe defaultConfig loadConfig acLogConfigPath
-  for_ acMinLogLevel $ \ll -> CM.setMinSeverity logConfig ll
-  (trace :: Trace IO ChainIndexLog, _) <- setupTrace_ logConfig "chain-index"
-
-  -- Reading configuration file
-  config <- case acConfigPath of
-              Nothing -> pure Config.defaultConfig
-              Just p  -> decodeFileThrow @IO @ChainIndexConfig p
-
-  putStrLn "Command line config:"
-  print cmdConfig
-
-  let actualConfig = applyOverrides acCLIConfigOverrides config
-  putStrLn "Configuration:"
-  print (pretty actualConfig)
-
-  appState <- STM.newTVarIO mempty
-
   case acCommand of
+    DumpDefaultConfig path ->
+      A.encodeFile path Config.defaultConfig
+
+    DumpDefaultLoggingConfig path ->
+      Logging.defaultConfig >>= CM.toRepresentation >>= Y.encodeFile path
+
     StartChainIndex{} -> do
-      putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath actualConfig
-      void $ runChainSync (Config.cicSocketPath actualConfig)
-                          (Config.cicSlotConfig actualConfig)
-                          (Config.cicNetworkId  actualConfig)
+      -- Initialise logging
+      logConfig <- maybe Logging.defaultConfig Logging.loadConfig acLogConfigPath
+      for_ acMinLogLevel $ \ll -> CM.setMinSeverity logConfig ll
+      (trace :: Trace IO ChainIndexLog, _) <- setupTrace_ logConfig "chain-index"
+
+      -- Reading configuration file
+      config <- applyOverrides acCLIConfigOverrides <$> case acConfigPath of
+        Nothing -> pure Config.defaultConfig
+        Just p  -> A.eitherDecodeFileStrict p >>=
+          either (throwIO . Config.DecodeConfigException) pure
+
+      putStrLn "\nCommand line config:"
+      print cmdConfig
+
+      putStrLn "\nLogging config:"
+      CM.toRepresentation logConfig >>= print
+
+      putStrLn "\nChain Index config:"
+      print (pretty config)
+
+      appState <- STM.newTVarIO mempty
+
+      putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
+      void $ runChainSync (Config.cicSocketPath config)
+                          (Config.cicSlotConfig config)
+                          (Config.cicNetworkId  config)
                           []
                           (chainSyncHandler trace appState)
-      putStrLn $ "Starting webserver on port " <> show (Config.cicPort actualConfig)
-      Server.serveChainIndexQueryServer (Config.cicPort actualConfig) appState
-    _ -> pure ()
+
+      putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)
+      Server.serveChainIndexQueryServer (Config.cicPort config) appState
