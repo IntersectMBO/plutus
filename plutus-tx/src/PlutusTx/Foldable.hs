@@ -43,13 +43,17 @@ import           Data.Monoid           (First (..))
 import           Data.Semigroup        (Dual (..), Endo (..), Product (..), Sum (..))
 import           GHC.Exts              (build)
 import           PlutusTx.Applicative  (Applicative (pure), (*>))
-import           PlutusTx.Bool         (not)
+import           PlutusTx.Base
+import           PlutusTx.Bool         (Bool (..), not)
+import           PlutusTx.Builtins     (Integer)
+import           PlutusTx.Either       (Either (..))
 import           PlutusTx.Eq           (Eq (..))
-import           PlutusTx.Functor      (id)
+import           PlutusTx.Maybe        (Maybe (..))
 import           PlutusTx.Monoid       (Monoid (..))
 import           PlutusTx.Numeric      (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
 import           PlutusTx.Semigroup    ((<>))
-import           Prelude               (Bool (..), Either (..), Integer, Maybe (..), Monad (..), flip, (.))
+
+import qualified Prelude               as Haskell (Monad, return, (>>), (>>=))
 
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
@@ -131,24 +135,28 @@ sum = getSum #. foldMap Sum
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = getProduct #. foldMap Product
 
-
-
 -- | Plutus Tx version of 'Data.Foldable.foldrM'.
-foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
-foldrM f z0 xs = foldl c return xs z0
-  where c k x z = f x z >>= k
+foldrM :: (Foldable t, Haskell.Monad m) => (a -> b -> m b) -> b -> t a -> m b
+foldrM f z0 xs = foldl c Haskell.return xs z0
+  where c k x z = f x z Haskell.>>= k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.foldlM'.
-foldlM :: (Foldable t, Monad m) => (b -> a -> m b) -> b -> t a -> m b
-foldlM f z0 xs = foldr c return xs z0
-  where c x k z = f z x >>= k
+foldlM :: (Foldable t, Haskell.Monad m) => (b -> a -> m b) -> b -> t a -> m b
+foldlM f z0 xs = foldr c Haskell.return xs z0
+  where c x k z = f z x Haskell.>>= k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
   where c x k = f x *> k
+        {-# INLINE c #-}
+
+-- | Plutus Tx version of 'Data.Foldable.sequence_'.
+sequence_ :: (Foldable t, Haskell.Monad m) => t (m a) -> m ()
+sequence_ = foldr c (Haskell.return ())
+  where c m k = m Haskell.>> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
@@ -160,12 +168,6 @@ for_ = flip traverse_
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequenceA_ = foldr c (pure ())
   where c m k = m *> k
-        {-# INLINE c #-}
-
--- | Plutus Tx version of 'Data.Foldable.sequence_'.
-sequence_ :: (Foldable t, Monad m) => t (m a) -> m ()
-sequence_ = foldr c (return ())
-  where c m k = m >> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.asum'.
@@ -219,7 +221,7 @@ find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
 
 -- | Plutus Tx version of 'Data.Foldable.mapM_'.
 {-# INLINABLE mapM_ #-}
-mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
-mapM_ f = foldr c (return ())
-  where c x k = f x >> k
+mapM_ :: (Foldable t, Haskell.Monad m) => (a -> m b) -> t a -> m ()
+mapM_ f = foldr c (Haskell.return ())
+  where c x k = f x Haskell.>> k
         {-# INLINE c #-}

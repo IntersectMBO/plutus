@@ -15,7 +15,7 @@ import           Data.Aeson                   as Aeson (FromJSON (..), ToJSON (.
 import           Data.Aeson.Encoding.Internal (string)
 import           Data.String
 import           PlutusTx.Prelude             as PlutusTx
-import           Prelude                      as Haskell
+import qualified Prelude                      as Haskell
 
 -- | A secret value. A value of type `Secret a` can't leak onto
 -- the blockchain in plain-text unless you use an unsafe function.
@@ -54,7 +54,7 @@ newtype Secret a = MkSecret a
 -- bypassed by safe code.
 data SecretArgument a = UserSide a
                       | EndpointSide (Secret a)
-                      deriving Show
+                      deriving Haskell.Show
 
 {- Note [Secret arguments]
    When we write endpoint code we would like to specify the argument type
@@ -89,9 +89,9 @@ instance ToJSON a => ToJSON (SecretArgument a) where
   toEncoding (EndpointSide _) = string "EndpointSide *****"
 
 instance FromJSON a => FromJSON (SecretArgument a) where
-  parseJSON = liftM (EndpointSide . mkSecret) . parseJSON
+  parseJSON = liftM (EndpointSide Haskell.. mkSecret) Haskell.. parseJSON
 
-instance Show (Secret a) where
+instance Haskell.Show (Secret a) where
   show (MkSecret _) = "*****"
 
 instance Haskell.Functor Secret where

@@ -25,6 +25,11 @@ import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
 import           GHC.Generics              (Generic)
 import qualified PlutusCore.Data           as PLC
 import           PlutusTx.Utils            (mustBeReplaced)
+
+{-
+We do not use qualified import because the whole module contains off-chain code
+which is replaced later with on-chain implementations by the plutus-tx-plugin.
+-}
 import           Prelude                   as Haskell
 
 {- Note [Builtin name definitions]
@@ -211,7 +216,7 @@ STRING
 -}
 
 newtype BuiltinString = BuiltinString Text
-    deriving newtype (Show, Eq, Ord)
+    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
@@ -238,7 +243,7 @@ PAIR
 -}
 
 newtype BuiltinPair a b = BuiltinPair (a, b)
-    deriving newtype (Show, Eq, Ord)
+    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE fst #-}
 fst :: BuiltinPair a b -> a
@@ -257,7 +262,7 @@ LIST
 -}
 
 newtype BuiltinList a = BuiltinList [a]
-    deriving newtype (Show, Eq, Ord)
+    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE null #-}
 null :: BuiltinList a -> BuiltinBool
@@ -308,7 +313,7 @@ For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
 newtype BuiltinData = BuiltinData PLC.Data
-    deriving newtype (Show, Eq, Ord)
+    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 -- NOT a builtin, only safe off-chain, hence the NOINLINE
 {-# NOINLINE builtinDataToData #-}

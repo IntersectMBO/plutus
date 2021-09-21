@@ -2238,16 +2238,16 @@
               [
                 { CConsMultiplicativeMonoid Bool }
                 (lam
-                  ds
+                  l
                   Bool
                   (lam
-                    x
+                    r
                     Bool
                     {
                       [
                         [
-                          { [ Bool_match ds ] (all dead (type) Bool) }
-                          (abs dead (type) x)
+                          { [ Bool_match l ] (all dead (type) Bool) }
+                          (abs dead (type) r)
                         ]
                         (abs dead (type) False)
                       ]
@@ -2280,18 +2280,18 @@
               [
                 { CConsAdditiveMonoid Bool }
                 (lam
-                  ds
+                  l
                   Bool
                   (lam
-                    ds
+                    r
                     Bool
                     {
                       [
                         [
-                          { [ Bool_match ds ] (all dead (type) Bool) }
+                          { [ Bool_match l ] (all dead (type) Bool) }
                           (abs dead (type) True)
                         ]
-                        (abs dead (type) ds)
+                        (abs dead (type) r)
                       ]
                       (all dead (type) dead)
                     }
@@ -8149,107 +8149,7 @@
                                                                 [
                                                                   {
                                                                     {
-                                                                      (abs
-                                                                        a
-                                                                        (type)
-                                                                        (abs
-                                                                          b
-                                                                          (type)
-                                                                          (lam
-                                                                            k
-                                                                            (fun
-                                                                              a
-                                                                              (fun
-                                                                                b
-                                                                                b
-                                                                              )
-                                                                            )
-                                                                            (lam
-                                                                              z
-                                                                              b
-                                                                              (let
-                                                                                (rec)
-                                                                                (termbind
-                                                                                  (strict)
-                                                                                  (vardecl
-                                                                                    go
-                                                                                    (fun
-                                                                                      [
-                                                                                        List
-                                                                                        a
-                                                                                      ]
-                                                                                      b
-                                                                                    )
-                                                                                  )
-                                                                                  (lam
-                                                                                    ds
-                                                                                    [
-                                                                                      List
-                                                                                      a
-                                                                                    ]
-                                                                                    {
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            [
-                                                                                              {
-                                                                                                Nil_match
-                                                                                                a
-                                                                                              }
-                                                                                              ds
-                                                                                            ]
-                                                                                            (all
-                                                                                              dead
-                                                                                              (type)
-                                                                                              b
-                                                                                            )
-                                                                                          }
-                                                                                          (abs
-                                                                                            dead
-                                                                                            (type)
-                                                                                            z
-                                                                                          )
-                                                                                        ]
-                                                                                        (lam
-                                                                                          y
-                                                                                          a
-                                                                                          (lam
-                                                                                            ys
-                                                                                            [
-                                                                                              List
-                                                                                              a
-                                                                                            ]
-                                                                                            (abs
-                                                                                              dead
-                                                                                              (type)
-                                                                                              [
-                                                                                                [
-                                                                                                  k
-                                                                                                  y
-                                                                                                ]
-                                                                                                [
-                                                                                                  go
-                                                                                                  ys
-                                                                                                ]
-                                                                                              ]
-                                                                                            )
-                                                                                          )
-                                                                                        )
-                                                                                      ]
-                                                                                      (all
-                                                                                        dead
-                                                                                        (type)
-                                                                                        dead
-                                                                                      )
-                                                                                    }
-                                                                                  )
-                                                                                )
-                                                                                go
-                                                                              )
-                                                                            )
-                                                                          )
-                                                                        )
-                                                                      )
+                                                                      foldr
                                                                       [
                                                                         [
                                                                           (lam

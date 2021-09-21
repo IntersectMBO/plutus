@@ -1,8 +1,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Maybe (Maybe(..), isJust, isNothing, maybe, fromMaybe, mapMaybe) where
 
+{-
+We export off-chain Haskell's Maybe type as on-chain Plutus's Maybe type since they are the same.
+-}
+
+import           PlutusTx.Base (id)
+import           PlutusTx.Bool
 import           PlutusTx.List (foldr)
-import           Prelude       hiding (foldr, maybe)
+import           Prelude       (Maybe (..))
 
 {- HLINT ignore -}
 
