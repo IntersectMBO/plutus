@@ -151,7 +151,7 @@ main = do
 
       appState <- STM.newTVarIO mempty
 
-      Sqlite.withConnection "chainindex.db" $ \conn -> do
+      Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
 
         Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb

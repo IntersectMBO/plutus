@@ -22,6 +22,7 @@ import           GHC.Word                 (Word32)
 data CLIConfigOverrides =
   CLIConfigOverrides
     { ccSocketPath :: Maybe String
+    , ccDbPath     :: Maybe String
     , ccPort       :: Maybe Int
     , ccNetworkId  :: Maybe Word32
     }
@@ -29,8 +30,9 @@ data CLIConfigOverrides =
 
 -- | Apply the CLI soverrides to the 'ChainIndexConfig'
 applyOverrides :: CLIConfigOverrides -> ChainIndexConfig -> ChainIndexConfig
-applyOverrides CLIConfigOverrides{ccSocketPath, ccPort, ccNetworkId} =
+applyOverrides CLIConfigOverrides{ccSocketPath, ccDbPath, ccPort, ccNetworkId} =
   over Config.socketPath (maybe id const ccSocketPath)
+  . over Config.dbPath (maybe id const ccDbPath)
   . over Config.port (maybe id const ccPort)
   . over Config.networkId (maybe id (const . Testnet . NetworkMagic) ccNetworkId)
 
@@ -64,9 +66,11 @@ optParser =
 
 cliConfigOverridesParser :: Parser CLIConfigOverrides
 cliConfigOverridesParser =
-  CLIConfigOverrides <$> socketPathParser <*> portParser <*> networkIDParser where
+  CLIConfigOverrides <$> socketPathParser <*> dbPathParser <*> portParser <*> networkIDParser where
     socketPathParser =
       option (Just <$> str) (long "socket-path" <> value Nothing <> help "Node socket path")
+    dbPathParser =
+      option (Just <$> str) (long "db-path" <> value Nothing <> help "Sqlite database file path")
     portParser =
       option (Just <$> auto) (long "port" <> value Nothing <> help "Port")
     networkIDParser =
