@@ -23,15 +23,18 @@ import           Control.Lens                      (Lens', _Just, ix, view, (^?)
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
-import           Control.Monad.Freer.State         (State, get, put)
+import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
+import           Data.Default                      (def)
+import qualified Data.FingerTree                   as FT
 import qualified Data.Map                          as Map
-import           Data.Maybe                        (fromMaybe)
+import           Data.Maybe                        (catMaybes, fromMaybe)
 import           Data.Monoid                       (Ap (..))
 import           Data.Proxy                        (Proxy (..))
+import qualified Data.Set                          as Set
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
-                                                    filter_, limit_, nub_, select, val_)
+                                                    delete, filter_, limit_, nub_, select, val_)
 import           Database.Beam.Query               ((==.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
@@ -43,19 +46,21 @@ import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbStore
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
-import           Plutus.ChainIndex.Types           (Diagnostics (..))
+import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
+                                                    Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
                                                     UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
-import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
--- import           Plutus.V1.Ledger.Scripts          as Scripts
 import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential, ScriptCredential))
+import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
 handleQuery ::
     forall effs.
-    ( Member DbStoreEffect effs
+    ( Member (State ChainIndexState) effs
+    , Member DbStoreEffect effs
+    , Member (Error ChainIndexError) effs
     , Member (LogMsg ChainIndexLog) effs
     ) => ChainIndexQueryEffect
     ~> Eff effs
@@ -67,9 +72,28 @@ handleQuery = \case
     StakeValidatorFromHash (StakeValidatorHash hash) -> queryOneScript hash
     TxFromTxId txId                                  -> getTxFromTxId txId
     TxOutFromRef tor                                 -> getTxOutFromRef tor
-    UtxoSetMembership _                              -> undefined
-    UtxoSetAtAddress _                               -> undefined
-    GetTip                                           -> undefined
+    UtxoSetMembership r -> do
+        utxoState <- gets @ChainIndexState FT.measure
+        case UtxoState.tip utxoState of
+            TipAtGenesis -> throwError QueryFailedNoTip
+            tp           -> pure (tp, UtxoState.isUnspentOutput r utxoState)
+    UtxoSetAtAddress cred -> do
+        utxoState <- gets @ChainIndexState FT.measure
+        outRefs <- queryList . select $ _addressRowOutRef <$> filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred)) (all_ (addressRows db))
+        let page = pageOf def $ Set.fromList $ filter (\r -> UtxoState.isUnspentOutput r utxoState) outRefs
+        case UtxoState.tip utxoState of
+            TipAtGenesis -> do
+                logWarn TipIsGenesis
+                pure (TipAtGenesis, pageOf def Set.empty)
+            tp           -> pure (tp, page)
+    GetTip -> getTip
+
+getTip :: Member DbStoreEffect effs => Eff effs Tip
+getTip = do
+    row <- selectOne . select $ all_ (tipRow db)
+    pure $ case row of
+        Nothing                    -> TipAtGenesis
+        Just (TipRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber (fromInteger $ toInteger bn))
 
 getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
@@ -124,8 +148,18 @@ queryOne ::
     -> Eff effs (Maybe a)
 queryOne = fmap (fmap fromByteString) . selectOne
 
+queryList ::
+    ( Member DbStoreEffect effs
+    , Serialise a
+    ) => SqlSelect Sqlite ByteString
+    -> Eff effs [a]
+queryList = fmap (fmap fromByteString) . selectList
+
 fromByteString :: Serialise a => ByteString -> a
 fromByteString = deserialise . BSL.fromStrict
+
+toByteString :: Serialise a => a -> ByteString
+toByteString = BSL.toStrict . serialise
 
 handleControl ::
     forall effs.
@@ -147,6 +181,7 @@ handleControl = \case
             Right InsertUtxoSuccess{newIndex, insertPosition} -> do
                 put newIndex
                 insert $ foldMap fromTx transactions
+                setTip tip_
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
         oldState <- get @ChainIndexState
@@ -157,19 +192,33 @@ handleControl = \case
                 throwError reason
             Right RollbackResult{newTip, rolledBackIndex} -> do
                 put rolledBackIndex
+                setTip newTip
                 logDebug $ RollbackSuccess newTip
-    CollectGarbage -> do undefined
+    CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
         -- least one output in the UTXO set
-        -- utxos <- gets $
-        --     Set.toList
-        --     . Set.map txOutRefId
-        --     . UtxoState.unspentOutputs
-        --     . UtxoState.utxoState
-        -- newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
-        -- modify $ set diskState newDiskState
+        utxos <- gets $
+            Set.toList
+            . Set.map txOutRefId
+            . UtxoState.unspentOutputs
+            . UtxoState.utxoState
+        insertRows <- foldMap fromTx . catMaybes <$> mapM getTxFromTxId utxos
+        combined $
+            [ DeleteRows $ delete (datumRows db) (const (val_ True))
+            , DeleteRows $ delete (scriptRows db) (const (val_ True))
+            , DeleteRows $ delete (txRows db) (const (val_ True))
+            , DeleteRows $ delete (addressRows db) (const (val_ True))
+            ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRows tbl rows]) db insertRows)
     GetDiagnostics -> diagnostics
 
+
+setTip :: Member DbStoreEffect effs => Tip -> Eff effs ()
+setTip tip_ = combined $
+    case tip_ of
+        TipAtGenesis -> [doDelete]
+        Tip sl (BlockId bi) (BlockNumber bn) -> [doDelete, AddRows (tipRow db) [TipRow tipRowId (toByteString sl) bi (fromInteger $ toInteger bn)]]
+    where
+        doDelete = DeleteRows $ delete (tipRow db) (\row -> _tipRowId row ==. val_ tipRowId)
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)
@@ -180,10 +229,10 @@ instance BeamableSqlite t => Monoid (InsertRows (TableEntity t)) where
     mempty = InsertRows []
 
 insert :: Member DbStoreEffect effs => Db InsertRows -> Eff effs ()
-insert = getAp . getConst . zipTables (Proxy :: Proxy Sqlite) (\tbl (InsertRows rows) -> Const $ Ap $ addRows tbl rows) db
+insert = getAp . getConst . zipTables Proxy (\tbl (InsertRows rows) -> Const $ Ap $ addRows tbl rows) db
 
 fromTx :: ChainIndexTx -> Db InsertRows
-fromTx tx = Db
+fromTx tx = mempty
     { datumRows = fromMap citxData DatumRow
     , scriptRows = mconcat
         [ fromMap citxValidators ScriptRow
@@ -196,8 +245,6 @@ fromTx tx = Db
     }
     where
         credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
-        toByteString :: Serialise a => a -> ByteString
-        toByteString = BSL.toStrict . serialise
         fromMap :: (BeamableSqlite t, Serialise k, Serialise v) => Lens' ChainIndexTx (Map.Map k v) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
         fromMap l = fromPairs (Map.toList . view l)
         fromPairs :: (BeamableSqlite t, Serialise k, Serialise v) => (ChainIndexTx -> [(k, v)]) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
@@ -209,7 +256,7 @@ diagnostics = do
     numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (txRows db))
     txIds <- selectList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
-    numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowHash <$> all_ (addressRows db)
+    numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
 
     pure $ Diagnostics
         { numTransactions  = fromMaybe (-1) numTransactions
