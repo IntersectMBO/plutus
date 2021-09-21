@@ -345,7 +345,7 @@ pangramContract = let
                 (Pay aliceAcc (Party bobRole) ada (UseValue (ValueId "x")) Close))
         , Case (Choice choiceId [Bound 0 1, Bound 10 20])
             (If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (1 % 10) constant))
-                (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
+                (Pay aliceAcc (Account aliceAcc) token (DivValue (AvailableMoney aliceAcc token) constant) Close)
                 Close)
         , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
         ] (Slot 100) Close

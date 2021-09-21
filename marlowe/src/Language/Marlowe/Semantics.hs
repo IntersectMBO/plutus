@@ -61,6 +61,7 @@ import qualified Ledger.Value             as Val
 import           PlutusTx                 (makeIsDataIndexed)
 import           PlutusTx.AssocMap        (Map)
 import qualified PlutusTx.AssocMap        as Map
+import qualified PlutusTx.Builtins        as Builtins
 import           PlutusTx.Lift            (makeLift)
 import           PlutusTx.Prelude         hiding (encodeUtf8, mapM, (<$>), (<*>), (<>))
 import           PlutusTx.Ratio           (denominator, numerator)
@@ -475,10 +476,17 @@ evalValue env state value = let
         SubValue lhs rhs     -> eval lhs - eval rhs
         MulValue lhs rhs     -> eval lhs * eval rhs
         DivValue lhs rhs     -> let n = eval lhs
+                                in if n == 0 then 0 else let
                                     d = eval rhs
                                 in if d == 0 then 0 else let
                                     (q, r) = n `quotRem` d
-                                in if abs r * 2 < abs d then q else q + signum n * signum d
+                                    ar = abs r * 2
+                                    ad = abs d
+                                in if ar < ad then q -- reminder < 1/2
+                                   else if ar > ad then q + signum n * signum d -- reminder > 1/2
+                                   else let -- reminder == 1/2
+                                even = q `Builtins.remainderInteger` 2 == 0
+                                in if even then q else q + signum n * signum d
         Scale s rhs          -> let (n, d) = (numerator s, denominator s)
                                     nn = eval rhs * n
                                     (q, r) = nn `quotRem` d in

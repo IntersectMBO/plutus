@@ -1390,14 +1390,35 @@ evalValue env state value =
       DivValue lhs rhs ->
         let
           n = eval lhs
-
-          d = eval rhs
-
-          q = n `div` d
-
-          r = n `mod` d
         in
-          if abs r * fromInt 2 < abs d then q else q + signum n * signum d
+          if n == fromInt 0 then
+            fromInt 0
+          else
+            let
+              d = eval rhs
+            in
+              if d == fromInt 0 then
+                fromInt 0
+              else
+                let
+                  q = n `div` d
+
+                  r = n `mod` d
+
+                  ar = abs r * fromInt 2
+
+                  ad = abs d
+                in
+                  if ar < ad then
+                    q -- reminder < 1/2
+                  else
+                    if ar > ad then
+                      q + signum n * signum d -- reminder > 1/2
+                    else
+                      let -- reminder == 1/2
+                        even = q `mod` fromInt 2 == fromInt 0
+                      in
+                        if even then q else q + signum n * signum d
       Scale (Rational n d) rhs ->
         let
           nn = eval rhs * n
