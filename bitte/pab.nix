@@ -102,5 +102,10 @@ writeShellScriptBin "entrypoint" ''
 
   ${pab-init-cmd}/bin/pab-init-cmd
 
-  exec ${pabExe} --config=${pabYaml} all-servers
+  # Ugly ugly hack to kill the PAB at midnight UTC
+  ${pabExe} --config=${pabYaml} all-servers&
+  pab_pid=$!
+  sleep $(($(date -f - +%s- <<< $'tomorrow 00:00\nnow')0))
+  kill $pab_pid
+  exit 1
 ''
