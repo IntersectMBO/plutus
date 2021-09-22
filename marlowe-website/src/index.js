@@ -1,6 +1,7 @@
 import "./index.css";
 import "./carousel.css";
 import $ from "jquery";
+import { activateAnalytics } from "./analytics";
 
 function initializeFaqComponent() {
   const faqElements = document.getElementsByClassName("faq");
@@ -153,7 +154,42 @@ function fixCrossLinks() {
   }
 }
 
+function activateYoutube() {
+  $(".video-container iframe").each((_, elm) => {
+    elm.setAttribute("src", elm.getAttribute("data-src"));
+    elm.classList.remove("hidden");
+  });
+  $(".video-container p").each((_, elm) => {
+    elm.classList.add("hidden");
+    elm.classList.remove("flex");
+  });
+}
+
+function initializeGDPR() {
+  function activateComponentsWithCookies() {
+    activateAnalytics();
+    activateYoutube();
+  }
+  const gdprConsent = localStorage.getItem("gdpr-consent");
+  if (gdprConsent === "agree") {
+    activateComponentsWithCookies();
+    $("#gdpr-banner").addClass("hidden");
+  } else {
+    // Show the banner
+    $("#gdpr-banner").removeClass("hidden");
+    $(".agreeGDPR").on("click", () => {
+      localStorage.setItem("gdpr-consent", "agree");
+      activateComponentsWithCookies();
+      $("#gdpr-banner").addClass("hidden");
+    });
+    $(".cancelGDPR").on("click", () => {
+      $("#gdpr-banner").addClass("hidden");
+    });
+  }
+}
+
 window.onload = function () {
+  initializeGDPR();
   initializeFaqComponent();
   initializeBackToTopComponent();
   initializeSmoothScrolling();
