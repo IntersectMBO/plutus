@@ -216,8 +216,9 @@ newtype CekBudgetSpender uni fun s = CekBudgetSpender
 -- under the hood.
 -- | Runtime budgeting info.
 data ExBudgetInfo cost uni fun s = ExBudgetInfo
-    { _exBudgetModeSpender  :: !(CekBudgetSpender uni fun s)  -- ^ A spending function.
-    , _exBudgetModeGetFinal :: !(ST s cost)                   -- ^ For accessing the final state.
+    { _exBudgetModeSpender       :: !(CekBudgetSpender uni fun s)  -- ^ A spending function.
+    , _exBudgetModeGetFinal      :: !(ST s cost) -- ^ For accessing the final state.
+    , _exBudgetModeGetCumulative :: !(ST s ExBudget) -- ^ For accessing the cumulative budget.
     }
 
 -- We make a separate data type here just to save the caller of the CEK machine from those pesky
