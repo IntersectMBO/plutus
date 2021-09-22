@@ -38,6 +38,7 @@ module Plutus.ChainIndex.UtxoState(
     , viewTip
     ) where
 
+import           Codec.Serialise                   (Serialise)
 import           Control.Lens                      (makeLenses, view)
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.FingerTree                   (FingerTree, Measured (..))
@@ -61,7 +62,7 @@ data TxUtxoBalance =
         , _tubUnmatchedSpentInputs :: Set TxOutRef -- ^ Outputs spent by the transaction(s)
         }
         deriving stock (Eq, Show, Generic)
-        deriving anyclass (FromJSON, ToJSON)
+        deriving anyclass (FromJSON, ToJSON, Serialise)
 
 
 makeLenses ''TxUtxoBalance

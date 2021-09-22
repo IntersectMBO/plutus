@@ -31,6 +31,7 @@ import           Data.Default                     (Default (..))
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
+import           Data.Word                        (Word64)
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain                (Block, BlockId (..))
 import           Ledger.Slot                      (Slot)
@@ -196,7 +197,7 @@ instance MeetSemiLattice TxStatus where
   Committed v1 /\ TentativelyConfirmed _ v2                = Committed (v1 /\ v2)
   Committed v1 /\ Committed v2                             = Committed (v1 /\ v2)
 
-newtype BlockNumber = BlockNumber Int
+newtype BlockNumber = BlockNumber Word64
     deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
 

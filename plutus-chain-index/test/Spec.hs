@@ -119,7 +119,7 @@ transactionDepthIncreases = property $ do
 
   let status1 = transactionStatus (BlockNumber 0) (UtxoState._usTxUtxoData (measure f1)) (txA ^. citxTxId)
       status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
-      status3 = transactionStatus (BlockNumber (1 + d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
+      status3 = transactionStatus (BlockNumber (1 + fromIntegral d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
 
   status2 === increaseDepth status1
   status3 === Committed TxValid
@@ -248,6 +248,5 @@ blockNumberAscending = property $ do
             let items = tipBlockNo' . UtxoState.tip <$> toList newIndex
             items === sort items
     where
-        tipBlockNo' :: Tip -> Int
         tipBlockNo' TipAtGenesis               = error "There should be no empty UtxoState."
         tipBlockNo' (Tip _ _ (BlockNumber no)) = no

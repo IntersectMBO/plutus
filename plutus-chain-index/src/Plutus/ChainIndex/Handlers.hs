@@ -27,7 +27,6 @@ import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Default                      (def)
-import qualified Data.FingerTree                   as FT
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (catMaybes, fromMaybe)
 import           Data.Monoid                       (Ap (..))
@@ -35,7 +34,7 @@ import           Data.Proxy                        (Proxy (..))
 import qualified Data.Set                          as Set
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               ((==.))
+import           Database.Beam.Query               ((==.), (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -73,12 +72,12 @@ handleQuery = \case
     TxFromTxId txId                                  -> getTxFromTxId txId
     TxOutFromRef tor                                 -> getTxOutFromRef tor
     UtxoSetMembership r -> do
-        utxoState <- gets @ChainIndexState FT.measure
+        utxoState <- gets @ChainIndexState UtxoState.utxoState
         case UtxoState.tip utxoState of
             TipAtGenesis -> throwError QueryFailedNoTip
             tp           -> pure (tp, UtxoState.isUnspentOutput r utxoState)
     UtxoSetAtAddress cred -> do
-        utxoState <- gets @ChainIndexState FT.measure
+        utxoState <- gets @ChainIndexState UtxoState.utxoState
         outRefs <- queryList . select $ _addressRowOutRef <$> filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred)) (all_ (addressRows db))
         let page = pageOf def $ Set.fromList $ filter (\r -> UtxoState.isUnspentOutput r utxoState) outRefs
         case UtxoState.tip utxoState of
@@ -93,7 +92,7 @@ getTip = do
     row <- selectOne . select $ all_ (tipRow db)
     pure $ case row of
         Nothing                    -> TipAtGenesis
-        Just (TipRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber (fromInteger $ toInteger bn))
+        Just (TipRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber bn)
 
 getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
@@ -182,6 +181,7 @@ handleControl = \case
                 put newIndex
                 insert $ foldMap fromTx transactions
                 setTip tip_
+                insertUtxoDb (UtxoState.utxoState newIndex)
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
         oldState <- get @ChainIndexState
@@ -193,6 +193,7 @@ handleControl = \case
             Right RollbackResult{newTip, rolledBackIndex} -> do
                 put rolledBackIndex
                 setTip newTip
+                rollbackUtxoDb newTip
                 logDebug $ RollbackSuccess newTip
     CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
@@ -216,9 +217,24 @@ setTip :: Member DbStoreEffect effs => Tip -> Eff effs ()
 setTip tip_ = combined $
     case tip_ of
         TipAtGenesis -> [doDelete]
-        Tip sl (BlockId bi) (BlockNumber bn) -> [doDelete, AddRows (tipRow db) [TipRow tipRowId (toByteString sl) bi (fromInteger $ toInteger bn)]]
+        Tip sl (BlockId bi) (BlockNumber bn) -> [doDelete, AddRows (tipRow db) [TipRow tipRowId (toByteString sl) bi bn]]
     where
         doDelete = DeleteRows $ delete (tipRow db) (\row -> _tipRowId row ==. val_ tipRowId)
+
+insertUtxoDb ::
+    ( Member DbStoreEffect effs
+    , Member (Error ChainIndexError) effs
+    )
+    => UtxoState.UtxoState UtxoState.TxUtxoBalance
+    -> Eff effs ()
+insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
+insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
+    = addRows (utxoRows db) [UtxoRow (toByteString balance) (toByteString sl) bi bn]
+
+rollbackUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
+rollbackUtxoDb TipAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
+rollbackUtxoDb (Tip _ _ (BlockNumber bn)) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowBlockNumber row >. val_ bn)
+
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)
