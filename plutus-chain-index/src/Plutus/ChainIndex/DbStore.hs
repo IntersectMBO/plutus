@@ -34,6 +34,7 @@ track changes over time.
 module Plutus.ChainIndex.DbStore where
 
 import           Cardano.BM.Trace                         (Trace, logDebug)
+import           Control.Concurrent                       (threadDelay)
 import           Control.Exception                        (try)
 import           Control.Monad.Freer                      (Eff, LastMember, Member, type (~>))
 import           Control.Monad.Freer.Error                (Error, throwError)
@@ -225,20 +226,22 @@ runBeam ::
     -> Sqlite.Connection
     -> SqliteM
     ~> Eff effs
-runBeam trace conn action = do
-    let traceSql = logDebug trace . SqlLog
-    resultEither <- liftIO $ try $ runBeamSqliteDebug traceSql conn action
-    case resultEither of
-        -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
-        -- missing database. When this exception is raised, we suppose it's
-        -- because the 'migrate' command was not executed before running the
-        -- chain index server.
-        Left e@(Sqlite.SQLError Sqlite.ErrorError _ _) -> do
-            throwError $ MigrationNotDoneError $ Text.pack $ show e
-        -- We handle and rethrow errors other than
-        -- 'Database.SQLite.Simple.ErrorError'.
-        Left e -> do
-            throwError $ SqlError $ Text.pack $ show e
-        Right v -> return v
+runBeam trace conn action = loop (5::Int)
+    where
+        loop retries = do
+            let traceSql = logDebug trace . SqlLog
+            resultEither <- liftIO $ try $ Sqlite.withTransaction conn $ runBeamSqliteDebug traceSql conn action
+            case resultEither of
+                -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
+                -- missing database. When this exception is raised, we suppose it's
+                -- because the another transaction was already running.
+                Left (Sqlite.SQLError Sqlite.ErrorError _ _) | retries > 0 -> do
+                    liftIO $ threadDelay 100000
+                    loop (retries - 1)
+                -- We handle and rethrow errors other than
+                -- 'Database.SQLite.Simple.ErrorError'.
+                Left e -> do
+                    throwError $ SqlError $ Text.pack $ show e
+                Right v -> return v
 
 makeEffect ''DbStoreEffect
