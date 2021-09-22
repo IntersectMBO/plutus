@@ -11,6 +11,7 @@
 
 module Plutus.PAB.Monitoring.Util (
       handleLogMsgTrace
+    , handleLogMsgTraceWithExit
     , handleLogMsgTraceMap
     , handleObserveTrace
     , runLogEffects
@@ -56,6 +57,24 @@ toSeverity = \case
   L.Alert     -> Alert
   L.Emergency -> Emergency
 
+-- | Handle the 'LogMsg' effect by logging messages to a 'Trace', but,
+-- depending on the first argument, fail with an _error_, if we tried
+-- to log an 'L.Error' message or higher.
+handleLogMsgTraceWithExit :: forall a m effs.
+  ( LastMember m effs
+  , MonadIO m
+  , Show a
+  )
+  => Bool
+  -> Trace m a
+  -> LogMsg a
+  ~> Eff effs
+handleLogMsgTraceWithExit shouldExit trace logMsg = case logMsg of
+  LMessage L.LogMessage{L._logLevel=level, L._logMessageContent}
+    | shouldExit && level >= L.Error ->
+          let s = "Failing due to a logged error. Error: " ++ show _logMessageContent
+           in error s
+    | otherwise -> handleLogMsgTrace trace logMsg
 
 -- | Handle the 'LogMsg' effect by logging messages to a 'Trace'
 handleLogMsgTrace :: forall a m effs.

@@ -40,8 +40,7 @@ import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
-import           Control.Monad.Freer.Extras.Log                 (LogMsg (..), mapLog)
-import qualified Control.Monad.Freer.Extras.Log                 as L
+import           Control.Monad.Freer.Extras.Log                 (mapLog)
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import           Data.Aeson                                     (FromJSON, ToJSON)
 import           Data.Coerce                                    (coerce)
@@ -66,7 +65,7 @@ import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
 import           Plutus.PAB.Effects.Contract                    (ContractDefinition (..))
 import           Plutus.PAB.Effects.Contract.Builtin            (Builtin, BuiltinHandler (..), HasDefinitions (..))
 import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
-import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTraceWithExit)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..), PABMultiAgentMsg (UserLog))
 import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (..), DbConfig (..), MetaLoggingConfig (..),
@@ -105,7 +104,7 @@ appEffectHandlers
   -> BuiltinHandler a
   -> EffectHandlers (Builtin a) (AppEnv a)
 appEffectHandlers storageBackend config@Config{metaLoggingConfig=MetaLoggingConfig{exitOnError}} trace BuiltinHandler{contractHandler} =
-    EffectHandlers
+  EffectHandlers
         { initialiseEnvironment = do
             env <- liftIO $ mkEnv trace config
             let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig, mscNodeMode, mscNetworkId=NetworkIdWrapper networkId}} = config
@@ -114,12 +113,11 @@ appEffectHandlers storageBackend config@Config{metaLoggingConfig=MetaLoggingConf
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =
-            interpret (handleLogMsgTrace trace)
+            interpret (handleLogMsgTraceWithExit exitOnError trace)
             . reinterpret (mapLog SMultiAgent)
-            . if exitOnError then maybeExitOnError else id
 
         , handleContractEffect =
-            interpret (handleLogMsgTrace trace)
+            interpret (handleLogMsgTraceWithExit exitOnError trace)
             . reinterpret contractHandler
 
         , handleContractStoreEffect =
@@ -130,7 +128,7 @@ appEffectHandlers storageBackend config@Config{metaLoggingConfig=MetaLoggingConf
               . reinterpret2 InMem.handleContractStore
 
             BeamSqliteBackend ->
-              interpret (handleLogMsgTrace trace)
+              interpret (handleLogMsgTraceWithExit exitOnError trace)
               . reinterpret (mapLog @_ @(PABLogMsg (Builtin a)) SMultiAgent)
               . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
               . interpret (Core.handleMappedReader @(AppEnv a) dbConnection)
@@ -138,7 +136,7 @@ appEffectHandlers storageBackend config@Config{metaLoggingConfig=MetaLoggingConf
               . reinterpretN @'[_, _, _, _] BeamEff.handleContractStore
 
         , handleContractDefinitionEffect =
-            interpret (handleLogMsgTrace trace)
+            interpret (handleLogMsgTraceWithExit exitOnError trace)
             . reinterpret (mapLog @_ @(PABLogMsg (Builtin a)) SMultiAgent)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . interpret (Core.handleMappedReader @(AppEnv a) dbConnection)
@@ -219,22 +217,6 @@ mkEnv appTrace appConfig@Config { dbConfig
 
 logDebugString :: Trace IO (PABLogMsg t) -> Text -> IO ()
 logDebugString trace = logDebug trace . SMultiAgent . UserLog
-
--- | Exit the program immediately, if we encounter an error higher than or
--- equal to 'Error', otherwise, just retain the log.
-maybeExitOnError ::
-  forall effs a.
-  ( Show a
-  )
-  => Eff (LogMsg a ': effs)
-  ~> Eff (LogMsg a ': effs)
-maybeExitOnError = reinterpret $ \l' ->
-  case l' of
-      LMessage L.LogMessage{L._logLevel=level, L._logMessageContent=c}
-        | level >= L.Error ->
-          let s = "Failing due to a logged error. Error: " ++ show c
-           in error s
-        | otherwise -> mapLog id l'
 
 -- | Initialize/update the database to hold our effects.
 migrate :: Trace IO (PABLogMsg (Builtin a)) -> DbConfig -> IO ()

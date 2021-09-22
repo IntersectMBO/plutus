@@ -30,13 +30,14 @@ import           Cardano.Protocol.Socket.Mock.Client (runChainSync)
 import           Ledger.Slot                         (Slot (..))
 import           Plutus.ChainIndex                   (ChainIndexEmulatorState)
 import           Plutus.ChainIndex.Server            (serveChainIndexQueryServer)
+import           Plutus.PAB.Types                    (MetaLoggingConfig)
 
 -- $chainIndex
 -- The PAB chain index that keeps track of transaction data (UTXO set enriched
 -- with datums)
 
-main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> SlotConfig -> IO ()
-main trace ChainIndexConfig{ciBaseUrl} socketPath slotConfig = runLogEffects trace $ do
+main :: ChainIndexTrace -> ChainIndexConfig -> FilePath -> SlotConfig -> MetaLoggingConfig -> IO ()
+main trace ChainIndexConfig{ciBaseUrl} socketPath slotConfig metaLoggingConfig = runLogEffects trace $ do
     tVarState <- liftIO $ STM.atomically $ STM.newTVar mempty
 
     logInfo StartingNodeClientThread
@@ -48,4 +49,4 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath slotConfig = runLogEffects tra
         servicePort = baseUrlPort (coerce ciBaseUrl)
         updateChainState :: TVar ChainIndexEmulatorState -> Block -> Slot -> IO ()
         updateChainState tv block slot = do
-          processChainIndexEffects trace tv $ syncState block slot
+          processChainIndexEffects trace metaLoggingConfig tv $ syncState block slot

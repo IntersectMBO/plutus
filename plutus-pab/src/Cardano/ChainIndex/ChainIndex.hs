@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 
@@ -22,7 +23,8 @@ import           Ledger.Slot                      (Slot)
 import           Cardano.ChainIndex.Types
 import           Plutus.ChainIndex                (ChainIndexEmulatorState, ChainIndexLog)
 import qualified Plutus.ChainIndex                as ChainIndex
-import           Plutus.PAB.Monitoring.Monitoring (convertLog, handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.Monitoring (convertLog, handleLogMsgTraceWithExit)
+import           Plutus.PAB.Types                 (MetaLoggingConfig (..))
 import           Plutus.Trace.Emulator.System     (appendNewTipBlock)
 
 -- | Update the chain index by asking the node for new blocks since the last
@@ -42,15 +44,16 @@ syncState block slot = do
 processChainIndexEffects ::
     MonadIO m
     => ChainIndexTrace
+    -> MetaLoggingConfig
     -> TVar ChainIndexEmulatorState
     -> Eff (ChainIndexEffects IO) a
     -> m a
-processChainIndexEffects trace stateVar eff = do
+processChainIndexEffects trace MetaLoggingConfig{exitOnError} stateVar eff = do
   emState <- liftIO $ STM.atomically $ STM.readTVar stateVar
   resultE <- liftIO $
         runM
         $ runError
-        $ interpret (handleLogMsgTrace (toChainIndexServerMsg trace))
+        $ interpret (handleLogMsgTraceWithExit exitOnError (toChainIndexServerMsg trace))
         $ Eff.runState emState
         $ interpret ChainIndex.handleQuery
         $ interpret ChainIndex.handleControl eff
