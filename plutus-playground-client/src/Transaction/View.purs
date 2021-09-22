@@ -40,7 +40,7 @@ import Plutus.V1.Ledger.TxId (TxId(TxId))
 import Plutus.V1.Ledger.Value (CurrencySymbol, TokenName)
 import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
 import Wallet.Emulator.Chain (ChainEvent(..))
-import Plutus.ChainIndex (ChainIndexLog(..))
+import Plutus.ChainIndex.ChainIndexLog (ChainIndexLog(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
 import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
