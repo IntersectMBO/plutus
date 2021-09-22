@@ -236,29 +236,6 @@ Mock-implementation of a Goguen node. Clients to this service are:
 - [Cardano.Node.API.API](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Node/API.hs)
 - [Cardano.Node.Server.main](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Node/Server.hs)
 
-### chain-index
-
-```
-$ cabal run plutus-pab -- chain-index
-```
-
-#### Description
-
-Provides a consistent view of the current state of the blockchain including a key-value store
-for datum and script hashes. Clients to this service are:
-
-- process-outboxes
-
-#### Dependencies
-
-- plutus-pab.yaml
-- mock node
-
-#### Source
-
-- [Cardano.ChainIndex.API.API](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/ChainIndex/API.hs)
-- [Cardano.ChainIndex.Server.main](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/ChainIndex/Server.hs#L69)
-
 ### metadata-server
 
 ```

@@ -24,7 +24,7 @@ module Plutus.PAB.Run.Cli (ConfigCommandArgs(..), runConfigCommand, runNoConfigC
 import           Cardano.BM.Configuration              (Configuration)
 import qualified Cardano.BM.Configuration.Model        as CM
 import           Cardano.BM.Data.Trace                 (Trace)
-import qualified Cardano.ChainIndex.Server             as ChainIndex
+import qualified Cardano.ChainIndex.Types              as ChainIndex
 import qualified Cardano.Node.Server                   as NodeServer
 import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
 import qualified Cardano.Wallet.Server                 as WalletServer
@@ -205,14 +205,6 @@ runConfigCommand contractHandler c@ConfigCommandArgs{ccaAvailability} (ForkComma
       starting ccaAvailability
       pure asyncId
 
--- Run the chain-index service
-runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config { nodeServerConfig, chainIndexConfig }} ChainIndex =
-    ChainIndex.main
-        (toChainIndexLog ccaTrace)
-        chainIndexConfig
-        (mscSocketPath nodeServerConfig)
-        (mscSlotConfig nodeServerConfig)
-
 -- Get the state of a contract
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ContractState contractInstanceId) = do
     connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
@@ -273,9 +265,6 @@ runConfigCommand _ _ PSApiGenerator {psApiGenOutputDir} = do
 
 toPABMsg :: Trace m (LM.AppMsg (Builtin a)) -> Trace m (LM.PABLogMsg (Builtin a))
 toPABMsg = LM.convertLog LM.PABMsg
-
-toChainIndexLog :: Trace m (LM.AppMsg (Builtin a)) -> Trace m LM.ChainIndexServerMsg
-toChainIndexLog = LM.convertLog $ LM.PABMsg . LM.SChainIndexServerMsg
 
 toWalletLog :: Trace m (LM.AppMsg (Builtin a)) -> Trace m WalletMsg
 toWalletLog = LM.convertLog $ LM.PABMsg . LM.SWalletMsg

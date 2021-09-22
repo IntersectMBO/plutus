@@ -94,6 +94,7 @@
           "Plutus/ChainIndex/Client"
           "Plutus/ChainIndex/DbStore"
           "Plutus/ChainIndex/Effects"
+          "Plutus/ChainIndex/Emulator"
           "Plutus/ChainIndex/Emulator/DiskState"
           "Plutus/ChainIndex/Emulator/Handlers"
           "Plutus/ChainIndex/Handlers"
