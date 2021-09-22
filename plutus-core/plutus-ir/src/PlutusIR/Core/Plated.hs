@@ -3,8 +3,10 @@
 {-# LANGUAGE RankNTypes    #-}
 module PlutusIR.Core.Plated
     ( termSubterms
+    , termSubtermsM
     , termSubtermsDeep
     , termSubtypes
+    , termSubtypesM
     , termSubtypesDeep
     , termSubkinds
     , termBindings
@@ -16,6 +18,7 @@ module PlutusIR.Core.Plated
     , datatypeSubtypes
     , datatypeSubkinds
     , bindingSubterms
+    , bindingSubtermsM
     , bindingSubtypes
     , bindingSubkinds
     , bindingNames
@@ -27,7 +30,7 @@ module PlutusIR.Core.Plated
 
 import qualified PlutusCore             as PLC
 import           PlutusCore.Core.Plated (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques,
-                                         typeUniquesDeep, varDeclSubtypes)
+                                         typeUniquesDeep, varDeclSubtypes, varDeclSubtypesM)
 import           PlutusCore.Flat        ()
 import qualified PlutusCore.Name        as PLC
 
@@ -50,10 +53,27 @@ bindingSubterms f = \case
     b@TypeBind {}     -> pure b
     d@DatatypeBind {} -> pure d
 
+{-# INLINE bindingSubtermsM #-}
+-- | Like 'bindingSubterms', but with 'Maybe'.
+bindingSubtermsM :: Traversal (Binding tyname name uni fun a) (Maybe (Binding tyname name uni fun a)) (Term tyname name uni fun a) (Maybe (Term tyname name uni fun a))
+bindingSubtermsM f = \case
+    TermBind x s d t  -> do
+        t' <- f t
+        pure $ TermBind x s d <$> t'
+    b@TypeBind {}     -> pure $ Just b
+    d@DatatypeBind {} -> pure $ Just d
+
 {-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
 datatypeSubtypes :: Traversal' (Datatype tyname name uni fun a) (Type tyname uni a)
 datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
+
+{-# INLINE datatypeSubtypesM #-}
+-- | Like 'datatypeSubtypes', but with 'Maybe'.
+datatypeSubtypesM :: Traversal (Datatype tyname name uni fun a) (Maybe (Datatype tyname name uni fun a)) (Type tyname uni a) (Maybe (Type tyname uni a))
+datatypeSubtypesM f (Datatype a n vs m cs) = do
+    cs' <- traverse (varDeclSubtypesM f) cs
+    pure $ Datatype a n vs m <$> sequence cs'
 
 {-# INLINE bindingSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Binding'.
@@ -62,6 +82,20 @@ bindingSubtypes f = \case
     TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
     TypeBind a d ty  -> TypeBind a d <$> f ty
+
+{-# INLINE bindingSubtypesM #-}
+-- | Like 'bindingSubtypes', but with 'Maybe'.
+bindingSubtypesM :: Traversal (Binding tyname name uni fun a) (Maybe (Binding tyname name uni fun a)) (Type tyname uni a) (Maybe (Type tyname uni a))
+bindingSubtypesM f = \case
+    TermBind x s d t -> do
+        varDeclSubtypes' <- varDeclSubtypesM f d
+        pure $ TermBind x s <$> varDeclSubtypes' <*> pure t
+    DatatypeBind x d -> do
+        datatypeSubtypes' <- datatypeSubtypesM f d
+        pure $ DatatypeBind x <$> datatypeSubtypes'
+    TypeBind a d ty  -> do
+        ty' <- f ty
+        pure $ TypeBind a d <$> ty'
 
 {-# INLINE datatypeSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Datatype'.
@@ -137,6 +171,38 @@ termSubterms f = \case
     c@Constant {}     -> pure c
     b@Builtin {}      -> pure b
 
+{-# INLINE termSubtermsM #-}
+-- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
+termSubtermsM :: Traversal (Term tyname name uni fun a) (Maybe (Term tyname name uni fun a)) (Term tyname name uni fun a) (Maybe (Term tyname name uni fun a))
+termSubtermsM f = \case
+    Let x r bs t      -> do
+        bs' <- traverse (bindingSubtermsM f) bs
+        t' <- f t
+        pure $ Let x r <$> sequence bs' <*> t'
+    TyAbs x tn k t    -> do
+        t' <- f t
+        pure $ TyAbs x tn k <$> t'
+    LamAbs x n ty t   -> do
+        t' <- f t
+        pure $ LamAbs x n ty <$> t'
+    Apply x t1 t2     -> do
+        t1' <- f t1
+        t2' <- f t2
+        pure $ Apply x <$> t1' <*> t2'
+    TyInst x t ty     -> do
+        t' <- f t
+        pure $ TyInst x <$> t' <*> pure ty
+    IWrap x ty1 ty2 t -> do
+        t' <- f t
+        pure $ IWrap x ty1 ty2 <$> t'
+    Unwrap x t        -> do
+        t' <- f t
+        pure $ Unwrap x <$> t'
+    e@Error {}        -> pure $ Just e
+    v@Var {}          -> pure $ Just v
+    c@Constant {}     -> pure $ Just c
+    b@Builtin {}      -> pure $ Just b
+
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
@@ -156,6 +222,33 @@ termSubtypes f = \case
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
     b@Builtin {}      -> pure b
+
+{-# INLINE termSubtypesM #-}
+-- | Like 'termSubtypes', but with 'Maybe'.
+termSubtypesM :: Traversal (Term tyname name uni fun a) (Maybe (Term tyname name uni fun a)) (Type tyname uni a) (Maybe (Type tyname uni a))
+termSubtypesM f = \case
+    Let x r bs t      -> do
+        bs' <- traverse (bindingSubtypesM f) bs
+        pure $ Let x r <$> sequence bs' <*> pure t
+    LamAbs x n ty t   -> do
+        ty' <- f ty
+        pure $ LamAbs x n <$> ty' <*> pure t
+    TyInst x t ty     -> do
+        ty' <- f ty
+        pure $ TyInst x t <$> ty'
+    IWrap x ty1 ty2 t -> do
+        ty1' <- f ty1
+        ty2' <- f ty2
+        pure $ IWrap x <$> ty1' <*> ty2' <*> pure t
+    Error x ty        -> do
+        ty' <- f ty
+        pure $ Error x <$> ty'
+    t@TyAbs {}        -> pure $ Just t
+    a@Apply {}        -> pure $ Just a
+    u@Unwrap {}       -> pure $ Just u
+    v@Var {}          -> pure $ Just v
+    c@Constant {}     -> pure $ Just c
+    b@Builtin {}      -> pure $ Just b
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)

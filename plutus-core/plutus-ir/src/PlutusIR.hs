@@ -2,7 +2,9 @@ module PlutusIR (
     -- * AST
     Term (..),
     termSubterms,
+    termSubtermsM,
     termSubtypes,
+    termSubtypesM,
     termBindings,
     Type (..),
     typeSubtypes,
@@ -14,6 +16,7 @@ module PlutusIR (
     Strictness (..),
     Binding (..),
     bindingSubterms,
+    bindingSubtermsM,
     bindingSubtypes,
     bindingIds,
     Program (..),

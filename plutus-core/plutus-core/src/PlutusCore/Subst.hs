@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module PlutusCore.Subst
     ( substTyVarA
     , substVarA
@@ -23,13 +24,12 @@ module PlutusCore.Subst
 
 import           PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-
 import           Control.Lens
 import           Data.Functor.Foldable (cata)
 import           Data.Set              as Set
 import           Data.Set.Lens         (setOf)
+import           PlutusCore.Core
+import           PlutusCore.Name
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
@@ -40,31 +40,31 @@ substTyVarA
     :: Applicative f
     => (tyname -> f (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
-    -> f (Type tyname uni ann)
-substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
-substTyVarA _       ty                  = pure ty
+    -> f (Maybe (Type tyname uni ann))
+substTyVarA tynameF (TyVar _ tyname) = tynameF tyname
+substTyVarA _       _                = pure Nothing
 
 -- | Applicatively replace a variable using the given function.
 substVarA
     :: Applicative f
     => (name -> f (Maybe (Term tyname name uni fun ann)))
     -> Term tyname name uni fun ann
-    -> f (Term tyname name uni fun ann)
-substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
-substVarA _     t              = pure t
+    -> f (Maybe (Term tyname name uni fun ann))
+substVarA nameF (Var _ name) = nameF name
+substVarA _     _            = pure Nothing
 
 -- | Replace a type variable using the given function.
 substTyVar
     :: (tyname -> Maybe (Type tyname uni ann))
     -> Type tyname uni ann
-    -> Type tyname uni ann
+    -> Maybe (Type tyname uni ann)
 substTyVar = purely substTyVarA
 
 -- | Replace a variable using the given function.
 substVar
     :: (name -> Maybe (Term tyname name uni fun ann))
     -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
+    -> Maybe (Term tyname name uni fun ann)
 substVar = purely substVarA
 
 {-# INLINE typeSubstTyNamesM #-}
@@ -74,45 +74,44 @@ typeSubstTyNamesM
     :: Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
-    -> m (Type tyname uni ann)
-typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
+    -> m (Maybe (Type tyname uni ann))
+typeSubstTyNamesM = mapMOf typeSubtypesM . substTyVarA
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
     :: Monad m
     => (name -> m (Maybe (Term tyname name uni fun ann)))
     -> Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
-termSubstNamesM = transformMOf termSubterms . substVarA
+    -> m (Maybe (Term tyname name uni fun ann))
+termSubstNamesM = mapMOf termSubtermsM . substVarA
 
 -- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNamesM
     :: Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
-termSubstTyNamesM =
-    transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA
+    -> m (Maybe (Term tyname name uni fun ann))
+termSubstTyNamesM = mapMOf termSubtermsM . mapMOf termSubtypesM . mapMOf typeSubtypesM . substTyVarA
 
 -- | Naively substitute type names (i.e. do not substitute binders).
 typeSubstTyNames
     :: (tyname -> Maybe (Type tyname uni ann))
     -> Type tyname uni ann
-    -> Type tyname uni ann
+    -> Maybe (Type tyname uni ann)
 typeSubstTyNames = purely typeSubstTyNamesM
 
 -- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
     :: (name -> Maybe (Term tyname name uni fun ann))
     -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
+    -> Maybe (Term tyname name uni fun ann)
 termSubstNames = purely termSubstNamesM
 
 -- | Naively substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNames
     :: (tyname -> Maybe (Type tyname uni ann))
     -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
+    -> Maybe (Term tyname name uni fun ann)
 termSubstTyNames = purely termSubstTyNamesM
 
 -- | Applicatively substitute *free* names using the given function.

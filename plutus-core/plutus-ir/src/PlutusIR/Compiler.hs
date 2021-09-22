@@ -64,7 +64,7 @@ import           PlutusPrelude
 data Pass uni fun =
   Pass { _name      :: String
        , _shouldRun :: forall m e a.   Compiling m e uni fun a => m Bool
-       , _pass      :: forall m e a b. Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+       , _pass      :: forall m e a b. Compiling m e uni fun a => Term TyName Name uni fun b -> m (Maybe (Term TyName Name uni fun b))
        }
 
 onOption :: Compiling m e uni fun a => Lens' CompilationOpts Bool -> m Bool
@@ -82,8 +82,8 @@ logVerbose = whenM (orM [isVerbose, isDebug]) . traceM
 logDebug :: Compiling m e uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
-applyPass :: (Compiling m e uni fun a, b ~ Provenance a) => Pass uni fun -> Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-applyPass pass = runIf (_shouldRun pass) $ through check <=< \term -> do
+applyPass :: (Compiling m e uni fun a, b ~ Provenance a) => Pass uni fun -> Term TyName Name uni fun b -> m (Maybe (Term TyName Name uni fun b))
+applyPass pass = runIfM (_shouldRun pass) $ through (mapM check) <=< \term -> do
   let passName = _name pass
   logVerbose $ "      !!! " ++ passName
   logDebug   $ "        !!! Before " ++ passName ++ "\n" ++ show (pretty term)
@@ -93,16 +93,16 @@ applyPass pass = runIf (_shouldRun pass) $ through check <=< \term -> do
 
 availablePasses :: [Pass uni fun]
 availablePasses =
-    [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
-    , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
+    [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Just . Unwrap.unwrapCancel)
+    , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Just . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
     ]
 
 -- | Actual simplifier
 simplify
     :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
-    => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplify = foldl' (>=>) pure (map applyPass availablePasses)
+    => Term TyName Name uni fun b -> m (Maybe (Term TyName Name uni fun b))
+simplify = foldl' (>=>) (pure . Just) (map (maybe (pure Nothing) . applyPass) availablePasses)
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm
@@ -114,12 +114,14 @@ simplifyTerm = runIfOpts $ simplify'
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
         simplify' t = do
             maxIterations <- view (ccOpts . coMaxSimplifierIterations)
-            simplifyNTimes maxIterations t
+            t' <- simplifyNTimes maxIterations t
+            -- return 't' if no changes
+            pure $ fromMaybe t t'
         -- Run the simplifier @n@ times
-        simplifyNTimes :: Int -> Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-        simplifyNTimes n = foldl' (>=>) pure (map simplifyStep [1 .. n])
+        simplifyNTimes :: Int -> Term TyName Name uni fun b -> m (Maybe (Term TyName Name uni fun b))
+        simplifyNTimes n = foldl' (>=>) (pure . Just) (map (maybe (pure Nothing) . simplifyStep) [1 .. n])
         -- generate simplification step
-        simplifyStep :: Int -> Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+        simplifyStep :: Int -> Term TyName Name uni fun b -> m (Maybe (Term TyName Name uni fun b))
         simplifyStep i term = do
           logVerbose $ "    !!! simplifier pass " ++ show i
           simplify term

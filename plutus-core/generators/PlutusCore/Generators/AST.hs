@@ -146,10 +146,10 @@ substAllNames
     :: Monad m
     => (Name -> m (Maybe Name))
     -> Term TyName Name DefaultUni DefaultFun ()
-    -> m (Term TyName Name DefaultUni DefaultFun ())
+    -> m (Maybe (Term TyName Name DefaultUni DefaultFun ()))
 substAllNames ren =
     termSubstNamesM (fmap (fmap $ Var ()) . ren) >=>
-    termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName)
+    maybe (pure Nothing) (termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName))
 
 -- See Note [ScopeHandling].
 allTermNames :: Term TyName Name DefaultUni DefaultFun () -> Set Name
@@ -160,10 +160,11 @@ mangleNames :: Term TyName Name DefaultUni DefaultFun () -> AstGen (Maybe (Term 
 mangleNames term = do
     let names = allTermNames term
     mayNamesMangle <- subset1 names
-    for mayNamesMangle $ \namesMangle -> do
+    res <- for mayNamesMangle $ \namesMangle -> do
         let isNew name = not $ name `Set.member` namesMangle
         newNames <- Gen.justT $ ensure (not . null) . filter isNew <$> genNames
         let mang name
                 | name `Set.member` namesMangle = Just <$> Gen.element newNames
                 | otherwise                     = return Nothing
         substAllNames mang term
+    pure $ join res

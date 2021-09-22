@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE RankNTypes    #-}
 
 module PlutusCore.Core.Plated
     ( kindSubkinds
@@ -9,16 +10,20 @@ module PlutusCore.Core.Plated
     , typeUniques
     , typeSubkinds
     , typeSubtypes
+    , typeSubtypesM
     , typeSubtypesDeep
     , varDeclSubtypes
+    , varDeclSubtypesM
     , termTyBinds
     , termBinds
     , termVars
     , termUniques
     , termSubkinds
     , termSubtypes
+    , termSubtypesM
     , termSubtypesDeep
     , termSubterms
+    , termSubtermsM
     , termSubtermsDeep
     , typeUniquesDeep
     , termUniquesDeep
@@ -105,6 +110,31 @@ typeSubtypes f ty0 = case ty0 of
     TyBuiltin{}          -> pure ty0
     TyVar{}              -> pure ty0
 
+{-# INLINE typeSubtypesM #-}
+-- | Like 'typeSubtypes', but with 'Maybe'.
+typeSubtypesM :: Traversal (Type tyname uni ann) (Maybe (Type tyname uni ann)) (Type tyname uni ann) (Maybe (Type tyname uni ann))
+typeSubtypesM f ty0 = case ty0 of
+    TyFun ann ty1 ty2    -> do
+        ty1' <- f ty1
+        ty2' <- f ty2
+        pure $ TyFun ann <$> ty1' <*> ty2'
+    TyIFix ann pat arg   -> do
+        pat' <- f pat
+        arg' <- f arg
+        pure $ TyIFix ann <$> pat' <*> arg'
+    TyForall ann tn k ty -> do
+        ty' <- f ty
+        pure $ TyForall ann tn k <$> ty'
+    TyLam ann tn k ty    -> do
+        ty' <- f ty
+        pure $ TyLam ann tn k <$> ty'
+    TyApp ann ty1 ty2    -> do
+        ty1' <- f ty1
+        ty2' <- f ty2
+        pure $ TyApp ann <$> ty1' <*> ty2'
+    TyBuiltin{}          -> pure $ Just ty0
+    TyVar{}              -> pure $ Just ty0
+
 -- | Get all the transitive child 'Type's of the given 'Type'.
 typeSubtypesDeep :: Fold (Type tyname uni ann) (Type tyname uni ann)
 typeSubtypesDeep = cosmosOf typeSubtypes
@@ -113,6 +143,13 @@ typeSubtypesDeep = cosmosOf typeSubtypes
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
 varDeclSubtypes :: Traversal' (VarDecl tyname name uni fun a) (Type tyname uni a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
+
+{-# INLINE varDeclSubtypesM #-}
+-- | Like 'varDeclSubtypes', but with 'Maybe'.
+varDeclSubtypesM :: Traversal (VarDecl tyname name uni fun a) (Maybe (VarDecl tyname name uni fun a)) (Type tyname uni a) (Maybe (Type tyname uni a))
+varDeclSubtypesM f (VarDecl a n ty) = do
+    ty' <- f ty
+    pure $ VarDecl a n <$> ty'
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
 termTyBinds :: Traversal' (Term tyname name uni fun ann) tyname
@@ -200,6 +237,24 @@ termSubtypes f term0 = case term0 of
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
 
+{-# INLINE termSubtypesM #-}
+-- | Like 'termSubtypes', but with 'Maybe'.
+termSubtypesM :: Traversal (Term tyname name uni fun ann) (Maybe (Term tyname name uni fun ann)) (Type tyname uni ann) (Maybe (Type tyname uni ann))
+termSubtypesM f term0 = case term0 of
+    LamAbs ann n ty t   -> do
+        ty' <- f ty
+        pure $ LamAbs ann n <$> ty' <*> pure t
+    TyInst ann t ty     -> fmap (TyInst ann t) <$> f ty
+    IWrap ann ty1 ty2 t ->
+        (\ty1' ty2' -> IWrap ann <$> ty1' <*> ty2' <*> pure t) <$> f ty1 <*> f ty2
+    Error ann ty        -> fmap (Error ann) <$> f ty
+    TyAbs{}             -> pure $ Just term0
+    Apply{}             -> pure $ Just term0
+    Unwrap{}            -> pure $ Just term0
+    Var{}               -> pure $ Just term0
+    Constant{}          -> pure $ Just term0
+    Builtin{}           -> pure $ Just term0
+
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)
 termSubtypesDeep = termSubtermsDeep . termSubtypes . typeSubtypesDeep
@@ -218,6 +273,34 @@ termSubterms f term0 = case term0 of
     Var{}               -> pure term0
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
+
+{-# INLINE termSubtermsM #-}
+-- | Like 'termSubterms', but with 'Maybe'.
+termSubtermsM :: Traversal (Term tyname name uni fun ann) (Maybe (Term tyname name uni fun ann)) (Term tyname name uni fun ann) (Maybe (Term tyname name uni fun ann))
+termSubtermsM f term0 = case term0 of
+    LamAbs ann n ty t   -> do
+        t' <- f t
+        pure $ LamAbs ann n ty <$> t'
+    TyInst ann t ty     -> do
+        t' <- f t
+        pure $ TyInst ann <$> t' <*> pure ty
+    IWrap ann ty1 ty2 t -> do
+        t' <- f t
+        pure $ IWrap ann ty1 ty2 <$> t'
+    TyAbs ann n k t     -> do
+        t' <- f t
+        pure $ TyAbs ann n k <$> t'
+    Apply ann t1 t2     -> do
+        t1' <- f t1
+        t2' <- f t2
+        pure $ Apply ann <$> t1' <*> t2'
+    Unwrap ann t        -> do
+        t' <- f t
+        pure $ Unwrap ann <$> t'
+    Error{}             -> pure $ Just term0
+    Var{}               -> pure $ Just term0
+    Constant{}          -> pure $ Just term0
+    Builtin{}           -> pure $ Just term0
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)

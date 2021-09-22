@@ -16,7 +16,7 @@ import           PlutusIR
 import           PlutusCore.Subst (substTyVar, typeSubstTyNames)
 
 import           Control.Lens
-
+import           Control.Monad    (join)
 import           Data.Maybe
 
 -- Needs to be different from the PLC version since we have different Terms
@@ -30,13 +30,17 @@ termSubstNames :: (name -> Maybe (Term tyname name uni fun a)) -> Term tyname na
 termSubstNames nameF = transformOf termSubterms (\x -> fromMaybe x (substVar nameF x))
 
 -- | Naively substitute type names using the given functions (i.e. do not substitute binders).
-termSubstTyNames :: (tyname -> Maybe (Type tyname uni a)) -> Term tyname name uni fun a -> Term tyname name uni fun a
-termSubstTyNames tynameF = over termSubterms (termSubstTyNames tynameF) . over termSubtypes (typeSubstTyNames tynameF)
+termSubstTyNames :: (tyname -> Maybe (Type tyname uni a)) -> Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+termSubstTyNames tynameF t =
+  let t' = mapMOf termSubtypes (typeSubstTyNames tynameF) t
+  in join $ mapMOf termSubterms (termSubstTyNames tynameF) <$> t'
 
 -- | Naively substitute names using the given functions (i.e. do not substitute binders).
 bindingSubstNames :: (name -> Maybe (Term tyname name uni fun a)) -> Binding tyname name uni fun a -> Binding tyname name uni fun a
 bindingSubstNames nameF = over bindingSubterms (termSubstNames nameF)
 
 -- | Naively substitute type names using the given functions (i.e. do not substitute binders).
-bindingSubstTyNames :: (tyname -> Maybe (Type tyname uni a)) -> Binding tyname name uni fun a -> Binding tyname name uni fun a
-bindingSubstTyNames tynameF = over bindingSubterms (termSubstTyNames tynameF) . over bindingSubtypes (typeSubstTyNames tynameF)
+bindingSubstTyNames :: (tyname -> Maybe (Type tyname uni a)) -> Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
+bindingSubstTyNames tynameF b =
+  let b' = mapMOf bindingSubtypes (typeSubstTyNames tynameF) b
+  in join $ mapMOf bindingSubterms (termSubstTyNames tynameF) <$> b'

@@ -86,6 +86,15 @@ runIf condition pass arg = do
   doPass <- condition
   if doPass then pass arg else pure arg
 
+runIfM
+  :: MonadReader (CompilationCtx uni fun a) m
+  => m Bool
+  -> (b -> m (Maybe b))
+  -> (b -> m (Maybe b))
+runIfM condition pass arg = do
+  doPass <- condition
+  if doPass then pass arg else pure $ Just arg
+
 runIfOpts :: MonadReader (CompilationCtx uni fun a) m => (b -> m b) -> (b -> m b)
 runIfOpts = runIf $ view (ccOpts . coOptimize)
 

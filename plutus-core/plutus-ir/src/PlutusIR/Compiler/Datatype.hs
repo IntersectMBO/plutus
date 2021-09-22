@@ -32,6 +32,7 @@ import qualified PlutusCore.StdLib.Type        as Types
 
 import           Control.Monad.Error.Lens
 
+import           Data.Maybe                    (fromJust)
 import qualified Data.Text                     as T
 import           Data.Traversable
 
@@ -94,7 +95,7 @@ constructorArgTypes = funTyArgs . _varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
 unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni fun a -> Type tyname uni a -> Type tyname uni a
-unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
+unveilDatatype dty (Datatype _ tn _ _ _) = fromJust . typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni fun a -> m TyName
 resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ _tyVarDeclName tn)
