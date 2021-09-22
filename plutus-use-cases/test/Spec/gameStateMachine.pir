@@ -3448,31 +3448,6 @@
                         )
                         (datatypebind
                           (datatype
-                            (tyvardecl Unit (type))
-
-                            Unit_match
-                            (vardecl Unit Unit)
-                          )
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl
-                            fToDataUnit_ctoBuiltinData (fun Unit (con data))
-                          )
-                          (lam
-                            ds
-                            Unit
-                            [
-                              { [ Unit_match ds ] (con data) }
-                              [
-                                [ (builtin constrData) (con integer 0) ]
-                                [ (builtin mkNilData) (con unit ()) ]
-                              ]
-                            ]
-                          )
-                        )
-                        (datatypebind
-                          (datatype
                             (tyvardecl GameInput (type))
 
                             GameInput_match
@@ -3674,6 +3649,36 @@
                               ]
                             )
                           )
+                        )
+                        (datatypebind
+                          (datatype
+                            (tyvardecl Unit (type))
+
+                            Unit_match
+                            (vardecl Unit Unit)
+                          )
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl
+                            fToDataUnit_ctoBuiltinData (fun Unit (con data))
+                          )
+                          (lam
+                            ds
+                            Unit
+                            [
+                              { [ Unit_match ds ] (con data) }
+                              [
+                                [ (builtin constrData) (con integer 0) ]
+                                [ (builtin mkNilData) (con unit ()) ]
+                              ]
+                            ]
+                          )
+                        )
+                        (termbind
+                          (nonstrict)
+                          (vardecl unitDatum (con data))
+                          [ fToDataUnit_ctoBuiltinData Unit ]
                         )
                         (termbind
                           (strict)
@@ -3947,10 +3952,7 @@
                                                                                     MustMintValue
                                                                                     mph
                                                                                   ]
-                                                                                  [
-                                                                                    fToDataUnit_ctoBuiltinData
-                                                                                    Unit
-                                                                                  ]
+                                                                                  unitDatum
                                                                                 ]
                                                                                 tn
                                                                               ]
@@ -4254,10 +4256,7 @@
                                                                                                       MustMintValue
                                                                                                       mph
                                                                                                     ]
-                                                                                                    [
-                                                                                                      fToDataUnit_ctoBuiltinData
-                                                                                                      Unit
-                                                                                                    ]
+                                                                                                    unitDatum
                                                                                                   ]
                                                                                                   tn
                                                                                                 ]

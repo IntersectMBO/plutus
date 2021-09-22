@@ -4584,31 +4584,6 @@
                               fAdditiveMonoidInteger
                             ]
                           )
-                          (datatypebind
-                            (datatype
-                              (tyvardecl Unit (type))
-
-                              Unit_match
-                              (vardecl Unit Unit)
-                            )
-                          )
-                          (termbind
-                            (strict)
-                            (vardecl
-                              fToDataUnit_ctoBuiltinData (fun Unit (con data))
-                            )
-                            (lam
-                              ds
-                              Unit
-                              [
-                                { [ Unit_match ds ] (con data) }
-                                [
-                                  [ (builtin constrData) (con integer 0) ]
-                                  [ (builtin mkNilData) (con unit ()) ]
-                                ]
-                              ]
-                            )
-                          )
                           (termbind
                             (strict)
                             (vardecl
@@ -5002,61 +4977,35 @@
                               )
                             )
                           )
+                          (datatypebind
+                            (datatype
+                              (tyvardecl Unit (type))
+
+                              Unit_match
+                              (vardecl Unit Unit)
+                            )
+                          )
                           (termbind
                             (strict)
                             (vardecl
-                              mustMintValue
-                              (all
-                                i
-                                (type)
-                                (all
-                                  o
-                                  (type)
-                                  (fun
-                                    [
-                                      [
-                                        (lam
-                                          k
-                                          (type)
-                                          (lam
-                                            v (type) [ List [ [ Tuple2 k ] v ] ]
-                                          )
-                                        )
-                                        (con bytestring)
-                                      ]
-                                      [
-                                        [
-                                          (lam
-                                            k
-                                            (type)
-                                            (lam
-                                              v
-                                              (type)
-                                              [ List [ [ Tuple2 k ] v ] ]
-                                            )
-                                          )
-                                          (con bytestring)
-                                        ]
-                                        (con integer)
-                                      ]
-                                    ]
-                                    [ [ TxConstraints i ] o ]
-                                  )
-                                )
-                              )
+                              fToDataUnit_ctoBuiltinData (fun Unit (con data))
                             )
-                            (abs
-                              i
-                              (type)
-                              (abs
-                                o
-                                (type)
+                            (lam
+                              ds
+                              Unit
+                              [
+                                { [ Unit_match ds ] (con data) }
                                 [
-                                  { { mustMintValueWithRedeemer i } o }
-                                  [ fToDataUnit_ctoBuiltinData Unit ]
+                                  [ (builtin constrData) (con integer 0) ]
+                                  [ (builtin mkNilData) (con unit ()) ]
                                 ]
-                              )
+                              ]
                             )
+                          )
+                          (termbind
+                            (nonstrict)
+                            (vardecl unitDatum (con data))
+                            [ fToDataUnit_ctoBuiltinData Unit ]
                           )
                           (termbind
                             (strict)
@@ -8674,13 +8623,16 @@
                                                                               ]
                                                                             ]
                                                                             [
-                                                                              {
+                                                                              [
                                                                                 {
-                                                                                  mustMintValue
+                                                                                  {
+                                                                                    mustMintValueWithRedeemer
+                                                                                    Void
+                                                                                  }
                                                                                   Void
                                                                                 }
-                                                                                Void
-                                                                              }
+                                                                                unitDatum
+                                                                              ]
                                                                               [
                                                                                 {
                                                                                   [
