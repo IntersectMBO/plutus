@@ -22,8 +22,8 @@ module Plutus.PAB.Webserver.Handler
     , contractSchema
     ) where
 
-import qualified Cardano.Wallet.Client                   as Wallet.Client
-import           Cardano.Wallet.Types                    (WalletInfo (..))
+import qualified Cardano.Wallet.Mock.Client              as Wallet.Client
+import           Cardano.Wallet.Mock.Types               (WalletInfo (..))
 import           Control.Lens                            (preview)
 import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)

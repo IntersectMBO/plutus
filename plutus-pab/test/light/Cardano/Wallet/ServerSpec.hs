@@ -10,7 +10,7 @@ module Cardano.Wallet.ServerSpec
     ( tests
     ) where
 
-import           Cardano.Wallet.Mock
+import           Cardano.Wallet.Mock.Handlers
 import           Control.Monad                        (replicateM)
 import qualified Data.ByteString                      as BS
 import           Data.Word

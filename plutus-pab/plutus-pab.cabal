@@ -68,13 +68,11 @@ library
         Cardano.Node.Types
         Cardano.Protocol.Socket.Mock.Client
         Cardano.Protocol.Socket.Mock.Server
-        Cardano.Protocol.Socket.Client
-        Cardano.Protocol.Socket.Type
-        Cardano.Wallet.API
-        Cardano.Wallet.Client
-        Cardano.Wallet.Mock
-        Cardano.Wallet.Server
-        Cardano.Wallet.Types
+        Cardano.Wallet.Mock.API
+        Cardano.Wallet.Mock.Client
+        Cardano.Wallet.Mock.Handlers
+        Cardano.Wallet.Mock.Server
+        Cardano.Wallet.Mock.Types
         Control.Concurrent.Availability
         Control.Concurrent.STM.Extras
         Control.Concurrent.STM.Extras.Stream
@@ -558,8 +556,10 @@ executable sync-client
         base >=4.9 && <5,
         cardano-api -any,
         cardano-slotting -any,
+        contra-tracer -any,
         either -any,
         optparse-applicative -any,
+        plutus-chain-index,
         plutus-ledger,
         plutus-pab,
         text

@@ -36,8 +36,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekEmitter
     , CekEmitterInfo(..)
     , EmitterMode(..)
-    , CekCarryingM (..)
-    , CekM
+    , CekM (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -341,58 +340,16 @@ instance HasErrorCode CekUserError where
     errorCode CekEvaluationFailure {} = ErrorCode 37
     errorCode CekOutOfExError {}      = ErrorCode 36
 
-{- Note [Being generic over 'term' in errors]
-Our error for the CEK machine carries a term with it as a possible 'cause'. This is defined in
-terms of an underlying type that is generic over this 'term' type.
-
-The point is that in many different cases we can annotate an evaluation failure with a 'Term' that
-caused it. Originally we were using 'CekValue' instead of 'Term', however that meant that we had to
-ignore some important cases where we just can't produce a 'CekValue', for example if we encounter
-a free variable, we can't turn it into a 'CekValue' and report the result as the cause of the
-failure, which is bad. 'Term' is strictly more general than 'CekValue' and so we can always
-1. report things like free variables
-2. report a 'CekValue' turned into a 'Term' via 'dischargeCekValue'
-We need the latter, because the constant application machinery, in the context of the CEK machine,
-expects a list of 'CekValue's and so in the event of failure it has to report one of those
-arguments, so we have no option but to call the constant application machinery with 'CekValue'
-being the cause of a potential failure. But as mentioned, turning a 'CekValue' into a 'Term' is
-no problem and we need that elsewhere anyway, so we don't need any extra machinery for calling the
-constant application machinery over a list of 'CekValue's and turning the cause of a possible
-failure into a 'Term', apart from the straightforward generalization of the error type.
-
-Error handling is arranged as follows: we allow the CEK machine to throw terms and the builtin
-application machinery to throw values and in 'runCekM' we catch both kinds of errors and turn
-the latter into the former, so that to the outside it looks like the CEK machine is pure and
-can only return errors with terms in them, not values.
--}
-
-{- Note [Being generic over @term@ in 'CekM']
-We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
-@term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
-This enables us to implement a 'MonadError' instance that allow for throwing errors in both the CEK
-machine and the builtin application machinery (as Note [Being generic over 'term' in errors]
-explains, those are different kinds of errors) and otherwise we'd have to have more plumbing between
-these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
-'Either' just to dispatch on it in the CEK machine and rethrow the error non-purely  (we used to
-have that) has to cost some. Plus, being @term@-generic also enables us to throw actual exceptions
-using the normal 'throwError', 'throwing_', 'throwingWithCause' etc business instead of duplicating
-all that API for exceptions (we used to have @lookupBuiltinExc@, @throwingWithCauseExc@ etc).
--}
-
 -- See Note [Being generic over @term@ in 'CekM'].
-type CekCarryingM :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
+type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
-newtype CekCarryingM term uni fun s a = CekCarryingM
-    { unCekCarryingM :: ST s a
+newtype CekM uni fun s a = CekM
+    { unCekM :: ST s a
     } deriving newtype (Functor, Applicative, Monad)
 
-type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
-
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationExceptionCarrying term fun =
-    EvaluationException CekUserError (MachineError fun) term
-
-type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
+type CekEvaluationException uni fun =
+    EvaluationException CekUserError (MachineError fun) (Term Name uni fun ())
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
 type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
@@ -434,34 +391,19 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
--- | Enable throwing/catching 'CekValue's within the received action and
--- catching 'Term's outside of it.
-withCekValueErrors
-    :: CekCarryingM (CekValue uni fun) uni fun s a
-    -> CekCarryingM (Term Name uni fun ()) uni fun s a
-withCekValueErrors = coerce
-
--- | Enable throwing/catching 'Term's within the received action and
--- catching 'CekValue's outside of it.
-withTermErrors
-    :: CekCarryingM (Term Name uni fun ()) uni fun s a
-    -> CekCarryingM (CekValue uni fun) uni fun s a
-withTermErrors = coerce
-
-instance (PrettyUni uni fun, PrettyPlc term, Typeable term) =>
-            MonadError (CekEvaluationExceptionCarrying term fun) (CekCarryingM term uni fun s) where
+instance PrettyUni uni fun => MonadError (CekEvaluationException uni fun) (CekM uni fun s) where
     -- See Note [Throwing exceptions in ST].
-    throwError = CekCarryingM . throwM
+    throwError = CekM . throwM
 
     -- See Note [Catching exceptions in ST].
-    a `catchError` h = CekCarryingM . unsafeIOToST $ aIO `catch` hIO where
-        aIO = unsafeRunCekCarryingM a
-        hIO = unsafeRunCekCarryingM . h
+    a `catchError` h = CekM . unsafeIOToST $ aIO `catch` hIO where
+        aIO = unsafeRunCekM a
+        hIO = unsafeRunCekM . h
 
-        -- | Unsafely run a 'CekCarryingM' computation in the 'IO' monad by converting the
+        -- | Unsafely run a 'CekM' computation in the 'IO' monad by converting the
         -- underlying 'ST' to it.
-        unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
-        unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
+        unsafeRunCekM :: CekM uni fun s a -> IO a
+        unsafeRunCekM = unsafeSTToIO . unCekM
 
 -- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
 -- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
@@ -521,8 +463,8 @@ instance FromConstant (CekValue uni fun) where
     fromConstant = VCon
 
 instance AsConstant (CekValue uni fun) where
-    asConstant (VCon val) = pure val
-    asConstant term       = throwNotAConstant term
+    asConstant _        (VCon val) = pure val
+    asConstant mayCause _          = throwNotAConstant mayCause
 
 {-|
 The context in which the machine operates.
@@ -567,8 +509,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
     -- See Note Note [Being generic over 'term' in errors].
-    errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
-    let errOrRes = join $ first (mapCauseInMachineException dischargeCekValue) errValOrErrTermOrRes
+    errOrRes <- unCekM $ tryError a
     st <- _exBudgetModeGetFinal exBudgetMode
     logs <- _cekEmitterInfoGetFinal emitter
     pure (errOrRes, st, logs)
@@ -599,7 +540,7 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     TypeSchemeResult _ -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        flip unWithEmitterT ?cekEmitter $ makeKnown x
+        flip unWithEmitterT ?cekEmitter $ makeKnown (Just term) x
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
@@ -734,14 +675,13 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
-        let term' = Apply () term $ dischargeCekValue arg
+        let argTerm = dischargeCekValue arg
+            term' = Apply () term argTerm
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
             TypeSchemeArrow _ schB -> do
-                -- The builtin application machinery wants to be able to throw a 'CekValue' rather
-                -- than a 'Term', hence 'withCekValueErrors'.
-                x <- withCekValueErrors $ readKnown arg
+                x <- readKnown (Just argTerm) arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                 -- Maybe we could fuse the two?

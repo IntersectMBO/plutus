@@ -139,13 +139,11 @@
           "Cardano/Node/Types"
           "Cardano/Protocol/Socket/Mock/Client"
           "Cardano/Protocol/Socket/Mock/Server"
-          "Cardano/Protocol/Socket/Client"
-          "Cardano/Protocol/Socket/Type"
-          "Cardano/Wallet/API"
-          "Cardano/Wallet/Client"
-          "Cardano/Wallet/Mock"
-          "Cardano/Wallet/Server"
-          "Cardano/Wallet/Types"
+          "Cardano/Wallet/Mock/API"
+          "Cardano/Wallet/Mock/Client"
+          "Cardano/Wallet/Mock/Handlers"
+          "Cardano/Wallet/Mock/Server"
+          "Cardano/Wallet/Mock/Types"
           "Control/Concurrent/Availability"
           "Control/Concurrent/STM/Extras"
           "Control/Concurrent/STM/Extras/Stream"
@@ -359,8 +357,10 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."either" or (errorHandler.buildDepError "either"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))

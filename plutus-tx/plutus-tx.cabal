@@ -23,7 +23,7 @@ common lang
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
+                        DeriveTraversable NoImplicitPrelude
     ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -40,9 +40,11 @@ library
         PlutusTx.Prelude
         PlutusTx.Evaluation
         PlutusTx.Applicative
+        PlutusTx.Base
         PlutusTx.Bool
         PlutusTx.IsData
         PlutusTx.IsData.Class
+        PlutusTx.ErrorCodes
         PlutusTx.Eq
         PlutusTx.Enum
         PlutusTx.Either
@@ -51,6 +53,7 @@ library
         PlutusTx.Lattice
         PlutusTx.List
         PlutusTx.Ord
+        PlutusTx.Integer
         PlutusTx.Maybe
         PlutusTx.Monoid
         PlutusTx.Numeric

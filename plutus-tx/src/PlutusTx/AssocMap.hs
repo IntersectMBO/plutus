@@ -5,13 +5,11 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -40,6 +38,7 @@ module PlutusTx.AssocMap (
     ) where
 
 import           Control.DeepSeq            (NFData)
+import           Data.Text.Prettyprint.Doc  (Pretty (..))
 import           GHC.Generics               (Generic)
 import qualified PlutusTx.Builtins          as P
 import qualified PlutusTx.Builtins.Internal as BI
@@ -112,6 +111,9 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
 
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
     mempty = empty
+
+instance (Pretty k, Pretty v) => Pretty (Map k v) where
+    pretty (Map mp) = pretty mp
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v

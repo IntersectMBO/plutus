@@ -20,6 +20,9 @@ module Plutus.ChainIndex.Types(
     , BlockNumber(..)
     , Depth(..)
     , Diagnostics(..)
+    , TxConfirmedState(..)
+    , TxStatusFailure(..)
+    , TxIdState(..)
     ) where
 
 import qualified Codec.Serialise                  as CBOR
@@ -28,6 +31,10 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.ByteArray                   as BA
 import qualified Data.ByteString.Lazy             as BSL
 import           Data.Default                     (Default (..))
+import           Data.Map                         (Map)
+import qualified Data.Map                         as Map
+import           Data.Monoid                      (Last (..), Sum (..))
+import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
@@ -209,3 +216,41 @@ data Diagnostics =
         }
         deriving stock (Eq, Ord, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
+
+data TxStatusFailure
+      -- | We couldn't return the status because the 'TxIdState' was in a ...
+      -- state ... that we didn't know how to decode in
+      -- 'Plutus.ChainIndex.TxIdState.transactionStatus'.
+      = TxIdStateInvalid BlockNumber TxId TxIdState
+      | InvalidRollbackAttempt BlockNumber TxId TxIdState
+      deriving (Show, Eq)
+
+data TxIdState = TxIdState
+  { txnsConfirmed :: Map TxId TxConfirmedState
+  -- ^ Number of times this transaction has been added as well as other
+  -- necessary metadata.
+  , txnsDeleted   :: Map TxId (Sum Int)
+  -- ^ Number of times this transaction has been deleted.
+  }
+  deriving stock (Eq, Generic, Show)
+
+instance Monoid TxIdState where
+    mappend = (<>)
+    mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
+
+data TxConfirmedState =
+  TxConfirmedState
+    { timesConfirmed :: Sum Int
+    , blockAdded     :: Last BlockNumber
+    , validity       :: Last TxValidity
+    }
+    deriving stock (Eq, Generic, Show)
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid TxConfirmedState)
+
+-- A semigroup instance that merges the two maps, instead of taking the
+-- leftmost one.
+instance Semigroup TxIdState where
+  TxIdState{txnsConfirmed=c, txnsDeleted=d} <> TxIdState{txnsConfirmed=c', txnsDeleted=d'}
+    = TxIdState { txnsConfirmed = Map.unionWith (<>) c c'
+                , txnsDeleted   = Map.unionWith (<>) d d'
+                }

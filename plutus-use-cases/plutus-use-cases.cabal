@@ -27,6 +27,7 @@ library
     exposed-modules:
         Plutus.Contracts
         Plutus.Contracts.Auction
+        Plutus.Contracts.SealedBidAuction
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
@@ -100,6 +101,7 @@ test-suite plutus-use-cases-test
     hs-source-dirs: test
     other-modules:
         Spec.Auction
+        Spec.SealedBidAuction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling

@@ -127,13 +127,14 @@ closure = runQuote $ do
    builtin we have is ifThenElse.
 
    We test a number of terms to check whether they typecheck and whether they
-   evaluate without error.  There are three possible outcomes:
+   evaluate without error.  There are four possible outcomes:
 
      * The term typechecks and evaluates successfully
+     * The term typechecks and evaluation fails
      * The term is ill-typed but still evaluates successfully
      * The term is ill-typed and evaluation fails
 
-   We'll denote these outcomes by WellTypedRuns, IllTypedRuns, and IllTypedFails
+   We'll denote these outcomes by WellTypedRuns, WellTypedFails, IllTypedRuns, and IllTypedFails
    respectively; each test is labelled with one of these.
 -}
 
@@ -201,6 +202,13 @@ iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringR
 -- correctly interleaved, not that instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
+
+-- [ (builtin divideInteger) 1 0 ] : WellTypedFails. Division by zero.
+diFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
+diFullyApplied = mkIterApp () (Builtin () DivideInteger)
+    [ mkConstant @Integer () 1
+    , mkConstant @Integer () 0
+    ]
 
 -- { (builtin ifThenElse) (con string) } : WellTypedRuns
 iteAtString :: Term TyName Name DefaultUni DefaultFun ()
@@ -356,6 +364,7 @@ namesAndTests =
    , ("iteAtIntegerWithCond", iteAtIntegerWithCond)
    , ("iteAtIntegerWrongCondType", iteAtIntegerWrongCondType)
    , ("iteAtIntegerFullyApplied", iteAtIntegerFullyApplied)
+   , ("diFullyApplied", diFullyApplied)
    , ("iteAtString", iteAtString)
    , ("iteAtStringWithCond", iteAtStringWithCond)
    , ("iteAtStringFullyApplied", iteAtStringFullyApplied)

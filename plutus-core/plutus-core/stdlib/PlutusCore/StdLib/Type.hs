@@ -744,10 +744,12 @@ makeRecursiveType1
 makeRecursiveType1 ann dataName argVar patBody1 = do
     let varName = _tyVarDeclName argVar
         varKind = _tyVarDeclKind argVar
+    varName' <- freshenTyName varName
+    let
         recKind = KindArrow ann varKind $ Type ann
         pat1 = TyLam ann dataName recKind $ TyLam ann varName varKind patBody1
         -- recType = \(v :: k) -> ifix (\(dataName :: k -> *) (v :: k) -> patBody1) v
-        recType = TyLam ann varName varKind . TyIFix ann pat1 $ TyVar ann varName
+        recType = TyLam ann varName' varKind . TyIFix ann pat1 $ TyVar ann varName'
         wrap args = case args of
             [arg] -> iWrap ann pat1 arg
             _     -> throw . IndicesLengthsMismatchException 1 (length args) $ dataName

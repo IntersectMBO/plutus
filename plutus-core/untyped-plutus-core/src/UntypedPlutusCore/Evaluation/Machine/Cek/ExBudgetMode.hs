@@ -48,7 +48,7 @@ monoidalBudgeting
     :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
 monoidalBudgeting toCost = ExBudgetMode $ do
     costRef <- newSTRef mempty
-    let spend key budgetToSpend = CekCarryingM $ modifySTRef' costRef (<> toCost key budgetToSpend)
+    let spend key budgetToSpend = CekM $ modifySTRef' costRef (<> toCost key budgetToSpend)
     pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
@@ -124,14 +124,14 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
     writeMem memInit
     let
         spend _ (ExBudget cpuToSpend memToSpend) = do
-            cpuLeft <- CekCarryingM readCpu
-            memLeft <- CekCarryingM readMem
+            cpuLeft <- CekM readCpu
+            memLeft <- CekM readMem
             let cpuLeft' = cpuLeft - cpuToSpend
             let memLeft' = memLeft - memToSpend
             -- Note that even if we throw an out-of-budget error, we still need to record
             -- what the final state was.
-            CekCarryingM $ writeCpu cpuLeft'
-            CekCarryingM $ writeMem memLeft'
+            CekM $ writeCpu cpuLeft'
+            CekM $ writeMem memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $ do
                 let budgetLeft' = ExBudget cpuLeft' memLeft'
                 throwingWithCause _EvaluationError

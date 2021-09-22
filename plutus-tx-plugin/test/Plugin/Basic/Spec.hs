@@ -39,7 +39,7 @@ monoId = plc (Proxy @"monoId") (\(x :: Integer) -> x)
 monoK :: CompiledCode (Integer -> Integer -> Integer)
 monoK = plc (Proxy @"monoK") (\(i :: Integer) -> \(j :: Integer) -> i)
 
--- GHC acutually turns this into a lambda for us, try and make one that stays a let
+-- GHC actually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode (Integer -> Integer -> Bool)
 letFun = plc (Proxy @"letFun") (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
 

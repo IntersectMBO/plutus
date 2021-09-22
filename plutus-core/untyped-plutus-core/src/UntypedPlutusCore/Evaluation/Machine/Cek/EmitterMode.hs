@@ -10,22 +10,22 @@ import           Data.STRef                                        (modifySTRef,
 import           Data.Text                                         (pack)
 import           Data.Time.Clock                                   (getCurrentTime)
 
--- | Emitter for when @EmitterOption@ is @NoEmit@.
+-- | No emitter.
 noEmitter :: EmitterMode uni fun
 noEmitter = EmitterMode $ pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
 
--- | Emitter for when @EmitterOption@ is @Emit@. Emits log but not timestamp.
+-- | Emits log only.
 logEmitter :: EmitterMode uni fun
 logEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
+    let emitter str = CekM $ modifySTRef logsRef (`DList.snoc` str)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
--- | Emitter for when @EmitterOption@ is @EmitWithTimestamp@. Emits log with timestamp.
+-- | Emits log with timestamp.
 logWithTimeEmitter :: EmitterMode uni fun
 logWithTimeEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ do
+    let emitter str = CekM $ do
             time <- unsafeIOToST getCurrentTime
             let withTime = "[" <> pack (show time) <> "]" <> " " <> str
             modifySTRef logsRef (`DList.snoc` withTime)

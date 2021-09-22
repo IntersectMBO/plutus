@@ -35,8 +35,8 @@ import           Cardano.Node.Client                            (handleNodeClien
 import qualified Cardano.Node.Client                            as NodeClient
 import           Cardano.Node.Types                             (MockServerConfig (..))
 import qualified Cardano.Protocol.Socket.Mock.Client            as MockClient
-import qualified Cardano.Wallet.Client                          as WalletClient
-import qualified Cardano.Wallet.Types                           as Wallet
+import qualified Cardano.Wallet.Mock.Client                     as WalletClient
+import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)

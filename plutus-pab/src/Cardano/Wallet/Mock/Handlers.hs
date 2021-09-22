@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 
-module Cardano.Wallet.Mock
+module Cardano.Wallet.Mock.Handlers
     ( processWalletEffects
     , integer2ByteString32
     , byteString2Integer
@@ -19,7 +19,7 @@ module Cardano.Wallet.Mock
 import           Cardano.BM.Data.Trace               (Trace)
 import qualified Cardano.Node.Client                 as NodeClient
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
-import           Cardano.Wallet.Types                (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
+import           Cardano.Wallet.Mock.Types           (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
                                                       WalletMsg (..), Wallets)
 import           Control.Concurrent                  (MVar)
 import           Control.Concurrent.MVar             (putMVar, takeMVar)

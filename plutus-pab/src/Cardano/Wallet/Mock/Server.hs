@@ -8,7 +8,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 
-module Cardano.Wallet.Server
+module Cardano.Wallet.Mock.Server
     ( main
     ) where
 
@@ -16,9 +16,9 @@ import           Cardano.BM.Data.Trace               (Trace)
 import           Cardano.ChainIndex.Types            (ChainIndexUrl (..))
 import           Cardano.Node.Client                 as NodeClient
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
-import           Cardano.Wallet.API                  (API)
-import           Cardano.Wallet.Mock
-import           Cardano.Wallet.Types                (Port (..), WalletConfig (..), WalletInfo (..), WalletMsg (..),
+import           Cardano.Wallet.Mock.API             (API)
+import           Cardano.Wallet.Mock.Handlers
+import           Cardano.Wallet.Mock.Types           (Port (..), WalletConfig (..), WalletInfo (..), WalletMsg (..),
                                                       WalletUrl (..), Wallets, createWallet, multiWallet)
 import           Control.Concurrent.Availability     (Availability, available)
 import           Control.Concurrent.MVar             (MVar, newMVar)

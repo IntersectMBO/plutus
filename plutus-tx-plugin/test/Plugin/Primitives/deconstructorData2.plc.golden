@@ -239,17 +239,6 @@
           (termbind
             (strict)
             (vardecl
-              unsafeDataAsConstr
-              (fun
-                (con data)
-                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
-              )
-            )
-            (builtin unConstrData)
-          )
-          (termbind
-            (strict)
-            (vardecl
               fst (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))
             )
             (builtin fstPair)
@@ -260,6 +249,17 @@
               snd (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b)))
             )
             (builtin sndPair)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              unsafeDataAsConstr
+              (fun
+                (con data)
+                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+              )
+            )
+            (builtin unConstrData)
           )
           (termbind
             (strict)

@@ -15,6 +15,9 @@ import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
 import qualified Language.Haskell.TH.Syntax   as TH
 
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                      as Haskell
+
 -- | Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to
 -- incorporate them into our names.
 showName :: TH.Name -> T.Text

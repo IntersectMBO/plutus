@@ -220,24 +220,25 @@ mkTermToEvaluate bs args = do
     pure t
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
--- resources it can use according to the cost model.  There's a default cost
--- model in  'UPLC.defaultBuiltinCostModel' and a budget called 'enormousBudget' in
--- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
--- enough to evaluate any sensible program.
+-- resources it can use according to the cost model. Also returns the budget that
+-- was actually used.
+--
+-- Can be used to calculate budgets for scripts, but even in this case you must give
+-- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
-    -> (LogOutput, Either EvaluationError ())
+    -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
     model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
-    let (res, _, logs) =
+    let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
             UPLC.runCek
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
@@ -246,9 +247,12 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 
     tell logs
     liftEither $ first CekError $ void res
+    pure (budget `PLC.minusExBudget` final)
 
 -- | Evaluates a script, returning the minimum budget that the script would need
--- to evaluate successfully.
+-- to evaluate successfully. This will take as long as the script takes, if you need to
+-- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
+-- also returns the used budget.
 evaluateScriptCounting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use

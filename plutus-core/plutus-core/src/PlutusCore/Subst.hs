@@ -34,6 +34,7 @@ import           Data.Set.Lens         (setOf)
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
 
+{-# INLINE substTyVarA #-}
 -- | Applicatively replace a type variable using the given function.
 substTyVarA
     :: Applicative f
@@ -66,7 +67,9 @@ substVar
     -> Term tyname name uni fun ann
 substVar = purely substVarA
 
+{-# INLINE typeSubstTyNamesM #-}
 -- | Naively monadically substitute type names (i.e. do not substitute binders).
+-- INLINE is important here because the function is too polymorphic (determined from profiling)
 typeSubstTyNamesM
     :: Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
