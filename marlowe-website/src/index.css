@@ -164,7 +164,7 @@ body {
   @apply secondary-button-outline;
 }
 
-.secondary-button::after {
+.secondary-button-icon::after {
   content: url("/static/img/caret-right-purple.svg");
   position: relative;
   top: 4px;
@@ -280,8 +280,6 @@ body {
 
   -webkit-text-stroke-width: 2px !important;
 }
-
-/* Russ media queries */
 
 /* Tablet portrait */
 @media (max-width: 1024px) {
