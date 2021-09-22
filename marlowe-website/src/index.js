@@ -164,11 +164,20 @@ function activateYoutube() {
     elm.classList.remove("flex");
   });
 }
+function activateTypeform() {
+  var script = document.createElement("script");
+  script.type = "text/javascript";
+  script.async = !0;
+  script.src = "//embed.typeform.com/next/embed.js";
+  var node = document.getElementsByTagName("script")[0];
+  node.parentNode.insertBefore(script, node);
+}
 
 function initializeGDPR() {
   function activateComponentsWithCookies() {
     activateAnalytics();
     activateYoutube();
+    activateTypeform();
   }
   const gdprConsent = localStorage.getItem("gdpr-consent");
   if (gdprConsent === "agree") {
