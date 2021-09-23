@@ -82,7 +82,6 @@ import           Ledger                      (Address, Datum, DatumHash, Minting
                                               TxOutRef, ValidatorHash, txId)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Credential           (Credential)
-import           Ledger.Orphans              ()
 import           Ledger.Scripts              (Validator)
 import           Ledger.Slot                 (Slot (..), SlotRange)
 import           Ledger.Time                 (POSIXTime (..), POSIXTimeRange)

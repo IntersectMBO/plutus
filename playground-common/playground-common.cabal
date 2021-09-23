@@ -87,7 +87,7 @@ library
         uuid -any,
         streaming -any,
         foldl -any,
-        openapi3
+        openapi3 -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0

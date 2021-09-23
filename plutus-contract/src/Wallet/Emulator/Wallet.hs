@@ -54,7 +54,6 @@ import qualified Ledger.Constraints.OffChain    as U
 import           Ledger.Credential              (Credential (..))
 import qualified Ledger.Crypto                  as Crypto
 import           Ledger.Fee                     (FeeConfig (..), calcFees)
-import           Ledger.Orphans                 ()
 import           Ledger.TimeSlot                (posixTimeRangeToContainedSlotRange)
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Value                   as Value

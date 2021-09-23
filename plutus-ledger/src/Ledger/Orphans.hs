@@ -45,14 +45,10 @@ instance OpenApi.ToSchema Crypto.XPub where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PubKey") mempty
 instance OpenApi.ToSchema Crypto.XPrv where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PrvKey") mempty
-
-deriving instance {-# INCOHERENT #-} OpenApi.ToSchema (LogMessage JSON.Value)
-
-deriving instance {-# INCOHERENT #-} OpenApi.ToSchema LogLevel
-
+deriving instance OpenApi.ToSchema (LogMessage JSON.Value)
+deriving instance OpenApi.ToSchema LogLevel
 instance {-# INCOHERENT #-} OpenApi.ToSchema JSON.Value where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "JSON") mempty
-
 instance OpenApi.ToSchema Data where
   declareNamedSchema _ = do
     integerSchema <- OpenApi.declareSchemaRef (Proxy :: Proxy Integer)

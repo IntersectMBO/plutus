@@ -20,7 +20,6 @@ import qualified Data.Text                      as Text
 import           Data.Text.Extras               (abbreviate)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic)
-import           Ledger.Orphans                 ()
 import qualified Plutus.Contract.Resumable      as Contract
 import qualified Plutus.Contract.State          as Contract
 
