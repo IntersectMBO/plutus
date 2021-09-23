@@ -5,6 +5,7 @@ module Contract.View
   ) where
 
 import Prologue hiding (div)
+import Contacts.State (adaToken, getAda)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _stateMetadata, _stateNickname, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), StartedState, State(..), StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)
@@ -40,7 +41,7 @@ import Marlowe.Execution.Lenses (_semanticState, _mNextTimeout)
 import Marlowe.Execution.State (expandBalances)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
-import Marlowe.Extended.Metadata (_contractType)
+import Marlowe.Extended.Metadata (_contractName, _contractType)
 import Marlowe.PAB (transactionFee)
 import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
@@ -52,7 +53,6 @@ import Popper (Placement(..))
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import Contacts.State (adaToken, getAda)
 
 -------------------------------------------------------------------------------
 -- Top-level views
@@ -64,6 +64,8 @@ contractPreviewCard currentSlot state =
     nickname = state ^. _stateNickname
 
     contractType = state ^. (_stateMetadata <<< _contractType)
+
+    contractName = state ^. (_stateMetadata <<< _contractName)
 
     stepPanel = case state of
       Started started ->
@@ -101,7 +103,7 @@ contractPreviewCard currentSlot state =
               [ h3
                   [ classNames [ "flex", "gap-2", "items-center" ] ]
                   [ contractIcon contractType
-                  , text $ contractTypeName contractType
+                  , text contractName
                   ]
               , input
                   [ classNames $ Css.inputNoBorder <> [ "-ml-2", "text-lg" ]
