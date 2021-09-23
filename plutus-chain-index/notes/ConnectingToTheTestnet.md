@@ -1,6 +1,6 @@
 # How to connect to a testnet
 
-## Get `cardano-node` onto the path
+## Get `[cardano-node](https://github.com/input-output-hk/cardano-node)` onto the path
 
 The easiest way of doing this is to enter a `nix-shell` that puts the node on the path.
 
