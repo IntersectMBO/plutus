@@ -130,7 +130,7 @@ contractTermsGen = do
     feeAnchor <- mightbe date
     feeAccrued <- mightbe smallamount
 
-    return ContractTerms {
+    return ContractTermsPoly {
         contractId     = "0"
         , contractType = contracttype
         , ct_IED       = Just ied
