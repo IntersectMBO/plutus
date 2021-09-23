@@ -38,6 +38,7 @@ module PlutusTx.AssocMap (
     ) where
 
 import           Control.DeepSeq            (NFData)
+import           Data.OpenApi.Schema        as OpenApi
 import           Data.Text.Prettyprint.Doc  (Pretty (..))
 import           GHC.Generics               (Generic)
 import qualified PlutusTx.Builtins          as P
@@ -55,6 +56,7 @@ import qualified Prelude                    as Haskell
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving newtype (Eq, Ord, NFData)
+    deriving anyclass (OpenApi.ToSchema)
 
 -- Hand-written instances to use the underlying 'Map' type in 'Data', and to be reasonably efficient.
 instance (ToData k, ToData v) => ToData (Map k v) where
@@ -67,6 +69,7 @@ instance (ToData k, ToData v) => ToData (Map k v) where
                 go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
                 go []         = BI.mkNilPairData BI.unitval
                 go ((k,v):xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
+
 instance (FromData k, FromData v) => FromData (Map k v) where
     fromBuiltinData d = P.matchData' d
         (\_ _ -> Nothing)
@@ -81,6 +84,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
             where
                 go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
                 go l = BI.chooseList l (const (pure [])) (\_ -> let tup = BI.head l in liftA2 (:) (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup)) (go (BI.tail l))) ()
+
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
     unsafeFromBuiltinData d = let es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
       where

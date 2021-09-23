@@ -88,6 +88,9 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-swagger-ui" or (errorHandler.buildDepError "servant-swagger-ui"))
+          (hsPkgs."servant-openapi3" or (errorHandler.buildDepError "servant-openapi3"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           (hsPkgs."servant-options" or (errorHandler.buildDepError "servant-options"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
@@ -250,6 +253,7 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [
@@ -275,6 +279,7 @@
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           hsSourceDirs = [ "examples/uniswap" ];
@@ -458,6 +463,7 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [
@@ -514,6 +520,7 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [

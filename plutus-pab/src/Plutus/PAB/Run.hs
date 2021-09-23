@@ -25,8 +25,8 @@ import           Control.Monad.IO.Class              (liftIO)
 import           Control.Monad.Logger                (logErrorN, runStdoutLoggingT)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           Data.Foldable                       (for_)
+import qualified Data.OpenApi.Schema                 as OpenApi
 import           Data.Text.Extras                    (tshow)
-import           Data.Typeable                       (Typeable)
 import           Data.Yaml                           (decodeFileThrow)
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, BuiltinHandler, HasDefinitions)
 import           Plutus.PAB.Monitoring.Config        (defaultConfig, loadConfig)
@@ -48,9 +48,9 @@ runWith :: forall a.
     , ToJSON a
     , Pretty a
     , Servant.MimeUnrender Servant.JSON a
-    , Typeable a
     , HasDefinitions a
     , HasPSTypes a
+    , OpenApi.ToSchema a
     )
     => BuiltinHandler a -- ^ Builtin contract handler. Can be created with 'Plutus.PAB.Effects.Contract.Builtin.handleBuiltin'.
     -> IO ()
@@ -66,9 +66,9 @@ runWithOpts :: forall a.
     , ToJSON a
     , Pretty a
     , Servant.MimeUnrender Servant.JSON a
-    , Typeable a
     , HasDefinitions a
     , HasPSTypes a
+    , OpenApi.ToSchema a
     )
     => BuiltinHandler a
     -> Maybe Config -- ^ Optional config override to use in preference to the one in AppOpts

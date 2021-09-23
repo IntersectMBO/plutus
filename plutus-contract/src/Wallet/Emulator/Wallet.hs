@@ -39,6 +39,7 @@ import           Data.Hashable                  (Hashable (..))
 import           Data.List                      (findIndex)
 import qualified Data.Map                       as Map
 import           Data.Maybe
+import qualified Data.OpenApi.Schema            as OpenApi
 import           Data.Ord
 import           Data.Semigroup                 (Sum (..))
 import qualified Data.Set                       as Set
@@ -87,6 +88,8 @@ instance Show Wallet where
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty (T.take 7 $ toBase16 i)
 
+deriving anyclass instance OpenApi.ToSchema Wallet
+
 data WalletId = MockWallet Crypto.XPrv | XPubWallet Crypto.XPub
     deriving (Eq, Ord, Generic)
     deriving anyclass (Hashable, ToJSONKey)
@@ -109,6 +112,7 @@ instance Ord Crypto.XPrv where
     compare l r = compare (Crypto.unXPrv l) (Crypto.unXPrv r)
 instance Hashable Crypto.XPrv where
     hashWithSalt i = hashWithSalt i . Crypto.unXPrv
+deriving anyclass instance OpenApi.ToSchema WalletId
 
 toBase16 :: WalletId -> T.Text
 toBase16 (MockWallet xprv) = encodeByteString $ Crypto.unXPrv xprv

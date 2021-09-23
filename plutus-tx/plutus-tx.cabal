@@ -94,7 +94,8 @@ library
         aeson -any,
         hashable -any,
         memory -any,
-        serialise -any
+        serialise -any,
+        openapi3
 
 test-suite plutus-tx-test
     import: lang

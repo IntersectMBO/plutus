@@ -26,13 +26,12 @@ import           Data.Word                 (Word64, Word8)
 import           GHC.Generics
 import           Prelude
 
-{- | A generic "data" type.
-
-The main constructor 'Constr' represents a datatype value in sum-of-products
-form: @Constr i args@ represents a use of the @i@th constructor (indexed from 0) along with its arguments.
-
-The other constructors are various primitives.
--}
+-- | A generic "data" type.
+--
+-- The main constructor 'Constr' represents a datatype value in sum-of-products
+-- form: @Constr i args@ represents a use of the @i@th constructor along with its arguments.
+--
+-- The other constructors are various primitives.
 data Data =
       Constr Integer [Data]
     | Map [(Data, Data)]

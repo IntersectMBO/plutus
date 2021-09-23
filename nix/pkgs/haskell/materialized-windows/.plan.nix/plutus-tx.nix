@@ -50,6 +50,7 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ];
         buildable = true;
         modules = [

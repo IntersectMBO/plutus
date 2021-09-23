@@ -70,6 +70,7 @@ import qualified PlutusTx.Ratio                           as P
 import           Wallet.Emulator.Wallet                   (Wallet, WalletId, WalletNumber)
 import           Wallet.Types                             (ContractInstanceId)
 
+import qualified Data.OpenApi.Schema                      as OpenApi
 import           Text.Show.Deriving                       (deriveShow1)
 
 {- HLINT ignore "Avoid restricted function" -}
@@ -94,7 +95,7 @@ data FormSchema
     -- Exceptions.
     | FormSchemaUnsupported String
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 ------------------------------------------------------------
 type FormArgument = Fix FormArgumentF

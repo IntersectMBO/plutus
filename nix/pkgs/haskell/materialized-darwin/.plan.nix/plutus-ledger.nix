@@ -68,6 +68,8 @@
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
+          (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           ];
         buildable = true;
         modules = [

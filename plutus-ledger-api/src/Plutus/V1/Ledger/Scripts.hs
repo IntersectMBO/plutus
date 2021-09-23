@@ -99,7 +99,7 @@ newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni 
   -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
   deriving Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())))
 
-{- Note [Using Flat inside CBOR instance of Script]
+{-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.

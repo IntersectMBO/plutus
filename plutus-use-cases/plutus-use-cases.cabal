@@ -87,7 +87,8 @@ library
         hashable -any,
         freer-simple -any,
         streaming -any,
-        semigroups -any
+        semigroups -any,
+        openapi3 -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

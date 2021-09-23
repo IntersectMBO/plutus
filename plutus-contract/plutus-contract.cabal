@@ -101,7 +101,7 @@ library
         plutus-ledger -any,
         plutus-ledger-api -any,
         plutus-tx -any,
-        freer-extras -any,
+        freer-extras -any
     build-depends:
         cardano-api -any,
         cardano-crypto -any,
@@ -146,6 +146,7 @@ library
         uuid -any,
         IntervalMap -any,
         QuickCheck -any,
+        openapi3 -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

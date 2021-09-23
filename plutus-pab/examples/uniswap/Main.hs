@@ -19,6 +19,7 @@ import           Data.Aeson                          (FromJSON, Result (..), ToJ
 import           Data.Default                        (Default (def))
 import qualified Data.Map.Strict                     as Map
 import qualified Data.Monoid                         as Monoid
+import qualified Data.OpenApi.Schema                 as OpenApi
 import qualified Data.Semigroup                      as Semigroup
 import           Data.Text                           (Text)
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
@@ -88,7 +89,7 @@ data UniswapContracts =
     | UniswapStart
     | UniswapUser Uniswap.Uniswap
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance Pretty UniswapContracts where
     pretty = viaShow

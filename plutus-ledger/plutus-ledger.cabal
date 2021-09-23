@@ -120,6 +120,8 @@ library
         cardano-crypto -any,
         cardano-crypto-class -any,
         deepseq -any,
+        openapi3,
+        freer-extras
 
     ghc-options: -fprint-potential-instances
 

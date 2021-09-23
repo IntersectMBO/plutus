@@ -11,6 +11,7 @@ module MarloweContract(MarloweContract(..), handlers) where
 import           Control.Monad.Freer                 (interpret)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           Data.Default                        (Default (def))
+import qualified Data.OpenApi                        as OpenApi
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
 import           GHC.Generics                        (Generic)
 import qualified Language.Marlowe.Client             as Marlowe
@@ -27,7 +28,7 @@ data MarloweContract =
     | WalletCompanion -- Wallet companion contract
     | MarloweFollower -- Follower contract
     deriving (Eq, Ord, Show, Read, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 instance Pretty MarloweContract where
     pretty = viaShow

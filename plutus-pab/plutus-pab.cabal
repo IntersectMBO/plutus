@@ -178,6 +178,9 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-swagger-ui,
+        servant-openapi3,
+        openapi3 -any,
         servant-options -any,
         tagged -any,
         typed-protocols -any,
@@ -289,6 +292,7 @@ executable plutus-pab-examples
         , row-types
         , servant-purescript
         , text
+        , openapi3
 
 executable plutus-uniswap
     main-is:          Main.hs
@@ -313,6 +317,7 @@ executable plutus-uniswap
         , plutus-use-cases
         , prettyprinter
         , text
+        , openapi3
 
 executable plutus-pab-test-psgenerator
     default-language: Haskell2010
@@ -464,6 +469,7 @@ test-suite plutus-pab-test-full
         async -any,
         servant-client -any,
         uuid -any,
+        openapi3,
 
 test-suite plutus-pab-test-full-long-running
     default-language: Haskell2010
@@ -521,6 +527,7 @@ test-suite plutus-pab-test-full-long-running
         async -any,
         servant-client -any,
         uuid -any,
+        openapi3 -any,
 
 executable tx-inject
     import:           lang
