@@ -18,7 +18,7 @@ transactionFee :: BigInteger
 transactionFee = fromInt 10
 
 contractCreationFee :: BigInteger
-contractCreationFee = transactionFee * (fromInt 2)
+contractCreationFee = transactionFee
 
 {-
 A `PlutusAppId` is used to identify an instance of a Plutus "contract" in the PAB. In the PAB code it is
