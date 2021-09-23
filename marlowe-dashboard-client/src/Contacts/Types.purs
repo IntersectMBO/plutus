@@ -148,7 +148,7 @@ data Action
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
   | SetRemoteWalletInfo (WebData WalletInfo)
-  | UseWallet WalletNickname PlutusAppId
+  | ConnectWallet WalletNickname PlutusAppId
   | ClipboardAction Clipboard.Action
 
 instance actionIsEvent :: IsEvent Action where
@@ -159,5 +159,5 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (SetRemoteWalletInfo _) = Nothing
-  toEvent (UseWallet _ _) = Just $ defaultEvent "UseWallet"
+  toEvent (ConnectWallet _ _) = Just $ defaultEvent "ConnectWallet"
   toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

@@ -462,7 +462,7 @@ currentWalletCard walletDetails =
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , onClick_ PutdownWallet
+              , onClick_ DisconnectWallet
               ]
               [ text "Drop wallet" ]
           ]

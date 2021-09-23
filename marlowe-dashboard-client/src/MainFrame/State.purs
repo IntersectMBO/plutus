@@ -44,6 +44,27 @@ import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
 import Welcome.Types (Action, State) as Welcome
 
+{-
+The Marlowe Run app consists of six main workflows:
+
+1. Generate a demo wallet (this will become redundant when we integrate with real wallets).
+2. Connect a wallet (this will change when we integrate with real wallets).
+3. Disconnect a wallet.
+4. Start a contract.
+5. Move a contract forward.
+6. Redeem payments (this is triggered automatically - but may need to be manual when we
+   integrate with real wallets).
+
+There are two main application states: the `Welcome` state (for workflows 1 and 2), and the
+`Dashboard` state (for workflows 3-6). Initially we are in the `Welcome` state. Connecting a wallet
+(workflow 2) moves you into the `Dashboard` state; disconnecting a wallet (workflow 4) moves you
+back into the `Welcome` state.
+
+Because of the synchronous nature of the app, with messages passing between the browser and the PAB
+(both through direct API calls and a WebSocket), these workflows are in general spread out all over
+the code. Comments are added throughout with the format "[Workflow n][m]" - so you can search the
+code for e.g. "[Workflow 4]" to see all of the steps involved in starting a contract.
+-}
 mkMainFrame ::
   forall m.
   MonadAff m =>
@@ -146,6 +167,14 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                   -- through the PAB - so until that bug is fixed, this will have to mask it
                   when (view (_walletDetails <<< _previousCompanionAppState) dashboardState /= Just companionAppState) do
                     assign (_dashboardState <<< _walletDetails <<< _previousCompanionAppState) (Just companionAppState)
+                    {- [Workflow 2][5] Connect a wallet -}
+                    {- [Workflow 4][1] Start a contract
+                    When we start a contract, our wallet will initially receive all the role tokens for that contract
+                    (before they are paid out to the people we gave those roles to). And if someone else started a
+                    contract and gave us a role, we will receive that role token. Either way, our `WalletCompanion` app
+                    will notice, and its status will be updated to include the `MarloweParams` and initial `MarloweData`
+                    of the contract in question. We can use that to start following the contract.
+                    -}
                     handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionAppState
               else do
                 -- if this is the wallet's MarloweApp...
@@ -157,11 +186,15 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                     SomeError "create" marloweError -> addToast $ errorToast "Failed to initialise contract." Nothing
                     SomeError "apply-inputs" marloweError -> addToast $ errorToast "Failed to update contract." Nothing
                     _ -> pure unit
-                -- otherwise this should be one of the wallet's WalletFollowerApps
+                -- otherwise this should be one of the wallet's `MarloweFollower` apps
                 else case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
                   Right contractHistory -> do
+                    {- [Workflow 2][7] Connect a wallet -}
+                    {- [Workflow 4][3] Start a contract -}
+                    {- [Workflow 5][1] Move a contract forward -}
                     handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
+                    {- [Workflow 6][0] Redeem payments -}
                     handleAction $ DashboardAction $ Dashboard.RedeemPayments plutusAppId
         NewActiveEndpoints activeEndpoints -> do
           mDashboardState <- peruse _dashboardState
@@ -199,7 +232,6 @@ handleAction ::
   MonadClipboard m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
--- mainframe actions
 handleAction Init = do
   tzOffset <- liftEffect getTimezoneOffset
   walletLibrary <- getWalletLibrary
@@ -209,6 +241,11 @@ handleAction Init = do
   { dataProvider } <- ask
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ DashboardAction $ Dashboard.UpdateFromStorage)
 
+{- [Workflow 3][1] Disconnect a wallet
+
+Here we move from the `Dashboard` state to the `Welcome` state. It's very straightfoward - we just
+need to unsubscribe from all the apps related to the wallet that was previously connected.
+-}
 handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   let
     followerAppIds :: Array PlutusAppId
@@ -219,6 +256,15 @@ handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   for_ followerAppIds unsubscribeFromPlutusApp
   assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
+{- [Workflow 2][3] Connect a wallet
+Here we move the app from the `Welcome` state to the `Dashboard` state. First, however, we query
+the PAB to get the given wallet's `MarloweFollower` apps, and subscribe to all the relevant apps.
+If the wallet has been given a role token for a new contract while the user was disconnected, they
+will not yet have a `MarloweFollower` app for that contract. The business of creating and loading
+these apps (and avoiding the UI bug of saying "you have no contracts" when in fact we haven't
+finished loading them yet) is a bit convoluted - follow the trail of workflow comments to see how
+it works.
+-}
 handleAction (EnterDashboardState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
   currentSlot <- use _currentSlot
@@ -232,10 +278,10 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       subscribeToPlutusApp $ view _companionAppId walletDetails
       subscribeToPlutusApp $ view _marloweAppId walletDetails
       for_ followerAppIds subscribeToPlutusApp
-      -- we now have all the running contracts for this wallet, but if new role tokens have been
-      -- given to the wallet since we last connected it, we'll need to create some more - but since
-      -- we've just subscribed to the wallet companion contract, this will be triggered by the
-      -- initial websocket status notification
+      -- We now have all the running contracts for this wallet, but if new role tokens have been
+      -- given to the wallet since we last connected it, we'll need to create some more. Since
+      -- we've just subscribed to this wallet's WalletCompanion app, however, the creation of new
+      -- MarloweFollower apps will be triggered by the initial WebSocket status notification.
       contractNicknames <- getContractNicknames
       assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot
 

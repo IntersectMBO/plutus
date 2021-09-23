@@ -62,6 +62,10 @@ import Contacts.Types (CardSection(..), WalletDetails, WalletLibrary)
 dummyState :: State
 dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero)
 
+{- [Workflow 2][4] Connect a wallet
+When we connect a wallet, it has this initial state. Notable is the walletCompanionStatus of
+`FirstUpdatePending`. Follow the trail of worflow comments to see what happens next.
+-}
 mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> State
 mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot =
   let
@@ -94,7 +98,8 @@ handleAction ::
   Toast m =>
   MonadClipboard m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction _ PutdownWallet = do
+{- [Workflow 3][0] Disconnect a wallet -}
+handleAction _ DisconnectWallet = do
   walletLibrary <- use (_contactsState <<< _walletLibrary)
   walletDetails <- use _walletDetails
   contracts <- use _contracts
@@ -156,9 +161,28 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
       in
         void $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> handleAction input $ UpdateContract plutusAppId contractHistory
 
--- this handler takes the wallet companion app state (which contains MarloweParams of all the contracts)
--- the wallet is interested in, compares it to the existing contracts, and either creates new follower
--- apps or activates pending ones for any contracts that aren't yet being followed
+{- [Workflow 2][6] Connect a wallet
+If we have just connected a wallet (and the walletCompanionStatus is still `FirstUpdatePending`),
+then we know the `MarloweFollower` apps that are running in this wallet, and have just been given
+the current state of its `WalletCompanion` app for the first time since connecting. If the status
+of the `WalletCompanion` app contains a record of `MarloweParams` for any _new_ Marlowe contracts
+(created since the last time we connected this wallet, and for which we therefore have no
+corresponding `MarloweFollowr` apps), we now need to create `MarloweFollower` apps for those new
+contracts.
+In this case, we change the walletCompanionStatus to `LoadingNewContracts`, and subscribe to every
+new `MarloweFollower`. We'll know the loading is finished when we've received the first status
+update for each of these `MarloweFollower` apps through the WebSocket.
+-}
+{- [Workflow 4][2] Start a Marlowe contract
+After starting a new Marlowe contract, we should receive a WebSocket notification informing us of
+the `MarloweParams` and initial `MarloweData` for that contract (via a status update for our
+`WalletCompanion` app). We now need to start following that contract with a `MarloweFollower` app.
+If we started the contract ourselves, we already created a `MarloweFollower` app as a placeholder.
+So here we need to check whether there is an existing `MarloweFollower` app with the right metadata
+(and no `MarloweParams`) - and potentially use that instead of creating a new one.
+If someone else started the contract, and gave us a role, we will have no placeholder
+`MarloweFollower` app, and so we simply create a new one and start following immediately.
+-}
 handleAction input (UpdateFollowerApps companionAppState) = do
   walletCompanionStatus <- use _walletCompanionStatus
   walletDetails <- use _walletDetails
@@ -235,7 +259,21 @@ handleAction input (UpdateFollowerApps companionAppState) = do
                   modifying _contracts $ delete key
                   insertIntoContractNicknames followerAppId value.nickname
 
--- this handler updates the state of an individual contract
+{- [Workflow 2][8] Connect a wallet
+If this is the first update we are receiving from a new `MarloweFollower` app that was created
+after we connected the wallet, but _before_ the walletCompanionStatus was set to
+`FirstUpdateComplete`, we need to remove the app from the `LoadingNewContracts` set. And if it's
+the last element of that set, we can set the walletCompanionStatus to `FirstUpdateComplete`. This
+(finally!) completes the workflow of connecting a wallet.
+-}
+{- [Workflow 4][4] Start a contract
+If we started a contract (or someone else started one and gave us a role in it), we will have
+created a `MarloweFollower` app for that contract, and started following the contract with that
+`MarloweFollower` app. Since we will also be subscribed to that app, we will receive an update
+about its initial state through the WebSocket. We potentially use that to change the corresponding
+`Contract.State` from `Starting` to `Started`.
+-}
+{- [Workflow 5][2] Move a contract forward -}
 handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory) =
   let
     chParams = view _chParams contractHistory
@@ -269,15 +307,17 @@ handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory
             assign _walletCompanionStatus $ LoadingNewContracts updatedPendingMarloweParams
         _ -> pure unit
 
--- This handler looks, in the given contract, for any payments to roles for which the current
--- wallet holds the token, and then calls the "redeem" endpoint of the main marlowe app for each
--- one, to make sure those funds reach the user's wallet (without the user having to do anything).
--- The handler is called every time we receive a notification that the state of the contract's
--- follower app has changed, so it will be called more often that is necessary. But there is no way
--- to guard against that. (Well, we could keep track of payments redeemed in the application state,
--- but that record would be lost when the browser is closed - and then those payments would all be
--- redeemed again anyway the next time the user picks up the wallet. Since these duplicate requests
--- will happen anyway, therefore, this extra complication doesn't seem worth the bother.
+{- [Workflow 6][1] Redeem payments
+This action is triggered every time we receive a status update for a `MarloweFollower` app. The
+handler looks, in the corresponding contract, for any payments to roles for which the current
+wallet holds the token, and then calls the "redeem" endpoint of the wallet's `MarloweApp` for each
+one, to make sure those funds reach the user's wallet (without the user having to do anything).
+This is not very sophisticated, and results in the "redeem" endpoint being called more times than
+necessary (we are not attempting to keep track of which payments have already been redeemed). Also,
+we thought it would be more user-friendly for now to trigger this automatically - but when we
+integrate with real wallets, I'm pretty sure we will need to provide a UI for the user to do it
+manually (and sign the transaction). So this will almost certainly have to change.
+-}
 handleAction input (RedeemPayments followerAppId) = do
   walletDetails <- use _walletDetails
   mStartedContract <- peruse $ _contracts <<< ix followerAppId <<< _Started
@@ -327,6 +367,7 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
     modify_
       $ set _card (Just $ ContactsCard)
       <<< set (_contactsState <<< _cardSection) (NewWallet $ Just tokenName)
+  {- [Workflow 4][0] Starting a Marlowe contract -}
   Template.StartContract -> do
     templateState <- use _templateState
     case instantiateExtendedContract currentSlot templateState of
@@ -345,8 +386,10 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
           -- TODO: make this error message more informative
           Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
           _ -> do
-            -- We create a follower app now with no MarloweParams; when the next notification of a new contract
-            -- notification comes in, a follower app with no MarloweParams but the right metadata will be used.
+            -- Here we create a `MarloweFollower` app with no `MarloweParams`; when the next status
+            -- update of the wallet's `WalletCompanion` app comes in, we will know the `MarloweParams`,
+            -- and can use this placeholder `MarloweFollower` app to follow it. Follow the workflow
+            -- comments to see more...
             ajaxPendingFollowerApp <- createPendingFollowerApp walletDetails
             case ajaxPendingFollowerApp of
               Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError

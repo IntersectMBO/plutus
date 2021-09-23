@@ -144,7 +144,7 @@ walletDetailsCard currentWallet walletDetails =
           else
             button
               [ classNames $ Css.primaryButton <> [ "flex-1", "text-center" ]
-              , onClick_ $ UseWallet walletNickname companionAppId
+              , onClick_ $ ConnectWallet walletNickname companionAppId
               ]
               [ text "Use this wallet" ]
         ]

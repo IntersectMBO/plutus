@@ -89,19 +89,27 @@ class
   unsubscribeFromWallet :: Wallet -> m Unit
 
 instance manageMarloweAppM :: ManageMarlowe AppM where
-  -- create a Wallet, together with a WalletCompanion and a MarloweApp, and return the WalletDetails
   createWallet = do
     { dataProvider } <- ask
     case dataProvider of
       MarlowePAB -> do
+        -- create the wallet itself
         ajaxWalletInfo <- Wallet.createWallet
         case ajaxWalletInfo of
           Left ajaxError -> pure $ Left ajaxError
           Right walletInfo -> do
             let
               wallet = view _wallet walletInfo
+            -- create the WalletCompanion and MarloweApp for this wallet
             ajaxCompanionAppId <- Contract.activateContract WalletCompanion wallet
             ajaxMarloweAppId <- Contract.activateContract MarloweApp wallet
+            -- get the wallet's current funds
+            -- Note that, because it can take a moment for the initial demo funds to be added, at
+            -- this point the funds might be zero. It doesn't matter though - if we connect this
+            -- wallet, we'll get a WebSocket notification when the funds are added (and if we don't
+            -- connect it, we don't need to know what they are.)
+            -- TODO(?): Because of that, we could potentially forget about this call and just set
+            -- assets to `mempty`.
             ajaxAssets <- Wallet.getWalletTotalFunds wallet
             let
               createWalletDetails companionAppId marloweAppId assets =
