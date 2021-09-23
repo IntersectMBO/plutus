@@ -71,6 +71,7 @@ module Plutus.PAB.Core
     , askUserEnv
     , askBlockchainEnv
     , askInstancesState
+    , instancesByActivity
     , runningInstances
     -- * Run PAB effects in separate threads
     , PABRunner(..)
@@ -127,8 +128,8 @@ import           Wallet.Effects                          (NodeClientEffect, Wall
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), EmulatorTimeEvent (..))
 import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
-import           Wallet.Types                            (ContractInstanceId, EndpointDescription (..),
-                                                          NotificationError)
+import           Wallet.Types                            (ContractActivityStatus, ContractInstanceId,
+                                                          EndpointDescription (..), NotificationError)
 
 -- | Effects that are available in 'PABAction's.
 type PABEffects t env =
@@ -569,6 +570,9 @@ waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
 
 runningInstances :: forall t env. PABAction t env (Set ContractInstanceId)
 runningInstances = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.runningInstances
+
+instancesByActivity :: forall t env. Maybe ContractActivityStatus -> PABAction t env (Set ContractInstanceId)
+instancesByActivity mStatus = askInstancesState @t @env >>= liftIO . STM.atomically . (Instances.instancesByActivity mStatus)
 
 -- | Read the 'env' from the environment
 askUserEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env

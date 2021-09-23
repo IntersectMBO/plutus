@@ -1,15 +1,17 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE ImpredicativeTypes    #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# options_ghc -Wno-missing-signatures #-}
 
 {-
@@ -46,13 +48,36 @@ import qualified Database.SQLite.Simple          as Sqlite
 import           Plutus.PAB.Monitoring.PABLogMsg (PABLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                (PABError (MigrationNotDoneError, OtherError))
 
+data ContractActivityStatus
+  = Active
+  | Stopped
+  | Done
+  deriving (Show, Read, Eq, Ord, Enum)
+
+instance HasSqlValueSyntax be String => HasSqlValueSyntax be ContractActivityStatus where
+  sqlValueSyntax = autoSqlValueSyntax
+
+instance (BeamSqlBackend be, FromBackendRow be Text) => FromBackendRow be ContractActivityStatus where
+  fromBackendRow = do
+    val <- fromBackendRow
+    case val :: Text of
+      "active"  -> pure Active
+      "stopped" -> pure Stopped
+      "done"    -> pure Done
+      _         -> fail ("Invalid value for ContractActivityStatus: " ++ Text.unpack val)
+
+instance HasDefaultSqlDataType Sqlite ContractActivityStatus where
+  defaultSqlDataType _ _ _ = varCharType Nothing Nothing
+
+instance (BeamSqlBackend be, HasSqlEqualityCheck be Text) => HasSqlEqualityCheck be ContractActivityStatus
+
 data ContractInstanceT f
   = ContractInstance
     { _contractInstanceId         :: Columnar f Text
     , _contractInstanceContractId :: Columnar f Text
     , _contractInstanceWallet     :: Columnar f Text -- Note: Sqlite doesn't have a integer type large enough.
     , _contractInstanceState      :: Columnar f (Maybe Text)
-    , _contractInstanceActive     :: Columnar f Bool
+    , _contractInstanceStatus     :: Columnar f ContractActivityStatus
     } deriving (Generic, Beamable)
 
 ContractInstance
@@ -60,7 +85,7 @@ ContractInstance
   (LensFor contractInstanceContractId)
   (LensFor contractInstanceWallet)
   (LensFor contractInstanceState)
-  (LensFor contractInstanceActive)
+  (LensFor contractInstanceStatus)
   = tableLenses
 
 

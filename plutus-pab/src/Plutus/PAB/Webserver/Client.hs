@@ -30,8 +30,8 @@ data PabClient t walletId = PabClient
       -- ^ call methods for instance client. We should turn @ContractInstanceId@ to @Text@ for the first argument.
   , getWallet        :: walletId -> ClientM [ContractInstanceClientState t]
       -- ^ get wallet
-  , getInstances     :: ClientM [ContractInstanceClientState t]
-      -- ^ get instance
+  , getInstances     :: Maybe Text -> ClientM [ContractInstanceClientState t]
+      -- ^ get instances
   , getDefinitions   :: ClientM [ContractSignatureResponse t]
       -- ^ get definitions
   }

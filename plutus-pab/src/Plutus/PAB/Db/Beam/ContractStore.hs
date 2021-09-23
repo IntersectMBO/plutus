@@ -39,13 +39,13 @@ import           Data.UUID                           (fromText, toText)
 import           Database.Beam                       hiding (updateRow)
 import           Plutus.PAB.Effects.Contract         (ContractStore (..), PABContract (..))
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, HasDefinitions (getContract), fromResponse, getResponse)
-import           Plutus.PAB.Effects.DbStore          hiding (ContractInstanceId)
+import           Plutus.PAB.Effects.DbStore          as Store hiding (ContractInstanceId)
 import           Plutus.PAB.Monitoring.Monitoring    (PABMultiAgentMsg)
 import           Plutus.PAB.Types                    (PABError (..))
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet              (Wallet (..))
 import qualified Wallet.Emulator.Wallet              as Wallet
-import           Wallet.Types                        (ContractInstanceId (..))
+import           Wallet.Types                        as Types (ContractActivityStatus (..), ContractInstanceId (..))
 
 -- | Convert from the internal representation of a contract into the database
 -- representation.
@@ -60,7 +60,7 @@ mkRow ContractActivationArgs{caID, caWallet} instanceId
       (Text.decodeUtf8 $ B.concat $ LB.toChunks $ encode caID)
       (Wallet.toBase16 . getWalletId . fromMaybe (Wallet.knownWallet 1) $ caWallet)
       Nothing -- No state, initially
-      True    -- 'Active' immediately
+      Store.Active -- 'Active' immediately
 
 -- | Convert from the database representation of a contract into the
 -- internal representation.
@@ -150,14 +150,22 @@ handleContractStore = \case
   PutStopInstance instanceId ->
     updateRow
       $ update (_contractInstances db)
-          (\ci -> ci ^. contractInstanceActive <-. val_ False)
+          (\ci -> ci ^. contractInstanceStatus <-. val_ Store.Stopped)
           (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
 
-  GetActiveContracts ->
-    fmap mkContracts
+  GetContracts mStatus ->
+    let
+      parseStatus = \case
+        Types.Active  -> Store.Active
+        Types.Stopped -> Store.Stopped
+        Types.Done    -> Store.Done
+    in fmap mkContracts
       $ selectList
       $ select
       $ do
           ci <- all_ (_contractInstances db)
-          guard_ ( ci ^. contractInstanceActive )
-          pure ci
+          case mStatus of
+            Just status -> do
+              guard_ ( (ci ^. contractInstanceStatus) ==. val_ (parseStatus status) )
+              pure ci
+            _ -> pure ci

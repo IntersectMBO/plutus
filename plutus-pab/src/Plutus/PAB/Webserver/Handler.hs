@@ -26,7 +26,7 @@ module Plutus.PAB.Webserver.Handler
 import qualified Cardano.Wallet.Mock.Client              as Wallet.Client
 import           Cardano.Wallet.Mock.Types               (WalletInfo (..))
 import           Control.Lens                            (preview)
-import           Control.Monad                           ((>=>))
+import           Control.Monad                           (join, (>=>))
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
@@ -58,7 +58,7 @@ import           Servant.Swagger.UI                      (SwaggerSchemaUI', swag
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
 import           Wallet.Emulator.Wallet                  (Wallet (..), WalletId, knownWallet)
-import           Wallet.Types                            (ContractInstanceId (..))
+import           Wallet.Types                            (ContractInstanceId (..), parseContractActivityStatus)
 
 healthcheck :: forall t env. PABAction t env ()
 healthcheck = pure ()
@@ -105,7 +105,7 @@ apiHandler ::
                                           :<|> PABAction t env ()
                                           )
               :<|> (WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
-              :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+              :<|> (Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
               :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 
 apiHandler =
@@ -154,15 +154,16 @@ callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABA
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
 instancesForWallets :: forall t env. Contract.PABContract t => WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
-instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
+instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates Nothing
 
-allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
-allInstanceStates = do
-    mp <- Contract.getActiveContracts @t
-    inst <- Core.runningInstances
-    let isRunning i = Set.member i inst
+allInstanceStates :: forall t env. Contract.PABContract t => Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+allInstanceStates mStatus = do
+    let status = join $ parseContractActivityStatus <$> mStatus
+    mp <- Contract.getContracts @t status
+    inst <- Core.instancesByActivity status
+    let isInstanceStatusMatch i = Set.member i inst
     let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
-    filter (isRunning . cicContract) <$> traverse get (Map.toList mp)
+    filter (isInstanceStatusMatch . cicContract) <$> traverse get (Map.toList mp)
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 availableContracts = do

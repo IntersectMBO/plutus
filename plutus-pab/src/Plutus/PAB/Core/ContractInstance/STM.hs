@@ -43,6 +43,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , observableContractState
     , instanceState
     , instanceIDs
+    , instancesByActivity
     , runningInstances
     , instancesClientEnv
     , InstanceClientEnv(..)
@@ -74,6 +75,7 @@ import           Plutus.Contract.Effects     (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable   (IterationID, Request (..), RequestID)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue (..),
                                               NotificationError (..))
+import qualified Wallet.Types                as Wallet (ContractActivityStatus (..))
 
 {- Note [Contract instance thread model]
 
@@ -409,6 +411,26 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 -- | The current slot number
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
+
+-- | The IDs of contract instances by given status (all by default)
+instancesByActivity :: Maybe Wallet.ContractActivityStatus -> InstancesState -> STM (Set ContractInstanceId)
+instancesByActivity mStatus (InstancesState m) = do
+    let parseStatus :: Activity -> Wallet.ContractActivityStatus
+        parseStatus = \case
+            Active  -> Wallet.Active
+            Stopped -> Wallet.Stopped
+            Done _  -> Wallet.Done
+    let flt :: InstanceState -> STM (Maybe InstanceState)
+        flt s@InstanceState{issStatus} = do
+            status <- STM.readTVar issStatus
+            case (parseStatus status, mStatus) of
+                -- if activity is not specified, return the instances
+                (_, Nothing)               -> pure (Just s)
+                -- is statuses match, return the instance
+                (st, Just st') | st == st' -> pure $ Just s
+                _                          -> pure Nothing
+    mp <- STM.readTVar m
+    Map.keysSet . Map.mapMaybe id <$> traverse flt mp
 
 -- | The IDs of contract instances that are currently running
 runningInstances :: InstancesState -> STM (Set ContractInstanceId)
