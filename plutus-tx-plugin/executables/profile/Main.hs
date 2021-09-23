@@ -24,7 +24,7 @@ import qualified PlutusCore.Default        as PLC
 
 import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
-import           Data.List                 (stripPrefix, uncons)
+import           Data.List                 (intercalate, stripPrefix, uncons)
 import           Data.Maybe                (fromJust)
 import           Data.Proxy                (Proxy (Proxy))
 import           Data.Text                 (Text)
@@ -103,47 +103,74 @@ writeLogToFile fileName values = do
     WriteMode
     (\h -> hPutDoc h log)
   processed <- processLog filePath
-  writeFile (filePath<>".stacks") $ show (map show processed)
+  writeFile (filePath<>".stacks") $ show processed
   pure ()
 
-processLog :: FilePath -> IO [(NominalDiffTime,String)]
+tripleFst :: (a, b, c) -> a
+tripleFst (a,_,_) = a
+
+tripleSnd :: (a, b, c) -> b
+tripleSnd (_,b,_) = b
+
+tripleTrd :: (a, b, c) -> c
+tripleTrd (_,_,c) = c
+
+processLog :: FilePath -> IO [(String, NominalDiffTime)]
 processLog file = do
   content <- readFile file
   -- lEvents is in the form of [[t1,t2,t3,entering/exiting,var]]. Time is chopped to 3 parts.
   let lEvents =
         map
           -- @tail@ strips "[" in the first line and "," in the other lines,
-          -- @words@ turns it to a list of [time, enter/exit, var]
+          -- @words@ turns it to a list of [t1,t2,t3, enter/exit, var]
           (tail . words)
           -- turn to a list of events
           (lines content)
-      lTimeRaw = map unwords (take 3 lEvents)
-      lTime =
-        map
-          -- stripe “[“ and add “ UTC” to the time so I can use read instance of UTCTime
-          (fromJust . stripPrefix "[" . (++ " UTC") . head )
-          lTimeEvents
+      lTime = map (unwords . take 3) lEvents
       lUTC (hd:tl) = (read hd :: UTCTime) : lUTC tl
       lUTC []      = []
       -- list of enter/exit
-      lEnterOrExit = map (head . tail) lTimeEvents
+      lEnterOrExit = map (!! 3) lEvents
       -- list of var
-      lVar = map (head . tail . tail) lTimeEvents
+      lVar = map (!! 4) lEvents
       lTripleTimeVar = zip3 (lUTC lTime) lEnterOrExit lVar
-      getStacks curStack (hd:tl) = case hd of
-        (time, "entering", var) -> getStacks ((time, var):curStack) tl
-        (time, "exiting", var) ->
-          let curTopVar = snd $ head curStack
-              curTopTime = fst $ head curStack
-          in
-            if  curTopVar == var then
-              let updatedStack = tail curStack in
-              (diffUTCTime time curTopTime,var):getStacks updatedStack tl
-            else error "getStacks: exiting a stack that is not on top of the stack."
-        (time, what, _) -> error $ show what ++ "getStacks: log processed incorrectly. Expecting \"entering\" or \"exiting\"."
-      getStacks [] [] = []
-      getStacks _ [] = error "getStacks: stack isn't empty but log is."
   pure $ getStacks [] lTripleTimeVar
+
+getStacks ::
+  -- | list of (var, its start time, the amount of time the functions it called spent)
+  [(String, UTCTime, NominalDiffTime)] ->
+  -- | the input log which is processed to a list of (UTCTime, entering/exiting, var name)
+  [(UTCTime, String, String)] ->
+  -- | a list of (var/function, the time spent on it)
+  [(String,NominalDiffTime)]
+getStacks curStack (hd:tl) =
+  case hd of
+    (time, "entering", var) ->
+      getStacks ((var, time, 0 :: NominalDiffTime):curStack) tl
+    (time, "exiting", var) ->
+      let topOfStack = head curStack
+          curTopVar = tripleFst topOfStack
+          curTopTime = tripleSnd topOfStack
+          curTimeSpent = tripleTrd topOfStack
+      in
+        if  curTopVar == var then
+          let duration = diffUTCTime time curTopTime
+              poppedStack = tail curStack
+              updateTimeSpent (hd:tl) =
+                (tripleFst hd, tripleSnd hd , tripleTrd hd + duration):updateTimeSpent tl
+              updateTimeSpent [] = []
+              updatedStack = updateTimeSpent poppedStack
+          in
+            -- time spent on this function is the total time spent
+            -- minus the time spent on the functions it called.
+            (var, duration - curTimeSpent):getStacks updatedStack tl
+        else error "getStacks: exiting a stack that is not on top of the stack."
+    (_, what, _) -> error $
+      show what <>
+      "getStacks: log processed incorrectly. Expecting \"entering\" or \"exiting\"."
+getStacks [] [] = []
+getStacks stacks [] = error $
+  "getStacks: stack " <> show stacks <> " isn't empty but the log is."
 
 main :: IO ()
 main = do
