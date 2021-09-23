@@ -78,6 +78,9 @@ module Plutus.V2.Ledger.Api (
     , upperBound
     , strictLowerBound
     , strictUpperBound
+    -- *** Association maps
+    , Map
+    , fromList
     -- *** Newtypes for script/datum types and hash types
     , Validator (..)
     , mkValidatorScript
@@ -113,6 +116,7 @@ import           Data.Text                 (Text)
 
 import           Plutus.V1.Ledger.Api      hiding (ScriptContext (..), TxInfo (..), plutusScriptEnvelopeType)
 import           Plutus.V2.Ledger.Contexts
+import           PlutusTx.AssocMap         (Map, fromList)
 
 plutusScriptEnvelopeType :: Text
 plutusScriptEnvelopeType = "PlutusV2Script"
