@@ -48,7 +48,9 @@ renderInput options state =
   let
     additionalCss = options ^. _additionalCss
 
-    error = inputErrorToString <$> validate state
+    pristine = state ^. _pristine
+
+    error = inputErrorToString <$> validate state <* guard (not pristine)
 
     numberFormat = options ^. _numberFormat
 
@@ -57,10 +59,6 @@ renderInput options state =
     dropdownOpen = state ^. _dropdownOpen
 
     value = state ^. _value
-
-    pristine = state ^. _pristine
-
-    showError = not pristine && isJust error
   in
     div
       [ classNames [ "relative" ] ]
@@ -76,7 +74,7 @@ renderInput options state =
                   , noHighlight: not $ null valueOptions
                   , id: options ^. _id_
                   , onChange: guard (not $ options ^. _readOnly) $> SetValue
-                  , invalid: showError
+                  , invalid: isJust error
                   , value
                   , placeholder: options ^. _placeholder
                   }
