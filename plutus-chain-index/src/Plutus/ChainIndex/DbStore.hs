@@ -21,7 +21,10 @@
 A beam-specific effect for writing to a beam database. Here we explicitly construct the
 database schema for the data which we wish to store:
 
-...
+- Datums
+- Scripts
+- Transactions
+- Transaction output references indexed by address
 
 In particular this is specialised to 'Sqlite'; but it could be refactored to
 work over a more general type, or changed to Postgres.
