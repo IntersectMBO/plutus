@@ -38,7 +38,6 @@ module PlutusTx.AssocMap (
     ) where
 
 import           Control.DeepSeq            (NFData)
-import           Data.OpenApi.Schema        as OpenApi
 import           Data.Text.Prettyprint.Doc  (Pretty (..))
 import           GHC.Generics               (Generic)
 import qualified PlutusTx.Builtins          as P
@@ -56,7 +55,6 @@ import qualified Prelude                    as Haskell
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving newtype (Eq, Ord, NFData)
-    deriving anyclass (OpenApi.ToSchema)
 
 -- Hand-written instances to use the underlying 'Map' type in 'Data', and to be reasonably efficient.
 instance (ToData k, ToData v) => ToData (Map k v) where

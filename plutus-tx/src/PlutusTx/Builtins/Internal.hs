@@ -21,7 +21,6 @@ import qualified Data.ByteString.Hash      as Hash
 import           Data.Coerce               (coerce)
 import           Data.Hashable             (Hashable)
 import           Data.Maybe                (fromMaybe)
-import qualified Data.OpenApi              as OpenApi
 import           Data.Text                 as Text (Text, empty)
 import           Data.Text.Encoding        as Text (decodeUtf8, encodeUtf8)
 import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
@@ -153,9 +152,6 @@ newtype BuiltinByteString = BuiltinByteString ByteString
   deriving stock (Generic)
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
   deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
-
-instance OpenApi.ToSchema BuiltinByteString where
-    declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "Bytes") mempty
 
 instance Pretty BuiltinByteString where
     pretty = viaShow
