@@ -47,7 +47,7 @@ instance OpenApi.ToSchema Crypto.XPrv where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PrvKey") mempty
 deriving instance OpenApi.ToSchema (LogMessage JSON.Value)
 deriving instance OpenApi.ToSchema LogLevel
-instance {-# INCOHERENT #-} OpenApi.ToSchema JSON.Value where
+instance OpenApi.ToSchema JSON.Value where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "JSON") mempty
 instance OpenApi.ToSchema Data where
   declareNamedSchema _ = do
