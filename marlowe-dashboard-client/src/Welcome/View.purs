@@ -250,9 +250,9 @@ useNewWalletCard state =
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
                 , disabled $ isJust (validate walletNicknameInput) || enteringDashboardState || not isSuccess remoteWalletDetails
-                , onClick_ $ UseWallet walletNickname
+                , onClick_ $ ConnectWallet walletNickname
                 ]
-                [ text if enteringDashboardState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Connecting..." else "Connect Wallet" ]
             ]
         ]
     ]
@@ -301,10 +301,10 @@ useWalletCard state =
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ $ UseWallet walletNickname
+                , onClick_ $ ConnectWallet walletNickname
                 , disabled $ enteringDashboardState || not isSuccess remoteWalletDetails
                 ]
-                [ text if enteringDashboardState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Connecting..." else "Connect Wallet" ]
             ]
         ]
     ]

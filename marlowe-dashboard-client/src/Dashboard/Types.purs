@@ -63,7 +63,7 @@ type Input
     }
 
 data Action
-  = PutdownWallet
+  = DisconnectWallet
   | ContactsAction Contacts.Action
   | ToggleMenu
   | OpenCard Card
@@ -82,7 +82,7 @@ data Action
 
 -- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
-  toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
+  toEvent DisconnectWallet = Just $ defaultEvent "DisconnectWallet"
   toEvent (ContactsAction contactsAction) = toEvent contactsAction
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing

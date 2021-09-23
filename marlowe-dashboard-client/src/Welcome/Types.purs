@@ -61,7 +61,7 @@ data Action
   | WalletNicknameOrIdInputAction (InputField.Action WalletNicknameOrIdError)
   | OpenUseWalletCardWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
-  | UseWallet WalletNickname
+  | ConnectWallet WalletNickname
   | ClearLocalStorage
   | ClipboardAction Clipboard.Action
 
@@ -73,6 +73,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (WalletNicknameOrIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (OpenUseWalletCardWithDetails _) = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
-  toEvent (UseWallet _) = Just $ defaultEvent "UseWallet"
+  toEvent (ConnectWallet _) = Just $ defaultEvent "ConnectWallet"
   toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"
   toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

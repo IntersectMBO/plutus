@@ -159,7 +159,7 @@ handleAction (SetRemoteWalletInfo remoteWalletInfo) = do
   walletLibrary <- use _walletLibrary
   handleAction $ WalletIdInputAction $ InputField.SetValidator $ walletIdError remoteWalletInfo walletLibrary
 
-handleAction (UseWallet walletNickname companionAppId) = do
+handleAction (ConnectWallet walletNickname companionAppId) = do
   ajaxWalletDetails <- lookupWalletDetails companionAppId
   case ajaxWalletDetails of
     Right walletDetails -> do
