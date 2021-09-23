@@ -119,6 +119,9 @@ doubleBridge = typeName ^== "Double" >> return psNumber
 dayBridge :: BridgePart
 dayBridge = typeName ^== "Day" >> return psString
 
+timeBridge :: BridgePart
+timeBridge = typeName ^== "LocalTime" >> return psString
+
 myBridge :: BridgePart
 myBridge =
     PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
@@ -128,6 +131,7 @@ myBridge =
     PSGenerator.Common.miscBridge <|>
     doubleBridge <|>
     dayBridge <|>
+    timeBridge <|>
     contractBridge <|>
     stateBridge <|>
     transactionInputBridge <|>
