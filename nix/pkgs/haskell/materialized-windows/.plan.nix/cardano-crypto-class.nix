@@ -47,6 +47,7 @@
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
+          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
@@ -56,6 +57,7 @@
           ];
         buildable = true;
         modules = [
+          "Cardano/Crypto/PackedBytes"
           "Cardano/Crypto/DSIGN"
           "Cardano/Crypto/Hash"
           "Cardano/Crypto/KES"

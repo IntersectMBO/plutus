@@ -796,6 +796,7 @@
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         playground-common = ./.plan.nix/playground-common.nix;
         cardano-node = ./.plan.nix/cardano-node.nix;
+        cardano-protocol-tpraos = ./.plan.nix/cardano-protocol-tpraos.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
         lobemo-backend-monitoring = ./.plan.nix/lobemo-backend-monitoring.nix;
         marlowe-dashboard-server = ./.plan.nix/marlowe-dashboard-server.nix;
@@ -924,6 +925,7 @@
               "systemd" = lib.mkOverride 900 true;
               };
             };
+          "cardano-protocol-tpraos" = { flags = {}; };
           "cardano-crypto-class" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
@@ -1776,6 +1778,7 @@
           "transformers-compat".components.library.planned = lib.mkOverride 900 true;
           "fmlist".components.library.planned = lib.mkOverride 900 true;
           "memory".components.library.planned = lib.mkOverride 900 true;
+          "cardano-protocol-tpraos".components.library.planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.library.planned = lib.mkOverride 900 true;
           "cardano-node".components.library.planned = lib.mkOverride 900 true;
           "random-shuffle".components.library.planned = lib.mkOverride 900 true;
