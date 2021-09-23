@@ -25,7 +25,7 @@ import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Default                       (Default (def))
 import           Data.Monoid                        (Last (..))
 
-import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
+import           Ledger                             (Ada, Slot (..), Value)
 import qualified Ledger.Ada                         as Ada
 import           Plutus.Contract                    hiding (currentSlot)
 import           Plutus.Contract.Test               hiding (not)
@@ -52,7 +52,7 @@ slotCfg = def
 params :: AuctionParams
 params =
     AuctionParams
-        { apOwner   = pubKeyHash $ walletPubKey w1
+        { apOwner   = walletPubKeyHash w1
         , apAsset   = theToken
         , apEndTime = TimeSlot.scSlotZeroTime slotCfg + 100000
         }
@@ -127,7 +127,7 @@ trace1FinalState =
     AuctionOutput
         { auctionState = Last $ Just $ Finished $ HighestBid
             { highestBid = trace1WinningBid
-            , highestBidder = pubKeyHash (walletPubKey w2)
+            , highestBidder = walletPubKeyHash w2
             }
         , auctionThreadToken = Last $ Just threadToken
         }
@@ -137,7 +137,7 @@ trace2FinalState =
     AuctionOutput
         { auctionState = Last $ Just $ Finished $ HighestBid
             { highestBid = trace2WinningBid
-            , highestBidder = pubKeyHash (walletPubKey w2)
+            , highestBidder = walletPubKeyHash w2
             }
         , auctionThreadToken = Last $ Just threadToken
         }

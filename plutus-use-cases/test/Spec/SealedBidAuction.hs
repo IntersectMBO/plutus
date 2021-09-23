@@ -15,7 +15,7 @@ import           Control.Monad                      (void, when)
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Default                       (Default (def))
 
-import           Ledger                             (Slot (..), Value, pubKeyHash)
+import           Ledger                             (Slot (..), Value)
 import qualified Ledger.Ada                         as Ada
 import           Plutus.Contract.Test               hiding (not)
 
@@ -36,7 +36,7 @@ instance Arbitrary AuctionParams where
     endTime    <- choose (20, 50)
     payoutTime <- choose (endTime+1, 70)
     return $ AuctionParams
-              { apOwner      = pubKeyHash $ walletPubKey w1
+              { apOwner      = walletPubKeyHash w1
               , apAsset      = theToken
               , apEndTime    = TimeSlot.scSlotZeroTime def + fromInteger (endTime*1000)
               , apPayoutTime = TimeSlot.scSlotZeroTime def + fromInteger (payoutTime*1000)

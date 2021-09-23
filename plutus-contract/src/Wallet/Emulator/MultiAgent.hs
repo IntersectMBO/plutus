@@ -236,6 +236,7 @@ makeLenses ''EmulatorState
 walletState :: Wallet -> Lens' EmulatorState Wallet.WalletState
 walletState wallet@(Wallet (MockWallet privKey)) = walletStates . at wallet . anon (Wallet.emptyWalletState privKey) (const False)
 walletState (Wallet (XPubWallet _)) = error "XPub Wallets not supported in emulator"
+walletState (Wallet (CardanoWallet _)) = error "Cardano wallets not supported in emulator"
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
@@ -278,12 +279,12 @@ emulatorStatePool tp = emptyEmulatorState
 
 -- | Initialise the emulator state with a single pending transaction that
 --   creates the initial distribution of funds to public key addresses.
-emulatorStateInitialDist :: Map PubKey Value -> EmulatorState
+emulatorStateInitialDist :: Map PubKeyHash Value -> EmulatorState
 emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = mempty
             , txCollateral = mempty
-            , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
+            , txOutputs = uncurry (flip pubKeyHashTxOut) <$> Map.toList mp
             , txMint = foldMap snd $ Map.toList mp
             , txFee = mempty
             , txValidRange = WAPI.defaultSlotRange

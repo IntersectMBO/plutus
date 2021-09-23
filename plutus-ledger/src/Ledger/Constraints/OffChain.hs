@@ -96,7 +96,7 @@ data ScriptLookups a =
         -- ^ Public keys that we might need
         , slTypedValidator :: Maybe (TypedValidator a)
         -- ^ The script instance with the typed validator hash & actual compiled program
-        , slOwnPubkey      :: Maybe PubKeyHash
+        , slOwnPubkeyHash  :: Maybe PubKeyHash
         -- ^ The contract's public key address, used for depositing tokens etc.
         } deriving stock (Show, Generic)
           deriving anyclass (ToJSON, FromJSON)
@@ -111,7 +111,7 @@ instance Semigroup (ScriptLookups a) where
             , slPubKeyHashes = slPubKeyHashes l <> slPubKeyHashes r
             -- 'First' to match the semigroup instance of Map (left-biased)
             , slTypedValidator = fmap getFirst $ (First <$> slTypedValidator l) <> (First <$> slTypedValidator r)
-            , slOwnPubkey = fmap getFirst $ (First <$> slOwnPubkey l) <> (First <$> slOwnPubkey r)
+            , slOwnPubkeyHash = fmap getFirst $ (First <$> slOwnPubkeyHash l) <> (First <$> slOwnPubkeyHash r)
             }
 
 instance Monoid (ScriptLookups a) where
@@ -130,7 +130,7 @@ typedValidatorLookups inst =
         , slOtherData = Map.empty
         , slPubKeyHashes = Map.empty
         , slTypedValidator = Just inst
-        , slOwnPubkey = Nothing
+        , slOwnPubkeyHash = Nothing
         }
 
 -- | A script lookups value that uses the map of unspent outputs to resolve
@@ -161,7 +161,7 @@ pubKey :: PubKey -> ScriptLookups a
 pubKey pk = mempty { slPubKeyHashes = Map.singleton (pubKeyHash pk) pk }
 
 ownPubKeyHash :: PubKeyHash -> ScriptLookups a
-ownPubKeyHash ph = mempty { slOwnPubkey = Just ph}
+ownPubKeyHash ph = mempty { slOwnPubkeyHash = Just ph}
 
 -- | An unbalanced transaction. It needs to be balanced and signed before it
 --   can be submitted to the ledeger. See note [Submitting transactions from
@@ -346,7 +346,7 @@ addMissingValueSpent = do
             -- wallet will add a corresponding input when balancing the
             -- transaction.
             -- Step 4 of the process described in [Balance of value spent]
-            pk <- asks slOwnPubkey >>= maybe (throwError OwnPubKeyMissing) pure
+            pk <- asks slOwnPubkeyHash >>= maybe (throwError OwnPubKeyMissing) pure
             unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=missing,txOutDatumHash=Nothing} :)
 
 addMintingRedeemers

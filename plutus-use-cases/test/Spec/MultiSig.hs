@@ -6,7 +6,6 @@
 module Spec.MultiSig(tests, failingTrace, succeedingTrace) where
 
 import           Control.Monad             (void)
-import qualified Ledger
 import qualified Ledger.Ada                as Ada
 import           Ledger.Crypto             (privateKey1, privateKey2, privateKey3)
 import           Ledger.Index              (ValidationError (ScriptFailure))
@@ -42,7 +41,7 @@ failingTrace = do
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKeyHash [w1, w2])
     void $ Trace.waitNSlots 1
 
 -- | Lock some funds, then unlock them with a transaction that has the
@@ -53,7 +52,7 @@ succeedingTrace = do
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
     Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2, privateKey3])
-    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKey [w1, w2, w3])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKeyHash [w1, w2, w3])
     void $ Trace.waitNSlots 1
 
 theContract :: Contract () MultiSigSchema ContractError ()
@@ -62,6 +61,6 @@ theContract = MS.contract
 -- a 'MultiSig' contract that requires three out of five signatures
 multiSig :: MultiSig
 multiSig = MultiSig
-        { signatories = Ledger.pubKeyHash . walletPubKey . knownWallet <$> [1..5]
+        { signatories = walletPubKeyHash . knownWallet <$> [1..5]
         , minNumSignatures = 3
         }

@@ -19,7 +19,7 @@ import qualified Test.Tasty.HUnit        as HUnit
 import           Spec.TokenAccount       (assertAccountBalance)
 
 import qualified Ledger.Ada              as Ada
-import           Ledger.Crypto           (PrivateKey, PubKey (..), privateKey10)
+import           Ledger.Crypto           (PrivateKey, PubKey (..), privateKey10, toPublicKey)
 import           Ledger.Oracle           (Observation (..), SignedMessage)
 import qualified Ledger.Oracle           as Oracle
 import           Ledger.Time             (POSIXTime)
@@ -79,8 +79,8 @@ tests =
 setup :: POSIXTime -> FutureSetup
 setup startTime =
     FutureSetup
-        { shortPK = walletPubKey w1
-        , longPK = walletPubKey w2
+        { shortPK = walletPubKeyHash w1
+        , longPK = walletPubKeyHash w2
         , contractStart = startTime + 15000
         }
 
@@ -163,7 +163,7 @@ units :: Integer
 units = 187
 
 oracleKeys :: (PrivateKey, PubKey)
-oracleKeys = (privateKey10, walletPubKey w10)
+oracleKeys = (privateKey10, toPublicKey privateKey10)
 
 -- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()

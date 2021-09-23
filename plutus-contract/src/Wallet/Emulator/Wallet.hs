@@ -20,7 +20,10 @@
 
 module Wallet.Emulator.Wallet where
 
+import           Cardano.Crypto.Hash            as Crypto
 import qualified Cardano.Crypto.Wallet          as Crypto
+import qualified Cardano.Wallet.Primitive.Types as Cardano.Wallet
+import           Control.Applicative            (Alternative (..))
 import           Control.Lens                   hiding (from, to)
 import           Control.Monad                  (foldM)
 import           Control.Monad.Freer
@@ -32,6 +35,7 @@ import           Data.Aeson                     (FromJSON (..), ToJSON (..), ToJ
 import qualified Data.Aeson                     as Aeson
 import           Data.Aeson.Extras
 import           Data.Bifunctor
+import           Data.ByteArray                 (convert)
 import qualified Data.ByteString                as BS
 import           Data.Default                   (Default (def))
 import           Data.Foldable
@@ -45,6 +49,7 @@ import           Data.Semigroup                 (Sum (..))
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (..))
 import qualified Data.Text                      as T
+import           Data.Text.Class                (fromText, toText)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic (..))
 import           Ledger                         hiding (from, to)
@@ -81,7 +86,7 @@ instance Show SigningProcess where
 newtype Wallet = Wallet { getWalletId :: WalletId }
     deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData)
-    deriving anyclass (Hashable, ToJSON, FromJSON, ToJSONKey)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey)
 
 instance Show Wallet where
     showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
@@ -90,10 +95,14 @@ instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty (T.take 7 $ toBase16 i)
 
 deriving anyclass instance OpenApi.ToSchema Wallet
+deriving anyclass instance OpenApi.ToSchema Cardano.Wallet.WalletId
 
-data WalletId = MockWallet Crypto.XPrv | XPubWallet Crypto.XPub
+data WalletId =
+    MockWallet Crypto.XPrv
+    | XPubWallet Crypto.XPub
+    | CardanoWallet  Cardano.Wallet.WalletId
     deriving (Eq, Ord, Generic)
-    deriving anyclass (Hashable, ToJSONKey)
+    deriving anyclass (ToJSONKey)
 
 instance Show WalletId where
     show = T.unpack . toBase16
@@ -116,29 +125,39 @@ instance Hashable Crypto.XPrv where
 deriving anyclass instance OpenApi.ToSchema WalletId
 
 toBase16 :: WalletId -> T.Text
-toBase16 (MockWallet xprv) = encodeByteString $ Crypto.unXPrv xprv
-toBase16 (XPubWallet xpub) = encodeByteString $ Crypto.unXPub xpub
+toBase16 (MockWallet xprv)    = encodeByteString $ Crypto.unXPrv xprv
+toBase16 (XPubWallet xpub)    = encodeByteString $ Crypto.unXPub xpub
+toBase16 (CardanoWallet wllt) = toText wllt
 
 fromBase16 :: T.Text -> Either String WalletId
-fromBase16 s = do
-    bs <- tryDecode s
-    case BS.length bs of
-        64  -> XPubWallet <$> Crypto.xpub bs
-        128 -> MockWallet <$> Crypto.xprv bs
-        _   -> Left "fromBase16 error: bytestring length should be 64 or 128"
+fromBase16 s = bimap show CardanoWallet (fromText s) <|> decode where
+    decode = do
+            bs <- tryDecode s
+            case BS.length bs of
+                64  -> XPubWallet <$> Crypto.xpub bs
+                128 -> MockWallet <$> Crypto.xprv bs
+                _   -> Left "fromBase16 error: bytestring length should be 64 or 128"
 
 -- | Get a wallet's extended public key
-walletXPub :: Wallet -> Crypto.XPub
-walletXPub (Wallet (MockWallet xprv)) = Crypto.toXPub xprv
-walletXPub (Wallet (XPubWallet xpub)) = xpub
+walletXPub :: Wallet -> Maybe Crypto.XPub
+walletXPub (Wallet (MockWallet xprv)) = Just (Crypto.toXPub xprv)
+walletXPub (Wallet (XPubWallet xpub)) = Just xpub
+walletXPub _                          = Nothing
 
 -- | Get a wallet's public key.
-walletPubKey :: Wallet -> PubKey
-walletPubKey = Crypto.xPubToPublicKey . walletXPub
+walletPubKey :: Wallet -> Maybe PubKey
+walletPubKey = fmap Crypto.xPubToPublicKey . walletXPub
+
+-- | The public key hash of a wallet.
+walletPubKeyHash :: Wallet -> PubKeyHash
+walletPubKeyHash = \case
+    Wallet (MockWallet xprv)                           -> pubKeyHash $ Crypto.xPubToPublicKey $ Crypto.toXPub xprv
+    Wallet (XPubWallet xpub)                           -> pubKeyHash $ Crypto.xPubToPublicKey xpub
+    Wallet (CardanoWallet (Cardano.Wallet.WalletId i)) -> PubKeyHash $ PlutusTx.toBuiltin @ByteString $ convert i
 
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
-walletAddress = pubKeyAddress . walletPubKey
+walletAddress = pubKeyHashAddress . walletPubKeyHash
 
 -- | The wallets used in mockchain simulations by default. There are
 --   ten wallets because the emulator comes with ten private keys.
@@ -224,7 +243,7 @@ handleWallet feeCfg = \case
     SubmitTxn tx -> do
         logInfo $ SubmittingTx tx
         publishTx tx
-    OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
+    OwnPubKeyHash -> gets (walletPubKeyHash . Wallet . MockWallet . _ownPrivateKey)
     BalanceTx utx' -> runError $ do
         logInfo $ BalancingUnbalancedTx utx'
         utxo <- get >>= ownOutputs
@@ -473,7 +492,7 @@ signWallet wllt = SigningProcess $
 --   key. Fails if the wallet doesn't have the private key.
 signTxnWithKey :: (Member (Error WAPI.WalletAPIError) r) => Wallet -> Tx -> PubKeyHash -> Eff r Tx
 signTxnWithKey (Wallet (MockWallet prv)) tx pubK = signTxWithPrivateKey prv tx pubK
-signTxnWithKey (Wallet (XPubWallet xPub)) _ _ = throwError . WAPI.PrivateKeyNotFound . pubKeyHash $ Crypto.xPubToPublicKey xPub
+signTxnWithKey wllt _ _                          = throwError . WAPI.PrivateKeyNotFound $ walletPubKeyHash wllt
 
 -- | Sign the transaction with the private key, if the hash is that of the
 --   private key.

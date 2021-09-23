@@ -17,7 +17,7 @@ module Wallet.Emulator.Types(
     WalletId(..),
     Crypto.XPrv,
     Crypto.XPub,
-    walletPubKey,
+    walletPubKeyHash,
     addSignature,
     knownWallets,
     knownWallet,

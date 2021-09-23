@@ -25,7 +25,7 @@ import qualified Data.Map                       as Map
 import           Data.Void
 import           Test.Tasty
 
-import           Ledger                         (Address, PubKey)
+import           Ledger                               (Address, PubKeyHash)
 import qualified Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Constraints             as Constraints
@@ -126,7 +126,7 @@ tests =
                 (waitingForSlot theContract tag 20)
                 (void $ activateContract w1 theContract tag)
 
-        , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let smallTx = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
           in run "handle several blockchain events"
                 (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
@@ -175,12 +175,12 @@ tests =
                 Trace.waitNSlots 1
             )
 
-        , let theContract :: Contract () Schema ContractError PubKey = ownPubKey
+        , let theContract :: Contract () Schema ContractError PubKeyHash = ownPubKeyHash
           in run "own public key"
-                (assertDone theContract tag (== walletPubKey w2) "should return the wallet's public key")
+                (assertDone theContract tag (== walletPubKeyHash w2) "should return the wallet's public key")
                 (void $ activateContract w2 (void theContract) tag)
 
-        , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.txId
           in run "await tx confirmed"
             (assertDone theContract tag (const True) "should be done")

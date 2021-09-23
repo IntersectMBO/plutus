@@ -22,7 +22,7 @@ Mock wallet implementation
 module Wallet.API(
     WalletEffect,
     submitTxn,
-    ownPubKey,
+    ownPubKeyHash,
     balanceTx,
     NodeClientEffect,
     publishTx,
@@ -31,8 +31,8 @@ module Wallet.API(
     PubKey(..),
     signTxAndSubmit,
     signTxAndSubmit_,
-    payToPublicKey,
-    payToPublicKey_,
+    payToPublicKeyHash,
+    payToPublicKeyHash_,
     -- * Slot ranges
     Interval(..),
     Slot,
@@ -65,23 +65,23 @@ import           Prelude                     hiding (Ordering (..))
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
-payToPublicKey ::
+payToPublicKeyHash ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     )
-    => SlotRange -> Value -> PubKey -> Eff effs Tx
-payToPublicKey range v pk = do
-    let tx = mempty{txOutputs = [pubKeyTxOut v pk], txValidRange = range}
+    => SlotRange -> Value -> PubKeyHash -> Eff effs Tx
+payToPublicKeyHash range v pk = do
+    let tx = mempty{txOutputs = [pubKeyHashTxOut v pk], txValidRange = range}
     balancedTx <- balanceTx emptyUnbalancedTx{unBalancedTxTx = tx}
     either throwError signTxAndSubmit balancedTx
 
 -- | Transfer some funds to an address locked by a public key.
-payToPublicKey_ ::
+payToPublicKeyHash_ ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     )
-    => SlotRange -> Value -> PubKey -> Eff effs ()
-payToPublicKey_ r v = void . payToPublicKey r v
+    => SlotRange -> Value -> PubKeyHash -> Eff effs ()
+payToPublicKeyHash_ r v = void . payToPublicKeyHash r v
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.

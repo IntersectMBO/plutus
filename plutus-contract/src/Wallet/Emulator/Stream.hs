@@ -165,7 +165,7 @@ instance Default EmulatorConfig where
 initialState :: EmulatorConfig -> EM.EmulatorState
 initialState EmulatorConfig{_initialChainState} =
     either
-        (EM.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey)
+        (EM.emulatorStateInitialDist . Map.mapKeys EM.walletPubKeyHash)
         EM.emulatorStatePool
         _initialChainState
 

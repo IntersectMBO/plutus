@@ -39,7 +39,7 @@ import           Prelude                  as Haskell (Semigroup (..), Show, fold
 
 type MultiSigSchema =
         Endpoint "lock" (MultiSig, Value)
-        .\/ Endpoint "unlock" (MultiSig, [PubKey])
+        .\/ Endpoint "unlock" (MultiSig, [PubKeyHash])
 
 data MultiSig =
         MultiSig
@@ -88,8 +88,7 @@ unlock = endpoint @"unlock" $ \(ms, pks) -> do
     let inst = typedValidator ms
     utx <- utxosAt (Scripts.validatorAddress inst)
     let tx = Tx.collectFromScript utx ()
-                <> foldMap (Constraints.mustBeSignedBy . pubKeyHash) pks
+                <> foldMap Constraints.mustBeSignedBy pks
         lookups = Constraints.typedValidatorLookups inst
                 <> Constraints.unspentOutputs utx
-                <> foldMap Constraints.pubKey pks
     void $ submitTxConstraintsWith lookups tx

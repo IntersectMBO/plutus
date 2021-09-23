@@ -21,13 +21,13 @@ import           Ledger
 import           Ledger.Ada                        (adaSymbol, adaToken)
 import           Ledger.Constraints
 import           Ledger.Value                      as Value
-import           Plutus.Contract                   hiding (throwError)
+import           Plutus.Contract                   as Contract hiding (throwError)
 import qualified Plutus.Contracts.Currency         as Currency
 import           Plutus.Contracts.Uniswap.OffChain as OffChain
 import           Plutus.Contracts.Uniswap.Types    as Types
 import           Plutus.Trace.Emulator             (EmulatorRuntimeError (GenericError), EmulatorTrace)
 import qualified Plutus.Trace.Emulator             as Emulator
-import           Wallet.Emulator                   (Wallet (..), knownWallet, knownWallets, walletPubKey)
+import           Wallet.Emulator                   (Wallet (..), knownWallet, knownWallets, walletPubKeyHash)
 
 -- | Set up a liquidity pool and call the "add" endpoint
 uniswapTrace :: EmulatorTrace ()
@@ -63,13 +63,13 @@ uniswapTrace = do
 --   the emulated wallets
 setupTokens :: Contract (Maybe (Semigroup.Last Currency.OneShotCurrency)) Currency.CurrencySchema Currency.CurrencyError ()
 setupTokens = do
-    ownPK <- pubKeyHash <$> ownPubKey
+    ownPK <- Contract.ownPubKeyHash
     cur   <- Currency.mintContract ownPK [(tn, fromIntegral (length wallets) * amount) | tn <- tokenNames]
     let cs = Currency.currencySymbol cur
         v  = mconcat [Value.singleton cs tn amount | tn <- tokenNames]
 
     forM_ wallets $ \w -> do
-        let pkh = pubKeyHash $ walletPubKey w
+        let pkh = walletPubKeyHash w
         when (pkh /= ownPK) $ do
             tx <- submitTx $ mustPayToPubKey pkh v
             awaitTxConfirmed $ txId tx

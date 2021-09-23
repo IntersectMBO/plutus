@@ -31,7 +31,6 @@ import           Data.Monoid                      (Last (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           GHC.Generics                     (Generic)
 import           Ledger                           (Ada, POSIXTime, PubKeyHash, Value)
-import qualified Ledger
 import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
@@ -213,7 +212,7 @@ auctionSeller :: Value -> POSIXTime -> Contract AuctionOutput SellerSchema Aucti
 auctionSeller value time = do
     threadToken <- SM.getThreadToken
     tell $ threadTokenOut threadToken
-    self <- Ledger.pubKeyHash <$> ownPubKey
+    self <- ownPubKeyHash
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = time }
         inst         = typedValidator (threadToken, params)
         client       = machineClient inst threadToken params
@@ -324,7 +323,7 @@ handleEvent client lastHighestBid change =
         AuctionIsOver s -> tell (auctionStateOut $ Finished s) >> stop
         SubmitOwnBid ada -> do
             logInfo @Haskell.String "Submitting bid"
-            self <- Ledger.pubKeyHash <$> ownPubKey
+            self <- ownPubKeyHash
             logInfo @Haskell.String "Received pubkey"
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
             logInfo @Haskell.String "SM: runStep done"

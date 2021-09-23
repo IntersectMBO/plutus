@@ -10,6 +10,7 @@ module Ledger.Orphans where
 import qualified Cardano.Crypto.Wallet          as Crypto
 import           Control.Lens                   ((&), (.~), (?~))
 import           Control.Monad.Freer.Extras.Log (LogLevel, LogMessage)
+import qualified Crypto.Hash                    as Crypto
 import qualified Data.Aeson                     as JSON
 import qualified Data.Aeson.Extras              as JSON
 import           Data.Bifunctor                 (bimap)
@@ -50,6 +51,8 @@ instance OpenApi.ToSchema Crypto.XPub where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PubKey") mempty
 instance OpenApi.ToSchema Crypto.XPrv where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PrvKey") mempty
+instance OpenApi.ToSchema (Crypto.Digest Crypto.Blake2b_160) where
+    declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "Hash") mempty
 deriving instance OpenApi.ToSchema (LogMessage JSON.Value)
 deriving instance OpenApi.ToSchema LogLevel
 instance OpenApi.ToSchema JSON.Value where
