@@ -485,8 +485,8 @@ evalValue env state value = let
                                 in if ar < ad then q -- reminder < 1/2
                                    else if ar > ad then q + signum n * signum d -- reminder > 1/2
                                    else let -- reminder == 1/2
-                                even = q `Builtins.remainderInteger` 2 == 0
-                                in if even then q else q + signum n * signum d
+                                qIsEven = q `Builtins.remainderInteger` 2 == 0
+                                in if qIsEven then q else q + signum n * signum d
         Scale s rhs          -> let (n, d) = (numerator s, denominator s)
                                     nn = eval rhs * n
                                     (q, r) = nn `quotRem` d in

@@ -1416,9 +1416,9 @@ evalValue env state value =
                       q + signum n * signum d -- reminder > 1/2
                     else
                       let -- reminder == 1/2
-                        even = q `mod` fromInt 2 == fromInt 0
+                        qIsEven = q `mod` fromInt 2 == fromInt 0
                       in
-                        if even then q else q + signum n * signum d
+                        if qIsEven then q else q + signum n * signum d
       Scale (Rational n d) rhs ->
         let
           nn = eval rhs * n

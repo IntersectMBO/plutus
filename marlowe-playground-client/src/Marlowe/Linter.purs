@@ -641,7 +641,11 @@ lintValue env t@(Term (DivValue a b) pos) = do
   sa <- lintValue env a
   sb <- lintValue env b
   case sa /\ sb of
-    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 / v2))
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) ->
+      let
+        evaluated = evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.DivValue (S.Constant v1) (S.Constant v2))
+      in
+        pure (ConstantSimp pos true evaluated)
     (ConstantSimp _ _ v /\ _)
       | v == zero -> pure (ConstantSimp pos true zero)
     (_ /\ ConstantSimp _ _ v)
