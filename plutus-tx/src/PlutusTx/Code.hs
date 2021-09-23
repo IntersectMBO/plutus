@@ -25,6 +25,8 @@ import           Flat.Decoder            (DecodeException)
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Lazy    as BSL
 import           ErrorCode
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                 as Haskell
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is

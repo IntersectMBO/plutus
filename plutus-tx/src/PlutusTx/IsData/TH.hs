@@ -15,6 +15,9 @@ import qualified PlutusTx.Builtins.Internal   as BI
 import           PlutusTx.IsData.Class
 import           PlutusTx.Trace               (traceError)
 
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                      as Haskell
+
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"

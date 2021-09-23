@@ -1,4 +1,4 @@
-{ writeShellScriptBin, writeText, pabExe, staticPkg, cacert, coreutils, lib, gnused }:
+{ writeShellScriptBin, writeText, pabExe, staticPkg, cacert, coreutils, lib, gnused, utillinux }:
 let
   dbFile = "/var/lib/pab/pab-core.db";
 
@@ -78,8 +78,6 @@ let
   pab-init-cmd = writeShellScriptBin "pab-init-cmd" ''
     set -eEuo pipefail
 
-    export PATH=${lib.makeBinPath [ coreutils ]}
-
     echo "[pab-init-cmd]: Dropping PAB database file '${dbFile}'" >&2
     rm -rf ${dbFile}
 
@@ -90,9 +88,11 @@ in
 writeShellScriptBin "entrypoint" ''
   set -eEuo pipefail
 
+  export PATH=${lib.makeBinPath [ coreutils gnused utillinux ]}
+
   export SYSTEM_CERTIFICATE_PATH=${cacert}/etc/ssl/certs/ca-bundle.crt
 
-  ${gnused}/bin/sed -e "s|@WEBSERVER_PORT@|$((PORT_RANGE_BASE))|g" \
+  sed -e "s|@WEBSERVER_PORT@|$((PORT_RANGE_BASE))|g" \
       -e "s|@NODE_PORT@|$((PORT_RANGE_BASE + 1))|g" \
       -e "s|@CHAIN_INDEX_PORT@|$((PORT_RANGE_BASE + 2))|g" \
       -e "s|@SIGNING_PROCESS_PORT@|$((PORT_RANGE_BASE + 3))|g" \
@@ -102,5 +102,10 @@ writeShellScriptBin "entrypoint" ''
 
   ${pab-init-cmd}/bin/pab-init-cmd
 
-  exec ${pabExe} --config=${pabYaml} all-servers
+  # Ugly ugly hack to kill the PAB at midnight UTC
+  ${pabExe} --config=${pabYaml} all-servers&
+  pab_pid=$!
+  sleep $(($(date -f - +%s- <<< $'tomorrow 00:00\nnow')0))
+  kill $pab_pid
+  exit 1
 ''

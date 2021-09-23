@@ -1,9 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Functor (Functor(..), (<$>), (<$), const, id) where
+module PlutusTx.Functor (Functor(..), (<$>), (<$)) where
 
-import           Control.Applicative   (Const (..))
-import           Data.Functor.Identity (Identity (..))
-import           Prelude               hiding (Functor (..), const, id, (<$), (<$>))
+import                          Control.Applicative   (Const (..))
+import                          Data.Functor.Identity (Identity (..))
+
+import                          PlutusTx.Base
+import                          PlutusTx.Either       (Either (..))
+import {-# SOURCE #-}           PlutusTx.Maybe        (Maybe (..))
 
 {- HLINT ignore -}
 
@@ -54,13 +57,3 @@ instance Functor Identity where
 instance Functor (Const m) where
     {-# INLINABLE fmap #-}
     fmap _ (Const c) = Const c
-
-{-# INLINABLE const #-}
--- | Plutus Tx version of 'Prelude.const'.
-const :: a -> b -> a
-const x _ =  x
-
-{-# INLINABLE id #-}
--- | Plutus Tx version of 'Prelude.id'.
-id :: a -> a
-id x = x

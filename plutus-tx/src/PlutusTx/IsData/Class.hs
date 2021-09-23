@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -9,16 +8,17 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import           Prelude                    (Int, Integer, Maybe (..), error)
+import qualified Prelude                    as Haskell (Int, error)
 
 import qualified PlutusCore.Data            as PLC
+import           PlutusTx.Base
 import           PlutusTx.Builtins          as Builtins
 import           PlutusTx.Builtins.Internal (BuiltinData (..))
 import qualified PlutusTx.Builtins.Internal as BI
+import           PlutusTx.Maybe             (Maybe (..))
 
 import           PlutusTx.Applicative
 import           PlutusTx.ErrorCodes
-import           PlutusTx.Functor
 import           PlutusTx.Trace
 
 import           Data.Kind
@@ -58,14 +58,14 @@ instance UnsafeFromData BuiltinData where
     unsafeFromBuiltinData d = d
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => ToData Int where
-    toBuiltinData = Prelude.error "unsupported"
+    => ToData Haskell.Int where
+    toBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => FromData Int where
-    fromBuiltinData = Prelude.error "unsupported"
+    => FromData Haskell.Int where
+    fromBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => UnsafeFromData Int where
-    unsafeFromBuiltinData = Prelude.error "unsupported"
+    => UnsafeFromData Haskell.Int where
+    unsafeFromBuiltinData = Haskell.error "unsupported"
 
 instance ToData Integer where
     {-# INLINABLE toBuiltinData #-}

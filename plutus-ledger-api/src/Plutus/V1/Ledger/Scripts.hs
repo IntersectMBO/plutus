@@ -123,7 +123,7 @@ instance Flat.Flat a => Serialise (SerialiseViaFlat a) where
     bs <- decodeBytes
     case Flat.unflat bs of
       Left  err -> Haskell.fail (Haskell.show err)
-      Right v   -> return (SerialiseViaFlat v)
+      Right v   -> Haskell.return (SerialiseViaFlat v)
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -194,7 +194,7 @@ mkTermToEvaluate (Script (UPLC.Program a v t)) =
 evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
 evaluateScript s = do
     p <- case mkTermToEvaluate s of
-        Right p -> return p
+        Right p -> Haskell.return p
         Left e  -> throwError $ MalformedScript $ Haskell.show e
     let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
     case result of
@@ -220,7 +220,7 @@ instance FromJSON Script where
     -- See note [JSON instances for Script]
     parseJSON v = do
         (SerialiseViaFlat p) <- JSON.decodeSerialise v
-        return $ Script p
+        Haskell.return $ Script p
 
 deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON (PLC.Data)
 deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON (PLC.Data)

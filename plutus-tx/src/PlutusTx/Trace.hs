@@ -6,8 +6,8 @@ module PlutusTx.Trace (
   traceIfTrue
   ) where
 
+import           PlutusTx.Bool
 import           PlutusTx.Builtins as Builtins
-import           Prelude           hiding (error)
 
 {-# INLINABLE traceError #-}
 -- | Log a message and then terminate the evaluation with an error.

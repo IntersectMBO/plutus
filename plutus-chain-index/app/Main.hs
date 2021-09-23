@@ -19,6 +19,7 @@ import           Control.Monad.Freer.Extras.Log      (LogLevel (..), LogMessage 
 import           Control.Monad.Freer.State           (State, runState)
 import           Control.Monad.Freer.Writer          (runWriter)
 import           Control.Monad.IO.Class              (liftIO)
+import           Control.Tracer                      (nullTracer)
 import qualified Data.Aeson                          as A
 import           Data.Foldable                       (for_, traverse_)
 import           Data.Function                       ((&))
@@ -143,6 +144,7 @@ main = do
 
       putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
       void $ runChainSync (Config.cicSocketPath config)
+                          nullTracer
                           (Config.cicSlotConfig config)
                           (Config.cicNetworkId  config)
                           []

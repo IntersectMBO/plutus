@@ -34,6 +34,7 @@ import           Control.Concurrent.STM                 (STM)
 import qualified Control.Concurrent.STM                 as STM
 import           Control.Lens
 import           Control.Monad                          (forM_, void, when)
+import           Control.Tracer                         (nullTracer)
 import           Data.Foldable                          (foldl')
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.ChainIndex                      (BlockNumber (..), ChainIndexTx (..), ChainIndexTxOutputs (..),
@@ -61,7 +62,7 @@ startNodeClient socket mode slotConfig networkId instancesState = do
             (\block slot -> handleSyncAction $ processMockBlock instancesState env block slot)
       AlonzoNode -> do
           let resumePoints = []
-          void $ Client.runChainSync socket slotConfig networkId resumePoints
+          void $ Client.runChainSync socket nullTracer slotConfig networkId resumePoints
             (\block slot -> handleSyncAction $ processChainSyncEvent env block slot)
     pure env
 
@@ -81,9 +82,9 @@ updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUt
 processChainSyncEvent :: BlockchainEnv -> ChainSyncEvent -> Slot -> STM (Either SyncActionFailure ())
 processChainSyncEvent blockchainEnv event _slot = do
   case event of
-      Resume _                                                     -> pure $ Right () -- TODO: Handle resume
-      RollForward  (BlockInMode (C.Block header transactions) era) -> processBlock header blockchainEnv transactions era
-      RollBackward chainPoint                                      -> runRollback blockchainEnv chainPoint
+      Resume _                                                       -> pure $ Right () -- TODO: Handle resume
+      RollForward  (BlockInMode (C.Block header transactions) era) _ -> processBlock header blockchainEnv transactions era
+      RollBackward chainPoint _                                      -> runRollback blockchainEnv chainPoint
 
 data SyncActionFailure
   = RollbackFailure RollbackFailed

@@ -106,7 +106,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
 typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
-        valExpected = makeKnownNoEmit x
+        valExpected = makeKnownOrFail x
     tyActual <- runQuoteT $ do
         config <- getDefTypeCheckConfig ()
         inferType config term

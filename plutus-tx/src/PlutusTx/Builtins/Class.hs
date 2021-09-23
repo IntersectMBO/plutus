@@ -18,8 +18,10 @@ import           Data.String                (IsString (..))
 import           Data.Text                  (Text, pack)
 
 import qualified GHC.Magic                  as Magic
-
-import           Prelude                    hiding (fst, head, null, snd, tail)
+import           PlutusTx.Base              (const, id, ($))
+import           PlutusTx.Bool              (Bool (..))
+import           PlutusTx.Integer           (Integer)
+import qualified Prelude                    as Haskell (String)
 
 {- Note [Fundeps versus type families in To/FromBuiltin]
 We could use a type family here to get the builtin representation of a type. After all, it's
@@ -114,7 +116,7 @@ instance IsString BuiltinString where
     fromString = Magic.noinline stringToBuiltinString
 
 {-# INLINABLE stringToBuiltinString #-}
-stringToBuiltinString :: String -> BuiltinString
+stringToBuiltinString :: Haskell.String -> BuiltinString
 -- To explain why the obfuscatedId is here
 -- See Note [noinline hack]
 stringToBuiltinString str = obfuscatedId (BuiltinString $ pack str)
@@ -139,7 +141,7 @@ instance IsString BuiltinByteString where
     fromString = Magic.noinline stringToBuiltinByteString
 
 {-# INLINABLE stringToBuiltinByteString #-}
-stringToBuiltinByteString :: String -> BuiltinByteString
+stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
 
 {- Note [From/ToBuiltin instances for polymorphic builtin types]
