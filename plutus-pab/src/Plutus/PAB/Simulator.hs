@@ -32,7 +32,7 @@ module Plutus.PAB.Simulator(
     , logString
     -- ** Agent actions
     , payToWallet
-    , payToPublicKey
+    , payToPublicKeyHash
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
@@ -100,8 +100,8 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
-import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
-                                                                 TxOutRef, eitherTx, txFee, txId)
+import           Ledger                                         (Address (..), Blockchain, PubKeyHash, Tx, TxId,
+                                                                 TxOut (..), eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
 import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
@@ -162,7 +162,7 @@ initialAgentState (Wallet (MockWallet privKey)) =
         { _walletState   = Wallet.emptyWalletState privKey
         , _submittedFees = mempty
         }
-initialAgentState (Wallet (XPubWallet _)) = error "Only mock wallets supported in the simulator"
+initialAgentState (Wallet _) = error "Only mock wallets supported in the simulator"
 
 data SimulatorState t =
     SimulatorState
@@ -731,20 +731,18 @@ instanceActivity = Core.instanceActivity
 
 -- | Create a new wallet with a random key, give it some funds
 --   and add it to the list of simulated wallets.
-addWallet :: forall t. Simulation t (Wallet, PubKey)
+addWallet :: forall t. Simulation t (Wallet,PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (newWallet, newState) <- MockWallet.newWallet
-    let publicKey = Wallet.walletPubKey newWallet
-    result <- liftIO $ STM.atomically $ do
+    (newWallet, newState, walletKey) <- MockWallet.newWallet
+    void $ liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
         let newWallets = currentWallets & at newWallet ?~ AgentState newState mempty
         STM.writeTVar _agentStates newWallets
-        pure (newWallet, publicKey)
     _ <- handleAgentThread (knownWallet 2)
             $ Modify.wrapError WalletError
-            $ MockWallet.distributeNewWalletFunds publicKey
-    pure result
+            $ MockWallet.distributeNewWalletFunds (Wallet.walletPubKeyHash newWallet)
+    pure (newWallet, walletKey)
 
 
 -- | Retrieve the balances of all the entities in the simulator.
@@ -772,11 +770,11 @@ logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
 
 -- | Make a payment from one wallet to another
 payToWallet :: forall t. Wallet -> Wallet -> Value -> Simulation t Tx
-payToWallet source target = payToPublicKey source (Emulator.walletPubKey target)
+payToWallet source target = payToPublicKeyHash source (Emulator.walletPubKeyHash target)
 
 -- | Make a payment from one wallet to a public key address
-payToPublicKey :: forall t. Wallet -> PubKey -> Value -> Simulation t Tx
-payToPublicKey source target amount =
+payToPublicKeyHash :: forall t. Wallet -> PubKeyHash -> Value -> Simulation t Tx
+payToPublicKeyHash source target amount =
     handleAgentThread source
         $ flip (handleError @WAPI.WalletAPIError) (throwError . WalletError)
-        $ WAPI.payToPublicKey WAPI.defaultSlotRange amount target
+        $ WAPI.payToPublicKeyHash WAPI.defaultSlotRange amount target

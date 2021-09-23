@@ -214,5 +214,5 @@ startServerDebug' conf = do
     tk <- newToken
     let mkWalletInfo = do
             (wllt, pk) <- Simulator.addWallet
-            pure $ WalletInfo{wiWallet = wllt, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}
+            pure $ WalletInfo{wiWallet = wllt, wiPubKey = Just pk, wiPubKeyHash = pubKeyHash pk}
     snd <$> startServer conf (Right mkWalletInfo) tk

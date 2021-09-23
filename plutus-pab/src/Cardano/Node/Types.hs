@@ -229,7 +229,7 @@ initialAppState wallets = do
 initialChainState :: MonadIO m => Trace.InitialDistribution -> m MockNodeServerChainState
 initialChainState =
     fromEmulatorChainState . view EM.chainState .
-    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
+    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKeyHash
 
 -- Effects -------------------------------------------------------------------------------------------------------------
 

@@ -29,6 +29,7 @@ module Wallet.API(
     getClientSlot,
     getClientSlotConfig,
     PubKey(..),
+    PubKeyHash(..),
     signTxAndSubmit,
     signTxAndSubmit_,
     payToPublicKeyHash,

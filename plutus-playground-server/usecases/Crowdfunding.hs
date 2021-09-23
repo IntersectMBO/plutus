@@ -82,7 +82,7 @@ mkCampaign ddl collectionDdl ownerWallet =
     Campaign
         { campaignDeadline = ddl
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = pubKeyHash $ Emulator.walletPubKey ownerWallet
+        , campaignOwner = Emulator.walletPubKeyHash ownerWallet
         }
 
 -- | The 'POSIXTimeRange' during which the funds can be collected
@@ -153,7 +153,7 @@ theCampaign :: POSIXTime -> Campaign
 theCampaign startTime = Campaign
     { campaignDeadline = startTime + 40000
     , campaignCollectionDeadline = startTime + 60000
-    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.knownWallet 1)
+    , campaignOwner = Emulator.walletPubKeyHash (Emulator.knownWallet 1)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
@@ -162,7 +162,7 @@ theCampaign startTime = Campaign
 --   refund if the funding was not collected.
 contribute :: AsContractError e => Campaign -> Promise () CrowdfundingSchema e ()
 contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
-    contributor <- pubKeyHash <$> ownPubKey
+    contributor <- ownPubKeyHash
     let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))

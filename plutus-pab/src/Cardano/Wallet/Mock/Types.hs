@@ -19,7 +19,8 @@ module Cardano.Wallet.Mock.Types (
     , MultiWalletEffect (..)
     , createWallet
     , multiWallet
-     -- * wallet configuration
+    , getWalletInfo
+    -- * wallet configuration
     , WalletConfig (..)
     , defaultWalletConfig
 
@@ -34,11 +35,13 @@ module Cardano.Wallet.Mock.Types (
     , ChainIndexUrl
     -- * Wallet info
     , WalletInfo(..)
+    , fromWalletState
     ) where
 
 import           Cardano.BM.Data.Tracer             (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types           (ChainIndexUrl)
+import qualified Cardano.Crypto.Wallet              as Crypto
 import           Control.Monad.Freer                (Eff)
 import           Control.Monad.Freer.Error          (Error)
 import           Control.Monad.Freer.Extras.Log     (LogMsg)
@@ -51,6 +54,7 @@ import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
 import           GHC.Generics                       (Generic)
 import           Ledger                             (PubKey, PubKeyHash)
+import qualified Ledger.Crypto                      as Crypto
 import           Plutus.ChainIndex                  (ChainIndexQueryEffect)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant                            (ServerError (..))
@@ -59,13 +63,13 @@ import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet, WalletState)
+import           Wallet.Emulator.Wallet             (Wallet (..), WalletId (..), WalletState (..))
 
 -- | Information about an emulated wallet.
 data WalletInfo =
     WalletInfo
         { wiWallet     :: Wallet
-        , wiPubKey     :: PubKey
+        , wiPubKey     :: Maybe PubKey -- ^ Public key of the wallet (if known)
         , wiPubKeyHash :: PubKeyHash
         }
     deriving stock (Show, Generic)
@@ -73,9 +77,20 @@ data WalletInfo =
 
 type Wallets = Map Wallet WalletState
 
+fromWalletState :: WalletState -> WalletInfo
+fromWalletState WalletState{_ownPrivateKey} =
+    let xpub = Crypto.toXPub _ownPrivateKey
+        pk   = Crypto.xPubToPublicKey xpub
+    in WalletInfo
+            { wiWallet = Wallet (XPubWallet xpub)
+            , wiPubKey = Just pk
+            , wiPubKeyHash = Crypto.pubKeyHash pk
+            }
+
 data MultiWalletEffect r where
     CreateWallet :: MultiWalletEffect WalletInfo
     MultiWallet :: Wallet -> Eff '[WalletEffect] a -> MultiWalletEffect a
+    GetWalletInfo :: WalletId -> MultiWalletEffect (Maybe WalletInfo)
 makeEffect ''MultiWalletEffect
 
 type WalletEffects m = '[ MultiWalletEffect
