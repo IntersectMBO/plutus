@@ -252,7 +252,7 @@ useNewWalletCard state =
                 , disabled $ isJust (validate walletNicknameInput) || enteringDashboardState || not isSuccess remoteWalletDetails
                 , onClick_ $ ConnectWallet walletNickname
                 ]
-                [ text if enteringDashboardState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Connecting..." else "Connect Wallet" ]
             ]
         ]
     ]
@@ -304,7 +304,7 @@ useWalletCard state =
                 , onClick_ $ ConnectWallet walletNickname
                 , disabled $ enteringDashboardState || not isSuccess remoteWalletDetails
                 ]
-                [ text if enteringDashboardState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Connecting..." else "Connect Wallet" ]
             ]
         ]
     ]
