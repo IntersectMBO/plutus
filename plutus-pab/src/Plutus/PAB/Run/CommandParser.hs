@@ -89,6 +89,7 @@ commandParser =
         , mockWalletParser
         , pabWebserverParser
         , mockNodeParser
+        , chainIndexParser
         , command
               "contracts"
               (info
@@ -135,6 +136,11 @@ mockWalletParser =
         (fullDesc <>
          progDesc "Run a mock version of the Cardano wallet API server.")
 
+chainIndexParser :: Mod CommandFields ConfigCommand
+chainIndexParser =
+    command "chain-index" $
+    info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
+
 allServersParser :: Mod CommandFields ConfigCommand
 allServersParser =
     command "all-servers" $
@@ -143,6 +149,7 @@ allServersParser =
                    [ StartMockNode
                    , MockWallet
                    , PABWebserver
+                   , ChainIndex
                    ])
 
 clientServicesParser :: Mod CommandFields ConfigCommand
@@ -152,6 +159,7 @@ clientServicesParser =
         (pure (ForkCommands
                     [ MockWallet
                     , PABWebserver
+                    , ChainIndex
                     ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 

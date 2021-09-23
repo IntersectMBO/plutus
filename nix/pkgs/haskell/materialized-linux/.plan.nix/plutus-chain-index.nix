@@ -99,6 +99,7 @@
           "Plutus/ChainIndex/Emulator"
           "Plutus/ChainIndex/Emulator/DiskState"
           "Plutus/ChainIndex/Emulator/Handlers"
+          "Plutus/ChainIndex/Emulator/Server"
           "Plutus/ChainIndex/Handlers"
           "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"

@@ -131,6 +131,8 @@
           "Cardano/Api/NetworkId/Extra"
           "Cardano/BM/Data/Tracer/Extras"
           "Cardano/Chain"
+          "Cardano/ChainIndex/ChainIndex"
+          "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
