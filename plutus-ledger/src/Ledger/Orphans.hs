@@ -24,6 +24,7 @@ import           Plutus.V1.Ledger.Slot          (Slot (..))
 import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.Value
 import           PlutusCore
+import qualified PlutusTx.AssocMap              as AssocMap
 import           Prelude                        as Haskell
 import           Web.HttpApiData                (FromHttpApiData (..), ToHttpApiData (..))
 
@@ -39,8 +40,12 @@ instance ToHttpApiData LedgerBytes where
 instance FromHttpApiData LedgerBytes where
     parseUrlPiece = bimap Text.pack fromBytes . JSON.tryDecode
 
+
 -- | OpenApi instances for swagger support
 
+deriving anyclass instance (OpenApi.ToSchema k, OpenApi.ToSchema v) => OpenApi.ToSchema (AssocMap.Map k v)
+instance OpenApi.ToSchema BuiltinByteString where
+    declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "Bytes") mempty
 instance OpenApi.ToSchema Crypto.XPub where
     declareNamedSchema _ = pure $ OpenApi.NamedSchema (Just "PubKey") mempty
 instance OpenApi.ToSchema Crypto.XPrv where
