@@ -2,7 +2,7 @@
 
 ## Get `[cardano-node](https://github.com/input-output-hk/cardano-node)` onto the path
 
-The easiest way of doing this is to enter a `nix-shell` that puts the node on the path.
+The easiest way of doing this is to enter a `nix-shell` then build the node and use `cabal exec` to run it.
 
 ## Download the node configurations
 
