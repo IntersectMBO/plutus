@@ -37,13 +37,12 @@ import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humaniz
 import LoadingSubmitButton.State (loadingSubmitButton)
 import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
-import Marlowe.Execution.Lenses (_semanticState, _mNextTimeout)
+import Marlowe.Execution.Lenses (_contract, _mNextTimeout, _semanticState)
 import Marlowe.Execution.State (expandBalances)
 import Marlowe.Execution.Types (NamedAction(..))
-import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractName, _contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Contract(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -322,18 +321,22 @@ statusIndicatorMessage (Started state) =
     userParties = state ^. _userParties
 
     participantsWithAction = Set.fromFoldable $ map fst $ state ^. _namedActions
-  -- FIXME: as part of SCP-2551 add"Contract starting"
+
+    contract = state ^. (_executionState <<< _contract)
   in
-    if Set.isEmpty (Set.intersection userParties participantsWithAction) then
-      "Waiting for "
-        <> if Set.size participantsWithAction > 1 then
-            "multiple participants"
-          else case Set.findMin participantsWithAction of
-            Just (Role roleName) -> roleName
-            Just (PK pubKey) -> take 4 pubKey
-            Nothing -> " a timeout"
+    if contract == Close then
+      "Contract completed"
     else
-      "Your turn…"
+      if Set.isEmpty (Set.intersection userParties participantsWithAction) then
+        "Waiting for "
+          <> if Set.size participantsWithAction > 1 then
+              "multiple participants"
+            else case Set.findMin participantsWithAction of
+              Just (Role roleName) -> roleName
+              Just (PK pubKey) -> take 4 pubKey
+              Nothing -> " a timeout"
+      else
+        "Your turn…"
 
 cardNavigationButtons :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 cardNavigationButtons (Starting _) = div [] []
