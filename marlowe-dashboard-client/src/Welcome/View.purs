@@ -107,7 +107,7 @@ useWalletBox state =
           ]
       , p
           [ classNames [ "text-center" ] ]
-          [ text "To being using the Marlowe Run demo, generate a new demo wallet." ]
+          [ text "To begin using the Marlowe Run demo, generate a new demo wallet." ]
       , button
           [ classNames $ Css.primaryButton <> [ "w-full", "text-center" ]
           , onClick_ GenerateWallet
