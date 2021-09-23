@@ -1,6 +1,10 @@
 module Template.View (contractTemplateCard) where
 
 import Prologue hiding (Either(..), div)
+import Component.Label as Label
+import Contacts.Lenses (_walletNickname)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletLibrary)
 import Css as Css
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
@@ -20,6 +24,8 @@ import InputField.Lenses (_value)
 import InputField.Types (InputDisplayOptions)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
+import LoadingSubmitButton.State (loadingSubmitButton)
+import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
 import Marlowe.Market (contractTemplates)
@@ -35,10 +41,6 @@ import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError,
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import Component.Label as Label
-import Contacts.Lenses (_walletNickname)
-import Contacts.State (adaToken, getAda)
-import Contacts.Types (WalletLibrary)
 
 contractTemplateCard :: forall m. MonadAff m => WalletLibrary -> Assets -> State -> ComponentHTML Action ChildSlots m
 contractTemplateCard walletLibrary assets state =
@@ -267,11 +269,16 @@ contractReview assets state =
                       , onClick_ $ SetContractSetupStage Setup
                       ]
                       [ text "Back" ]
-                  , button
-                      [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                      , onClick_ StartContract
-                      ]
-                      [ text "Pay and start" ]
+                  , loadingSubmitButton
+                      { ref: "action-pay-and-start"
+                      , caption: "Pay and start"
+                      , styles: [ "flex-1" ]
+                      , enabled: true
+                      , handler:
+                          \msg -> case msg of
+                            OnSubmit -> Just $ StartContract
+                            _ -> Nothing
+                      }
                   ]
               , div
                   [ classNames [ "mt-4", "text-sm", "text-red" ] ]

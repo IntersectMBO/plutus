@@ -10,8 +10,13 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
-import Clipboard (handleAction) as Clipboard
 import Clipboard (class MonadClipboard)
+import Clipboard (handleAction) as Clipboard
+import Contacts.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
+import Contacts.State (defaultWalletDetails)
+import Contacts.State (handleAction, mkInitialState) as Contacts
+import Contacts.Types (Action(..), State) as Contacts
+import Contacts.Types (CardSection(..), WalletDetails, WalletLibrary)
 import Contract.Lenses (_Started, _Starting, _marloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderState, updateState) as Contract
@@ -30,14 +35,16 @@ import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, delete, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable)
 import Data.Maybe (fromMaybe)
 import Data.Set (delete, fromFoldable, isEmpty) as Set
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (for)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM, modify_, query, tell)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import InputField.Lenses (_value)
 import InputField.Types (Action(..)) as InputField
+import LoadingSubmitButton.Types (Query(..), _submitButtonSlot)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Client (ContractHistory, _chHistory, _chParams)
@@ -52,11 +59,6 @@ import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Template.Types (ContractSetupStage(..))
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
-import Contacts.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
-import Contacts.State (defaultWalletDetails)
-import Contacts.State (handleAction, mkInitialState) as Contacts
-import Contacts.Types (Action(..), State) as Contacts
-import Contacts.Types (CardSection(..), WalletDetails, WalletLibrary)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -371,7 +373,9 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
   Template.StartContract -> do
     templateState <- use _templateState
     case instantiateExtendedContract currentSlot templateState of
-      Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
+      Nothing -> do
+        void $ query _submitButtonSlot "action-pay-and-start" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+        addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
       Just contract -> do
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
         walletDetails <- use _walletDetails
@@ -384,7 +388,9 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
         ajaxCreateContract <- createContract walletDetails roles contract
         case ajaxCreateContract of
           -- TODO: make this error message more informative
-          Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
+          Left ajaxError -> do
+            void $ query _submitButtonSlot "action-pay-and-start" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+            addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
           _ -> do
             -- Here we create a `MarloweFollower` app with no `MarloweParams`; when the next status
             -- update of the wallet's `WalletCompanion` app comes in, we will know the `MarloweParams`,
@@ -392,13 +398,16 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
             -- comments to see more...
             ajaxPendingFollowerApp <- createPendingFollowerApp walletDetails
             case ajaxPendingFollowerApp of
-              Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
+              Left ajaxError -> do
+                void $ query _submitButtonSlot "action-pay-and-start" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+                addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
               Right followerAppId -> do
                 contractNickname <- use (_templateState <<< _contractNicknameInput <<< _value)
                 insertIntoContractNicknames followerAppId contractNickname
                 metaData <- use (_templateState <<< _contractTemplate <<< _metaData)
                 modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState contractNickname metaData contract
                 handleAction input CloseCard
+                void $ query _submitButtonSlot "action-pay-and-start" $ tell $ SubmitResult (Milliseconds 600.0) (Right "")
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
