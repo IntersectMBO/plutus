@@ -14,9 +14,12 @@
 module Plutus.ChainIndex.Handlers
     ( handleQuery
     , handleControl
+    , restoreStateFromDb
+    , getResumePoints
     , ChainIndexState
     ) where
 
+import qualified Cardano.Api                       as C
 import           Codec.Serialise                   (Serialise, deserialiseOrFail, serialise)
 import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
@@ -28,14 +31,16 @@ import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Default                      (def)
 import           Data.Either                       (fromRight)
+import qualified Data.FingerTree                   as FT
 import qualified Data.Map                          as Map
-import           Data.Maybe                        (catMaybes, fromMaybe)
+import           Data.Maybe                        (catMaybes, fromMaybe, mapMaybe)
 import           Data.Monoid                       (Ap (..))
 import           Data.Proxy                        (Proxy (..))
 import qualified Data.Set                          as Set
+import           Data.Word                         (Word64)
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (desc_, orderBy_, (==.), (>.))
+import           Database.Beam.Query               (asc_, desc_, orderBy_, (==.), (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -47,7 +52,7 @@ import           Plutus.ChainIndex.DbStore
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
 import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
-                                                    Tip (..), pageOf)
+                                                    Point (..), Tip (..), pageOf, tipAsPoint)
 import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
                                                     UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
@@ -56,8 +61,25 @@ import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
+getResumePoints :: Member DbStoreEffect effs => Eff effs [C.ChainPoint]
+getResumePoints = do
+    rows <- selectList . select $ fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row)) $ orderBy_ (desc_ . _utxoRowSlot) (all_ (utxoRows db))
+    pure $ mapMaybe toChainPoint rows ++ [C.ChainPointAtGenesis]
+    where
+        toChainPoint :: (Word64, ByteString) -> Maybe C.ChainPoint
+        toChainPoint (slot, bi) = C.ChainPoint (C.SlotNo slot) <$> C.deserialiseFromRawBytes (C.AsHash (C.proxyToAsType (Proxy :: Proxy C.BlockHeader))) bi
+
+restoreStateFromDb :: Member DbStoreEffect effs => Point -> Eff effs ChainIndexState
+restoreStateFromDb point = do
+    rollbackUtxoDb point
+    rows <- selectList . select $ orderBy_ (asc_ . _utxoRowSlot) (all_ (utxoRows db))
+    pure $ FT.fromList $ fmap toUtxoState rows
+    where
+        toUtxoState :: UtxoRow -> UtxoState.UtxoState TxUtxoBalance
+        toUtxoState (UtxoRow slot bi bn balance)
+            = UtxoState.UtxoState (fromByteString balance) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
+
 handleQuery ::
-    forall effs.
     ( Member (State ChainIndexState) effs
     , Member DbStoreEffect effs
     , Member (Error ChainIndexError) effs
@@ -90,10 +112,10 @@ handleQuery = \case
 
 getTip :: Member DbStoreEffect effs => Eff effs Tip
 getTip = do
-    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _utxoRowBlockNumber) (all_ (utxoRows db)))
+    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _utxoRowSlot) (all_ (utxoRows db)))
     pure $ case row of
         Nothing                     -> TipAtGenesis
-        Just (UtxoRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber bn)
+        Just (UtxoRow slot bi bn _) -> Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn)
 
 getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
@@ -195,7 +217,7 @@ handleControl = \case
                 throwError reason
             Right RollbackResult{newTip, rolledBackIndex} -> do
                 put rolledBackIndex
-                rollbackUtxoDb newTip
+                rollbackUtxoDb $ tipAsPoint newTip
                 logDebug $ RollbackSuccess newTip
     CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
@@ -225,11 +247,11 @@ insertUtxoDb ::
     -> Eff effs ()
 insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
 insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
-    = addRows (utxoRows db) [UtxoRow (toByteString balance) (toByteString sl) bi bn]
+    = addRows (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
 
-rollbackUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
-rollbackUtxoDb TipAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
-rollbackUtxoDb (Tip _ _ (BlockNumber bn)) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowBlockNumber row >. val_ bn)
+rollbackUtxoDb :: Member DbStoreEffect effs => Point -> Eff effs ()
+rollbackUtxoDb PointAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
+rollbackUtxoDb (Point slot _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row >. val_ (fromIntegral slot))
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)

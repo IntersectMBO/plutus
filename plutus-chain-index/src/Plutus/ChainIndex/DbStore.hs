@@ -111,17 +111,17 @@ instance Table AddressRowT where
     primaryKey (AddressRow c o) = AddressRowId c o
 
 data UtxoRowT f = UtxoRow
-    { _utxoRowBalance     :: Columnar f ByteString
-    , _utxoRowSlot        :: Columnar f ByteString
+    { _utxoRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
     , _utxoRowBlockId     :: Columnar f ByteString
     , _utxoRowBlockNumber :: Columnar f Word64
+    , _utxoRowBalance     :: Columnar f ByteString
     } deriving (Generic, Beamable)
 
-type UtxoStateRow = UtxoRowT Identity
+type UtxoRow = UtxoRowT Identity
 
 instance Table UtxoRowT where
     data PrimaryKey UtxoRowT f = UtxoRowId (Columnar f Word64) deriving (Generic, Beamable)
-    primaryKey = UtxoRowId . _utxoRowBlockNumber
+    primaryKey = UtxoRowId . _utxoRowSlot
 
 data Db f = Db
     { datumRows   :: f (TableEntity DatumRowT)

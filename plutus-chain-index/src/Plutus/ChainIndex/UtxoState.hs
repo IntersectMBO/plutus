@@ -170,6 +170,7 @@ viewTip = tip . measure
 rollback :: Point
          -> UtxoIndex TxUtxoBalance
          -> Either RollbackFailed (RollbackResult TxUtxoBalance)
+rollback PointAtGenesis (viewTip -> TipAtGenesis) = Right (RollbackResult TipAtGenesis mempty)
 rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
 rollback targetPoint idx@(viewTip -> currentTip)
     -- The rollback happened sometime after the current tip.

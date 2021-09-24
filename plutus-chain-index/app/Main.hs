@@ -48,7 +48,8 @@ import           Plutus.ChainIndex.Compatibility   (fromCardanoBlock, fromCardan
 import           Plutus.ChainIndex.DbStore         (DbStoreEffect, checkedSqliteDb, handleDbStore)
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                     appendBlock, rollback)
-import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
+import           Plutus.ChainIndex.Handlers        (ChainIndexState, getResumePoints, handleControl, handleQuery,
+                                                    restoreStateFromDb)
 import           Plutus.Monitoring.Util            (runLogEffects)
 
 type ChainIndexEffects
@@ -66,12 +67,12 @@ runChainIndex
   -> STM.TVar ChainIndexState
   -> Sqlite.Connection
   -> Eff ChainIndexEffects a
-  -> IO ()
-runChainIndex trace emulatorState conn effect = do
+  -> IO a
+runChainIndex trace mState conn effect = do
   -- First run the STM block capturing all log messages emited on a
   -- successful STM transaction.
-  oldEmulatorState <- STM.atomically $ STM.readTVar emulatorState
-  (result, logMessages') <-
+  oldEmulatorState <- STM.atomically $ STM.readTVar mState
+  (errOrResult, logMessages') <-
     effect
     & interpret handleControl
     & interpret handleQuery
@@ -83,15 +84,16 @@ runChainIndex trace emulatorState conn effect = do
                           @(Seq (LogMessage ChainIndexLog)) $ unto pure)
     & runWriter @(Seq (LogMessage ChainIndexLog))
     & runM
-  logMessages <- case result of
+  (result, logMessages) <- case errOrResult of
       Left err ->
-        pure $ LogMessage Error (Err err) <| logMessages'
-      Right (_, newState) -> do
-        STM.atomically $ STM.writeTVar emulatorState newState
-        pure logMessages'
+        pure (fail $ show err, LogMessage Error (Err err) <| logMessages')
+      Right (result, newState) -> do
+        STM.atomically $ STM.writeTVar mState newState
+        pure (pure result, logMessages')
   -- Log all previously captured messages
   traverse_ (send . LMessage) logMessages
     & runLogEffects trace
+  result
 
 chainSyncHandler
   :: Trace IO ChainIndexLog
@@ -107,15 +109,24 @@ chainSyncHandler trace mState conn
       Left err    ->
         logError trace (ConversionFailed err)
       Right txs ->
-        runChainIndex trace mState conn $ appendBlock (tipFromCardanoBlock block) txs
+        void $ runChainIndex trace mState conn $ appendBlock (tipFromCardanoBlock block) txs
 chainSyncHandler trace mState conn
   (RollBackward point _) _ = do
+    putStr "Rolling back to "
+    print point
     -- Do we really want to pass the tip of the new blockchain to the
     -- rollback function (rather than the point where the chains diverge)?
-    runChainIndex trace mState conn $ rollback (fromCardanoPoint point)
--- On resume we do nothing, for now.
-chainSyncHandler _ _ _ (Resume _) _ = do
-  pure ()
+    void $ runChainIndex trace mState conn $ rollback (fromCardanoPoint point)
+chainSyncHandler trace mState conn
+  (Resume point) _ = do
+    putStr "Resuming from "
+    print point
+    newState <- runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
+    putStrLn "New state:"
+    print newState
+    STM.atomically $ STM.writeTVar mState newState
+
+
 
 main :: IO ()
 main = do
@@ -150,19 +161,23 @@ main = do
       putStrLn "\nChain Index config:"
       print (pretty config)
 
-      appState <- STM.newTVarIO mempty
-
       Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
 
         Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb
+
+        appState <- STM.newTVarIO mempty
+        resumePoints <- runChainIndex trace appState conn getResumePoints
+
+        putStr "\nNumber of possible resume points: "
+        print $ length resumePoints
 
         putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
         void $ runChainSync (Config.cicSocketPath config)
                             nullTracer
                             (Config.cicSlotConfig config)
                             (Config.cicNetworkId  config)
-                            []
+                            resumePoints
                             (chainSyncHandler trace appState conn)
 
         putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)
