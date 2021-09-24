@@ -24,7 +24,7 @@ import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (citxTxId, txOutsWithRef)
-import           Plutus.ChainIndex.TxIdState          (increaseDepth, transactionStatus)
+import           Plutus.ChainIndex.TxIdState          (dropOlder, increaseDepth, transactionStatus)
 import qualified Plutus.ChainIndex.TxIdState          as TxIdState
 import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), Tip (..), TxConfirmedState (..),
                                                        TxIdState (..), TxStatus (..), TxStatusFailure (..),
@@ -76,8 +76,35 @@ txIdStateTests =
   , testGroup "operations"
       [ testProperty "transaction depth increases" transactionDepthIncreases
       , testProperty "rollback changes tx state" rollbackTxIdState
+      , testProperty "dropOlder drops only older things." dropOlderDropsCorrectly
       ]
   ]
+
+dropOlderDropsCorrectly :: Property
+dropOlderDropsCorrectly = property $ do
+  ((tipA, txA), (tipB, txB)) <- forAll $ Gen.evalTxIdGenState
+                      $ (,)
+                      <$> Gen.genTxIdStateTipAndTxId
+                          <*> Gen.genTxIdStateTipAndTxId
+
+
+  let Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 1) txA) tipA) mempty
+      f1 = newIndex s1
+
+      Right s2 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 2) txB) tipB) f1
+      f2 = newIndex s2
+
+      Right s2' = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 2) txB) tipB) mempty
+      f2' = newIndex s2'
+
+  -- The present one isn't dropped.
+  f1 === dropOlder (BlockNumber 1) f1
+
+  -- But it's dropped next time, if we advanced one step.
+  mempty === dropOlder (BlockNumber 2) f1
+
+  -- Then, it only contains one thing if we drop off the first state.
+  f2' === dropOlder (BlockNumber 2) f2
 
 rollbackTxIdState :: Property
 rollbackTxIdState = property $ do

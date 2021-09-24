@@ -28,7 +28,7 @@ import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOut
 import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxConfirmedState (..),
                                               TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..))
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..),
-                                              rollbackWith, utxoState, viewTip, tip)
+                                              rollbackWith, tip, utxoState, viewTip)
 
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
@@ -53,13 +53,11 @@ dropOlder :: (Monoid a)
           => BlockNumber
           -> UtxoIndex a
           -> UtxoIndex a
-dropOlder targetBlock idx = 
-  let (_older, toKeep) = FT.split (blockLessThanTip targetBlock . tip . snd) idx
-    in toKeep
+dropOlder targetBlock idx = FT.dropUntil (blockEqTip targetBlock . tip . snd) idx
 
-blockLessThanTip :: BlockNumber -> Tip -> Bool
-blockLessThanTip blockTarget (Tip _ _ blockAtTip) = blockTarget < blockAtTip
-blockLessThanTip _                  TipAtGenesis  = False
+blockEqTip :: BlockNumber -> Tip -> Bool
+blockEqTip blockTarget (Tip _ _ blockAtTip) = blockTarget == blockAtTip
+blockEqTip _                  TipAtGenesis  = False
 
 -- | Given the current block, compute the status for the given transaction by
 -- checking to see if it has been deleted.
