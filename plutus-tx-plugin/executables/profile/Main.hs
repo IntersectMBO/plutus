@@ -106,16 +106,16 @@ writeLogToFile fileName values = do
   writeFile (filePath<>".stacks") $ show processed
   pure ()
 
-tripleFst :: (a, b, c) -> a
-tripleFst (a,_,_) = a
+data Stacks
+  = MkStacks
+  {
+    varName           :: String,
+    startTime         :: UTCTime,
+    timeSpentCalledFn :: NominalDiffTime
+  }
+  deriving (Show)
 
-tripleSnd :: (a, b, c) -> b
-tripleSnd (_,b,_) = b
-
-tripleTrd :: (a, b, c) -> c
-tripleTrd (_,_,c) = c
-
-processLog :: FilePath -> IO [(String, NominalDiffTime)]
+processLog :: FilePath -> IO [([String],String, NominalDiffTime)]
 processLog file = do
   content <- readFile file
   -- lEvents is in the form of [[t1,t2,t3,entering/exiting,var]]. Time is chopped to 3 parts.
@@ -127,8 +127,6 @@ processLog file = do
           -- turn to a list of events
           (lines content)
       lTime = map (unwords . take 3) lEvents
-      lUTC (hd:tl) = (read hd :: UTCTime) : lUTC tl
-      lUTC []      = []
       -- list of enter/exit
       lEnterOrExit = map (!! 3) lEvents
       -- list of var
@@ -136,34 +134,38 @@ processLog file = do
       lTripleTimeVar = zip3 (lUTC lTime) lEnterOrExit lVar
   pure $ getStacks [] lTripleTimeVar
 
+lUTC :: [String] -> [UTCTime]
+lUTC = map (read :: String -> UTCTime)
+
 getStacks ::
   -- | list of (var, its start time, the amount of time the functions it called spent)
-  [(String, UTCTime, NominalDiffTime)] ->
+  [Stacks] ->
   -- | the input log which is processed to a list of (UTCTime, entering/exiting, var name)
   [(UTCTime, String, String)] ->
   -- | a list of (var/function, the time spent on it)
-  [(String,NominalDiffTime)]
+  [([String],String,NominalDiffTime)]
 getStacks curStack (hd:tl) =
   case hd of
     (time, "entering", var) ->
-      getStacks ((var, time, 0 :: NominalDiffTime):curStack) tl
+      getStacks (MkStacks{varName = var, startTime=time, timeSpentCalledFn = 0 :: NominalDiffTime}:curStack) tl
     (time, "exiting", var) ->
       let topOfStack = head curStack
-          curTopVar = tripleFst topOfStack
-          curTopTime = tripleSnd topOfStack
-          curTimeSpent = tripleTrd topOfStack
+          curTopVar = varName topOfStack
+          curTopTime = startTime topOfStack
+          curTimeSpent = timeSpentCalledFn topOfStack
       in
         if  curTopVar == var then
           let duration = diffUTCTime time curTopTime
               poppedStack = tail curStack
               updateTimeSpent (hd:tl) =
-                (tripleFst hd, tripleSnd hd , tripleTrd hd + duration):updateTimeSpent tl
+                hd {timeSpentCalledFn = timeSpentCalledFn hd + duration}:updateTimeSpent tl
               updateTimeSpent [] = []
               updatedStack = updateTimeSpent poppedStack
+              fnsEntered = map varName updatedStack
           in
             -- time spent on this function is the total time spent
             -- minus the time spent on the functions it called.
-            (var, duration - curTimeSpent):getStacks updatedStack tl
+            (fnsEntered, var, duration - curTimeSpent):getStacks updatedStack tl
         else error "getStacks: exiting a stack that is not on top of the stack."
     (_, what, _) -> error $
       show what <>
