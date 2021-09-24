@@ -9,6 +9,7 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   , processMockBlock
   , processChainSyncEvent
   , fromCardanoTxId
+  , garbageCollect
   ) where
 
 import           Cardano.Api                            (BlockInMode (..), ChainPoint (..), NetworkId)
@@ -37,13 +38,13 @@ import           Control.Tracer                         (nullTracer)
 import           Data.Foldable                          (foldl')
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.ChainIndex                      (BlockNumber (..), ChainIndexTx (..), ChainIndexTxOutputs (..),
-                                                         InsertUtxoFailed (..), InsertUtxoSuccess (..),
+                                                         Depth (..), InsertUtxoFailed (..), InsertUtxoSuccess (..),
                                                          RollbackFailed (..), RollbackResult (..), Tip (..),
                                                          TxConfirmedState (..), TxIdState (..), TxValidity (..),
-                                                         UtxoState (..), blockId, citxTxId, fromOnChainTx, insert,
-                                                         utxoState)
+                                                         UtxoState (..), blockId, citxTxId, dropOlder, fromOnChainTx,
+                                                         insert, utxoState)
 import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoPoint)
-import           Plutus.ChainIndex.TxIdState            (rollback)
+import           Plutus.ChainIndex.TxIdState            (chainConstant, rollback)
 
 -- | Connect to the node and write node updates to the blockchain
 --   env.
@@ -102,6 +103,17 @@ runRollback BlockchainEnv{beTxChanges} chainPoint = do
   case rs of
     Left e                                -> pure $ Left (RollbackFailure e)
     Right RollbackResult{rolledBackIndex} -> Right <$> STM.writeTVar beTxChanges rolledBackIndex
+
+-- | Drop all entries in the beTxChanges field that are older than
+-- 'chainConstant'.
+garbageCollect :: BlockchainEnv -> STM ()
+garbageCollect BlockchainEnv{beTxChanges, beCurrentBlock} = do
+  txIdStateIndex <- STM.readTVar beTxChanges
+  currentBlock   <- STM.readTVar beCurrentBlock
+
+  let targetBlock = BlockNumber $ unBlockNumber currentBlock - fromIntegral (unDepth chainConstant)
+
+  STM.writeTVar beTxChanges $ dropOlder targetBlock txIdStateIndex
 
 -- | Get transaction ID and validity from a cardano transaction in any era
 txEvent :: forall era. C.Tx era -> C.EraInMode era C.CardanoMode -> (TxId, TxValidity)

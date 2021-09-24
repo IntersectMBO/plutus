@@ -27,6 +27,7 @@ module Plutus.ChainIndex.UtxoState(
     , tip
     , viewTip
     , unspentOutputs
+    , pointLessThanTip
     -- * Extending the UTXO index
     , InsertUtxoPosition(..)
     , InsertUtxoSuccess(..)
@@ -40,6 +41,7 @@ module Plutus.ChainIndex.UtxoState(
     -- * Limit the UTXO index size
     , ReduceBlockCountResult(..)
     , reduceBlockCount
+    , BlockCount (..)
     ) where
 
 import           Codec.Serialise                   (Serialise)
@@ -57,7 +59,7 @@ import           Ledger                            (TxIn (txInRef), TxOutRef (..
 import           Plutus.ChainIndex.ChainIndexError (InsertUtxoFailed (..), RollbackFailed (..))
 import           Plutus.ChainIndex.ChainIndexLog   (InsertUtxoPosition (..))
 import           Plutus.ChainIndex.Tx              (ChainIndexTx (..), citxInputs, txOutsWithRef)
-import           Plutus.ChainIndex.Types           (Point (..), Tip (..), pointsToTip)
+import           Plutus.ChainIndex.Types           (BlockNumber (..), Point (..), Tip (..), pointsToTip)
 import           Prettyprinter                     (Pretty (..))
 
 -- | The effect of a transaction (or a number of them) on the utxo set.
@@ -203,11 +205,6 @@ rollbackWith f targetPoint idx@(viewTip -> currentTip)
                        Right RollbackResult{newTip=oldTip, rolledBackIndex=f before after}
                    | otherwise                        ->
                        Left  TipMismatch{foundTip=oldTip, targetPoint=targetPoint}
-    where
-      pointLessThanTip :: Point -> Tip -> Bool
-      pointLessThanTip PointAtGenesis  _               = True
-      pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
-      pointLessThanTip _               TipAtGenesis    = False
 
 data ReduceBlockCountResult a
     = BlockCountNotReduced
@@ -228,3 +225,11 @@ reduceBlockCount minCount ix
             { reducedIndex = combinedState FT.<| keep
             , combinedState = combinedState
             }
+
+-- | Is the given point earlier than the provided tip. Yes, if the point is
+-- the genersis point, no if the tip is the genesis point, otherwise, just
+-- compare the slots.
+pointLessThanTip :: Point -> Tip -> Bool
+pointLessThanTip PointAtGenesis  _               = True
+pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
+pointLessThanTip _               TipAtGenesis    = False

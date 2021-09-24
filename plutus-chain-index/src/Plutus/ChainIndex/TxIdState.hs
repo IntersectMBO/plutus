@@ -15,10 +15,12 @@ module Plutus.ChainIndex.TxIdState(
     , fromBlock
     , rollback
     , chainConstant
+    , dropOlder
     ) where
 
 import           Control.Lens                ((^.))
 import           Data.FingerTree             ((|>))
+import qualified Data.FingerTree             as FT
 import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
 import           Ledger                      (OnChainTx, TxId, eitherTx)
@@ -26,7 +28,7 @@ import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOut
 import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxConfirmedState (..),
                                               TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..))
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..),
-                                              rollbackWith, utxoState, viewTip)
+                                              rollbackWith, utxoState, viewTip, tip)
 
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
@@ -45,6 +47,19 @@ increaseDepth e            = e
 -- | The depth (in blocks) after which a transaction cannot be rolled back anymore
 chainConstant :: Depth
 chainConstant = Depth 8
+
+-- | Drop everything older than 'BlockNumber' in the index.
+dropOlder :: (Monoid a)
+          => BlockNumber
+          -> UtxoIndex a
+          -> UtxoIndex a
+dropOlder targetBlock idx = 
+  let (_older, toKeep) = FT.split (blockLessThanTip targetBlock . tip . snd) idx
+    in toKeep
+
+blockLessThanTip :: BlockNumber -> Tip -> Bool
+blockLessThanTip blockTarget (Tip _ _ blockAtTip) = blockTarget < blockAtTip
+blockLessThanTip _                  TipAtGenesis  = False
 
 -- | Given the current block, compute the status for the given transaction by
 -- checking to see if it has been deleted.
@@ -124,4 +139,3 @@ rollback = rollbackWith markDeleted
                             }
           newUtxoState = UtxoState (oldTxIdState <> newTxIdState) (viewTip before)
       in before |> newUtxoState
-
