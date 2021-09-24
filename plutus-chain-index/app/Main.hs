@@ -50,6 +50,7 @@ import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..)
                                                     appendBlock, rollback)
 import           Plutus.ChainIndex.Handlers        (ChainIndexState, getResumePoints, handleControl, handleQuery,
                                                     restoreStateFromDb)
+import           Plutus.ChainIndex.Types           (pointSlot)
 import           Plutus.Monitoring.Util            (runLogEffects)
 
 type ChainIndexEffects
@@ -86,7 +87,7 @@ runChainIndex trace mState conn effect = do
     & runM
   (result, logMessages) <- case errOrResult of
       Left err ->
-        pure (fail $ show err, LogMessage Error (Err err) <| logMessages')
+        pure (pure undefined, LogMessage Error (Err err) <| logMessages')
       Right (result, newState) -> do
         STM.atomically $ STM.writeTVar mState newState
         pure (pure result, logMessages')
@@ -122,8 +123,6 @@ chainSyncHandler trace mState conn
     putStr "Resuming from "
     print point
     newState <- runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
-    putStrLn "New state:"
-    print newState
     STM.atomically $ STM.writeTVar mState newState
 
 
@@ -169,8 +168,8 @@ main = do
         appState <- STM.newTVarIO mempty
         resumePoints <- runChainIndex trace appState conn getResumePoints
 
-        putStr "\nNumber of possible resume points: "
-        print $ length resumePoints
+        putStr "\nPossible resume slots: "
+        print $ fmap (toInteger . pointSlot . fromCardanoPoint) resumePoints
 
         putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
         void $ runChainSync (Config.cicSocketPath config)

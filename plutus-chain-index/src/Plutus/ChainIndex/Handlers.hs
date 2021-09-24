@@ -61,8 +61,12 @@ type ChainIndexState = UtxoIndex TxUtxoBalance
 
 getResumePoints :: Member DbStoreEffect effs => Eff effs [C.ChainPoint]
 getResumePoints = do
-    rows <- selectList . select $ fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row)) $ orderBy_ (desc_ . _utxoRowSlot) (all_ (utxoRows db))
-    pure $ mapMaybe toChainPoint rows ++ [C.ChainPointAtGenesis]
+    rows <- selectList . select
+        . fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row))
+        . limit_ 200 -- TODO: use chainConstant
+        . orderBy_ (desc_ . _utxoRowSlot)
+        $ all_ (utxoRows db)
+    pure $ mapMaybe toChainPoint rows
     where
         toChainPoint :: (Word64, ByteString) -> Maybe C.ChainPoint
         toChainPoint (slot, bi) = C.ChainPoint (C.SlotNo slot) <$> C.deserialiseFromRawBytes (C.AsHash (C.proxyToAsType (Proxy :: Proxy C.BlockHeader))) bi
@@ -70,7 +74,10 @@ getResumePoints = do
 restoreStateFromDb :: Member DbStoreEffect effs => Point -> Eff effs ChainIndexState
 restoreStateFromDb point = do
     rollbackUtxoDb point
-    rows <- selectList . select $ orderBy_ (asc_ . _utxoRowSlot) (all_ (utxoRows db))
+    rows <- selectList . select
+        . limit_ 200 -- TODO: use chainConstant
+        . orderBy_ (asc_ . _utxoRowSlot)
+        $ all_ (utxoRows db)
     pure $ FT.fromList $ fmap toUtxoState rows
     where
         toUtxoState :: UtxoRow -> UtxoState.UtxoState TxUtxoBalance
