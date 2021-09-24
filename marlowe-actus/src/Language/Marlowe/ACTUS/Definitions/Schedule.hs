@@ -1,11 +1,11 @@
 module Language.Marlowe.ACTUS.Definitions.Schedule where
 
-import           Data.Time                                         (Day)
+import           Data.Time                                         (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 
 data ShiftedDay = ShiftedDay {
-    paymentDay     :: Day,
-    calculationDay :: Day
+    paymentDay     :: LocalTime,
+    calculationDay :: LocalTime
 } deriving (Eq, Ord, Show)
 
 type ShiftedSchedule = [ShiftedDay]
@@ -15,8 +15,8 @@ data CashFlow = CashFlow {
     cashContractId     :: String,
     cashParty          :: String,
     cashCounterParty   :: String,
-    cashPaymentDay     :: Day,
-    cashCalculationDay :: Day,
+    cashPaymentDay     :: LocalTime,
+    cashCalculationDay :: LocalTime,
     cashEvent          :: EventType,
     amount             :: Double,
     currency           :: String

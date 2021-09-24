@@ -48,7 +48,7 @@ import           Language.PureScript.Bridge.Builder               (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
                                                                    genForeign)
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
-import           Language.PureScript.Bridge.TypeParameters        (A)
+import           Language.PureScript.Bridge.TypeParameters        (A, B)
 import           Marlowe.Contracts                                (contractForDifferences,
                                                                    contractForDifferencesWithOracle,
                                                                    couponBondGuaranteed, escrow, escrowWithCollateral,
@@ -119,6 +119,9 @@ doubleBridge = typeName ^== "Double" >> return psNumber
 dayBridge :: BridgePart
 dayBridge = typeName ^== "Day" >> return psString
 
+timeBridge :: BridgePart
+timeBridge = typeName ^== "LocalTime" >> return psString
+
 myBridge :: BridgePart
 myBridge =
     PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
@@ -128,6 +131,7 @@ myBridge =
     PSGenerator.Common.miscBridge <|>
     doubleBridge <|>
     dayBridge <|>
+    timeBridge <|>
     contractBridge <|>
     stateBridge <|>
     transactionInputBridge <|>
@@ -155,7 +159,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
-    , mkSumType (Proxy @CT.ContractTerms)
+    , mkSumType (Proxy :: Proxy (CT.ContractTermsPoly A B))
     , mkSumType (Proxy @CT.PYTP)
     , mkSumType (Proxy @CT.PPEF)
     , mkSumType (Proxy @CT.SCEF)
