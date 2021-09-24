@@ -10,6 +10,7 @@
 
 -- | Executable for profiling. Add the program you want to profile here.
 -- Plugin options only work in this file so you have to define the programs here.
+-- You may get an error if the program does not include function evaluation.
 
 module Main where
 import           Common
@@ -96,7 +97,7 @@ writeLogToFile ::
   [a] ->
   IO ()
 writeLogToFile fileName values = do
-  let filePath = "plutus-tx-plugin/executables/profile/"<>fileName
+  let filePath = "plutus-tx-plugin/executables/profile/"<>fileName<>".timelog"
   log <- pretty . view _2 <$> (rethrow $ runUPlcProfileExec values)
   withFile
     filePath
@@ -115,7 +116,7 @@ data Stacks
   }
   deriving (Show)
 
-processLog :: FilePath -> IO [([String],String, NominalDiffTime)]
+-- processLog :: FilePath -> IO [([String],String, NominalDiffTime)]
 processLog file = do
   content <- readFile file
   -- lEvents is in the form of [[t1,t2,t3,entering/exiting,var]]. Time is chopped to 3 parts.
@@ -132,7 +133,8 @@ processLog file = do
       -- list of var
       lVar = map (!! 4) lEvents
       lTripleTimeVar = zip3 (lUTC lTime) lEnterOrExit lVar
-  pure $ getStacks [] lTripleTimeVar
+      stacks = getStacks [] lTripleTimeVar
+  pure $ map (intercalate "; " . fst) stacks
 
 lUTC :: [String] -> [UTCTime]
 lUTC = map (read :: String -> UTCTime)
@@ -142,8 +144,8 @@ getStacks ::
   [Stacks] ->
   -- | the input log which is processed to a list of (UTCTime, entering/exiting, var name)
   [(UTCTime, String, String)] ->
-  -- | a list of (var/function, the time spent on it)
-  [([String],String,NominalDiffTime)]
+  -- | a list of (fns it's in, var/function, the time spent on it)
+  [([String],NominalDiffTime)]
 getStacks curStack (hd:tl) =
   case hd of
     (time, "entering", var) ->
@@ -158,14 +160,14 @@ getStacks curStack (hd:tl) =
           let duration = diffUTCTime time curTopTime
               poppedStack = tail curStack
               updateTimeSpent (hd:tl) =
-                hd {timeSpentCalledFn = timeSpentCalledFn hd + duration}:updateTimeSpent tl
+                hd {timeSpentCalledFn = timeSpentCalledFn hd + duration}:tl
               updateTimeSpent [] = []
               updatedStack = updateTimeSpent poppedStack
               fnsEntered = map varName updatedStack
           in
             -- time spent on this function is the total time spent
             -- minus the time spent on the functions it called.
-            (fnsEntered, var, duration - curTimeSpent):getStacks updatedStack tl
+            (fnsEntered <> [var], duration - curTimeSpent):getStacks updatedStack tl
         else error "getStacks: exiting a stack that is not on top of the stack."
     (_, what, _) -> error $
       show what <>
@@ -177,13 +179,13 @@ getStacks stacks [] = error $
 main :: IO ()
 main = do
   writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  -- writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  -- writeLogToFile "addInt" [toUPlc addIntTest]
-  -- writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
-  -- writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  -- writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  -- writeLogToFile "id" [toUPlc idTest]
-  -- writeLogToFile "swap" [toUPlc swapTest]
+  writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  writeLogToFile "addInt" [toUPlc addIntTest]
+  writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
+  writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  writeLogToFile "id" [toUPlc idTest]
+  writeLogToFile "swap" [toUPlc swapTest]
 
 
 
