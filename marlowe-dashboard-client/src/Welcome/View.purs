@@ -5,6 +5,10 @@ module Welcome.View
 
 import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
+import Component.Label as Label
+import Component.WalletId as WalletId
+import Contacts.Lenses (_walletNickname)
+import Contacts.View (walletIdTip)
 import Css as Css
 import Data.Lens (view, (^.))
 import Data.List (foldMap)
@@ -24,18 +28,43 @@ import InputField.Types (InputDisplayOptions)
 import InputField.View (renderInput)
 import Marlowe.PAB (PlutusAppId)
 import Material.Icons (Icon(..)) as Icon
-import Network.RemoteData (isSuccess)
 import Material.Icons (icon, icon_)
+import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
-import Contacts.Lenses (_walletNickname)
-import Contacts.View (walletIdTip)
-import Component.Label as Label
-import Component.WalletId as WalletId
 import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 welcomeScreen :: forall p. State -> HTML p Action
 welcomeScreen state =
+  main
+    [ classNames
+        [ "h-full"
+        , "bg-background-shape"
+        , "bg-right-top"
+        , "bg-no-repeat"
+        , "flex"
+        , "flex-col"
+        , "items-center"
+        , "justify-center"
+        ]
+    ]
+    [ div [ classNames [ "text-lg", "bg-white", "rounded-lg", "shadow-lg", "p-8", "lg:p-12", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box", "text-center" ] ]
+        [ img
+            [ classNames [ "mx-auto", "text-center", "mb-4" ]
+            , src marloweRunLogo
+            ]
+        , span_ [ text "The distributed mode will be available at this URL soon. In the meantime, you can visit the " ]
+        , a
+            [ classNames [ "font-bold" ]
+            , href
+                "https://staging.marlowe-dash.iohkdev.io/"
+            ]
+            [ text "standalone version" ]
+        ]
+    ]
+
+welcomeScreenDisabled :: forall p. State -> HTML p Action
+welcomeScreenDisabled state =
   main
     [ classNames
         [ "h-full"
