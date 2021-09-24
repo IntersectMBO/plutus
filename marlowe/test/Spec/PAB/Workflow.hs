@@ -67,7 +67,7 @@ startPab pabConfig = do
   let mc = Just pabConfig
   -- First, migrate.
   void . async $ runWithOpts handler mc (opts {cmd = Migrate})
-  sleep 1
+  sleep 10
 
   -- Then, spin up the services.
   void . async $ runWithOpts handler mc opts

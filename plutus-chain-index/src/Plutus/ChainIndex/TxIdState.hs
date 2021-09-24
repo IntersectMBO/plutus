@@ -1,14 +1,10 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module Plutus.ChainIndex.TxIdState(
@@ -73,7 +69,7 @@ transactionStatus currentBlock txIdState txId
             else if isCommitted block'
                     -- Illegal - We can't roll this transaction back.
                     then Left $ InvalidRollbackAttempt currentBlock txId txIdState
-                    else Right $ Unknown
+                    else Right Unknown
 
        _ -> Left $ TxIdStateInvalid currentBlock txId txIdState
     where

@@ -15,9 +15,10 @@ where
 import           Control.Applicative                                      (Alternative ((<|>)))
 import           Data.Ord                                                 (Down (..))
 import           Data.Sort                                                (sortOn)
-import           Data.Time                                                (Day)
+import           Data.Time                                                (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (CT (..), ContractTerms (..), Cycle (..),
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (CT (..), ContractTerms,
+                                                                           ContractTermsPoly (..), Cycle (..),
                                                                            ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule              (ShiftedDay (..))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
@@ -28,77 +29,77 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator   (apply
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction        (yearFraction)
 import           Language.Marlowe.ACTUS.Ops                               (YearFractionOps (_y))
 
-schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
+schedule :: EventType -> ContractTerms -> [ShiftedDay]
 schedule ev c = schedule' ev c { ct_MD = maturity c }
   where
 
-    schedule' :: EventType -> ContractTerms -> Maybe [ShiftedDay]
-    schedule' IED  ct@ContractTerms{ contractType = PAM } = _SCHED_IED_PAM ct
-    schedule' MD   ct@ContractTerms{ contractType = PAM } = _SCHED_MD_PAM ct
-    schedule' PP   ct@ContractTerms{ contractType = PAM } = _SCHED_PP_PAM ct
-    schedule' PY   ct@ContractTerms{ contractType = PAM } = _SCHED_PY_PAM ct
-    schedule' FP   ct@ContractTerms{ contractType = PAM } = _SCHED_FP_PAM ct
-    schedule' PRD  ct@ContractTerms{ contractType = PAM } = _SCHED_PRD_PAM ct
-    schedule' TD   ct@ContractTerms{ contractType = PAM } = _SCHED_TD_PAM ct
-    schedule' IP   ct@ContractTerms{ contractType = PAM } = _SCHED_IP_PAM ct
-    schedule' IPCI ct@ContractTerms{ contractType = PAM } = _SCHED_IPCI_PAM ct
-    schedule' RR   ct@ContractTerms{ contractType = PAM } = _SCHED_RR_PAM ct
-    schedule' RRF  ct@ContractTerms{ contractType = PAM } = _SCHED_RRF_PAM ct
-    schedule' SC   ct@ContractTerms{ contractType = PAM } = _SCHED_SC_PAM ct
+    schedule' :: EventType -> ContractTerms -> [ShiftedDay]
+    schedule' IED  ct@ContractTermsPoly{ contractType = PAM } = _SCHED_IED_PAM ct
+    schedule' MD   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_MD_PAM ct
+    schedule' PP   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_PP_PAM ct
+    schedule' PY   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_PY_PAM ct
+    schedule' FP   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_FP_PAM ct
+    schedule' PRD  ct@ContractTermsPoly{ contractType = PAM } = _SCHED_PRD_PAM ct
+    schedule' TD   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_TD_PAM ct
+    schedule' IP   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_IP_PAM ct
+    schedule' IPCI ct@ContractTermsPoly{ contractType = PAM } = _SCHED_IPCI_PAM ct
+    schedule' RR   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_RR_PAM ct
+    schedule' RRF  ct@ContractTermsPoly{ contractType = PAM } = _SCHED_RRF_PAM ct
+    schedule' SC   ct@ContractTermsPoly{ contractType = PAM } = _SCHED_SC_PAM ct
 
-    schedule' IED  ct@ContractTerms{ contractType = LAM } = _SCHED_IED_PAM ct
-    schedule' PR   ct@ContractTerms{ contractType = LAM } = _SCHED_PR_LAM ct
-    schedule' MD   ct@ContractTerms{ contractType = LAM } = _SCHED_MD_LAM ct
-    schedule' PP   ct@ContractTerms{ contractType = LAM } = _SCHED_PP_PAM ct
-    schedule' PY   ct@ContractTerms{ contractType = LAM } = _SCHED_PY_PAM ct
-    schedule' FP   ct@ContractTerms{ contractType = LAM } = _SCHED_FP_PAM ct
-    schedule' PRD  ct@ContractTerms{ contractType = LAM } = _SCHED_PRD_PAM ct
-    schedule' TD   ct@ContractTerms{ contractType = LAM } = _SCHED_TD_PAM ct
-    schedule' IP   ct@ContractTerms{ contractType = LAM } = _SCHED_IP_PAM ct
-    schedule' IPCI ct@ContractTerms{ contractType = LAM } = _SCHED_IPCI_PAM ct
-    schedule' IPCB ct@ContractTerms{ contractType = LAM } = _SCHED_IPCB_LAM ct
-    schedule' RR   ct@ContractTerms{ contractType = LAM } = _SCHED_RR_PAM ct
-    schedule' RRF  ct@ContractTerms{ contractType = LAM } = _SCHED_RRF_PAM ct
-    schedule' SC   ct@ContractTerms{ contractType = LAM } = _SCHED_SC_PAM ct
+    schedule' IED  ct@ContractTermsPoly{ contractType = LAM } = _SCHED_IED_PAM ct
+    schedule' PR   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_PR_LAM ct
+    schedule' MD   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_MD_LAM ct
+    schedule' PP   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_PP_PAM ct
+    schedule' PY   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_PY_PAM ct
+    schedule' FP   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_FP_PAM ct
+    schedule' PRD  ct@ContractTermsPoly{ contractType = LAM } = _SCHED_PRD_PAM ct
+    schedule' TD   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_TD_PAM ct
+    schedule' IP   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_IP_PAM ct
+    schedule' IPCI ct@ContractTermsPoly{ contractType = LAM } = _SCHED_IPCI_PAM ct
+    schedule' IPCB ct@ContractTermsPoly{ contractType = LAM } = _SCHED_IPCB_LAM ct
+    schedule' RR   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_RR_PAM ct
+    schedule' RRF  ct@ContractTermsPoly{ contractType = LAM } = _SCHED_RRF_PAM ct
+    schedule' SC   ct@ContractTermsPoly{ contractType = LAM } = _SCHED_SC_PAM ct
 
-    schedule' IED  ct@ContractTerms{ contractType = NAM } = _SCHED_IED_PAM ct
-    schedule' PR   ct@ContractTerms{ contractType = NAM } = _SCHED_PR_LAM ct
-    schedule' MD   ct@ContractTerms{ contractType = NAM } = _SCHED_MD_PAM ct
-    schedule' PP   ct@ContractTerms{ contractType = NAM } = _SCHED_PP_PAM ct
-    schedule' PY   ct@ContractTerms{ contractType = NAM } = _SCHED_PY_PAM ct
-    schedule' FP   ct@ContractTerms{ contractType = NAM } = _SCHED_FP_PAM ct
-    schedule' PRD  ct@ContractTerms{ contractType = NAM } = _SCHED_PRD_PAM ct
-    schedule' TD   ct@ContractTerms{ contractType = NAM } = _SCHED_TD_PAM ct
-    schedule' IP   ct@ContractTerms{ contractType = NAM } = _SCHED_IP_NAM ct
-    schedule' IPCI ct@ContractTerms{ contractType = NAM } = _SCHED_IPCI_NAM ct
-    schedule' IPCB ct@ContractTerms{ contractType = NAM } = _SCHED_IPCB_LAM ct
-    schedule' RR   ct@ContractTerms{ contractType = NAM } = _SCHED_RR_PAM ct
-    schedule' RRF  ct@ContractTerms{ contractType = NAM } = _SCHED_RRF_PAM ct
-    schedule' SC   ct@ContractTerms{ contractType = NAM } = _SCHED_SC_PAM ct
+    schedule' IED  ct@ContractTermsPoly{ contractType = NAM } = _SCHED_IED_PAM ct
+    schedule' PR   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_PR_LAM ct
+    schedule' MD   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_MD_PAM ct
+    schedule' PP   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_PP_PAM ct
+    schedule' PY   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_PY_PAM ct
+    schedule' FP   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_FP_PAM ct
+    schedule' PRD  ct@ContractTermsPoly{ contractType = NAM } = _SCHED_PRD_PAM ct
+    schedule' TD   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_TD_PAM ct
+    schedule' IP   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_IP_NAM ct
+    schedule' IPCI ct@ContractTermsPoly{ contractType = NAM } = _SCHED_IPCI_NAM ct
+    schedule' IPCB ct@ContractTermsPoly{ contractType = NAM } = _SCHED_IPCB_LAM ct
+    schedule' RR   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_RR_PAM ct
+    schedule' RRF  ct@ContractTermsPoly{ contractType = NAM } = _SCHED_RRF_PAM ct
+    schedule' SC   ct@ContractTermsPoly{ contractType = NAM } = _SCHED_SC_PAM ct
 
-    schedule' IED  ct@ContractTerms{ contractType = ANN } = _SCHED_IED_PAM ct
-    schedule' PR   ct@ContractTerms{ contractType = ANN } = _SCHED_PR_LAM ct
-    schedule' MD   ct@ContractTerms{ contractType = ANN } = _SCHED_MD_PAM c { ct_MD = ct_MD c <|> ct_MD ct }
-    schedule' PP   ct@ContractTerms{ contractType = ANN } = _SCHED_PP_PAM ct
-    schedule' PY   ct@ContractTerms{ contractType = ANN } = _SCHED_PY_PAM ct
-    schedule' FP   ct@ContractTerms{ contractType = ANN } = _SCHED_FP_PAM ct
-    schedule' PRD  ct@ContractTerms{ contractType = ANN } = _SCHED_PRD_PAM ct
-    schedule' TD   ct@ContractTerms{ contractType = ANN } = _SCHED_TD_PAM ct
-    schedule' IP   ct@ContractTerms{ contractType = ANN } = _SCHED_IP_NAM c { ct_MD = ct_MD c <|> ct_MD ct }
-    schedule' IPCI ct@ContractTerms{ contractType = ANN } = _SCHED_IPCI_PAM ct
-    schedule' IPCB ct@ContractTerms{ contractType = ANN } = _SCHED_IPCB_LAM ct
-    schedule' RR   ct@ContractTerms{ contractType = ANN } = _SCHED_RR_PAM ct
-    schedule' RRF  ct@ContractTerms{ contractType = ANN } = _SCHED_RRF_PAM ct
-    schedule' SC   ct@ContractTerms{ contractType = ANN } = _SCHED_SC_PAM ct
-    schedule' PRF  ct@ContractTerms{ contractType = ANN } = _SCHED_PRF_ANN ct
+    schedule' IED  ct@ContractTermsPoly{ contractType = ANN } = _SCHED_IED_PAM ct
+    schedule' PR   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PR_LAM ct
+    schedule' MD   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_MD_PAM c { ct_MD = ct_MD c <|> ct_MD ct }
+    schedule' PP   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PP_PAM ct
+    schedule' PY   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PY_PAM ct
+    schedule' FP   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_FP_PAM ct
+    schedule' PRD  ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PRD_PAM ct
+    schedule' TD   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_TD_PAM ct
+    schedule' IP   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_IP_NAM c { ct_MD = ct_MD c <|> ct_MD ct }
+    schedule' IPCI ct@ContractTermsPoly{ contractType = ANN } = _SCHED_IPCI_PAM ct
+    schedule' IPCB ct@ContractTermsPoly{ contractType = ANN } = _SCHED_IPCB_LAM ct
+    schedule' RR   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_RR_PAM ct
+    schedule' RRF  ct@ContractTermsPoly{ contractType = ANN } = _SCHED_RRF_PAM ct
+    schedule' SC   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_SC_PAM ct
+    schedule' PRF  ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PRF_ANN ct
 
-    schedule' _ _                                         = Nothing
+    schedule' _ _                                             = []
 
-maturity :: ContractTerms -> Maybe Day
-maturity ContractTerms {contractType = PAM, ..} = ct_MD
-maturity ContractTerms {contractType = LAM, ct_MD = md@(Just _)} = md
+maturity :: ContractTerms -> Maybe LocalTime
+maturity ContractTermsPoly {contractType = PAM, ..} = ct_MD
+maturity ContractTermsPoly {contractType = LAM, ct_MD = md@(Just _)} = md
 maturity
-  ContractTerms
+  ContractTermsPoly
     { contractType = LAM,
       ct_MD = Nothing,
       ct_PRANX = Just principalRedemptionAnchor,
@@ -119,9 +120,9 @@ maturity
           | otherwise = (principalRedemptionAnchor, notionalPrincipal / nextPrincipalRedemptionPayment - 1)
         m = lastEvent <+> (principalRedemptionCycle {n = n principalRedemptionCycle * round remainingPeriods :: Integer})
      in eomc scheduleConfig >>= \d -> return $ applyEOMC lastEvent principalRedemptionCycle d m
-maturity ContractTerms {contractType = NAM, ct_MD = md@(Just _)} = md
+maturity ContractTermsPoly {contractType = NAM, ct_MD = md@(Just _)} = md
 maturity
-  ContractTerms
+  ContractTermsPoly
     { contractType = NAM,
       ct_MD = Nothing,
       ct_PRANX = Just principalRedemptionAnchor,
@@ -149,7 +150,7 @@ maturity
         m = lastEvent <+> principalRedemptionCycle {n = n principalRedemptionCycle * remainingPeriods}
      in eomc scheduleConfig >>= \d -> return $ applyEOMC lastEvent principalRedemptionCycle d m
 maturity
-  ContractTerms
+  ContractTermsPoly
     { contractType = ANN,
       ct_AD = Nothing,
       ct_MD = Nothing,
@@ -175,12 +176,12 @@ maturity
         remainingPeriods = (ceiling (notionalPrincipal / redemptionPerCycle) - 1) :: Integer
     in Just . calculationDay . applyBDCWithCfg scheduleConfig $ lastEvent <+> principalRedemptionCycle { n = remainingPeriods }
 maturity
-  ContractTerms
+  ContractTermsPoly
     { contractType = ANN,
       ct_AD = ad@(Just _)
     } = ad
 maturity
-  ContractTerms
+  ContractTermsPoly
     { contractType = ANN,
       ct_AD = Nothing,
       ct_MD = md@(Just _)

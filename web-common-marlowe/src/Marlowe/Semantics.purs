@@ -308,6 +308,7 @@ data Value
   | AddValue Value Value
   | SubValue Value Value
   | MulValue Value Value
+  | DivValue Value Value
   | Scale Rational Value
   | ChoiceValue ChoiceId
   | SlotIntervalStart
@@ -346,6 +347,11 @@ instance encodeJsonValue :: Encode Value where
     encode
       { multiply: lhs
       , times: rhs
+      }
+  encode (DivValue lhs rhs) =
+    encode
+      { divide: lhs
+      , by: rhs
       }
   encode (Scale (Rational num den) val) =
     encode
@@ -398,6 +404,10 @@ instance decodeJsonValue :: Decode Value where
       <|> ( \_ ->
             SubValue <$> decodeProp "value" a
               <*> decodeProp "minus" a
+        )
+      <|> ( \_ ->
+            DivValue <$> decodeProp "divide" a
+              <*> decodeProp "by" a
         )
       <|> ( \_ ->
             if (hasProperty "divide_by" a) then
@@ -1377,6 +1387,38 @@ evalValue env state value =
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
       MulValue lhs rhs -> eval lhs * eval rhs
+      DivValue lhs rhs ->
+        let
+          n = eval lhs
+        in
+          if n == fromInt 0 then
+            fromInt 0
+          else
+            let
+              d = eval rhs
+            in
+              if d == fromInt 0 then
+                fromInt 0
+              else
+                let
+                  q = n `div` d
+
+                  r = n `mod` d
+
+                  ar = abs r * fromInt 2
+
+                  ad = abs d
+                in
+                  if ar < ad then
+                    q -- reminder < 1/2
+                  else
+                    if ar > ad then
+                      q + signum n * signum d -- reminder > 1/2
+                    else
+                      let -- reminder == 1/2
+                        qIsEven = q `mod` fromInt 2 == fromInt 0
+                      in
+                        if qIsEven then q else q + signum n * signum d
       Scale (Rational n d) rhs ->
         let
           nn = eval rhs * n

@@ -75,6 +75,7 @@ library
         beam-sqlite -any,
         beam-migrate -any,
         cardano-api -any,
+        cardano-ledger-alonzo -any,
         cardano-ledger-byron -any,
         containers -any,
         contra-tracer -any,

@@ -33,13 +33,16 @@ import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTerms(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), Calendar(..), ScheduleConfig(..), Stub(..), IPCB(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTermsPoly(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), Calendar(..), ScheduleConfig(..), Stub(..), IPCB(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
 
 rootBlockName :: String
 rootBlockName = "root_contract"
+
+type ContractTerms
+  = ContractTermsPoly Number String
 
 data ActusContractType
   = PaymentAtMaturity
@@ -947,7 +950,7 @@ actusContractToTerms raw = do
   -- Any collateral-related code is commented out, until implemented properly
   -- collateral <- actusIntegerToNumber c.collateral
   pure
-    $ ContractTerms
+    $ ContractTermsPoly
         { contractId: "0"
         , contractType: contractType
         , ct_IED: Just initialExchangeDate
@@ -973,7 +976,6 @@ actusContractToTerms raw = do
               }
         , ct_PYRT: Just 0.0
         , ct_PYTP: Just PYTP_A
-        , ct_cPYRT: 0.0
         , ct_OPCL: Nothing
         , ct_OPANX: Nothing
         , ct_SCIED: Just 0.0

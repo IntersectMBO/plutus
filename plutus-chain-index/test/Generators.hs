@@ -190,8 +190,6 @@ genTx = do
         <*> pure mempty
         <*> pure mempty
         <*> pure mempty
-        <*> pure mempty
-        <*> pure mempty
 
         -- TODO: We need a way to convert the generated 'ChainIndexTx' to a
         -- 'SomeCardanoTx', or vis-versa. And then put it here.
@@ -209,8 +207,6 @@ genTxIdStateTx = do
         <*> pure mempty
         <*> pure (ValidTx [])
         <*> pure Interval.always
-        <*> pure mempty
-        <*> pure mempty
         <*> pure mempty
         <*> pure mempty
         <*> pure mempty

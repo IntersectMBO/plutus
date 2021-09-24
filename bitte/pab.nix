@@ -78,11 +78,11 @@ let
   pab-init-cmd = writeShellScriptBin "pab-init-cmd" ''
     set -eEuo pipefail
 
-    if [ ! -f ${dbFile} ]
-    then
-      echo "[pab-init-cmd]: Creating new DB '${dbFile}'" >&2
-      ${pabExe} --config=${pabYaml} migrate;
-    fi
+    echo "[pab-init-cmd]: Dropping PAB database file '${dbFile}'" >&2
+    rm -rf ${dbFile}
+
+    echo "[pab-init-cmd]: Creating new DB '${dbFile}'" >&2
+    ${pabExe} --config=${pabYaml} migrate;
   '';
 in
 writeShellScriptBin "entrypoint" ''

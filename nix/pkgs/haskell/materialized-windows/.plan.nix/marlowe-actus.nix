@@ -45,16 +45,17 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
         buildable = true;
         modules = [
-          "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/MarloweCompat"
           "Language/Marlowe/ACTUS/Generator"
           "Language/Marlowe/ACTUS/Analysis"
+          "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
           "Language/Marlowe/ACTUS/Definitions/ContractTerms"
           "Language/Marlowe/ACTUS/Definitions/ContractState"
@@ -74,7 +75,6 @@
           "Language/Marlowe/ACTUS/Model/Utility/DateShift"
           "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
           "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
-          "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -128,7 +128,6 @@
             "Language/Marlowe/ACTUS/Model/Utility/DateShift"
             "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
             "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
-            "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
             "Language/Marlowe/ACTUS/Ops"
             ];
           hsSourceDirs = [ "app" "src" ];
@@ -183,7 +182,6 @@
             "Language/Marlowe/ACTUS/Model/Utility/DateShift"
             "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
             "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
-            "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
             "Language/Marlowe/ACTUS/Ops"
             ];
           hsSourceDirs = [ "testkit" "src" ];
@@ -219,7 +217,10 @@
             (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
             ];
           buildable = true;
-          modules = [ "Spec/Marlowe/Util" "Spec/Marlowe/Actus" ];
+          modules = [
+            "Spec/Marlowe/ACTUS/Examples"
+            "Spec/Marlowe/ACTUS/TestFramework"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

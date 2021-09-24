@@ -61,6 +61,7 @@ type HelperFunctions a
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
     , mkMulValue :: Term Value -> Term Value -> Value
+    , mkDivValue :: Term Value -> Term Value -> Value
     , mkRational :: BigInteger -> BigInteger -> Rational
     , mkScale :: TermWrapper Rational -> Term Value -> Value
     , mkChoiceValue :: ChoiceId -> Value
@@ -125,6 +126,7 @@ helperFunctions =
   , mkAddValue: AddValue
   , mkSubValue: SubValue
   , mkMulValue: MulValue
+  , mkDivValue: DivValue
   , mkRational: Rational
   , mkScale: Scale
   , mkChoiceValue: ChoiceValue

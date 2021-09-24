@@ -10,8 +10,8 @@ module CommandLine(
 
 import           Control.Lens             (over)
 import           Options.Applicative      (CommandFields, Mod, Parser, ParserInfo, argument, auto, command, flag,
-                                           fullDesc, header, help, helper, info, long, metavar, option, progDesc, short,
-                                           str, subparser, value, (<**>))
+                                           fullDesc, header, help, helper, hsubparser, info, long, metavar, option,
+                                           progDesc, short, str, value, (<**>))
 
 import           Cardano.Api              (NetworkId (..), NetworkMagic (..))
 import           Cardano.BM.Data.Severity
@@ -111,7 +111,7 @@ cmdWithHelpParser =
 
 commandParser :: Parser Command
 commandParser =
-  subparser $
+  hsubparser $
   mconcat
     [ dumpDefaultConfigParser
     , dumpDefaultLoggingConfigParser

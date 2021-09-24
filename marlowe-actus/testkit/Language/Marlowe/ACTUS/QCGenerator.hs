@@ -14,8 +14,8 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
 
-epochToDay :: Integer -> Day
-epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
+epochToLocalTime :: Integer -> LocalTime
+epochToLocalTime = utcToLocalTime utc . posixSecondsToUTCTime . fromIntegral
 
 largeamount :: Gen Double
 largeamount = choose (-1.0, 10000000.0)
@@ -44,9 +44,8 @@ maxDate = 1607672749
 secondsPerYear :: Integer
 secondsPerYear = 31557600
 
-date :: Gen Day
-date = epochToDay <$> choose (0, maxDate)
-
+date :: Gen LocalTime
+date = epochToLocalTime <$> choose (0, maxDate)
 
 cyclePeriodFreq :: Gen Period
 cyclePeriodFreq = frequency [ (1, return P_D)
@@ -62,7 +61,7 @@ datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secon
 
 contractTermsGen :: Gen ContractTerms
 contractTermsGen = do
-    contracttype <- elements [PAM]
+    contracttype <- elements [PAM, LAM, NAM, ANN]
     sd <- date
     ied <- date
 
@@ -75,7 +74,6 @@ contractTermsGen = do
 
     penaltytype <- elements [PYTP_A , PYTP_N , PYTP_I , PYTP_O]
     penaltyrate <- zeroOr percentage
-    cpyrt <- zeroOr percentage
 
     eomc <- elements [EOMC_EOM, EOMC_SD]
     bdc <- elements [BDC_NULL, BDC_SCF, BDC_SCMF, BDC_CSF, BDC_CSMF, BDC_SCP, BDC_SCMP, BDC_CSP, BDC_CSMP]
@@ -132,7 +130,7 @@ contractTermsGen = do
     feeAnchor <- mightbe date
     feeAccrued <- mightbe smallamount
 
-    return ContractTerms {
+    return ContractTermsPoly {
         contractId     = "0"
         , contractType = contracttype
         , ct_IED       = Just ied
@@ -158,7 +156,6 @@ contractTermsGen = do
         -- Penalties
         , ct_PYRT      = Just penaltyrate
         , ct_PYTP      = Just penaltytype
-        , ct_cPYRT     = cpyrt
         -- Optionality
         , ct_OPCL      = optionalityCycle
         , ct_OPANX     = optionalityAnchor
@@ -213,7 +210,7 @@ contractTermsGen = do
 riskAtTGen :: Gen RiskFactors
 riskAtTGen = RiskFactorsPoly <$> percentage <*> percentage <*> percentage <*> smallamount
 
-riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGen :: ContractTerms -> Gen (M.Map LocalTime RiskFactors)
 riskFactorsGen ct = do
     let riskFactors _ _ =
          RiskFactorsPoly
@@ -226,7 +223,7 @@ riskFactorsGen ct = do
     rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
 
-riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map LocalTime RiskFactors)
 riskFactorsGenRandomWalkGen contractTerms = do
     rfs <- riskFactorsGen contractTerms
     riskAtT <- riskAtTGen

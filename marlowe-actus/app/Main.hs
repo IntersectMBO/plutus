@@ -7,8 +7,7 @@ module Main where
 import           Data.Aeson                                        (decode)
 import           Data.Int                                          (Int32)
 import           Data.String                                       (IsString (fromString))
-import           Data.Time                                         (Day)
-import           Data.Time.Calendar                                (showGregorian)
+import           Data.Time                                         (LocalTime)
 import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (..))
@@ -16,7 +15,7 @@ import           Language.R                                        (R)
 import qualified Language.R                                        as R
 import           Language.R.QQ
 
-riskFactors :: EventType -> Day -> RiskFactors
+riskFactors :: EventType -> LocalTime -> RiskFactors
 riskFactors _ _ =
     RiskFactorsPoly
         { o_rf_CURS = 1.0,
@@ -29,7 +28,7 @@ get_dates :: String -> R s [String]
 get_dates terms = return $ case (decode $ fromString terms) of
     Just terms' -> let
           cfs = genProjectedCashflows riskFactors terms'
-          date = showGregorian <$> cashCalculationDay <$> cfs
+          date = show <$> cashCalculationDay <$> cfs
           event = show <$> cashEvent <$> cfs
       in (\(d, e) -> d ++ " " ++ e) <$> (zip date event)
     Nothing -> []

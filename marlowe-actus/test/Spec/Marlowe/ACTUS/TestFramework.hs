@@ -1,32 +1,82 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase            #-}
-
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
 
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+module Spec.Marlowe.ACTUS.TestFramework
+  where
 
-module Spec.Marlowe.Util where
-
+import           Data.Aeson                                        as Aeson (decode)
 import           Data.Aeson.Types                                  (FromJSON, Value (Array, Number, Object, String))
+import           Data.ByteString.Lazy.UTF8                         as BLU (fromString)
 import           Data.HashMap.Strict                               as HashMap ((!))
+import           Data.List                                         as L (find)
 import           Data.List.Extra                                   (replace)
-import           Data.Map                                          as Map (Map, lookup, map, (!))
-import           Data.Maybe                                        (fromJust)
+import           Data.Map                                          as Map (Map, lookup, mapMaybe, toList, (!))
+import           Data.Maybe                                        (fromJust, fromMaybe)
 import           Data.Scientific                                   (toRealFloat)
 import           Data.Text                                         (unpack)
-import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
-import           Data.Vector                                       as Vector (map, toList)
+import           Data.Time                                         (LocalTime (..), defaultTimeLocale, parseTimeM)
+import           Data.Vector                                       as Vector (catMaybes, map, toList)
 import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
-import           Test.Tasty.HUnit                                  (assertBool)
+import           GHC.Records                                       (getField)
+import           Language.Marlowe.ACTUS.Analysis
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  hiding (Assertion)
+import           Language.Marlowe.ACTUS.Definitions.Schedule
+import           Test.Tasty
+import           Test.Tasty.HUnit                                  (Assertion, assertBool, assertFailure, testCase)
 
-type DataObserved = Map String ValuesObserved
+tests :: String -> [TestCase] -> TestTree
+tests n t = testGroup n $ [ testCase (getField @"identifier" tc) (runTest tc) | tc <- t]
+
+runTest :: TestCase -> Assertion
+runTest tc@TestCase {..} =
+  let testcase = testToContractTerms tc
+      contract = setDefaultContractTermValues testcase
+      observed = parseObservedValues dataObserved
+
+      getRiskFactors ev date =
+        let riskFactors =
+              RiskFactorsPoly
+                { o_rf_CURS = 1.0,
+                  o_rf_RRMO = 1.0,
+                  o_rf_SCMO = 1.0,
+                  pp_payoff = 0.0
+                }
+
+            observedKey RR = ct_RRMO contract
+            observedKey SC = ct_SCMO contract
+            observedKey _  = ct_CURS contract
+
+            value = fromMaybe 1.0 $ do
+              k <- observedKey ev
+              ValuesObserved {values = values} <- Map.lookup k observed
+              ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
+              return valueObserved
+         in case ev of
+              RR -> riskFactors {o_rf_RRMO = value}
+              SC -> riskFactors {o_rf_SCMO = value}
+              _  -> riskFactors {o_rf_CURS = value}
+
+      cashFlows = genProjectedCashflows getRiskFactors contract
+      cashFlowsTo = maybe cashFlows (\d -> filter (\cf -> cashCalculationDay cf <= d) cashFlows) (parseDate to)
+   in assertTestResults cashFlowsTo results identifier
+
+testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
+testCasesFromFile excludedTestCases fileName = do
+  tcs <- readFile fileName
+  case let tc = fromString tcs in decode tc :: Maybe (Map String TestCase) of
+    (Just decodedTests) ->
+      return $
+        filter (\TestCase {..} -> notElem identifier excludedTestCases) $
+          fmap snd (Map.toList decodedTests)
+    Nothing -> assertFailure ("Cannot parse test specification from file: " ++ fileName) >> return []
 
 data ValuesObserved = ValuesObserved
   { identifier :: String
@@ -35,7 +85,7 @@ data ValuesObserved = ValuesObserved
   deriving (Show)
 
 data ValueObserved = ValueObserved
-  { timestamp :: Day
+  { timestamp :: LocalTime
   , value     :: Double
   }
   deriving (Show)
@@ -64,36 +114,51 @@ data TestCase = TestCase{
   deriving anyclass (FromJSON)
 
 termsToString :: Map String Value -> Map String String
-termsToString = Map.map (\case
-  String t -> unpack t
-  Number t -> show (toRealFloat t :: Double))
+termsToString = Map.mapMaybe valueToString
+  where
+    valueToString :: Value -> Maybe String
+    valueToString (String t) = Just $ unpack t
+    valueToString (Number t) = Just $ show (toRealFloat t :: Double)
+    valueToString _          = Nothing
 
-parseObservedValues :: Map String Value -> DataObserved
-parseObservedValues =
-  Map.map(\(Object valuesObserved) ->
-    let String identifier' = valuesObserved HashMap.! "identifier"
-        Array values' = valuesObserved HashMap.! "data"
-    in
-      ValuesObserved{
-        identifier = unpack identifier'
-      , values = Vector.toList $
-          Vector.map (\(Object observedValue) ->
-            let String timestamp' = observedValue HashMap.! "timestamp"
-                String value' = observedValue HashMap.! "value"
-            in
-              ValueObserved{
-                timestamp = fromJust $ parseMaybeDate $ Just $ unpack timestamp'
-              , value = read (unpack value') :: Double
+valueToObserved :: Value -> Maybe ValuesObserved
+valueToObserved (Object valuesObserved) = do
+  case valuesObserved HashMap.! "identifier" of
+    String identifier' ->
+      case valuesObserved HashMap.! "data" of
+        Array values' ->
+          Just $
+            ValuesObserved
+              { identifier = unpack identifier',
+                values = Vector.toList $ Vector.catMaybes $ Vector.map f values'
               }
-          ) values'
-      }
-  )
+        _ -> Nothing
+    _ -> Nothing
+  where
+    f (Object observedValue) =
+      case observedValue HashMap.! "timestamp" of
+        String timestamp' ->
+          case observedValue HashMap.! "value" of
+            String value' ->
+              Just $
+                ValueObserved
+                  { timestamp = fromJust $ parseMaybeDate $ Just $ unpack timestamp',
+                    value = read (unpack value') :: Double
+                  }
+            _ -> Nothing
+        _ -> Nothing
+    f _ = Nothing
+valueToObserved _ = Nothing
+
+parseObservedValues :: Map String Value -> Map String ValuesObserved
+parseObservedValues = Map.mapMaybe valueToObserved
 
 assertTestResults :: [CashFlow] -> [TestResult] -> String -> IO ()
 assertTestResults [] [] _ = return ()
 assertTestResults (cashFlow: restCash) (testResult: restTest) identifier' = do
   assertTestResult cashFlow testResult identifier'
   assertTestResults restCash restTest identifier'
+assertTestResults _ _ _ = assertFailure "Sizes differ"
 
 assertTestResult :: CashFlow -> TestResult -> String -> IO ()
 assertTestResult
@@ -106,7 +171,7 @@ assertTestResult
 testToContractTerms :: TestCase -> ContractTerms
 testToContractTerms TestCase{terms = t} =
   let terms' = termsToString t
-  in ContractTerms
+  in ContractTermsPoly
      {
        contractId       = terms' Map.! "contractID"
      , contractType     = read $ terms' Map.! "contractType" :: CT
@@ -150,7 +215,7 @@ testToContractTerms TestCase{terms = t} =
      , ct_SCIED         = readMaybe $ Map.lookup "scalingIndexAtStatusDate" terms' :: Maybe Double
      , ct_SCANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfScalingIndex" terms'
      , ct_SCCL          = parseMaybeCycle $ Map.lookup "cycleOfScalingIndex" terms'
-     , ct_SCEF          = readMaybe (replace "O" "0" <$> (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
+     , ct_SCEF          = readMaybe (replace "O" "0" <$> maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms')) :: Maybe SCEF
      , ct_SCCDD         = readMaybe $ Map.lookup "scalingIndexAtContractDealDate" terms' :: Maybe Double
      , ct_SCMO          = Map.lookup "marketObjectCodeOfScalingIndex" terms'
      , ct_SCNT          = readMaybe $ Map.lookup "notionalScalingMultiplier" terms' :: Maybe Double
@@ -159,7 +224,6 @@ testToContractTerms TestCase{terms = t} =
      , ct_PYRT          = readMaybe $ Map.lookup "penaltyRate" terms' :: Maybe Double
      , ct_PYTP          = readMaybe (maybeConcatPrefix "PYTP_" (Map.lookup "penaltyType" terms')) :: Maybe PYTP
      , ct_PPEF          = readMaybe (maybeConcatPrefix "PPEF_" (Map.lookup "prepaymentEffect" terms')) :: Maybe PPEF
-     , ct_cPYRT         = 0.0
      , ct_RRCL          = parseMaybeCycle $ Map.lookup "cycleOfRateReset" terms'
      , ct_RRANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfRateReset" terms'
      , ct_RRNXT         = readMaybe $ Map.lookup "nextResetRate" terms' :: Maybe Double
@@ -178,30 +242,33 @@ testToContractTerms TestCase{terms = t} =
 readMaybe :: (Read a) => Maybe String -> Maybe a
 readMaybe = fmap read
 
-parseMaybeDate :: Maybe String -> Maybe Day
+parseMaybeDate :: Maybe String -> Maybe LocalTime
 parseMaybeDate = maybe Nothing parseDate
 
-parseDate :: String -> Maybe Day
+parseDate :: String -> Maybe LocalTime
 parseDate date =
   let format | length date == 19 = "%Y-%-m-%-dT%T"
              | otherwise = "%Y-%-m-%-dT%H:%M"
   in
-    parseTimeM True defaultTimeLocale format date :: Maybe Day
+    parseTimeM True defaultTimeLocale format date :: Maybe LocalTime
+
+parseCycle :: String -> Maybe Cycle
+parseCycle (_ : rest) =
+  let n' = read (takeWhile (< 'A') rest) :: Integer
+   in case dropWhile (< 'A') rest of
+        [p', _, s] -> do
+          stub' <- parseStub [s]
+          return $ Cycle {n = n', p = read $ "P_" ++ [p'] :: Period, stub = stub', includeEndDay = False}
+        _ -> Nothing
+parseCycle _ = Nothing
 
 parseMaybeCycle :: Maybe String -> Maybe Cycle
-parseMaybeCycle stringCycle =
-  case stringCycle of
-    Just (_:stringCycle') ->
-      let n' = read (takeWhile (< 'A') stringCycle') :: Integer
-          [p', _, s] = dropWhile (< 'A') stringCycle'
-      in
-          Just Cycle { n = n', p = read $ "P_" ++ [p'] :: Period, stub = parseStub [s], includeEndDay = False }
-    Nothing ->
-      Nothing
+parseMaybeCycle = maybe Nothing parseCycle
 
-parseStub :: String -> Stub
-parseStub "0" = LongStub
-parseStub "1" = ShortStub
+parseStub :: String -> Maybe Stub
+parseStub "0" = Just LongStub
+parseStub "1" = Just ShortStub
+parseStub _   = Nothing
 
 maybeDCCFromString :: Maybe String -> Maybe DCC
 maybeDCCFromString dcc =

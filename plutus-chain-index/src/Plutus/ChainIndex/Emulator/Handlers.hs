@@ -1,15 +1,14 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect'
     in the emulator
 -}
@@ -32,13 +31,19 @@ import           Data.Maybe                           (catMaybes, fromMaybe)
 import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
 import qualified Data.Set                             as Set
 import           GHC.Generics                         (Generic)
-import           Ledger                               (Address (addressCredential), ChainIndexTxOut (..), TxId,
-                                                       TxOut (txOutAddress), TxOutRef (..), txOutDatumHash, txOutValue)
+import           Ledger                               (Address (addressCredential), ChainIndexTxOut (..),
+                                                       MintingPolicy (MintingPolicy),
+                                                       MintingPolicyHash (MintingPolicyHash),
+                                                       StakeValidator (StakeValidator),
+                                                       StakeValidatorHash (StakeValidatorHash), TxId,
+                                                       TxOut (txOutAddress), TxOutRef (..), Validator (Validator),
+                                                       ValidatorHash (ValidatorHash), txOutDatumHash, txOutValue)
+import           Ledger.Scripts                       (ScriptHash (ScriptHash))
 import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, mintingPolicyMap,
-                                                       redeemerMap, stakeValidatorMap, txMap, validatorMap)
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, redeemerMap,
+                                                       scriptMap, txMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
 import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
@@ -89,14 +94,14 @@ getTxOutFromRef ref@TxOutRef{txOutRefId, txOutRefIdx} = do
       case addressCredential $ txOutAddress txout of
         PubKeyCredential _ ->
           pure $ Just $ PublicKeyChainIndexTxOut (txOutAddress txout) (txOutValue txout)
-        ScriptCredential vh -> do
+        ScriptCredential vh@(ValidatorHash h) -> do
           case txOutDatumHash txout of
             Nothing -> do
               -- If the txout comes from a script address, the Datum should not be Nothing
               logWarn $ NoDatumScriptAddr txout
               pure Nothing
             Just dh -> do
-              let v = maybe (Left vh) Right $ preview (validatorMap . ix vh) ds
+              let v = maybe (Left vh) (Right . Validator) $ preview (scriptMap . ix (ScriptHash h)) ds
               let d = maybe (Left dh) Right $ preview (dataMap . ix dh) ds
               pure $ Just $ ScriptChainIndexTxOut (txOutAddress txout) v d (txOutValue txout)
 
@@ -109,9 +114,12 @@ handleQuery ::
     ~> Eff effs
 handleQuery = \case
     DatumFromHash h -> gets (view $ diskState . dataMap . at h)
-    ValidatorFromHash h -> gets (view $ diskState . validatorMap . at h)
-    MintingPolicyFromHash h -> gets (view $ diskState . mintingPolicyMap . at h)
-    StakeValidatorFromHash h -> gets (view $ diskState . stakeValidatorMap . at h)
+    ValidatorFromHash (ValidatorHash h) ->  do
+      gets (fmap (fmap Validator) . view $ diskState . scriptMap . at (ScriptHash h))
+    MintingPolicyFromHash (MintingPolicyHash h) ->
+      gets (fmap (fmap MintingPolicy) . view $ diskState . scriptMap . at (ScriptHash h))
+    StakeValidatorFromHash (StakeValidatorHash h) ->
+      gets (fmap (fmap StakeValidator) . view $ diskState . scriptMap . at (ScriptHash h))
     TxOutFromRef ref -> getTxOutFromRef ref
     RedeemerFromHash h -> gets (view $ diskState . redeemerMap . at h)
     TxFromTxId i -> getTxFromTxId i
