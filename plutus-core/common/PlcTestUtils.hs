@@ -155,7 +155,7 @@ runUPlcProfile values = do
     res <- either (throwError . SomeException) pure result
     pure (res, logOut)
 
--- For profiling executable.
+-- For the profiling executable.
 runUPlcProfileExec :: ToUPlc a DefaultUni UPLC.DefaultFun =>
     [a]
     -> ExceptT
