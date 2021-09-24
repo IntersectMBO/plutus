@@ -207,10 +207,9 @@ mkInterval :: Slot -> Contract -> SlotInterval
 mkInterval currentSlot contract = case nextTimeout contract of
   Nothing -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 10))
   Just minTime
-    -- FIXME: I think this will fail in the PAB... we may need to return a Maybe SlotInterval and
-    -- show an error. But also, if you delay confirming the action it could also cause the same type
-    -- of failure, so maybe there is no need. Check after initial PAB integration.
-    | minTime < currentSlot -> SlotInterval currentSlot currentSlot
+    -- FIXME: We should change this for a Maybe SlotInterval and return Nothing in this case.
+    --        86400 is one day in seconds
+    | minTime < currentSlot -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 86400))
     | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
 
 getAllPayments :: State -> List Payment
