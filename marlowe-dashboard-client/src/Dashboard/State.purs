@@ -62,15 +62,19 @@ import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successTo
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero)
+dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero) MarlowePAB
 
 {- [Workflow 2][4] Connect a wallet
 When we connect a wallet, it has this initial state. Notable is the walletCompanionStatus of
 `FirstUpdatePending`. Follow the trail of worflow comments to see what happens next.
 -}
-mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> State
-mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot =
+mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> DataProvider -> State
+mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot dataProvider =
   let
+    walletCompanionStatus = case dataProvider of
+      LocalStorage -> FirstUpdateComplete
+      MarlowePAB -> FirstUpdatePending
+
     mkInitialContractState followerAppId contractHistory =
       let
         nickname = fromMaybe mempty $ lookup followerAppId contractNicknames
@@ -79,7 +83,7 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
   in
     { contactsState: Contacts.mkInitialState walletLibrary
     , walletDetails
-    , walletCompanionStatus: FirstUpdatePending
+    , walletCompanionStatus
     , menuOpen: false
     , card: Nothing
     , cardOpen: false

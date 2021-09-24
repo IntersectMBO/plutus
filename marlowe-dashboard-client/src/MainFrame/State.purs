@@ -283,7 +283,8 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       -- we've just subscribed to this wallet's WalletCompanion app, however, the creation of new
       -- MarloweFollower apps will be triggered by the initial WebSocket status notification.
       contractNicknames <- getContractNicknames
-      assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot
+      { dataProvider } <- ask
+      assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot dataProvider
 
 handleAction (WelcomeAction welcomeAction) = toWelcome $ Welcome.handleAction welcomeAction
 
