@@ -11,6 +11,7 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import qualified PlutusTx.Builtins             as Builtins
 import           PlutusTx.Compiler.Binders
 import           PlutusTx.Compiler.Builtins
 import           PlutusTx.Compiler.Error
@@ -20,8 +21,6 @@ import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
 import           PlutusTx.PIRTypes
-
-import qualified PlutusTx.Builtins             as Builtins
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import qualified PlutusTx.Builtins.Class       as Builtins
 
@@ -33,14 +32,16 @@ import qualified PrelNames                     as GHC
 
 import qualified PlutusIR                      as PIR
 import qualified PlutusIR.Compiler.Definitions as PIR
-import           PlutusIR.Compiler.Names
+import           PlutusIR.Compiler.Names       (safeFreshName)
+import           PlutusIR.Core.Type            (Term (..))
 import qualified PlutusIR.MkPir                as PIR
 import qualified PlutusIR.Purity               as PIR
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.MkPlc              as PLC
+import qualified PlutusCore.Pretty             as PP
 
-import           Control.Monad.Reader
+import           Control.Monad.Reader          (MonadReader (ask))
 
 import qualified Data.ByteString               as BS
 import           Data.List                     (elemIndex)
@@ -405,7 +406,16 @@ hoistExpr var t =
                     (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                     mempty
 
-                t' <- compileExpr t
+                CompileContext {ccOpts=profileOpts} <- ask
+                t' <-
+                    if coProfile profileOpts==All then do
+                        let ty = PLC._varDeclType var'
+                            varName = PLC._varDeclName var'
+                        t'' <- compileExpr t
+                        thunk <- PLC.freshName "thunk"
+                        pure $
+                            traceInside varName thunk t'' ty
+                    else compileExpr t
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
@@ -421,6 +431,48 @@ hoistExpr var t =
                     (PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
                     (Set.map LexName deps)
                 pure $ PIR.mkVar () var'
+
+mkTrace
+    :: (PLC.Contains uni T.Text)
+    => PLC.Type PLC.TyName uni ()
+    -> T.Text
+    -> PIRTerm uni PLC.DefaultFun
+    -> PIRTerm uni PLC.DefaultFun
+mkTrace ty str v =
+    PLC.mkIterApp
+        ()
+        (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
+        [PLC.mkConstant () str, v]
+
+-- | Trace inside a term's lambda. I.e., turn
+-- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
+traceInside ::
+    PLC.Name
+    -> PIR.Name
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+    -> PLC.Type PIR.TyName PLC.DefaultUni ()
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+traceInside varName lamName = go
+    where
+        go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+        -- when t = \x -> body, => \x -> traceInside body
+            LamAbs () n t (traceInside varName lamName body cod)
+        go LamAbs{} _ =
+            error "traceInside: type mismatched. It should be a function type."
+        go e ty =
+            let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
+                defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
+                displayName = T.pack $ PP.displayPlcDef varName
+            in
+            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+                PIR.Apply
+                    ()
+                    (mkTrace
+                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                        ("entering " <> displayName)
+                        -- \() -> trace @c "exiting f" e
+                        (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+                    defaultUnit
 
 -- Expressions
 
@@ -540,7 +592,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction
         GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
-        -- othewise it's a normal lambda
+        -- otherwise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
 
         GHC.Let (GHC.NonRec b arg) body -> do

@@ -88,6 +88,9 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-swagger-ui" or (errorHandler.buildDepError "servant-swagger-ui"))
+          (hsPkgs."servant-openapi3" or (errorHandler.buildDepError "servant-openapi3"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           (hsPkgs."servant-options" or (errorHandler.buildDepError "servant-options"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
@@ -141,13 +144,11 @@
           "Cardano/Node/Types"
           "Cardano/Protocol/Socket/Mock/Client"
           "Cardano/Protocol/Socket/Mock/Server"
-          "Cardano/Protocol/Socket/Client"
-          "Cardano/Protocol/Socket/Type"
-          "Cardano/Wallet/API"
-          "Cardano/Wallet/Client"
-          "Cardano/Wallet/Mock"
-          "Cardano/Wallet/Server"
-          "Cardano/Wallet/Types"
+          "Cardano/Wallet/Mock/API"
+          "Cardano/Wallet/Mock/Client"
+          "Cardano/Wallet/Mock/Handlers"
+          "Cardano/Wallet/Mock/Server"
+          "Cardano/Wallet/Mock/Types"
           "Control/Concurrent/Availability"
           "Control/Concurrent/STM/Extras"
           "Control/Concurrent/STM/Extras/Stream"
@@ -252,6 +253,7 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [
@@ -277,6 +279,7 @@
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           hsSourceDirs = [ "examples/uniswap" ];
@@ -361,8 +364,10 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."either" or (errorHandler.buildDepError "either"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -458,6 +463,7 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [
@@ -514,6 +520,7 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [

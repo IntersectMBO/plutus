@@ -62,6 +62,7 @@ import           Ledger                                   (Ada, AssetClass, Curr
                                                            POSIXTime, POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash,
                                                            Signature, TokenName, TxId, TxOutRef, ValidatorHash, Value)
 import           Ledger.Bytes                             (LedgerBytes)
+import           Plutus.Contract.Secrets                  (SecretArgument (EndpointSide, UserSide))
 import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude                         as P
@@ -69,6 +70,7 @@ import qualified PlutusTx.Ratio                           as P
 import           Wallet.Emulator.Wallet                   (Wallet, WalletId, WalletNumber)
 import           Wallet.Types                             (ContractInstanceId)
 
+import qualified Data.OpenApi.Schema                      as OpenApi
 import           Text.Show.Deriving                       (deriveShow1)
 
 {- HLINT ignore "Avoid restricted function" -}
@@ -93,7 +95,7 @@ data FormSchema
     -- Exceptions.
     | FormSchemaUnsupported String
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 ------------------------------------------------------------
 type FormArgument = Fix FormArgumentF
@@ -423,3 +425,10 @@ deriving anyclass instance ToArgument WalletNumber
 
 instance ToArgument WalletId where
     toArgument = Fix . FormStringF . Just . show
+
+instance forall a. ToSchema a => ToSchema (SecretArgument a) where
+  toSchema = toSchema @a
+
+instance forall a. ToArgument a => ToArgument (SecretArgument a) where
+  toArgument (UserSide a)     = toArgument a
+  toArgument (EndpointSide _) = Fix $ FormUnsupportedF "endpoint side secrets are not supported in toArgument"

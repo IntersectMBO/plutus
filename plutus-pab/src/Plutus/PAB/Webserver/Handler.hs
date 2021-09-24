@@ -15,6 +15,7 @@
 
 module Plutus.PAB.Webserver.Handler
     ( apiHandler
+    , swagger
     , walletProxy
     , walletProxyClientEnv
     -- * Reports
@@ -22,8 +23,8 @@ module Plutus.PAB.Webserver.Handler
     , contractSchema
     ) where
 
-import qualified Cardano.Wallet.Client                   as Wallet.Client
-import           Cardano.Wallet.Types                    (WalletInfo (..))
+import qualified Cardano.Wallet.Mock.Client              as Wallet.Client
+import           Cardano.Wallet.Mock.Types               (WalletInfo (..))
 import           Control.Lens                            (preview)
 import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)
@@ -33,6 +34,7 @@ import qualified Data.Aeson                              as JSON
 import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe, mapMaybe)
+import           Data.OpenApi.Schema                     (ToSchema)
 import           Data.Proxy                              (Proxy (..))
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
@@ -46,9 +48,13 @@ import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..), fromResp)
 import           Plutus.PAB.Types
+import           Plutus.PAB.Webserver.API                (API)
 import           Plutus.PAB.Webserver.Types
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
+import           Servant.OpenApi                         (toOpenApi)
+import qualified Servant.Server                          as Servant
+import           Servant.Swagger.UI                      (SwaggerSchemaUI', swaggerSchemaUIServer)
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
 import           Wallet.Emulator.Wallet                  (Wallet (..), WalletId, knownWallet)
@@ -110,6 +116,9 @@ apiHandler =
               :<|> instancesForWallets
               :<|> allInstanceStates
               :<|> availableContracts
+
+swagger :: forall t api dir. (Servant.Server api ~ Servant.Handler JSON.Value, ToSchema (Contract.ContractDef t)) => Servant.Server (SwaggerSchemaUI' dir api)
+swagger = swaggerSchemaUIServer $ toOpenApi (Proxy @(API (Contract.ContractDef t) Integer))
 
 fromInternalState ::
     t

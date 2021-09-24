@@ -188,9 +188,9 @@ Plutus specific wallet implementation for managing user funds on the blockchain.
 
 #### Source
 
-- [Cardano.Wallet.API](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/API.hs)
-- [Cardano.Wallet.Server.main](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/Server.hs#L101)
-- [Cardano.Wallet.Types.Config](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/Types.hs#L47)
+- [Cardano.Wallet.Mock.API](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/Mock/API.hs)
+- [Cardano.Wallet.Mock.Server.main](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/Mock/Server.hs#L101)
+- [Cardano.Wallet.Mock.Types.Config](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Cardano/Wallet/Mock/Types.hs#L47)
 
 ### webserver
 

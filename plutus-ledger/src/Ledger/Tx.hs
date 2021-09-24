@@ -172,6 +172,7 @@ instance Serialise SomeCardanoApiTx where
   encode (SomeTx tx eraInMode) = encodedMode eraInMode <> Encoding (TkBytes (C.serialiseToCBOR tx))
     where
       encodedMode :: C.EraInMode era C.CardanoMode -> Encoding
+      -- 0 and 1 are for ByronEraInByronMode and ShelleyEraInShelleyMode
       encodedMode C.ByronEraInCardanoMode   = Encoding (TkSimple 2)
       encodedMode C.ShelleyEraInCardanoMode = Encoding (TkSimple 3)
       encodedMode C.AllegraEraInCardanoMode = Encoding (TkSimple 4)

@@ -69,7 +69,7 @@ module Plutus.PAB.Simulator(
     , waitForValidatedTxCount
     ) where
 
-import qualified Cardano.Wallet.Mock                            as MockWallet
+import qualified Cardano.Wallet.Mock.Handlers                   as MockWallet
 import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
@@ -107,11 +107,11 @@ import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.TimeSlot                                (SlotConfig)
 import           Ledger.Value                                   (Value, flattenValue)
-import           Plutus.ChainIndex                              (ChainIndexControlEffect, ChainIndexEmulatorState,
+import           Plutus.ChainIndex.Emulator                     (ChainIndexControlEffect, ChainIndexEmulatorState,
                                                                  ChainIndexError, ChainIndexLog,
                                                                  ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
                                                                  TxStatus, getTip)
-import qualified Plutus.ChainIndex                              as ChainIndex
+import qualified Plutus.ChainIndex.Emulator                     as ChainIndex
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv

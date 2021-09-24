@@ -106,6 +106,12 @@ module Plutus.Contract.Test.ContractModel
     , TestStep(..)
     , FailedStep(..)
     , withDLTest
+
+    -- ** Standard properties
+    --
+    -- $noLockedFunds
+    , NoLockedFundsProof(..)
+    , checkNoLockedFundsProof
     ) where
 
 import           Control.Lens
@@ -121,21 +127,25 @@ import           Data.Row                              (Row)
 import           Data.Typeable
 
 import           Ledger.Slot
-import           Ledger.Value                          (Value)
-import           Plutus.Contract                       (Contract)
+import           Ledger.Value                          (Value, isZero, leq)
+import           Plutus.Contract                       (Contract, ContractInstanceId)
 import           Plutus.Contract.Test
-import           Plutus.Trace.Emulator                 as Trace (ContractHandle, ContractInstanceTag, EmulatorTrace,
-                                                                 activateContract, walletInstanceTag)
+import           Plutus.Trace.Effects.EmulatorControl  (discardWallets)
+import           Plutus.Trace.Emulator                 as Trace (ContractHandle (..), ContractInstanceTag,
+                                                                 EmulatorTrace, activateContract,
+                                                                 freezeContractInstance, walletInstanceTag)
 import           PlutusTx.Monoid                       (inv)
 import qualified Test.QuickCheck.DynamicLogic.Monad    as DL
 import           Test.QuickCheck.DynamicLogic.Quantify (Quantifiable (..), Quantification, arbitraryQ, chooseQ,
                                                         elementsQ, exactlyQ, frequencyQ, mapQ, oneofQ, whereQ)
 import           Test.QuickCheck.StateModel            hiding (Action, Actions, arbitraryAction, initialState,
-                                                        monitoring, nextState, perform, precondition, shrinkAction)
+                                                        monitoring, nextState, perform, precondition, shrinkAction,
+                                                        stateAfter)
 import qualified Test.QuickCheck.StateModel            as StateModel
 
 import           Test.QuickCheck                       hiding ((.&&.))
-import           Test.QuickCheck.Monadic               as QC (PropertyM, monadic)
+import qualified Test.QuickCheck                       as QC
+import           Test.QuickCheck.Monadic               (PropertyM, monadic)
 import qualified Test.QuickCheck.Monadic               as QC
 
 -- | Key-value map where keys and values have three indices that can vary between different elements
@@ -188,7 +198,16 @@ data ContractInstanceSpec state where
                   -> Contract w schema err ()               -- ^ The contract that is running in the instance
                   -> ContractInstanceSpec state
 
-type Handles state = IMap (ContractInstanceKey state) ContractHandle
+data WalletContractHandle w s e = WalletContractHandle Wallet (ContractHandle w s e)
+
+type Handles state = IMap (ContractInstanceKey state) WalletContractHandle
+
+-- | Used to freeze other wallets when checking a `NoLockedFundsProof`.
+instancesForOtherWallets :: Wallet -> Handles state -> [ContractInstanceId]
+instancesForOtherWallets _ IMNil = []
+instancesForOtherWallets w (IMCons _ (WalletContractHandle w' h) m)
+  | w /= w'   = chInstanceId h : instancesForOtherWallets w m
+  | otherwise = instancesForOtherWallets w m
 
 
 -- | A function returning the `ContractHandle` corresponding to a `ContractInstanceKey`. A
@@ -204,7 +223,6 @@ type HandleFun state = forall w schema err. (Typeable w, Typeable schema, Typeab
 --   * the amount that has been minted (`minted`)
 data ModelState state = ModelState
         { _currentSlot    :: Slot
-        , _lastSlot       :: Slot
         , _balanceChanges :: Map Wallet Value
         , _minted         :: Value
         , _contractState  :: state
@@ -212,7 +230,7 @@ data ModelState state = ModelState
   deriving (Show)
 
 dummyModelState :: state -> ModelState state
-dummyModelState s = ModelState 0 0 Map.empty mempty s
+dummyModelState s = ModelState 0 Map.empty mempty s
 
 -- | The `Spec` monad is a state monad over the `ModelState`. It is used exclusively by the
 --   `nextState` function to model the effects of an action on the blockchain.
@@ -474,8 +492,8 @@ instance GetModelState (Spec state) where
 handle :: (ContractModel s) => Handles s -> HandleFun s
 handle handles key =
     case imLookup key handles of
-        Just h  -> h
-        Nothing -> error $ "handle: No handle for " ++ show key
+        Just (WalletContractHandle _ h) -> h
+        Nothing                         -> error $ "handle: No handle for " ++ show key
 
 -- | The `EmulatorTrace` monad does not let you get the result of a computation out, but the way
 --   "Test.QuickCheck.Monadic" is set up requires you to provide a function @m Property -> Property@.
@@ -503,6 +521,7 @@ setHandles a = State.modify (<> EmulatorAction (const a))
 
 instance ContractModel state => Show (StateModel.Action (ModelState state) a) where
     showsPrec p (ContractAction a) = showsPrec p a
+    showsPrec p (Unilateral w)     = showParen (p >= 11) $ showString "Unilateral " . showsPrec 11 w
 
 deriving instance ContractModel state => Eq (StateModel.Action (ModelState state) a)
 
@@ -510,6 +529,11 @@ instance ContractModel state => StateModel (ModelState state) where
 
     data Action (ModelState state) a where
         ContractAction :: Action state -> StateModel.Action (ModelState state) ()
+        Unilateral :: Wallet -> StateModel.Action (ModelState state) ()
+          -- ^ This action disables all wallets other than the given wallet, by freezing their
+          --   contract instances and removing their private keys from the emulator state. This can
+          --   be used to check that a wallet can *unilaterally* achieve a desired outcome, without
+          --   the help of other wallets.
 
     type ActionMonad (ModelState state) = ContractMonad state
 
@@ -518,23 +542,30 @@ instance ContractModel state => StateModel (ModelState state) where
         return (Some @() (ContractAction a))
 
     shrinkAction s (ContractAction a) = [ Some @() (ContractAction a') | a' <- shrinkAction s a ]
+    shrinkAction _ Unilateral{}       = []
 
     initialState = ModelState { _currentSlot    = 0
-                              , _lastSlot       = 125        -- Set by propRunActions
                               , _balanceChanges = Map.empty
                               , _minted         = mempty
                               , _contractState  = initialState }
 
     nextState s (ContractAction cmd) _v = runSpec (nextState cmd) s
+    nextState s Unilateral{} _          = s
 
-    precondition s (ContractAction cmd) = s ^. currentSlot < s ^. lastSlotL - 10 -- No commands if < 10 slots left
-                                          && precondition s cmd
+    precondition s (ContractAction cmd) = precondition s cmd
+    precondition _ Unilateral{}         = True
 
     perform s (ContractAction cmd) _env = () <$ runEmulator (\ h -> perform (handle h) s cmd)
+    perform _ (Unilateral w) _env = () <$ runEmulator (\ h -> do
+        let insts = instancesForOtherWallets w h
+        mapM_ freezeContractInstance insts
+        discardWallets (w /=)
+      )
 
     postcondition _s _cmd _env _res = True
 
     monitoring (s0, s1) (ContractAction cmd) _env _res = monitoring (s0, s1) cmd
+    monitoring _ Unilateral{} _ _                      = id
 
 -- We present a simplified view of test sequences, and DL test cases, so
 -- that users do not need to see the variables bound to results.
@@ -664,10 +695,11 @@ toDLTestStep (Witness a) = DL.Witness a
 
 fromDLTest :: forall s. DL.DynLogicTest (ModelState s) -> DLTest s
 fromDLTest (DL.BadPrecondition steps acts s) =
-  BadPrecondition (fromDLTestSteps steps) (map conv acts) (_contractState s)
-  where conv :: Any (StateModel.Action (ModelState s)) -> FailedStep s
-        conv (Some (ContractAction act)) = Action act
-        conv (Error e)                   = Assert e
+  BadPrecondition (fromDLTestSteps steps) (concatMap conv acts) (_contractState s)
+  where conv :: Any (StateModel.Action (ModelState s)) -> [FailedStep s]
+        conv (Some (ContractAction act)) = [Action act]
+        conv (Some Unilateral{})         = []
+        conv (Error e)                   = [Assert e]
 fromDLTest (DL.Looping steps) =
   Looping (fromDLTestSteps steps)
 fromDLTest (DL.Stuck steps s) =
@@ -676,11 +708,12 @@ fromDLTest (DL.DLScript steps) =
   DLScript (fromDLTestSteps steps)
 
 fromDLTestSteps :: [DL.TestStep (ModelState state)] -> [TestStep state]
-fromDLTestSteps steps = map fromDLTestStep steps
+fromDLTestSteps steps = concatMap fromDLTestStep steps
 
-fromDLTestStep :: DL.TestStep (ModelState state) -> TestStep state
-fromDLTestStep (DL.Do (_ := ContractAction act)) = Do act
-fromDLTestStep (DL.Witness a)                    = Witness a
+fromDLTestStep :: DL.TestStep (ModelState state) -> [TestStep state]
+fromDLTestStep (DL.Do (_ := ContractAction act)) = [Do act]
+fromDLTestStep (DL.Do (_ := Unilateral{}))       = []
+fromDLTestStep (DL.Witness a)                    = [Witness a]
 
 -- | Run a specific `DLTest`. Typically this test comes from a failed run of `forAllDL`
 --   applied to the given `DL` scenario and property. Useful to check if a particular problem has
@@ -893,6 +926,7 @@ forAllDL dl prop = DL.forAllMappedDL toDLTest fromDLTest fromStateModelActions d
 
 instance ContractModel s => DL.DynLogicModel (ModelState s) where
     restricted (ContractAction act) = restricted act
+    restricted Unilateral{}         = True
 
 instance GetModelState (DL state) where
     type StateType (DL state) = state
@@ -937,7 +971,7 @@ activateWallets [] = return IMNil
 activateWallets (ContractInstanceSpec key wallet contract : spec) = do
     h <- activateContract wallet contract (instanceTag key wallet)
     m <- activateWallets spec
-    return $ IMCons key h m
+    return $ IMCons key (WalletContractHandle wallet h) m
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
 --   wallet balance changes. Equivalent to
@@ -1004,15 +1038,26 @@ propRunActionsWithOptions ::
     -> Actions state                          -- ^ The actions to run
     -> Property
 propRunActionsWithOptions opts handleSpecs predicate actions' =
+  propRunActionsWithOptions' opts handleSpecs predicate (toStateModelActions actions')
+
+propRunActionsWithOptions' ::
+    ContractModel state
+    => CheckOptions                          -- ^ Emulator options
+    -> [ContractInstanceSpec state]          -- ^ Required wallet contract instances
+    -> (ModelState state -> TracePredicate)  -- ^ Predicate to check at the end
+    -> StateModel.Actions (ModelState state) -- ^ The actions to run
+    -> Property
+propRunActionsWithOptions' opts handleSpecs predicate actions =
     monadic (flip State.evalState mempty) $ finalChecks opts finalPredicate $ do
         QC.run $ setHandles $ activateWallets handleSpecs
-        let initState = StateModel.initialState { _lastSlot = opts ^. maxSlot }
-        void $ runActionsInState initState actions
+        void $ runActionsInState StateModel.initialState actions
     where
-        finalState     = stateAfter actions
+        finalState     = StateModel.stateAfter actions
         finalPredicate = predicate finalState .&&. checkBalances finalState
                                               .&&. checkNoCrashes handleSpecs
-        actions = toStateModelActions actions'
+
+stateAfter :: ContractModel state => Actions state -> ModelState state
+stateAfter actions = StateModel.stateAfter (toStateModelActions actions)
 
 checkBalances :: ModelState state -> TracePredicate
 checkBalances s = Map.foldrWithKey (\ w val p -> walletFundsChange w val .&&. p) (pure True) (s ^. balanceChanges)
@@ -1024,3 +1069,68 @@ checkNoCrashes = foldr (\ (ContractInstanceSpec k w c) -> (assertOutcome c (inst
         notError Failed{}  = False
         notError Done{}    = True
         notError NotDone{} = True
+
+-- $noLockedFunds
+-- Showing that funds can not be locked in the contract forever.
+
+-- | A "proof" that you can always recover the funds locked by a contract. The first component is
+--   a strategy that from any state of the contract can get all the funds out. The second component
+--   is a strategy for each wallet that from the same state, shows how that wallet can recover the
+--   same (or bigger) amount as using the first strategy, without relying on any actions being taken
+--   by the other wallets.
+--
+--   For instance, in a two player game where each player bets some amount of funds and the winner
+--   gets the pot, there needs to be a mechanism for the players to recover their bid if the other
+--   player simply walks away (perhaps after realising the game is lost). If not, it won't be
+--   possible to construct a `NoLockedFundsProof` that works in a state where both players need to
+--   move before any funds can be collected.
+data NoLockedFundsProof model = NoLockedFundsProof
+  { nlfpMainStrategy   :: DL model ()
+    -- ^ Strategy to recover all funds from the contract in any reachable state.
+  , nlfpWalletStrategy :: Wallet -> DL model ()
+    -- ^ A strategy for each wallet to recover as much (or more) funds as the main strategy would
+    --   give them in a given state, without the assistance of any other wallet.
+  }
+
+-- | Check a `NoLockedFundsProof`. Each test will generate an arbitrary sequence of actions
+--   (`anyActions_`) and ask the `nlfpMainStrategy` to recover all funds locked by the contract
+--   after performing those actions. This results in some distribution of the contract funds to the
+--   wallets, and the test then asks each `nlfpWalletStrategy` to show how to recover their
+--   allotment of funds without any assistance from the other wallets (assuming the main strategy
+--   did not execute). When executing wallet strategies, the off-chain instances for other wallets
+--   are killed and their private keys are deleted from the emulator state.
+checkNoLockedFundsProof
+  :: (ContractModel model)
+  => CheckOptions
+  -> [ContractInstanceSpec model]
+  -> NoLockedFundsProof model
+  -> Property
+checkNoLockedFundsProof options spec NoLockedFundsProof{nlfpMainStrategy   = mainStrat,
+                                                        nlfpWalletStrategy = walletStrat } =
+    forAllDL anyActions_   $ \ (Actions as) ->
+    forAllDL (mainProp as) $ \ as' ->
+        let s    = stateAfter as'
+            as'' = toStateModelActions as' in
+        foldl (QC..&&.) (counterexample "Main strategy" $ prop as'') [ walletProp as w bal | (w, bal) <- Map.toList (s ^. balanceChanges) ]
+    where
+        prop = propRunActionsWithOptions' options spec (\ _ -> pure True)
+
+        mainProp as = do
+            mapM_ action as
+            mainStrat
+            lockedVal <- askModelState lockedValue
+            DL.assert ("Locked funds should be zero, but they are\n  " ++ show lockedVal) $ isZero lockedVal
+
+        walletProp as w bal = counterexample ("Strategy for " ++ show w) $ DL.forAllDL dl prop
+            where
+                dl = do
+                    mapM_ action as
+                    DL.action $ Unilateral w
+                    walletStrat w
+                    bal' <- viewModelState (balanceChange w)
+                    let err = "Unilateral strategy for " ++ show w ++ " should have gotten it at least\n" ++
+                              "  " ++ show bal ++ "\n" ++
+                              "but it got\n" ++
+                              "  " ++ show bal'
+                    DL.assert err (bal `leq` bal')
+

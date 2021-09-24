@@ -37,8 +37,10 @@ library
         Plutus.ChainIndex.Client
         Plutus.ChainIndex.DbStore
         Plutus.ChainIndex.Effects
+        Plutus.ChainIndex.Emulator
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
+        Plutus.ChainIndex.Emulator.Server
         Plutus.ChainIndex.Handlers
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
@@ -75,6 +77,7 @@ library
         cardano-api -any,
         cardano-ledger-byron -any,
         containers -any,
+        contra-tracer -any,
         cryptonite -any,
         data-default -any,
         exceptions -any,
@@ -92,6 +95,7 @@ library
         ouroboros-consensus-cardano -any,
         ouroboros-consensus-shelley -any,
         prettyprinter >=1.1.0.1,
+        retry -any,
         semigroups -any,
         serialise -any,
         sqlite-simple -any,
@@ -155,6 +159,7 @@ executable plutus-chain-index
     cardano-api -any,
     cardano-slotting -any,
     containers -any,
+    contra-tracer -any,
     freer-extras -any,
     freer-simple -any,
     lens -any,

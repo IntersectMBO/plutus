@@ -12,7 +12,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Cardano.Wallet.Types (
+module Cardano.Wallet.Mock.Types (
      -- * effect type for the mock wallet
       WalletEffects
     , Wallets

@@ -20,8 +20,8 @@ import           Ledger.Blockchain                (Block)
 import           Ledger.Slot                      (Slot)
 
 import           Cardano.ChainIndex.Types
-import           Plutus.ChainIndex                (ChainIndexEmulatorState, ChainIndexLog)
-import qualified Plutus.ChainIndex                as ChainIndex
+import           Plutus.ChainIndex.Emulator       (ChainIndexEmulatorState, ChainIndexLog)
+import qualified Plutus.ChainIndex.Emulator       as ChainIndex
 import           Plutus.PAB.Monitoring.Monitoring (convertLog, handleLogMsgTrace)
 import           Plutus.Trace.Emulator.System     (appendNewTipBlock)
 

@@ -113,7 +113,7 @@ evaluateCek
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
     case runCek params restrictingEnormous emitMode term of
-        (errOrRes, _, logs) -> (errOrRes, logs)
+         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
@@ -155,4 +155,4 @@ readKnownCek
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek params = evaluateCekNoEmit params >=> readKnown
+readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf

@@ -6,7 +6,7 @@ module Bridge
   ) where
 
 import Prelude
-import Cardano.Wallet.Types (WalletInfo(..)) as Back
+import Cardano.Wallet.Mock.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either)

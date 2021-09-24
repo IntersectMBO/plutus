@@ -15,7 +15,6 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 -- | A multisig contract written as a state machine.
 module Plutus.Contracts.MultiSigStateMachine(

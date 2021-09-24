@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Eq (Eq(..), (/=)) where
 
-import           PlutusTx.Bool
-import qualified PlutusTx.Builtins as Builtins
-
-import           Prelude           hiding (Eq (..), not, (&&))
+import                          PlutusTx.Bool
+import                qualified PlutusTx.Builtins as Builtins
+import                          PlutusTx.Either   (Either (..))
+import {-# SOURCE #-}           PlutusTx.Maybe    (Maybe (..))
 
 {- HLINT ignore -}
 
@@ -22,7 +22,7 @@ class Eq a where
 (/=) :: Eq a => a -> a -> Bool
 x /= y = not (x == y)
 
-instance Eq Integer where
+instance Eq Builtins.Integer where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsInteger
 
@@ -69,10 +69,3 @@ instance Eq () where
 instance (Eq a, Eq b) => Eq (a, b) where
     {-# INLINABLE (==) #-}
     (a, b) == (a', b') = a == a' && b == b'
-
-instance Eq Ordering where
-    {-# INLINABLE (==) #-}
-    EQ == EQ = True
-    GT == GT = True
-    LT == LT = True
-    _ == _   = False

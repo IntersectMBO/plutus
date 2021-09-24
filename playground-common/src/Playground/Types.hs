@@ -21,6 +21,7 @@ import           Data.Aeson                   (FromJSON, ToJSON)
 import qualified Data.Aeson                   as JSON
 import           Data.Functor.Foldable        (Fix)
 import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import qualified Data.OpenApi.Schema          as OpenApi
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (CompilationError, SourceCode)
@@ -178,6 +179,8 @@ data FunctionSchema a =
              , Foldable
              , Traversable
              )
+
+deriving instance OpenApi.ToSchema a => OpenApi.ToSchema (FunctionSchema a)
 
 ------------------------------------------------------------
 data PlaygroundError

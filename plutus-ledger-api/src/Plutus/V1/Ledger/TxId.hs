@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS_GHC -fno-strictness   #-}
 
 -- | The type of transaction IDs
 module Plutus.V1.Ledger.TxId(

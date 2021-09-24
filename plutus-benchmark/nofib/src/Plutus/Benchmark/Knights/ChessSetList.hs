@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+-- Turning this off makes things fail, should investigate why
+{-# OPTIONS_GHC -fno-strictness #-}
 
 module Plutus.Benchmark.Knights.ChessSetList
     ( Tile,
@@ -164,4 +166,3 @@ spaces s y =
           logTen :: Integer -> Integer
           logTen 0 = 0
           logTen x = 1 + logTen (x `Haskell.div` 10)
-

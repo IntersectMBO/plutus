@@ -20,6 +20,7 @@ module Ledger.Scripts (
     , stakeValidatorHash
     , toCardanoApiScript
     , scriptHash
+    , dataHash
     ) where
 
 import           Cardano.Api              (AsType, HasTextEnvelope (textEnvelopeType), HasTypeProxy (proxyToAsType),
@@ -28,7 +29,6 @@ import qualified Cardano.Api              as Script
 import qualified Cardano.Api.Shelley      as Script
 import           Cardano.Binary           (FromCBOR (fromCBOR), ToCBOR (toCBOR))
 import           Codec.Serialise          (decode, encode, serialise)
-import qualified Data.ByteArray           as BA
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.ByteString.Short    as SBS
 import qualified Data.Text                as Text
@@ -83,10 +83,10 @@ instance HasTypeProxy Redeemer where
     proxyToAsType _ = AsRedeemer
 
 datumHash :: Datum -> DatumHash
-datumHash = DatumHash . Builtins.sha2_256 . BA.convert
+datumHash = DatumHash . dataHash . getDatum
 
 redeemerHash :: Redeemer -> RedeemerHash
-redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
+redeemerHash = RedeemerHash . dataHash . getRedeemer
 
 validatorHash :: Validator -> ValidatorHash
 validatorHash = ValidatorHash . scriptHash . getValidator
@@ -96,6 +96,15 @@ mintingPolicyHash = MintingPolicyHash . scriptHash . getMintingPolicy
 
 stakeValidatorHash :: StakeValidator -> StakeValidatorHash
 stakeValidatorHash = StakeValidatorHash . scriptHash . getStakeValidator
+
+-- | Hash a 'Builtins.BuiltinData'
+dataHash :: Builtins.BuiltinData -> Builtins.BuiltinByteString
+dataHash =
+    toBuiltin
+    . Script.serialiseToRawBytes
+    . Script.hashScriptData
+    . Script.fromPlutusData
+    . builtinDataToData
 
 -- | Hash a 'Script'
 scriptHash :: Script -> Builtins.BuiltinByteString

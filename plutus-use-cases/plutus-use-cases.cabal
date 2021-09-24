@@ -27,6 +27,7 @@ library
     exposed-modules:
         Plutus.Contracts
         Plutus.Contracts.Auction
+        Plutus.Contracts.SealedBidAuction
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
@@ -86,7 +87,8 @@ library
         hashable -any,
         freer-simple -any,
         streaming -any,
-        semigroups -any
+        semigroups -any,
+        openapi3 -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -100,6 +102,7 @@ test-suite plutus-use-cases-test
     hs-source-dirs: test
     other-modules:
         Spec.Auction
+        Spec.SealedBidAuction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling

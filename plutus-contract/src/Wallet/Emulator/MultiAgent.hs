@@ -36,7 +36,7 @@ import           Ledger.Fee                        (FeeConfig)
 import           Ledger                            hiding (to, value)
 import qualified Ledger.AddressMap                 as AM
 import qualified Ledger.Index                      as Index
-import qualified Plutus.ChainIndex                 as ChainIndex
+import qualified Plutus.ChainIndex.Emulator        as ChainIndex
 import           Plutus.Trace.Emulator.Types       (ContractInstanceLog, EmulatedWalletEffects, EmulatedWalletEffects',
                                                     UserThreadMsg)
 import qualified Plutus.Trace.Scheduler            as Scheduler

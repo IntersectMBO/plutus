@@ -45,6 +45,7 @@ import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
 
+import qualified Data.OpenApi.Schema              as OpenApi
 
 -- | An error
 newtype MatchingError = WrongVariantError { unWrongVariantError :: Text }
@@ -106,7 +107,7 @@ instance AsCheckpointError ContractError where
 newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
     deriving (Eq, Ord, Show, Generic)
     deriving newtype (FromJSONKey, ToJSONKey)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
     deriving Pretty via (PrettyShow UUID)
 
 -- | A pure list of all 'ContractInstanceId' values. To be used in testing.
@@ -119,7 +120,7 @@ randomID = ContractInstanceId <$> UUID.nextRandom
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
     deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)

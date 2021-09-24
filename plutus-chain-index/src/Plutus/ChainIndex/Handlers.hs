@@ -17,7 +17,7 @@ module Plutus.ChainIndex.Handlers
     , ChainIndexState
     ) where
 
-import           Codec.Serialise                   (Serialise, deserialise, serialise)
+import           Codec.Serialise                   (Serialise, deserialiseOrFail, serialise)
 import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
@@ -155,7 +155,10 @@ queryList ::
 queryList = fmap (fmap fromByteString) . selectList
 
 fromByteString :: Serialise a => ByteString -> a
-fromByteString = deserialise . BSL.fromStrict
+fromByteString
+    = either (const $ error "Deserialisation failed. Delete you chain index database and resync.") id
+    . deserialiseOrFail
+    . BSL.fromStrict
 
 toByteString :: Serialise a => a -> ByteString
 toByteString = BSL.toStrict . serialise
@@ -205,11 +208,13 @@ handleControl = \case
             . UtxoState.utxoState
         insertRows <- foldMap fromTx . catMaybes <$> mapM getTxFromTxId utxos
         combined $
-            [ DeleteRows $ delete (datumRows db) (const (val_ True))
-            , DeleteRows $ delete (scriptRows db) (const (val_ True))
-            , DeleteRows $ delete (txRows db) (const (val_ True))
-            , DeleteRows $ delete (addressRows db) (const (val_ True))
+            [ DeleteRows $ truncateTable (datumRows db)
+            , DeleteRows $ truncateTable (scriptRows db)
+            , DeleteRows $ truncateTable (txRows db)
+            , DeleteRows $ truncateTable (addressRows db)
             ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRows tbl rows]) db insertRows)
+        where
+            truncateTable table = delete table (const (val_ True))
     GetDiagnostics -> diagnostics
 
 
@@ -234,7 +239,6 @@ insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn))
 rollbackUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
 rollbackUtxoDb TipAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
 rollbackUtxoDb (Tip _ _ (BlockNumber bn)) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowBlockNumber row >. val_ bn)
-
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)

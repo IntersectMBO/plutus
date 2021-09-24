@@ -85,6 +85,7 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [ "MarloweContract" ];
@@ -127,6 +128,7 @@
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
             (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
             (hsPkgs."network" or (errorHandler.buildDepError "network"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [ "Spec/PAB/Workflow" "MarloweContract" ];
@@ -165,6 +167,7 @@
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
             (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
             (hsPkgs."network" or (errorHandler.buildDepError "network"))
+            (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
             ];
           buildable = true;
           modules = [

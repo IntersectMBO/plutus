@@ -43,6 +43,8 @@ import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), 
 import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
 import           Data.Foldable                                    (foldlM, traverse_)
+import qualified Data.OpenApi                                     as OpenApi
+import           Data.Proxy                                       (Proxy (..))
 import           Data.Row
 import           GHC.Generics                                     (Generic)
 import           Playground.Schema                                (endpointsToSchemas)
@@ -68,6 +70,9 @@ import           Schema                                           (FormSchema)
 -- We have a dummy constructor so that we can convert this datatype in
 -- Purescript with '(equal <*> (genericShow <*> mkSumType)) (Proxy @(Builtin A))'.
 data Builtin a = Builtin deriving (Eq, Generic)
+
+instance OpenApi.ToSchema t => OpenApi.ToSchema (Builtin t) where
+    declareNamedSchema _ = OpenApi.declareNamedSchema (Proxy :: Proxy t)
 
 type ContractConstraints w schema error =
     ( Monoid w

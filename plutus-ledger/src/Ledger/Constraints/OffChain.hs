@@ -52,6 +52,7 @@ import           Data.Foldable                    (traverse_)
 import           Data.List                        (elemIndex)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
+import qualified Data.OpenApi.Schema              as OpenApi
 import           Data.Semigroup                   (First (..))
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
@@ -173,7 +174,7 @@ data UnbalancedTx =
         , unBalancedTxValidityTimeRange   :: POSIXTimeRange
         }
     deriving stock (Eq, Generic, Show)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 makeLensesFor
     [ ("unBalancedTxTx", "tx")

@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE MultiWayIf         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE ViewPatterns       #-}
 
 module PlutusCore.Data (Data (..)) where
@@ -25,13 +26,12 @@ import           Data.Word                 (Word64, Word8)
 import           GHC.Generics
 import           Prelude
 
-{- | A generic "data" type.
-
-The main constructor 'Constr' represents a datatype value in sum-of-products
-form: @Constr i args@ represents a use of the @i@th constructor (indexed from 0) along with its arguments.
-
-The other constructors are various primitives.
--}
+-- | A generic "data" type.
+--
+-- The main constructor 'Constr' represents a datatype value in sum-of-products
+-- form: @Constr i args@ represents a use of the @i@th constructor along with its arguments.
+--
+-- The other constructors are various primitives.
 data Data =
       Constr Integer [Data]
     | Map [(Data, Data)]
@@ -112,7 +112,13 @@ encodeData = \case
     -- See Note [CBOR alternative tags]
     Constr i ds | 0 <= i && i < 7   -> CBOR.encodeTag (fromIntegral (121 + i)) <> encode ds
     Constr i ds | 7 <= i && i < 128 -> CBOR.encodeTag (fromIntegral (1280 + (i - 7))) <> encode ds
-    Constr i ds | otherwise         -> CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> CBOR.encodeWord64 (fromIntegral i) <> encode ds
+    Constr i ds | otherwise         ->
+                  let tagEncoding = if fromIntegral (minBound @Word64) <= i && i <= fromIntegral (maxBound @Word64)
+                                    then CBOR.encodeWord64 (fromIntegral i)
+                                    -- This is a "correct"-ish encoding of the tag, but it will *not* deserialise, since we insist on a
+                                    -- 'Word64' when we deserialise. So this is really a "soft" failure, without using 'error' or something.
+                                    else CBOR.encodeInteger i
+                  in CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> tagEncoding <> encode ds
     Map es                          -> CBOR.encodeMapLen (fromIntegral $ length es) <> mconcat [ encode t <> encode t' | (t, t') <-es ]
     List ds                         -> encode ds
     I i                             -> encodeInteger i
@@ -255,7 +261,6 @@ decodeConstr = CBOR.decodeTag64 >>= \case
   decodeConstrExtended = do
     len <- CBOR.decodeListLenOrIndef
     i <- CBOR.decodeWord64
-    unless (i >= 0) $ fail ("Invalid negative constructor tag: " ++ show i)
     args <- decodeListOf decodeData
     case len of
       Nothing -> do

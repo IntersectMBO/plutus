@@ -95,7 +95,7 @@ bob = w2
 
 
 zeroCouponBondTest :: TestTree
-zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Zero Coupon Bond Contract"
+zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond Contract"
     (assertNoFailedTransactions
     -- T..&&. emulatorLog (const False) ""
     T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag alice) (const True) "contract should close"
@@ -136,7 +136,7 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
 
 
 errorHandlingTest :: TestTree
-errorHandlingTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Error handling"
+errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
     (\case (SomeError (TransitionError _)) -> True
            _                               -> False
@@ -167,7 +167,7 @@ errorHandlingTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250)
 
 
 trustFundTest :: TestTree
-trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Trust Fund Contract"
+trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
     (assertNoFailedTransactions
     -- T..&&. emulatorLog (const False) ""
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should not have any errors"
