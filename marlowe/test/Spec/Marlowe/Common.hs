@@ -332,7 +332,7 @@ shrinkContract cont = case cont of
 
 pangramContract :: Contract
 pangramContract = let
-    alicePk = PK $ pubKeyHash $ walletPubKey $ knownWallet 1
+    alicePk = PK $ walletPubKeyHash $ knownWallet 1
     aliceAcc = alicePk
     bobRole = Role "Bob"
     constant = Constant 100
