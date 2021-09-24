@@ -47,7 +47,7 @@ import           Data.Foldable                            (traverse_)
 import           Data.Kind                                (Constraint)
 import           Data.Semigroup.Generic                   (GenericSemigroupMonoid (..))
 import qualified Data.Text                                as Text
-import           Data.Word                                (Word16, Word64)
+import           Data.Word                                (Word64)
 import           Database.Beam                            (Beamable, Columnar, Database, DatabaseEntity,
                                                            DatabaseSettings, FromBackendRow, Generic, Identity,
                                                            MonadIO (liftIO), SqlDelete, SqlSelect, SqlUpdate,
@@ -110,23 +110,6 @@ instance Table AddressRowT where
     data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
     primaryKey (AddressRow c o) = AddressRowId c o
 
--- The tip row id is always 0, beam doesn't handle empty primary keys very well
-tipRowId :: Word16
-tipRowId = 0
-
-data TipRowT f = TipRow
-    { _tipRowId          :: Columnar f Word16
-    , _tipRowSlot        :: Columnar f ByteString
-    , _tipRowBlockId     :: Columnar f ByteString
-    , _tipRowBlockNumber :: Columnar f Word64
-    } deriving (Generic, Beamable)
-
-type TipRow = TipRowT Identity
-
-instance Table TipRowT where
-    data PrimaryKey TipRowT f = TipRowId (Columnar f Word16) deriving (Generic, Beamable)
-    primaryKey = TipRowId . _tipRowId
-
 data UtxoRowT f = UtxoRow
     { _utxoRowBalance     :: Columnar f ByteString
     , _utxoRowSlot        :: Columnar f ByteString
@@ -145,7 +128,6 @@ data Db f = Db
     , scriptRows  :: f (TableEntity ScriptRowT)
     , txRows      :: f (TableEntity TxRowT)
     , addressRows :: f (TableEntity AddressRowT)
-    , tipRow      :: f (TableEntity TipRowT)
     , utxoRows    :: f (TableEntity UtxoRowT)
     } deriving (Generic, Database be)
 
@@ -154,9 +136,10 @@ type AllTables (c :: * -> Constraint) f =
     , c (f (TableEntity ScriptRowT))
     , c (f (TableEntity TxRowT))
     , c (f (TableEntity AddressRowT))
-    , c (f (TableEntity TipRowT))
     , c (f (TableEntity UtxoRowT))
     )
+deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Semigroup f => Semigroup (Db f)
+deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Monoid f => Monoid (Db f)
 
 db :: DatabaseSettings Sqlite Db
 db = unCheckDatabase checkedSqliteDb
@@ -168,7 +151,6 @@ checkedSqliteDb = defaultMigratableDbSettings
     , scriptRows  = renameCheckedEntity (const "scripts")
     , txRows      = renameCheckedEntity (const "txs")
     , addressRows = renameCheckedEntity (const "addresses")
-    , tipRow      = renameCheckedEntity (const "tip")
     , utxoRows    = renameCheckedEntity (const "utxo")
     }
 

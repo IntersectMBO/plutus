@@ -27,6 +27,7 @@ import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Default                      (def)
+import           Data.Either                       (fromRight)
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (catMaybes, fromMaybe)
 import           Data.Monoid                       (Ap (..))
@@ -34,7 +35,7 @@ import           Data.Proxy                        (Proxy (..))
 import qualified Data.Set                          as Set
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               ((==.), (>.))
+import           Database.Beam.Query               (desc_, orderBy_, (==.), (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -89,10 +90,10 @@ handleQuery = \case
 
 getTip :: Member DbStoreEffect effs => Eff effs Tip
 getTip = do
-    row <- selectOne . select $ all_ (tipRow db)
+    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _utxoRowBlockNumber) (all_ (utxoRows db)))
     pure $ case row of
-        Nothing                    -> TipAtGenesis
-        Just (TipRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber bn)
+        Nothing                     -> TipAtGenesis
+        Just (UtxoRow _ slot bi bn) -> Tip (fromByteString slot) (BlockId bi) (BlockNumber bn)
 
 getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
@@ -156,7 +157,7 @@ queryList = fmap (fmap fromByteString) . selectList
 
 fromByteString :: Serialise a => ByteString -> a
 fromByteString
-    = either (const $ error "Deserialisation failed. Delete you chain index database and resync.") id
+    = fromRight (error "Deserialisation failed. Delete you chain index database and resync.")
     . deserialiseOrFail
     . BSL.fromStrict
 
@@ -183,7 +184,6 @@ handleControl = \case
             Right InsertUtxoSuccess{newIndex, insertPosition} -> do
                 put newIndex
                 insert $ foldMap fromTx transactions
-                setTip tip_
                 insertUtxoDb (UtxoState.utxoState newIndex)
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
@@ -195,7 +195,6 @@ handleControl = \case
                 throwError reason
             Right RollbackResult{newTip, rolledBackIndex} -> do
                 put rolledBackIndex
-                setTip newTip
                 rollbackUtxoDb newTip
                 logDebug $ RollbackSuccess newTip
     CollectGarbage -> do
@@ -217,14 +216,6 @@ handleControl = \case
             truncateTable table = delete table (const (val_ True))
     GetDiagnostics -> diagnostics
 
-
-setTip :: Member DbStoreEffect effs => Tip -> Eff effs ()
-setTip tip_ = combined $
-    case tip_ of
-        TipAtGenesis -> [doDelete]
-        Tip sl (BlockId bi) (BlockNumber bn) -> [doDelete, AddRows (tipRow db) [TipRow tipRowId (toByteString sl) bi bn]]
-    where
-        doDelete = DeleteRows $ delete (tipRow db) (\row -> _tipRowId row ==. val_ tipRowId)
 
 insertUtxoDb ::
     ( Member DbStoreEffect effs
