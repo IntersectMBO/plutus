@@ -13,6 +13,7 @@
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE NPlusKPatterns           #-}
+{-# LANGUAGE NamedFieldPuns           #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
@@ -292,7 +293,7 @@ data CekEmitterInfo uni fun s = CekEmitterInfo {
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
 newtype EmitterMode uni fun = EmitterMode
-    { unEmitterMode :: forall s. ST s (CekEmitterInfo uni fun s)
+    { unEmitterMode :: forall s. ST s ExBudget -> ST s (CekEmitterInfo uni fun s)
     }
 
 {- Note [Implicit parameters in the machine]
@@ -502,17 +503,17 @@ runCekM
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [Text])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
-    exBudgetMode <- getExBudgetInfo
-    emitter <- getEmitterMode
+    ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
+    CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
     let ?cekRuntime = runtime
-        ?cekEmitter = _cekEmitterInfoEmit emitter
-        ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
+        ?cekEmitter = _cekEmitterInfoEmit
+        ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
     -- See Note Note [Being generic over 'term' in errors].
     errOrRes <- unCekM $ tryError a
-    st <- _exBudgetModeGetFinal exBudgetMode
-    logs <- _cekEmitterInfoGetFinal emitter
+    st <- _exBudgetModeGetFinal
+    logs <- _cekEmitterInfoGetFinal
     pure (errOrRes, st, logs)
 
 -- | Extend an environment with a variable name, the value the variable stands for
