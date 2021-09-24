@@ -13,6 +13,7 @@ module Config(
   defaultConfig,
   -- * Lenses
   socketPath,
+  dbPath,
   port,
   networkId,
   slotConfig
@@ -29,6 +30,7 @@ import           Ouroboros.Network.Magic   (NetworkMagic (..))
 
 data ChainIndexConfig = ChainIndexConfig
   { cicSocketPath :: String
+  , cicDbPath     :: String
   , cicPort       :: Int
   , cicNetworkId  :: NetworkId
   , cicSlotConfig :: SlotConfig
@@ -48,6 +50,7 @@ deriving anyclass instance ToJSON NetworkMagic
 defaultConfig :: ChainIndexConfig
 defaultConfig = ChainIndexConfig
   { cicSocketPath = "/tmp/node-server.sock"
+  , cicDbPath     = "/tmp/chain-index.db"
   , cicPort       = 9083
   , cicNetworkId  = Testnet $ NetworkMagic 8
   , cicSlotConfig =
@@ -58,14 +61,16 @@ defaultConfig = ChainIndexConfig
   }
 
 instance Pretty ChainIndexConfig where
-  pretty ChainIndexConfig{cicSocketPath, cicPort, cicNetworkId} =
+  pretty ChainIndexConfig{cicSocketPath, cicDbPath, cicPort, cicNetworkId} =
     vsep [ "Socket:" <+> pretty cicSocketPath
+         , "Db:" <+> pretty cicDbPath
          , "Port:" <+> pretty cicPort
          , "Network Id:" <+> viaShow cicNetworkId
          ]
 
 makeLensesFor [
   ("cicSocketPath", "socketPath"),
+  ("cicDbPath", "dbPath"),
   ("cicPort", "port"),
   ("cicNetworkId", "networkId"),
   ("cicSlotConfig", "slotConfig")

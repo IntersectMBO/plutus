@@ -46,6 +46,9 @@
           (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."beam-core" or (errorHandler.buildDepError "beam-core"))
+          (hsPkgs."beam-sqlite" or (errorHandler.buildDepError "beam-sqlite"))
+          (hsPkgs."beam-migrate" or (errorHandler.buildDepError "beam-migrate"))
           (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
           (hsPkgs."cardano-ledger-byron" or (errorHandler.buildDepError "cardano-ledger-byron"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -69,6 +72,7 @@
           (hsPkgs."retry" or (errorHandler.buildDepError "retry"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+          (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
@@ -87,10 +91,16 @@
         modules = [
           "Plutus/ChainIndex"
           "Plutus/ChainIndex/Api"
+          "Plutus/ChainIndex/ChainIndexError"
+          "Plutus/ChainIndex/ChainIndexLog"
+          "Plutus/ChainIndex/Client"
+          "Plutus/ChainIndex/DbStore"
           "Plutus/ChainIndex/Effects"
+          "Plutus/ChainIndex/Emulator"
           "Plutus/ChainIndex/Emulator/DiskState"
           "Plutus/ChainIndex/Emulator/Handlers"
-          "Plutus/ChainIndex/Client"
+          "Plutus/ChainIndex/Emulator/Server"
+          "Plutus/ChainIndex/Handlers"
           "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"
           "Plutus/ChainIndex/TxIdState"
@@ -110,6 +120,9 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."beam-core" or (errorHandler.buildDepError "beam-core"))
+            (hsPkgs."beam-sqlite" or (errorHandler.buildDepError "beam-sqlite"))
+            (hsPkgs."beam-migrate" or (errorHandler.buildDepError "beam-migrate"))
             (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -125,6 +138,7 @@
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
+            (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
             (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
             ];
           buildable = true;

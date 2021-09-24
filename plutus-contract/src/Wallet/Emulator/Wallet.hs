@@ -57,8 +57,8 @@ import           Ledger.Fee                     (FeeConfig (..), calcFees)
 import           Ledger.TimeSlot                (posixTimeRangeToContainedSlotRange)
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Value                   as Value
-import           Plutus.ChainIndex              (ChainIndexEmulatorState, ChainIndexQueryEffect)
-import qualified Plutus.ChainIndex              as ChainIndex
+import           Plutus.ChainIndex.Emulator     (ChainIndexEmulatorState, ChainIndexQueryEffect)
+import qualified Plutus.ChainIndex.Emulator     as ChainIndex
 import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
 import qualified PlutusTx.Prelude               as PlutusTx
 import           Prelude                        as P

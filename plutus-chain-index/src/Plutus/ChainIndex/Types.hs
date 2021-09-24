@@ -209,13 +209,10 @@ newtype BlockNumber = BlockNumber Int
 
 data Diagnostics =
     Diagnostics
-        { numTransactions    :: Int
-        , numValidators      :: Int
-        , numMintingPolicies :: Int
-        , numStakeValidators :: Int
-        , numRedeemers       :: Int
-        , numAddresses       :: Int
-        , someTransactions   :: [TxId]
+        { numTransactions  :: Integer
+        , numScripts       :: Integer
+        , numAddresses     :: Integer
+        , someTransactions :: [TxId]
         }
         deriving stock (Eq, Ord, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

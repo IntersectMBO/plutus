@@ -102,11 +102,8 @@ fromTx tx =
 diagnostics :: DiskState -> Diagnostics
 diagnostics DiskState{_DataMap, _ValidatorMap, _MintingPolicyMap, _TxMap, _StakeValidatorMap, _RedeemerMap, _AddressMap} =
     Diagnostics
-        { numTransactions = Map.size _TxMap
-        , numValidators = Map.size _ValidatorMap
-        , numMintingPolicies = Map.size _MintingPolicyMap
-        , numStakeValidators = Map.size _StakeValidatorMap
-        , numRedeemers = Map.size _RedeemerMap
-        , numAddresses = Map.size $ _unCredentialMap _AddressMap
+        { numTransactions = toInteger $ Map.size _TxMap
+        , numScripts = toInteger $ Map.size _ValidatorMap + Map.size _MintingPolicyMap + Map.size _StakeValidatorMap + Map.size _RedeemerMap
+        , numAddresses = toInteger $ Map.size $ _unCredentialMap _AddressMap
         , someTransactions = take 10 $ fmap fst $ Map.toList _TxMap
         }

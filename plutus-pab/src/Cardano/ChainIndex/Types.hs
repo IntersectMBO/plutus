@@ -23,7 +23,7 @@ import           Cardano.BM.Data.Tracer        (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
 import           Control.Monad.Freer.Error     (Error)
 import           Control.Monad.Freer.Extras    (LogMsg)
-import           Plutus.ChainIndex             (ChainIndexControlEffect, ChainIndexEmulatorState, ChainIndexError,
+import           Plutus.ChainIndex.Emulator    (ChainIndexControlEffect, ChainIndexEmulatorState, ChainIndexError,
                                                 ChainIndexLog, ChainIndexQueryEffect)
 
 type ChainIndexEffects m

@@ -41,6 +41,7 @@
         ]
       )
     )
+    (termbind (strict) (vardecl void (all a (type) a)) (abs e (type) (error e)))
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -15013,20 +15014,6 @@
                           (termbind
                             (strict)
                             (vardecl
-                              wctoBuiltinData (fun (all a (type) a) (con data))
-                            )
-                            (lam
-                              void
-                              (all a (type) a)
-                              [
-                                [ (builtin constrData) (con integer 0) ]
-                                [ (builtin mkNilData) (con unit ()) ]
-                              ]
-                            )
-                          )
-                          (termbind
-                            (strict)
-                            (vardecl
                               build
                               (all
                                 a
@@ -15124,6 +15111,14 @@
                                 )
                               )
                             )
+                          )
+                          (termbind
+                            (nonstrict)
+                            (vardecl unitDatum (con data))
+                            [
+                              [ (builtin constrData) (con integer 0) ]
+                              [ (builtin mkNilData) (con unit ()) ]
+                            ]
                           )
                           (termbind
                             (strict)
@@ -15426,16 +15421,7 @@
                                                                                               MustMintValue
                                                                                               mph
                                                                                             ]
-                                                                                            [
-                                                                                              wctoBuiltinData
-                                                                                              (abs
-                                                                                                e
-                                                                                                (type)
-                                                                                                (error
-                                                                                                  e
-                                                                                                )
-                                                                                              )
-                                                                                            ]
+                                                                                            unitDatum
                                                                                           ]
                                                                                           tn
                                                                                         ]
@@ -15761,16 +15747,7 @@
                                                                                                                 MustMintValue
                                                                                                                 mph
                                                                                                               ]
-                                                                                                              [
-                                                                                                                wctoBuiltinData
-                                                                                                                (abs
-                                                                                                                  e
-                                                                                                                  (type)
-                                                                                                                  (error
-                                                                                                                    e
-                                                                                                                  )
-                                                                                                                )
-                                                                                                              ]
+                                                                                                              unitDatum
                                                                                                             ]
                                                                                                             tn
                                                                                                           ]
