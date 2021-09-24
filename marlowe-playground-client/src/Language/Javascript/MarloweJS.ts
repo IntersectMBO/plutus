@@ -82,6 +82,8 @@ type Value = { "amount_of_token": Token,
              , "minus": Value }
            | { "multiply": Value
              , "times": Value }
+           | { "divide": Value
+             , "by": Value }
            | { "multiply": Value
              , "times": bignumber.BigNumber
              , "divide_by": bignumber.BigNumber }
@@ -147,6 +149,12 @@ export const MulValue =
     function (lhs : EValue, rhs : EValue) : Value {
         return { "multiply": coerceValue(lhs),
                  "times": coerceValue(rhs) };
+    };
+
+export const DivValue =
+    function (lhs : EValue, rhs : EValue) : Value {
+        return { "divide": coerceValue(lhs),
+                 "by": coerceValue(rhs) };
     };
 
 export const Scale =

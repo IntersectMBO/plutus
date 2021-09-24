@@ -1,113 +1,111 @@
 {
   "then": {
+    "timeout": 100,
     "when": [
       {
         "then": {
+          "be": {
+            "add": 100,
+            "and": {
+              "minus": {
+                "negate": 100
+              },
+              "value": 100
+            }
+          },
           "then": {
-            "token": {
-              "token_name": "",
-              "currency_symbol": ""
-            },
             "to": {
               "party": {
                 "role_token": "Bob"
               }
             },
             "then": "close",
-            "pay": {
-              "then": {
-                "use_value": "x"
-              },
-              "if": true,
-              "else": {
-                "use_value": "y"
-              }
+            "token": {
+              "currency_symbol": "",
+              "token_name": ""
             },
             "from_account": {
-              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+            },
+            "pay": {
+              "use_value": "x"
             }
           },
-          "let": "x",
-          "be": {
-            "and": {
-              "value": 100,
-              "minus": {
-                "negate": 100
-              }
-            },
-            "add": 100
-          }
+          "let": "x"
         },
         "case": {
-          "party": {
-            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
-          },
-          "of_token": {
-            "token_name": "",
-            "currency_symbol": ""
-          },
-          "into_account": {
-            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
-          },
           "deposits": {
+            "add": 100,
             "and": {
-              "value": 100,
               "minus": {
                 "negate": 100
-              }
-            },
-            "add": 100
+              },
+              "value": 100
+            }
+          },
+          "party": {
+            "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+          },
+          "of_token": {
+            "currency_symbol": "",
+            "token_name": ""
+          },
+          "into_account": {
+            "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
           }
         }
       },
       {
         "then": {
-          "then": {
-            "token": {
-              "token_name": "name",
-              "currency_symbol": "aa"
-            },
-            "to": {
-              "account": {
-                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
-              }
-            },
-            "then": "close",
-            "pay": {
-              "in_account": {
-                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
-              },
-              "amount_of_token": {
-                "token_name": "name",
-                "currency_symbol": "aa"
-              }
-            },
-            "from_account": {
-              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
-            }
-          },
           "if": {
+            "either": {
+              "chose_something_for": {
+                "choice_owner": {
+                  "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+                },
+                "choice_name": "choice"
+              }
+            },
             "or": {
               "value": {
                 "value_of_choice": {
                   "choice_owner": {
-                    "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+                    "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
                   },
                   "choice_name": "choice"
                 }
               },
               "equal_to": {
-                "times": 1,
+                "divide_by": 10,
                 "multiply": 100,
-                "divide_by": 10
+                "times": 1
+              }
+            }
+          },
+          "then": {
+            "to": {
+              "account": {
+                "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
               }
             },
-            "either": {
-              "chose_something_for": {
-                "choice_owner": {
-                  "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            "then": "close",
+            "token": {
+              "currency_symbol": "6161",
+              "token_name": "name"
+            },
+            "from_account": {
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+            },
+            "pay": {
+              "by": 100,
+              "divide": {
+                "amount_of_token": {
+                  "currency_symbol": "6161",
+                  "token_name": "name"
                 },
-                "choice_name": "choice"
+                "in_account": {
+                  "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+                }
               }
             }
           },
@@ -116,7 +114,7 @@
         "case": {
           "for_choice": {
             "choice_owner": {
-              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
             },
             "choice_name": "choice"
           },
@@ -124,6 +122,10 @@
             {
               "to": 1,
               "from": 0
+            },
+            {
+              "to": 20,
+              "from": 10
             }
           ]
         }
@@ -141,8 +143,7 @@
         }
       }
     ],
-    "timeout_continuation": "close",
-    "timeout": 100
+    "timeout_continuation": "close"
   },
   "assert": true
 }

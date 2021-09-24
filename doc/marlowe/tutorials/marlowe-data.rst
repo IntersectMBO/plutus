@@ -147,6 +147,7 @@ cases. First, looking at ``Value`` we have
               | AddValue Value Value
               | SubValue Value Value
               | MulValue Value Value
+              | DivValue Value Value
               | Scale Rational Value
               | ChoiceValue ChoiceId
               | SlotIntervalStart

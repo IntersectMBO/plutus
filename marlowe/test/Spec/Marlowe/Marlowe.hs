@@ -22,9 +22,9 @@ import           Data.Aeson                            (decode, encode)
 import           Data.Aeson.Text                       (encodeToLazyText)
 import qualified Data.ByteString                       as BS
 import           Data.Default                          (Default (..))
-import           Data.Either                           (isRight)
+import           Data.Either                           (fromRight, isRight)
 import qualified Data.Map.Strict                       as Map
-import           Data.Maybe                            (isJust)
+import           Data.Maybe                            (isJust, isNothing)
 import           Data.Monoid                           (First (..))
 import           Data.Ratio                            ((%))
 import           Data.Set                              (Set)
@@ -74,6 +74,8 @@ tests = testGroup "Marlowe"
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testCase "Mul analysis" mulAnalysisTest
+    , testCase "Div analysis" divAnalysisTest
+    , testCase "Div tests" divTest
     , testCase "Transfers between accounts work" transferBetweenAccountsTest
     , testCase "extractContractRoles" extractContractRolesTest
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
@@ -82,7 +84,8 @@ tests = testGroup "Marlowe"
     , testProperty "Values can be serialized to JSON" valueSerialization
     , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
     , testProperty "Multiply by zero" mulTest
-    , testProperty "Scale rounding" scaleRoundingTest
+    , testProperty "Divide zero and by zero" divZeroTest
+    , testProperty "DivValue rounding" divisionRoundingTest
     , zeroCouponBondTest
     , errorHandlingTest
     , trustFundTest
@@ -324,17 +327,17 @@ valuesFormAbelianGroup = property $ do
         eval (SubValue (AddValue a b) b) === eval a
 
 
-scaleRoundingTest :: Property
-scaleRoundingTest = property $ do
+divisionRoundingTest :: Property
+divisionRoundingTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     -- test half-even rounding
     let gen = do
             n <- amount
             d <- suchThat amount (/= 0)
             return (n, d)
-    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === halfAwayRound (n % d)
+    forAll gen $ \(n, d) -> eval (DivValue (Constant n) (Constant d)) === halfEvenRound (n P.% d)
     where
-      halfAwayRound fraction = let (n,f) = properFraction fraction in n + round (f + 1) - 1
+      halfEvenRound = P.round
 
 
 scaleMulTest :: Property
@@ -349,6 +352,14 @@ mulTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     forAll valueGen $ \a ->
         eval (MulValue (Constant 0) a) === 0
+
+
+divZeroTest :: Property
+divZeroTest = property $ do
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    forAll valueGen $ \a ->
+        eval (DivValue (Constant 0) a) === 0 .&&.
+        eval (DivValue a (Constant 0)) === 0
 
 
 valueSerialization :: Property
@@ -387,6 +398,39 @@ transferBetweenAccountsTest = do
                 ((20, 30), [])
     balance @=? lovelaceValueOf 100
     assertBool "Accounts check" $ accounts == AssocMap.fromList [(("bob",Token "" ""), 100)]
+
+
+divAnalysisTest :: IO ()
+divAnalysisTest = do
+    let
+        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        contract n d = If (DivValue (Constant n) (Constant d) `ValueGE` Constant 5)
+            Close
+            (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
+    result <- warningsTrace (contract 11 2)
+    assertBool "Analysis ok" $ isRight result && fromRight False (fmap isNothing result)
+    result <- warningsTrace (contract 9 2)
+    assertBool "Analysis ok" $ isRight result && fromRight False (fmap isJust result)
+
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    eval (DivValue (Constant 0) (Constant 2)) @=? 0
+    eval (DivValue (Constant 1) (Constant 0)) @=? 0
+    eval (DivValue (Constant 5) (Constant 2)) @=? 2
+    eval (DivValue (Constant (-5)) (Constant 2)) @=? -2
+    eval (DivValue (Constant 7) (Constant 2)) @=? 4
+    eval (DivValue (Constant (-7)) (Constant 2)) @=? -4
+
+
+divTest :: IO ()
+divTest = do
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    eval (DivValue (Constant 0) (Constant 2)) @=? 0
+    eval (DivValue (Constant 1) (Constant 0)) @=? 0
+    eval (DivValue (Constant 5) (Constant 2)) @=? 2
+    eval (DivValue (Constant (-5)) (Constant 2)) @=? -2
+    eval (DivValue (Constant 7) (Constant 2)) @=? 4
+    eval (DivValue (Constant (-7)) (Constant 2)) @=? -4
+
 
 
 pangramContractSerialization :: IO ()
