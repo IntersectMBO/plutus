@@ -32,6 +32,7 @@ module Plutus.ChainIndex.Tx(
     , _ValidTx
     ) where
 
+import           Codec.Serialise           (Serialise)
 import           Control.Lens              (makeLenses, makePrisms)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Map                  (Map)
@@ -52,7 +53,7 @@ import           Ledger                    (Address, Datum, DatumHash, MintingPo
 data ChainIndexTxOutputs =
     InvalidTx -- ^ The transaction is invalid so there is no outputs
   | ValidTx [TxOut]
-  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise)
 
 makePrisms ''ChainIndexTxOutputs
 
@@ -74,7 +75,7 @@ data ChainIndexTx = ChainIndexTx {
     _citxStakeValidators :: Map StakeValidatorHash StakeValidator,
     _citxValidators      :: Map ValidatorHash Validator,
     _citxCardanoTx       :: Maybe SomeCardanoApiTx -- Might be Nothing if we are in the emulator
-    } deriving (Show, Eq, Generic, ToJSON, FromJSON)
+    } deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise)
 
 makeLenses ''ChainIndexTx
 

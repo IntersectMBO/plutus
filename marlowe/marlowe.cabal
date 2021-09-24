@@ -124,6 +124,7 @@ test-suite marlowe-test-long-running
         http-client -any,
         websockets -any,
         network -any,
+        openapi3 -any,
 
 test-suite marlowe-test
     import: lang
@@ -168,6 +169,7 @@ test-suite marlowe-test
         http-client -any,
         websockets -any,
         network -any,
+        openapi3
 
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab
@@ -192,5 +194,6 @@ executable marlowe-pab
     plutus-tx -any,
     purescript-bridge -any,
     marlowe -any,
+    openapi3,
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any

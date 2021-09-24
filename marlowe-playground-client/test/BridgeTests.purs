@@ -65,7 +65,7 @@ serializationTest =
                   )
               , Case (Choice choiceId [ Bound (fromInt 0) (fromInt 1) ])
                   ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromInt 1) (fromInt 10)) const))
-                      (Pay alicePk (Account alicePk) token (AvailableMoney alicePk token) Close)
+                      (Pay alicePk (Account alicePk) token (DivValue (AvailableMoney alicePk token) const) Close)
                       Close
                   )
               , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
@@ -92,10 +92,7 @@ serializationTest =
     let
       rx = unsafeRegex "\\s+" (RegexFlags { global: true, ignoreCase: true, multiline: true, sticky: false, unicode: true })
 
-      expected = replace rx "" expectedJson
-
       expectedState = replace rx "" expectedStateJson
-    equal expected json
     equal expectedState jsonState
     equal (Right contract) (runExcept $ decodeJSON json)
     equal (Right contract) (runExcept $ decodeJSON bridgedJson)

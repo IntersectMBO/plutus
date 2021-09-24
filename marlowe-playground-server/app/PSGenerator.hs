@@ -249,7 +249,7 @@ writePangramJson outputDir = do
                         )
                     , S.Case (S.Choice choiceId [ S.Bound 0 1 ])
                         ( S.If (S.ChoseSomething choiceId `S.OrObs` (S.ChoiceValue choiceId `S.ValueEQ` S.Scale (1 S.% 10) const100))
-                            (S.Pay alicePk (S.Account alicePk) token (S.AvailableMoney alicePk token) S.Close)
+                            (S.Pay alicePk (S.Account alicePk) token (S.DivValue (S.AvailableMoney alicePk token) const100) S.Close)
                             S.Close
                         )
                     , S.Case (S.Notify (S.AndObs (S.SlotIntervalStart `S.ValueLT` S.SlotIntervalEnd) S.TrueObs)) S.Close

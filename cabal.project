@@ -122,6 +122,24 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/input-output-hk/cardano-addresses
+  tag: d2f86caa085402a953920c6714a0de6a50b655ec
+  subdir:
+    core
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/cardano-wallet
+  tag: ae7569293e94241ef6829139ec02bd91abd069df
+  subdir:
+    lib/text-class
+    lib/strict-non-empty-containers
+    lib/core
+    lib/test-utils
+    lib/numeric
+
+source-repository-package
+  type: git
   location: https://github.com/input-output-hk/ouroboros-network
   tag: 6d00ff77f9bcd769fb6d7fd02216cec4e837bfcf
   subdir:
@@ -138,6 +156,7 @@ source-repository-package
     io-sim
     io-classes
     network-mux
+    ntp-client
 
 source-repository-package
   type: git
@@ -166,7 +185,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: 8efcfc755faae4db3a64ad45343235fce3ed5c47
+  tag: 6b884673ab0bfa120b63a30fb4dc255e3f3a02bc
   subdir:
     byron/chain/executable-spec
     byron/crypto

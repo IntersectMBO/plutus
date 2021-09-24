@@ -125,8 +125,8 @@ data Term tyname name uni fun a =
 type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance AsConstant (Term tyname name uni fun ann) where
-    asConstant (Constant _ val) = pure val
-    asConstant term             = throwNotAConstant term
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = throwNotAConstant mayCause
 
 instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()

@@ -66,6 +66,7 @@ pkgs/.stack
 .psc-ide-port
 .dir-locals.el
 *.code-workspace
+.*.sw*
 
 # Frontend generated files (NPM/Yarn, Spago, generated PS, etc.)
 # N.B. officially we use NPM; ignoring Yarn files allows the local use of Yarn for those that want
@@ -112,3 +113,4 @@ node.sock
 secrets/*/.gpg-id
 ghcid.txt
 plutus-pab/test-node/testnet/db
+plutus-pab/test-node/alonzo-purple/db

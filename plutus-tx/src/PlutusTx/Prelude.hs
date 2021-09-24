@@ -19,16 +19,12 @@ module PlutusTx.Prelude (
     module Foldable,
     module Traversable,
     -- * Monad
-    (>>=),
-    (=<<),
-    (>>),
-    return,
-    -- * Standard functions
-    ($),
-    (.),
-    otherwise,
-    until,
-    flip,
+    (Haskell.>>=),
+    (Haskell.=<<),
+    (Haskell.>>),
+    Haskell.return,
+    -- * Standard functions, Tuples
+    module Base,
     -- * Tracing functions
     module Trace,
     -- * String
@@ -49,19 +45,12 @@ module PlutusTx.Prelude (
     quotient,
     remainder,
     even,
-    -- * Tuples
-    fst,
-    snd,
-    curry,
-    uncurry,
     -- * Maybe
     module Maybe,
     -- * Either
     module Either,
     -- * Lists
     module List,
-    dropWhile,
-    zipWith,
     -- * ByteStrings
     BuiltinByteString,
     appendByteString,
@@ -93,16 +82,18 @@ module PlutusTx.Prelude (
 import           Data.String          (IsString (..))
 import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
+import           PlutusTx.Base        as Base
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, appendByteString, appendString,
-                                       consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
-                                       equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
-                                       indexByteString, lengthOfByteString, lessThanByteString, sha2_256, sha3_256,
-                                       sliceByteString, toBuiltin, trace, verifySignature)
+import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString,
+                                       appendString, consByteString, decodeUtf8, emptyByteString, emptyString,
+                                       encodeUtf8, equalsByteString, equalsString, error, fromBuiltin,
+                                       greaterThanByteString, indexByteString, lengthOfByteString, lessThanByteString,
+                                       sha2_256, sha3_256, sliceByteString, toBuiltin, trace, verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
 import           PlutusTx.Enum        as Enum
 import           PlutusTx.Eq          as Eq
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Foldable    as Foldable
 import           PlutusTx.Functor     as Functor
 import           PlutusTx.IsData
@@ -116,12 +107,8 @@ import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
 import           PlutusTx.Trace       as Trace
 import           PlutusTx.Traversable as Traversable
-import           Prelude              hiding (Applicative (..), Enum (..), Eq (..), Foldable (..), Functor (..),
-                                       Monoid (..), Num (..), Ord (..), Rational, Semigroup (..), Traversable (..), all,
-                                       and, any, concat, concatMap, const, curry, divMod, either, elem, error, filter,
-                                       fst, head, id, length, map, mapM_, max, maybe, min, not, notElem, null, or,
-                                       quotRem, reverse, round, sequence, snd, take, uncurry, zip, (!!), ($), (&&),
-                                       (++), (<$>), (||))
+
+import qualified Prelude              as Haskell (return, (=<<), (>>), (>>=))
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -142,7 +129,7 @@ import           Prelude              hiding (Applicative (..), Enum (..), Eq (.
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
-check b = if b then () else traceError "Pd" {-"Check has failed"-}
+check b = if b then () else traceError checkHasFailedError
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards
@@ -181,30 +168,9 @@ quotient = Builtins.quotientInteger
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 
-{-# INLINABLE fst #-}
--- | Plutus Tx version of 'Data.Tuple.fst'
-fst :: (a, b) -> a
-fst (a, _) = a
-
-{-# INLINABLE snd #-}
--- | Plutus Tx version of 'Data.Tuple.snd'
-snd :: (a, b) -> b
-snd (_, b) = b
-
-{-# INLINABLE curry #-}
-curry :: ((a, b) -> c) -> a -> b -> c
-curry f a b = f (a, b)
-
-{-# INLINABLE uncurry #-}
-uncurry :: (a -> b -> c) -> (a, b) -> c
-uncurry f (a, b) = f a b
-
-infixr 0 $
--- Normal $ is levity-polymorphic, which we can't handle.
-{-# INLINABLE ($) #-}
--- | Plutus Tx version of 'Data.Function.($)'.
-($) :: (a -> b) -> a -> b
-f $ a = f a
+{-# INLINABLE even #-}
+even :: Integer -> Bool
+even n = if modulo n 2 == 0 then True else False
 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.

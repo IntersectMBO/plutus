@@ -48,7 +48,7 @@ let
       "https://github.com/shmish111/servant-purescript.git"."a76104490499aa72d40c2790d10e9383e0dbde63" = "11nxxmi5bw66va7psvrgrw7b7n85fvqgfp58yva99w3v9q3a50v9";
       "https://github.com/input-output-hk/cardano-base"."46502694f6a9f0498f822068008b232b3837a9e9" = "04bvsvghkrjhfjb3phh0s5yfb37fishglrrlcwbvcv48y2in1dcz";
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
-      "https://github.com/input-output-hk/cardano-ledger-specs"."8efcfc755faae4db3a64ad45343235fce3ed5c47" = "13mj8nqk4jglyl96d6zm3dbjmx2qn5gwn06g7cmanxiwfkfm7bi1";
+      "https://github.com/input-output-hk/cardano-ledger-specs"."6b884673ab0bfa120b63a30fb4dc255e3f3a02bc" = "1lpr35zpp4sqy4lqra24wswwkmaryvgj4rlbkn5n3z79f83jqgz4";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/goblins"."cde90a2b27f79187ca8310b6549331e59595e7ba" = "17c88rbva3iw82yg9srlxjv2ia5wjb9cyqw44hik565f5v9svnyg";
       "https://github.com/input-output-hk/iohk-monitoring-framework"."46f994e216a1f8b36fe4669b47b2a7011b0e153c" = "1il8fx3misp3650ryj368b3x95ksz01zz3x0z9k00807j93d0ka0";
@@ -57,6 +57,8 @@ let
       "https://github.com/input-output-hk/cardano-node.git"."8cf2b208c7708bd890c7e74d5b1d7c4167a3b40b" = "0akmzzf1gb8067knlzpbqdpkn3zrk5fm16icdzip44ilzwl5y2m0";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
+      "https://github.com/input-output-hk/cardano-wallet"."ae7569293e94241ef6829139ec02bd91abd069df" = "1mv1dhpkdj9ridm1fvq6jc85qs6zvbp172228rq72gyawjwrgvi6";
+      "https://github.com/input-output-hk/cardano-addresses"."d2f86caa085402a953920c6714a0de6a50b655ec" = "0p6jbnd7ky2yf7bwb1350k8880py8dgqg39k49q02a6ij4ld01ay";
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
@@ -91,6 +93,7 @@ let
           plutus-ledger.package.buildable = false;
           plutus-pab.package.buildable = false;
           plutus-playground-server.package.buildable = false; # Would also require libpq
+          plutus-tx-plugin.package.buildable = false;
           plutus-use-cases.package.buildable = false;
           web-ghc.package.buildable = false;
           # Needs agda

@@ -396,7 +396,7 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
             Just (Just avMoney) /\ Just paidMoney -> Just (avMoney + paidMoney) -- We know exactly what is happening (everything is constant)
             Nothing /\ Just paidMoney -> Just paidMoney -- We still know what is happening (there was no money, now there is)
             _ -> Nothing -- Either we don't know how much money there was or how money we are adding or both (so we don't know how much there will be)
-      _ -> identity -- Either is not an account or we don't know so we do nothing     
+      _ -> identity -- Either is not an account or we don't know so we do nothing
 
     tmpEnv2 = over _deposits fixTargetAcc tmpEnv
   newEnv <- stepPrefixMapEnv_ tmpEnv2 PayContPath
@@ -630,6 +630,26 @@ lintValue env t@(Term (MulValue a b) pos) = do
       | v == zero -> pure (ConstantSimp pos true zero)
     (ConstantSimp _ _ v /\ _)
       | v == one -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ v)
+      | v == one -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
+
+lintValue env t@(Term (DivValue a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) ->
+      let
+        evaluated = evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.DivValue (S.Constant v1) (S.Constant v2))
+      in
+        pure (ConstantSimp pos true evaluated)
+    (ConstantSimp _ _ v /\ _)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    (_ /\ ConstantSimp _ _ v)
+      | v == zero -> pure (ConstantSimp pos true zero)
     (_ /\ ConstantSimp _ _ v)
       | v == one -> pure (simplifyTo sa pos)
     _ -> do

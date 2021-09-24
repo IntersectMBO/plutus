@@ -36,7 +36,8 @@ import           Ledger.TimeSlot                           (SlotConfig, SlotConv
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
-import           Plutus.ChainIndex.Emulator.Handlers       (ChainIndexError, ChainIndexLog)
+import           Plutus.ChainIndex.ChainIndexError         (ChainIndexError)
+import           Plutus.ChainIndex.ChainIndexLog           (ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
 import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, Tip, TxStatus,
                                                             TxValidity)

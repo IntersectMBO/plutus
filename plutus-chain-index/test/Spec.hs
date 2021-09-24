@@ -15,6 +15,7 @@ import           Data.Either                          (isRight)
 import           Data.FingerTree                      (Measured (..))
 import           Data.Foldable                        (fold, toList)
 import           Data.List                            (nub, sort)
+import qualified Data.Map                             as Map
 import qualified Data.Set                             as Set
 import qualified Generators                           as Gen
 import           Hedgehog                             (Property, annotateShow, assert, failure, forAll, property, (===))
@@ -24,7 +25,8 @@ import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (citxTxId, txOutsWithRef)
 import           Plutus.ChainIndex.TxIdState          (increaseDepth, transactionStatus)
 import qualified Plutus.ChainIndex.TxIdState          as TxIdState
-import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), Tip (..), TxStatus (..),
+import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), Tip (..), TxConfirmedState (..),
+                                                       TxIdState (..), TxStatus (..), TxStatusFailure (..),
                                                        TxValidity (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
@@ -97,13 +99,37 @@ rollbackTxIdState = property $ do
       Right s4 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 2) txB) tipB) f3
       f4 = newIndex s4
 
-      status2 = transactionStatus (BlockNumber 1) (getState f2) (txB ^. citxTxId)
-      status3 = transactionStatus (BlockNumber 2) (getState f3) (txB ^. citxTxId)
-      status4 = transactionStatus (BlockNumber 3) (getState f4) (txB ^. citxTxId)
+  let confirmed tx txIdState = (timesConfirmed <$> ( Map.lookup (tx ^. citxTxId) $ txnsConfirmed $ getState txIdState))
+      deleted tx txIdState = (Map.lookup (tx ^. citxTxId) $ txnsDeleted $ getState txIdState)
+      status bn tx txIdState = transactionStatus (BlockNumber bn) (getState txIdState) (tx ^. citxTxId)
 
-  status2 === TentativelyConfirmed (Depth 0) TxValid
-  status3 === Unknown
-  status4 === TentativelyConfirmed (Depth 1) TxValid
+      isInvalidRollback (Left (InvalidRollbackAttempt _ _ _)) = True
+      isInvalidRollback _                                     = False
+
+  -- It's inserted at f2, and is confirmed once and not deleted, resulting
+  -- in a tentatively-confirmed status.
+  confirmed txB f2 === Just 1
+  deleted txB f2   === Nothing
+  status 1 txB f2  === (Right $ TentativelyConfirmed (Depth 0) TxValid)
+
+  -- At f3, it's deleted once, and confirmed once, resulting in an unknown
+  -- status.
+  confirmed txB f3 === Just 1
+  deleted txB f3   === Just 1
+  status 2 txB f3  === (Right $ Unknown)
+
+  -- If we check the status far into the future, this should be an error, as
+  -- we're trying to rollback something that is committed.
+  isInvalidRollback (status 100 txB f3) === True
+
+  -- At f4, it's confirmed twice, and deleted once, resulting in a
+  -- tentatively-confirmed status again.
+  confirmed txB f4 === Just 2
+  deleted txB f4   === Just 1
+  status 3 txB f4  === (Right $ TentativelyConfirmed (Depth 1) TxValid)
+
+  -- Much later, it should be committed.
+  status 100 txB f4 === Right (Committed TxValid)
 
 transactionDepthIncreases :: Property
 transactionDepthIncreases = property $ do
@@ -121,8 +147,8 @@ transactionDepthIncreases = property $ do
       status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
       status3 = transactionStatus (BlockNumber (1 + d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
 
-  status2 === increaseDepth status1
-  status3 === Committed TxValid
+  status2 === (increaseDepth <$> status1)
+  status3 === (Right $ Committed TxValid)
 
 uniqueTransactionIds :: Property
 uniqueTransactionIds = property $ do

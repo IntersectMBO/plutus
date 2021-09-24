@@ -57,6 +57,7 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Default                     (Default (def))
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
+import qualified Data.OpenApi.Schema              as OpenApi
 import qualified Data.Set                         as Set
 import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty)
@@ -64,6 +65,7 @@ import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
 import           Ledger.Crypto
+import           Ledger.Orphans                   ()
 import           Ledger.Scripts
 import qualified Ledger.TimeSlot                  as TimeSlot
 import           Ledger.Tx                        (txId)
@@ -89,7 +91,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m,
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
     deriving stock (Show, Generic)
-    deriving newtype (Eq, Semigroup, Monoid, Serialise)
+    deriving newtype (Eq, Semigroup, OpenApi.ToSchema, Monoid, Serialise)
     deriving anyclass (FromJSON, ToJSON, NFData)
 
 -- | Create an index of all UTxOs on the chain.

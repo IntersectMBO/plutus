@@ -38,19 +38,21 @@ module Plutus.ChainIndex.UtxoState(
     , viewTip
     ) where
 
-import           Control.Lens            (makeLenses, view)
-import           Data.Aeson              (FromJSON, ToJSON)
-import           Data.FingerTree         (FingerTree, Measured (..))
-import qualified Data.FingerTree         as FT
-import           Data.Function           (on)
-import           Data.Semigroup.Generic  (GenericSemigroupMonoid (..))
-import           Data.Set                (Set)
-import qualified Data.Set                as Set
-import           GHC.Generics            (Generic)
-import           Ledger                  (TxIn (txInRef), TxOutRef (..))
-import           Plutus.ChainIndex.Tx    (ChainIndexTx (..), citxInputs, txOutsWithRef)
-import           Plutus.ChainIndex.Types (Point (..), Tip (..), pointsToTip)
-import           Prettyprinter           (Pretty (..), (<+>))
+import           Control.Lens                      (makeLenses, view)
+import           Data.Aeson                        (FromJSON, ToJSON)
+import           Data.FingerTree                   (FingerTree, Measured (..))
+import qualified Data.FingerTree                   as FT
+import           Data.Function                     (on)
+import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
+import           Data.Set                          (Set)
+import qualified Data.Set                          as Set
+import           GHC.Generics                      (Generic)
+import           Ledger                            (TxIn (txInRef), TxOutRef (..))
+import           Plutus.ChainIndex.ChainIndexError (InsertUtxoFailed (..), RollbackFailed (..))
+import           Plutus.ChainIndex.ChainIndexLog   (InsertUtxoPosition (..))
+import           Plutus.ChainIndex.Tx              (ChainIndexTx (..), citxInputs, txOutsWithRef)
+import           Plutus.ChainIndex.Types           (Point (..), Tip (..), pointsToTip)
+import           Prettyprinter                     (Pretty (..))
 
 -- | The effect of a transaction (or a number of them) on the utxo set.
 data TxUtxoBalance =
@@ -126,18 +128,6 @@ fromBlock tip_ transactions =
             , _usTip        = tip_
             }
 
--- | Outcome of inserting a 'UtxoState' into the utxo index
-data InsertUtxoPosition =
-    InsertAtEnd -- ^ The utxo state was added to the end. Returns the new index
-    | InsertBeforeEnd -- ^ The utxo state was added somewhere before the end. Returns the new index and the tip
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-instance Pretty InsertUtxoPosition where
-  pretty = \case
-    InsertAtEnd     -> "UTxO state was added to the end."
-    InsertBeforeEnd -> "UTxO state was added somewhere before the end."
-
 data InsertUtxoSuccess a =
     InsertUtxoSuccess
         { newIndex       :: UtxoIndex a
@@ -147,18 +137,6 @@ data InsertUtxoSuccess a =
 instance Pretty (InsertUtxoSuccess a) where
   pretty = \case
     InsertUtxoSuccess _ insertPosition -> pretty insertPosition
-
--- | UTXO state could not be inserted into the chain index
-data InsertUtxoFailed =
-    DuplicateBlock Tip -- ^ Insertion failed as there was already a block with the given number
-    | InsertUtxoNoTip -- ^ The '_usTip' field of the argument was 'Last Nothing'
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-instance Pretty InsertUtxoFailed where
-  pretty = \case
-    DuplicateBlock _ -> "UTxO insertion failed - already a block with the given number"
-    InsertUtxoNoTip  -> "UTxO insertion failed - no tip"
 
 -- | Insert a 'UtxoState' into the index
 insert ::
@@ -175,25 +153,6 @@ insert s@UtxoState{_usTip=thisTip} ix =
         TipAtGenesis -> Right $ InsertUtxoSuccess{newIndex = before FT.|> s, insertPosition = InsertAtEnd}
         t | t > thisTip -> Right $ InsertUtxoSuccess{newIndex = (before FT.|> s) <> after, insertPosition = InsertBeforeEnd}
           | otherwise   -> Left  $ DuplicateBlock t
-
--- | Reason why the 'rollback' operation failed
-data RollbackFailed =
-    RollbackNoTip  -- ^ Rollback failed because the utxo index had no tip (not synchronised)
-    | TipMismatch { foundTip :: Tip, targetPoint :: Point } -- ^ Unable to roll back to 'expectedTip' because the tip at that position was different
-    | OldPointNotFound Point -- ^ Unable to find the old tip
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
-
-instance Pretty RollbackFailed where
-  pretty = \case
-    RollbackNoTip -> "UTxO index had no tip (not synchronised)"
-    TipMismatch foundTip targetPoint ->
-          "Unable to rollback to"
-      <+> pretty targetPoint
-      <+> "because the tip at that position"
-      <+> pretty foundTip
-      <+> "was different"
-    OldPointNotFound t -> "Unable to find the old tip" <+> pretty t
 
 data RollbackResult a =
     RollbackResult

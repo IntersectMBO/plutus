@@ -82,6 +82,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ];
         buildable = true;
         modules = [

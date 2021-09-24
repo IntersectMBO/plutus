@@ -9,15 +9,19 @@ This file contains
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PatternSynonyms           #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TypeApplications          #-}
+
 
 module PlutusCore.Generators.NEAT.Term
   ( TypeBuiltinG (..)
+  , TermConstantG (..)
   , TypeG (..)
   , ClosedTypeG
   , convertClosedType
@@ -42,6 +46,7 @@ import qualified Data.Text                         as Text
 import           Data.Text.Encoding                (decodeUtf8)
 import           PlutusCore
 import           PlutusCore.Data
+import           PlutusCore.Default
 import           PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
@@ -151,7 +156,14 @@ convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
 convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
 convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
 convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
-convertTypeBuiltin TyListG       = SomeTypeIn DefaultUniProtoList
+convertTypeBuiltin (TyListG a)   =
+  case convertTypeBuiltin a of
+    SomeTypeIn a' -> case decodeKindedUni (encodeUni a') of
+      Nothing -> error "encode;decode failed"
+      Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
+        Nothing   -> error "higher kinded thing in list"
+        Just Refl -> SomeTypeIn (DefaultUniList ka)
+
 convertTypeBuiltin TyStringG     = SomeTypeIn DefaultUniString
 convertTypeBuiltin TyDataG       = SomeTypeIn DefaultUniData
 
@@ -281,14 +293,14 @@ class Check t a where
 --       Perhaps this is preferable?
 --
 instance Check (Kind ()) TypeBuiltinG where
-  check (Type _)                        TyByteStringG = true
-  check (Type _)                        TyIntegerG    = true
-  check (Type _)                        TyBoolG       = true
-  check (Type _)                        TyUnitG       = true
-  check (KindArrow _ (Type _) (Type _)) TyListG       = true
-  check (Type _)                        TyStringG     = true
-  check (Type _)                        TyDataG       = true
-  check _                               _             = false
+  check (Type _) TyByteStringG = true
+  check (Type _) TyIntegerG    = true
+  check (Type _) TyBoolG       = true
+  check (Type _) TyUnitG       = true
+  check (Type _) (TyListG _a)  = false -- check (Type ()) a
+  check (Type _) TyStringG     = true
+  check (Type _) TyDataG       = true
+  check _        _             = false
 
 -- |Kind check types.
 checkKindG :: KCS n -> Kind () -> TypeG n -> Cool

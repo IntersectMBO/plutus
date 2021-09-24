@@ -45,7 +45,7 @@ arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
 arity appendString = 2
-arity trace = 1
+arity trace = 2
 arity equalsString = 2
 arity encodeUtf8 = 1
 arity decodeUtf8 = 1
@@ -89,6 +89,7 @@ arity⋆ tailList = 1
 arity⋆ chooseList = 2
 arity⋆ chooseData = 1
 arity⋆ chooseUnit = 1
+arity⋆ trace = 1
 arity⋆ _ = 0
 open import Type
 

@@ -74,6 +74,7 @@ import           Control.Lens                (Iso', Prism', iso, makePrisms, pri
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import           Data.List.NonEmpty          (NonEmpty)
+import qualified Data.OpenApi.Schema         as OpenApi
 import           Data.Text.Prettyprint.Doc   (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
 import           Ledger                      (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKey,
@@ -108,7 +109,7 @@ data PABReq =
     | ExposeEndpointReq ActiveEndpoint
     | PosixTimeRangeToContainedSlotRangeReq POSIXTimeRange
     deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 instance Pretty PABReq where
   pretty = \case
@@ -211,7 +212,7 @@ data ChainIndexQuery =
   | UtxoSetAtAddress Credential
   | GetTip
     deriving stock (Eq, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 instance Pretty ChainIndexQuery where
     pretty = \case
@@ -308,7 +309,7 @@ data ActiveEndpoint = ActiveEndpoint
   , aeMetadata    :: Maybe JSON.Value -- ^ Data that should be shown to the user
   }
   deriving (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 instance Pretty ActiveEndpoint where
   pretty ActiveEndpoint{aeDescription, aeMetadata} =

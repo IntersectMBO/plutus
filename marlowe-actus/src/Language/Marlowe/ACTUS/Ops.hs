@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.Ops where
 
 import           Data.Time                                         (LocalTime)
 import           Language.Marlowe                                  (Observation (ValueGT, ValueLT),
-                                                                    Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
+                                                                    Value (AddValue, Cond, Constant, DivValue, MulValue, Scale, SubValue),
                                                                     (%))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CR (..), DCC)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction (yearFraction)
@@ -93,4 +93,4 @@ instance ActusNum (Value Observation) where
     (Constant 0) / (Constant 0) = Constant 0 -- by convention in finance
     (Constant x) / (Constant y) = Scale (marloweFixedPoint % 1) $ Constant $ div x y
     x / (Constant y)            = Scale (marloweFixedPoint % y) x
-    _ / _                       = undefined --division not supported in Marlowe yet
+    x / y                       = DivValue x y

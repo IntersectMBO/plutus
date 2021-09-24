@@ -24,9 +24,9 @@ import           Cardano.BM.Setup                    (setupTrace_)
 import qualified Cardano.ChainIndex.Types            as ChainIndex.Types
 import           Cardano.Node.Types                  (NodeMode (..))
 import qualified Cardano.Node.Types                  as Node.Types
-import qualified Cardano.Wallet.Client               as Wallet.Client
-import           Cardano.Wallet.Types                (WalletInfo (..))
-import qualified Cardano.Wallet.Types                as Wallet.Types
+import qualified Cardano.Wallet.Mock.Client          as Wallet.Client
+import           Cardano.Wallet.Mock.Types           (WalletInfo (..))
+import qualified Cardano.Wallet.Mock.Types           as Wallet.Types
 import           Control.Concurrent                  (threadDelay)
 import           Control.Concurrent.Async            (async, cancel)
 import           Control.Concurrent.Availability     (available, newToken, starting)
@@ -35,6 +35,7 @@ import           Data.Aeson                          (FromJSON, ToJSON, toJSON)
 import           Data.Coerce                         (coerce)
 import           Data.Default                        (def)
 import           Data.Either                         (isLeft)
+import qualified Data.OpenApi.Schema                 as OpenApi
 import           Data.Proxy                          (Proxy (Proxy))
 import qualified Data.Text                           as Text
 import           Data.Text.Prettyprint.Doc
@@ -81,7 +82,7 @@ tests =
 
 data TestingContracts = PingPong
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (FromJSON, ToJSON)
+  deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance HasDefinitions TestingContracts where
   getDefinitions = [ PingPong ]

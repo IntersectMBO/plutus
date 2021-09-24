@@ -28,8 +28,7 @@ import           Ledger.TimeSlot                     (SlotConfig)
 import           Cardano.ChainIndex.Types
 import           Cardano.Protocol.Socket.Mock.Client (runChainSync)
 import           Ledger.Slot                         (Slot (..))
-import           Plutus.ChainIndex                   (ChainIndexEmulatorState)
-import           Plutus.ChainIndex.Server            (serveChainIndexQueryServer)
+import           Plutus.ChainIndex.Emulator          (ChainIndexEmulatorState, serveChainIndexQueryServer)
 
 -- $chainIndex
 -- The PAB chain index that keeps track of transaction data (UTXO set enriched
