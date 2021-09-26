@@ -10,7 +10,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect' -}
 module Plutus.ChainIndex.Handlers
-    ( handleQuery
+    ( fromByteString
+    , handleQuery
     , handleControl
     , ChainIndexState
     ) where

@@ -23,16 +23,20 @@ import qualified Data.Aeson                        as A
 import           Data.Foldable                     (for_, traverse_)
 import           Data.Function                     ((&))
 import           Data.Functor                      (void)
+import           Data.Maybe                        (maybeToList)
+import           Data.Proxy                        (Proxy (..))
 import           Data.Sequence                     (Seq, (<|))
 import           Data.Text.Prettyprint.Doc         (Pretty (..))
 import qualified Data.Yaml                         as Y
-import           Database.Beam.Migrate.Simple      (autoMigrate)
+import qualified Database.Beam                     as Beam
+import qualified Database.Beam.Migrate.Simple      as Beam
 import qualified Database.Beam.Sqlite              as Sqlite
 import qualified Database.Beam.Sqlite.Migrate      as Sqlite
 import qualified Database.SQLite.Simple            as Sqlite
 import           Options.Applicative               (execParser)
 import qualified Plutus.ChainIndex.Server          as Server
 
+import           Cardano.Api                       (ChainPoint (..), deserialiseFromRawBytes, proxyToAsType)
 import qualified Cardano.BM.Configuration.Model    as CM
 import           Cardano.BM.Setup                  (setupTrace_)
 import           Cardano.BM.Trace                  (Trace, logDebug, logError)
@@ -45,10 +49,11 @@ import qualified Logging
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility   (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
-import           Plutus.ChainIndex.DbStore         (DbStoreEffect, checkedSqliteDb, handleDbStore)
+import           Plutus.ChainIndex.DbStore         (DbStoreEffect, TipRowT (..), checkedSqliteDb, db, handleDbStore,
+                                                    tipRow)
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                     appendBlock, rollback)
-import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
+import           Plutus.ChainIndex.Handlers        (ChainIndexState, fromByteString, handleControl, handleQuery)
 import           Plutus.Monitoring.Util            (runLogEffects)
 
 type ChainIndexEffects
@@ -153,16 +158,26 @@ main = do
       appState <- STM.newTVarIO mempty
 
       Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
+        resumePoints <- Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
+          -- Migrate DB first
+          Beam.autoMigrate Sqlite.migrationBackend checkedSqliteDb
 
-        Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
-          autoMigrate Sqlite.migrationBackend checkedSqliteDb
+          -- Get the current tip to sync from there
+          tip <- Beam.runSelectReturningOne $ Beam.select $ Beam.all_ (tipRow db)
+          pure $ maybeToList $ do
+            TipRow _ s bid _ <- tip
+            hash <- deserialiseFromRawBytes (proxyToAsType Proxy) bid
+            pure (ChainPoint (fromByteString s) hash)
 
         putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
+        putStrLn $ case resumePoints of
+          [ChainPoint s _] -> "Continue to sync from: " <> show s
+          _                -> "Syncing from genesis"
         void $ runChainSync (Config.cicSocketPath config)
                             nullTracer
                             (Config.cicSlotConfig config)
                             (Config.cicNetworkId  config)
-                            []
+                            resumePoints
                             (chainSyncHandler trace appState conn)
 
         putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)
