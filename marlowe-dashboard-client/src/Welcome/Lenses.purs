@@ -1,6 +1,5 @@
 module Welcome.Lenses
-  ( _card
-  , _cardOpen
+  ( _modal
   , _walletLibrary
   , _walletNicknameOrIdInput
   , _walletNicknameInput
@@ -9,7 +8,7 @@ module Welcome.Lenses
   , _enteringDashboardState
   ) where
 
-import Prologue
+import Component.Modal.Types as Modal
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
@@ -17,13 +16,10 @@ import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
 import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError)
-import Welcome.Types (Card, State, WalletNicknameOrIdError)
+import Welcome.Types (Modal, State, WalletNicknameOrIdError)
 
-_card :: Lens' State (Maybe Card)
-_card = prop (SProxy :: SProxy "card")
-
-_cardOpen :: Lens' State Boolean
-_cardOpen = prop (SProxy :: SProxy "cardOpen")
+_modal :: Lens' State (Modal.State Modal)
+_modal = prop (SProxy :: SProxy "modal")
 
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")

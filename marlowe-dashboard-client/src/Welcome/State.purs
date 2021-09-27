@@ -11,12 +11,16 @@ import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStora
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Clipboard (handleAction) as Clipboard
+import Component.Modal.Types (State(..)) as Modal
+import Component.Modal.Types (_Active)
+import Contacts.Lenses (_companionAppId, _walletNickname)
+import Contacts.State (parsePlutusAppId, walletNicknameError)
+import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, set, use, view, (^.))
+import Data.Lens (_1, assign, modifying, set, use, view, (^.))
 import Data.Map (filter, findMin, insert, lookup)
-import Data.Newtype (unwrap)
-import Data.UUID (emptyUUID, toString) as UUID
+import Data.UUID (emptyUUID) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
@@ -30,14 +34,11 @@ import Marlowe.PAB (PlutusAppId(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import Types (WebData)
-import Contacts.Lenses (_companionAppId, _walletNickname)
-import Contacts.State (parsePlutusAppId, walletNicknameError)
-import Contacts.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
-import Welcome.Types (Action(..), Card(..), State, WalletNicknameOrIdError(..))
+import Welcome.Lenses (_enteringDashboardState, _modal, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Types (Action(..), Modal(..), State, WalletNicknameOrIdError(..))
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -46,8 +47,7 @@ dummyState = mkInitialState mempty
 mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
   { walletLibrary
-  , card: Nothing
-  , cardOpen: false
+  , modal: Modal.Initial
   , walletNicknameOrIdInput: InputField.mkInitialState Nothing
   , walletNicknameInput: InputField.mkInitialState Nothing
   , walletId: PlutusAppId UUID.emptyUUID
@@ -67,23 +67,22 @@ handleAction ::
   Toast m =>
   MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (OpenCard card) =
+handleAction (OpenModal card) =
   modify_
-    $ set _card (Just card)
-    <<< set _cardOpen true
+    $ set _modal (Modal.Active true card)
 
-handleAction CloseCard = do
+handleAction CloseModal = do
   modify_
     $ set _remoteWalletDetails NotAsked
     <<< set _enteringDashboardState false
-    <<< set _cardOpen false
+    <<< set (_modal <<< _Active <<< _1) false
     <<< set _walletId dummyState.walletId
   handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
   handleAction $ WalletNicknameInputAction $ InputField.Reset
 
 {- [Workflow 1][0] Generating a new wallet
 Here we attempt to create a new demo wallet (with everything that entails), and - if successful -
-open up the UseNewWalletCard for connecting the wallet just created.
+open up the UseNewWalletModal for connecting the wallet just created.
 Note the `createWallet` function doesn't just create a wallet. It also creates two PAB apps for
 that wallet: a `WalletCompanion` and a `MarloweApp`.
 - The `WalletCompanion` will watch for any new role tokens paid to this wallet, and then update its
@@ -103,14 +102,14 @@ handleAction GenerateWallet = do
       handleAction $ WalletNicknameInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
       assign _walletId $ walletDetails ^. _companionAppId
-      handleAction $ OpenCard UseNewWalletCard
+      handleAction $ OpenModal UseNewWallet
 
 {- [Workflow 2][0] Connect a wallet
 The app lets you connect a wallet using an "omnibox" input, into which you can either enter a
 wallet nickname that you have saved in your browser's LocalStorage, or the appId of the wallet's
 `WalletCompanion` app. If you enter a valid appId, we lookup the details of a corresponding wallet
 in the PAB; if you enter a nickname, we have a cache of the details in LocalStorage. Either way,
-we then open up the UseWalletCard (or UseNewWalletCard), essentially a confirmation box for
+we then open up the UseWalletModal (or UseNewWalletModal), essentially a confirmation box for
 connecting this wallet.
 TODO: We currently use the appId of the wallet's `WalletCompanion` app as the "public" identifier
 for wallets: this is what is shown to the user, what they are told to copy and give to others, and
@@ -145,19 +144,19 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
             assign _walletId plutusAppId
             case findMin $ filter (\w -> w ^. _companionAppId == plutusAppId) walletLibrary of
               Just { key, value } -> do
-                -- if so, open the UseWalletCard
+                -- if so, open the UseWalletModal
                 handleAction $ WalletNicknameInputAction $ InputField.SetValue key
-                handleAction $ OpenCard UseWalletCard
+                handleAction $ OpenModal UseWallet
               Nothing -> do
-                -- otherwise open the UseNewWalletCard
+                -- otherwise open the UseNewWalletModal
                 handleAction $ WalletNicknameInputAction $ InputField.Reset
                 handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
-                handleAction $ OpenCard UseNewWalletCard
+                handleAction $ OpenModal UseNewWallet
     InputField.SetValueFromDropdown walletNicknameOrId -> do
       -- in this case we know it's a wallet nickname, and we want to open the use card
       -- for the corresponding wallet
       walletLibrary <- use _walletLibrary
-      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenUseWalletCardWithDetails)
+      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenUseWalletModalWithDetails)
     _ -> pure unit
 
 {- [Workflow 2][1] Connect a wallet
@@ -167,23 +166,23 @@ date. This intermediate step makes sure we have the current details before proce
 This is also factored out into a separate handler so that it can be called directly when the user
 selects a wallet nickname from the dropdown menu (as well as indirectly via the previous handler).
 -}
-handleAction (OpenUseWalletCardWithDetails walletDetails) = do
+handleAction (OpenUseWalletModalWithDetails walletDetails) = do
   assign _remoteWalletDetails Loading
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
   assign _remoteWalletDetails $ fromEither ajaxWalletDetails
   case ajaxWalletDetails of
-    Left ajaxError -> handleAction $ OpenCard LocalWalletMissingCard
+    Left ajaxError -> handleAction $ OpenModal LocalWalletMissing
     Right _ -> do
       handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
       assign _walletId $ walletDetails ^. _companionAppId
-      handleAction $ OpenCard UseWalletCard
+      handleAction $ OpenModal UseWallet
 
 handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
 {- [Workflow 2][2] Connect a wallet
-This action is triggered by clicking the confirmation button on the UseWalletCard or
-UseNewWalletCard. It saves the wallet nickname to LocalStorage, and then calls the
+This action is triggered by clicking the confirmation button on the UseWalletModal or
+UseNewWalletModal. It saves the wallet nickname to LocalStorage, and then calls the
 `MainFrame.EnterDashboardState` action.
 -}
 handleAction (ConnectWallet walletNickname) = do
@@ -200,7 +199,7 @@ handleAction (ConnectWallet walletNickname) = do
     _ -> do
       -- this should never happen (the button to use a wallet should be disabled unless
       -- remoteWalletDetails is Success), but let's add some sensible behaviour anyway just in case
-      handleAction CloseCard
+      handleAction CloseModal
       addToast $ errorToast "Unable to use this wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage = do

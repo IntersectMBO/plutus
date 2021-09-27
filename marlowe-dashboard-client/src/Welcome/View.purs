@@ -1,13 +1,17 @@
 module Welcome.View
   ( welcomeScreen
-  , welcomeCard
+  , welcomeModal
   ) where
 
 import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
+import Component.Label as Label
+import Component.Modal as Modal
+import Component.WalletId as WalletId
+import Contacts.Lenses (_walletNickname)
+import Contacts.View (walletIdTip)
 import Css as Css
 import Data.Lens (view, (^.))
-import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (isJust)
@@ -24,15 +28,11 @@ import InputField.Types (InputDisplayOptions)
 import InputField.View (renderInput)
 import Marlowe.PAB (PlutusAppId)
 import Material.Icons (Icon(..)) as Icon
-import Network.RemoteData (isSuccess)
 import Material.Icons (icon, icon_)
+import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
-import Contacts.Lenses (_walletNickname)
-import Contacts.View (walletIdTip)
-import Component.Label as Label
-import Component.WalletId as WalletId
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
-import Welcome.Types (Action(..), Card(..), State)
+import Welcome.Lenses (_enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Types (Action(..), Modal(..), State)
 
 welcomeScreen :: forall p. State -> HTML p Action
 welcomeScreen state =
@@ -55,26 +55,16 @@ welcomeScreen state =
     , gettingStartedBox
     ]
 
-welcomeCard :: forall p. State -> HTML p Action
-welcomeCard state =
-  let
-    card = state ^. _card
-
-    cardOpen = state ^. _cardOpen
-
-    cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
-  in
-    div
-      [ classNames $ Css.cardOverlay cardOpen ]
-      [ div
-          [ classNames $ cardClasses cardOpen ]
-          $ (flip foldMap card) \cardType -> case cardType of
-              GetStartedHelpCard -> getStartedHelpCard
-              GenerateWalletHelpCard -> generateWalletHelpCard
-              UseNewWalletCard -> useNewWalletCard state
-              UseWalletCard -> useWalletCard state
-              LocalWalletMissingCard -> localWalletMissingCard
-      ]
+welcomeModal :: forall p. State -> HTML p Action
+welcomeModal state@{ modal } =
+  Modal.render modal [] \open -> case _ of
+    GetStartedHelp -> layout (Css.videoCard open) getStartedHelpCard
+    GenerateWalletHelp -> layout (Css.card open) generateWalletHelpCard
+    UseNewWallet -> layout (Css.card open) $ useNewWalletCard state
+    UseWallet -> layout (Css.card open) $ useWalletCard state
+    LocalWalletMissing -> layout (Css.card open) localWalletMissingCard
+  where
+  layout classes contents = div [ classNames classes ] contents
 
 ------------------------------------------------------------
 useWalletBox :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
@@ -115,7 +105,7 @@ useWalletBox state =
           [ text "Generate demo wallet" ]
       , a
           [ classNames [ "block", "text-purple", "text-center", "font-semibold" ]
-          , onClick_ $ OpenCard GenerateWalletHelpCard
+          , onClick_ $ OpenModal GenerateWalletHelp
           ]
           [ text "Why do I need to do this?" ]
       , hr [ classNames [ "max-w-xs", "mx-auto" ] ]
@@ -144,7 +134,7 @@ useWalletBox state =
   walletList walletDetails =
     a
       [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
-      , onClick_ $ OpenUseWalletCardWithDetails walletDetails
+      , onClick_ $ OpenUseWalletModalWithDetails walletDetails
       ]
       [ text $ walletDetails ^. _walletNickname ]
 
@@ -154,7 +144,7 @@ gettingStartedBox =
     [ classNames [ "row-start-3", "lg:row-start-2", "lg:col-start-3", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box", "flex", "flex-col", "justify-center" ] ]
     [ a
         [ classNames [ "text-purple", "text-center", "lg:hidden" ]
-        , onClick_ $ OpenCard GetStartedHelpCard
+        , onClick_ $ OpenModal GetStartedHelp
         ]
         [ icon Icon.Play $ Css.bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
         , br_
@@ -164,7 +154,7 @@ gettingStartedBox =
         [ classNames [ "hidden", "lg:block", "space-y-6" ] ]
         [ a
             [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box" ]
-            , onClick_ $ OpenCard GetStartedHelpCard
+            , onClick_ $ OpenModal GetStartedHelp
             ]
             [ icon Icon.Play $ Css.bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
         , div_
@@ -183,7 +173,7 @@ getStartedHelpCard :: forall p. Array (HTML p Action)
 getStartedHelpCard =
   [ a
       [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
-      , onClick_ CloseCard
+      , onClick_ CloseModal
       ]
       [ icon Icon.Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
   , div
@@ -209,7 +199,7 @@ generateWalletHelpCard =
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , onClick_ CloseCard
+              , onClick_ CloseModal
               ]
               [ text "Got it" ]
           ]
@@ -231,7 +221,7 @@ useNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ CloseModal
         ]
         [ icon_ Icon.Close ]
     , div [ classNames [ "p-5", "lg:p-6", "space-y-4" ] ]
@@ -244,7 +234,7 @@ useNewWalletCard state =
             [ classNames [ "flex", "gap-4" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1" ]
-                , onClick_ CloseCard
+                , onClick_ CloseModal
                 ]
                 [ text "Cancel" ]
             , button
@@ -283,7 +273,7 @@ useWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ CloseModal
         ]
         [ icon_ Icon.Close ]
     , div [ classNames [ "p-5", "lg:p-6", "space-y-4" ] ]
@@ -296,7 +286,7 @@ useWalletCard state =
             [ classNames [ "flex", "gap-4" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1" ]
-                , onClick_ CloseCard
+                , onClick_ CloseModal
                 ]
                 [ text "Cancel" ]
             , button
@@ -330,7 +320,7 @@ localWalletMissingCard =
       [ classNames $ Css.card true ]
       [ a
           [ classNames [ "absolute", "top-4", "right-4" ]
-          , onClick_ CloseCard
+          , onClick_ CloseModal
           ]
           [ icon_ Icon.Close ]
       , div [ classNames [ "flex", "font-semibold", "gap-2", "px-5", "py-4", "bg-gray" ] ]
