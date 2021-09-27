@@ -1,6 +1,8 @@
 module InputField.View (renderInput) where
 
 import Prologue hiding (div, min)
+import Component.Input.Types (InputType(..)) as Input
+import Component.Input (renderWithChildren) as Input
 import Control.Alt ((<|>))
 import Control.MonadPlus (guard)
 import Css as Css
@@ -31,7 +33,6 @@ import InputField.Lenses
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
 import Marlowe.Extended.Metadata (NumberFormat(..))
-import Component.Input as Input
 
 inputCss :: forall w i. InputDisplayOptions w i -> Boolean -> Array String
 inputCss { readOnly: true } = Css.inputNoFocus
