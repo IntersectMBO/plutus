@@ -25,7 +25,7 @@ import           Control.Applicative         (Applicative (pure))
 import           Control.Monad               (void)
 import           Data.Default                (Default (def))
 import           Ledger                      (POSIXTime, POSIXTimeRange, PubKeyHash, ScriptContext (..), TxInfo (..),
-                                              Validator, pubKeyHash, txId)
+                                              Validator, txId)
 import qualified Ledger
 import qualified Ledger.Contexts             as V
 import qualified Ledger.Interval             as Interval
