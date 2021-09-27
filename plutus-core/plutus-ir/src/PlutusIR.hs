@@ -17,6 +17,7 @@ module PlutusIR (
     bindingSubtypes,
     bindingIds,
     Program (..),
+    applyProgram,
     TyName (..),
     Name (..),
     VarDecl (..),

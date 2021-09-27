@@ -50,7 +50,7 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 applyCode
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
-applyCode fun arg = DeserializedCode (getPlc fun `UPLC.applyProgram` getPlc arg) Nothing
+applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg)) (PIR.applyProgram <$> getPir fun <*> getPir arg)
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun) => CompiledCodeIn uni fun a -> Integer
