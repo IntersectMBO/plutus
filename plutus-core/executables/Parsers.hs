@@ -91,6 +91,14 @@ timing2 = Timing <$> option auto
 timingmode :: Parser TimingMode
 timingmode = timing1 <|> timing2
 
+tracemode :: Parser TraceMode
+tracemode = option auto
+  (  long "trace-mode"
+  <> metavar "MODE"
+  <> value None
+  <> showDefault
+  <> help "Mode for trace ouptupt.")
+
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
 

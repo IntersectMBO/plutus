@@ -200,6 +200,7 @@ data Output      = FileOutput FilePath | StdOutput
 data TimingMode  = NoTiming | Timing Integer deriving (Eq)  -- Report program execution time?
 data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
+data TraceMode   = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 -- | @Name@ can be @Name@s or de Bruijn indices when we (de)serialise the ASTs.
@@ -367,17 +368,23 @@ writeProgram ::
    Flat (a ()),
    PP.PrettyBy PP.PrettyConfigPlc (a b)) =>
    Output -> Format -> PrintMode -> a b -> IO ()
-writeProgram outp Textual mode prog      = writeToFileOrStd outp mode prog
+writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
-writeToFileOrStd ::
+writePrettyToFileOrStd ::
   (PP.PrettyBy PP.PrettyConfigPlc (a b)) => Output -> PrintMode -> a b -> IO ()
-writeToFileOrStd outp mode prog = do
+writePrettyToFileOrStd outp mode prog = do
   let printMethod = getPrintMethod mode
   case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
 
+writeToFileOrStd ::
+  Output -> String -> IO ()
+writeToFileOrStd outp v = do
+  case outp of
+        FileOutput file -> writeFile file v
+        StdOutput       -> putStrLn v
 
 ---------------- Examples ----------------
 
