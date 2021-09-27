@@ -48,7 +48,7 @@ transfer = case _ of
       "account"
       quantity
   where
-  layout fromParty fromOwner fromAccountType toParty toOwner fromAccountType quantity =
+  layout fromParty fromOwner fromAccountType toParty toOwner toAccountType quantity =
     column Column.Cramped [ "border-l-2", "px-2" ]
       [ account fromParty fromOwner fromAccountType
       , row Row.Snug [ "px-1", "items-center" ]

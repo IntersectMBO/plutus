@@ -29,7 +29,7 @@ import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Halogen (ComponentHTML)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, div, div_, p, slot, span, text)
+import Halogen.HTML (HTML, div, div_, lazy, p, slot, span, text)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.State (mkTx)
 import Marlowe.Execution.Types (NamedAction(..))
@@ -39,26 +39,27 @@ import Material.Icons (icon_)
 import Material.Icons as Icon
 
 render :: forall m. Monad m => Input -> ComponentHTML Action ChildSlots m
-render input@{ action, contractState } =
-  let
-    stepNumber = currentStep contractState + 1
-  in
-    column Column.Divided [ "h-full", "grid", "grid-rows-auto-1fr-auto" ]
-      [ sectionBox [ "lg:p-5" ]
-          $ heading H2 [ "leading-none" ]
-              [ text
-                  $ "Step "
-                  <> show stepNumber
-                  <> " "
-                  <> case action of
-                      MakeDeposit _ _ _ _ -> "deposit"
-                      MakeChoice _ _ _ -> "choice"
-                      CloseContract -> "close"
-                      _ -> ""
-              ]
-      , summary input
-      , confirmation input
-      ]
+render =
+  lazy \input@{ action, contractState } ->
+    let
+      stepNumber = currentStep contractState + 1
+    in
+      column Column.Divided [ "h-full", "grid", "grid-rows-auto-1fr-auto" ]
+        [ sectionBox [ "lg:p-5" ]
+            $ heading H2 [ "leading-none" ]
+                [ text
+                    $ "Step "
+                    <> show stepNumber
+                    <> " "
+                    <> case action of
+                        MakeDeposit _ _ _ _ -> "deposit"
+                        MakeChoice _ _ _ -> "choice"
+                        CloseContract -> "close"
+                        _ -> ""
+                ]
+        , summary input
+        , confirmation input
+        ]
 
 summary :: forall m. Monad m => Input -> ComponentHTML Action ChildSlots m
 summary input@{ action } =
