@@ -1,21 +1,12 @@
-module Data.String.Extra
-  ( abbreviate
-  , toHex
-  , leftPadTo
-  , rightPadTo
-  , repeat
-  , unlines
-  , capitalize
-  ) where
+module Data.String.Extra where
 
+import Prologue
 import Data.Array (intercalate)
 import Data.Char as Char
 import Data.Int as Int
-import Data.Monoid (class Monoid, mempty)
-import Data.String (splitAt, toUpper)
+import Data.Maybe (isJust)
 import Data.String as String
 import Data.String.CodeUnits as CodeUnits
-import Prelude (map, max, (-), (<>), (==), (>>>))
 
 abbreviate :: Int -> String -> String
 abbreviate n str =
@@ -59,6 +50,13 @@ unlines = String.joinWith "\n"
 capitalize :: String -> String
 capitalize str =
   let
-    { before, after } = splitAt 1 str
+    { before, after } = String.splitAt 1 str
   in
-    toUpper before <> after
+    String.toUpper before <> after
+
+-- Absurdly, these two are not in the standard library
+startsWith :: String.Pattern -> String -> Boolean
+startsWith pattern = isJust <<< String.stripPrefix pattern
+
+endsWith :: String.Pattern -> String -> Boolean
+endsWith pattern = isJust <<< String.stripSuffix pattern
