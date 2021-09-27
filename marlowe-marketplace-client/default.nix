@@ -17,7 +17,7 @@ let
     '';
     name = "marlowe-marketplace-client";
     extraSrcs = {
-      web-common = webCommon;
+      web-common = webCommon.cleanSrc;
       web-common-marlowe = webCommonMarlowe;
     };
     packages = pkgs.callPackage ./packages.nix { };

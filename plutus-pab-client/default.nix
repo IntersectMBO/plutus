@@ -77,7 +77,7 @@ let
       src = cleanSrc;
       name = "plutus-pab-client";
       extraSrcs = {
-        web-common = webCommon;
+        web-common = webCommon.cleanSrc;
         web-common-plutus = webCommonPlutus;
         generated = generated-purescript;
       };
