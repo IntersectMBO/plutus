@@ -1,0 +1,67 @@
+-- | This module contains the implementation and entry point of the component
+module Component.$name where
+  ( component
+  , module Types
+  ) where
+
+import Prologue
+import Component.$name.Types (Component, Input, Msg, Query(..), Slot, State(..))
+import Halogen as H
+
+-------------------------------------------------------------------------------
+-- Private types
+-------------------------------------------------------------------------------
+data Action
+  = Init
+  | Receive Input
+
+type State
+  = {
+    }
+
+type Slots
+  = (
+    )
+
+type DSL
+  = H.HalogenM State Action Slots Msg
+
+type ComponentHTML
+  = H.ComponentHTML Action Slots
+
+-------------------------------------------------------------------------------
+-- Entry point
+-------------------------------------------------------------------------------
+component :: forall m. Monad m => Component m
+component =
+  H.mkComponent
+    { initialState
+    , render
+    , eval:
+        H.mkEval
+          H.defaultEval
+            { handleAction = handleAction
+            , init = Just Init
+            , receive = Just <<< Receive
+            }
+    }
+
+initialState :: Input -> State
+initialState input =
+  {
+  }
+
+-------------------------------------------------------------------------------
+-- Rendering
+-------------------------------------------------------------------------------
+render :: forall m. Monad m => State -> ComponentHTML m
+render state =
+  text "hello, world"
+
+-------------------------------------------------------------------------------
+-- Handlers
+-------------------------------------------------------------------------------
+handleAction :: forall m. Monad m => Action -> DSL m Unit
+handleAction = case _ of
+  Init -> pure unit
+  Receive {} -> pure unit
