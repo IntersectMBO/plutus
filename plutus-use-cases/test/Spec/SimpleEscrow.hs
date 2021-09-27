@@ -9,7 +9,7 @@ module Spec.SimpleEscrow(tests) where
 import           Control.Lens
 import           Control.Monad                 (void)
 
-import           Ledger                        (Value, pubKeyHash)
+import           Ledger                        (Value)
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Time                   (POSIXTime)
 import qualified Ledger.TimeSlot               as TimeSlot
