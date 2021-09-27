@@ -102,7 +102,8 @@ unsafeRunCekNoEmit
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit params mode =
-    first unsafeExtractEvaluationResult . runCekNoEmit params mode
+    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . runCekNoEmit params mode
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
@@ -133,7 +134,9 @@ unsafeEvaluateCek
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [Text])
-unsafeEvaluateCek emitTime params = first unsafeExtractEvaluationResult . evaluateCek emitTime params
+unsafeEvaluateCek emitTime params =
+    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . evaluateCek emitTime params
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
