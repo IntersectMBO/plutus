@@ -170,8 +170,9 @@ test-suite plutus-contract-test
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     hs-source-dirs: test
     other-modules:
-        Spec.Contract
-        Spec.Emulator
+        --Spec.Contract
+        Spec.ErrorChecking
+        --Spec.Emulator
         Spec.Rows
         Spec.State
         Spec.ThreadToken
@@ -198,9 +199,12 @@ test-suite plutus-contract-test
         plutus-contract -any,
         plutus-ledger -any,
         plutus-tx -any,
+        plutus-ledger-api -any,
         freer-simple -any,
         aeson -any,
-        semigroupoids -any
+        semigroupoids -any,
+        row-types -any,
+        QuickCheck -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

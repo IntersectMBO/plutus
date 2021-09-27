@@ -232,9 +232,8 @@ noLockProof = NoLockedFundsProof{
             val    <- viewContractState gameValue
             when hasTok $ action (Guess w secret "" val)
 
-prop_CheckNoLockedFundsProof:: Property
+prop_CheckNoLockedFundsProof :: Property
 prop_CheckNoLockedFundsProof = checkNoLockedFundsProof defaultCheckOptions handleSpec noLockProof
-
 
 -- * Unit tests
 

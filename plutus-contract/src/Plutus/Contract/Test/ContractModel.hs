@@ -17,6 +17,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE QuantifiedConstraints      #-}
 {-# LANGUAGE RankNTypes                 #-}
@@ -24,7 +25,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints -fno-warn-name-shadowing #-}
 
 module Plutus.Contract.Test.ContractModel
     ( -- * Contract models
@@ -112,6 +113,12 @@ module Plutus.Contract.Test.ContractModel
     -- $noLockedFunds
     , NoLockedFundsProof(..)
     , checkNoLockedFundsProof
+    -- $checkNoPartiality
+    , WhitelistEntry(..)
+    , whitelistOk
+    , emptyWhitelist
+    , checkErrorWhitelist
+    , checkErrorWhitelistWithOptions
     ) where
 
 import           Control.Lens
@@ -123,9 +130,12 @@ import           Data.Foldable
 import           Data.List
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
+import           Data.Maybe
 import           Data.Row                              (Row)
+import qualified Data.Text                             as Text
 import           Data.Typeable
 
+import           Ledger.Index
 import           Ledger.Slot
 import           Ledger.Value                          (Value, isZero, leq)
 import           Plutus.Contract                       (Contract, ContractInstanceId)
@@ -134,6 +144,9 @@ import           Plutus.Trace.Effects.EmulatorControl  (discardWallets)
 import           Plutus.Trace.Emulator                 as Trace (ContractHandle (..), ContractInstanceTag,
                                                                  EmulatorTrace, activateContract,
                                                                  freezeContractInstance, walletInstanceTag)
+import           Plutus.V1.Ledger.Scripts
+import qualified PlutusTx.Builtins                     as Builtins
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Monoid                       (inv)
 import qualified Test.QuickCheck.DynamicLogic.Monad    as DL
 import           Test.QuickCheck.DynamicLogic.Quantify (Quantifiable (..), Quantification, arbitraryQ, chooseQ,
@@ -143,10 +156,12 @@ import           Test.QuickCheck.StateModel            hiding (Action, Actions, 
                                                         stateAfter)
 import qualified Test.QuickCheck.StateModel            as StateModel
 
-import           Test.QuickCheck                       hiding ((.&&.))
+import           Test.QuickCheck                       hiding ((.&&.), (.||.))
 import qualified Test.QuickCheck                       as QC
 import           Test.QuickCheck.Monadic               (PropertyM, monadic)
 import qualified Test.QuickCheck.Monadic               as QC
+
+import           Wallet.Emulator.Chain                 hiding (_currentSlot, currentSlot)
 
 -- | Key-value map where keys and values have three indices that can vary between different elements
 --   of the map. Used to store `ContractHandle`s, which are indexed over observable state, schema,
@@ -1134,3 +1149,79 @@ checkNoLockedFundsProof options spec NoLockedFundsProof{nlfpMainStrategy   = mai
                               "  " ++ show bal'
                     DL.assert err (bal `leq` bal')
 
+-- | A whitelist entry tells you what final log entry prefixes
+-- are acceptable for a given error
+data WhitelistEntry = WhitelistEntry { acceptEmptyLog :: Bool, errorPrefixes :: [Text.Text] }
+-- | A whitelist associates errors with a whitelist entry
+type Whitelist = Map String WhitelistEntry
+
+-- | Check that a log is accepted by a whitelist entry
+isAcceptedBy :: Maybe Text.Text -> WhitelistEntry -> Bool
+isAcceptedBy Nothing wle          = acceptEmptyLog wle
+isAcceptedBy (Just lastEntry) wle = any (`Text.isPrefixOf` lastEntry) (errorPrefixes wle)
+
+{- Note [Maintaining `whitelistOk` and `checkErrorWhitelist`]
+   The intended use case of `checkErrorWhitelist` is to be able to assert that failures of
+   validation only happen for reasons that the programmer intended. However, to avoid
+   degenerate whitelists that accept obvious mistakes like validation failing because a
+   partial function in the prelude failed we need to make sure that any whitelist used passes
+   the `whitelistOk` check. This means in turn that we need to maintain `whitelistOk` when we
+   introduce new failure modes or change existing failure modes in the prelude or elsewhere
+   in the plutus system.
+-}
+
+{- Note [Divide by zero]
+   Errors that arise from a division by zero fail silently with a `CekEvaluationFailure`. This
+   means that we can not be sure to catch this failure using our approach if the programmer
+   has whitelisted some log message that happens to be the last message in the log. This is
+   a big problem that I (Max) don't know how to get around at the time of writing. The best
+   fix would be to fix the CEK machine implementaiton to throw a different type of error when
+   division by zero fails.
+-}
+
+-- | Check that a whitelist does not accept any partial functions
+whitelistOk :: Whitelist -> Bool
+whitelistOk wl = noPreludePartials
+  where
+    noPreludePartials = case Map.lookup "CekEvaluationFailure" wl of
+      -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
+      -- validator that returns a boolean fails correctly.
+      Just wle -> all (Prelude.not . (`isAcceptedBy` wle) . Just . Builtins.fromBuiltin) (map fst allErrorCodes \\ [checkHasFailedError])
+               && Prelude.not (Nothing `isAcceptedBy` wle) -- Covers the case for divide by zero with an empty log
+      Nothing  -> True
+
+emptyWhitelist :: Whitelist
+emptyWhitelist = Map.singleton "CekEvaluationFailure" (WhitelistEntry False [Builtins.fromBuiltin checkHasFailedError])
+
+-- | Check that running a contract model does not result in validation
+-- failures that are not accepted by the whitelist.
+checkErrorWhitelist :: ContractModel m
+                    => [ContractInstanceSpec m]
+                    -> Whitelist
+                    -> Actions m
+                    -> Property
+checkErrorWhitelist = checkErrorWhitelistWithOptions defaultCheckOptions
+
+-- | Check that running a contract model does not result in validation
+-- failures that are not accepted by the whitelist.
+checkErrorWhitelistWithOptions :: ContractModel m
+                               => CheckOptions
+                               -> [ContractInstanceSpec m]
+                               -> Whitelist
+                               -> Actions m
+                               -> Property
+checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go check acts
+  where
+    check = checkOnchain .&&. (assertNoFailedTransactions .||. checkOffchain)
+    checkOnchain = assertChainEvents checkEvents
+
+    checkOffchain = assertFailedTransaction (\ _ _ -> all (either checkEvent (const True) . sveResult))
+
+    checkEvent (EvaluationError log e) = maybe False (listToMaybe (reverse log) `isAcceptedBy`) (Map.lookup e whitelist)
+    checkEvent _                       = True
+
+    checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
+
+    go check actions = monadic (flip State.evalState mempty) $ finalChecks opts check $ do
+                        QC.run $ setHandles $ activateWallets handleSpecs
+                        void $ runActionsInState StateModel.initialState (toStateModelActions actions)
