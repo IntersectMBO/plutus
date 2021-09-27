@@ -12,8 +12,8 @@ import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, 
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Clipboard (handleAction) as Clipboard
-import Contacts.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
-import Contacts.State (defaultWalletDetails)
+import Contacts.Lenses (_assets, _cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
+import Contacts.State (defaultWalletDetails, getAda)
 import Contacts.State (handleAction, mkInitialState) as Contacts
 import Contacts.Types (Action(..), State) as Contacts
 import Contacts.Types (CardSection(..), WalletDetails, WalletLibrary)
@@ -27,7 +27,8 @@ import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contract
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Array (null)
 import Data.Foldable (for_)
-import Data.Lens (assign, elemOf, filtered, modifying, set, use, view)
+import Data.Lens (_Just, assign, elemOf, filtered, modifying, set, use, view, (^.))
+import Data.Lens.At (at)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Traversal (traversed)
@@ -51,7 +52,7 @@ import Marlowe.Client (ContractHistory, _chHistory, _chParams)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_metaData)
-import Marlowe.PAB (PlutusAppId)
+import Marlowe.PAB (PlutusAppId, transactionFee)
 import Marlowe.Semantics (MarloweData, MarloweParams, Party(..), Payee(..), Payment(..), Slot(..), _marloweContract)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs)
 import Template.State (dummyState, handleAction, initialState) as Template
@@ -428,10 +429,22 @@ handleAction input (SetContactForRole tokenName walletNickname) = do
 
 handleAction input@{ currentSlot, tzOffset } (ContractAction followerAppId contractAction) = do
   walletDetails <- use _walletDetails
+  startedState <- peruse $ _contracts <<< at followerAppId <<< _Just <<< _Started
   let
     contractInput = { currentSlot, walletDetails, followerAppId, tzOffset }
   case contractAction of
-    Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard followerAppId action
+    Contract.AskConfirmation action ->
+      for_ startedState \contractState ->
+        handleAction input $ OpenCard
+          $ ContractActionConfirmationCard
+              followerAppId
+              { action
+              , contractState
+              , currentSlot
+              , transactionFeeQuote: transactionFee
+              , userNickname: walletDetails ^. _walletNickname
+              , walletBalance: getAda $ walletDetails ^. _assets
+              }
     Contract.ConfirmAction action -> do
       void $ toContract followerAppId $ Contract.handleAction contractInput contractAction
       handleAction input CloseCard

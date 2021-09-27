@@ -121,7 +121,10 @@ dashboardCard currentSlot state = case view _card state of
                   CurrentWalletCard -> currentWalletCard currentWallet
                   ContactsCard -> renderSubmodule _contactsState ContactsAction (contactsCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
-                  ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId <<< _Started) (ContractAction followerAppId) (actionConfirmationCard assets action) state
+                  ContractActionConfirmationCard contractId input ->
+                    mapComponentAction
+                      (ContractAction contractId)
+                      (ConfirmInput.render input)
               ]
         ]
   Nothing -> div_ []
