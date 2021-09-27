@@ -8,6 +8,7 @@ module Contract.State
   , isContractClosed
   , applyTx
   , applyTimeout
+  , toInput
   ) where
 
 import Prologue
@@ -300,7 +301,7 @@ handleAction _ CarouselOpened = do
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
 
 applyTransactionInputs :: Array TransactionInput -> Execution.State -> Execution.State
-applyTransactionInputs transactionInputs state = foldl nextState state transactionInputs
+applyTransactionInputs transactionInputs state = foldl (flip nextState) state transactionInputs
 
 currentStep :: StartedState -> Int
 currentStep = length <<< view _previousSteps
@@ -311,7 +312,7 @@ isContractClosed = maybe false isClosed <<< preview (_Started <<< _executionStat
 applyTx :: Slot -> TransactionInput -> StartedState -> StartedState
 applyTx currentSlot txInput state =
   let
-    updateExecutionState = over _executionState (\s -> nextState s txInput)
+    updateExecutionState = over _executionState $ nextState txInput
   in
     state
       # updateExecutionState

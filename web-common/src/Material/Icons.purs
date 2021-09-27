@@ -55,6 +55,7 @@ data Icon
   | Running
   | South
   | Sync
+  | Task
   | TaskAlt
   | Terms
   | Timer
@@ -130,6 +131,8 @@ content Running = "directions_run"
 content South = "south"
 
 content Sync = "sync"
+
+content Task = "task"
 
 content TaskAlt = "task_alt"
 
@@ -212,6 +215,8 @@ iconClass Running = "running"
 iconClass South = "south"
 
 iconClass Sync = "sync"
+
+iconClass Task = "task"
 
 iconClass TaskAlt = "task-alt"
 
