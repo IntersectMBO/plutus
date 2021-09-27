@@ -54,7 +54,7 @@ let
       "https://github.com/input-output-hk/iohk-monitoring-framework"."46f994e216a1f8b36fe4669b47b2a7011b0e153c" = "1il8fx3misp3650ryj368b3x95ksz01zz3x0z9k00807j93d0ka0";
       "https://github.com/input-output-hk/optparse-applicative"."7497a29cb998721a9068d5725d49461f2bba0e7a" = "1gvsrg925vynwgqwplgjmp53vj953qyh3wbdf34pw21c8r47w35r";
       "https://github.com/input-output-hk/ouroboros-network"."5d37a927046bc7da2887830d8e35cf604622ce09" = "1620zcnivgm1wp1kq3vqc44g77lv7dalzgywc96qsblf1sv9fw3p";
-      "https://github.com/input-output-hk/cardano-node.git"."191b91eec3c7d845a55347781329d50bf36871d7" = "1y0a80fmrqf7561yqp4p2vx36yrhh83222b01sall2rk791y4yf0";
+      "https://github.com/input-output-hk/cardano-node.git"."ed7fdbf65f40f8e194850b87dd8c631fe26154e6" = "0ivvqnw6fflfbzywychfsyyjd6jn3pg1r0vv63m1rdwp04v59kh5";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
       "https://github.com/input-output-hk/cardano-wallet"."ae7569293e94241ef6829139ec02bd91abd069df" = "1mv1dhpkdj9ridm1fvq6jc85qs6zvbp172228rq72gyawjwrgvi6";
