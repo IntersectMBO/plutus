@@ -16,7 +16,8 @@ import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
                                              ContractSignatureResponse, FullReport)
-import           Servant.API                (Capture, Description, Get, JSON, QueryParam, Post, Put, ReqBody, (:<|>), (:>))
+import           Servant.API                (Capture, Description, Get, JSON, Post, Put, QueryParam, ReqBody, (:<|>),
+                                             (:>))
 import           Servant.API.WebSocket      (WebSocketPending)
 import           Servant.Swagger.UI         (SwaggerSchemaUI)
 import           Wallet.Types               (ContractInstanceId)
