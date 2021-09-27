@@ -17,7 +17,8 @@ module PlutusIR.Core.Type (
     Strictness (..),
     Binding (..),
     Term (..),
-    Program (..)
+    Program (..),
+    applyProgram
     ) where
 
 import           PlutusPrelude
@@ -150,3 +151,10 @@ data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deri
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
+
+applyProgram
+    :: Monoid a
+    => Program tyname name uni fun a
+    -> Program tyname name uni fun a
+    -> Program tyname name uni fun a
+applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
