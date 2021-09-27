@@ -122,6 +122,7 @@ valueGenSized s
                   , AddValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , SubValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , MulValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
+                  , DivValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , ChoiceValue <$> choiceIdGen
                   , Scale <$> rationalGen <*> valueGenSized (s - 1)
                   , Cond  <$> observationGenSized (s `quot` 3)
@@ -159,6 +160,8 @@ shrinkValue value = case value of
                          ++ [SubValue val1 y | y <- shrinkValue val2])
     MulValue val1 val2 -> Constant 0 : val1 : val2 : ([MulValue x val2 | x <- shrinkValue val1]
                          ++ [MulValue val1 y | y <- shrinkValue val2])
+    DivValue val1 val2 -> Constant 0 : val1 : val2 : ([DivValue x val2 | x <- shrinkValue val1]
+                         ++ [DivValue val1 y | y <- shrinkValue val2])
     Scale r val -> Constant 0 : val : [Scale r v | v <- shrinkValue val]
     Cond b val1 val2 -> Constant 0 : val1 : val2 : ([Cond x val1 val2 | x <- shrinkObservation b]
                          ++ [Cond b x val2 | x <- shrinkValue val1]
@@ -329,7 +332,7 @@ shrinkContract cont = case cont of
 
 pangramContract :: Contract
 pangramContract = let
-    alicePk = PK $ pubKeyHash $ walletPubKey $ Wallet 1
+    alicePk = PK $ pubKeyHash $ walletPubKey $ knownWallet 1
     aliceAcc = alicePk
     bobRole = Role "Bob"
     constant = Constant 100
@@ -342,7 +345,7 @@ pangramContract = let
                 (Pay aliceAcc (Party bobRole) ada (UseValue (ValueId "x")) Close))
         , Case (Choice choiceId [Bound 0 1, Bound 10 20])
             (If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (1 % 10) constant))
-                (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
+                (Pay aliceAcc (Account aliceAcc) token (DivValue (AvailableMoney aliceAcc token) constant) Close)
                 Close)
         , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
         ] (Slot 100) Close

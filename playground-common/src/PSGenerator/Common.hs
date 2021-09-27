@@ -18,10 +18,10 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, BlockId, DatumHash, MintingPolicy, OnChainTx,
-                                                            PubKey, PubKeyHash, RedeemerPtr, ScriptTag, Signature,
-                                                            StakeValidator, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef,
-                                                            TxOutTx, UtxoIndex, ValidationPhase, Validator)
+import           Ledger                                    (Address, BlockId, ChainIndexTxOut, DatumHash, MintingPolicy,
+                                                            OnChainTx, PubKey, PubKeyHash, RedeemerPtr, ScriptTag,
+                                                            Signature, StakeValidator, Tx, TxId, TxIn, TxInType, TxOut,
+                                                            TxOutRef, TxOutTx, UtxoIndex, ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -36,12 +36,17 @@ import           Ledger.TimeSlot                           (SlotConfig, SlotConv
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
-import           Plutus.ChainIndex.Tx                      (ChainIndexTx)
-import           Plutus.ChainIndex.Types                   (Page, PageSize, Tip)
+import           Plutus.ChainIndex.ChainIndexError         (ChainIndexError)
+import           Plutus.ChainIndex.ChainIndexLog           (ChainIndexLog)
+import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, Tip, TxStatus,
+                                                            TxValidity)
+import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
+import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
 import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, ChainIndexQuery,
-                                                            ChainIndexResponse, Depth, PABReq, PABResp, TxStatus,
-                                                            TxValidity, UtxoAtAddress, WriteBalancedTxResponse)
+                                                            ChainIndexResponse, PABReq, PABResp,
+                                                            WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -49,13 +54,12 @@ import           Plutus.Trace.Scheduler                    (Priority, SchedulerL
 import           Plutus.Trace.Tag                          (Tag)
 import           Schema                                    (FormArgumentF, FormSchema)
 import           Wallet.API                                (WalletAPIError)
-import qualified Wallet.Emulator.Wallet                    as EM
+import qualified Wallet.Emulator.Types                     as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
-import           Wallet.Types                              (AddressChangeRequest, AddressChangeResponse, AssertionError,
-                                                            ContractError, ContractInstanceId, EndpointDescription,
-                                                            EndpointValue, MatchingError, Notification,
-                                                            NotificationError)
+import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
+                                                            EndpointDescription, EndpointValue, MatchingError,
+                                                            Notification, NotificationError)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -175,9 +179,15 @@ exBudgetBridge = do
     typeModule ^== "PlutusCore.Evaluation.Machine.ExBudget"
     pure psJson
 
+someCardanoApiTxBridge :: BridgePart
+someCardanoApiTxBridge = do
+    typeName ^== "SomeCardanoApiTx"
+    typeModule ^== "Ledger.Tx"
+    pure psJson
+
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 
@@ -205,6 +215,12 @@ languageBridge :: BridgePart
 languageBridge = dataBridge <|> assocMapBridge
 
 ------------------------------------------------------------
+scriptHashBridge :: BridgePart
+scriptHashBridge = do
+    typeName ^== "ScriptHash"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
+    pure psString
+
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
@@ -253,9 +269,16 @@ ledgerBytesBridge = do
     typeModule ^== "Plutus.V1.Ledger.Bytes"
     pure psString
 
+walletIdBridge :: BridgePart
+walletIdBridge = do
+    typeName ^== "WalletId"
+    typeModule ^== "Wallet.Emulator.Wallet"
+    pure psString
+
 ledgerBridge :: BridgePart
 ledgerBridge =
         scriptBridge
+    <|> scriptHashBridge
     <|> redeemerHashBridge
     <|> redeemerBridge
     <|> datumBridge
@@ -263,6 +286,7 @@ ledgerBridge =
     <|> mpsHashBridge
     <|> stakeValidatorHashBridge
     <|> ledgerBytesBridge
+    <|> walletIdBridge
 
 ------------------------------------------------------------
 headersBridge :: BridgePart
@@ -363,19 +387,26 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexQuery)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTxOutputs)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTxOut)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexLog)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoPosition)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoFailed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @RollbackFailed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @FromCardanoError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Page A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tip)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Point)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @BalanceTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteBalancedTxResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxValidity)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxStatus)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BlockNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Depth)
     ]
 
@@ -384,6 +415,7 @@ walletTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.Wallet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletAPIError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)

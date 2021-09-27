@@ -185,6 +185,8 @@ contractScreen viewInput state =
       , cardNavigationButtons state
       , div [ classNames [ "self-end", "pb-4", "pr-4", "font-bold" ] ] [ text $ statusIndicatorMessage state ]
       ]
+      [ div [ classNames [ "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
+      ]
 
 -- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
 actionConfirmationCard ::

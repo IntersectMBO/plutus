@@ -1,10 +1,18 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Ord (Ord(..), Ordering(..)) where
 
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Eq
+{-
+We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type since they are the same.
+-}
 
-import           Prelude           hiding (Eq (..), Ord (..))
+import                          PlutusTx.Bool      (Bool (..))
+import                qualified PlutusTx.Builtins  as Builtins
+import                          PlutusTx.Either    (Either (..))
+import                          PlutusTx.Eq
+import {-# SOURCE #-}           PlutusTx.Maybe     (Maybe (..))
+import                          PlutusTx.Semigroup ((<>))
+import                          Prelude            (Ordering (..))
 
 {- HLINT ignore -}
 
@@ -45,7 +53,14 @@ class Eq a => Ord a where
     {-# INLINABLE min #-}
     min x y = if x <= y then x else y
 
-instance Ord Integer where
+instance Eq Ordering where
+    {-# INLINABLE (==) #-}
+    EQ == EQ = True
+    GT == GT = True
+    LT == LT = True
+    _ == _   = False
+
+instance Ord Builtins.Integer where
     {-# INLINABLE (<) #-}
     (<) = Builtins.lessThanInteger
     {-# INLINABLE (<=) #-}

@@ -32,6 +32,7 @@ import           Plutus.PAB.Arbitrary                ()
 import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Servant                             (Application, hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                      (BaseUrl (baseUrlPort))
+import           Wallet.Emulator.Wallet              (fromWalletNumber)
 
 app ::
     Trace IO MockServerLogMsg
@@ -60,7 +61,7 @@ main trace MockServerConfig { mscBaseUrl
                             , mscSocketPath } availability = LM.runLogEffects trace $ do
 
     -- make initial distribution of 1 billion Ada to all configured wallets
-    let dist = Map.fromList $ zip mscInitialTxWallets (repeat (Ada.adaValueOf 1000_000_000))
+    let dist = Map.fromList $ zip (fromWalletNumber <$> mscInitialTxWallets) (repeat (Ada.adaValueOf 1000_000_000))
     initialState <- initialChainState dist
     let appState = AppState
             { _chainState = initialState

@@ -84,6 +84,7 @@ let
     fixPurty
     fixStylishHaskell
     haskell-language-server
+    haskell-language-server-wrapper
     hie-bios
     hlint
     marlowe-dashboard.generate-purescript

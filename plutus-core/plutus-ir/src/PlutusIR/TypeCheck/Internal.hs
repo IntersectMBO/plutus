@@ -284,7 +284,7 @@ checkKindFromBinding = \case
           -- the fully-applied type-constructor must be *-kinded
           checkKindM ann appliedTyCon $ Type ()
           -- the types of all the data-constructors must be *-kinded
-          for_ (varDeclType <$> vdecls) $
+          for_ (_varDeclType <$> vdecls) $
                checkKindM ann `flip` Type ()
      where
        appliedTyCon :: Type TyName uni ann = mkDatatypeValueType ann dt
@@ -305,7 +305,7 @@ checkTypeFromBinding recurs = \case
         -- See Note [PIR vs Paper Escaping Types Difference]
         withNoEscapingTypes (checkTypeM ann rhs . fmap void =<< normalizeTypeM ty)
     DatatypeBind _ dt@(Datatype ann _ tyargs _ constrs) ->
-        for_ (varDeclType <$> constrs) $
+        for_ (_varDeclType <$> constrs) $
             \ ty -> checkConRes ty *> checkNonRecScope ty
       where
        appliedTyCon :: Type TyName uni a = mkDatatypeValueType ann dt
@@ -364,9 +364,9 @@ withVarsOfBinding :: forall uni fun c e a res. HasUniApply uni =>
                   -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withVarsOfBinding _ TypeBind{} k = k
 withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
-    vTy <- normalizeTypeM $ varDeclType vdecl
+    vTy <- normalizeTypeM $ _varDeclType vdecl
     -- no need to rename here
-    withVar (varDeclName vdecl) (void <$> vTy) k
+    withVar (_varDeclName vdecl) (void <$> vTy) k
 withVarsOfBinding r (DatatypeBind _ dt) k = do
     -- generate all the definitions
     (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs r (original dt)
@@ -378,8 +378,8 @@ withVarsOfBinding r (DatatypeBind _ dt) k = do
       normRenameScope :: VarDecl TyName Name uni fun (Provenance a)
                       -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
       normRenameScope v acc = do
-          normRenamedTy <- rename =<< (normalizeTypeM $ varDeclType v)
-          withVar (varDeclName v) (void <$> normRenamedTy) acc
+          normRenamedTy <- rename =<< (normalizeTypeM $ _varDeclType v)
+          withVar (_varDeclName v) (void <$> normRenamedTy) acc
 
 
 withVarsOfBindings :: (Foldable t, HasUniApply uni) => Recursivity -> t (Binding TyName Name uni fun a)

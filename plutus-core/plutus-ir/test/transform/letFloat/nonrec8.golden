@@ -1,5 +1,6 @@
 (let
   (nonrec)
+  (termbind (strict) (vardecl k (con integer)) (con integer 1))
   (termbind
     (strict)
     (vardecl i (con integer))
@@ -9,7 +10,6 @@
         (con integer)
         (let
           (nonrec)
-          (termbind (strict) (vardecl k (con integer)) (con integer 1))
           (termbind
             (strict)
             (vardecl j (con integer))

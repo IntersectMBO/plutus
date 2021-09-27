@@ -29,7 +29,7 @@ import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosi
 import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types         (ChainIndexServerMsg)
 import           Cardano.Node.Types               (MockServerLogMsg)
-import           Cardano.Wallet.Types             (WalletMsg)
+import           Cardano.Wallet.Mock.Types        (WalletMsg)
 import           Data.Aeson.Text                  (encodeToLazyText)
 import qualified Data.Text                        as T
 import           Plutus.Contract.Effects          (PABReq, PABResp)

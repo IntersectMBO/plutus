@@ -50,7 +50,6 @@ module Plutus.Trace.Emulator(
     , EmulatorControl.agentState
     , Wallet.ownPrivateKey
     , Wallet.nodeClient
-    , Wallet.chainIndex
     , Wallet.signingProcess
     -- * Throwing errors
     , throwError
@@ -192,8 +191,7 @@ interpretEmulatorTrace conf action =
     -- initial transaction gets validated before the wallets
     -- try to spend their funds
     let action' = Waiting.nextSlot >> action >> Waiting.nextSlot
-        defaultWallets = Wallet.Wallet <$> [1..10]
-        wallets = fromMaybe defaultWallets (preview (initialChainState . _Left . to Map.keys) conf)
+        wallets = fromMaybe Wallet.knownWallets (preview (initialChainState . _Left . to Map.keys) conf)
     in
     evalState @EmulatorThreads mempty
         $ handleDeterministicIds
@@ -226,7 +224,6 @@ defaultShowEvent = \case
   InstanceEvent (ContractInstanceLog (HandledRequest _)           _ _) -> Nothing
   InstanceEvent (ContractInstanceLog (CurrentRequests _)          _ _) -> Nothing
   SchedulerEvent _                                                     -> Nothing
-  ChainIndexEvent _ _                                                  -> Nothing
   WalletEvent _ _                                                      -> Nothing
   ev                                                                   -> Just . renderString . layoutPretty defaultLayoutOptions . pretty $ ev
 
@@ -242,7 +239,6 @@ runEmulatorTrace cfg trace =
     $ runReader ((initialDist . _initialChainState) cfg)
     $ foldEmulatorStreamM (generalize list)
     $ runEmulatorStream cfg trace
-
 
 -- | Run the emulator trace returning an effect that can be evaluated by
 -- interpreting the 'PrintEffect's.

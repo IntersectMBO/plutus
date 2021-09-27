@@ -17,18 +17,29 @@
           [
             {
               (abs
+
                 Nat_i0
                 (type)
+
                 (lam
                   Zero_i0
                   Nat_i2
+
                   (lam
                     Suc_i0
                     (fun Nat_i3 Nat_i3)
+
                     (lam
                       match_Nat_i0
                       (fun
                         Nat_i4
+
+
+
+
+
+
+
                         (all
                           out_Nat_i0
                           (type)
@@ -49,10 +60,47 @@
                             (lam
                               stupidZero_i0
                               (fun Nat_i6 Nat_i6)
+
                               [
                                 (lam three_i0 Nat_i7 [ stupidZero_i2 three_i1 ])
                                 [ Suc_i4 [ Suc_i4 [ Suc_i4 Zero_i5 ] ] ]
                               ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             )
                             [
                               { tup_i1 (fun Nat_i5 Nat_i5) }
@@ -66,6 +114,22 @@
                           (lam
                             f_i0
                             (fun (fun Nat_i6 Nat_i6) r_i2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             [
                               f_i1
                               [
@@ -76,15 +140,25 @@
                                   (lam
                                     n_i0
                                     Nat_i8
+
+
+
+
+
+
+
                                     [
                                       [
                                         { [ match_Nat_i5 n_i1 ] Nat_i8 } Zero_i7
                                       ]
+
                                       (lam
                                         pred_i0 Nat_i9 [ stupidZero_i3 pred_i1 ]
+
                                       )
                                     ]
                                   )
+
                                 )
                               ]
                             ]
@@ -95,11 +169,13 @@
                   )
                 )
               )
+
               (ifix
                 (lam
                   rec_i0
                   (fun (fun (type) (type)) (type))
                   (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+
                 )
                 (lam
                   Nat_i0
@@ -108,6 +184,7 @@
                     out_Nat_i0
                     (type)
                     (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
+
                   )
                 )
               )

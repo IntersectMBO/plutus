@@ -48,10 +48,10 @@ import           GHC.Generics                     (Generic)
 
 import           Plutus.Contract
 import           Plutus.Contract.Constraints
-import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx
 
-import           Ledger                           (Address, PubKeyHash, Tx, TxOutTx (..), ValidatorHash)
-import qualified Ledger                           as Ledger
+import           Ledger                           (Address, PubKeyHash, Tx, ValidatorHash)
+import qualified Ledger
 import qualified Ledger.Constraints               as Constraints
 import qualified Ledger.Contexts                  as V
 import qualified Ledger.Scripts
@@ -143,7 +143,7 @@ payTx
     ::
     Value
     -> TxConstraints (Scripts.RedeemerType TokenAccount) (Scripts.DatumType TokenAccount)
-payTx vl = Constraints.mustPayToTheScript () vl
+payTx = Constraints.mustPayToTheScript ()
 
 -- | Pay some money to the given token account
 pay
@@ -172,8 +172,8 @@ redeemTx :: forall w s e.
     -> Contract w s e (TxConstraints () (), ScriptLookups TokenAccount)
 redeemTx account pk = mapError (review _TAContractError) $ do
     let inst = typedValidator account
-    utxos <- utxoAt (address account)
-    let totalVal = foldMap (V.txOutValue . txOutTxOut) utxos
+    utxos <- utxosAt (address account)
+    let totalVal = foldMap (view Ledger.ciTxOutValue) utxos
         numInputs = Map.size utxos
     logInfo @String
         $ "TokenAccount.redeemTx: Redeeming "
@@ -211,10 +211,8 @@ balance
     => Account
     -> Contract w s e Value
 balance account = mapError (review _TAContractError) $ do
-    utxos <- utxoAt (address account)
-    let inner =
-            foldMap (view Ledger.outValue . Ledger.txOutTxOut)
-            $ utxos
+    utxos <- utxosAt (address account)
+    let inner = foldMap (view Ledger.ciTxOutValue) utxos
     pure inner
 
 -- | Create a new token and return its 'Account' information.

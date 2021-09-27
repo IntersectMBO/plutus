@@ -1,205 +1,183 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
+{-| = ACTUS contract state initialization per t0
 
-import           Data.List                                              as L (filter, head)
-import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
-import           Data.Time.Calendar                                     (Day)
-import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStatePoly (ContractStatePoly, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CR, ContractTerms (..), Cycle (..), DCC,
-                                                                         FEB (FEB_N), IPCB (IPCB_NT),
-                                                                         SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM),
-                                                                         ScheduleConfig (..), n)
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
-import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign  (contractRoleSign)
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (applyEOMC,
-                                                                         generateRecurrentScheduleWithCorrections,
-                                                                         minusCycle, plusCycle)
-import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
+The implementation is a transliteration of the ACTUS specification v1.1
+Note: initial states rely also on some schedules (and vice versa)
 
-_S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-_S = generateRecurrentScheduleWithCorrections
+-}
 
-r :: CR -> Double
-r = contractRoleSign
+module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
+  ( initialize )
+where
 
-y :: DCC -> Day -> Day -> Maybe Day -> Double
-y = yearFraction
+import           Data.Maybe                                             (isJust, isNothing, maybeToList)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..),
+                                                                         Cycle (..), FEB (..), IPCB (..), SCEF (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
+import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
+                                                                         sup)
+import           Language.Marlowe.ACTUS.Ops                             (RoleSignOps (_r), YearFractionOps (_y))
 
-scef_xNx :: SCEF -> Bool
-scef_xNx SE_0N0 = True
-scef_xNx SE_0NM = True
-scef_xNx SE_IN0 = True
-scef_xNx SE_INM = True
-scef_xNx _      = False
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
-scef_Ixx :: SCEF -> Bool
-scef_Ixx SE_IN0 = True
-scef_Ixx SE_INM = True
-scef_Ixx SE_I00 = True
-scef_Ixx SE_I0M = True
-scef_Ixx _      = False
+-- |init initializes the state variables at t0
+initialize :: ContractTerms -> Maybe ContractState
+initialize ct@ContractTermsPoly {..} =
+  let mat = maturity ct
+   in do
+        tmd <- mat
 
+        nt <-
+          let nt
+                | ct_IED > Just t0 = Just 0.0
+                | otherwise = (\x -> _r ct_CNTRL * x) <$> ct_NT
+           in nt
 
+        ipnr <-
+          let ipnr
+                | ct_IED > Just t0 = Just 0.0
+                | otherwise = ct_IPNR
+           in ipnr
 
-_INIT_PAM :: Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
-_INIT_PAM t0 tminus tfp_minus tfp_plus
-  ContractTerms{..} =
-    let
-        _IED   = fromJust ct_IED
-        _DCC   = fromJust ct_DCC
-        _PRF   = fromJust ct_PRF
-        _SCEF  = fromJust ct_SCEF
-        _SCNT  = fromJust ct_SCNT
-        _SCIP  = fromJust ct_SCIP
+        ipac <-
+          let ipac
+                | isNothing ct_IPNR = Just 0.0
+                | isJust ct_IPAC = ct_IPAC
+                | otherwise = (\d -> _y d tminus t0 ct_MD * nt * ipnr) <$> ct_DCC
+           in ipac
 
-        tmd                                     = fromJust ct_MD
-        nt
-                | _IED > t0                     = 0.0
-                | otherwise                     = r ct_CNTRL * fromJust ct_NT
+        feac <- feeAccrued ct { ct_MD = mat }
 
-        ipnr
-                | _IED > t0                     = 0.0
-                | otherwise                     = fromMaybe 0.0 ct_IPNR
-        ipac
-                | isNothing ct_IPNR             = 0.0
-                | isJust ct_IPAC                = r ct_CNTRL * fromJust ct_IPAC
-                | otherwise                     = (y _DCC tminus t0 ct_MD) * nt * ipnr
-        feac
-                | isNothing ct_FER              = 0.0
-                | isJust ct_FEAC                = fromJust ct_FEAC
-                | fromJust ct_FEB == FEB_N      = y _DCC tfp_minus t0 ct_MD * nt * fromJust ct_FER
-                | otherwise                     = y _DCC tfp_minus t0 ct_MD / y _DCC tfp_minus tfp_plus ct_MD * fromJust ct_FER
+        nsc <-
+          let nsc
+                | maybe False scef_xNx ct_SCEF = ct_SCNT
+                | otherwise = Just 1.0
+           in nsc
 
-        nsc
-                | scef_xNx _SCEF                = _SCNT
-                | otherwise                     = 1.0
+        isc <-
+          let isc
+                | maybe False scef_Ixx ct_SCEF = ct_SCIP
+                | otherwise = Just 1.0
+           in isc
 
-        isc
-                | scef_Ixx _SCEF                = _SCIP
-                | otherwise                     = 1.0
+        prf <- ct_PRF
 
-        prf                                     = _PRF
+        let sd = ct_SD
 
-        sd                                      = t0
-    in ContractStatePoly { prnxt = 0.0, ipcb = 0.0, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
+        prnxt <- nextPrincipalRedemptionPayment ct { ct_MD = mat }
+        ipcb <- interestPaymentCalculationBase ct { ct_MD = mat }
 
-_INIT_LAM :: Day -> Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
-_INIT_LAM t0 tminus _ tfp_minus tfp_plus
-  terms@ContractTerms{..} =
-    let
-        _IED' = fromJust ct_IED
-        _DCC' = fromJust ct_DCC
+        return
+          ContractStatePoly
+            { prnxt = prnxt,
+              ipcb = ipcb,
+              tmd = tmd,
+              nt = nt,
+              ipnr = ipnr,
+              ipac = ipac,
+              feac = feac,
+              nsc = nsc,
+              isc = isc,
+              prf = prf,
+              sd = sd
+            }
+  where
+    fpSchedule = schedule FP ct
+    ipSchedule = schedule IP ct
+    prSchedule = schedule PR ct
 
-        -- TMD
-        -- maybeTMinus
-        --             | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
-        --             | (_IED' `plusCycle` fromJust ct_PRCL) >= t0 = Just $ _IED' `plusCycle` fromJust ct_PRCL
-        --             | otherwise                           = Just tpr_minus
-        -- tmd
-        --         | isJust ct_MD = fromJust ct_MD
-        --         | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ((ceiling ((fromJust ct_NT) / (fromJust ct_PRNXT))) * (n (fromJust ct_PRCL))) }
+    t0 = ct_SD
+    tfp_minus = maybe t0 calculationDay (sup fpSchedule t0)
+    tfp_plus = maybe t0 calculationDay (inf fpSchedule t0)
+    tminus = maybe t0 calculationDay (sup ipSchedule t0)
 
-        -- TMD
-        tmd
-          | isJust ct_MD = fromJust ct_MD
-          | otherwise =
-            let
-              (lastEvent, remainingPeriods) =
-                if isJust ct_PRANX && fromJust ct_PRANX < ct_SD then
-                  let
-                    previousEvents   = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
-                    previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay > (minusCycle ct_SD (fromJust ct_IPCL))) (fromMaybe [] previousEvents)
-                    previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
-                    ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
-                  in
-                    (lastEventCalcDay, (fromJust ct_NT) / (fromJust ct_PRNXT))
-                else
-                  -- TODO: check applicability for PRANX
-                  (fromJust ct_PRANX, (fromJust ct_NT) / (fromJust ct_PRNXT) - 1)
-              c@Cycle{ n = n } = fromJust ct_PRCL
-              maturity = plusCycle lastEvent c { n = n * (round remainingPeriods) :: Integer}
-            in
-              applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
+    scef_xNx :: SCEF -> Bool
+    scef_xNx SE_0N0 = True
+    scef_xNx SE_0NM = True
+    scef_xNx SE_IN0 = True
+    scef_xNx SE_INM = True
+    scef_xNx _      = False
 
+    scef_Ixx :: SCEF -> Bool
+    scef_Ixx SE_IN0 = True
+    scef_Ixx SE_INM = True
+    scef_Ixx SE_I00 = True
+    scef_Ixx SE_I0M = True
+    scef_Ixx _      = False
 
-        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
+    nextPrincipalRedemptionPayment :: ContractTerms -> Maybe Double
+    nextPrincipalRedemptionPayment ContractTermsPoly {contractType = PAM} = Just 0.0
+    nextPrincipalRedemptionPayment ContractTermsPoly {ct_PRNXT = prnxt@(Just _)} = prnxt
+    nextPrincipalRedemptionPayment
+      ContractTermsPoly
+        { contractType = LAM,
+          ct_PRNXT = Nothing,
+          ct_MD = Just maturityDate,
+          ct_NT = Just notionalPrincipal,
+          ct_PRCL = Just principalRedemptionCycle,
+          ct_PRANX = Just principalRedemptionAnchor,
+          scfg = scheduleConfig
+        } = Just $ notionalPrincipal / fromIntegral (length $
+              generateRecurrentScheduleWithCorrections principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
+    nextPrincipalRedemptionPayment
+      ContractTermsPoly
+        { contractType = ANN,
+          ct_PRNXT = Nothing,
+          ct_IPAC = Just interestAccrued,
+          ct_MD = md,
+          ct_NT = Just nominalPrincipal,
+          ct_IPNR = Just nominalInterestRate,
+          ct_DCC = Just dayCountConvention
+        } =
+        let scale = nominalPrincipal + interestAccrued
+            frac = annuity nominalInterestRate ti
+         in Just $ frac * scale
+        where
+          prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
+          ti = zipWith (\tn tm -> _y dayCountConvention tn tm md) prDates (tail prDates)
+    nextPrincipalRedemptionPayment _ = Nothing
 
-        -- PRNXT
-        -- s
-        --         | isJust ct_PRANX && ((fromJust ct_PRANX) > t0) = fromJust ct_PRANX
-        --         | isNothing ct_PRANX && ((_IED' `plusCycle` fromJust ct_PRCL) > t0) = _IED' `plusCycle` fromJust ct_PRCL
-        --         | otherwise = tpr_minus
-        prnxt
-                | isJust ct_PRNXT                 = fromJust ct_PRNXT
-                {- ACTUS implementation
-                -- | otherwise                     = (fromJust ct_NT) * (1.0 / (fromIntegral $ ((ceiling (y _DCC' s tmd (Just tmd) / y _DCC' s (s `plusCycle` fromJust ct_PRCL) (Just tmd))) :: Integer)))
-                -}
+    interestPaymentCalculationBase :: ContractTerms -> Maybe Double
+    interestPaymentCalculationBase
+        ContractTermsPoly
+            { contractType = LAM,
+              ct_IED = Just initialExchangeDate
+            } | t0 < initialExchangeDate = Just 0.0
+    interestPaymentCalculationBase
+        ContractTermsPoly
+            { ct_NT = Just notionalPrincipal,
+              ct_IPCB = Just ipcb
+            } | ipcb == IPCB_NT = Just $ _r ct_CNTRL * notionalPrincipal
+    interestPaymentCalculationBase
+        ContractTermsPoly
+            { ct_IPCBA = Just ipcba
+            } = Just $ _r ct_CNTRL * ipcba
+    interestPaymentCalculationBase _ = Nothing
 
-                -- Java implementation
-                | otherwise = (fromJust ct_NT) / (fromIntegral (length $ fromJust ((\s -> _S s (fromJust ct_PRCL){ includeEndDay = True } tmd scfg ) <$> ct_PRANX)))
-        -- IPCB
-        ipcb
-                | t0 < _IED'                    = 0.0
-                | fromJust ct_IPCB == IPCB_NT     = r ct_CNTRL * fromJust ct_NT
-                | otherwise                     = r ct_CNTRL * fromJust ct_IPCBA
-    -- All is same as PAM except PRNXT, IPCB, and TMD
-    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
-
-_INIT_NAM :: Day -> Day -> Day -> Day -> Day -> ContractTerms -> ContractStatePoly Double Day
-_INIT_NAM t0 tminus _ tfp_minus tfp_plus
-  terms@ContractTerms{..} =
-    let
-        _IED   = fromJust ct_IED
-        _DCC   = fromJust ct_DCC
-        _PRNXT = fromJust ct_PRNXT
-
-        {-
-        -- TMD
-        -- maybeTMinus
-                    -- | isJust ct_PRANX && fromJust ct_PRANX >= t0 = ct_PRANX
-                    -- | (_IED `plusCycle` fromJust ct_PRCL) >= t0  = Just $ _IED `plusCycle` fromJust ct_PRCL
-                    -- | otherwise                                  = Just tpr_minus
-        -}
-
-        tmd
-                | isJust ct_MD = fromJust ct_MD
-                | otherwise =
-                  let
-                    lastEvent =
-                      if isJust ct_PRANX && (fromJust ct_PRANX) >= ct_SD then
-                        fromJust ct_PRANX
-                      else
-                        if _IED `plusCycle` (fromJust ct_PRCL) >= ct_SD then
-                          _IED `plusCycle` (fromJust ct_PRCL)
-                        else
-                          let previousEvents  = (\s -> _S s (fromJust ct_PRCL) ct_SD scfg ) <$> ct_PRANX
-                              previousEvents'  = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay >= ct_SD ) (fromMaybe [] previousEvents)
-                              previousEvents'' = L.filter(\ShiftedDay{ calculationDay = calculationDay } -> calculationDay == ct_SD) previousEvents'
-                              ShiftedDay{ calculationDay = lastEventCalcDay } = L.head previousEvents''
-                          in
-                              lastEventCalcDay
-                    yLastEventPlusPRCL = (y _DCC lastEvent (lastEvent `plusCycle` (fromJust ct_PRCL)) ct_MD)
-                    redemptionPerCycle = _PRNXT - (yLastEventPlusPRCL * (fromJust ct_IPNR) * (fromJust ct_NT))
-                    remainingPeriods = (ceiling ((fromJust ct_NT) / redemptionPerCycle)) - 1
-                    c@Cycle{ n = n } = fromJust ct_PRCL
-                    maturity = plusCycle lastEvent c { n = n * remainingPeriods}
-                  in
-                    applyEOMC lastEvent c (fromJust (eomc scfg)) maturity
-                    {-
-                -- | otherwise = fromJust maybeTMinus `plusCycle` (fromJust ct_PRCL) { n = ceiling((fromJust ct_NT) / (_PRNXT' - (fromJust ct_NT)  * (y _DCC' tminus (tminus `plusCycle` fromJust ct_PRCL) ct_MD) * fromJust ct_IPNR))}
-
-                    -}
-        -- PRNXT
-        prnxt = _PRNXT
-
-        -- IPCB
-        ipcb
-                | t0 < _IED                     = 0.0
-                | fromJust ct_IPCB == IPCB_NT     = r ct_CNTRL * fromJust ct_NT
-                | otherwise                     = r ct_CNTRL * fromJust ct_IPCBA
-
-        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus terms
-
-    -- All is same as PAM except PRNXT and TMD, IPCB same as LAM
-    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }
+    feeAccrued :: ContractTerms -> Maybe Double
+    feeAccrued
+        ContractTermsPoly
+            { ct_FER = Nothing
+            } = Just 0.0
+    feeAccrued
+        ContractTermsPoly
+            { ct_FEAC = feac@(Just _)
+            } = feac
+    feeAccrued
+        ContractTermsPoly
+            { ct_FEB = Just FEB_N,
+              ct_DCC = Just dayCountConvention,
+              ct_FER = Just fer,
+              ct_NT = Just notionalPrincipal
+            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
+    feeAccrued
+        ContractTermsPoly
+            { ct_DCC = Just dayCountConvention,
+              ct_FER = Just fer
+            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD / _y dayCountConvention tfp_minus tfp_plus ct_MD * fer
+    feeAccrued _ = Nothing

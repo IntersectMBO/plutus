@@ -18,7 +18,6 @@ import           Plutus.Contract.Wallet         (ExportTx (..))
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
 import qualified Plutus.Contracts.Uniswap.Trace as Uniswap
 import           Plutus.Trace                   (Command (..), ScriptsConfig (..), showStats, writeScriptsTo)
-import qualified Spec.Auction                   as Auction
 import qualified Spec.Currency                  as Currency
 import qualified Spec.Escrow                    as Escrow
 import qualified Spec.Future                    as Future
@@ -82,9 +81,12 @@ writeScripts :: ScriptsConfig -> IO ()
 writeScripts config = do
     putStrLn $ "Writing " <> writeWhat (scCommand config) <> " to: " <> scPath config
     (Sum size, exBudget) <- foldMap (uncurry3 (writeScriptsTo config))
-        [ ("auction_1", Auction.auctionTrace1, Auction.auctionEmulatorCfg)
-        , ("auction_2", Auction.auctionTrace2, Auction.auctionEmulatorCfg)
-        , ("crowdfunding-success", Crowdfunding.successfulCampaign, def)
+        [ -- TODO: The revert of input-output-hk/cardano-node#3206 prevents us from using traces
+          --       for the auction contract for now. Uncomment the following code whenever we
+          --       have a proper implementation.
+          --  ("auction_1", Auction.auctionTrace1, Auction.auctionEmulatorCfg)
+          --, ("auction_2", Auction.auctionTrace2, Auction.auctionEmulatorCfg)
+          ("crowdfunding-success", Crowdfunding.successfulCampaign, def)
         , ("currency", Currency.currencyTrace, def)
         , ("escrow-redeem_1", Escrow.redeemTrace, def)
         , ("escrow-redeem_2", Escrow.redeem2Trace, def)

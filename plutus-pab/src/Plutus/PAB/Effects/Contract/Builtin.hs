@@ -36,13 +36,15 @@ module Plutus.PAB.Effects.Contract.Builtin(
     ) where
 
 
-import           Control.Monad                                    (when)
+import           Control.Monad                                    (unless)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
 import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
 import           Data.Foldable                                    (foldlM, traverse_)
+import qualified Data.OpenApi                                     as OpenApi
+import           Data.Proxy                                       (Proxy (..))
 import           Data.Row
 import           GHC.Generics                                     (Generic)
 import           Playground.Schema                                (endpointsToSchemas)
@@ -68,6 +70,9 @@ import           Schema                                           (FormSchema)
 -- We have a dummy constructor so that we can convert this datatype in
 -- Purescript with '(equal <*> (genericShow <*> mkSumType)) (Proxy @(Builtin A))'.
 data Builtin a = Builtin deriving (Eq, Generic)
+
+instance OpenApi.ToSchema t => OpenApi.ToSchema (Builtin t) where
+    declareNamedSchema _ = OpenApi.declareNamedSchema (Proxy :: Proxy t)
 
 type ContractConstraints w schema error =
     ( Monoid w
@@ -174,7 +179,7 @@ initBuiltin' ::
     -> Eff effs (SomeBuiltinState a)
 initBuiltin' silent i con = do
     let initialState = Emulator.emptyInstanceState (toContract con)
-    when (not silent) $ logNewMessages @a i initialState
+    unless silent $ logNewMessages @a i initialState
     pure $ SomeBuiltinState initialState mempty
 
 updateBuiltin, updateBuiltinSilently ::
@@ -208,7 +213,7 @@ updateBuiltin' silent i oldState oldW resp = do
     case newState of
         Just k -> do
             logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i resp)
-            when (not silent) $ logNewMessages @a i k
+            unless silent $ logNewMessages @a i k
             let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
             pure (SomeBuiltinState k newW)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"

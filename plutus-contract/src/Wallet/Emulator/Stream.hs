@@ -48,6 +48,7 @@ import           Ledger.Blockchain                      (Block, OnChainTx (..))
 import           Ledger.Fee                             (FeeConfig)
 import           Ledger.Slot                            (Slot)
 import           Ledger.Value                           (Value)
+import           Plutus.ChainIndex                      (ChainIndexError)
 import           Streaming                              (Stream)
 import qualified Streaming                              as S
 import           Streaming.Prelude                      (Of)
@@ -62,7 +63,7 @@ import           Wallet.Emulator.Wallet                 (Wallet (..), walletAddr
 
 -- TODO: Move these two to 'Wallet.Emulator.XXX'?
 import           Ledger.TimeSlot                        (SlotConfig)
-import           Plutus.Contract.Trace                  (InitialDistribution, defaultDist)
+import           Plutus.Contract.Trace                  (InitialDistribution, defaultDist, knownWallets)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError)
 
 {- Note [Emulator event stream]
@@ -128,6 +129,7 @@ runTraceStream conf@EmulatorConfig{_slotConfig, _feeConfig} =
     . reinterpret @_ @(LogMsg EmulatorEvent) (mkTimedLogs @EmulatorEvent')
     . runError
     . wrapError WalletErr
+    . wrapError ChainIndexErr
     . wrapError AssertionErr
     . wrapError InstanceErr
     . EM.processEmulated _slotConfig _feeConfig
@@ -151,7 +153,7 @@ initialDist = either id (walletFunds . map Valid) where
     walletFunds theBlock =
         let values = AM.values $ AM.fromChain [theBlock]
             getFunds wllt = fromMaybe mempty $ Map.lookup (walletAddress wllt) values
-        in Map.fromSet getFunds (Set.fromList $ Wallet <$> [1..10])
+        in Map.fromSet getFunds (Set.fromList knownWallets)
 
 instance Default EmulatorConfig where
   def = EmulatorConfig
@@ -169,6 +171,7 @@ initialState EmulatorConfig{_initialChainState} =
 
 data EmulatorErr =
     WalletErr WalletAPIError
+    | ChainIndexErr ChainIndexError
     | AssertionErr EM.AssertionError
     | InstanceErr EmulatorRuntimeError
     deriving (Show)

@@ -71,7 +71,7 @@ import           Test.Tasty.HUnit                         (testCase)
 import           Wallet.API                               (WalletAPIError, ownPubKey)
 import qualified Wallet.API                               as WAPI
 import qualified Wallet.Emulator.Chain                    as Chain
-import           Wallet.Emulator.Wallet                   (Wallet (..))
+import           Wallet.Emulator.Wallet                   (Wallet, knownWallet)
 import           Wallet.Rollup                            (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                      (DereferencedInput, dereferencedInputs, isFound)
 import           Wallet.Types                             (ContractInstanceId)
@@ -87,7 +87,7 @@ runScenario sim = do
         Right _  -> pure ()
 
 defaultWallet :: Wallet
-defaultWallet = Wallet 1
+defaultWallet = knownWallet 1
 
 activateContractTests :: TestTree
 activateContractTests =

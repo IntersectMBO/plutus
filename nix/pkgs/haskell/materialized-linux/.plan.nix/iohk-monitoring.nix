@@ -11,7 +11,7 @@
     flags = { disable-observables = false; performance-test-queue = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "iohk-monitoring"; version = "0.1.10.1"; };
+      identifier = { name = "iohk-monitoring"; version = "0.2.0.0"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
       maintainer = "operations@iohk.io";
@@ -180,11 +180,11 @@
       };
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "7";
+      url = "9";
       rev = "minimal";
       sha256 = "";
       }) // {
-      url = "7";
+      url = "9";
       rev = "minimal";
       sha256 = "";
       };

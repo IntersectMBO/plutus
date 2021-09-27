@@ -13,6 +13,7 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -26,6 +27,7 @@ import           Control.Lens
 import           Control.Monad                (forM_, void)
 import           Control.Monad.Error.Lens     (catching, throwing)
 import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
+
 import qualified Data.List.NonEmpty           as NonEmpty
 import           Data.Map.Strict              (Map)
 import qualified Data.Map.Strict              as Map
@@ -41,26 +43,29 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, Slot (..), TokenName, TxOut (..),
-                                               TxOutTx (..), eitherTx, inScripts, pubKeyHash, txOutDatum, txOutValue,
-                                               txOutputs)
+                                               ValidatorHash, inScripts, pubKeyHash, txOutValue)
+
 import qualified Ledger
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
-import           Ledger.AddressMap            (outputsMapFromTxForAddress)
+
 import           Ledger.Constraints
 import qualified Ledger.Constraints           as Constraints
 import           Ledger.Scripts               (datumHash, unitRedeemer)
+
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..), tyTxOutData)
 import qualified Ledger.Value                 as Val
+import           Plutus.ChainIndex            (_ValidTx, citxInputs, citxOutputs, citxTxId)
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachineClient (..), Void,
-                                               WaitingResult (..), getStates)
+                                               WaitingResult (..))
 import qualified Plutus.Contract.StateMachine as SM
 import           Plutus.Contract.Wallet       (getUnspentOutput)
 import qualified Plutus.Contracts.Currency    as Currency
 import qualified PlutusTx
 import qualified PlutusTx.AssocMap            as AssocMap
+
 
 type MarloweSchema =
         Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
@@ -79,6 +84,7 @@ data MarloweError =
     | TransitionError (SM.InvalidTransition MarloweData MarloweInput)
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
+
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -152,10 +158,8 @@ type MarloweContractState = LastResult
 
 marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
 marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
-    slot <- currentSlot
-    let client@StateMachineClient{scInstance} = mkMarloweClient params
-    let inst = SM.typedValidator scInstance
-    let address = Scripts.validatorAddress inst
+    let client = mkMarloweClient params
+
     let go [] = pure InProgress
         go (tx:rest) = do
             res <- updateHistoryFromTx client params tx
@@ -163,13 +167,9 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
                 Finished   -> pure Finished
                 InProgress -> go rest
 
-    AddressChangeResponse{acrTxns} <- awaitPromise $ addressChangeRequest
-                AddressChangeRequest
-                { acreqSlotRangeFrom = 0
-                , acreqSlotRangeTo = slot
-                , acreqAddress = address
-                }
-    go acrTxns >>= checkpointLoop (follow client params)
+    go [] >>= checkpointLoop (follow client params)
+
+
   where
     follow client params = \case
         Finished -> do
@@ -191,11 +191,13 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
                     pure (Right InProgress)
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
-        logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)
+        logInfo @String $ "Updating history from tx " <> show (view citxTxId tx)
         let inst = SM.typedValidator scInstance
         let address = Scripts.validatorAddress inst
-        let utxo = outputsMapFromTxForAddress address tx
-        let states = getStates scInstance utxo
+        utxos <- fmap ( Map.filter ((==) address . view Ledger.ciTxOutAddress . fst)
+                      . Map.fromList
+                      ) $ utxosTxOutTxFromTx tx
+        let states = SM.getStates scInstance utxos
         case findInput inst tx of
             -- if there's no TxIn for Marlowe contract that means
             -- it's a contract creation transaction, and there is Marlowe TxOut
@@ -220,8 +222,8 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
                     _  -> pure InProgress
 
     findInput inst tx = do
-        let txIns = Set.toList (Ledger.consumableInputs tx)
-        let inputs = txIns >>= (maybeToList . inScripts)
+        let inputs = Set.toList (view citxInputs tx) >>= maybeToList . inScripts
+
         let script = Scripts.validatorScript inst
         -- find previous Marlowe contract
         let marloweTxInputs = filter (\(validator, _, _) -> validator == script) inputs
@@ -266,11 +268,12 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         marlowePlutusContract
     redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> catchError "redeem" $ do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
-        utxos <- utxoAt address
-        let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
+        utxos <- utxosAt address
+        let spendPayoutConstraints tx ref txout = let
                 expectedDatumHash = datumHash (Datum $ PlutusTx.toBuiltinData role)
-                amount = txOutValue txOutTxOut
-                in case txOutDatum txOutTxOut of
+                amount = view Ledger.ciTxOutValue txout
+                dh = either id Ledger.datumHash <$> preview Ledger.ciTxOutDatum txout
+                in case dh of
                     Just datumHash | datumHash == expectedDatumHash ->
                         -- we spend the rolePayoutScript address
                         Constraints.mustSpendScriptOutput ref unitRedeemer
@@ -292,8 +295,8 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
               lookups = Constraints.otherScript validator
                   <> Constraints.unspentOutputs utxos
                   <> Constraints.ownPubKeyHash pkh
-            tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
-            _ <- submitUnbalancedTx tx
+            utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
+            _ <- submitUnbalancedTx utx
             tell $ OK "redeem"
 
         marlowePlutusContract
@@ -340,7 +343,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         let action = getAction slotRange party marloweData
         case action of
             PayDeposit acc p token amount -> do
-                logInfo @String $ "PayDeposit " <> show amount <> " at whithin slots " <> show slotRange
+                logInfo @String $ "PayDeposit " <> show amount <> " at within slots " <> show slotRange
                 let payDeposit = do
                         marloweData <- SM.runStep theClient (slotRange, [IDeposit acc p token amount])
                         case marloweData of
@@ -403,7 +406,7 @@ setupMarloweParams owners contract = mapError (review _MarloweError) $ do
         pure (params, mempty, mempty)
     else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
     then do
-        let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
+        let tokens = fmap (, 1) $ Set.toList roles
         txOutRef@(Ledger.TxOutRef h i) <- getUnspentOutput
         utxo <- utxoAt ownAddress
         let theCurrency = Currency.OneShotCurrency
@@ -507,10 +510,8 @@ marloweParams rolesCurrency = MarloweParams
     { rolesCurrency = rolesCurrency
     , rolePayoutValidatorHash = mkRolePayoutValidatorHash rolesCurrency }
 
-
 defaultMarloweParams :: MarloweParams
 defaultMarloweParams = marloweParams adaSymbol
-
 
 newtype CompanionState = CompanionState (Map MarloweParams MarloweData)
   deriving (Semigroup,Monoid) via (Map MarloweParams MarloweData)
@@ -534,8 +535,8 @@ marloweCompanionContract = checkExistingRoleTokens
         -- Get the existing unspend outputs of the wallet that activated the companion contract
         pkh <- pubKeyHash <$> ownPubKey
         let ownAddress = pubKeyHashAddress pkh
-        utxo <- utxoAt ownAddress
-        let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
+        utxo <- utxosAt ownAddress
+        let txOuts = fmap Ledger.toTxOut $ Map.elems utxo
         -- Filter those outputs for role tokens and notify the WebSocket subscribers
         -- NOTE: CombinedWSStreamToServer has an API to subscribe to WS notifications
         forM_ txOuts notifyOnNewContractRoles
@@ -546,7 +547,7 @@ marloweCompanionContract = checkExistingRoleTokens
         checkpointLoop (fmap Right <$> checkForUpdates) ownAddress
     checkForUpdates ownAddress = do
         txns <- NonEmpty.toList <$> awaitUtxoProduced ownAddress
-        let txOuts = txns >>= eitherTx (const []) txOutputs
+        let txOuts = txns >>= view (citxOutputs . _ValidTx)
         forM_ txOuts notifyOnNewContractRoles
         pure ownAddress
 

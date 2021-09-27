@@ -63,6 +63,7 @@ newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving (Show, Pretty) via LedgerBytes
+    deriving Hashable via PlutusTx.BuiltinByteString
 
 makeLift ''PrivateKey
 

@@ -6,7 +6,7 @@ module Bridge
   ) where
 
 import Prologue
-import Cardano.Wallet.Types (WalletInfo(..)) as Back
+import Cardano.Wallet.Mock.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
 import Data.Json.JsonUUID (JsonUUID(..))
@@ -116,8 +116,8 @@ instance walletInfoBridge :: Bridge Back.WalletInfo Front.WalletInfo where
   toBack (Front.WalletInfo { wallet, pubKey, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKey: toBack pubKey, wiPubKeyHash: toBack pubKeyHash }
 
 instance walletBridge :: Bridge Back.Wallet Front.Wallet where
-  toFront (Back.Wallet { getWallet }) = Front.Wallet getWallet
-  toBack (Front.Wallet getWallet) = Back.Wallet { getWallet }
+  toFront (Back.Wallet { getWalletId }) = Front.Wallet getWalletId
+  toBack (Front.Wallet getWalletId) = Back.Wallet { getWalletId }
 
 instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
   toFront (Back.PubKeyHash { getPubKeyHash }) = Front.PubKeyHash getPubKeyHash

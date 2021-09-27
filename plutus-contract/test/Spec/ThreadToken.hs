@@ -66,6 +66,7 @@ stateMachineClient threadToken =
   let machine = stateMachine threadToken
       inst = typedValidator threadToken
    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
+
 -- * Minimal test runner for repro
 
 contract :: Contract () EmptySchema String ()
@@ -86,13 +87,13 @@ contract = do
 
 testTrace :: EmulatorTrace ()
 testTrace = do
-  void $ activateContractWallet (Wallet 1) contract
+  void $ activateContractWallet w1 contract
   void $ Trace.waitNSlots 10
 
 tests :: TestTree
 tests = testGroup "Thread Token"
     [ checkPredicate "Runs successfully"
-        (assertDone contract (Trace.walletInstanceTag (Wallet 1)) (const True) "No errors"
+        (assertDone contract (Trace.walletInstanceTag w1) (const True) "No errors"
          .&&. assertNoFailedTransactions)
         testTrace
     ]

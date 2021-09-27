@@ -13,7 +13,7 @@ module Plutus.PAB.Types where
 
 import qualified Cardano.ChainIndex.Types  as ChainIndex
 import           Cardano.Node.Types        (MockServerConfig (..))
-import qualified Cardano.Wallet.Types      as Wallet
+import qualified Cardano.Wallet.Mock.Types as Wallet
 import           Control.Lens.TH           (makePrisms)
 import           Data.Aeson                (FromJSON, ToJSON (..))
 import           Data.Default              (Default, def)
@@ -160,11 +160,7 @@ defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
     -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
-    -- Note: The host here is set to 127.0.0.1 instead of localhost
-    -- because of a strange failure during running this on the mac-mini-1
-    -- instance on Hydra. See: https://jira.iohk.io/browse/SCP-2595 for more
-    -- information.
-    { baseUrl              = BaseUrl Http "127.0.0.1" 9080 ""
+    { baseUrl              = BaseUrl Http "localhost" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
     , endpointTimeout      = Nothing

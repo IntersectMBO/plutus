@@ -319,6 +319,7 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
   Script: fa22d8b5f78965ee95544771d722f4b856f33c429f2cb5c1171a6387
+
   Value:
     Ada:      Lovelace:  225
 
@@ -415,5 +416,6 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
   Script: fa22d8b5f78965ee95544771d722f4b856f33c429f2cb5c1171a6387
+
   Value:
     Ada:      Lovelace:  0

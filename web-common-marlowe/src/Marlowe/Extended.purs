@@ -158,6 +158,7 @@ data Value
   | AddValue Value Value
   | SubValue Value Value
   | MulValue Value Value
+  | DivValue Value Value
   | Scale S.Rational Value
   | ChoiceValue S.ChoiceId
   | SlotIntervalStart
@@ -197,6 +198,11 @@ instance encodeJsonValue :: Encode Value where
     encode
       { multiply: lhs
       , times: rhs
+      }
+  encode (DivValue lhs rhs) =
+    encode
+      { divide: lhs
+      , by: rhs
       }
   encode (Scale (S.Rational num den) val) =
     encode
@@ -253,6 +259,10 @@ instance decodeJsonValue :: Decode Value where
               <*> decodeProp "minus" a
         )
       <|> ( \_ ->
+            DivValue <$> decodeProp "divide" a
+              <*> decodeProp "by" a
+        )
+      <|> ( \_ ->
             if (hasProperty "divide_by" a) then
               ( Scale
                   <$> ( S.Rational <$> decodeProp "times" a
@@ -295,6 +305,7 @@ instance toCoreValue :: ToCore Value S.Value where
   toCore (AddValue lhs rhs) = S.AddValue <$> toCore lhs <*> toCore rhs
   toCore (SubValue lhs rhs) = S.SubValue <$> toCore lhs <*> toCore rhs
   toCore (MulValue lhs rhs) = S.MulValue <$> toCore lhs <*> toCore rhs
+  toCore (DivValue lhs rhs) = S.DivValue <$> toCore lhs <*> toCore rhs
   toCore (Scale f v) = S.Scale <$> pure f <*> toCore v
   toCore (ChoiceValue choId) = Just $ S.ChoiceValue choId
   toCore SlotIntervalStart = Just $ S.SlotIntervalStart
@@ -310,6 +321,7 @@ instance templateValue :: Template Value Placeholders where
   getPlaceholderIds (AddValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (SubValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (MulValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (DivValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (Scale _ v) = getPlaceholderIds v
   getPlaceholderIds (ChoiceValue _) = mempty
   getPlaceholderIds SlotIntervalStart = mempty
@@ -326,6 +338,7 @@ instance fillableValue :: Fillable Value TemplateContent where
     AddValue lhs rhs -> AddValue (go lhs) (go rhs)
     SubValue lhs rhs -> SubValue (go lhs) (go rhs)
     MulValue lhs rhs -> MulValue (go lhs) (go rhs)
+    DivValue lhs rhs -> DivValue (go lhs) (go rhs)
     Scale f v -> Scale f $ go v
     ChoiceValue _ -> val
     SlotIntervalStart -> val
@@ -344,6 +357,7 @@ instance valueHasChoices :: HasChoices Value where
   getChoiceNames (AddValue lhs rhs) = getChoiceNames lhs <> getChoiceNames rhs
   getChoiceNames (SubValue lhs rhs) = getChoiceNames lhs <> getChoiceNames rhs
   getChoiceNames (MulValue lhs rhs) = getChoiceNames lhs <> getChoiceNames rhs
+  getChoiceNames (DivValue lhs rhs) = getChoiceNames lhs <> getChoiceNames rhs
   getChoiceNames (Scale _ val) = getChoiceNames val
   getChoiceNames (ChoiceValue choId) = getChoiceNames choId
   getChoiceNames SlotIntervalStart = Set.empty

@@ -10,7 +10,6 @@
 module Spec.Crowdfunding(tests) where
 
 import qualified Control.Foldl                         as L
-import           Control.Lens                          ((&), (.~))
 import           Control.Monad                         (void)
 import           Control.Monad.Freer                   (run)
 import           Control.Monad.Freer.Extras.Log        (LogLevel (..))
@@ -39,12 +38,6 @@ import qualified Streaming.Prelude                     as S
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM)
 
-w1, w2, w3, w4 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-w3 = Wallet 3
-w4 = Wallet 4
-
 theContract :: POSIXTime -> Contract () CrowdfundingSchema ContractError ()
 theContract startTime = crowdfunding $ theCampaign startTime
 
@@ -58,7 +51,7 @@ tests = testGroup "crowdfunding"
             slotCfg <- Trace.getSlotConfig
             void (Trace.activateContractWallet w1 $ theContract $ TimeSlot.scSlotZeroTime slotCfg)
 
-    , checkPredicateOptions (defaultCheckOptions & maxSlot .~ 20) "make contribution"
+    , checkPredicateOptions defaultCheckOptions "make contribution"
         (walletFundsChange w1 (Ada.lovelaceValueOf (-100)))
         $ let contribution = Ada.lovelaceValueOf 100
           in makeContribution w1 contribution >> void Trace.nextSlot

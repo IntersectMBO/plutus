@@ -8059,6 +8059,7 @@
                                                                                       (nonstrict)
                                                                                       (vardecl
                                                                                         v
+
                                                                                         [
                                                                                           List
                                                                                           [
@@ -10859,6 +10860,7 @@
                                                                             data
                                                                           )
                                                                         ]
+
                                                                       }
                                                                       {
                                                                         fMonoidFirst
@@ -14904,6 +14906,7 @@
                                                                     [
                                                                       [
                                                                         {
+
                                                                           [
                                                                             {
                                                                               Extended_match

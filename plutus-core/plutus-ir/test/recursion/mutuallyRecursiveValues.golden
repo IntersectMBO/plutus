@@ -336,6 +336,11 @@
                   (lam
                     f_i0
                     (fun (fun a_i3 b_i2) (fun a_i3 b_i2))
+
+
+
+
+
                     [
                       {
                         (abs
@@ -354,9 +359,12 @@
                                     (lam
                                       a_i0 (type) (fun [ self_i2 a_i1 ] a_i1)
                                     )
+
                                   )
                                   a_i1
                                 )
+
+
                               )
                               a_i2
                             ]
@@ -372,9 +380,12 @@
                           (lam a_i0 (type) (fun [ self_i2 a_i1 ] a_i1))
                         )
                         (fun a_i3 b_i2)
+
+
                         (lam
                           s_i0
                           [
+
                             (lam
                               a_i0
                               (type)
@@ -388,6 +399,7 @@
                               )
                             )
                             (fun a_i4 b_i3)
+
                           ]
                           (lam
                             x_i0

@@ -40,12 +40,8 @@
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
+          (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
-          (hsPkgs."cardano-ledger-alonzo" or (errorHandler.buildDepError "cardano-ledger-alonzo"))
-          (hsPkgs."cardano-ledger-shelley-ma" or (errorHandler.buildDepError "cardano-ledger-shelley-ma"))
-          (hsPkgs."ouroboros-consensus-shelley" or (errorHandler.buildDepError "ouroboros-consensus-shelley"))
-          (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
-          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -85,6 +81,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."IntervalMap" or (errorHandler.buildDepError "IntervalMap"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))) ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs || system.isWindows)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -96,8 +93,6 @@
           "Data/Text/Extras"
           "Data/UUID/Extras"
           "Plutus/Contract"
-          "Plutus/Contract/CardanoAPI"
-          "Plutus/Contract/CardanoAPITemp"
           "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
@@ -116,11 +111,10 @@
           "Plutus/Contract/Util"
           "Plutus/Contract/Wallet"
           "Plutus/Contract/Typed/Tx"
+          "Plutus/Contract/Secrets"
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
           "Wallet/Emulator/Chain"
-          "Wallet/Emulator/ChainIndex"
-          "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
@@ -169,6 +163,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -190,6 +185,7 @@
             "Spec/Rows"
             "Spec/State"
             "Spec/ThreadToken"
+            "Spec/Secrets"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

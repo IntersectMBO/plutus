@@ -14,10 +14,16 @@
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
+    WalletId(..),
+    Crypto.XPrv,
+    Crypto.XPub,
     walletPubKey,
-    walletPrivKey,
-    signWithWallet,
     addSignature,
+    knownWallets,
+    knownWallet,
+    WalletNumber(..),
+    toWalletNumber,
+    fromWalletNumber,
     TxPool,
     -- * Emulator
     EmulatorEffs,
@@ -57,6 +63,7 @@ module Wallet.Emulator.Types(
     selectCoin
     ) where
 
+import qualified Cardano.Crypto.Wallet          as Crypto
 import           Control.Lens                   hiding (index)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error)
@@ -65,11 +72,12 @@ import           Control.Monad.Freer.Extras.Log (LogMsg, mapLog)
 import           Control.Monad.Freer.State      (State)
 
 import           Ledger
+import           Plutus.ChainIndex              (ChainIndexError)
 import           Wallet.API                     (WalletAPIError (..))
 
 import           Ledger.Fee                     (FeeConfig)
 import           Ledger.TimeSlot                (SlotConfig)
-import           Wallet.Emulator.Chain          as Chain
+import           Wallet.Emulator.Chain
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
@@ -79,6 +87,7 @@ type EmulatorEffs = '[MultiAgentEffect, ChainEffect, ChainControlEffect]
 
 processEmulated :: forall effs.
     ( Member (Error WalletAPIError) effs
+    , Member (Error ChainIndexError) effs
     , Member (Error AssertionError) effs
     , Member (State EmulatorState) effs
     , Member (LogMsg EmulatorEvent') effs

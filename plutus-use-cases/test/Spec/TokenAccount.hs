@@ -56,10 +56,6 @@ tests = testGroup "token account"
 
     ]
 
-w1, w2 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-
 tokenName :: TokenName
 tokenName = "test token"
 

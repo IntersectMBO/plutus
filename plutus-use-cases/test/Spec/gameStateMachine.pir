@@ -1,6 +1,7 @@
 (program
   (let
     (nonrec)
+
     (datatypebind
       (datatype
         (tyvardecl GameState (type))
@@ -3377,6 +3378,7 @@
                                     (con integer)
                                   ]
                                 ]
+
                               )
                             )
                           )
@@ -3909,6 +3911,7 @@
                                                             [ State GameState ]
                                                           }
                                                           [
+
                                                             [
                                                               [
                                                                 {
@@ -8575,6 +8578,7 @@
                                                                                       (error
                                                                                         e
                                                                                       )
+
                                                                                     )
                                                                                   ]
                                                                                 )
@@ -9273,6 +9277,7 @@
                                                                         {
                                                                           [
                                                                             [
+
                                                                               [
                                                                                 {
                                                                                   [
@@ -16576,6 +16581,7 @@
                                   Bool
                                 )
                               )
+
                               (lam
                                 ds
                                 [
@@ -16821,6 +16827,7 @@
                                   ]
                                 )
                               )
+
                               (lam
                                 ds
                                 ScriptContext
@@ -16866,6 +16873,7 @@
                                           (con unit ())
                                         ]
                                       ]
+
                                     )
                                   )
                                   {

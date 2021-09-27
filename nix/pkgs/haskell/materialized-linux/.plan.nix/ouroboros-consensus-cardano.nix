@@ -86,15 +86,18 @@
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
             (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."ouroboros-consensus" or (errorHandler.buildDepError "ouroboros-consensus"))
             (hsPkgs."ouroboros-consensus-byron" or (errorHandler.buildDepError "ouroboros-consensus-byron"))
             (hsPkgs."ouroboros-consensus-cardano" or (errorHandler.buildDepError "ouroboros-consensus-cardano"))
             (hsPkgs."ouroboros-consensus-shelley" or (errorHandler.buildDepError "ouroboros-consensus-shelley"))
             (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
             ];
           buildable = true;
           modules = [
             "Analysis"
+            "Block/Alonzo"
             "Block/Byron"
             "Block/Cardano"
             "Block/Shelley"
@@ -107,11 +110,11 @@
       };
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "6";
+      url = "8";
       rev = "minimal";
       sha256 = "";
       }) // {
-      url = "6";
+      url = "8";
       rev = "minimal";
       sha256 = "";
       };

@@ -19,14 +19,13 @@ import           GHC.Generics                (Generic)
 import           Ledger                      (Address, Tx, TxId, txId)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Index                (ScriptValidationEvent, ValidationError, ValidationPhase)
-import           Ledger.Slot                 (Slot, SlotRange)
+import           Ledger.Slot                 (Slot)
 import           Ledger.Value                (Value)
 import           Wallet.Emulator.Error       (WalletAPIError)
 
 data RequestHandlerLogMsg =
     SlotNoticationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
-    | HandleAddressChangedAt Slot SlotRange
     | HandleTxFailed WalletAPIError
     | UtxoAtFailed Address
     deriving stock (Eq, Show, Generic)
@@ -38,11 +37,6 @@ instance Pretty RequestHandlerLogMsg where
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
         HandleTxFailed e -> "handleTx failed:" <+> viaShow e
-        HandleAddressChangedAt current slotRange ->
-            "handle address changed at. Range:"
-                <+> pretty slotRange
-                <+> "Current:"
-                <+> pretty current
         UtxoAtFailed addr -> "UtxoAt failed:" <+> pretty addr
 
 data TxBalanceMsg =

@@ -128,7 +128,6 @@ import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
-import Algorithmic.Main
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure

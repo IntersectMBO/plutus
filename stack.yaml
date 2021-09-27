@@ -86,7 +86,7 @@ extra-deps:
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: 07397f0e50da97eaa0575d93bee7ac4b2b2576ec
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: f149c1c1e4e4bb5bab51fa055e9e3a7084ddc30e
+  commit: 6d00ff77f9bcd769fb6d7fd02216cec4e837bfcf
   subdirs:
     - monoidal-synchronisation
     - typed-protocols
@@ -107,7 +107,7 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
+  commit: 46502694f6a9f0498f822068008b232b3837a9e9
   subdirs:
     - base-deriving-via
     - binary
@@ -120,7 +120,7 @@ extra-deps:
     - cardano-crypto-tests
     - strict-containers
 - git: https://github.com/input-output-hk/cardano-ledger-specs
-  commit: 12a0ef69d64a55e737fbf4e846bd8ed9fb30a956
+  commit: d5b184a820853c7ba202efd615b8fadca1acb52c
   subdirs:
     - byron/chain/executable-spec
     - byron/crypto
@@ -137,7 +137,7 @@ extra-deps:
     - cardano-ledger-core
     - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
+  commit: 46f994e216a1f8b36fe4669b47b2a7011b0e153c
   subdirs:
     - iohk-monitoring
     - tracer-transformers
@@ -148,7 +148,7 @@ extra-deps:
     - plugins/backend-trace-forwarder
     - plugins/scribe-systemd
 - git: https://github.com/input-output-hk/cardano-node.git
-  commit: 3a56ac245c83d3345f81123ec3bb496bb23477a3
+  commit: 8cf2b208c7708bd890c7e74d5b1d7c4167a3b40b
   subdirs:
     - cardano-api
     - cardano-node

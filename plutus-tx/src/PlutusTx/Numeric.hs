@@ -5,10 +5,10 @@
 module PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
 
 import           Data.Semigroup     (Product (..), Sum (..))
+import           PlutusTx.Bool
 import           PlutusTx.Builtins
 import           PlutusTx.Monoid
 import           PlutusTx.Semigroup
-import           Prelude            hiding (Functor (..), Monoid (..), Num (..), Semigroup (..))
 
 infixl 7 *
 infixl 6 +, -
