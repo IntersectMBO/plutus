@@ -3,7 +3,7 @@
 , packages ? import ./. { inherit system enableHaskellProfiling; }
 }:
 let
-  inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard fake-pab deployment docs;
+  inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard fake-pab deployment docs webCommon;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks cardano-cli cardano-node;
   inherit (plutus) agdaWithStdlib;
@@ -106,6 +106,7 @@ let
     updateMaterialized
     updateClientDeps
     docs.build-and-serve-docs
+    webCommon.newComponent
   ]);
 
 in
