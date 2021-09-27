@@ -12,11 +12,11 @@ let
     mkdir $dir
     case $2 in
       stateful)
-        cat ${./templates/Component/Stateful.purs.template} | ${replaceName} > $modFile
+        cat ${./templates/Component/Stateful.purs.template} | ${replaceName} > $file
         cat ${./templates/Component/Stateful/Types.purs.template} | ${replaceName} > $typesFile
         ;;
       *)
-        cat ${./templates/Component/Stateless.purs.template} | ${replaceName} > $modFile
+        cat ${./templates/Component/Stateless.purs.template} | ${replaceName} > $file
         cat ${./templates/Component/Stateless/Types.purs.template} | ${replaceName} > $typesFile
         ;;
     esac
