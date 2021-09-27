@@ -1,7 +1,6 @@
 module Contract.View
   ( contractPreviewCard
   , contractScreen
-  , actionConfirmationCard
   ) where
 
 import Prologue hiding (div)
@@ -28,21 +27,19 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, h4_, input, p, p_, span, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h3, h4, h4_, input, p, p_, span, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (IProp, InputType(..), enabled, id_, placeholder, ref, type_, value)
 import Hint.State (hint)
 import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humanizeOffset, humanizeValue)
-import LoadingSubmitButton.State (loadingSubmitButton)
-import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.Lenses (_contract, _mNextTimeout, _semanticState)
 import Marlowe.Execution.State (expandBalances)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended.Metadata (_contractName, _contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Contract(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Contract(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -184,120 +181,6 @@ contractScreen viewInput state =
           ]
       , cardNavigationButtons state
       , div [ classNames [ "self-end", "pb-4", "pr-4", "font-bold" ] ] [ text $ statusIndicatorMessage state ]
-      ]
-
--- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
-actionConfirmationCard ::
-  forall m.
-  MonadAff m =>
-  Assets ->
-  NamedAction ->
-  StartedState ->
-  ComponentHTML Action ChildSlots m
-actionConfirmationCard assets namedAction state =
-  let
-    stepNumber = (currentStep state) + 1
-
-    title = case namedAction of
-      MakeDeposit _ _ _ _ -> "Deposit"
-      MakeChoice _ _ _ -> "Choice"
-      CloseContract -> "Close Contract"
-      _ -> "Fixme, this should not happen"
-
-    cta = case namedAction of
-      MakeDeposit _ _ _ _ -> "Deposit"
-      MakeChoice _ _ _ -> "Choose"
-      CloseContract -> "Pay to close"
-      _ -> "Fixme, this should not happen"
-
-    detailItem itemTitle itemAmount =
-      div [ classNames [ "flex", "flex-col", "flex-1", "px-2" ] ]
-        [ span [ classNames [ "text-xs" ] ] [ text itemTitle ]
-        , span [ classNames [ "font-semibold" ] ] [ text itemAmount ]
-        ]
-
-    transactionFeeItem = detailItem "Transaction fee *:" $ humanizeValue adaToken transactionFee
-
-    actionAmountItems = case namedAction of
-      MakeDeposit _ _ token amount ->
-        [ detailItem "Deposit amount:" $ humanizeValue token amount
-        , transactionFeeItem
-        ]
-      MakeChoice _ _ (Just option) ->
-        [ detailItem "You are choosing:" $ "[ option " <> show option <> " ]"
-        , transactionFeeItem
-        ]
-      CloseContract ->
-        [ detailItem "You are closing the contract" ""
-        , transactionFeeItem
-        ]
-      _ -> [ transactionFeeItem ]
-
-    -- TODO: when we allow custom currency other than ada, we won't be able to add the deposit amount
-    -- to the transaction fee (always in ada)
-    totalToPay = case namedAction of
-      MakeDeposit _ _ _ amount -> amount + transactionFee
-      _ -> transactionFee
-
-    hasSufficientFunds = getAda assets >= totalToPay
-  in
-    div
-      [ classNames [ "h-full", "grid", "grid-rows-auto-1fr-auto-auto", "divide-y", "divide-gray" ] ]
-      [ h2
-          [ classNames Css.cardHeader ]
-          [ text $ "Step " <> (show stepNumber) <> " " <> title ]
-      , div
-          [ classNames [ "p-4", "space-y-2" ] ]
-          [ h3
-              [ classNames [ "font-semibold" ] ]
-              [ text $ title <> " summary" ]
-          , div [ classNames [ "flex", "border-b", "border-gray", "py-2", "divide-x", "divide-gray" ] ]
-              actionAmountItems
-          ]
-      , div_
-          [ div
-              [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-4" ] ]
-              [ span_ [ text "Demo wallet balance:" ]
-              , span_ [ text $ humanizeValue adaToken $ getAda assets ]
-              ]
-          , div
-              [ classNames [ "p-4", "space-y-4" ] ]
-              [ div_
-                  [ h3
-                      [ classNames [ "text-sm", "font-semibold" ] ]
-                      [ text "Confirm payment of:" ]
-                  , div
-                      [ classNames [ "text-purple", "font-semibold", "text-2xl" ] ]
-                      [ text $ humanizeValue adaToken totalToPay ]
-                  ]
-              , div [ classNames [ "flex", "justify-center", "gap-2" ] ]
-                  [ button
-                      [ classNames $ Css.secondaryButton <> [ "flex-1" ]
-                      , onClick_ CancelConfirmation
-                      ]
-                      [ text "Cancel" ]
-                  , loadingSubmitButton
-                      { ref: "action-confirm-button"
-                      , caption: cta
-                      , styles: [ "flex-1" ]
-                      , enabled: hasSufficientFunds
-                      , handler:
-                          \msg -> case msg of
-                            OnSubmit -> Just $ ConfirmAction namedAction
-                            _ -> Nothing
-                      }
-                  ]
-              , div
-                  [ classNames [ "text-sm", "text-red" ] ]
-                  if hasSufficientFunds then
-                    []
-                  else
-                    [ text "You have insufficient funds to complete this transaction." ]
-              ]
-          ]
-      , div
-          [ classNames [ "p-4", "text-sm" ] ]
-          [ text "* Transaction fees are fixed at 10 lovelace in the demo, but will vary in the real app." ]
       ]
 
 -------------------------------------------------------------------------------
