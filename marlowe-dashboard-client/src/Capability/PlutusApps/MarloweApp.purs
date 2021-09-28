@@ -40,7 +40,7 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Foreign.Generic (class Encode)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Contract, MarloweParams, SlotInterval(..), TokenName, TransactionInput(..))
+import Marlowe.Semantics (Contract, MarloweParams, SlotInterval(..), TokenName, TransactionInput(..), PubKeyHash)
 import Plutus.Contract.Effects (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Slot (Slot) as Back

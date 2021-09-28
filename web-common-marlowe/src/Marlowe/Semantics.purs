@@ -36,6 +36,9 @@ decodeProp key obj = decode =<< readProp key obj
 type PubKey
   = String
 
+type PubKeyHash
+  = String
+
 data Party
   = PK PubKey
   | Role TokenName

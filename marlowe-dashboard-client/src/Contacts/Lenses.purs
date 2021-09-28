@@ -23,9 +23,9 @@ import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey)
+import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey, PubKeyHash)
 import Types (WebData)
-import Contacts.Types (CardSection, PubKeyHash, State, Wallet, WalletIdError, WalletInfo, WalletLibrary, WalletNickname, WalletNicknameError, WalletDetails)
+import Contacts.Types (CardSection, State, Wallet, WalletIdError, WalletInfo, WalletLibrary, WalletNickname, WalletNicknameError, WalletDetails)
 
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")
@@ -65,7 +65,7 @@ _previousCompanionAppState = prop (SProxy :: SProxy "previousCompanionAppState")
 _wallet :: Lens' WalletInfo Wallet
 _wallet = _Newtype <<< prop (SProxy :: SProxy "wallet")
 
-_pubKey :: Lens' WalletInfo PubKey
+_pubKey :: Lens' WalletInfo (Maybe PubKey)
 _pubKey = _Newtype <<< prop (SProxy :: SProxy "pubKey")
 
 _pubKeyHash :: Lens' WalletInfo PubKeyHash

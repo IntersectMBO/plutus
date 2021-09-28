@@ -43,7 +43,7 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, Slot (..),
-                                               TokenName, TxOut (..), ValidatorHash, inScripts,
+                                               TokenName, TxOut (..), inScripts,
                                                txOutValue)
 import qualified Ledger
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
