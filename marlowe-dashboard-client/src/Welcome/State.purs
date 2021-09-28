@@ -25,7 +25,7 @@ import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.Query.HalogenM (mapAction)
-import InputField.State (dummyState, handleAction, mkInitialState) as InputField
+import InputField.State (dummyState, handleAction) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
@@ -46,7 +46,7 @@ mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
   { walletLibrary
   , modal: Nothing
-  , walletNicknameOrIdInput: InputField.mkInitialState Nothing
+  , walletNicknameOrIdInput: InputField.dummyState
   , remoteWalletDetails: NotAsked
   , enteringDashboardState: false
   }
@@ -95,14 +95,7 @@ handleAction GenerateWallet = do
     Right { companionAppId } -> do
       handleAction
         $ OpenModal
-        $ UseNewWallet (InputField.mkInitialState Nothing) companionAppId
-      handleAction
-        $ WalletNicknameInputAction
-        $ InputField.Reset
-      handleAction
-        $ WalletNicknameInputAction
-        $ InputField.SetValidator
-        $ walletNicknameError walletLibrary
+        $ UseNewWallet (initialNicknameInputState walletLibrary) companionAppId
 
 {- [Workflow 2][0] Connect a wallet
 The app lets you connect a wallet using an "omnibox" input, into which you can either enter a
@@ -164,14 +157,7 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
                 -- otherwise open the UseNewWalletModal
                 handleAction
                   $ OpenModal
-                  $ UseNewWallet (InputField.mkInitialState Nothing) plutusAppId
-                handleAction
-                  $ WalletNicknameInputAction
-                  $ InputField.Reset
-                handleAction
-                  $ WalletNicknameInputAction
-                  $ InputField.SetValidator
-                  $ walletNicknameError walletLibrary
+                  $ UseNewWallet (initialNicknameInputState walletLibrary) plutusAppId
     InputField.SetValueFromDropdown walletNicknameOrId -> do
       -- in this case we know it's a wallet nickname, and we want to open the use card
       -- for the corresponding wallet
@@ -250,3 +236,11 @@ walletNicknameOrIdError remoteWalletDetails _ = case remoteWalletDetails of
   Loading -> Just UnconfirmedWalletNicknameOrId
   Failure _ -> Just NonexistentWalletNicknameOrId
   _ -> Nothing
+
+------------------------------------------------------------
+initialNicknameInputState :: WalletLibrary -> InputField.State WalletNicknameError
+initialNicknameInputState walletLibrary =
+  let
+    state = InputField.dummyState :: InputField.State WalletNicknameError
+  in
+    state { validator = walletNicknameError walletLibrary }
