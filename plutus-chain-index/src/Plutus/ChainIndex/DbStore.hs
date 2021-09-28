@@ -229,7 +229,7 @@ runBeam trace conn action = loop (5::Int)
     where
         loop retries = do
             let traceSql = logDebug trace . SqlLog
-            resultEither <- liftIO $ try $ Sqlite.withTransaction conn $ runBeamSqliteDebug traceSql conn action
+            resultEither <- liftIO $ try $ runBeamSqliteDebug traceSql conn action
             case resultEither of
                 -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
                 -- missing database. When this exception is raised, we suppose it's

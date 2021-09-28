@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -37,6 +38,7 @@ import qualified Cardano.BM.Configuration.Model    as CM
 import           Cardano.BM.Setup                  (setupTrace_)
 import           Cardano.BM.Trace                  (Trace, logDebug, logError)
 
+import           Cardano.Api                       (ChainPoint)
 import           Cardano.Protocol.Socket.Client    (ChainSyncEvent (..), runChainSync)
 import           CommandLine                       (AppConfig (..), Command (..), applyOverrides, cmdWithHelpParser)
 import qualified Config
@@ -125,6 +127,13 @@ chainSyncHandler trace mState conn
     newState <- runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
     STM.atomically $ STM.writeTVar mState newState
 
+showResumePoints :: [ChainPoint] -> String
+showResumePoints = \case
+  []  -> "none"
+  [x] -> showPoint x
+  xs  -> showPoint (head xs) ++ ", " ++ showPoint (xs !! 1) ++ " .. " ++ showPoint (last xs)
+  where
+    showPoint = show . toInteger . pointSlot . fromCardanoPoint
 
 
 main :: IO ()
@@ -169,7 +178,7 @@ main = do
         resumePoints <- runChainIndex trace appState conn getResumePoints
 
         putStr "\nPossible resume slots: "
-        print $ fmap (toInteger . pointSlot . fromCardanoPoint) resumePoints
+        putStrLn $ showResumePoints resumePoints
 
         putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
         void $ runChainSync (Config.cicSocketPath config)

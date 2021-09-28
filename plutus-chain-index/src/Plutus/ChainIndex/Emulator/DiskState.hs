@@ -99,4 +99,6 @@ diagnostics DiskState{_DataMap, _ScriptMap, _TxMap, _RedeemerMap, _AddressMap} =
         , numScripts = toInteger $ Map.size _ScriptMap
         , numAddresses = toInteger $ Map.size $ _unCredentialMap _AddressMap
         , someTransactions = take 10 $ fmap fst $ Map.toList _TxMap
+        , numUnmatchedInputs = 0
+        , numUnspentOutputs = 0
         }

@@ -38,7 +38,7 @@ import qualified Data.Set                          as Set
 import           Data.Word                         (Word64)
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (asc_, desc_, orderBy_, (==.), (>.))
+import           Database.Beam.Query               (desc_, orderBy_, (<=.), (==.), (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -63,7 +63,6 @@ getResumePoints :: Member DbStoreEffect effs => Eff effs [C.ChainPoint]
 getResumePoints = do
     rows <- selectList . select
         . fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row))
-        . limit_ 200 -- TODO: use chainConstant
         . orderBy_ (desc_ . _utxoRowSlot)
         $ all_ (utxoRows db)
     pure $ mapMaybe toChainPoint rows
@@ -75,10 +74,9 @@ restoreStateFromDb :: Member DbStoreEffect effs => Point -> Eff effs ChainIndexS
 restoreStateFromDb point = do
     rollbackUtxoDb point
     rows <- selectList . select
-        . limit_ 200 -- TODO: use chainConstant
-        . orderBy_ (asc_ . _utxoRowSlot)
+        . orderBy_ (desc_ . _utxoRowSlot)
         $ all_ (utxoRows db)
-    pure $ FT.fromList $ fmap toUtxoState rows
+    pure . FT.fromList . fmap toUtxoState . reverse $ rows
     where
         toUtxoState :: UtxoRow -> UtxoState.UtxoState TxUtxoBalance
         toUtxoState (UtxoRow slot bi bn balance)
@@ -202,20 +200,26 @@ handleControl ::
     ~> Eff effs
 handleControl = \case
     AppendBlock tip_ transactions -> do
-        oldState <- get @ChainIndexState
-        case UtxoState.insert (UtxoState.fromBlock tip_ transactions) oldState of
+        oldIndex <- get @ChainIndexState
+        let newUtxoState = UtxoState.fromBlock tip_ transactions
+        case UtxoState.insert newUtxoState oldIndex of
             Left err -> do
                 let reason = InsertionFailed err
                 logError $ Err reason
                 throwError reason
             Right InsertUtxoSuccess{newIndex, insertPosition} -> do
-                put newIndex
+                case UtxoState.reduceBlockCount 2160 newIndex of -- TODO: use chainConstant
+                  UtxoState.BlockCountNotReduced -> put newIndex
+                  lbcResult -> do
+                    put $ UtxoState.reducedIndex lbcResult
+                    deleteOldUtxoDb $ UtxoState._usTip $ UtxoState.combinedState lbcResult
+                    insertUtxoDb $ UtxoState.combinedState lbcResult
                 insert $ foldMap fromTx transactions
-                insertUtxoDb (UtxoState.utxoState newIndex)
+                insertUtxoDb newUtxoState
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
-        oldState <- get @ChainIndexState
-        case UtxoState.rollback tip_ oldState of
+        oldIndex <- get @ChainIndexState
+        case UtxoState.rollback tip_ oldIndex of
             Left err -> do
                 let reason = RollbackFailed err
                 logError $ Err reason
@@ -254,6 +258,10 @@ insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed
 insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
     = addRows (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
 
+deleteOldUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
+deleteOldUtxoDb TipAtGenesis = pure ()
+deleteOldUtxoDb (Tip slot _ _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row <=. val_ (fromIntegral slot))
+
 rollbackUtxoDb :: Member DbStoreEffect effs => Point -> Eff effs ()
 rollbackUtxoDb PointAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
 rollbackUtxoDb (Point slot _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row >. val_ (fromIntegral slot))
@@ -287,16 +295,22 @@ fromTx tx = mempty
         fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toByteString k) (toByteString v)) . l $ tx
 
 
-diagnostics :: Member DbStoreEffect effs => Eff effs Diagnostics
+diagnostics ::
+    ( Member DbStoreEffect effs
+    , Member (State ChainIndexState) effs
+    ) => Eff effs Diagnostics
 diagnostics = do
     numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (txRows db))
     txIds <- selectList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
+    UtxoState.TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
 
     pure $ Diagnostics
-        { numTransactions  = fromMaybe (-1) numTransactions
-        , numScripts       = fromMaybe (-1) numScripts
-        , numAddresses     = fromMaybe (-1) numAddresses
-        , someTransactions = fmap (TxId . BuiltinByteString) txIds
+        { numTransactions    = fromMaybe (-1) numTransactions
+        , numScripts         = fromMaybe (-1) numScripts
+        , numAddresses       = fromMaybe (-1) numAddresses
+        , numUnspentOutputs  = length outputs
+        , numUnmatchedInputs = length inputs
+        , someTransactions   = fmap (TxId . BuiltinByteString) txIds
         }

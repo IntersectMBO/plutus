@@ -18,7 +18,7 @@ module Plutus.ChainIndex.TxIdState(
     ) where
 
 import           Control.Lens                ((^.))
-import           Data.FingerTree             (Measured (..), (|>))
+import           Data.FingerTree             ((|>))
 import qualified Data.FingerTree             as FT
 import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
@@ -28,7 +28,7 @@ import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Poin
                                               TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..),
                                               pointsToTip)
 import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..), tip,
-                                              viewTip)
+                                              utxoState, viewTip)
 
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
@@ -120,12 +120,12 @@ rollback targetPoint idx@(viewTip -> currentTip)
     | not (targetPoint `pointLessThanTip` currentTip) =
         Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
-        let (before, deleted) = FT.split (pointLessThanTip targetPoint . tip) idx
+        let (before, deleted) = FT.split (pointLessThanTip targetPoint . tip . snd) idx
 
-        case tip (measure before) of
+        case tip (utxoState before) of
             TipAtGenesis -> Left $ OldPointNotFound targetPoint
             oldTip | targetPoint `pointsToTip` oldTip ->
-                      let oldTxIdState = _usTxUtxoData (measure deleted)
+                      let oldTxIdState = _usTxUtxoData (utxoState deleted)
                           newTxIdState = TxIdState
                                             { txnsConfirmed = mempty
                                             -- All the transactions that were confirmed in the deleted

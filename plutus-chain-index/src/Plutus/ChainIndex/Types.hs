@@ -210,10 +210,12 @@ newtype BlockNumber = BlockNumber Word64
 
 data Diagnostics =
     Diagnostics
-        { numTransactions  :: Integer
-        , numScripts       :: Integer
-        , numAddresses     :: Integer
-        , someTransactions :: [TxId]
+        { numTransactions    :: Integer
+        , numScripts         :: Integer
+        , numAddresses       :: Integer
+        , numUnspentOutputs  :: Int
+        , numUnmatchedInputs :: Int
+        , someTransactions   :: [TxId]
         }
         deriving stock (Eq, Ord, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
