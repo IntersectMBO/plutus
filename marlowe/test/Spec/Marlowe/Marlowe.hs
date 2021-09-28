@@ -116,8 +116,8 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
     T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) (OK reqId "close")) "should be OK"
     ) $ do
     -- Init a contract
-    let alicePk = PK (pubKeyHash $ walletPubKey alice)
-        bobPk = PK (pubKeyHash $ walletPubKey bob)
+    let alicePk = PK (walletPubKeyHash alice)
+        bobPk = PK (walletPubKeyHash bob)
 
     let params = defaultMarloweParams
 
@@ -153,8 +153,8 @@ errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     ) "should be fail with SomeError"
     ) $ do
     -- Init a contract
-    let alicePk = PK (pubKeyHash $ walletPubKey alice)
-        bobPk = PK (pubKeyHash $ walletPubKey bob)
+    let alicePk = PK (walletPubKeyHash alice)
+        bobPk = PK (walletPubKeyHash bob)
 
     let params = defaultMarloweParams
 
@@ -197,8 +197,8 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
     ) $ do
 
     -- Init a contract
-    let alicePkh = pubKeyHash $ walletPubKey alice
-        bobPkh = pubKeyHash $ walletPubKey bob
+    let alicePkh = walletPubKeyHash alice
+        bobPkh = walletPubKeyHash bob
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
     bobCompanionHdl <- Trace.activateContract bob marloweCompanionContract "bob companion"
@@ -229,8 +229,8 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
             Trace.callEndpoint @"redeem" bobHdl (reqId, pms, "bob", bobPkh)
             void $ Trace.waitNSlots 2
     where
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
+        alicePk = PK $ walletPubKeyHash alice
+        bobPk = PK $ walletPubKeyHash bob
         chId = ChoiceId "1" alicePk
 
         contract = When [
@@ -245,7 +245,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
             ] (Slot 20) Close
         (params, _ :: TxConstraints MarloweInput MarloweData, _) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
-                        (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
+                        (AssocMap.fromList [("alice", walletPubKeyHash alice), ("bob", walletPubKeyHash bob)])
                         contract
                 fld = Folds.instanceOutcome con (Trace.walletInstanceTag alice)
                 getOutcome (Done a) = a
@@ -380,7 +380,7 @@ valueSerialization = property $
 mulAnalysisTest :: IO ()
 mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        alicePk = PK $ walletPubKeyHash alice
         contract = If (muliply `ValueGE` Constant 10000) Close (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result
@@ -410,7 +410,7 @@ transferBetweenAccountsTest = do
 divAnalysisTest :: IO ()
 divAnalysisTest = do
     let
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        alicePk = PK $ walletPubKeyHash alice
         contract n d = If (DivValue (Constant n) (Constant d) `ValueGE` Constant 5)
             Close
             (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
