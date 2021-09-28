@@ -14,10 +14,10 @@ import           Data.Time
 import           GHC.Generics                                      (Generic)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.QCGenerator
 import           Network.HTTP.Client                               (defaultManagerSettings, newManager)
 import           Servant.API
 import           Servant.Client
+import           Spec.Marlowe.ACTUS.QCGenerator
 import           Test.QuickCheck
 
 data ModelInput = ModelInput {

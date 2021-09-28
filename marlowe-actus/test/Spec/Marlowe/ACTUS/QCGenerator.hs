@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-name-shadowing -fno-warn-unused-do-bind #-}
-module Language.Marlowe.ACTUS.QCGenerator where
+module Spec.Marlowe.ACTUS.QCGenerator where
 
 import qualified Data.List                                         as L
 import qualified Data.Map                                          as M
