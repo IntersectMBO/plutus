@@ -209,6 +209,7 @@ data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data AstNameType =
   Named
   | DeBruijn
+  | NamedDeBruijn
 
 type Files       = [FilePath]
 
@@ -217,9 +218,10 @@ data Format =
   Textual
   | Flat AstNameType
 instance Show Format where
-    show Textual         = "textual"
-    show (Flat Named)    = "flat-named"
-    show (Flat DeBruijn) = "flat-deBruijn"
+    show Textual              = "textual"
+    show (Flat Named)         = "flat-named"
+    show (Flat DeBruijn)      = "flat-deBruijn"
+    show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
 
 data ConvertOptions   = ConvertOptions Input Format Output Format PrintMode
 data PrintOptions     = PrintOptions Input PrintMode
@@ -287,15 +289,14 @@ getBinaryInput (FileInput file) = BSL.readFile file
 -- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
-type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun a
+type UntypedProgramDeBruijn a = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
 
 -- | Convert an untyped de-Bruijn-indexed program to one with standard names.
 -- We have nothing to base the names on, so every variable is named "v" (but
 -- with a Unique for disambiguation).  Again, we don't support typed programs.
 fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UplcProg a)
 fromDeBruijn prog = do
-    let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
+    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram prog of
       Left e  -> errorWithoutStackTrace $ show e
       Right p -> return p
 
@@ -303,8 +304,9 @@ fromDeBruijn prog = do
 loadPlcASTfromFlat :: AstNameType -> Input -> IO (PlcProg ())
 loadPlcASTfromFlat flatMode inp =
   case flatMode of
-    Named    -> getBinaryInput inp >>= handleResult . unflat
-    DeBruijn -> typedDeBruijnNotSupportedError
+    Named         -> getBinaryInput inp >>= handleResult . unflat
+    DeBruijn      -> typedDeBruijnNotSupportedError
+    NamedDeBruijn -> typedDeBruijnNotSupportedError
   where handleResult =
               \case
                Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
@@ -312,10 +314,17 @@ loadPlcASTfromFlat flatMode inp =
 
 -- | Read and deserialise a Flat-encoded UPLC AST
 loadUplcASTfromFlat :: AstNameType -> Input -> IO (UplcProg ())
-loadUplcASTfromFlat flatMode inp =
+loadUplcASTfromFlat flatMode inp = do
+    input <- getBinaryInput inp
     case flatMode of
-         Named    -> getBinaryInput inp >>= handleResult . unflat
-         DeBruijn -> getBinaryInput inp >>= mapM fromDeBruijn . unflat >>= handleResult
+         Named    -> handleResult $ unflat input
+         DeBruijn -> do
+             deserialised <- handleResult $ unflat input
+             let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) deserialised
+             fromDeBruijn namedProgram
+         NamedDeBruijn -> do
+             deserialised <- handleResult $ unflat input
+             fromDeBruijn deserialised
     where handleResult =
               \case
                Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
@@ -345,12 +354,12 @@ writeFlat ::
   (Executable a, Functor a, Flat (a ())) => Output -> AstNameType -> a b -> IO ()
 writeFlat outp flatMode prog = do
   flatProg <- case flatMode of
-            Named    -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-            DeBruijn -> serialiseDbProgramFlat (() <$ prog)
+            Named         -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+            DeBruijn      -> typedDeBruijnNotSupportedError -- TODO, this should work but we don't have a program here :/
+            NamedDeBruijn -> serialiseDbProgramFlat (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
     StdOutput       -> BSL.putStr flatProg
-
 
 ---------------- Write an AST as PLC source ----------------
 
