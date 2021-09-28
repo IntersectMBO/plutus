@@ -92,10 +92,7 @@ handleAction GenerateWallet = do
   assign _remoteWalletDetails $ fromEither ajaxWalletDetails
   case ajaxWalletDetails of
     Left ajaxError -> addToast $ ajaxErrorToast "Failed to generate wallet." ajaxError
-    Right { companionAppId } -> do
-      handleAction
-        $ OpenModal
-        $ UseNewWallet (initialNicknameInputState walletLibrary) companionAppId
+    Right { companionAppId } -> openModal $ UseNewWallet (initialNicknameInputState walletLibrary) companionAppId
 
 {- [Workflow 2][0] Connect a wallet
 The app lets you connect a wallet using an "omnibox" input, into which you can either enter a
@@ -121,24 +118,16 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
   toWalletNicknameOrIdInput $ InputField.handleAction inputFieldAction
   case inputFieldAction of
     InputField.SetValue walletNicknameOrId -> do
-      handleAction
-        $ WalletNicknameOrIdInputAction
-        $ InputField.SetValidator
-        $ const Nothing
+      let
+        setNicknameOrIdValidator = handleAction <<< WalletNicknameOrIdInputAction <<< InputField.SetValidator
+      setNicknameOrIdValidator $ const Nothing
       assign _remoteWalletDetails NotAsked
       for_ (parsePlutusAppId walletNicknameOrId) \plutusAppId -> do
         assign _remoteWalletDetails Loading
-        handleAction
-          $ WalletNicknameOrIdInputAction
-          $ InputField.SetValidator
-          $ walletNicknameOrIdError Loading
+        setNicknameOrIdValidator $ walletNicknameOrIdError Loading
         ajaxWalletDetails <- lookupWalletDetails plutusAppId
         assign _remoteWalletDetails $ fromEither ajaxWalletDetails
-        handleAction
-          $ WalletNicknameOrIdInputAction
-          $ InputField.SetValidator
-          $ walletNicknameOrIdError
-          $ fromEither ajaxWalletDetails
+        setNicknameOrIdValidator $ walletNicknameOrIdError $ fromEither ajaxWalletDetails
         case ajaxWalletDetails of
           Left ajaxError -> pure unit -- feedback is shown in the view in this case
           Right walletDetails -> do
@@ -150,14 +139,10 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
                   # filter (_.companionAppId >>> (_ == plutusAppId))
                   # findMin
             case matchingWallet of
-              Just { key, value } -> do
-                -- if so, open the UseWalletModal
-                handleAction $ OpenModal $ UseWallet key plutusAppId
-              Nothing -> do
-                -- otherwise open the UseNewWalletModal
-                handleAction
-                  $ OpenModal
-                  $ UseNewWallet (initialNicknameInputState walletLibrary) plutusAppId
+              -- if so, open the UseWalletModal
+              Just { key, value } -> openModal $ UseWallet key plutusAppId
+              -- otherwise open the UseNewWalletModal
+              Nothing -> openModal $ UseNewWallet (initialNicknameInputState walletLibrary) plutusAppId
     InputField.SetValueFromDropdown walletNicknameOrId -> do
       -- in this case we know it's a wallet nickname, and we want to open the use card
       -- for the corresponding wallet
@@ -179,8 +164,8 @@ handleAction (OpenUseWalletModalWithDetails walletDetails@{ companionAppId, wall
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
   assign _remoteWalletDetails $ fromEither ajaxWalletDetails
   case ajaxWalletDetails of
-    Left ajaxError -> handleAction $ OpenModal LocalWalletMissing
-    Right _ -> handleAction $ OpenModal $ UseWallet walletNickname companionAppId
+    Left ajaxError -> openModal LocalWalletMissing
+    Right _ -> openModal $ UseWallet walletNickname companionAppId
 
 handleAction (WalletNicknameInputAction inputFieldAction) =
   toWalletNicknameInput
@@ -244,3 +229,16 @@ initialNicknameInputState walletLibrary =
     state = InputField.dummyState :: InputField.State WalletNicknameError
   in
     state { validator = walletNicknameError walletLibrary }
+
+openModal ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  MainFrameLoop m =>
+  ManageMarlowe m =>
+  ManageMarloweStorage m =>
+  Toast m =>
+  MonadClipboard m =>
+  Modal ->
+  HalogenM State Action ChildSlots Msg m Unit
+openModal = handleAction <<< OpenModal
