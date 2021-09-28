@@ -331,6 +331,7 @@ dataAtAddress address check =
               <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
       pure result
 
+-- | Get a pair of a given type 'd' datum and the corresponding value out of a Transaction Output.
 getTxOuts :: forall d. (FromData d) => Ledger.TxOutTx -> Maybe (Either Ledger.DatumHash d, Value)
 getTxOuts (Ledger.TxOutTx _ (Ledger.TxOut _ _ Nothing)) = Nothing
 getTxOuts (Ledger.TxOutTx tx' (Ledger.TxOut _ vl (Just datumHash))) = Just $
@@ -338,6 +339,7 @@ getTxOuts (Ledger.TxOutTx tx' (Ledger.TxOut _ vl (Just datumHash))) = Just $
         Just dt -> (Right dt, vl)
         _       -> (Left datumHash, vl)
 
+-- | Check the list of outputs at an address meet some conditions.
 outputsAtAddress :: forall d. FromData d => Address -> ([(Either Ledger.DatumHash d, Value)] -> Bool) -> TracePredicate
 outputsAtAddress address check =
   flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
