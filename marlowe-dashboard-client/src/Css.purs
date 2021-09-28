@@ -27,7 +27,6 @@ module Css
   , iconCircle
   , fixedBottomRight
   , funds
-  , modalOverlay
   ) where
 
 import Prologue
@@ -155,9 +154,9 @@ hasNestedLabel = [ "-mt-4" ]
 nestedLabel :: Array String
 nestedLabel = [ "relative", "z-10", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
 
---- modals
-modalOverlay :: Array String
-modalOverlay =
+--- cards
+cardOverlay :: Boolean -> Array String
+cardOverlay visible =
   [ "overflow-hidden"
   , "absolute"
   , "inset-0"
@@ -170,10 +169,7 @@ modalOverlay =
   , "transition-opacity"
   , "duration-400"
   ]
-
---- cards
-cardOverlay :: Boolean -> Array String
-cardOverlay visible = modalOverlay <> if visible then [ "opacity-1" ] else [ "opacity-0", "pointer-events-none" ]
+    <> if visible then [ "opacity-1" ] else [ "opacity-0", "pointer-events-none" ]
 
 sidebarCardOverlay :: Boolean -> Array String
 sidebarCardOverlay visible = cardOverlay visible <> [ "lg:justify-end", "lg:duration-500" ]
