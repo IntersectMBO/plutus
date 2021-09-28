@@ -404,8 +404,7 @@ indexByteString cpuModelR = do
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
-  cpuModelOnDiagonal <- readModelLinearInX cpuModelR
-  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ readModelLinearOnDiagonal cpuModel 245000
+  cpuModel <- ModelTwoArgumentsLinearOnDiagonal <$> readModelLinearOnDiagonal cpuModelR 245000
                   -- ### FIXME: the constant above is currently obtained manually from R; automate this
   pure $ CostingFun cpuModel boolMemModel
 
