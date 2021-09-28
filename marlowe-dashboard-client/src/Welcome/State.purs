@@ -16,8 +16,10 @@ import Contacts.State (parsePlutusAppId, walletNicknameError)
 import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (for_)
-import Data.Lens (_1, _2, _Just, assign, modifying, prism', set, use, view)
-import Data.Map (filter, findMin, insert, lookup)
+import Data.Lens (_1, _2, _Just, assign, modifying, prism', set, use, view, (^.))
+import Data.Lens.Extra (peruse)
+import Data.Lens.Index (ix)
+import Data.Map (filter, findMin, insert)
 import Data.Traversable (traverse_)
 import Data.Tuple (uncurry)
 import Effect.Aff.Class (class MonadAff)
@@ -76,7 +78,7 @@ handleAction CloseModal = do
 
 {- [Workflow 1][0] Generating a new wallet
 Here we attempt to create a new demo wallet (with everything that entails), and - if successful -
-open up the UseNewWalletModal for connecting the wallet just created.
+open up the UseNewWallet modal for connecting the wallet just created.
 Note the `createWallet` function doesn't just create a wallet. It also creates two PAB apps for
 that wallet: a `WalletCompanion` and a `MarloweApp`.
 - The `WalletCompanion` will watch for any new role tokens paid to this wallet, and then update its
@@ -99,7 +101,7 @@ The app lets you connect a wallet using an "omnibox" input, into which you can e
 wallet nickname that you have saved in your browser's LocalStorage, or the appId of the wallet's
 `WalletCompanion` app. If you enter a valid appId, we lookup the details of a corresponding wallet
 in the PAB; if you enter a nickname, we have a cache of the details in LocalStorage. Either way,
-we then open up the UseWalletModal (or UseNewWalletModal), essentially a confirmation box for
+we then open up the UseWallet (or UseNewWallet) modal, essentially a confirmation box for
 connecting this wallet.
 TODO: We currently use the appId of the wallet's `WalletCompanion` app as the "public" identifier
 for wallets: this is what is shown to the user, what they are told to copy and give to others, and
@@ -118,38 +120,29 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
   toWalletNicknameOrIdInput $ InputField.handleAction inputFieldAction
   case inputFieldAction of
     InputField.SetValue walletNicknameOrId -> do
-      let
-        setNicknameOrIdValidator = handleAction <<< WalletNicknameOrIdInputAction <<< InputField.SetValidator
-      setNicknameOrIdValidator $ const Nothing
+      handleAction $ WalletNicknameOrIdInputAction $ InputField.SetValidator $ const Nothing
       assign _remoteWalletDetails NotAsked
       for_ (parsePlutusAppId walletNicknameOrId) \plutusAppId -> do
         assign _remoteWalletDetails Loading
-        setNicknameOrIdValidator $ walletNicknameOrIdError Loading
+        handleAction $ WalletNicknameOrIdInputAction $ InputField.SetValidator $ walletNicknameOrIdError Loading
         ajaxWalletDetails <- lookupWalletDetails plutusAppId
         assign _remoteWalletDetails $ fromEither ajaxWalletDetails
-        setNicknameOrIdValidator $ walletNicknameOrIdError $ fromEither ajaxWalletDetails
+        handleAction $ WalletNicknameOrIdInputAction $ InputField.SetValidator $ walletNicknameOrIdError $ fromEither ajaxWalletDetails
         case ajaxWalletDetails of
           Left ajaxError -> pure unit -- feedback is shown in the view in this case
           Right walletDetails -> do
             -- check whether this wallet ID is already in the walletLibrary ...
             walletLibrary <- use _walletLibrary
-            let
-              matchingWallet =
-                walletLibrary
-                  # filter (_.companionAppId >>> (_ == plutusAppId))
-                  # findMin
-            case matchingWallet of
-              -- if so, open the UseWalletModal
+            case findMin $ filter (\w -> w ^. _companionAppId == plutusAppId) walletLibrary of
+              -- if so, open the UseWallet modal
               Just { key, value } -> openModal $ UseWallet key plutusAppId
-              -- otherwise open the UseNewWalletModal
+              -- otherwise open the UseNewWallet modal
               Nothing -> openModal $ UseNewWallet (initialNicknameInputState walletLibrary) plutusAppId
     InputField.SetValueFromDropdown walletNicknameOrId -> do
       -- in this case we know it's a wallet nickname, and we want to open the use card
       -- for the corresponding wallet
-      walletLibrary <- use _walletLibrary
-      let
-        matchingWallet = lookup walletNicknameOrId walletLibrary
-      traverse_ (handleAction <<< OpenUseWalletModalWithDetails) matchingWallet
+      wallet <- peruse $ _walletLibrary <<< ix walletNicknameOrId
+      traverse_ (handleAction <<< OpenUseWalletModalWithDetails) wallet
     _ -> pure unit
 
 {- [Workflow 2][1] Connect a wallet
@@ -167,13 +160,11 @@ handleAction (OpenUseWalletModalWithDetails walletDetails@{ companionAppId, wall
     Left ajaxError -> openModal LocalWalletMissing
     Right _ -> openModal $ UseWallet walletNickname companionAppId
 
-handleAction (WalletNicknameInputAction inputFieldAction) =
-  toWalletNicknameInput
-    $ InputField.handleAction inputFieldAction
+handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
 {- [Workflow 2][2] Connect a wallet
-This action is triggered by clicking the confirmation button on the UseWalletModal or
-UseNewWalletModal. It saves the wallet nickname to LocalStorage, and then calls the
+This action is triggered by clicking the confirmation button on the UseWallet modal or
+UseNewWallet modal. It saves the wallet nickname to LocalStorage, and then calls the
 `MainFrame.EnterDashboardState` action.
 -}
 handleAction (ConnectWallet walletDetails@{ walletNickname }) = do
