@@ -99,7 +99,6 @@ deriving anyclass instance OpenApi.ToSchema Cardano.Wallet.WalletId
 
 data WalletId =
     MockWallet Crypto.XPrv
-    | XPubWallet Crypto.XPub
     | CardanoWallet  Cardano.Wallet.WalletId
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSONKey)
@@ -126,7 +125,6 @@ deriving anyclass instance OpenApi.ToSchema WalletId
 
 toBase16 :: WalletId -> T.Text
 toBase16 (MockWallet xprv)    = encodeByteString $ Crypto.unXPrv xprv
-toBase16 (XPubWallet xpub)    = encodeByteString $ Crypto.unXPub xpub
 toBase16 (CardanoWallet wllt) = toText wllt
 
 fromBase16 :: T.Text -> Either String WalletId
@@ -134,14 +132,12 @@ fromBase16 s = bimap show CardanoWallet (fromText s) <|> decode where
     decode = do
             bs <- tryDecode s
             case BS.length bs of
-                64  -> XPubWallet <$> Crypto.xpub bs
                 128 -> MockWallet <$> Crypto.xprv bs
-                _   -> Left "fromBase16 error: bytestring length should be 64 or 128"
+                _   -> Left "fromBase16 error: bytestring length should be 128"
 
 -- | Get a wallet's extended public key
 walletXPub :: Wallet -> Maybe Crypto.XPub
 walletXPub (Wallet (MockWallet xprv)) = Just (Crypto.toXPub xprv)
-walletXPub (Wallet (XPubWallet xpub)) = Just xpub
 walletXPub _                          = Nothing
 
 -- | Get a wallet's public key.
@@ -152,7 +148,6 @@ walletPubKey = fmap Crypto.xPubToPublicKey . walletXPub
 walletPubKeyHash :: Wallet -> PubKeyHash
 walletPubKeyHash = \case
     Wallet (MockWallet xprv)                           -> pubKeyHash $ Crypto.xPubToPublicKey $ Crypto.toXPub xprv
-    Wallet (XPubWallet xpub)                           -> pubKeyHash $ Crypto.xPubToPublicKey xpub
     Wallet (CardanoWallet (Cardano.Wallet.WalletId i)) -> PubKeyHash $ PlutusTx.toBuiltin @ByteString $ convert i
 
 -- | Get a wallet's address.
