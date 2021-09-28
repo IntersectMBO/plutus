@@ -43,8 +43,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , observableContractState
     , instanceState
     , instanceIDs
-    , instancesByActivity
-    , runningInstances
+    , instancesWithStatuses
     , instancesClientEnv
     , InstanceClientEnv(..)
     ) where
@@ -412,34 +411,17 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
 
--- | The IDs of contract instances by given status (all by default)
-instancesByActivity :: Maybe Wallet.ContractActivityStatus -> InstancesState -> STM (Set ContractInstanceId)
-instancesByActivity mStatus (InstancesState m) = do
+-- | The IDs of contract instances with their statuses
+instancesWithStatuses :: InstancesState -> STM (Map ContractInstanceId Wallet.ContractActivityStatus)
+instancesWithStatuses (InstancesState m) = do
     let parseStatus :: Activity -> Wallet.ContractActivityStatus
         parseStatus = \case
             Active  -> Wallet.Active
             Stopped -> Wallet.Stopped
             Done _  -> Wallet.Done
-    let flt :: InstanceState -> STM (Maybe InstanceState)
-        flt s@InstanceState{issStatus} = do
+    let flt :: InstanceState -> STM Wallet.ContractActivityStatus
+        flt InstanceState{issStatus} = do
             status <- STM.readTVar issStatus
-            case (parseStatus status, mStatus) of
-                -- if activity is not specified, return the instances
-                (_, Nothing)               -> pure (Just s)
-                -- is statuses match, return the instance
-                (st, Just st') | st == st' -> pure $ Just s
-                _                          -> pure Nothing
+            return $ parseStatus status
     mp <- STM.readTVar m
-    Map.keysSet . Map.mapMaybe id <$> traverse flt mp
-
--- | The IDs of contract instances that are currently running
-runningInstances :: InstancesState -> STM (Set ContractInstanceId)
-runningInstances (InstancesState m) = do
-    let flt :: InstanceState -> STM (Maybe InstanceState)
-        flt s@InstanceState{issStatus} = do
-            status <- STM.readTVar issStatus
-            case status of
-                Active -> pure (Just s)
-                _      -> pure Nothing
-    mp <- STM.readTVar m
-    Map.keysSet . Map.mapMaybe id <$> traverse flt mp
+    traverse flt mp

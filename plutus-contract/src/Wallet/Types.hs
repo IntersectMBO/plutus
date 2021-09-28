@@ -119,7 +119,7 @@ contractInstanceIDs = ContractInstanceId <$> UUID.mockUUIDs
 randomID :: IO ContractInstanceId
 randomID = ContractInstanceId <$> UUID.nextRandom
 
-data ContractActivityStatus = Active | Stopped | Done deriving (Eq, Show)
+data ContractActivityStatus = Active | Stopped | Done deriving (Eq, Show, Generic, ToJSON, FromJSON, OpenApi.ToSchema)
 
 parseContractActivityStatus :: Text -> Maybe ContractActivityStatus
 parseContractActivityStatus t = case T.toLower t of

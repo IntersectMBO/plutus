@@ -71,8 +71,7 @@ module Plutus.PAB.Core
     , askUserEnv
     , askBlockchainEnv
     , askInstancesState
-    , instancesByActivity
-    , runningInstances
+    , instancesWithStatuses
     -- * Run PAB effects in separate threads
     , PABRunner(..)
     , pabRunner
@@ -97,6 +96,7 @@ import           Control.Monad.Freer.Reader              (Reader (..), ask, asks
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
 import           Data.Foldable                           (traverse_)
+import           Data.Map                                (Map)
 import qualified Data.Map                                as Map
 import           Data.Proxy                              (Proxy (..))
 import           Data.Set                                (Set)
@@ -568,11 +568,8 @@ valueAt address = valueAtSTM address >>= liftIO . STM.atomically
 waitUntilFinished :: forall t env. ContractInstanceId -> PABAction t env (Maybe JSON.Value)
 waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
 
-runningInstances :: forall t env. PABAction t env (Set ContractInstanceId)
-runningInstances = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.runningInstances
-
-instancesByActivity :: forall t env. Maybe ContractActivityStatus -> PABAction t env (Set ContractInstanceId)
-instancesByActivity mStatus = askInstancesState @t @env >>= liftIO . STM.atomically . (Instances.instancesByActivity mStatus)
+instancesWithStatuses :: forall t env. PABAction t env (Map ContractInstanceId ContractActivityStatus)
+instancesWithStatuses = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.instancesWithStatuses
 
 -- | Read the 'env' from the environment
 askUserEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env
