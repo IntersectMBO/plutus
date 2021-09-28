@@ -6,11 +6,11 @@ import Component.Box (Preset(..), box)
 import Component.Modal.Types (State(..))
 import Halogen.HTML (HTML, text)
 
-render :: forall w i a. State a -> Array String -> (Boolean -> a -> HTML w i) -> HTML w i
+render :: forall w i a. State a -> Array String -> (a -> Boolean -> HTML w i) -> HTML w i
 render state extraClasses renderChildren =
   box NoSpace classes case state of
     Initial -> text ""
-    Active open a -> renderChildren open a
+    Active a open -> renderChildren a open
   where
   classes = baseClasses <> visibilityClasses <> extraClasses
 
@@ -18,5 +18,5 @@ render state extraClasses renderChildren =
 
   visibilityClasses = case state of
     Initial -> [ "opacity-0", "pointer-events-none" ]
-    Active false _ -> [ "opacity-0", "pointer-events-none" ]
-    Active true _ -> [ "opacity-1" ]
+    Active _ false -> [ "opacity-0", "pointer-events-none" ]
+    Active _ true -> [ "opacity-1" ]

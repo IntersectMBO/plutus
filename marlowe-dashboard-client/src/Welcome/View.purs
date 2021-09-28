@@ -5,10 +5,12 @@ module Welcome.View
 
 import Prologue hiding (div)
 import Clipboard (Action(..)) as Clipboard
+import Component.Input as Input
 import Component.Label as Label
 import Component.Modal as Modal
 import Component.WalletId as WalletId
 import Contacts.Lenses (_walletNickname)
+import Contacts.Types (WalletNicknameError, WalletNickname)
 import Contacts.View (walletIdTip)
 import Css as Css
 import Data.Lens (view, (^.))
@@ -24,14 +26,14 @@ import Halogen.HTML.Properties (disabled, href, src, title)
 import Images (marloweRunLogo)
 import InputField.Lenses (_value)
 import InputField.State (validate)
-import InputField.Types (InputDisplayOptions)
+import InputField.Types as InputField
 import InputField.View (renderInput)
 import Marlowe.PAB (PlutusAppId)
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
 import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
-import Welcome.Lenses (_enteringDashboardState, _remoteWalletDetails, _walletId, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Modal(..), State)
 
 welcomeScreen :: forall p. State -> HTML p Action
@@ -57,14 +59,14 @@ welcomeScreen state =
 
 welcomeModal :: forall p. State -> HTML p Action
 welcomeModal state@{ modal } =
-  Modal.render modal [] \open -> case _ of
-    GetStartedHelp -> layout (Css.videoCard open) getStartedHelpCard
-    GenerateWalletHelp -> layout (Css.card open) generateWalletHelpCard
-    UseNewWallet -> layout (Css.card open) $ useNewWalletCard state
-    UseWallet -> layout (Css.card open) $ useWalletCard state
-    LocalWalletMissing -> layout (Css.card open) localWalletMissingCard
+  Modal.render modal [] case _ of
+    GetStartedHelp -> layout Css.videoCard getStartedHelp
+    GenerateWalletHelp -> layout Css.card generateWalletHelp
+    UseNewWallet id nickname -> layout Css.card $ useNewWallet id nickname state
+    UseWallet id nickname -> layout Css.card $ useWallet id nickname state
+    LocalWalletMissing -> layout Css.card localWalletMissing
   where
-  layout classes contents = div [ classNames classes ] contents
+  layout classes contents open = div [ classNames $ classes open ] contents
 
 ------------------------------------------------------------
 useWalletBox :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
@@ -169,8 +171,8 @@ gettingStartedBox =
     ]
 
 ------------------------------------------------------------
-getStartedHelpCard :: forall p. Array (HTML p Action)
-getStartedHelpCard =
+getStartedHelp :: forall p. Array (HTML p Action)
+getStartedHelp =
   [ a
       [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
       , onClick_ CloseModal
@@ -186,8 +188,8 @@ getStartedHelpCard =
       ]
   ]
 
-generateWalletHelpCard :: forall p. Array (HTML p Action)
-generateWalletHelpCard =
+generateWalletHelp :: forall p. Array (HTML p Action)
+generateWalletHelp =
   [ div
       [ classNames [ "p-5", "pb-6", "lg:pb-8", "space-y-4" ] ]
       [ h2
@@ -206,18 +208,25 @@ generateWalletHelpCard =
       ]
   ]
 
-useNewWalletCard :: forall p. State -> Array (HTML p Action)
-useNewWalletCard state =
+useNewWallet :: forall p. PlutusAppId -> InputField.State WalletNicknameError -> State -> Array (HTML p Action)
+useNewWallet walletId walletNicknameInput state =
   let
     enteringDashboardState = state ^. _enteringDashboardState
 
     remoteWalletDetails = state ^. _remoteWalletDetails
 
-    walletNicknameInput = state ^. _walletNicknameInput
-
     walletNickname = walletNicknameInput ^. _value
 
-    walletId = state ^. _walletId
+    walletNicknameInputDisplayOptions =
+      { additionalCss: mempty
+      , id_: nicknameInputId
+      , placeholder: "Give your wallet a nickname"
+      , readOnly: false
+      , numberFormat: Nothing
+      , valueOptions: mempty
+      , after: Nothing
+      , before: Just nicknameLabel
+      }
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -228,7 +237,7 @@ useNewWalletCard state =
         [ h2
             [ classNames [ "font-bold" ] ]
             [ text $ "Demo wallet generated" ]
-        , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
+        , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
         , renderWalletId walletId
         , div
             [ classNames [ "flex", "gap-4" ] ]
@@ -247,29 +256,18 @@ useNewWalletCard state =
         ]
     ]
 
-renderWalletId :: forall p. PlutusAppId -> HTML p Action
-renderWalletId walletId =
-  let
-    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
-  in
-    div
-      [ classNames [] ]
-      [ copyWalletId <$> WalletId.render WalletId.defaultInput { label = "Demo wallet ID", value = walletId }
-      , walletIdTip
-      ]
-
-useWalletCard :: forall p. State -> Array (HTML p Action)
-useWalletCard state =
+useWallet :: forall p. PlutusAppId -> WalletNickname -> State -> Array (HTML p Action)
+useWallet walletId walletNickname state =
   let
     enteringDashboardState = state ^. _enteringDashboardState
 
     remoteWalletDetails = state ^. _remoteWalletDetails
 
-    walletNicknameInput = state ^. _walletNicknameInput
-
-    walletNickname = walletNicknameInput ^. _value
-
-    walletId = state ^. _walletId
+    nicknameInput =
+      Input.defaultInput
+        { id = nicknameInputId
+        , value = walletNickname
+        }
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -280,7 +278,8 @@ useWalletCard state =
         [ h2
             [ classNames [ "font-bold", "truncate", "w-11/12" ] ]
             [ text $ "Demo wallet " <> walletNickname ]
-        , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
+        , Input.renderWithChildren nicknameInput \input ->
+            [ input, nicknameLabel ]
         , renderWalletId walletId
         , div
             [ classNames [ "flex", "gap-4" ] ]
@@ -299,23 +298,8 @@ useWalletCard state =
         ]
     ]
 
-walletNicknameInputDisplayOptions :: forall w i. Boolean -> InputDisplayOptions w i
-walletNicknameInputDisplayOptions readOnly =
-  { additionalCss: mempty
-  , id_: "walletNickname"
-  , placeholder: if readOnly then mempty else "Give your wallet a nickname"
-  , readOnly
-  , numberFormat: Nothing
-  , valueOptions: mempty
-  , after: Nothing
-  , before:
-      Just
-        $ Label.render
-            Label.defaultInput { for = "walletNickname", text = "Wallet nickname" }
-  }
-
-localWalletMissingCard :: forall p. Array (HTML p Action)
-localWalletMissingCard =
+localWalletMissing :: forall p. Array (HTML p Action)
+localWalletMissing =
   [ div
       [ classNames $ Css.card true ]
       [ a
@@ -342,3 +326,22 @@ localWalletMissingCard =
           ]
       ]
   ]
+
+nicknameInputId :: String
+nicknameInputId = "walletNickname"
+
+nicknameLabel :: forall w i. HTML w i
+nicknameLabel =
+  Label.render
+    Label.defaultInput { for = nicknameInputId, text = "Wallet nickname" }
+
+renderWalletId :: forall p. PlutusAppId -> HTML p Action
+renderWalletId walletId =
+  let
+    copyWalletId = (ClipboardAction <<< Clipboard.CopyToClipboard <<< UUID.toString <<< unwrap)
+  in
+    div
+      [ classNames [] ]
+      [ copyWalletId <$> WalletId.render WalletId.defaultInput { label = "Demo wallet ID", value = walletId }
+      , walletIdTip
+      ]

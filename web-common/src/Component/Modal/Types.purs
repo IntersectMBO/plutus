@@ -7,10 +7,10 @@ import Data.Tuple (uncurry)
 
 data State a
   = Initial
-  | Active Boolean a
+  | Active a Boolean
 
-_Active :: forall a. Prism' (State a) (Tuple Boolean a)
+_Active :: forall a. Prism' (State a) (Tuple a Boolean)
 _Active =
   prism' (uncurry Active) case _ of
-    Active open a -> Just $ Tuple open a
+    Active a open -> Just $ Tuple a open
     _ -> Nothing

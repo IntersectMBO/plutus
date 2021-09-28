@@ -9,18 +9,16 @@ import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Component.Modal.Types (State) as Modal
+import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError, WalletNickname)
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
-import Contacts.Types (WalletDetails, WalletLibrary, WalletNickname, WalletNicknameError)
 
 type State
   = { modal :: Modal.State Modal
     , walletLibrary :: WalletLibrary
     , walletNicknameOrIdInput :: InputField.State WalletNicknameOrIdError
-    , walletNicknameInput :: InputField.State WalletNicknameError
-    , walletId :: PlutusAppId
     , remoteWalletDetails :: WebData WalletDetails
     , enteringDashboardState :: Boolean
     }
@@ -38,11 +36,9 @@ instance inputFieldErrorWalletNicknameOrIdError :: InputFieldError WalletNicknam
 data Modal
   = GetStartedHelp
   | GenerateWalletHelp
-  | UseNewWallet
-  | UseWallet
+  | UseNewWallet PlutusAppId (InputField.State WalletNicknameError)
+  | UseWallet PlutusAppId WalletNickname
   | LocalWalletMissing
-
-derive instance eqModal :: Eq Modal
 
 data Action
   = OpenModal Modal
