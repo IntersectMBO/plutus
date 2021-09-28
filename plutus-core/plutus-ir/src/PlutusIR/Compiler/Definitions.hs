@@ -37,6 +37,7 @@ import           Control.Monad.Except
 import qualified Control.Monad.Morph                  as MM
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Control.Monad.Writer
 
 import qualified Algebra.Graph.AdjacencyMap           as AM
 import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM
@@ -66,7 +67,7 @@ data DefState key uni fun ann = DefState {
 makeLenses ''DefState
 
 newtype DefT key uni fun ann m a = DefT { unDefT :: StateT (DefState key uni fun ann) m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote)
+    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote, MonadWriter w)
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (DefT key uni fun ann m) where

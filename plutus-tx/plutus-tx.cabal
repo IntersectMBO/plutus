@@ -36,6 +36,7 @@ library
     hs-source-dirs: src
     exposed-modules:
         PlutusTx
+        PlutusTx.Coverage
         PlutusTx.TH
         PlutusTx.Prelude
         PlutusTx.Evaluation
@@ -94,7 +95,8 @@ library
         aeson -any,
         hashable -any,
         memory -any,
-        serialise -any
+        serialise -any,
+        ghc -any
 
 test-suite plutus-tx-test
     import: lang

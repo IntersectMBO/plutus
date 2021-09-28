@@ -98,7 +98,7 @@ safeLiftCode
        , PrettyPrintable uni fun
        )
     => a -> m (CompiledCodeIn uni fun a)
-safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
+safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing <*> pure mempty
 
 unsafely
     :: Throwable uni fun
@@ -198,4 +198,4 @@ typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     let erased = UPLC.eraseProgram prog
     db <-  UPLC.deBruijnProgram $ UPLC.simplifyProgram erased
-    pure $ DeserializedCode db Nothing
+    pure $ DeserializedCode db Nothing mempty

@@ -9,6 +9,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -58,6 +59,7 @@ module Plutus.Contract.Test(
     , checkPredicateGen
     , checkPredicateGenOptions
     , checkPredicateInner
+    , checkPredicateInnerStream
     , CheckOptions
     , defaultCheckOptions
     , minLogLevel
@@ -126,7 +128,7 @@ import           Plutus.Trace.Emulator.Types           (ContractConstraints, Con
 import qualified Streaming                             as S
 import qualified Streaming.Prelude                     as S
 import           Wallet.Emulator                       (EmulatorEvent, EmulatorTimeEvent)
-import           Wallet.Emulator.Chain                 (ChainEvent)
+import           Wallet.Emulator.Chain                 (ChainEvent (..))
 import           Wallet.Emulator.Folds                 (EmulatorFoldErr (..), Outcome (..), describeError, postMapM)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM, initialChainState,
@@ -151,7 +153,7 @@ data CheckOptions =
     CheckOptions
         { _minLogLevel    :: LogLevel -- ^ Minimum log level for emulator log messages to be included in the test output (printed if the test fails)
         , _emulatorConfig :: EmulatorConfig
-        } deriving (Eq, Show)
+        }
 
 makeLenses ''CheckOptions
 
@@ -191,19 +193,28 @@ checkPredicateInner :: forall m.
     -> (String -> m ()) -- ^ Print out debug information in case of test failures
     -> (Bool -> m ()) -- ^ assert
     -> m ()
-checkPredicateInner CheckOptions{_minLogLevel, _emulatorConfig} predicate action annot assert = do
+checkPredicateInner opts@CheckOptions{_emulatorConfig} predicate action annot assert =
+    checkPredicateInnerStream opts predicate (S.void $ runEmulatorStream _emulatorConfig action) annot assert
+
+checkPredicateInnerStream :: forall m.
+    Monad m
+    => CheckOptions
+    -> TracePredicate
+    -> (forall effs. S.Stream (S.Of (LogMessage EmulatorEvent)) (Eff effs) ())
+    -> (String -> m ()) -- ^ Print out debug information in case of test failures
+    -> (Bool -> m ()) -- ^ assert
+    -> m ()
+checkPredicateInnerStream CheckOptions{_minLogLevel, _emulatorConfig} predicate theStream annot assert = do
     let dist = _emulatorConfig ^. initialChainState . to initialDist
-        theStream :: forall effs. S.Stream (S.Of (LogMessage EmulatorEvent)) (Eff effs) ()
-        theStream = S.void $ runEmulatorStream _emulatorConfig action
-        consumeStream :: forall a. S.Stream (S.Of (LogMessage EmulatorEvent)) (Eff TestEffects) a -> Eff TestEffects (S.Of Bool a)
-        consumeStream = foldEmulatorStreamM @TestEffects predicate
+        consumedStream :: Eff TestEffects Bool
+        consumedStream = S.fst' <$> foldEmulatorStreamM @TestEffects predicate theStream
     result <- runM
                 $ reinterpret @(Writer (Doc Void)) @m  (\case { Tell d -> sendM $ annot $ Text.unpack $ renderStrict $ layoutPretty defaultLayoutOptions d })
                 $ runError
                 $ runReader dist
-                $ consumeStream theStream
+                $ consumedStream
 
-    unless (fmap S.fst' result == Right True) $ do
+    unless (result == Right True) $ do
         annot "Test failed."
         annot "Emulator log:"
         S.mapM_ annot

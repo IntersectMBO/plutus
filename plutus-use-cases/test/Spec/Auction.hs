@@ -261,7 +261,7 @@ delay n = void $ Trace.waitNSlots $ fromIntegral n
 
 prop_Auction :: Actions AuctionModel -> Property
 prop_Auction script =
-    propRunActionsWithOptions (set minLogLevel Info options) handleSpec
+    propRunActionsWithOptions (set minLogLevel Info options) defaultCoverageOptions handleSpec
         (\ _ -> pure True)  -- TODO: check termination
         script
 

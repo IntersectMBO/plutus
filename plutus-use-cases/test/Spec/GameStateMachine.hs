@@ -14,7 +14,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Spec.GameStateMachine
   ( tests, successTrace, successTrace2, failTrace
-  , prop_Game, propGame'
+  , prop_Game, propGame', prop_Game_coverage
   , prop_NoLockedFunds
   , prop_CheckNoLockedFundsProof
   ) where
@@ -23,12 +23,14 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Maybe
-import           Test.QuickCheck                    as QC hiding ((.&&.))
+import           Data.Set                           (Set)
+import           Test.QuickCheck                    as QC hiding (checkCoverage, (.&&.))
 import           Test.Tasty                         hiding (after)
 import qualified Test.Tasty.HUnit                   as HUnit
 import           Test.Tasty.QuickCheck              (testProperty)
 
 import qualified Ledger.Ada                         as Ada
+import           Ledger.Scripts                     (Script (..), unValidatorScript)
 import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
 import           Plutus.Contract.Secrets
@@ -37,6 +39,7 @@ import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
 import qualified PlutusTx
+import           PlutusTx.Coverage
 
 -- * QuickCheck model
 
@@ -148,9 +151,16 @@ handleSpec = [ ContractInstanceSpec (WalletKey w) w G.contract | w <- wallets ]
 prop_Game :: Actions GameModel -> Property
 prop_Game script = propRunActions_ handleSpec script
 
+prop_Game_coverage :: Actions GameModel -> Property
+prop_Game_coverage = propRunActionsWithOptions defaultCheckOptions
+                                               (set coverageIndex covIdx $ set checkCoverage True $ defaultCoverageOptions)
+                                               handleSpec
+                                               (const (pure True))
+
 propGame' :: LogLevel -> Actions GameModel -> Property
 propGame' l s = propRunActionsWithOptions
                     (set minLogLevel l defaultCheckOptions)
+                    defaultCoverageOptions
                     handleSpec
                     (\ _ -> pure True)
                     s

@@ -172,15 +172,22 @@ instance Pretty EmulatorRuntimeError where
 
 -- | A user-defined tag for a contract instance. Used to find the instance's
 --   log messages in the emulator log.
-newtype ContractInstanceTag = ContractInstanceTag { unContractInstanceTag :: Text }
+data ContractInstanceTag = ContractInstanceTag { unContractInstanceTag :: Text, shortContractInstanceTag :: Text }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
-    deriving newtype (IsString, Pretty, Semigroup, Monoid)
+
+instance Pretty ContractInstanceTag where
+  pretty = pretty . shortContractInstanceTag
+
+instance IsString ContractInstanceTag where
+  fromString s = ContractInstanceTag (fromString s) (fromString s)
 
 -- | The 'ContractInstanceTag' for the contract instance of a wallet. See note
 --   [Wallet contract instances]
 walletInstanceTag :: Wallet -> ContractInstanceTag
-walletInstanceTag (Wallet i) = fromString $ "Contract instance for wallet " <> show i
+walletInstanceTag w =
+  let wstring = show $ pretty w in
+  ContractInstanceTag (T.pack $ "Contract instance for " ++ wstring) (T.pack $ "Wallet " ++ take 5 wstring)
 
 -- | Log message produced by the user (main) thread
 data UserThreadMsg =

@@ -101,11 +101,19 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
 ==== Slot #1, Tx #0 ====
+<<<<<<< HEAD
 TxId:       97ab3420b801d6781e99a8321873314a5e719658a0384556032e9781a3d00bfa
 Fee:        Ada:      Lovelace:  10
 Mint:       -
 Signatures  PubKey: 8d9de88fbf445b7f6c3875a14daba94caee2ffcb...
               Signature: 584083cdb70c1925a815c0e131a8b5c428108c63...
+=======
+TxId:       dea2e2d5c6abf2f9f0eda9479c07a421579e7cb92ade7058e1ff56d556578d1e
+Fee:        Ada:      Lovelace:  10
+Mint:       -
+Signatures  PubKey: 44becd56fa30041efea5ff2637205181837dffd0...
+              Signature: 584033adb774d359d6e205bae760a0027ae0e856...
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
@@ -124,7 +132,7 @@ Outputs:
     Ada:      Lovelace:  99999982
 
   ---- Output 1 ----
-  Destination:  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Destination:  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
 
@@ -170,51 +178,67 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100000000
 
-  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
 
 ==== Slot #2, Tx #0 ====
+<<<<<<< HEAD
 TxId:       94df4118174939856900c9753910331fd995d5abd3d63dfe051a1a25dc17f9f4
 Fee:        Ada:      Lovelace:  11781
 Mint:       a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
 Signatures  PubKey: 8d9de88fbf445b7f6c3875a14daba94caee2ffcb...
               Signature: 58407edacde26302c9d118852b8d05ac51a02732...
+=======
+TxId:       959b3d8629eace342a01c1b2fc9f7791930d10ab9ca0e24fc7c3a783447c42bf
+Fee:        Ada:      Lovelace:  13012
+Mint:       7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
+Signatures  PubKey: 44becd56fa30041efea5ff2637205181837dffd0...
+              Signature: 58409fa2888871e9e0abcadc4592b57989866195...
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
     Ada:      Lovelace:  99999982
   Source:
+<<<<<<< HEAD
     Tx:     97ab3420b801d6781e99a8321873314a5e719658a0384556032e9781a3d00bfa
+=======
+    Tx:     dea2e2d5c6abf2f9f0eda9479c07a421579e7cb92ade7058e1ff56d556578d1e
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
     Output #0
 
 
   ---- Input 1 ----
-  Destination:  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Destination:  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
   Source:
+<<<<<<< HEAD
     Tx:     97ab3420b801d6781e99a8321873314a5e719658a0384556032e9781a3d00bfa
+=======
+    Tx:     dea2e2d5c6abf2f9f0eda9479c07a421579e7cb92ade7058e1ff56d556578d1e
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
     Output #1
-    Script: 591ca30100003323232332233322233322233322...
+    Script: 59bd680100003323232332233322233322233322...
 
 
 Outputs:
   ---- Output 0 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988201
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  -
+    Ada:      Lovelace:  99986970
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  -
 
   ---- Output 1 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
     Ada:      -
 
   ---- Output 2 ----
-  Destination:  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Destination:  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
 
@@ -242,8 +266,8 @@ Balances Carried Forward:
 
   PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988201
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    Ada:      Lovelace:  99986970
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
 
   PubKeyHash: bdf8dbca0cadeb365480c6ec29ec746a2b85274f (Wallet bdf8dbca0cadeb365480c6ec29ec746a2b85274f)
   Value:
@@ -261,34 +285,50 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100000000
 
-  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
 
 ==== Slot #3, Tx #0 ====
+<<<<<<< HEAD
 TxId:       f3a44e79f19f679b3f29d39de1b915f8e4009b7208ee0d41c18c7156a146383a
 Fee:        Ada:      Lovelace:  10
 Mint:       -
 Signatures  PubKey: 8d9de88fbf445b7f6c3875a14daba94caee2ffcb...
               Signature: 584085d3c67421f460c7b03efa34851f15d2b455...
+=======
+TxId:       8f578d32e147efde7e67795511a0412a9ec0aff885fa257e987097ff87a5256f
+Fee:        Ada:      Lovelace:  10
+Mint:       -
+Signatures  PubKey: 44becd56fa30041efea5ff2637205181837dffd0...
+              Signature: 58407bbbf614deceaf3db9739b3fe1a67795b1e9...
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988201
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  -
+    Ada:      Lovelace:  99986970
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  -
   Source:
+<<<<<<< HEAD
     Tx:     94df4118174939856900c9753910331fd995d5abd3d63dfe051a1a25dc17f9f4
+=======
+    Tx:     959b3d8629eace342a01c1b2fc9f7791930d10ab9ca0e24fc7c3a783447c42bf
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
     Output #0
 
 
   ---- Input 1 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
     Ada:      -
   Source:
+<<<<<<< HEAD
     Tx:     94df4118174939856900c9753910331fd995d5abd3d63dfe051a1a25dc17f9f4
+=======
+    Tx:     959b3d8629eace342a01c1b2fc9f7791930d10ab9ca0e24fc7c3a783447c42bf
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
     Output #1
 
 
@@ -297,13 +337,13 @@ Outputs:
   ---- Output 0 ----
   Destination:  PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988191
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    0
+    Ada:      Lovelace:  99986960
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    0
 
   ---- Output 1 ----
   Destination:  PubKeyHash: 7ce812d7a4770bbf58004067665c3a48f28ddd58 (Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58)
   Value:
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
 
 
 Balances Carried Forward:
@@ -330,8 +370,8 @@ Balances Carried Forward:
 
   PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988191
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    0
+    Ada:      Lovelace:  99986960
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    0
 
   PubKeyHash: bdf8dbca0cadeb365480c6ec29ec746a2b85274f (Wallet bdf8dbca0cadeb365480c6ec29ec746a2b85274f)
   Value:
@@ -348,12 +388,17 @@ Balances Carried Forward:
   PubKeyHash: d3eddd0d37989746b029a0e050386bc425363901 (Wallet d3eddd0d37989746b029a0e050386bc425363901)
   Value:
     Ada:      Lovelace:  100000000
+<<<<<<< HEAD
+=======
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
 
-  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  8
 
 ==== Slot #4, Tx #0 ====
+<<<<<<< HEAD
 TxId:       013ead2deb197bbc17b7d25668d0f921d177efe06e2fa13b35864ddb357852e6
 Fee:        Ada:      Lovelace:  11781
 Mint:       a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    0
@@ -371,6 +416,16 @@ Inputs:
 
   ---- Input 1 ----
   Destination:  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+=======
+TxId:       ea4a51fa569c63da8508d66acd4175f7bb22adc9244f77968076a0d459df0ac9
+Fee:        Ada:      Lovelace:  13012
+Mint:       7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    0
+Signatures  PubKey: 070685fdff668e697efca70098985dec1497e079...
+              Signature: 5840f39a117f7292a1cecdc36c3f276eccffb76b...
+Inputs:
+  ---- Input 0 ----
+  Destination:  PubKeyHash: fabc30d46356151102cc57d427d338b8790b2244... (Wallet 2e463c80f68b7047fa67403b1911f161aa597bbdf683d9b4e3f66ef3762c1499269f4f5278db3368fe58905f4cf581642fe40ead0506e7863c5a543254d21876070685fdff668e697efca70098985dec1497e079f958296a335b47ab3d0dffa1b394f26269b9e620c07148bfe1218a076be87eec941ca20340b443575467ef04)
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
   Value:
     Ada:      Lovelace:  8
   Source:
@@ -378,31 +433,49 @@ Inputs:
     Output #2
     Script: 591ca30100003323232332233322233322233322...
 
+<<<<<<< HEAD
   ---- Input 2 ----
   Destination:  PubKeyHash: 7ce812d7a4770bbf58004067665c3a48f28ddd58 (Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58)
+=======
+  ---- Input 1 ----
+  Destination:  PubKeyHash: fabc30d46356151102cc57d427d338b8790b2244... (Wallet 2e463c80f68b7047fa67403b1911f161aa597bbdf683d9b4e3f66ef3762c1499269f4f5278db3368fe58905f4cf581642fe40ead0506e7863c5a543254d21876070685fdff668e697efca70098985dec1497e079f958296a335b47ab3d0dffa1b394f26269b9e620c07148bfe1218a076be87eec941ca20340b443575467ef04)
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
   Value:
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
   Source:
+<<<<<<< HEAD
     Tx:     f3a44e79f19f679b3f29d39de1b915f8e4009b7208ee0d41c18c7156a146383a
+=======
+    Tx:     8f578d32e147efde7e67795511a0412a9ec0aff885fa257e987097ff87a5256f
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
     Output #1
 
+
+  ---- Input 2 ----
+  Destination:  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
+  Value:
+    Ada:      Lovelace:  8
+  Source:
+    Tx:     959b3d8629eace342a01c1b2fc9f7791930d10ab9ca0e24fc7c3a783447c42bf
+    Output #2
+    Script: 59bd680100003323232332233322233322233322...
 
 
 Outputs:
   ---- Output 0 ----
   Destination:  PubKeyHash: 7ce812d7a4770bbf58004067665c3a48f28ddd58 (Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58)
   Value:
-    Ada:      Lovelace:  99988222
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    0
+    Ada:      Lovelace:  99986991
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    0
 
   ---- Output 1 ----
   Destination:  PubKeyHash: 7ce812d7a4770bbf58004067665c3a48f28ddd58 (Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58)
   Value:
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    1
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
     Ada:      -
 
   ---- Output 2 ----
-  Destination:  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Destination:  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  5
 
@@ -431,8 +504,8 @@ Balances Carried Forward:
 
   PubKeyHash: 872cb83b5ee40eb23bfdab1772660c822a48d491 (Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491)
   Value:
-    Ada:      Lovelace:  99988191
-    a1c0a4e322cb639198421ec70e4d9d2c3586df70103a63c35494f517:  guess:    0
+    Ada:      Lovelace:  99986960
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    0
 
   PubKeyHash: bdf8dbca0cadeb365480c6ec29ec746a2b85274f (Wallet bdf8dbca0cadeb365480c6ec29ec746a2b85274f)
   Value:
@@ -444,12 +517,17 @@ Balances Carried Forward:
 
   PubKeyHash: c30efb78b4e272685c1f9f0c93787fd4b6743154 (Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154)
   Value:
+<<<<<<< HEAD
     Ada:      Lovelace:  100000000
 
   PubKeyHash: d3eddd0d37989746b029a0e050386bc425363901 (Wallet d3eddd0d37989746b029a0e050386bc425363901)
   Value:
     Ada:      Lovelace:  100000000
+=======
+    Ada:      Lovelace:  99986991
+    7bd88feda53bd655281f1f2c32e18b485d16db5d4fa8f9214410ea25:  guess:    1
+>>>>>>> e350fa7cb... This commit introuduces coverage checking for Plutus programs.
 
-  Script: ca80730a8bb1eb9ed5c5c9deb55a3ee495f96fc3cee0646b76e1e7c3
+  Script: cc13eb7c855c092f00d0e56f2f8cc7a82e7434bbadd8285e8b6f2507
   Value:
     Ada:      Lovelace:  5

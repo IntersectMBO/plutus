@@ -219,7 +219,7 @@ prop_Auction :: DL AuctionModel () -> Property
 prop_Auction script =
     forAll arbitrary $ \params ->
       forAllDL (action (Init params) >> script) $ \actions ->
-        propRunActionsWithOptions (set minLogLevel Info options) (spec params)
+        propRunActionsWithOptions (set minLogLevel Info options) defaultCoverageOptions (spec params)
           (\ _ -> pure True)  -- TODO: check termination
           actions
     where

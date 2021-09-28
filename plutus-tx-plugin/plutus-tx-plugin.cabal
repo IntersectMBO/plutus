@@ -69,7 +69,9 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        plutus-tx -any
+        plutus-tx -any,
+        plutus-ledger-api -any,
+        array -any
     if flag(use-ghc-stub)
         build-depends: plutus-ghc-stub
         ghc-options: -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
@@ -124,8 +126,7 @@ test-suite plutus-tx-tests
         text -any,
         hedgehog -any,
         lens -any,
-        ghc-prim -any,
+        ghc-prim -any
     -- NOTE: -g makes the plugin give better errors
     -- NOTE: we disable the simplifier as it simplifies away some tests
     ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
-
