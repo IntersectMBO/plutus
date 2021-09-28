@@ -20,14 +20,11 @@ import Marlowe.Semantics (Input, MarloweData, Slot, TransactionError)
 import Plutus.Contract.StateMachine (InvalidTransition, SMContractError)
 import Wallet.Types (ContractError)
 
--- TODO: We should change this for a Tuple of endpoint name and request id.
 type EndpointName
   = String
 
 -- The Plutus contract state keeps track of the result of the last action. This is needed because
 -- the PAB needs to return inmediatly and the result might take a while to compute.
--- Right now we are only allowing one endpoint to be called at a time, but we could later extend this
--- to use a RequestId to map between the request and the response.
 data LastResult
   = OK UUID EndpointName
   | SomeError UUID EndpointName MarloweError

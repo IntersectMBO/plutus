@@ -29,6 +29,7 @@ import Data.Lens (Lens', toArrayOf, traversed, view)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
+import Data.Traversable (for)
 import Data.Tuple.Nested ((/\), type (/\))
 import Data.UUID (UUID, genUUID)
 import Effect (Effect)
@@ -87,6 +88,10 @@ createEndpointMutex = do
   requests <- EAVar.new mempty
   pure { create, applyInputs, redeem, requests }
 
+-- This is the amount of requests we store in the request queue
+maxRequests :: Int
+maxRequests = 15
+
 invokeMutexedEndpoint ::
   forall payload m env.
   Encode payload =>
@@ -123,7 +128,7 @@ invokeMutexedEndpoint plutusAppId reqId endpointName _endpointMutex payload = do
     newRequestMutex <- AVar.empty
     let
       -- We add new requests to the begining of the array and remove them from the end.
-      newRequests = take 15 $ (reqId /\ newRequestMutex) : requests
+      newRequests = take maxRequests $ (reqId /\ newRequestMutex) : requests
     AVar.put newRequests requestMutex
   pure result
 
@@ -148,16 +153,14 @@ onNewObservableState lastResult = case lastResult of
     requestMutex <- asks $ view (_marloweAppEndpointMutex <<< _requests)
     -- This read is blocking but does not take the mutex.
     requests <- liftAff $ AVar.read requestMutex
-    case findReqId reqId requests of
-      Nothing -> pure Nothing
-      Just reqMutex -> do
-        liftAff $ AVar.put lastResult reqMutex
-        pure $ Just lastResult
+    for (findReqId reqId requests) \reqMutex -> do
+      liftAff $ AVar.put lastResult reqMutex
+      pure lastResult
 
 findReqId :: UUID -> Array (UUID /\ AVar LastResult) -> Maybe (AVar LastResult)
 findReqId reqId = findMap (\(reqId' /\ reqMutex) -> if reqId == reqId' then Just reqMutex else Nothing)
 
--- TODO: This function is not used yet, but is intended to be used to be able to the refactor
+-- TODO: This function is not used yet, but is intended to be used to be able to do the refactor
 --       mentioned in MainFrame.State :: NewObservableState
 waitForResponse ::
   forall env m.
@@ -169,12 +172,10 @@ waitForResponse reqId = do
   requestMutex <- asks $ view (_marloweAppEndpointMutex <<< _requests)
   -- This read is blocking but does not take the mutex.
   requests <- liftAff $ AVar.read requestMutex
-  case findReqId reqId requests of
-    Nothing -> pure Nothing
-    Just reqMutex -> do
-      -- TODO: We could add a timer so we don't wait forever
-      lastResult <- liftAff $ AVar.read reqMutex
-      pure $ Just lastResult
+  for (findReqId reqId requests) \reqMutex -> do
+    -- TODO: We could add a timer so we don't wait forever
+    lastResult <- liftAff $ AVar.read reqMutex
+    pure lastResult
 
 -- Plutus contracts have endpoints that can be available or not. We get notified by the
 -- websocket message NewActiveEndpoints when the status change, and we use this function
