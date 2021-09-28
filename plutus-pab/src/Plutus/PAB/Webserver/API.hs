@@ -44,7 +44,7 @@ type API t walletId -- see note [WalletID type in wallet API]
                         :<|> "stop"     :> Description "Terminate the instance." :> Put '[JSON] ()
                         )
                     )
-            :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> Description "List of all active contract instances for the wallet." :>  Get '[JSON] [ContractInstanceClientState t]
+            :<|> "instances" :> "wallet" :> Capture "wallet-id" walletId :> QueryParam "status" Text :> Description "List of contract instances for the wallet filtered by status (active, stopped, done). All by default." :>  Get '[JSON] [ContractInstanceClientState t]
             :<|> "instances" :> QueryParam "status" Text :> Description "List of contract instances filtered by status (active, stopped, done). All by default." :> Get '[JSON] [ContractInstanceClientState t]
             :<|> "definitions" :> Description "list of available contracts." :> Get '[JSON] [ContractSignatureResponse t]
         )

@@ -104,7 +104,7 @@ apiHandler ::
                                           :<|> (String -> JSON.Value -> PABAction t env ())
                                           :<|> PABAction t env ()
                                           )
-              :<|> (WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+              :<|> (WalletId -> Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
               :<|> (Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
               :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 
@@ -156,8 +156,8 @@ contractInstanceState i = do
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => WalletId -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
-instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates Nothing
+instancesForWallets :: forall t env. Contract.PABContract t => WalletId -> Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+instancesForWallets wallet mStatus = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates mStatus
 
 allInstanceStates :: forall t env. Contract.PABContract t => Maybe Text -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 allInstanceStates mStatus = do
