@@ -6,16 +6,17 @@ module Welcome.Lenses
   , _enteringDashboardState
   ) where
 
-import Component.Modal.Types as Modal
+import Prologue
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
+import Data.Tuple.Nested (type (/\))
 import InputField.Types (State) as InputField
 import Types (WebData)
 import Contacts.Types (WalletDetails, WalletLibrary)
 import Welcome.Types (Modal, State, WalletNicknameOrIdError)
 
-_modal :: Lens' State (Modal.State Modal)
+_modal :: Lens' State (Maybe (Modal /\ Boolean))
 _modal = prop (SProxy :: SProxy "modal")
 
 _walletLibrary :: Lens' State WalletLibrary

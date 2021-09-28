@@ -8,15 +8,15 @@ module Welcome.Types
 import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
-import Component.Modal.Types (State) as Modal
 import Contacts.Types (WalletDetails, WalletLibrary, WalletNicknameError, WalletNickname)
+import Data.Tuple.Nested (type (/\))
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId)
 import Types (WebData)
 
 type State
-  = { modal :: Modal.State Modal
+  = { modal :: Maybe (Modal /\ Boolean)
     , walletLibrary :: WalletLibrary
     , walletNicknameOrIdInput :: InputField.State WalletNicknameOrIdError
     , remoteWalletDetails :: WebData WalletDetails
@@ -36,8 +36,8 @@ instance inputFieldErrorWalletNicknameOrIdError :: InputFieldError WalletNicknam
 data Modal
   = GetStartedHelp
   | GenerateWalletHelp
-  | UseNewWallet PlutusAppId (InputField.State WalletNicknameError)
-  | UseWallet PlutusAppId WalletNickname
+  | UseNewWallet (InputField.State WalletNicknameError) PlutusAppId
+  | UseWallet WalletNickname PlutusAppId
   | LocalWalletMissing
 
 data Action
@@ -47,7 +47,7 @@ data Action
   | WalletNicknameOrIdInputAction (InputField.Action WalletNicknameOrIdError)
   | OpenUseWalletModalWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
-  | ConnectWallet WalletNickname
+  | ConnectWallet WalletDetails
   | ClearLocalStorage
   | ClipboardAction Clipboard.Action
 
