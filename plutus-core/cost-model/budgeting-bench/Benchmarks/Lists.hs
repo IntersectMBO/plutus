@@ -101,9 +101,9 @@ benchNonEmptyList gen name =
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen = [ benchChooseList gen,
-                       benchMkCons gen,
-                       benchNonEmptyList gen HeadList,
-                       benchNonEmptyList gen TailList,
-                       benchNullList gen
+makeBenchmarks gen = [ benchChooseList gen
+                     , benchMkCons gen
+                     , benchNonEmptyList gen HeadList
+                     , benchNonEmptyList gen TailList
+                     , benchNullList gen
                      ]
