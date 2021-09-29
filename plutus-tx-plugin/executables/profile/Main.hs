@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -44,16 +45,16 @@ import           Control.Lens.Getter       (view)
 import           Data.List                 (intercalate)
 import           Data.Maybe                (fromJust)
 import           Data.Proxy                (Proxy (Proxy))
-import           Data.Text                 (Text)
+import qualified Data.Text                 as T
 import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
 
-data Stacks
-  = MkStacks
+data StackFrame
+  = MkStackFrame
   { -- | The variable name.
-    varName           :: String,
+    varName           :: T.Text,
     -- | The time when it starts to be evaluated.
     startTime         :: UTCTime,
     -- | The time spent on evaluating the functions it called.
@@ -72,83 +73,86 @@ writeLogToFile ::
   IO ()
 writeLogToFile fileName values = do
   let filePath = "plutus-tx-plugin/executables/profile/"<>fileName<>".timelog"
-  log <- pretty . view _2 <$> (rethrow $ runUPlcProfileExec values)
-  withFile
-    filePath
-    WriteMode
-    (\h -> hPutDoc h log)
+  log <- T.intercalate "\n" . view _2 <$> (rethrow $ runUPlcProfileExec values)
+  writeFile filePath (T.unpack log)
   processed <- processLog filePath
-  writeFile (filePath<>".stacks") processed
+  writeFile (filePath<>".stacks") (printProcessedLog processed)
   pure ()
 
-processLog :: FilePath -> IO [Char]
+data ProfileEvent =
+  MkProfileEvent UTCTime Transition T.Text
+
+data Transition =
+  Enter
+  | Exit
+
+data StackTime =
+  MkStackTime [T.Text] Double
+
+processLog :: FilePath -> IO [StackTime]
 processLog file = do
   content <- readFile file
-  -- lEvents is in the form of [[t1,t2,t3,entering/exiting,var]]. Time is chopped to 3 parts.
-  let lEvents =
-        map
-          -- @tail@ strips "[" in the first line and "," in the other lines,
-          -- @words@ turns it to a list of [t1,t2,t3, enter/exit, var]
-          (tail . words)
-          -- turn to a list of events
-          (lines content)
-      lTime = map (unwords . take 3) lEvents
-      -- list of enter/exit
-      lEnterOrExit = map (!! 3) lEvents
-      -- list of var
-      lVar = map (!! 4) lEvents
-      lTripleTimeVar = zip3 (lUTC lTime) lEnterOrExit lVar
-      stacks = getStacks [] lTripleTimeVar
-      fnsStacks = map (intercalate "; " . fst) stacks
-      stacksFgFormat (hdf:tlf) (hdt:tlt)=
-        hdf<>" "<>show hdt<>"\n":stacksFgFormat tlf tlt
-      stacksFgFormat _ _ = []
-  pure $
-    concat $
-      reverse $
-        stacksFgFormat fnsStacks (map ((*1000000) . snd) stacks)
+  let lEvents = lines content -- turn to a list of events
+  pure $ getStacks (profileEvents lEvents)
 
-lUTC :: [String] -> [UTCTime]
-lUTC = map (read :: String -> UTCTime)
+printProcessedLog :: [StackTime] -> String
+printProcessedLog ((MkStackTime fns duration):tl) =
+    intercalate
+      "; "
+      -- reverse to make the functions in the order correct for flamegraphs.
+      (reverse (map T.unpack fns))
+      <>" "
+      -- multiplying the duration by a large number
+      -- to make the number show in a way flamegraph accepts.
+      <>show (duration*1000000)
+      <>"\n"<>printProcessedLog tl
+printProcessedLog _ = ""
 
-getStacks ::
-  -- | list of (var, its start time, the amount of time the functions it called spent)
-  [Stacks] ->
-  -- | the input log which is processed to a list of (UTCTime, entering/exiting, var name)
-  [(UTCTime, String, String)] ->
-  -- | a list of (fns it's in, var/function, the time spent on it)
-  [([String],Double)]
-getStacks curStack (hd:tl) =
-  case hd of
-    (time, "entering", var) ->
-      getStacks
-        (MkStacks{varName = var, startTime=time, timeSpentCalledFn = 0 :: NominalDiffTime}:curStack)
-        tl
-    (time, "exiting", var) ->
-      let topOfStack = head curStack
-          curTopVar = varName topOfStack
-          curTopTime = startTime topOfStack
-          curTimeSpent = timeSpentCalledFn topOfStack
-      in
-        if  curTopVar == var then
-          let duration = diffUTCTime time curTopTime
-              poppedStack = tail curStack
-              updateTimeSpent (hd:tl) =
-                hd {timeSpentCalledFn = timeSpentCalledFn hd + duration}:tl
-              updateTimeSpent [] = []
-              updatedStack = updateTimeSpent poppedStack
-              fnsEntered = map varName updatedStack
-          in
-            -- time spent on this function is the total time spent
-            -- minus the time spent on the function(s) it called.
-            (fnsEntered <> [var], realToFrac (duration - curTimeSpent)::Double):getStacks updatedStack tl
-        else error "getStacks: exiting a stack that is not on top of the stack."
-    (_, badLog, _) -> error $
-      "getStacks: log processed incorrectly. Expecting \"entering\" or \"exiting\" but got"
-      <> show badLog
-getStacks [] [] = []
-getStacks stacks [] = error $
-  "getStacks: stack " <> show stacks <> " isn't empty but the log is."
+parseProfileEvent :: String -> ProfileEvent
+parseProfileEvent str =
+  case words str of
+    [t1,t2,t3,transition,var] ->
+      case transition of
+        "entering" -> MkProfileEvent (read (unwords [t1,t2,t3])::UTCTime) Enter (T.pack var)
+        "exiting" -> MkProfileEvent (read (unwords [t1,t2,t3])::UTCTime) Exit (T.pack var)
+        badLog -> error $
+          "parseProfileEvent: expecting \"entering\" or \"exiting\" but got "
+          <> show badLog
+    invalid -> error $
+      "parseProfileEvent: invalid log, expecting a form of [t1,t2,t3,transition,var] but got "
+      <> show invalid
+
+profileEvents :: [String] -> [ProfileEvent]
+profileEvents = map parseProfileEvent
+
+getStacks :: [ProfileEvent] -> [StackTime]
+getStacks = go []
+  where
+    go ::
+      [StackFrame] ->
+      [ProfileEvent] ->
+      [StackTime]
+    go curStack ((MkProfileEvent startTime Enter varName):tl) =
+          go
+            (MkStackFrame{varName, startTime, timeSpentCalledFn = 0}:curStack)
+            tl
+    go (MkStackFrame {varName=curTopVar, startTime, timeSpentCalledFn}:poppedStack) ((MkProfileEvent exitTime Exit var):tl)
+      | curTopVar == var =
+        let duration = diffUTCTime exitTime startTime
+            updateTimeSpent (hd@MkStackFrame{timeSpentCalledFn}:tl) =
+              hd {timeSpentCalledFn = timeSpentCalledFn + duration}:tl
+            updateTimeSpent [] = []
+            updatedStack = updateTimeSpent poppedStack
+            fnsEntered = map varName updatedStack -- this is quadratic but it's fine for fg
+        in
+          -- time spent on this function is the total time spent
+          -- minus the time spent on the function(s) it called.
+          MkStackTime (var:fnsEntered) (realToFrac (duration - timeSpentCalledFn)):go updatedStack tl
+    go _ ((MkProfileEvent _ Exit _):tl) =
+      error "go: tried to exit but couldn't."
+    go [] [] = []
+    go stacks [] = error $
+      "go: stack " <> show stacks <> " isn't empty but the log is."
 
 -------------------- Programs to be profiled -------------------
 
