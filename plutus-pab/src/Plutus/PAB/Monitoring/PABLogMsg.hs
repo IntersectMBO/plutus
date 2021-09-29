@@ -20,18 +20,18 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     RequestSize(..)
     ) where
 
-import           Data.Aeson                       (FromJSON, ToJSON, Value)
-import           Data.Text                        (Text)
-import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, viaShow, (<+>))
-import           GHC.Generics                     (Generic)
-
 import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types         (ChainIndexServerMsg)
 import           Cardano.Node.Types               (MockServerLogMsg)
 import           Cardano.Wallet.Mock.Types        (WalletMsg)
+import           Control.Monad.Freer.Extras.Beam  (BeamLog)
+import           Data.Aeson                       (FromJSON, ToJSON, Value)
 import           Data.Aeson.Text                  (encodeToLazyText)
+import           Data.Text                        (Text)
 import qualified Data.Text                        as T
+import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, viaShow, (<+>))
+import           GHC.Generics                     (Generic)
 import           Plutus.Contract.Effects          (PABReq, PABResp)
 import           Plutus.Contract.Resumable        (Response)
 import           Plutus.Contract.State            (ContractResponse)
@@ -132,7 +132,7 @@ data PABMultiAgentMsg t =
     EmulatorMsg EmulatorEvent
     | ContractInstanceLog (ContractInstanceMsg t)
     | UserLog T.Text
-    | SqlLog String
+    | BeamLogItem BeamLog
     | PABStateRestored Int
     | RestoringPABState
     | StartingPABBackendServer Int
@@ -144,7 +144,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         EmulatorMsg e              -> mkObjectStr "emulator message" (Tagged @"payload" e)
         ContractInstanceLog m      -> toObject v m
         UserLog t                  -> toObject v t
-        SqlLog s                   -> toObject v s
+        BeamLogItem b              -> toObject v b
         RestoringPABState          -> mkObjectStr "Restoring PAB state ..." ()
         PABStateRestored n         -> mkObjectStr ( "PAB state restored with "
                                                  <> T.pack (show n)
@@ -162,7 +162,7 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         EmulatorMsg m         -> pretty m
         ContractInstanceLog m -> pretty m
         UserLog m             -> pretty m
-        SqlLog m              -> pretty m
+        BeamLogItem b         -> pretty b
         RestoringPABState     -> "Restoring PAB state ..."
         PABStateRestored 0    -> "No constract instance were restored in the PAB state."
         PABStateRestored 1    -> "PAB state restored with 1 contract instance."

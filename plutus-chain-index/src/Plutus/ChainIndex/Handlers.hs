@@ -23,6 +23,8 @@ import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
+import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRows, combined, selectList,
+                                                    selectOne, deleteRows)
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
@@ -59,7 +61,7 @@ import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
-getResumePoints :: Member DbStoreEffect effs => Eff effs [C.ChainPoint]
+getResumePoints :: Member BeamEffect effs => Eff effs [C.ChainPoint]
 getResumePoints = do
     rows <- selectList . select
         . fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row))
@@ -72,7 +74,7 @@ getResumePoints = do
 
 restoreStateFromDb ::
     ( Member (State ChainIndexState) effs
-    , Member DbStoreEffect effs
+    , Member BeamEffect effs
     )
     => Point
     -> Eff effs ()
@@ -89,7 +91,7 @@ restoreStateFromDb point = do
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
-    , Member DbStoreEffect effs
+    , Member BeamEffect effs
     , Member (Error ChainIndexError) effs
     , Member (LogMsg ChainIndexLog) effs
     ) => ChainIndexQueryEffect
@@ -118,25 +120,25 @@ handleQuery = \case
             tp           -> pure (tp, page)
     GetTip -> getTip
 
-getTip :: Member DbStoreEffect effs => Eff effs Tip
+getTip :: Member BeamEffect effs => Eff effs Tip
 getTip = do
     row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _utxoRowSlot) (all_ (utxoRows db)))
     pure $ case row of
         Nothing                     -> TipAtGenesis
         Just (UtxoRow slot bi bn _) -> Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn)
 
-getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
+getDatumFromHash :: Member BeamEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
     queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (datumRows db))
 
-getTxFromTxId :: Member DbStoreEffect effs => TxId -> Eff effs (Maybe ChainIndexTx)
+getTxFromTxId :: Member BeamEffect effs => TxId -> Eff effs (Maybe ChainIndexTx)
 getTxFromTxId (TxId (BuiltinByteString txId)) =
     queryOne . select $ _txRowTx <$> filter_ (\row -> _txRowTxId row ==. val_ txId) (all_ (txRows db))
 
 -- | Get the 'ChainIndexTxOut' for a 'TxOutRef'.
 getTxOutFromRef ::
   forall effs.
-  ( Member DbStoreEffect effs
+  ( Member BeamEffect effs
   , Member (LogMsg ChainIndexLog) effs
   )
   => TxOutRef
@@ -164,7 +166,7 @@ getTxOutFromRef ref@TxOutRef{txOutRefId, txOutRefIdx} = do
                 pure $ Just $ ScriptChainIndexTxOut (txOutAddress txout) v d (txOutValue txout)
 
 queryOneScript ::
-    ( Member DbStoreEffect effs
+    ( Member BeamEffect effs
     , Serialise a
     ) => BuiltinByteString
     -> Eff effs (Maybe a)
@@ -172,14 +174,14 @@ queryOneScript (BuiltinByteString hash) =
     queryOne . select $ _scriptRowScript <$> filter_ (\row -> _scriptRowHash row ==. val_ hash) (all_ (scriptRows db))
 
 queryOne ::
-    ( Member DbStoreEffect effs
+    ( Member BeamEffect effs
     , Serialise a
     ) => SqlSelect Sqlite ByteString
     -> Eff effs (Maybe a)
 queryOne = fmap (fmap fromByteString) . selectOne
 
 queryList ::
-    ( Member DbStoreEffect effs
+    ( Member BeamEffect effs
     , Serialise a
     ) => SqlSelect Sqlite ByteString
     -> Eff effs [a]
@@ -197,7 +199,7 @@ toByteString = BSL.toStrict . serialise
 handleControl ::
     forall effs.
     ( Member (State ChainIndexState) effs
-    , Member DbStoreEffect effs
+    , Member BeamEffect effs
     , Member (Error ChainIndexError) effs
     , Member (LogMsg ChainIndexLog) effs
     )
@@ -254,7 +256,7 @@ handleControl = \case
 
 
 insertUtxoDb ::
-    ( Member DbStoreEffect effs
+    ( Member BeamEffect effs
     , Member (Error ChainIndexError) effs
     )
     => UtxoState.UtxoState UtxoState.TxUtxoBalance
@@ -263,11 +265,11 @@ insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed
 insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
     = addRows (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
 
-deleteOldUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
+deleteOldUtxoDb :: Member BeamEffect effs => Tip -> Eff effs ()
 deleteOldUtxoDb TipAtGenesis = pure ()
 deleteOldUtxoDb (Tip slot _ _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row <=. val_ (fromIntegral slot))
 
-rollbackUtxoDb :: Member DbStoreEffect effs => Point -> Eff effs ()
+rollbackUtxoDb :: Member BeamEffect effs => Point -> Eff effs ()
 rollbackUtxoDb PointAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
 rollbackUtxoDb (Point slot _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row >. val_ (fromIntegral slot))
 
@@ -279,7 +281,7 @@ instance Semigroup (InsertRows te) where
 instance BeamableSqlite t => Monoid (InsertRows (TableEntity t)) where
     mempty = InsertRows []
 
-insert :: Member DbStoreEffect effs => Db InsertRows -> Eff effs ()
+insert :: Member BeamEffect effs => Db InsertRows -> Eff effs ()
 insert = getAp . getConst . zipTables Proxy (\tbl (InsertRows rows) -> Const $ Ap $ addRows tbl rows) db
 
 fromTx :: ChainIndexTx -> Db InsertRows
@@ -301,7 +303,7 @@ fromTx tx = mempty
 
 
 diagnostics ::
-    ( Member DbStoreEffect effs
+    ( Member BeamEffect effs
     , Member (State ChainIndexState) effs
     ) => Eff effs Diagnostics
 diagnostics = do

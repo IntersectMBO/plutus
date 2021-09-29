@@ -34,6 +34,7 @@ library
         Control.Monad.Freer.Extras.Log
         Control.Monad.Freer.Extras.Stream
         Control.Monad.Freer.Extras.State
+        Control.Monad.Freer.Extras.Beam
   build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -42,4 +43,8 @@ library
         mtl -any,
         prettyprinter -any,
         streaming -any,
-        text -any
+        text -any,
+        beam-core -any,
+        beam-sqlite -any,
+        sqlite-simple -any,
+        iohk-monitoring -any,
