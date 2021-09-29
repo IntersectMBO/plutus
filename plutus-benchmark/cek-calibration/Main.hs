@@ -5,6 +5,11 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
+{- | Benchmarks for some simple functions operating on lists.  These are used to
+get an idea of the average cost of the basic CEK operations.
+-}
+-- TODO: these are currently run manually, but the process should be automated.
+
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
@@ -87,17 +92,4 @@ main2:: Haskell.IO ()
 main2 = writePlc (mkListProg 999)
 
 main :: Haskell.IO ()
-main = main2
-
-
-{- (t+1e-4)/compute ~ 3.7e-8
-    t ~ 3.7e-8*compute -1e-4
--}
-
-{- (t+1.4e-4)/compute ~ 3.4e-8
-    t ~ 3.4e-8*compute -1.4e-4 -}
-
-{- We do need to get the builtins cost
-
-
-That's like  930,915,744ps, or 931 microseconds -}
+main = main1

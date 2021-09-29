@@ -24,4 +24,3 @@ benchUnitArgBuiltin fun = createOneTermBuiltinBench fun [] (take 100 $ repeat ()
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen = [ benchMkPairData ]
                       <> (benchUnitArgBuiltin <$> [MkNilData, MkNilPairData])
-

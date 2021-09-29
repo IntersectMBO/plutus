@@ -170,4 +170,3 @@ makeBenchmarks _gen = [ benchOneTextString EncodeUtf8
                       , benchDifferentTextStringsElementwise EqualsString
                       , benchSameTwoTextStrings EqualsString
                       ]
-

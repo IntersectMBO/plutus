@@ -197,4 +197,3 @@ dataSample = genDataSample (take 500 $ cycle dataParams)
 -- objects.
 dataSampleForEq :: [Data]
 dataSampleForEq = take 400 . filter (\d -> memoryUsage d < 1000000) . genDataSample . take 1000 $ cycle ((20,1,1,1):dataParams)
-

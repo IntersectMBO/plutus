@@ -82,4 +82,3 @@ main = do
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen
-
