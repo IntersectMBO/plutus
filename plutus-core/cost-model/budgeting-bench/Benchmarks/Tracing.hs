@@ -21,5 +21,3 @@ benchTracing gen =
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [benchTracing gen]
-
-

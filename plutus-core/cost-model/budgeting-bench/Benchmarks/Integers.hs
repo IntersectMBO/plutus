@@ -55,5 +55,3 @@ makeBenchmarks gen =
                                      , LessThanInteger
                                      , LessThanEqualsInteger
                                      ])
-
-
