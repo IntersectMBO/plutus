@@ -32,9 +32,3 @@ makeBenchmarks gen = [ createChooseUnitBench integer numbers
           bytestrings = fmap (makeSizedByteString seedA) (fmap (100 *) [51..100])
           -- The time should be independent of the type and size of the input,
           -- but let's vary them to make sure.
-
-
-
-
-
-
