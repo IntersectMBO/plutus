@@ -23,6 +23,7 @@ import           Control.Monad                       (join)
 import           Control.Monad.Freer                 (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error           (Error, throwError)
 import           Control.Monad.Freer.Extras          (LogMsg)
+import           Control.Monad.Freer.Extras.Beam     (BeamEffect (..), addRows, selectList, selectOne, updateRows)
 import           Data.Aeson                          (FromJSON, ToJSON, decode, encode)
 import           Data.ByteString.Builder             (toLazyByteString)
 import qualified Data.ByteString.Char8               as B
@@ -36,7 +37,7 @@ import           Data.Text.Encoding                  (encodeUtf8Builder)
 import qualified Data.Text.Encoding                  as Text
 import           Data.Typeable                       (Proxy (..), typeRep)
 import           Data.UUID                           (fromText, toText)
-import           Database.Beam                       hiding (updateRow)
+import           Database.Beam
 import           Plutus.PAB.Effects.Contract         (ContractStore (..), PABContract (..))
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, HasDefinitions (getContract), fromResponse, getResponse)
 import           Plutus.PAB.Effects.DbStore          hiding (ContractInstanceId)
@@ -95,7 +96,7 @@ uuidStr = toText . unContractInstanceId
 -- | Run the 'ContractStore' actions in the 'DbStore' context.
 handleContractStore ::
   forall a effs.
-  ( Member DbStoreEffect effs
+  ( Member BeamEffect effs
   , Member (Error PABError) effs
   , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
   , ToJSON a
@@ -107,13 +108,13 @@ handleContractStore ::
   ~> Eff effs
 handleContractStore = \case
   PutStartInstance args instanceId ->
-    addRow (_contractInstances db)
-      $ mkRow args instanceId
+    addRows (_contractInstances db)
+      $ [ mkRow args instanceId ]
 
   PutState _ instanceId state ->
     let encode' = Text.decodeUtf8 . B.concat . LB.toChunks . encode . getResponse
     in do
-        updateRow
+        updateRows
           $ update (_contractInstances db)
               (\ci -> ci ^. contractInstanceState <-. val_ (Just $ encode' state))
               (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
@@ -148,7 +149,7 @@ handleContractStore = \case
           pure inst
 
   PutStopInstance instanceId ->
-    updateRow
+    updateRows
       $ update (_contractInstances db)
           (\ci -> ci ^. contractInstanceActive <-. val_ False)
           (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))

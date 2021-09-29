@@ -41,6 +41,10 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."beam-core" or (errorHandler.buildDepError "beam-core"))
+          (hsPkgs."beam-sqlite" or (errorHandler.buildDepError "beam-sqlite"))
+          (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
+          (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
           ];
         buildable = true;
         modules = [
@@ -49,6 +53,7 @@
           "Control/Monad/Freer/Extras/Log"
           "Control/Monad/Freer/Extras/Stream"
           "Control/Monad/Freer/Extras/State"
+          "Control/Monad/Freer/Extras/Beam"
           ];
         hsSourceDirs = [ "src" ];
         };

@@ -14,9 +14,11 @@ import qualified Control.Concurrent.STM            as STM
 import           Control.Monad                     ((>=>))
 import qualified Control.Monad.Except              as E
 import           Control.Monad.Freer               (Eff, Member, interpret, runM, type (~>))
-import           Control.Monad.Freer.Error         (Error, runError, throwError)
+import           Control.Monad.Freer.Error         (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extras.Beam   (handleBeam)
 import           Control.Monad.Freer.Extras.Log    (handleLogIgnore)
 import           Control.Monad.Freer.Extras.Modify (raiseEnd)
+import           Control.Monad.Freer.Reader        (runReader)
 import           Control.Monad.Freer.State         (evalState)
 import           Control.Monad.IO.Class            (MonadIO (liftIO))
 import qualified Data.ByteString.Lazy              as BSL
@@ -26,17 +28,16 @@ import qualified Data.Text.Encoding                as Text
 import qualified Database.SQLite.Simple            as Sqlite
 import qualified Network.Wai.Handler.Warp          as Warp
 import           Plutus.ChainIndex.Api             (API, FromHashAPI)
-import           Plutus.ChainIndex.ChainIndexError (ChainIndexError)
-import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog)
-import           Plutus.ChainIndex.DbStore         (handleDbStore)
+import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect, ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Effects         as E
 import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
+import           Plutus.Monitoring.Util            (convertLog)
 import           Servant.API                       ((:<|>) (..))
 import           Servant.API.ContentTypes          (NoContent (..))
 import           Servant.Server                    (Handler, ServerError, ServerT, err404, err500, errBody, hoistServer,
                                                     serve)
-
 serveChainIndexQueryServer ::
     Int -- ^ Port
     -> Trace IO ChainIndexLog
@@ -57,8 +58,10 @@ runChainIndexQuery trace emState_ conn action = do
     result <- liftIO $ runM
                     $ evalState emState
                     $ runError @ChainIndexError
+                    $ flip handleError (throwError . BeamEffectError)
                     $ handleLogIgnore @ChainIndexLog
-                    $ interpret (handleDbStore trace conn)
+                    $ runReader conn
+                    $ interpret (handleBeam (convertLog BeamLogItem trace))
                     $ runError
                     $ interpret handleControl
                     $ interpret handleQuery
