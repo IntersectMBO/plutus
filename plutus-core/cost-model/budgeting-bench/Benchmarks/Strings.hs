@@ -30,7 +30,7 @@ import           System.Random  (StdGen)
 
 {- | Note [Unicode encodings and Data.Text] Unicode characters are organised into
 17 'planes', each containing 65536 'codepoints'.  Only some of the codepoints in
-each plane represent actual characters: some code pointsare permanently
+each plane represent actual characters: some code points are permanently
 unavailable, some are used for non-printing operations like forming ligatures or
 adding accents, and some are used for other administrative purposes.  To
 complicate matters, an actual rendered character (grapheme) may be constructed
