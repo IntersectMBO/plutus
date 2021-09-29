@@ -8,11 +8,12 @@ module Component.$name
 import Prologue
 import Component.$name.State (handleAction, initialState)
 import Component.$name.Types (Component, Input, Msg, Query, Slot)
+import Component.$name.Types.Internal (Action(..))
 import Component.$name.Types as Types
 import Component.$name.View (render)
 import Data.Symbol (SProxy(..))
 import Halogen as H
-import Halogen.HTML (text)
+import Halogen.HTML (slot, text)
 
 $lnameSlot :: SProxy "$lnameSlot"
 $lnameSlot = SProxy
@@ -25,7 +26,7 @@ $lname ::
   Input ->
   (Msg -> action) ->
   H.ComponentHTML action ( $lnameSlot :: Slot slot | slots ) m
-$lname slot input = HH.slot $lnameSlot slot component input <<< Just
+$lname s input = slot $lnameSlot s component input <<< (Just <<< _)
 
 component :: forall m. Monad m => Component m
 component =

@@ -1,5 +1,6 @@
 module Page.$name.Types where
 
+import Prologue
 import Halogen as H
 import Halogen.HTML as HH
 

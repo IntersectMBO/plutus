@@ -6,5 +6,5 @@ import Halogen.Css (classNames)
 import Halogen.HTML (HTML, text)
 
 render :: forall w i. Input -> HTML w i
-render Input =
+render input =
   text "hello, world"

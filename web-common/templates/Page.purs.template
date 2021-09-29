@@ -8,11 +8,12 @@ module Page.$name
 import Prologue
 import Page.$name.State (handleAction, initialState)
 import Page.$name.Types (Component, Input, Msg, Query, Slot)
+import Page.$name.Types.Internal (Action(..))
 import Page.$name.Types as Types
 import Page.$name.View (render)
 import Data.Symbol (SProxy(..))
 import Halogen as H
-import Halogen.HTML (text)
+import Halogen.HTML (slot, text)
 
 $lnamePageSlot :: SProxy "$lnamePageSlot"
 $lnamePageSlot = SProxy
@@ -23,7 +24,7 @@ $lnamePage ::
   Input ->
   (Msg -> action) ->
   H.ComponentHTML action ( $lnamePageSlot :: Slot | slots ) m
-$lnamePage slot input = HH.slot $lnamePageSlot slot component input <<< Just
+$lnamePage input = slot $lnamePageSlot unit component input <<< (Just <<< _)
 
 component :: forall m. Monad m => Component m
 component =
