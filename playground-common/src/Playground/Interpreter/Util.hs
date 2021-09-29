@@ -57,7 +57,6 @@ import           Wallet.Emulator.Stream                (foldEmulatorStreamM)
 import           Wallet.Emulator.Types                 (Wallet, WalletNumber, fromWalletNumber, walletPubKeyHash)
 import           Wallet.Types                          (EndpointDescription (getEndpointDescription))
 
-
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
 -- means we need to handle all expected errors in the expression we

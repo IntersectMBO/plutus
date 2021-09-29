@@ -77,7 +77,7 @@ import           Ledger
 import           Plutus.ChainIndex              (ChainIndexError)
 import           Wallet.API                     (WalletAPIError (..))
 
-import           Ledger.CardanoWallet           (MockWallet (..), WalletNumber (..), fromWalletNumber, toWalletNumber)
+import           Ledger.CardanoWallet           (MockWallet (..), WalletNumber (..), toWalletNumber)
 import           Ledger.Fee                     (FeeConfig)
 import           Ledger.TimeSlot                (SlotConfig)
 import           Wallet.Emulator.Chain

@@ -28,12 +28,13 @@ import           Language.Haskell.Interpreter (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import           Ledger                       (PubKeyHash, fromSymbol)
 import qualified Ledger.Ada                   as Ada
+import qualified Ledger.CardanoWallet         as CW
 import           Ledger.Scripts               (ValidatorHash)
 import           Ledger.Slot                  (Slot)
 import           Ledger.Value                 (TokenName)
 import qualified Ledger.Value                 as V
 import           Schema                       (FormArgumentF, FormSchema, ToArgument, ToSchema)
-import           Wallet.Emulator.Types        (EmulatorEvent, WalletNumber, fromWalletNumber, walletPubKeyHash)
+import           Wallet.Emulator.Types        (EmulatorEvent, WalletNumber)
 import           Wallet.Rollup.Types          (AnnotatedTx)
 import           Wallet.Types                 (EndpointDescription)
 
@@ -135,7 +136,7 @@ data Evaluation =
     deriving (Generic, ToJSON, FromJSON)
 
 pubKeys :: Evaluation -> [PubKeyHash]
-pubKeys Evaluation {..} = walletPubKeyHash . fromWalletNumber . simulatorWalletWallet <$> wallets
+pubKeys Evaluation {wallets} = CW.pubKeyHash . CW.fromWalletNumber . simulatorWalletWallet <$> wallets
 
 data EvaluationResult =
     EvaluationResult

@@ -7,7 +7,7 @@ module Spec.MultiSig(tests, failingTrace, succeedingTrace) where
 
 import           Control.Monad             (void)
 import qualified Ledger.Ada                as Ada
-import           Ledger.Crypto             (privateKey1, privateKey2, privateKey3)
+import qualified Ledger.CardanoWallet      as CW
 import           Ledger.Index              (ValidationError (ScriptFailure))
 import           Ledger.Scripts            (ScriptError (EvaluationError))
 import           Plutus.Contract           (Contract, ContractError)
@@ -40,7 +40,7 @@ failingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
-    Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2])
+    Trace.setSigningProcess w1 (signPrivateKeys [CW.privateKey (CW.knownWallet 1), CW.privateKey (CW.knownWallet 2)])
     Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKeyHash [w1, w2])
     void $ Trace.waitNSlots 1
 
@@ -51,7 +51,7 @@ succeedingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
     Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
-    Trace.setSigningProcess w1 (signPrivateKeys [privateKey1, privateKey2, privateKey3])
+    Trace.setSigningProcess w1 (signPrivateKeys [CW.privateKey (CW.knownWallet 1), CW.privateKey (CW.knownWallet 2), CW.privateKey (CW.knownWallet 3)])
     Trace.callEndpoint @"unlock" hdl (multiSig, fmap walletPubKeyHash [w1, w2, w3])
     void $ Trace.waitNSlots 1
 

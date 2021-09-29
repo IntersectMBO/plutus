@@ -47,7 +47,7 @@ theToken :: Value
 theToken = Value.singleton mpsHash "token" 1
 
 mpsHash :: Value.CurrencySymbol
-mpsHash = Value.CurrencySymbol $ PlutusTx.toBuiltin $ Crypto.hashToBytes $ Crypto.hashWith @Crypto.Blake2b_160 id "ffff"
+mpsHash = Value.CurrencySymbol $ PlutusTx.toBuiltin $ Crypto.hashToBytes $ Crypto.hashWith @Crypto.Blake2b_256 id "ffff"
 
 -- | 'EmulatorConfig' that includes 'theToken' in the initial distribution of Wallet 1.
 auctionEmulatorCfg :: Trace.EmulatorConfig

@@ -48,7 +48,7 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic (..))
 import           Ledger                         hiding (from, to)
 import qualified Ledger.Ada                     as Ada
-import           Ledger.CardanoWallet           (MockWallet)
+import           Ledger.CardanoWallet           (MockWallet, WalletNumber)
 import qualified Ledger.CardanoWallet           as CW
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
 import qualified Ledger.Constraints.OffChain    as U
@@ -90,7 +90,10 @@ knownWallets :: [Wallet]
 knownWallets = toMockWallet <$> CW.knownWallets
 
 knownWallet :: Integer -> Wallet
-knownWallet = toMockWallet . CW.fromWalletNumber . CW.WalletNumber
+knownWallet = fromWalletNumber . CW.WalletNumber
+
+fromWalletNumber :: WalletNumber -> Wallet
+fromWalletNumber = toMockWallet . CW.fromWalletNumber
 
 instance Show Wallet where
     showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
