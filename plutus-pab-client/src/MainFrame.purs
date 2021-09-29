@@ -156,9 +156,8 @@ handleAction (ChangeView view) = do
 
 handleAction (ActivateContract contract) = do
   modifying _contractSignatures Stream.refreshing
-  let
-    defWallet = Wallet { getWallet: BigInteger.fromInt 1 }
-  contractInstanceId <- activateContract $ ContractActivationArgs { caID: contract, caWallet: defWallet }
+  -- activate on default wallet
+  contractInstanceId <- activateContract $ ContractActivationArgs { caID: contract, caWallet: Nothing }
   for_ (preview RemoteData._Success contractInstanceId)
     $ \cid -> do
         clientState <- map fromWebData $ getContractInstanceStatus cid

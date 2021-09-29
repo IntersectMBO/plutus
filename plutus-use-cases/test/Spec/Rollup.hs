@@ -46,10 +46,10 @@ render trace = do
     let result =
                S.fst'
                $ run
-               $ foldEmulatorStreamM (L.generalize (showBlockchainFold allWallets'))
+               $ foldEmulatorStreamM (L.generalize (showBlockchainFold knownWallets'))
                $ takeUntilSlot 21
                $ runEmulatorStream def trace
-        allWallets' = fmap (\w -> (pubKeyHash (walletPubKey w), w)) (Wallet <$> [1..10])
+        knownWallets' = fmap (\w -> (pubKeyHash (walletPubKey w), w)) knownWallets
     case result of
         Left err       -> assertFailure $ show err
         Right rendered -> pure $ LBS.fromStrict $ encodeUtf8 rendered

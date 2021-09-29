@@ -13,7 +13,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
-module Spec.Prism (tests, prismTrace, prop_Prism) where
+module Spec.Prism (tests, prismTrace, prop_Prism, prop_NoLock) where
 
 import           Control.Lens
 import           Control.Monad
@@ -38,9 +38,9 @@ import qualified Plutus.Contracts.Prism.Unlock      as C
 import qualified Plutus.Trace.Emulator              as Trace
 
 user, mirror, issuer :: Wallet
-user = Wallet 1
-mirror = Wallet 2
-issuer = Wallet 3
+user = w1
+mirror = w2
+issuer = w3
 
 kyc :: TokenName
 kyc = "KYC"
@@ -126,7 +126,7 @@ waitSlots :: Integer
 waitSlots = 10
 
 users :: [Wallet]
-users = [user, Wallet 4]
+users = [user, w4]
 
 deriving instance Eq   (ContractInstanceKey PrismModel w s e)
 deriving instance Show (ContractInstanceKey PrismModel w s e)
@@ -156,15 +156,17 @@ instance ContractModel PrismModel where
             Revoke w  -> isIssued w $~ doRevoke
             Issue w   -> isIssued w $= Issued
             Call w    -> do
-              iss  <- (== Issued)     <$> viewContractState (isIssued w)
+              iss  <- (== Issued)   <$> viewContractState (isIssued w)
               pend <- (== STOReady) <$> viewContractState (stoState w)
               when (iss && pend) $ do
                 transfer w issuer (Ada.lovelaceValueOf numTokens)
-                deposit w $ STO.coins stoData numTokens
+                let stoValue = STO.coins stoData numTokens
+                mint stoValue
+                deposit w stoValue
 
     perform handle _ cmd = case cmd of
         Delay     -> wrap $ delay 1
-        Issue w   -> wrap $ delay 1 >> Trace.callEndpoint @"issue"              (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
+        Issue w   -> wrap $ delay 1 >> Trace.callEndpoint @"issue"   (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
         Revoke w  -> wrap $ Trace.callEndpoint @"revoke"             (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
         Call w    -> wrap $ Trace.callEndpoint @"sto"                (handle $ UserH w) stoSubscriber
         where                     -- v Wait a generous amount of blocks between calls
@@ -183,11 +185,22 @@ finalPredicate _ =
     assertNotDone @_ @() @C.STOSubscriberSchema     C.subscribeSTO      (Trace.walletInstanceTag user)              "User stopped"               .&&.
     assertNotDone @_ @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"
 
+handleSpec :: [ContractInstanceSpec PrismModel]
+handleSpec = [ ContractInstanceSpec (UserH w) w                 C.subscribeSTO | w <- users ] ++
+             [ ContractInstanceSpec MirrorH   mirror            C.mirror ]
+
 prop_Prism :: Actions PrismModel -> Property
-prop_Prism = propRunActions @PrismModel spec finalPredicate
-    where
-        spec = [ ContractInstanceSpec (UserH w) w                 C.subscribeSTO | w <- users ] ++
-               [ ContractInstanceSpec MirrorH   mirror            C.mirror ]
+prop_Prism = propRunActions @PrismModel handleSpec finalPredicate
+
+-- | The Prism contract does not lock any funds.
+noLockProof :: NoLockedFundsProof PrismModel
+noLockProof = NoLockedFundsProof
+  { nlfpMainStrategy   = return ()
+  , nlfpWalletStrategy = \ _ -> return ()
+  }
+
+prop_NoLock :: Property
+prop_NoLock = checkNoLockedFundsProof defaultCheckOptions handleSpec noLockProof
 
 tests :: TestTree
 tests = testGroup "PRISM"

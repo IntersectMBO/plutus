@@ -32,12 +32,19 @@ library
     exposed-modules:
         Plutus.ChainIndex
         Plutus.ChainIndex.Api
+        Plutus.ChainIndex.ChainIndexError
+        Plutus.ChainIndex.ChainIndexLog
+        Plutus.ChainIndex.Client
+        Plutus.ChainIndex.DbStore
         Plutus.ChainIndex.Effects
+        Plutus.ChainIndex.Emulator
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
-        Plutus.ChainIndex.Client
+        Plutus.ChainIndex.Emulator.Server
+        Plutus.ChainIndex.Handlers
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
+        Plutus.ChainIndex.TxIdState
         Plutus.ChainIndex.Types
         Plutus.ChainIndex.UtxoState
         Plutus.Monitoring.Util
@@ -64,9 +71,14 @@ library
     build-depends:
         aeson -any,
         base >=4.7 && <5,
+        beam-core -any,
+        beam-sqlite -any,
+        beam-migrate -any,
         cardano-api -any,
+        cardano-ledger-alonzo -any,
         cardano-ledger-byron -any,
         containers -any,
+        contra-tracer -any,
         cryptonite -any,
         data-default -any,
         exceptions -any,
@@ -84,8 +96,10 @@ library
         ouroboros-consensus-cardano -any,
         ouroboros-consensus-shelley -any,
         prettyprinter >=1.1.0.1,
+        retry -any,
         semigroups -any,
         serialise -any,
+        sqlite-simple -any,
         time-units -any,
         typed-protocols-examples -any,
         unordered-containers -any,
@@ -118,10 +132,10 @@ test-suite plutus-chain-index-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-hunit -any,
         containers -any,
         serialise -any,
         bytestring -any,
+        fingertree -any,
         freer-simple -any,
         lens -any
 
@@ -140,9 +154,13 @@ executable plutus-chain-index
   build-depends:
     base >=4.9 && <5,
     aeson -any,
+    beam-core -any,
+    beam-sqlite -any,
+    beam-migrate -any,
     cardano-api -any,
     cardano-slotting -any,
     containers -any,
+    contra-tracer -any,
     freer-extras -any,
     freer-simple -any,
     lens -any,
@@ -154,4 +172,5 @@ executable plutus-chain-index
     yaml -any,
     prettyprinter >=1.1.0.1,
     plutus-chain-index -any,
+    sqlite-simple -any,
     stm -any

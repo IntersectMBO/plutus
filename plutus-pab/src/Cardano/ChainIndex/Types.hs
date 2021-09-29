@@ -23,7 +23,7 @@ import           Cardano.BM.Data.Tracer        (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras (Tagged (..), mkObjectStr)
 import           Control.Monad.Freer.Error     (Error)
 import           Control.Monad.Freer.Extras    (LogMsg)
-import           Plutus.ChainIndex             (ChainIndexControlEffect, ChainIndexEmulatorState, ChainIndexError,
+import           Plutus.ChainIndex.Emulator    (ChainIndexControlEffect, ChainIndexEmulatorState, ChainIndexError,
                                                 ChainIndexLog, ChainIndexQueryEffect)
 
 type ChainIndexEffects m
@@ -49,7 +49,7 @@ defaultChainIndexConfig :: ChainIndexConfig
 defaultChainIndexConfig =
   ChainIndexConfig
     -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
-    { ciBaseUrl = ChainIndexUrl $ BaseUrl Http "127.0.0.1" 9083 ""
+    { ciBaseUrl = ChainIndexUrl $ BaseUrl Http "localhost" 9083 ""
     }
 
 instance Default ChainIndexConfig where

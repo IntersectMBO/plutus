@@ -6,10 +6,6 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
--- The '-fno-worker-wrapper' GHC option prevents the error:
--- "GHC Core to PLC plugin: E042:Error: Unsupported feature: Kind: *"
--- Because Plutus can't handle unboxed tuples which come from worker/wrapper
-{-# OPTIONS_GHC -fno-worker-wrapper #-}
 {-# OPTIONS_GHC -Wno-orphans        #-}
 
 module Ledger.TimeSlot(

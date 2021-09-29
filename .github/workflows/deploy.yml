@@ -2,12 +2,20 @@ name: "Deploy"
 on:
   push:
     branches:
-      - bitte
+      - marlowe-dist-demo # production, TODO this should be from the marlowe-production branch
+      - master # staging
+      # TODO need branches for wyohack and plutus-production
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.PLUTUS_OPS_GITHUB_TOKEN }}
     steps:
-      # Purposefully don't checkout
-      - run: ./scripts/deploy-bitte master
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+
+      - name: Deploy to bitte
+        run: ./scripts/deploy-bitte

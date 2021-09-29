@@ -77,7 +77,7 @@ body {
         padding: .25rem 1rem;
     }
 
-    .main {
+    > .main {
         // further general styles in body.scss
         // further specific styles in editor.scss, simulations.scss, and transactions.scss
         flex: 1;

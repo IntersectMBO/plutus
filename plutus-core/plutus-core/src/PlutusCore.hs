@@ -249,7 +249,8 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
 applyProgram
-    :: Program tyname name uni fun ()
-    -> Program tyname name uni fun ()
-    -> Program tyname name uni fun ()
-applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)
+    :: Monoid a
+    => Program tyname name uni fun a
+    -> Program tyname name uni fun a
+    -> Program tyname name uni fun a
+applyProgram (Program a1 _ t1) (Program a2 _ t2) = Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)

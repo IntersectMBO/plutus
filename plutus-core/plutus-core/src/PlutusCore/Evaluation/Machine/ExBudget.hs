@@ -137,6 +137,7 @@ possible to adjust them at runtime.
 
 module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
+    , minusExBudget
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
     , LowerIntialCharacter
@@ -177,6 +178,10 @@ data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving anyclass (PrettyBy config, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
+
+-- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
+minusExBudget :: ExBudget -> ExBudget -> ExBudget
+minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1-c2) (m1-m2)
 
 -- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
 instance Semigroup ExBudget where

@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -24,14 +25,13 @@ module Plutus.ChainIndex.Tx(
     , citxValidRange
     , citxData
     , citxRedeemers
-    , citxMintingPolicies
-    , citxStakeValidators
-    , citxValidators
+    , citxScripts
     , citxCardanoTx
     , _InvalidTx
     , _ValidTx
     ) where
 
+import           Codec.Serialise           (Serialise)
 import           Control.Lens              (makeLenses, makePrisms)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Map                  (Map)
@@ -41,10 +41,11 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple                (swap)
 import           GHC.Generics              (Generic)
-import           Ledger                    (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, OnChainTx (..),
-                                            Redeemer (..), RedeemerHash, SlotRange, SomeCardanoApiTx, StakeValidator,
-                                            StakeValidatorHash, Tx (..), TxId, TxIn (txInType), TxInType (..),
-                                            TxOut (txOutAddress), TxOutRef (..), Validator, ValidatorHash, datumHash,
+import           Ledger                    (Address, Datum, DatumHash, MintingPolicy (getMintingPolicy),
+                                            MintingPolicyHash (MintingPolicyHash), OnChainTx (..), Redeemer (..),
+                                            RedeemerHash, Script, ScriptHash (..), SlotRange, SomeCardanoApiTx, Tx (..),
+                                            TxId, TxIn (txInType), TxInType (..), TxOut (txOutAddress), TxOutRef (..),
+                                            Validator (getValidator), ValidatorHash (ValidatorHash), datumHash,
                                             mintingPolicyHash, redeemerHash, txId, validatorHash)
 
 -- | List of outputs of a transaction. There are no outputs if the transaction
@@ -52,48 +53,50 @@ import           Ledger                    (Address, Datum, DatumHash, MintingPo
 data ChainIndexTxOutputs =
     InvalidTx -- ^ The transaction is invalid so there is no outputs
   | ValidTx [TxOut]
-  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise)
 
 makePrisms ''ChainIndexTxOutputs
 
 data ChainIndexTx = ChainIndexTx {
-    _citxTxId            :: TxId,
+    _citxTxId       :: TxId,
     -- ^ The id of this transaction.
-    _citxInputs          :: Set TxIn,
+    _citxInputs     :: Set TxIn,
     -- ^ The inputs to this transaction.
-    _citxOutputs         :: ChainIndexTxOutputs,
+    _citxOutputs    :: ChainIndexTxOutputs,
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
-    _citxValidRange      :: !SlotRange,
+    _citxValidRange :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    _citxData            :: Map DatumHash Datum,
+    _citxData       :: Map DatumHash Datum,
     -- ^ Datum objects recorded on this transaction.
-    _citxRedeemers       :: Map RedeemerHash Redeemer,
+    _citxRedeemers  :: Map RedeemerHash Redeemer,
     -- ^ Redeemers of the minting scripts.
-    _citxMintingPolicies :: Map MintingPolicyHash MintingPolicy,
-    -- ^ The scripts used to check minting conditions.
-    _citxStakeValidators :: Map StakeValidatorHash StakeValidator,
-    _citxValidators      :: Map ValidatorHash Validator,
-    _citxCardanoTx       :: Maybe SomeCardanoApiTx -- Might be Nothing if we are in the emulator
-    } deriving (Show, Eq, Generic, ToJSON, FromJSON)
+    _citxScripts    :: Map ScriptHash Script,
+    -- ^ The scripts (validator, stake validator or minting) part of cardano tx.
+    _citxCardanoTx  :: Maybe SomeCardanoApiTx
+    -- ^ The full Cardano API tx which was used to populate the rest of the
+    -- 'ChainIndexTx' fields. Useful because 'ChainIndexTx' doesn't have all the
+    -- details of the tx, so we keep it as a safety net. Might be Nothing if we
+    -- are in the emulator.
+    } deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise)
 
 makeLenses ''ChainIndexTx
 
 instance Pretty ChainIndexTx where
-    pretty ChainIndexTx{_citxTxId, _citxInputs, _citxOutputs = ValidTx outputs, _citxValidRange, _citxMintingPolicies, _citxData, _citxRedeemers} =
+    pretty ChainIndexTx{_citxTxId, _citxInputs, _citxOutputs = ValidTx outputs, _citxValidRange, _citxData, _citxRedeemers, _citxScripts} =
         let lines' =
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList _citxInputs)))
                 , hang 2 (vsep ("outputs:" : fmap pretty outputs))
-                , hang 2 (vsep ("minting policies:": fmap (pretty . fst) (Map.toList _citxMintingPolicies)))
+                , hang 2 (vsep ("scripts hashes:": fmap (pretty . fst) (Map.toList _citxScripts)))
                 , "validity range:" <+> viaShow _citxValidRange
                 , hang 2 (vsep ("data:": fmap (pretty . snd) (Map.toList _citxData) ))
                 , hang 2 (vsep ("redeemers:": fmap (pretty . snd) (Map.toList _citxRedeemers) ))
                 ]
         in nest 2 $ vsep ["Valid tx" <+> pretty _citxTxId <> colon, braces (vsep lines')]
-    pretty ChainIndexTx{_citxTxId, _citxInputs, _citxOutputs = InvalidTx, _citxValidRange, _citxMintingPolicies, _citxData, _citxRedeemers} =
+    pretty ChainIndexTx{_citxTxId, _citxInputs, _citxOutputs = InvalidTx, _citxValidRange, _citxData, _citxRedeemers, _citxScripts} =
         let lines' =
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList _citxInputs)))
                 , hang 2 (vsep ["no outputs:"])
-                , hang 2 (vsep ("minting policies:": fmap (pretty . fst) (Map.toList _citxMintingPolicies)))
+                , hang 2 (vsep ("scripts hashes:": fmap (pretty . fst) (Map.toList _citxScripts)))
                 , "validity range:" <+> viaShow _citxValidRange
                 , hang 2 (vsep ("data:": fmap (pretty . snd) (Map.toList _citxData) ))
                 , hang 2 (vsep ("redeemers:": fmap (pretty . snd) (Map.toList _citxRedeemers) ))
@@ -135,9 +138,7 @@ fromOnChainTx = \case
             , _citxValidRange = txValidRange
             , _citxData = txData <> otherDataHashes
             , _citxRedeemers = redeemers
-            , _citxMintingPolicies = mintingPolicies txMintScripts
-            , _citxStakeValidators = mempty
-            , _citxValidators = validatorHashes
+            , _citxScripts = mintingPolicies txMintScripts <> validatorHashes
             , _citxCardanoTx = Nothing
             }
     Invalid tx@Tx{txCollateral, txValidRange, txData, txInputs, txMintScripts} ->
@@ -149,23 +150,23 @@ fromOnChainTx = \case
             , _citxValidRange = txValidRange
             , _citxData = txData <> otherDataHashes
             , _citxRedeemers = redeemers
-            , _citxMintingPolicies = mintingPolicies txMintScripts
-            , _citxStakeValidators = mempty
-            , _citxValidators = validatorHashes
+            , _citxScripts = mintingPolicies txMintScripts <> validatorHashes
             , _citxCardanoTx = Nothing
             }
 
-mintingPolicies :: Set MintingPolicy -> Map MintingPolicyHash MintingPolicy
-mintingPolicies =
-    let withHash mps = (mintingPolicyHash mps, mps) in
-    Map.fromList . fmap withHash . Set.toList
+mintingPolicies :: Set MintingPolicy -> Map ScriptHash Script
+mintingPolicies = Map.fromList . fmap withHash . Set.toList
+  where
+    withHash mp = let (MintingPolicyHash mph) = mintingPolicyHash mp
+                   in (ScriptHash mph, getMintingPolicy mp)
 
-validators :: Set TxIn -> (Map ValidatorHash Validator, Map DatumHash Datum, Map RedeemerHash Redeemer)
-validators =
-    let withHash (ConsumeScriptAddress val red dat) =
-            ( Map.singleton (validatorHash val) val
-            , Map.singleton (datumHash dat) dat
-            , Map.singleton (redeemerHash red) red
-            )
-        withHash ConsumePublicKeyAddress    = mempty
-    in foldMap (maybe mempty withHash . txInType) . Set.toList
+validators :: Set TxIn -> (Map ScriptHash Script, Map DatumHash Datum, Map RedeemerHash Redeemer)
+validators = foldMap (maybe mempty withHash . txInType) . Set.toList
+  where
+    withHash (ConsumeScriptAddress val red dat) =
+      let (ValidatorHash vh) = validatorHash val
+       in ( Map.singleton (ScriptHash vh) (getValidator val)
+          , Map.singleton (datumHash dat) dat
+          , Map.singleton (redeemerHash red) red
+          )
+    withHash _ = mempty

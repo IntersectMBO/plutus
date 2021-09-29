@@ -27,8 +27,8 @@ import           Cardano.BM.Data.Trace                 (Trace)
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.Node.Server                   as NodeServer
 import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
-import qualified Cardano.Wallet.Server                 as WalletServer
-import           Cardano.Wallet.Types
+import qualified Cardano.Wallet.Mock.Server            as WalletServer
+import           Cardano.Wallet.Mock.Types
 import           Control.Concurrent                    (takeMVar)
 import           Control.Concurrent.Async              (Async, async, waitAny)
 import           Control.Concurrent.Availability       (Availability, available, starting)
@@ -44,13 +44,14 @@ import           Control.Monad.Logger                  (logErrorN, runStdoutLogg
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Foldable                         (traverse_)
 import qualified Data.Map                              as Map
+import           Data.Maybe                            (fromMaybe)
+import qualified Data.OpenApi.Schema                   as OpenApi
 import           Data.Proxy                            (Proxy (..))
 import qualified Data.Set                              as Set
 import           Data.Text.Extras                      (tshow)
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Data.Time.Units                       (Second)
-import           Data.Typeable                         (Typeable)
 import           Plutus.Contract.Resumable             (responses)
 import           Plutus.Contract.State                 (State (..))
 import qualified Plutus.Contract.State                 as State
@@ -72,6 +73,7 @@ import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
 import           System.Exit                           (ExitCode (ExitFailure), exitWith)
+import qualified Wallet.Emulator.Wallet                as Wallet
 import qualified Wallet.Types                          as Wallet
 
 runNoConfigCommand ::
@@ -104,9 +106,9 @@ runConfigCommand :: forall a.
     , FromJSON a
     , Pretty a
     , Servant.MimeUnrender Servant.JSON a
-    , Typeable a
     , HasDefinitions a
     , HasPSTypes a
+    , OpenApi.ToSchema a
     )
     => BuiltinHandler a
     -> ConfigCommandArgs a
@@ -305,4 +307,5 @@ buildPABAction currentState cid ContractActivationArgs{caWallet, caID} = do
 
     -- Squish it into a PAB action which we will run
     let ciState = ContractInstanceState currentState (pure stmState)
-    pure $ Core.activateContract' @(Builtin a) ciState cid caWallet caID
+        wallet = fromMaybe (Wallet.knownWallet 1) caWallet
+    pure $ Core.activateContract' @(Builtin a) ciState cid wallet caID

@@ -247,6 +247,7 @@ data ValueType
   | AddValueValueType
   | SubValueValueType
   | MulValueValueType
+  | DivValueValueType
   | ScaleValueType
   | ChoiceValueValueType
   | SlotIntervalStartValueType
@@ -911,6 +912,21 @@ toDefinition blockType@(ValueType MulValueValueType) =
         }
         defaultBlockDefinition
 
+toDefinition blockType@(ValueType DivValueValueType) =
+  BlockDefinition
+    $ merge
+        { type: show DivValueValueType
+        , message0: "%1 / %2"
+        , args0:
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
+        , colour: blockColour blockType
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition blockType@(ValueType CondObservationValueValueType) =
   BlockDefinition
     $ merge
@@ -1342,6 +1358,10 @@ instance blockToTermValue :: BlockToTerm Value where
     value1 <- valueToTerm "value1" b
     value2 <- valueToTerm "value2" b
     pure $ Term (MulValue value1 value2) (BlockId id)
+  blockToTerm b@({ type: "DivValueValueType", id }) = do
+    value1 <- valueToTerm "value1" b
+    value2 <- valueToTerm "value2" b
+    pure $ Term (DivValue value1 value2) (BlockId id)
   blockToTerm b@({ type: "ScaleValueType", id }) = do
     numerator <- fieldAsBigInteger "numerator" b
     denominator <- fieldAsBigInteger "denominator" b
@@ -1726,6 +1746,11 @@ instance toBlocklyValue :: ToBlockly Value where
     inputToBlockly newBlock workspace block "value2" v2
   toBlockly newBlock workspace input (MulValue v1 v2) = do
     block <- newBlock workspace (show MulValueValueType)
+    connectToOutput block input
+    inputToBlockly newBlock workspace block "value1" v1
+    inputToBlockly newBlock workspace block "value2" v2
+  toBlockly newBlock workspace input (DivValue v1 v2) = do
+    block <- newBlock workspace (show DivValueValueType)
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2

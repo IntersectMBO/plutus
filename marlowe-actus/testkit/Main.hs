@@ -22,11 +22,10 @@ import           Test.QuickCheck
 
 data ModelInput = ModelInput {
     ct   :: ContractTerms
-    , rf :: Map Day RiskFactors
+    , rf :: Map LocalTime RiskFactors
     }
     deriving stock (Show, Generic)
     deriving ToJSON
-
 
 data Payoff = Payoff {
     event    :: String

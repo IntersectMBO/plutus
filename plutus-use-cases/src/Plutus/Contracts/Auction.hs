@@ -36,8 +36,6 @@ import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
 import qualified Ledger.Interval                  as Interval
-import           Ledger.TimeSlot                  (SlotConfig)
-import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
 import           Plutus.Contract
@@ -118,7 +116,11 @@ type AuctionMachine = StateMachine AuctionState AuctionInput
 
 {-# INLINABLE auctionTransition #-}
 -- | The transitions of the auction state machine.
-auctionTransition :: AuctionParams -> State AuctionState -> AuctionInput -> Maybe (TxConstraints Void Void, State AuctionState)
+auctionTransition
+    :: AuctionParams
+    -> State AuctionState
+    -> AuctionInput
+    -> Maybe (TxConstraints Void Void, State AuctionState)
 auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=oldState} input =
     case (oldState, input) of
 
@@ -148,7 +150,9 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
 {-# INLINABLE auctionStateMachine #-}
 auctionStateMachine :: (ThreadToken, AuctionParams) -> AuctionMachine
-auctionStateMachine (threadToken, auctionParams) = SM.mkStateMachine (Just threadToken) (auctionTransition auctionParams) isFinal where
+auctionStateMachine (threadToken, auctionParams) =
+    SM.mkStateMachine (Just threadToken) (auctionTransition auctionParams) isFinal
+  where
     isFinal Finished{} = True
     isFinal _          = False
 
@@ -229,7 +233,9 @@ auctionSeller value time = do
 
 
 -- | Get the current state of the contract and log it.
-currentState :: StateMachineClient AuctionState AuctionInput -> Contract AuctionOutput BuyerSchema AuctionError (Maybe HighestBid)
+currentState
+    :: StateMachineClient AuctionState AuctionInput
+    -> Contract AuctionOutput BuyerSchema AuctionError (Maybe HighestBid)
 currentState client = mapError StateMachineContractError (SM.getOnChainState client) >>= \case
     Just (SM.OnChainState{SM.ocsTxOut=TypedScriptTxOut{tyTxOutData=Ongoing s}}, _) -> do
         tell $ auctionStateOut $ Ongoing s
@@ -260,20 +266,15 @@ data BuyerEvent =
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: SlotConfig -> AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
-waitForChange slotCfg AuctionParams{apEndTime} client lastHighestBid = do
-    t <- currentTime
-
-    let targetTime = TimeSlot.slotToBeginPOSIXTime slotCfg
-               $ Haskell.succ
-               -- FIXME Without the additional `succ`, the contract will
-               -- always response with `NoChange` and the highestBid will
-               -- always be 0
-               $ Haskell.succ
-               $ TimeSlot.posixTimeToEnclosingSlot slotCfg t
+waitForChange
+    :: AuctionParams
+    -> StateMachineClient AuctionState AuctionInput
+    -> HighestBid
+    -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
+waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     -- Create a Promise that waits for either an update to the state machine's
-    -- on chain state, or after the equivalent of 2 slots.
-    smUpdatePromise <- SM.waitForUpdateTimeout client (isTime targetTime)
+    -- on chain state, or until the end of the auction
+    smUpdatePromise <- SM.waitForUpdateTimeout client (isTime apEndTime)
 
     let
         auctionOver = AuctionIsOver lastHighestBid Haskell.<$ isTime apEndTime
@@ -302,9 +303,19 @@ waitForChange slotCfg AuctionParams{apEndTime} client lastHighestBid = do
                   _ -> pure (NoChange lastHighestBid)
 
     -- see note [Buyer client]
+    --
+    -- Also note that the order of the promises in the list is important. When
+    -- the auction is over, both 'auctionOver' and 'otherBid' contracts can be
+    -- fully executed. However, if 'otherBid' is at the beginning of the list,
+    -- it will return "NoChange" event before returning "AuctionIsOver". Thus
+    -- the auction never ends and it results in an infinite loop.
     selectList [auctionOver, submitOwnBid, otherBid]
 
-handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract AuctionOutput BuyerSchema AuctionError (Either HighestBid ())
+handleEvent
+    :: StateMachineClient AuctionState AuctionInput
+    -> HighestBid
+    -> BuyerEvent
+    -> Contract AuctionOutput BuyerSchema AuctionError (Either HighestBid ())
 handleEvent client lastHighestBid change =
     let continue = pure . Left
         stop     = pure (Right ())
@@ -329,13 +340,13 @@ handleEvent client lastHighestBid change =
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: SlotConfig -> ThreadToken -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
-auctionBuyer slotCfg currency params = do
+auctionBuyer :: ThreadToken -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
+auctionBuyer currency params = do
     let inst   = typedValidator (currency, params)
         client = machineClient inst currency params
 
         -- the actual loop, see note [Buyer client]
-        loop   = loopM (\h -> waitForChange slotCfg params client h >>= handleEvent client h)
+        loop   = loopM (\h -> waitForChange params client h >>= handleEvent client h)
 
     tell $ threadTokenOut currency
     initial <- currentState client

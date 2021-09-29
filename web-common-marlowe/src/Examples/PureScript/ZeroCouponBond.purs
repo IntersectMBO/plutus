@@ -44,10 +44,10 @@ ada :: Token
 ada = Token "" ""
 
 discountedPrice :: Value
-discountedPrice = ConstantParam "Interest"
+discountedPrice = ConstantParam "Amount"
 
 notionalPrice :: Value
-notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
+notionalPrice = AddValue (ConstantParam "Interest") discountedPrice
 
 investor :: Party
 investor = Role "Lender"

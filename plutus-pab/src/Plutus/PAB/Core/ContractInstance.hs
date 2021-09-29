@@ -45,11 +45,11 @@ import           Control.Monad.Freer.Extras.Log                   (LogMessage, L
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
 import           Data.Aeson                                       (Value)
+import           Data.Maybe                                       (fromMaybe)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
-import           Plutus.Contract.Effects                          (ActiveEndpoint (..), PABReq (..), PABResp (..),
-                                                                   TxStatus (Unknown))
+import           Plutus.Contract.Effects                          (ActiveEndpoint (..), PABReq (..), PABResp (..))
 import qualified Plutus.Contract.Effects                          as Contract.Effects
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
 import           Plutus.Contract.State                            (ContractResponse (..), State (..))
@@ -60,8 +60,9 @@ import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInsta
 
 import           Wallet.Effects                                   (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
+import qualified Wallet.Emulator.Wallet                           as Wallet
 
-import           Plutus.ChainIndex                                (ChainIndexQueryEffect)
+import           Plutus.ChainIndex                                (ChainIndexQueryEffect, TxStatus (Unknown))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)
@@ -98,12 +99,13 @@ activateContractSTM' ::
     -> (Eff appBackend ~> IO)
     -> ContractActivationArgs (ContractDef t)
     -> Eff effs ContractInstanceId
-activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID} = do
+activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
   logInfo @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
   Contract.putStartInstance @t a activeContractInstanceId
   Contract.putState @t a activeContractInstanceId contractState
   cid <- startContractInstanceThread' c activeContractInstanceId runAppBackend a
-  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID (caWallet a) activeContractInstanceId
+  let wallet = fromMaybe (Wallet.knownWallet 1) caWallet
+  logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID wallet activeContractInstanceId
   pure cid
 
 -- | Spin up the STM Instance thread for the provided contract and add it to
@@ -361,11 +363,10 @@ updateState ContractResponse{newState = State{observableState}, hooks} = do
         InstanceState.clearEndpoints state
         forM_ hooks $ \r -> do
             case rqRequest r of
-                AwaitTxStatusChangeReq txid -> InstanceState.addTransaction txid state
-                ExposeEndpointReq endpoint  -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
-                AwaitUtxoSpentReq txOutRef  -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
-                AwaitUtxoProducedReq addr   -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
-                _                           -> pure ()
+                ExposeEndpointReq endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
+                AwaitUtxoSpentReq txOutRef -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
+                AwaitUtxoProducedReq addr  -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
+                _                          -> pure ()
         InstanceState.setObservableState observableState state
 
 -- | Run the STM-based request handler on a non-empty list

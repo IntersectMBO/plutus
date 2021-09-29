@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -18,15 +17,19 @@ module Ledger.Scripts (
     , validatorHash
     , mintingPolicyHash
     , stakeValidatorHash
+    , toCardanoApiScript
+    , scriptHash
+    , dataHash
     ) where
 
 import           Cardano.Api              (AsType, HasTextEnvelope (textEnvelopeType), HasTypeProxy (proxyToAsType),
                                            SerialiseAsCBOR, TextEnvelopeType (TextEnvelopeType))
+import qualified Cardano.Api              as Script
+import qualified Cardano.Api.Shelley      as Script
 import           Cardano.Binary           (FromCBOR (fromCBOR), ToCBOR (toCBOR))
-import qualified Cardano.Crypto.Hash      as Crypto
-import           Codec.Serialise          (Serialise, decode, encode, serialise)
-import qualified Data.ByteArray           as BA
+import           Codec.Serialise          (decode, encode, serialise)
 import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.ByteString.Short    as SBS
 import qualified Data.Text                as Text
 import           Plutus.V1.Ledger.Api     (plutusDatumEnvelopeType, plutusRedeemerEnvelopeType,
                                            plutusScriptEnvelopeType)
@@ -79,26 +82,43 @@ instance HasTypeProxy Redeemer where
     proxyToAsType _ = AsRedeemer
 
 datumHash :: Datum -> DatumHash
-datumHash = DatumHash . Builtins.sha2_256 . BA.convert
+datumHash = DatumHash . dataHash . getDatum
 
 redeemerHash :: Redeemer -> RedeemerHash
-redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
+redeemerHash = RedeemerHash . dataHash . getRedeemer
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash = ValidatorHash . scriptHash
+validatorHash = ValidatorHash . getScriptHash . scriptHash . getValidator
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash = MintingPolicyHash . scriptHash
+mintingPolicyHash = MintingPolicyHash . getScriptHash . scriptHash . getMintingPolicy
 
 stakeValidatorHash :: StakeValidator -> StakeValidatorHash
-stakeValidatorHash = StakeValidatorHash . scriptHash
+stakeValidatorHash = StakeValidatorHash . getScriptHash . scriptHash . getStakeValidator
 
-scriptHash :: Serialise a => a -> Builtins.BuiltinByteString
-scriptHash =
+-- | Hash a 'Builtins.BuiltinData'
+dataHash :: Builtins.BuiltinData -> Builtins.BuiltinByteString
+dataHash =
     toBuiltin
-    . Crypto.hashToBytes
-    . Crypto.hashWith @Crypto.Blake2b_224 id
-    . Crypto.hashToBytes
-    . Crypto.hashWith @Crypto.Blake2b_224 id
+    . Script.serialiseToRawBytes
+    . Script.hashScriptData
+    . Script.fromPlutusData
+    . builtinDataToData
+
+-- | Hash a 'Script'
+scriptHash :: Script -> ScriptHash
+scriptHash =
+    ScriptHash
+    . toBuiltin
+    . Script.serialiseToRawBytes
+    . Script.hashScript
+    . toCardanoApiScript
+
+-- | Convert a 'Script' to a 'cardano-api' script
+toCardanoApiScript :: Script -> Script.Script Script.PlutusScriptV1
+toCardanoApiScript =
+    Script.PlutusScript Script.PlutusScriptV1
+    . Script.PlutusScriptSerialised
+    . SBS.toShort
     . BSL.toStrict
     . serialise

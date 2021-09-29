@@ -1,255 +1,349 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-
+{-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
+import           Control.Applicative                                    (liftA2)
+import           Control.Monad                                          (liftM4)
+import           Data.Functor                                           ((<&>))
 import           Data.List                                              as L (find, nub)
-import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
-import           Data.Time                                              (Day)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (Cycle (..), IPCB (IPCB_NTL), PPEF (..),
-                                                                         PYTP (..), SCEF (..), ScheduleConfig)
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..), ShiftedSchedule)
+import           Data.Maybe                                             (fromMaybe, isJust, isNothing, maybeToList)
+import           Data.Time.LocalTime                                    (addLocalTime)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms, ContractTermsPoly (..),
+                                                                         Cycle (..), IPCB (IPCB_NTL), PPEF (..),
+                                                                         PYTP (..), SCEF (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
-                                                                         minusCycle, plusCycle, remove)
--- Principal at Maturity
-_S :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-_S = generateRecurrentScheduleWithCorrections
+                                                                         remove, (<+>), (<->))
+-- Principal at Maturity (PAM)
 
-shift :: ScheduleConfig -> Day -> ShiftedDay
-shift = applyBDCWithCfg
+_SCHED_IED_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IED_PAM
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_IED = Just initialExchangeDate
+    } = [applyBDCWithCfg scheduleConfig initialExchangeDate]
+_SCHED_IED_PAM _ = []
 
-_SCHED_IED_PAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_IED_PAM scfg _IED = Just [shift scfg _IED]
+_SCHED_MD_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_MD_PAM
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_MD = Just maturityDate
+    } = [applyBDCWithCfg scheduleConfig maturityDate]
+_SCHED_MD_PAM _ = []
 
-_SCHED_MD_PAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_MD_PAM scfg tmd = Just [shift scfg tmd]
+_SCHED_PP_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_PP_PAM ContractTermsPoly {ct_PPEF = Just PPEF_N} = []
+_SCHED_PP_PAM
+  ContractTermsPoly
+    { ct_OPANX = Just cycleAnchorDateOfOptionality,
+      ct_OPCL = Just cycleOfOptionality,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorDateOfOptionality cycleOfOptionality maturityDate scheduleConfig
+_SCHED_PP_PAM
+  ContractTermsPoly
+    { ct_OPANX = Nothing,
+      ct_OPCL = Just cycleOfOptionality,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfOptionality) cycleOfOptionality maturityDate scheduleConfig
+_SCHED_PP_PAM _ = []
 
-_SCHED_PP_PAM :: ScheduleConfig -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PP_PAM _    PPEF_N _OPCL _IED _OPANX _MD = Nothing
-_SCHED_PP_PAM scfg _PREF  _OPCL _IED _OPANX _MD =
-    let maybeS  | isNothing _OPANX && isNothing _OPCL = Nothing
-                | isNothing _OPANX                    = Just $ _IED `plusCycle` fromJust _OPCL
-                | otherwise                           = _OPANX
-    in (\s -> _S s (fromJust _OPCL) _MD scfg) <$> maybeS
+_SCHED_PY_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_PY_PAM ContractTermsPoly {ct_PYTP = Just PYTP_O} = []
+_SCHED_PY_PAM ct                                        = _SCHED_PP_PAM ct
 
-_SCHED_PY_PAM :: ScheduleConfig -> PYTP -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PY_PAM _    PYTP_O _PREF _OPCL _IED _OPANX _MD = Nothing
-_SCHED_PY_PAM scfg _PYTP  _PREF _OPCL _IED _OPANX _MD = _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
+_SCHED_FP_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_FP_PAM ContractTermsPoly {ct_FER = Nothing} = []
+_SCHED_FP_PAM ContractTermsPoly {ct_FER = Just 0.0} = []
+_SCHED_FP_PAM
+  ContractTermsPoly
+    { ct_FEANX = Just cycleAnchorDateOfFee,
+      ct_FECL = Just cycleOfFee,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorDateOfFee cycleOfFee {includeEndDay = True} maturityDate scheduleConfig
+_SCHED_FP_PAM
+  ContractTermsPoly
+    { ct_FEANX = Nothing,
+      ct_FECL = Just cycleOfFee,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfFee) cycleOfFee {includeEndDay = True} maturityDate scheduleConfig
+_SCHED_FP_PAM _ = []
 
-_SCHED_FP_PAM :: (Eq a, Fractional a) => ScheduleConfig -> a -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD =
-    let maybeS  | isNothing _FEANX && isNothing _FECL = Nothing
-                | isNothing _FEANX                    = Just $ _IED `plusCycle` fromJust _FECL
-                | otherwise                           = _FEANX
+_SCHED_PRD_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_PRD_PAM
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_PRD = Just purchaseDate
+    } = [applyBDCWithCfg scheduleConfig purchaseDate]
+_SCHED_PRD_PAM _ = []
 
-        result  | _FER == 0.0                         = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _FECL){ includeEndDay = True } _MD scfg) <$> maybeS
-    in result
+_SCHED_TD_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_TD_PAM
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_TD = Just terminationDate
+    } = [applyBDCWithCfg scheduleConfig terminationDate]
+_SCHED_TD_PAM _ = []
 
-_SCHED_PRD_PAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_PRD_PAM scfg (Just _PRD) = Just [shift scfg _PRD]
-_SCHED_PRD_PAM _ _              = Nothing
+_SCHED_IP_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IP_PAM
+  ContractTermsPoly
+    { ct_IPANX = Just cycleAnchorOfInterestPayment,
+      ct_IPCL = Just cycleOfInterestPayment,
+      ct_MD = Just maturityDate,
+      ct_IPCED = capitalizationEndDate,
+      scfg = scheduleConfig
+    } =
+    let s = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestPayment cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
+     in filter (\d -> Just (calculationDay d) > capitalizationEndDate) s
+_SCHED_IP_PAM
+  ContractTermsPoly
+    { ct_IPANX = Nothing,
+      ct_IPCL = Just cycleOfInterestPayment,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      ct_IPCED = capitalizationEndDate,
+      scfg = scheduleConfig
+    } =
+    let s = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfInterestPayment) cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
+     in filter (\d -> Just (calculationDay d) > capitalizationEndDate) s
+_SCHED_IP_PAM _ = []
 
-_SCHED_TD_PAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_TD_PAM scfg (Just _TD) = Just [shift scfg _TD]
-_SCHED_TD_PAM _    _          = Nothing
+_SCHED_IPCI_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IPCI_PAM
+  ContractTermsPoly
+    { ct_IPANX = Just cycleAnchorOfInterestPayment,
+      ct_IPCL = Just cycleOfInterestPayment,
+      ct_MD = Just maturityDate,
+      ct_IPCED = Just capitalizationEndDate,
+      scfg = scheduleConfig
+    } =
+    let s = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestPayment cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
+     in filter (\d -> calculationDay d < capitalizationEndDate) s ++ [applyBDCWithCfg scheduleConfig capitalizationEndDate]
+_SCHED_IPCI_PAM
+  ContractTermsPoly
+    { ct_IPANX = Nothing,
+      ct_IPCL = Just cycleOfInterestPayment,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      ct_IPCED = Just capitalizationEndDate,
+      scfg = scheduleConfig
+    } =
+    let s = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfInterestPayment) cycleOfInterestPayment {includeEndDay = True} maturityDate scheduleConfig
+     in filter (\d -> calculationDay d < capitalizationEndDate) s ++ [applyBDCWithCfg scheduleConfig capitalizationEndDate]
+_SCHED_IPCI_PAM _ = []
 
-_SCHED_IP_PAM :: ScheduleConfig -> Maybe a -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe [ShiftedDay]
-_SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
-    let maybeS  | isNothing _IPANX && isNothing _IPCL = Nothing
-                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise                           = _IPANX
+_SCHED_RR_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_RR_PAM
+  ContractTermsPoly
+    { ct_RRANX = Just cycleAnchorOfRateReset,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Just _,
+      ct_MD = Just maturityDate,
+      ct_SD = statusDate,
+      scfg = scheduleConfig
+    } =
+    let tt = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
+     in fromMaybe [] (inf tt statusDate <&> flip remove tt)
+_SCHED_RR_PAM
+  ContractTermsPoly
+    { ct_RRANX = Just cycleAnchorOfRateReset,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Nothing,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_RR_PAM
+  ContractTermsPoly
+    { ct_RRANX = Nothing,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Just _,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      ct_SD = statusDate,
+      scfg = scheduleConfig
+    } =
+    let tt = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfRateReset) cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
+     in fromMaybe [] (inf tt statusDate <&> flip remove tt)
+_SCHED_RR_PAM
+  ContractTermsPoly
+    { ct_RRANX = Nothing,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Nothing,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfRateReset) cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_RR_PAM _ = []
 
-        result  | isNothing _IPNR                     = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> maybeS
+_SCHED_RRF_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_RRF_PAM
+  ContractTermsPoly
+    { ct_RRANX = Just cycleAnchorOfRateReset,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Just _,
+      ct_MD = Just maturityDate,
+      ct_SD = statusDate,
+      scfg = scheduleConfig
+    } =
+    let tt = generateRecurrentScheduleWithCorrections cycleAnchorOfRateReset cycleOfRateReset {includeEndDay = False} maturityDate scheduleConfig
+     in maybeToList (L.find (\ShiftedDay{..} -> calculationDay > statusDate) tt)
+_SCHED_RRF_PAM
+  ContractTermsPoly
+    { ct_RRANX = Nothing,
+      ct_RRCL = Just cycleOfRateReset,
+      ct_RRNXT = Just _,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      ct_SD = statusDate,
+      scfg = scheduleConfig
+    } =
+    let tt = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfRateReset) cycleOfRateReset maturityDate scheduleConfig
+     in maybeToList (L.find (\ShiftedDay{..} -> calculationDay > statusDate) tt)
+_SCHED_RRF_PAM _ = []
 
-        result' | isJust result && isJust _IPCED      = Just $ filter (\ss -> calculationDay ss > fromJust _IPCED) $ fromJust result
-                | otherwise                           = result
-    in result'
+_SCHED_SC_PAM :: ContractTerms -> [ShiftedDay]
+_SCHED_SC_PAM ContractTermsPoly {ct_SCEF = Just SE_000} = []
+_SCHED_SC_PAM
+  ContractTermsPoly
+    { ct_SCANX = Just cycleAnchorOfScalingIndex,
+      ct_SCCL = Just cycleOfScalingIndex,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorOfScalingIndex cycleOfScalingIndex {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_SC_PAM
+  ContractTermsPoly
+    { ct_SCANX = Nothing,
+      ct_SCCL = Just cycleOfScalingIndex,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfScalingIndex) cycleOfScalingIndex {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_SC_PAM _ = []
 
-_SCHED_IPCI_PAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe a -> Maybe [ShiftedDay]
-_SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED _MD _IPNR =
-    -- calculate IP sched:
-    let maybeS  | isNothing _IPANX && isNothing _IPCL = Nothing
-                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise                           = _IPANX
+-- Linear Amortizer (LAM)
 
-        schedIP | isNothing _IPNR                     = Nothing
-                | otherwise                           = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> maybeS
+_SCHED_PR_LAM :: ContractTerms -> [ShiftedDay]
+_SCHED_PR_LAM
+  ContractTermsPoly
+    { ct_PRANX = Just cycleAnchorOfPrincipalRedemption,
+      ct_PRCL = Just cycleOfPrincipalRedemption,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorOfPrincipalRedemption cycleOfPrincipalRedemption {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_PR_LAM
+  ContractTermsPoly
+    { ct_PRANX = Nothing,
+      ct_PRCL = Just cycleOfPrincipalRedemption,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfPrincipalRedemption) cycleOfPrincipalRedemption {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_PR_LAM _ = []
 
-        result  | isJust _IPCL && isJust _IPCED       = Just $ filter (\s -> calculationDay s < fromJust _IPCED) (fromJust schedIP) ++ [shift scfg $ fromJust _IPCED]
-                | otherwise = Nothing
-    in result
+_SCHED_MD_LAM :: ContractTerms -> [ShiftedDay]
+_SCHED_MD_LAM
+  ContractTermsPoly
+    { ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = [applyBDCWithCfg scheduleConfig maturityDate]
+_SCHED_MD_LAM _ = []
 
-_SCHED_RR_PAM :: ScheduleConfig -> Day -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Maybe [ShiftedDay]
-_SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD =
-    let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
-                | otherwise                           = _RRANX
+_SCHED_IPCB_LAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IPCB_LAM ContractTermsPoly {..} | ct_IPCB /= Just IPCB_NTL = []
+_SCHED_IPCB_LAM
+  ContractTermsPoly
+    { ct_IPCBANX = Just cycleAnchorOfInterestBaseCalculation,
+      ct_IPCBCL = Just cycleOfInterestBaseCalculation,
+      ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections cycleAnchorOfInterestBaseCalculation cycleOfInterestBaseCalculation {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_IPCB_LAM
+  ContractTermsPoly
+    { ct_IPCBANX = Nothing,
+      ct_IPCBCL = Just cycleOfInterestBaseCalculation,
+      ct_MD = Just maturityDate,
+      ct_IED = Just initialExchangeDate,
+      scfg = scheduleConfig
+    } = generateRecurrentScheduleWithCorrections (initialExchangeDate <+> cycleOfInterestBaseCalculation) cycleOfInterestBaseCalculation {includeEndDay = False} maturityDate scheduleConfig
+_SCHED_IPCB_LAM _ = []
 
-        tt      = (\s -> _S s (fromJust _RRCL){ includeEndDay = False } _MD scfg) <$> maybeS
-        trry    = fromJust $ inf (fromJust tt) _SD
+-- Negative Amortizer (NAM)
 
-        result  | isNothing _RRANX && isNothing _RRCL = Nothing
-                | isJust _RRNXT                       = remove trry <$> tt
-                | otherwise                           = tt
-    in result
+_SCHED_IP_NAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IP_NAM ContractTermsPoly {..} =
+  let s
+        | isNothing ct_PRANX = liftA2 (<+>) ct_IED ct_PRCL
+        | otherwise = ct_PRANX
 
--- ACTUS techspec implementation
-_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _RRNXT _MD _SD =
-    let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL
-                | otherwise                           = _RRANX
+      v = liftM4 generateRecurrentScheduleWithCorrections s ct_PRCL ct_MD (Just scfg)
 
-        tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
+      r
+        | isJust ct_IPANX = ct_IPANX
+        | isJust ct_IPCL = liftA2 (<+>) ct_IED ct_IPCL
+        | otherwise = Nothing
 
-        result  | isNothing _RRANX && isNothing _RRCL = Nothing
-                | otherwise                           = tt
-    in
-      if isJust _RRNXT then
-        fmap (\d -> [d]) (L.find (\(ShiftedDay{ calculationDay = calculationDay }) -> calculationDay > _SD) (fromMaybe [] result))
-      else
-        Nothing
+      _T = liftA2 (<->) s ct_PRCL
 
-_SCHED_SC_PAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
-_SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
-    let maybeS  | isNothing _SCANX && isNothing _SCCL = Nothing
-                | isNothing _SCANX                    = Just $ _IED `plusCycle` fromJust _SCCL
-                | otherwise                           = _SCANX
+      u
+        | isNothing ct_IPANX && isNothing ct_IPCL = Nothing
+        | isJust ct_IPCED && Just True == liftA2 (>) ct_IPCED _T = Nothing
+        | otherwise = liftM4 generateRecurrentScheduleWithCorrections r ((\c -> c {includeEndDay = True}) <$> ct_IPCL) ct_MD (Just scfg)
 
-        tt      = (\s -> _S s (fromJust _SCCL){ includeEndDay = False } _MD scfg) <$> maybeS
+      result = nub <$> liftA2 (++) u v
 
-        result  | _SCEF == SE_000                     = Nothing
-                | otherwise                           = tt
-    in result
-
--- - Linear Amortizer - --
-_SCHED_IED_LAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_IED_LAM = _SCHED_IED_PAM
-
-_SCHED_PR_LAM :: ScheduleConfig -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
-    let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
-                | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
-                | otherwise                          = _PRANX
-    in (\s -> _S s (fromJust _PRCL){ includeEndDay = False } _MD scfg ) <$> maybeS
-
-_SCHED_MD_LAM :: ScheduleConfig -> Day -> Maybe [ShiftedDay]
-_SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
-
-_SCHED_PP_LAM :: ScheduleConfig -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PP_LAM = _SCHED_PP_PAM
-
-_SCHED_PY_LAM :: ScheduleConfig -> PYTP -> PPEF -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_PY_LAM = _SCHED_PY_PAM
-
--- To avoid constraint error, we can't fixpoint this
-_SCHED_FP_LAM :: (Eq a, Fractional a) => ScheduleConfig -> a -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_FP_LAM = _SCHED_FP_PAM
-
-_SCHED_PRD_LAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_PRD_LAM = _SCHED_PRD_PAM
-
-_SCHED_TD_LAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_TD_LAM = _SCHED_TD_PAM
-
-_SCHED_IP_LAM :: ScheduleConfig -> Maybe a -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe [ShiftedDay]
-_SCHED_IP_LAM = _SCHED_IP_PAM
-
-_SCHED_IPCI_LAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Maybe Day -> Day -> Maybe a -> Maybe [ShiftedDay]
-_SCHED_IPCI_LAM = _SCHED_IPCI_PAM
-
-_SCHED_IPCB_LAM :: ScheduleConfig -> Day -> Maybe IPCB -> Maybe Cycle -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
-    let maybeS  | isNothing _IPCBANX && isNothing _IPCBCL = Nothing
-                | isNothing _IPCBANX                      = Just $ _IED `plusCycle` fromJust _IPCBCL
-                | otherwise                               = _IPCBANX
-
-        result  | (fromJust _IPCB) /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
-                | otherwise                          = (\s -> _S s (fromJust _IPCBCL){ includeEndDay = False } _MD scfg) <$> maybeS
-    in result
-
-_SCHED_RR_LAM :: ScheduleConfig -> Day -> Day -> Maybe Day -> Maybe Cycle -> Maybe a -> Day -> Maybe [ShiftedDay]
-_SCHED_RR_LAM = _SCHED_RR_PAM
-
---_SCHED_RRF_LAM :: ScheduleConfig -> Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
-_SCHED_RRF_LAM = _SCHED_RRF_PAM
-
-_SCHED_SC_LAM :: ScheduleConfig -> Day -> SCEF -> Maybe Day -> Maybe Cycle -> Day -> Maybe ShiftedSchedule
-_SCHED_SC_LAM = _SCHED_SC_PAM
-
--- Negative Amortizer
-_SCHED_IED_NAM = _SCHED_IED_PAM
-
-_SCHED_PR_NAM = _SCHED_PR_LAM
-
-_SCHED_MD_NAM = _SCHED_MD_PAM
-
-_SCHED_PP_NAM = _SCHED_PP_PAM
-
-_SCHED_PY_NAM = _SCHED_PY_PAM
-
-_SCHED_FP_NAM :: (Eq a, Fractional a) => ScheduleConfig -> a -> Maybe Cycle -> Day -> Maybe Day -> Day -> Maybe ShiftedSchedule
-_SCHED_FP_NAM = _SCHED_FP_PAM
-
-_SCHED_PRD_NAM = _SCHED_PRD_PAM
-
-_SCHED_TD_NAM :: ScheduleConfig -> Maybe Day -> Maybe [ShiftedDay]
-_SCHED_TD_NAM = _SCHED_TD_PAM
-
-_SCHED_IP_NAM :: ScheduleConfig -> Day -> Maybe Cycle -> Maybe Day -> Maybe Day -> Maybe Day -> Maybe Cycle -> Day -> Maybe [ShiftedDay]
-_SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
-    let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
-                | otherwise        = _PRANX
-
-        _T      = fromJust maybeS `minusCycle` fromJust _PRCL
-
-        r       | isJust _IPANX = _IPANX
-                | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
-                | otherwise     = Nothing
-
-        u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-                | isJust _IPCED && fromJust _IPCED > _T  = Nothing
-                | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
-
-        v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
-
-        result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
-
-        result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) > fromJust _IPCED) $ fromJust result
-                | otherwise = result
-    in
-        result'
-
-
-_SCHED_IPCI_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
-  let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
-              | otherwise        = _PRANX
-
-      _T      = fromJust maybeS `minusCycle` fromJust _PRCL
-
-      r       | isJust _IPCED = _IPCED
-              | isJust _IPANX = _IPANX
-              | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
-              | otherwise     = Nothing
-
-      u       | isNothing _IPANX && isNothing _IPCL    = Nothing
-              | isJust _IPCED && fromJust _IPCED > _T  = Nothing
-              | otherwise                              = (\s -> _S s (fromJust _IPCL){ includeEndDay = True } _MD scfg) <$> r
-
-      v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
-
-      result  = Just $ nub ((fromMaybe [] u) ++ (fromMaybe [] v))
-
-      result' | isJust result && isJust _IPCED = Just $ filter (\ss -> (calculationDay ss) <= fromJust _IPCED) $ fromJust result
-              | otherwise = Nothing
-  in
       result'
+        | isJust result && isJust ct_IPCED = filter (\ShiftedDay {..} -> Just calculationDay > ct_IPCED) <$> result
+        | otherwise = result
+   in fromMaybe [] result'
 
+_SCHED_IPCI_NAM :: ContractTerms -> [ShiftedDay]
+_SCHED_IPCI_NAM ContractTermsPoly {..} =
+  let s
+        | isNothing ct_PRANX = liftA2 (<+>) ct_IED ct_PRCL
+        | otherwise = ct_PRANX
 
-_SCHED_IPCB_NAM = _SCHED_IPCB_LAM
+      v = liftM4 generateRecurrentScheduleWithCorrections s ct_PRCL ct_MD (Just scfg)
 
-_SCHED_RR_NAM = _SCHED_RR_PAM
+      r
+        | isJust ct_IPCED = ct_IPCED
+        | isJust ct_IPANX = ct_IPANX
+        | isJust ct_IPCL = liftA2 (<+>) ct_IED ct_IPCL
+        | otherwise = Nothing
 
-_SCHED_RRF_NAM = _SCHED_RRF_PAM
+      _T = liftA2 (<->) s ct_PRCL
 
-_SCHED_SC_NAM = _SCHED_SC_PAM
+      u
+        | isNothing ct_IPANX && isNothing ct_IPCL = Nothing
+        | isJust ct_IPCED && Just True == liftA2 (>) ct_IPCED _T = Nothing
+        | otherwise = liftM4 generateRecurrentScheduleWithCorrections r ((\c -> c {includeEndDay = True}) <$> ct_IPCL) ct_MD (Just scfg)
+
+      result = Just $ nub (fromMaybe [] u ++ fromMaybe [] v)
+
+      result'
+        | isJust result && isJust ct_IPCED = filter (\ShiftedDay {..} -> Just calculationDay <= ct_IPCED) <$> result
+        | otherwise = Nothing
+   in fromMaybe [] result'
+
+-- Annuity (ANN)
+
+_SCHED_PRF_ANN :: ContractTerms -> [ShiftedDay]
+_SCHED_PRF_ANN
+  ct@ContractTermsPoly
+    { ct_PRANX = Just cycleAnchorOfPrincipalRedemption,
+      ct_PRNXT = Nothing,
+      ct_IED = Just initialExchangeDate
+    } =
+    let prf
+          | cycleAnchorOfPrincipalRedemption > initialExchangeDate = let p = addLocalTime (-86400) cycleAnchorOfPrincipalRedemption in [ShiftedDay p p]
+          | otherwise = []
+        rr = _SCHED_RR_PAM ct
+        rrf = _SCHED_RRF_PAM ct
+     in prf ++ rr ++ rrf
+_SCHED_PRF_ANN _ = []

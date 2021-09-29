@@ -70,13 +70,11 @@ library
         Cardano.Node.Types
         Cardano.Protocol.Socket.Mock.Client
         Cardano.Protocol.Socket.Mock.Server
-        Cardano.Protocol.Socket.Client
-        Cardano.Protocol.Socket.Type
-        Cardano.Wallet.API
-        Cardano.Wallet.Client
-        Cardano.Wallet.Mock
-        Cardano.Wallet.Server
-        Cardano.Wallet.Types
+        Cardano.Wallet.Mock.API
+        Cardano.Wallet.Mock.Client
+        Cardano.Wallet.Mock.Handlers
+        Cardano.Wallet.Mock.Server
+        Cardano.Wallet.Mock.Types
         Control.Concurrent.Availability
         Control.Concurrent.STM.Extras
         Control.Concurrent.STM.Extras.Stream
@@ -147,6 +145,7 @@ library
         cryptonite -any,
         cborg -any,
         freer-simple -any,
+        fingertree -any,
         generic-arbitrary -any,
         http-client -any,
         http-client-tls -any,
@@ -179,6 +178,10 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-swagger-ui,
+        servant-openapi3,
+        openapi3 -any,
+        servant-options -any,
         tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,
@@ -289,6 +292,7 @@ executable plutus-pab-examples
         , row-types
         , servant-purescript
         , text
+        , openapi3
 
 executable plutus-uniswap
     main-is:          Main.hs
@@ -313,6 +317,7 @@ executable plutus-uniswap
         , plutus-use-cases
         , prettyprinter
         , text
+        , openapi3
 
 executable plutus-pab-test-psgenerator
     default-language: Haskell2010
@@ -350,7 +355,6 @@ executable plutus-pab-test-psgenerator
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,
-        tasty-hunit -any,
         smallcheck -any,
         tasty-smallcheck -any,
         tasty-quickcheck -any,
@@ -465,6 +469,65 @@ test-suite plutus-pab-test-full
         async -any,
         servant-client -any,
         uuid -any,
+        openapi3,
+
+test-suite plutus-pab-test-full-long-running
+    default-language: Haskell2010
+    hs-source-dirs:
+        test/full
+        examples
+
+    type:             exitcode-stdio-1.0
+    main-is:          SpecLongRunning.hs
+    other-modules:
+        ContractExample
+        ContractExample.WaitForTx
+        ContractExample.AtomicSwap
+        ContractExample.PayToWallet
+        Plutus.PAB.CliSpec
+        Plutus.PAB.Effects.Contract.ContractTest
+        Plutus.PAB.Simulator.Test
+
+    build-depends:
+        QuickCheck -any,
+        aeson -any,
+        aeson-pretty -any,
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        data-default -any,
+        freer-extras -any,
+        freer-simple -any,
+        http-client -any,
+        http-client-tls -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        plutus-contract -any,
+        plutus-pab,
+        plutus-use-cases -any,
+        plutus-ledger -any,
+        quickcheck-instances -any,
+        servant-client -any,
+        tasty -any,
+        tasty-hunit -any,
+        smallcheck -any,
+        tasty-smallcheck -any,
+        tasty-quickcheck -any,
+        text -any,
+        transformers -any,
+        prettyprinter -any,
+        row-types -any,
+        plutus-tx -any,
+        playground-common -any,
+        yaml -any,
+        iohk-monitoring -any,
+        servant-server -any,
+        purescript-bridge -any,
+        async -any,
+        servant-client -any,
+        uuid -any,
+        openapi3 -any,
 
 executable tx-inject
     import:           lang
@@ -502,8 +565,10 @@ executable sync-client
         base >=4.9 && <5,
         cardano-api -any,
         cardano-slotting -any,
+        contra-tracer -any,
         either -any,
         optparse-applicative -any,
+        plutus-chain-index,
         plutus-ledger,
         plutus-pab,
         text

@@ -21,6 +21,7 @@ module Plutus.Contract.Test(
     , ContractConstraints
     , Plutus.Contract.Test.not
     , (.&&.)
+    , w1, w2, w3, w4, w5, w6, w7, w8, w9, w10
     -- * Assertions
     , endpointAvailable
     , assertDone
@@ -59,7 +60,6 @@ module Plutus.Contract.Test(
     , CheckOptions
     , defaultCheckOptions
     , minLogLevel
-    , maxSlot
     , emulatorConfig
     -- * Etc
     , goldenPir
@@ -129,7 +129,7 @@ import           Wallet.Emulator.Chain                 (ChainEvent)
 import           Wallet.Emulator.Folds                 (EmulatorFoldErr (..), Outcome (..), describeError, postMapM)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM, initialChainState,
-                                                        initialDist, takeUntilSlot)
+                                                        initialDist)
 
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 
@@ -145,7 +145,6 @@ not = fmap Prelude.not
 data CheckOptions =
     CheckOptions
         { _minLogLevel    :: LogLevel -- ^ Minimum log level for emulator log messages to be included in the test output (printed if the test fails)
-        , _maxSlot        :: Slot -- ^ When to stop the emulator
         , _emulatorConfig :: EmulatorConfig
         } deriving (Eq, Show)
 
@@ -155,7 +154,6 @@ defaultCheckOptions :: CheckOptions
 defaultCheckOptions =
     CheckOptions
         { _minLogLevel = Info
-        , _maxSlot = 125
         , _emulatorConfig = def
         }
 
@@ -188,10 +186,10 @@ checkPredicateInner :: forall m.
     -> (String -> m ()) -- ^ Print out debug information in case of test failures
     -> (Bool -> m ()) -- ^ assert
     -> m ()
-checkPredicateInner CheckOptions{_minLogLevel, _maxSlot, _emulatorConfig} predicate action annot assert = do
+checkPredicateInner CheckOptions{_minLogLevel, _emulatorConfig} predicate action annot assert = do
     let dist = _emulatorConfig ^. initialChainState . to initialDist
         theStream :: forall effs. S.Stream (S.Of (LogMessage EmulatorEvent)) (Eff effs) ()
-        theStream = takeUntilSlot _maxSlot $ runEmulatorStream _emulatorConfig action
+        theStream = S.void $ runEmulatorStream _emulatorConfig action
         consumeStream :: forall a. S.Stream (S.Of (LogMessage EmulatorEvent)) (Eff TestEffects) a -> Eff TestEffects (S.Of Bool a)
         consumeStream = foldEmulatorStreamM @TestEffects predicate
     result <- runM
@@ -631,3 +629,15 @@ reasonable' logger (Ledger.unValidatorScript -> s) maxSize = do
 -- | Compare a golden PIR file to the provided 'CompiledCode'.
 goldenPir :: FilePath -> CompiledCode a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
+
+w1, w2, w3, w4, w5, w6, w7, w8, w9, w10 :: Wallet
+w1 = X.knownWallet 1
+w2 = X.knownWallet 2
+w3 = X.knownWallet 3
+w4 = X.knownWallet 4
+w5 = X.knownWallet 5
+w6 = X.knownWallet 6
+w7 = X.knownWallet 7
+w8 = X.knownWallet 8
+w9 = X.knownWallet 9
+w10 = X.knownWallet 10

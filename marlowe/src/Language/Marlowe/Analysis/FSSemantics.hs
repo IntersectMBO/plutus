@@ -192,6 +192,20 @@ symEvalVal (Scale s rhs) symState =
       nn = symEvalVal rhs symState * literal n
       (q, r) = nn `sQuotRem` literal d in
   ite (abs r * 2 .< literal (abs d)) q (q + signum nn * literal (signum d))
+-- this implementation looks slightly different in Semantics.hs
+-- It's semanticly equivalent, but here we want less `ite`s
+symEvalVal (DivValue lhs rhs) symState =
+  let n = symEvalVal lhs symState
+      d = symEvalVal rhs symState
+      ar = abs r * 2
+      ad = abs d
+      (q, r) = n `sQuotRem` d
+      qIsOdd = (q `sRem` 2 ./= 0)
+  in ite (n .== 0 .|| d .== 0)
+         0
+         (ite (ar .> ad .|| ar .== ad .&& qIsOdd)
+              (q + signum n * signum d)
+              q)
 symEvalVal (ChoiceValue choId) symState =
   M.findWithDefault (literal 0) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState

@@ -19,6 +19,7 @@ import           Data.Aeson                          (FromJSON, Result (..), ToJ
 import           Data.Default                        (Default (def))
 import qualified Data.Map.Strict                     as Map
 import qualified Data.Monoid                         as Monoid
+import qualified Data.OpenApi.Schema                 as OpenApi
 import qualified Data.Semigroup                      as Semigroup
 import           Data.Text                           (Text)
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
@@ -35,14 +36,14 @@ import           Plutus.PAB.Simulator                (SimulatorEffectHandlers, l
 import qualified Plutus.PAB.Simulator                as Simulator
 import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import           Prelude                             hiding (init)
-import           Wallet.Emulator.Types               (Wallet (..))
+import           Wallet.Emulator.Types               (knownWallet)
 
 main :: IO ()
 main = void $ Simulator.runSimulationWith handlers $ do
     logString @(Builtin UniswapContracts) "Starting Uniswap PAB webserver on port 8080. Press enter to exit."
     shutdown <- PAB.Server.startServerDebug
 
-    cidInit  <- Simulator.activateContract (Wallet 1) Init
+    cidInit  <- Simulator.activateContract (knownWallet 1) Init
     cs       <- flip Simulator.waitForState cidInit $ \json -> case fromJSON json of
                     Success (Just (Semigroup.Last cur)) -> Just $ Currency.currencySymbol cur
                     _                                   -> Nothing
@@ -53,7 +54,7 @@ main = void $ Simulator.runSimulationWith handlers $ do
     let coins = Map.fromList [(tn, Uniswap.mkCoin cs tn) | tn <- tokenNames]
         ada   = Uniswap.mkCoin adaSymbol adaToken
 
-    cidStart <- Simulator.activateContract (Wallet 1) UniswapStart
+    cidStart <- Simulator.activateContract (knownWallet 1) UniswapStart
     us       <- flip Simulator.waitForState cidStart $ \json -> case (fromJSON json :: Result (Monoid.Last (Either Text Uniswap.Uniswap))) of
                     Success (Monoid.Last (Just (Right us))) -> Just us
                     _                                       -> Nothing
@@ -72,10 +73,10 @@ main = void $ Simulator.runSimulationWith handlers $ do
 
     let cp = Uniswap.CreateParams ada (coins Map.! "A") 100000 500000
     logString @(Builtin UniswapContracts) $ "creating liquidity pool: " ++ show (encode cp)
-    let cid2 = cids Map.! Wallet 2
+    let cid2 = cids Map.! knownWallet 2
     Simulator.waitForEndpoint cid2 "create"
     _  <- Simulator.callEndpointOnInstance cid2 "create" cp
-    flip Simulator.waitForState (cids Map.! Wallet 2) $ \json -> case (fromJSON json :: Result (Monoid.Last (Either Text Uniswap.UserContractState))) of
+    flip Simulator.waitForState (cids Map.! knownWallet 2) $ \json -> case (fromJSON json :: Result (Monoid.Last (Either Text Uniswap.UserContractState))) of
         Success (Monoid.Last (Just (Right Uniswap.Created))) -> Just ()
         _                                                    -> Nothing
     logString @(Builtin UniswapContracts) "liquidity pool created"
@@ -88,7 +89,7 @@ data UniswapContracts =
     | UniswapStart
     | UniswapUser Uniswap.Uniswap
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance Pretty UniswapContracts where
     pretty = viaShow

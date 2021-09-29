@@ -12,6 +12,7 @@ module Wallet.Rollup.Types where
 import           Control.Lens              (makeLenses, makeLensesFor)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Map                  (Map)
+import qualified Data.OpenApi.Schema       as OpenApi
 import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
 import           GHC.Generics
 import           Ledger
@@ -23,7 +24,7 @@ data TxKey =
         , _txKeyTxOutRefIdx :: Integer
         }
     deriving (Show, Eq, Ord, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance Pretty TxKey where
     pretty = viaShow
@@ -34,7 +35,7 @@ data SequenceId =
         , txIndex   :: Int
         }
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 makeLensesFor
      [ ("slotIndex", "slotIndexL")
@@ -49,7 +50,7 @@ data DereferencedInput
           }
     | InputNotFound TxKey
     deriving (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 isFound :: DereferencedInput -> Bool
 isFound DereferencedInput {} = True
@@ -59,7 +60,7 @@ data BeneficialOwner
     = OwnedByPubKey PubKeyHash
     | OwnedByScript ValidatorHash
     deriving (Eq, Show, Ord, Generic)
-    deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema, FromJSONKey, ToJSONKey)
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
 toBeneficialOwner TxOut {txOutAddress=Address{addressCredential}} =
@@ -77,7 +78,7 @@ data AnnotatedTx =
         , valid              :: Bool
         }
     deriving (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 makeLenses 'AnnotatedTx
 

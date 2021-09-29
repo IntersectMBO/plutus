@@ -18,7 +18,6 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -62,6 +61,7 @@ import qualified Ledger.Value             as Val
 import           PlutusTx                 (makeIsDataIndexed)
 import           PlutusTx.AssocMap        (Map)
 import qualified PlutusTx.AssocMap        as Map
+import qualified PlutusTx.Builtins        as Builtins
 import           PlutusTx.Lift            (makeLift)
 import           PlutusTx.Prelude         hiding (encodeUtf8, mapM, (<$>), (<*>), (<>))
 import           PlutusTx.Ratio           (denominator, numerator)
@@ -153,6 +153,7 @@ data Value a = AvailableMoney AccountId Token
            | AddValue (Value a) (Value a)
            | SubValue (Value a) (Value a)
            | MulValue (Value a) (Value a)
+           | DivValue (Value a) (Value a)
            | Scale Rational (Value a)
            | ChoiceValue ChoiceId
            | SlotIntervalStart
@@ -474,6 +475,18 @@ evalValue env state value = let
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
         MulValue lhs rhs     -> eval lhs * eval rhs
+        DivValue lhs rhs     -> let n = eval lhs
+                                in if n == 0 then 0 else let
+                                    d = eval rhs
+                                in if d == 0 then 0 else let
+                                    (q, r) = n `quotRem` d
+                                    ar = abs r * 2
+                                    ad = abs d
+                                in if ar < ad then q -- reminder < 1/2
+                                   else if ar > ad then q + signum n * signum d -- reminder > 1/2
+                                   else let -- reminder == 1/2
+                                qIsEven = q `Builtins.remainderInteger` 2 == 0
+                                in if qIsEven then q else q + signum n * signum d
         Scale s rhs          -> let (n, d) = (numerator s, denominator s)
                                     nn = eval rhs * n
                                     (q, r) = nn `quotRem` d in
@@ -872,6 +885,7 @@ instance FromJSON (Value Observation) where
                                   <*> (v .: "times")
               Just divi -> Scale <$> ((%) <$> (getInteger =<< (v .: "times")) <*> getInteger divi)
                                  <*> (v .: "multiply"))
+    <|> (DivValue <$> (v .: "divide") <*> (v .: "by"))
     <|> (ChoiceValue <$> (v .: "value_of_choice"))
     <|> (UseValue <$> (v .: "use_value"))
     <|> (Cond <$> (v .: "if")
@@ -900,6 +914,10 @@ instance ToJSON (Value Observation) where
   toJSON (MulValue lhs rhs) = object
       [ "multiply" .= lhs
       , "times" .= rhs
+      ]
+  toJSON (DivValue lhs rhs) = object
+      [ "divide" .= lhs
+      , "by" .= rhs
       ]
   toJSON (Scale rat v) = object
       [ "multiply" .= v
@@ -1231,6 +1249,7 @@ instance Eq a => Eq (Value a) where
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
     SubValue val1 val2 == SubValue val3 val4 = val1 == val3 && val2 == val4
     MulValue val1 val2 == MulValue val3 val4 = val1 == val3 && val2 == val4
+    DivValue val1 val2 == DivValue val3 val4 = val1 == val3 && val2 == val4
     Scale s1 val1 == Scale s2 val2 = s1 == s2 && val1 == val2
     ChoiceValue cid1 == ChoiceValue cid2 = cid1 == cid2
     SlotIntervalStart == SlotIntervalStart = True
@@ -1313,6 +1332,7 @@ makeIsDataIndexed ''Value [
     ('AddValue,3),
     ('SubValue,4),
     ('MulValue,5),
+    ('DivValue,12),
     ('Scale,6),
     ('ChoiceValue,7),
     ('SlotIntervalStart, 8),

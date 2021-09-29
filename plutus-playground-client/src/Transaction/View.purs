@@ -40,7 +40,7 @@ import Plutus.V1.Ledger.TxId (TxId(TxId))
 import Plutus.V1.Ledger.Value (CurrencySymbol, TokenName)
 import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
 import Wallet.Emulator.Chain (ChainEvent(..))
-import Plutus.ChainIndex.Emulator.Handlers (ChainIndexLog(..))
+import Plutus.ChainIndex.ChainIndexLog (ChainIndexLog(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
 import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
@@ -154,13 +154,14 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot " <> show slot.getSlot ]
 
+-- TODO: convert Wallet back to WalletNumber?
 emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> logMessageText ]
+    [ text $ "Message from wallet " <> show walletId.getWalletId <> ": " <> logMessageText ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> show logMessage ]
+    [ text $ "Message from wallet " <> show walletId.getWalletId <> ": " <> show logMessage ]
 
 emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
   div_

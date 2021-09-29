@@ -103,8 +103,8 @@ import           Data.Text                               (Text)
 import           Ledger.Tx                               (Address, Tx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
-import           Plutus.ChainIndex                       (ChainIndexQueryEffect)
-import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq, TxStatus (Unknown))
+import           Plutus.ChainIndex                       (ChainIndexQueryEffect, TxStatus (Unknown))
+import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, ContractInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
 import           Plutus.PAB.Core.ContractInstance.STM    (Activity (Active), BlockchainEnv, InstancesState,
@@ -251,7 +251,7 @@ activateContract' state cid w def = do
     let handler :: forall a. Eff (ContractInstanceEffects t env '[IO]) a -> IO a
         handler x = fmap (either (error . show) id) (runPABAction $ handleAgentThread w x)
         args :: ContractActivationArgs (ContractDef t)
-        args = ContractActivationArgs{caWallet = w, caID = def}
+        args = ContractActivationArgs{caWallet = Just w, caID = def}
     handleAgentThread w
         $ ContractInstance.startContractInstanceThread' @t @IO @(ContractInstanceEffects t env '[IO]) state cid handler args
 
@@ -263,7 +263,7 @@ activateContract w def = do
     let handler :: forall a. Eff (ContractInstanceEffects t env '[IO]) a -> IO a
         handler x = fmap (either (error . show) id) (runPABAction $ handleAgentThread w x)
         args :: ContractActivationArgs (ContractDef t)
-        args = ContractActivationArgs{caWallet = w, caID = def}
+        args = ContractActivationArgs{caWallet = Just w, caID = def}
     handleAgentThread w
         $ ContractInstance.activateContractSTM @t @IO @(ContractInstanceEffects t env '[IO]) handler args
 

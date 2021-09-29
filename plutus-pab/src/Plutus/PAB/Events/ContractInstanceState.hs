@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -14,6 +15,7 @@ import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Data.Aeson                     (FromJSON, ToJSON (..), Value)
 import qualified Data.Aeson.Encode.Pretty       as JSON
 import qualified Data.ByteString.Lazy.Char8     as BS8
+import qualified Data.OpenApi.Schema            as OpenApi
 import qualified Data.Text                      as Text
 import           Data.Text.Extras               (abbreviate)
 import           Data.Text.Prettyprint.Doc
@@ -31,7 +33,7 @@ data PartiallyDecodedResponse v =
         , observableState :: Value
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 fromResp :: Contract.ContractResponse Value Value s v -> PartiallyDecodedResponse v
 fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.lastLogs, Contract.newState = Contract.State{Contract.observableState}} =

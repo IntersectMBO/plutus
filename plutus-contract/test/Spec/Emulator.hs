@@ -124,9 +124,9 @@ capturePrintEffect effs = snd $ Eff.run (runWriter (Eff.reinterpret f effs))
 
 
 wallet1, wallet2, wallet3 :: Wallet
-wallet1 = Wallet 1
-wallet2 = Wallet 2
-wallet3 = Wallet 3
+wallet1 = knownWallet 1
+wallet2 = knownWallet 2
+wallet3 = knownWallet 3
 
 pubKey1, pubKey2, pubKey3 :: PubKey
 pubKey1 = walletPubKey wallet1

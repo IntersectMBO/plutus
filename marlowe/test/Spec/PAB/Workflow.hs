@@ -7,8 +7,8 @@
 
 module Spec.PAB.Workflow where
 
-import           Cardano.Wallet.Client               (createWallet)
-import           Cardano.Wallet.Types                (wiPubKeyHash, wiWallet)
+import           Cardano.Wallet.Mock.Client          (createWallet)
+import           Cardano.Wallet.Mock.Types           (wiPubKeyHash, wiWallet)
 import           Control.Concurrent.Async            (async)
 import           Control.Monad                       (guard, join, void)
 import qualified Data.Aeson                          as Aeson
@@ -39,7 +39,7 @@ import           Wallet.Types                        (ContractInstanceId (..), E
 
 import           Network.Socket                      (withSocketsDo)
 
-import qualified Cardano.Wallet.Types                as Wallet.Types
+import qualified Cardano.Wallet.Mock.Types           as Wallet.Types
 import           Control.Concurrent                  (threadDelay)
 import           Data.Aeson                          (decode)
 import           Data.ByteString.Builder             (toLazyByteString)
@@ -67,7 +67,7 @@ startPab pabConfig = do
   let mc = Just pabConfig
   -- First, migrate.
   void . async $ runWithOpts handler mc (opts {cmd = Migrate})
-  sleep 1
+  sleep 10
 
   -- Then, spin up the services.
   void . async $ runWithOpts handler mc opts
@@ -140,14 +140,14 @@ marloweCompanionFollowerContractExample = do
       hash   = wiPubKeyHash walletInfo
       args   = createArgs hash hash
 
-  companionContractId <- runApi $ activateContract $ ContractActivationArgs { caID = WalletCompanion, caWallet = wallet }
-  marloweContractId    <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweApp, caWallet = wallet }
+  companionContractId <- runApi $ activateContract $ ContractActivationArgs { caID = WalletCompanion, caWallet = Just wallet }
+  marloweContractId    <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweApp, caWallet = Just wallet }
 
   sleep 2
 
   runApi $ callEndpointOnInstance marloweContractId "create" args
 
-  followerId <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweFollower, caWallet = wallet }
+  followerId <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweFollower, caWallet = Just wallet }
 
   sleep 2
 

@@ -27,7 +27,6 @@ module Plutus.PAB.Webserver.WebSocket
     , observableStateChange
     ) where
 
-import qualified Cardano.Wallet.Mock                     as Mock
 import           Control.Concurrent.Async                (Async, async, waitAnyCancel)
 import           Control.Concurrent.STM                  (STM)
 import qualified Control.Concurrent.STM                  as STM
@@ -114,10 +113,7 @@ slotChange = unfold . Instances.currentSlot
 walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
 -- TODO: Change from 'Wallet' to 'Address' (see SCP-2208)
 walletFundsChange wallet blockchainEnv =
-    let addr = if Wallet.isEmulatorWallet wallet
-                then Wallet.walletAddress wallet
-                else Ledger.pubKeyHashAddress (Mock.walletPubKey wallet)
-    in unfold (Instances.valueAt addr blockchainEnv)
+    unfold (Instances.valueAt (Wallet.walletAddress wallet) blockchainEnv)
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
 observableStateChange contractInstanceId instancesState =

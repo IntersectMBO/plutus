@@ -76,7 +76,7 @@ instance decodeWalletInfo :: Decode WalletInfo where
   decode value = genericDecode defaultOptions value
 
 newtype Wallet
-  = Wallet BigInteger
+  = Wallet String
 
 derive instance newtypeWallet :: Newtype Wallet _
 

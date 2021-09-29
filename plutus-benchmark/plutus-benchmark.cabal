@@ -24,12 +24,10 @@ source-repository head
 common lang
   default-language: Haskell2010
   ghc-options:
-    -fno-strictness
     -fno-specialise
     -fno-spec-constr
     -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
-    -fno-worker-wrapper
   ghc-options:
      -Wall -Wnoncanonical-monad-instances -Wunused-packages
      -Wincomplete-uni-patterns -Wincomplete-record-updates

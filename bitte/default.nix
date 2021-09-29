@@ -11,23 +11,19 @@ in
   plutus-playground-server-entrypoint = pkgs.callPackage ./plutus-playground-server.nix {
     variant = "plutus";
     pkg = plutus-playground.server;
-    port = 4003;
   };
   plutus-playground-client-entrypoint = playgroundStatic {
     client = plutus-playground.client;
     variant = "plutus";
-    port = 8081;
   };
 
   marlowe-playground-server-entrypoint = pkgs.callPackage ./plutus-playground-server.nix {
     variant = "marlowe";
     pkg = marlowe-playground.server;
-    port = 4004;
   };
   marlowe-playground-client-entrypoint = playgroundStatic {
     client = marlowe-playground.client;
     variant = "marlowe";
-    port = 8087;
   };
 
   marlowe-run-entrypoint = pkgs.callPackage ./pab.nix {
@@ -37,6 +33,5 @@ in
 
   marlowe-website-entrypoint = staticSite {
     root = marlowe-web;
-    port = 8088;
   };
 }

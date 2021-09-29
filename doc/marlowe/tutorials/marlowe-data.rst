@@ -3,10 +3,14 @@
 The Marlowe data types
 ======================
 
-This tutorial formally introduces Marlowe as a Haskell data type, as
-well as presenting the different types used by the model, and discussing
+This tutorial formally introduces Marlowe as a Haskell data type, as well as
+presenting the different types used by the model, and discussing
 a number of assumptions about the infrastructure in which contracts will
-be run. The code that we describe here comes from the Haskell modules
+be run. It also introduces *Extended Marlowe* which we use for describing *contract templates* in Marlowe.
+
+The code that we describe here comes from the Haskell modules
+`SemanticsTypes.hs <https://github.com/input-output-hk/marlowe/blob/master/src/Language/Marlowe/SemanticsTypes.hs>`_
+,
 `Semantics.hs <https://github.com/input-output-hk/marlowe/blob/master/src/Language/Marlowe/Semantics.hs>`_
 and
 `Util.hs <https://github.com/input-output-hk/marlowe/blob/master/src/Language/Marlowe/Util.hs>`_.
@@ -14,7 +18,7 @@ and
 Marlowe
 -------
 
-The Marlowe domain-specific language (DSL) is modelled as a collection
+The Marlowe domain-specific language (DSL) is modelled as used above, a collection
 of algebraic types in Haskell, with contracts being given by the
 ``Contract`` type:
 
@@ -42,56 +46,56 @@ In modelling basic parts of Marlowe we use a combination of Haskell
 ``data`` types, that define *new* types, and ``type`` synonyms that give
 a new name to an existing type. [1]_
 
-A Marlowe Account holds amounts of multiple currencies and/or fungible
-and non-fungible tokens. A concrete amount is indexed by a ``Token``,
-which is a pair of ``CurrencySymbol`` and ``TokenName``. You can think
-of an Account as a ``Map Token Integer``, where
+A ``Party`` to a contract is represented as used above, either a public key or a role name.
 
 .. code:: haskell
 
-   data Token = Token CurrencySymbol TokenName
+   data Party = PubKey ByteString
+              | Role   ByteString
 
-Cardano’s Ada token is ``Token adaSymbol adaToken``. But you are free to
-create your own currencies and tokens.
+In order to progress a Marlowe contract, a party must provide an
+evidence. For ``PubKey`` party that would be a valid signature of a
+transaction signed by a private key of the public key, similarly to Bitcoin’s
+``Pay to Public Key Hash`` mechanism. For a ``Role`` party the evidence
+is spending a *role token* within the same transaction, usually to the
+same owner.
 
-Tokens of a currency can represent roles in a contract, e.g "buyer" and
-"seller". Think of a legal contract in the sense of "hereafter referred
-to as the Performer/Vendor/Artist/Consultant". This way we can decouple
+``Role`` parties will look like ``Role "alice"``, ``Role "bob"``
+and so on. However, Haskell allows us to present and read in these
+values more concisely (by declaring a custom instance of ``Show`` and
+using *overloaded strings*) so that these can be input and read as used above,
+``"alice"``, ``"bob"`` etc.
+
+A Marlowe *account* holds amounts of multiple currencies and/or fungible
+and non-fungible tokens. A concrete amount is indexed by a ``Token``,
+which is a pair of a *currency symbol* and a *token name*, both given by a ``ByteString``. 
+
+.. code:: haskell
+
+   data Token = Token ByteString ByteString
+
+Cardano’s Ada token is 
+
+.. code:: haskell
+ 
+   ada = Token adaSymbol adaToken
+   
+But you are free to create your own currencies and tokens using the native token facility of Cardano.   
+You can think
+of an Account as used above, a map from ``Token`` to ``Integer`` and so all the accounts in a contracts can be modelled like this:
+
+.. code:: haskell
+
+   type Accounts = Map (AccountId, Token) Integer
+
+Tokens of a currency can represent roles in a contract, e.g ``"buyer"`` and
+``"seller"``. Think of a legal contract in the sense of "hereafter referred
+to as used above, the Performer/Vendor/Artist/Consultant". This way we can decouple
 the notion of ownership of a contract role, and make it tradable. So you
 can sell your loan or buy a share of a role in some contract.
 
-::
-
-   tradeRoles = CurrencySymbol "TradeRoles"
-   buyer = TokenName "buyer"
-   seller = TokenName "seller"
-   account = fromList[(Token tradeRoles buyer, 1), (ada 1000)]
-
-Here ``account`` holds a ``buyer`` token of currency "TradeRoles", and
-1000 lovelace.
-
-A ``Party`` is represented as either a public key hash or a role name.
-
-.. code:: haskell
-
-   data Party  = PK PubKeyHash | Role TokenName
-
-In order to progress a Marlowe contract, a party must provide an
-evidence. For ``PK`` party that would be a valid signature of a
-transaction signed by a private key of a public key that hashes to
-party’s ``PubKeyHash``, similarly to Bitcoin’s
-``Pay to Public Key Hash`` mechanism. For a ``Role`` party the evidence
-is spending a ``role token`` within the same transaction, usually to the
-same owner.
-
-So, ``Role`` parties will look like ``(Role "alice")``, ``(Role "bob")``
-and so on. However, Haskell allows us to present and read in these
-values more concisely (by declaring a custom instance of ``Show`` and
-using *overloaded strings*) so that these can be input and read as
-``"alice"``, ``"bob"`` etc.
-
 Slot numbers and amounts of money are treated in a similar way; with the
-same show/overload approach they will appear in contracts as numbers:
+same show/overload approach as used above, they will appear in contracts as numbers:
 
 .. code:: haskell
 
@@ -121,11 +125,11 @@ name for the choice with the ``Party`` who had made the choice:
    data ChoiceId   = ChoiceId ChoiceName Party
    type ChosenNum  = Integer
 
-Values, as defined using ``Let`` are also identified by integers. [2]_
+Values defined using ``Let`` are identified by text strings. [2]_
 
 .. code:: haskell
 
-   data ValueId    = ValueId Integer
+   data ValueId    = ValueId Text
 
 Values, observations and actions
 --------------------------------
@@ -143,6 +147,7 @@ cases. First, looking at ``Value`` we have
               | AddValue Value Value
               | SubValue Value Value
               | MulValue Value Value
+              | DivValue Value Value
               | Scale Rational Value
               | ChoiceValue ChoiceId
               | SlotIntervalStart
@@ -222,6 +227,36 @@ Three kinds of action are possible:
 This completes our discussion of the types that make up Marlowe
 contracts.
 
+Extended Marlowe
+----------------
+
+Extended Marlowe adds templating functionality to Marlowe language, so that constants need not be “hard wired”
+into Marlowe contracts, but can be replaced by *parameters*. 
+Objects in Extended Marlowe are called *templates* or *contract templates*.
+
+
+Specifically, Extended Marlowe extends the ``Value``
+type with these parameter values:
+
+.. code:: haskell
+
+   ConstantParam "string"
+
+which can be used in forming more complex values just in the same way as constants. Similarly the ``Slot`` type is
+extended with these values:
+
+.. code:: haskell
+
+   SlotParam "string"
+
+Extended Marlowe is not directly executable, it has to be translated to core Marlowe before
+execution, deployment, or analysis, through the process of *instantiation*.
+The purpose of Extended Marlowe is to allow Marlowe contracts to be reusable
+in different situations without cluttering the code that goes on-chain
+(core Marlowe). In Marlowe Run and the Marlowe Playground templates need to be instantiated before
+being run or simulated, respectively.
+
+
 Transactions
 ------------
 
@@ -242,20 +277,24 @@ where the types are defined like this:
 
 .. code:: haskell
 
-   data TransactionInput = TransactionInput
-       { txInterval :: SlotInterval
-       , txInputs   :: [Input] }
+   data TOR = TOR { txOutWarnings :: [TransactionWarning]
+                  , txOutPayments :: [Payment]
+                  , txOutState    :: State
+                  , txOutContract :: Contract }
+               deriving (Eq,Ord,Show,Read)
 
    data TransactionOutput =
-       TransactionOutput
-           { txOutWarnings :: [ReduceWarning]
-           , txOutPayments :: [Payment]
-           , txOutState    :: State
-           , txOutContract :: Contract }
-       | Error TransactionError
+      TransactionOutput TOR
+    | Error TransactionError
+   deriving (Eq,Ord,Show,Read)
+
+   data TransactionInput = TransactionInput
+         { txInterval :: SlotInterval
+         , txInputs   :: [Input] }
+      deriving (Eq,Ord,Show,Read)
 
 The notation used here adds field names to the arguments of the
-constructors, giving selectors for the data as well as making in clearer
+constructors, giving selectors for the data (as used above), as well as making clearer
 the purpose of each field.
 
 The ``TransactionInput`` type has two components: the ``SlotInterval``
@@ -292,10 +331,10 @@ processed relative to a slot interval, and the current slot value needs
 to lie within that interval.
 
 The endpoints of the interval are accessible as the values
-``SlotIntervalStart`` and ``SlotIntervalEnd``, and these can be used in
-observations. Timeouts need to be processed *unambiguously*, so that
-*all values in the slot interval* have to either have exceeded the
-timeout for it to take effect, or fall before the timeout, for normal
+``SlotIntervalStart`` and ``SlotIntervalEnd`` (as used above), and these
+can be used in observations. Timeouts need to be processed *unambiguously*,
+so that *all values in the slot interval* have to either have exceeded
+the timeout for it to take effect, or fall before the timeout, for normal
 execution to take effect. In other words, the timeout value needs to
 either be less or equal than ``SlotIntervalStart`` (in order for the
 timeout to take effect) or be strictly greater than ``SlotIntervalEnd``

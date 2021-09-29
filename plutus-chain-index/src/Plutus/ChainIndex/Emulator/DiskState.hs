@@ -10,32 +10,31 @@ used in the emulator.
 module Plutus.ChainIndex.Emulator.DiskState(
     DiskState
     , dataMap
-    , validatorMap
-    , mintingPolicyMap
-    , stakeValidatorMap
+    , scriptMap
     , redeemerMap
     , txMap
     , addressMap
     , fromTx
     , CredentialMap
     , unCredentialMap
+    , diagnostics
 ) where
 
-import           Control.Lens           (At (..), Index, IxValue, Ixed (..), lens, makeLenses, view, (&), (.~), (^.))
-import           Data.Bifunctor         (Bifunctor (..))
-import           Data.Map               (Map)
-import qualified Data.Map               as Map
-import           Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import           Data.Set               (Set)
-import qualified Data.Set               as Set
-import           GHC.Generics           (Generic)
-import           Ledger                 (Address (..), TxOut (..), TxOutRef)
-import           Ledger.Credential      (Credential)
-import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
-                                         StakeValidator, StakeValidatorHash, Validator, ValidatorHash)
-import           Ledger.TxId            (TxId)
-import           Plutus.ChainIndex.Tx   (ChainIndexTx (..), citxData, citxMintingPolicies, citxRedeemers,
-                                         citxStakeValidators, citxTxId, citxValidators, txOutsWithRef)
+import           Control.Lens            (At (..), Index, IxValue, Ixed (..), lens, makeLenses, view, (&), (.~), (^.))
+import           Data.Bifunctor          (Bifunctor (..))
+import           Data.Map                (Map)
+import qualified Data.Map                as Map
+import           Data.Semigroup.Generic  (GenericSemigroupMonoid (..))
+import           Data.Set                (Set)
+import qualified Data.Set                as Set
+import           GHC.Generics            (Generic)
+import           Ledger                  (Address (..), Script, ScriptHash, TxOut (..), TxOutRef)
+import           Ledger.Credential       (Credential)
+import           Ledger.Scripts          (Datum, DatumHash, Redeemer, RedeemerHash)
+import           Ledger.TxId             (TxId)
+import           Plutus.ChainIndex.Tx    (ChainIndexTx (..), citxData, citxRedeemers, citxScripts, citxTxId,
+                                          txOutsWithRef)
+import           Plutus.ChainIndex.Types (Diagnostics (..))
 
 -- | Set of transaction output references for each address.
 newtype CredentialMap = CredentialMap { _unCredentialMap :: Map Credential (Set TxOutRef) }
@@ -71,13 +70,11 @@ txCredentialMap  =
 --   other structures for the disk-backed storage)
 data DiskState =
     DiskState
-        { _DataMap           :: Map DatumHash Datum
-        , _ValidatorMap      :: Map ValidatorHash Validator
-        , _MintingPolicyMap  :: Map MintingPolicyHash MintingPolicy
-        , _StakeValidatorMap :: Map StakeValidatorHash StakeValidator
-        , _RedeemerMap       :: Map RedeemerHash Redeemer
-        , _TxMap             :: Map TxId ChainIndexTx
-        , _AddressMap        :: CredentialMap
+        { _DataMap     :: Map DatumHash Datum
+        , _ScriptMap   :: Map ScriptHash Script
+        , _RedeemerMap :: Map RedeemerHash Redeemer
+        , _TxMap       :: Map TxId ChainIndexTx
+        , _AddressMap  :: CredentialMap
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid DiskState)
@@ -89,10 +86,17 @@ fromTx :: ChainIndexTx -> DiskState
 fromTx tx =
     DiskState
         { _DataMap = view citxData tx
-        , _ValidatorMap = view citxValidators tx
-        , _MintingPolicyMap = view citxMintingPolicies tx
-        , _StakeValidatorMap = view citxStakeValidators tx
+        , _ScriptMap = view citxScripts tx
         , _TxMap = Map.singleton (view citxTxId tx) tx
         , _RedeemerMap = view citxRedeemers tx
         , _AddressMap = txCredentialMap tx
+        }
+
+diagnostics :: DiskState -> Diagnostics
+diagnostics DiskState{_DataMap, _ScriptMap, _TxMap, _RedeemerMap, _AddressMap} =
+    Diagnostics
+        { numTransactions = toInteger $ Map.size _TxMap
+        , numScripts = toInteger $ Map.size _ScriptMap
+        , numAddresses = toInteger $ Map.size $ _unCredentialMap _AddressMap
+        , someTransactions = take 10 $ fmap fst $ Map.toList _TxMap
         }

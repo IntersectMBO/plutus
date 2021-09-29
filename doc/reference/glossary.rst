@@ -47,6 +47,10 @@ Glossary
     datum
       The data field on script outputs in the Extended UTXO model.
 
+    emulator
+      An in-process (single thread) emulated blockchain for testing and
+      analysing Plutus apps.
+
     endpoint
       A potential request made by a contract application for user input. Every endpoint has a name and a type.
 
@@ -110,6 +114,7 @@ Glossary
     Plutus Application
       An application written using the Plutus Application Framework.
 
+    pab
     Plutus Application Backend (PAB)
       The component which manages Plutus Applications that run on users' machines.
       It handles:
@@ -162,6 +167,10 @@ Glossary
       The argument to the validator script which is provided by the
       transaction which spends a script output.
 
+    rollback
+      The result of the local node switching to the consensus chain.
+      See :ref:`what_is_a_rollback`
+
     schema
       The set of all endpoints of a contract application.
 
@@ -175,12 +184,19 @@ Glossary
     token
       A generic term for a native tradeable asset in the ledger.
 
-    UTXO
-      An "unspent transaction output". Transactions produce these, and they
+    transaction output
+      Outputs produced by transactions. They
       are consumed when they are spent by another transaction. Typically,
       some kind of evidence is required to be able to spend a UTXO, such as
       a signature from a public key, or (in the Extended UTXO Model)
       satisfying a script.
+
+    UTXO
+      An unspent :term:`transaction output`
+
+    utxo congestion
+      The effect of multiple transactions attempting to spend the same
+      :term:`transaction output`. See :ref:`utxo_congestion`
 
     validator script
       The script attached to a script output in the Extended UTXO model.

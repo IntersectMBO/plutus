@@ -51,7 +51,7 @@ data TypeBuiltinG : Set where
   TyBoolG        : TypeBuiltinG
   TyUnitG        : TypeBuiltinG
   TyStringG      : TypeBuiltinG
-  TyListG        : TypeBuiltinG
+  TyListG        : TypeBuiltinG → TypeBuiltinG
   TyDataG        : TypeBuiltinG
 
 {-# COMPILE AGDA2HS TypeBuiltinG deriving (Show, Eq, Ord) #-}
