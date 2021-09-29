@@ -34,7 +34,7 @@ type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 benchCek :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @UPLC.FreeVariableError $ runQuoteT $ UPLC.unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCekNoEmit defaultCekParameters) t'
+    Right t' -> whnf (unsafeEvaluateCekNoEmit defaultCekParameters) t'
 
 
 {-# INLINABLE rev #-}
