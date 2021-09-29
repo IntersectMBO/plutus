@@ -83,13 +83,13 @@ source-repository-package
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
   type: git
-  location: https://github.com/shmish111/purescript-bridge.git
+  location: https://github.com/input-output-hk/purescript-bridge.git
   tag: 6a92d7853ea514be8b70bab5e72077bf5a510596
 
 source-repository-package
   type: git
-  location: https://github.com/ak3n/servant-purescript.git
-  tag: 7282d8a545c85cbfa7a97322e254ceb7ddb5cd00
+  location: https://github.com/input-output-hk/servant-purescript.git
+  tag: a0c7c7e37c95564061247461aef4be505a853538
 
 source-repository-package
   type: git
