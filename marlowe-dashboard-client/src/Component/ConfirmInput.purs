@@ -96,18 +96,16 @@ summary input@{ action, contractState } =
                 _ -> text ""
             ]
         , box Box.NoSpace [ "pt-4" ]
-            $ slot
-                (SProxy :: _ "expandSlot")
-                "resultingActions"
-                Expand.component
-                { initial: Expand.Closed
-                , render: \{ toggle, state } -> rusults input toggle state
-                }
-                (const Nothing)
+            $ Expand.expand_ "resultingAction" Expand.Closed (results input)
         ]
 
-rusults :: forall w i. Input -> i -> Expand.State -> HTML w i
-rusults { action, contractState, currentSlot } toggle = case _ of
+results ::
+  forall m.
+  Monad m =>
+  Input ->
+  Expand.State ->
+  Expand.ComponentHTML ChildSlots Void m
+results { action, contractState, currentSlot } = case _ of
   Expand.Opened ->
     layout Icon.ExpandLess
       $ box Box.Card []
@@ -126,7 +124,7 @@ rusults { action, contractState, currentSlot } toggle = case _ of
     column Column.Snug []
       $ [ row Row.Between [ "items-center" ]
             [ heading H4 [] [ text $ show count <> " resulting actions" ]
-            , iconButton icon $ Just toggle
+            , iconButton icon $ Just Expand.toggle
             ]
         ]
       <> children

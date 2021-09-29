@@ -1,11 +1,52 @@
 module Component.Expand
   ( component
-  , module Component.Expand.Types
+  , expand
+  , expand_
+  , toggle
+  , module Types
   ) where
 
 import Prologue
-import Component.Expand.Types (Component, Input, Query(..), Slot, State(..))
+import Component.Expand.State (handleAction, handleQuery, initialState)
+import Component.Expand.Types (Action(..), Component, ComponentHTML, Slot, State)
+import Component.Expand.Types (Action, Component, ComponentHTML, Input, Query(..), Slot, State(..)) as Types
+import Data.Symbol (SProxy(..))
 import Halogen as H
+import Halogen.HTML as HH
+
+expandSlot :: SProxy "expandSlot"
+expandSlot = SProxy
+
+expand ::
+  forall slots slot m parentAction parentSlots.
+  Ord slot =>
+  Monad m =>
+  slot ->
+  State ->
+  (State -> ComponentHTML parentSlots parentAction m) ->
+  H.ComponentHTML parentAction ( expandSlot :: Slot parentAction slot | slots ) m
+expand slot initial render =
+  HH.slot
+    expandSlot
+    slot
+    component
+    { initial, render }
+    Just
+
+expand_ ::
+  forall slots slot m parentAction parentSlots.
+  Ord slot =>
+  Monad m =>
+  slot ->
+  State ->
+  (State -> ComponentHTML parentSlots Void m) ->
+  H.ComponentHTML parentAction ( expandSlot :: Slot Void slot | slots ) m
+expand_ slot initial render =
+  HH.slot expandSlot slot component
+    { initial
+    , render
+    }
+    $ const Nothing
 
 component ::
   forall parentSlots parentAction m.
@@ -14,7 +55,7 @@ component ::
 component =
   H.mkComponent
     { initialState
-    , render: \state -> state.render { raise: Raise, toggle: Toggled, state: state.state }
+    , render: \{ render, state } -> render state
     , eval:
         H.mkEval
           H.defaultEval
@@ -24,65 +65,11 @@ component =
             }
     }
 
-data Action parentSlots parentAction m
-  = Toggled
-  | Raise parentAction
-  | Receive (Input parentSlots parentAction m)
+toggle :: forall parentSlots parentAction m. Action parentSlots parentAction m
+toggle = AToggle
 
-type InnerState parentSlots parentAction m
-  = { state :: State
-    , render ::
-        forall a.
-        { state :: State, toggle :: a, raise :: parentAction -> a } ->
-        H.ComponentHTML a parentSlots m
-    }
-
-type DSL parentSlots parentAction m a
-  = H.HalogenM (InnerState parentSlots parentAction m)
-      ( Action parentSlots
-          parentAction
-          m
-      )
-      parentSlots
-      parentAction
-      m
-      a
-
-initialState ::
+raise ::
   forall parentSlots parentAction m.
-  Input parentSlots parentAction m ->
-  InnerState parentSlots parentAction m
-initialState input =
-  { state: input.initial
-  , render: input.render
-  }
-
-handleQuery ::
-  forall parentSlots parentAction m a.
-  Monad m =>
-  Query a ->
-  DSL parentSlots parentAction m (Maybe a)
-handleQuery = case _ of
-  Open a -> do
-    void $ H.modify _ { state = Opened }
-    pure $ Just a
-  Close a -> do
-    void $ H.modify _ { state = Closed }
-    pure $ Just a
-  Toggle a -> do
-    handleAction Toggled
-    pure $ Just a
-  IsOpen k -> Just <<< k <$> H.gets _.state
-
-handleAction ::
-  forall parentSlots parentAction m.
-  Monad m =>
-  Action parentSlots parentAction m ->
-  DSL parentSlots parentAction m Unit
-handleAction = case _ of
-  Toggled ->
-    H.modify_ case _ of
-      state@{ state: Opened } -> state { state = Closed }
-      state -> state { state = Opened }
-  Raise input -> H.raise input
-  Receive { render } -> void $ H.modify _ { render = render }
+  parentAction ->
+  Action parentSlots parentAction m
+raise = Raise

@@ -57,7 +57,7 @@ type ChildSlots
     , hintSlot :: forall query. H.Slot query Void String
     , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
     , lifeCycleSlot :: forall query. H.Slot query LifecycleEvent String
-    , expandSlot :: forall action. Expand.Slot action String
+    , expandSlot :: Expand.Slot Void String
     )
 
 ------------------------------------------------------------
