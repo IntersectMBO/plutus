@@ -481,7 +481,7 @@ executable pir
 benchmark cost-model-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0
-    main-is: Bench.hs
+    main-is: Main.hs
     other-modules:
         Common
         CriterionExtensions
