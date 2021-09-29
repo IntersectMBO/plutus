@@ -68,5 +68,3 @@ makeBenchmarks _gen =  [benchVerifySignature]
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
 -- 2.82 times longer than Blake2b.  All are (very) linear in the size of the
 -- input.
-
-
