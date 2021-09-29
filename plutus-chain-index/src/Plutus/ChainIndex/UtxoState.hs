@@ -25,6 +25,7 @@ module Plutus.ChainIndex.UtxoState(
     , fromTx
     , isUnspentOutput
     , tip
+    , viewTip
     , unspentOutputs
     -- * Extending the UTXO index
     , InsertUtxoPosition(..)
@@ -35,7 +36,7 @@ module Plutus.ChainIndex.UtxoState(
     , RollbackFailed(..)
     , RollbackResult(..)
     , rollback
-    , viewTip
+    , rollbackWith
     -- * Limit the UTXO index size
     , ReduceBlockCountResult(..)
     , reduceBlockCount
@@ -173,9 +174,17 @@ data RollbackResult a =
 rollback :: Point
          -> UtxoIndex TxUtxoBalance
          -> Either RollbackFailed (RollbackResult TxUtxoBalance)
-rollback PointAtGenesis (viewTip -> TipAtGenesis) = Right (RollbackResult TipAtGenesis mempty)
-rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
-rollback targetPoint idx@(viewTip -> currentTip)
+rollback = rollbackWith const
+
+rollbackWith
+    :: Monoid a
+    => (UtxoIndex a -> UtxoIndex a -> UtxoIndex a)
+    -> Point
+    -> UtxoIndex a
+    -> Either RollbackFailed (RollbackResult a)
+rollbackWith _ PointAtGenesis (viewTip -> TipAtGenesis) = Right (RollbackResult TipAtGenesis mempty)
+rollbackWith _ _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
+rollbackWith f targetPoint idx@(viewTip -> currentTip)
     -- Already at the target point
     |  targetPoint `pointsToTip` currentTip =
         Right RollbackResult{newTip=currentTip, rolledBackIndex=idx}
@@ -183,12 +192,12 @@ rollback targetPoint idx@(viewTip -> currentTip)
     | not (targetPoint `pointLessThanTip` currentTip) =
         Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
-        let before = FT.takeUntil ((targetPoint `pointLessThanTip`) . tip . snd) idx
+        let (before, after) = FT.split ((targetPoint `pointLessThanTip`) . tip . snd) idx
 
-        case tip (utxoState before) of
+        case viewTip before of
             TipAtGenesis -> Left $ OldPointNotFound targetPoint
             oldTip | targetPoint `pointsToTip` oldTip ->
-                       Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
+                       Right RollbackResult{newTip=oldTip, rolledBackIndex=f before after}
                    | otherwise                        ->
                        Left  TipMismatch{foundTip=oldTip, targetPoint=targetPoint}
     where
