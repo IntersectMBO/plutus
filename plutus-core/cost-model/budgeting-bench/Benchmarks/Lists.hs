@@ -13,9 +13,9 @@ import           System.Random   (StdGen)
 
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
-   behaviour of the list functions should be independent of the size of the
-   arguments (and in fact constant), but we benchmark them with both integer
-   and bytestring lists for confirmation. -}
+   behaviour of the list functions should be independent of the sizes and types
+   of the arguments (and in fact constant), but we benchmark them with both
+   integer and bytestring lists for confirmation. -}
 
 makeListOfSizedIntegers :: StdGen -> Int -> Int -> ([Integer], StdGen)
 makeListOfSizedIntegers gen count size = makeSizedIntegers gen (take count $ repeat size)
@@ -50,9 +50,9 @@ nonEmptyByteStringLists seed = makeListOfByteStringLists seed [(count,size) | co
 
 
 -- chooseList l a b = case l of [] -> a | _ -> b
--- This is presumably constant time, but we should check.  Let's look at a
--- subset of the sample lists and give each one several choices of bytestring
--- results of different sizes.
+-- We expect this to be constant time, but check anyway.  We look at a subset of
+-- the sample lists and give each one several choices of bytestring results of
+-- different sizes.
 benchChooseList :: StdGen -> Benchmark
 benchChooseList gen =
     let name = ChooseList
