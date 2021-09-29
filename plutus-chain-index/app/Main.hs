@@ -70,7 +70,7 @@ runChainIndex
   -> STM.TVar ChainIndexState
   -> Sqlite.Connection
   -> Eff ChainIndexEffects a
-  -> IO a
+  -> IO (Maybe a)
 runChainIndex trace mState conn effect = do
   -- First run the STM block capturing all log messages emited on a
   -- successful STM transaction.
@@ -89,14 +89,14 @@ runChainIndex trace mState conn effect = do
     & runM
   (result, logMessages) <- case errOrResult of
       Left err ->
-        pure (pure undefined, LogMessage Error (Err err) <| logMessages')
+        pure (Nothing, LogMessage Error (Err err) <| logMessages')
       Right (result, newState) -> do
         STM.atomically $ STM.writeTVar mState newState
-        pure (pure result, logMessages')
+        pure (Just result, logMessages')
   -- Log all previously captured messages
   traverse_ (send . LMessage) logMessages
     & runLogEffects trace
-  result
+  pure result
 
 chainSyncHandler
   :: Trace IO ChainIndexLog
@@ -124,8 +124,7 @@ chainSyncHandler trace mState conn
   (Resume point) _ = do
     putStr "Resuming from "
     print point
-    newState <- runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
-    STM.atomically $ STM.writeTVar mState newState
+    void $ runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
 
 showResumePoints :: [ChainPoint] -> String
 showResumePoints = \case
@@ -171,13 +170,15 @@ main = do
 
       Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
 
+        -- Optimize Sqlite for write performance, halves the sync time.
+        -- https://sqlite.org/wal.html
         Sqlite.execute_ conn "PRAGMA journal_mode=WAL"
 
         Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb
 
         appState <- STM.newTVarIO mempty
-        resumePoints <- runChainIndex trace appState conn getResumePoints
+        Just resumePoints <- runChainIndex trace appState conn getResumePoints
 
         putStr "\nPossible resume slots: "
         putStrLn $ showResumePoints resumePoints
