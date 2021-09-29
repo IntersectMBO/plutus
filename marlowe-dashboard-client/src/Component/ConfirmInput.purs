@@ -16,7 +16,7 @@ import Component.Link (link)
 import Component.Row (row)
 import Component.Row as Row
 import Component.Transfer (transfer)
-import Component.Transfer.Types (Account(..), Owner(..), Transfer(..), Wallet(..)) as Transfer
+import Component.Transfer.Types (Termini(..), Participant)
 import Contacts.State (getAda)
 import Contract.State (currentStep, toInput)
 import Contract.Types (Action(..))
@@ -76,12 +76,14 @@ summary input@{ action } =
                     <> " summary"
                 ]
             , box Box.Card [] case action of
-                MakeDeposit recipient sender _ amount ->
+                MakeDeposit recipient sender token quantity ->
                   transfer
-                    $ Transfer.WalletToAccount
-                        (Transfer.Wallet sender $ toOwner input sender)
-                        (Transfer.Account recipient $ toOwner input recipient)
-                        amount
+                    { sender: toParticipant input sender
+                    , recipient: toParticipant input recipient
+                    , token
+                    , quantity
+                    , termini: WalletToAccount sender recipient
+                    }
                 MakeChoice (Semantics.ChoiceId key _) _ _ ->
                   row Row.Between []
                     [ span [ classNames [ "font-semibold", "text-sm" ] ]
@@ -135,15 +137,19 @@ rusults input@{ action, contractState, currentSlot } toggle = case _ of
   payment (Semantics.Payment sender payee money) =
     transfer case payee of
       Semantics.Party recipient ->
-        Transfer.AccountToWallet
-          (Transfer.Account sender $ toOwner input recipient)
-          (Transfer.Wallet recipient $ toOwner input recipient)
-          $ getAda money
+        makeTransfer recipient
+          $ AccountToWallet sender recipient
       Semantics.Account recipient ->
-        Transfer.AccountToAccount
-          (Transfer.Account sender $ toOwner input recipient)
-          (Transfer.Account recipient $ toOwner input recipient)
-          $ getAda money
+        makeTransfer recipient
+          $ AccountToAccount sender recipient
+    where
+    makeTransfer recipient termini =
+      { sender: toParticipant input sender
+      , recipient: toParticipant input recipient
+      , token: (Token "" "")
+      , quantity: getAda money
+      , termini
+      }
 
   contract = contractState.executionState.contract
 
@@ -166,12 +172,16 @@ rusults input@{ action, contractState, currentSlot } toggle = case _ of
 
   count = length payments + if willClose then 1 else 0
 
-toOwner :: Input -> Semantics.Party -> Transfer.Owner
-toOwner { contractState: { participants, userParties }, userNickname } party =
+toParticipant :: Input -> Semantics.Party -> Participant
+toParticipant { contractState: { participants, userParties }, userNickname } party =
   if Set.member party userParties then
-    Transfer.CurrentUser userNickname
+    { nickname: Just userNickname
+    , isCurrentUser: true
+    }
   else
-    Transfer.OtherUser $ join $ Map.lookup party $ participants
+    { nickname: join $ Map.lookup party $ participants
+    , isCurrentUser: false
+    }
 
 confirmation :: forall w. Input -> HTML w Action
 confirmation { action, transactionFeeQuote, walletBalance } =

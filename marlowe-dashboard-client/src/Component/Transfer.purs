@@ -8,77 +8,50 @@ import Component.Column (column)
 import Component.Column as Column
 import Component.Row (row)
 import Component.Row as Row
-import Component.Transfer.Types (Account(..), Owner(..), Transfer(..), Wallet(..))
+import Component.Transfer.Types (Participant, Termini(..), Transfer)
 import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..))
 import Data.String.Extra (capitalize, endsWith)
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, span, text)
-import Marlowe.Semantics (Party(..), Token(..))
+import Marlowe.Semantics (Party(..))
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon)
 
 transfer :: forall w i. Transfer -> HTML w i
-transfer = case _ of
-  AccountToAccount (Account fromParty fromOwner) (Account toParty toOwner) quantity ->
-    layout
-      fromParty
-      fromOwner
-      "account"
-      toParty
-      toOwner
-      "account"
-      quantity
-  AccountToWallet (Account fromParty fromOwner) (Wallet toParty toOwner) quantity ->
-    layout
-      fromParty
-      fromOwner
-      "account"
-      toParty
-      toOwner
-      "wallet"
-      quantity
-  WalletToAccount (Wallet fromParty fromOwner) (Account toParty toOwner) quantity ->
-    layout
-      fromParty
-      fromOwner
-      "wallet"
-      toParty
-      toOwner
-      "account"
-      quantity
+transfer { sender, recipient, token, quantity, termini } = case termini of
+  AccountToAccount from to -> layout from "account" to "account"
+  AccountToWallet from to -> layout from "account" to "wallet"
+  WalletToAccount from to -> layout from "wallet" to "account"
   where
-  layout fromParty fromOwner fromAccountType toParty toOwner toAccountType quantity =
+  layout from fromLabel to toLabel =
     column Column.Cramped [ "border-l-2", "px-2" ]
-      [ account fromParty fromOwner fromAccountType
+      [ account from sender fromLabel
       , row Row.Snug [ "px-1", "items-center" ]
           [ icon Icon.South [ "text-purple", "text-xs", "font-semibold" ]
-          , amount (Token "" "") quantity [ "text-xs", "text-green" ]
+          , amount token quantity [ "text-xs", "text-green" ]
           ]
-      , account toParty toOwner toAccountType
+      , account to recipient toLabel
       ]
 
 -- TODO add read more icon and figure out action. Should it open the contact in
 -- the contacts menu?
-account :: forall w i. Party -> Owner -> String -> HTML w i
-account party owner accountTypeLabel =
+account :: forall w i. Party -> Participant -> String -> HTML w i
+account party { nickname, isCurrentUser } accountTypeLabel =
   row Row.Cramped [ "items-center" ]
     [ avatar
-        { nickname:
-            case owner of
-              CurrentUser nickname -> nickname
-              OtherUser nickname -> fromMaybe defaultName nickname
+        { nickname: fromMaybe defaultName nickname
         , background: [ "bg-gradient-to-r", "from-purple", "to-lightpurple" ]
         , size: Avatar.Small
         }
     , span [ classNames [ "text-xs" ] ]
         [ text
             $ capitalize
-            $ case owner of
-                CurrentUser _ -> "your" <> " " <> accountTypeLabel
-                OtherUser _ -> case party of
+            $ ( case party of
                   PK pk -> accountTypeLabel <> " of " <> pk
                   Role role -> posessive role <> " " <> accountTypeLabel
+              )
+            <> if isCurrentUser then " (you)" else ""
         ]
     ]
   where

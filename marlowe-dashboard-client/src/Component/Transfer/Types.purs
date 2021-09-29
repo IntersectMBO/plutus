@@ -2,7 +2,7 @@ module Component.Transfer.Types where
 
 import Prologue
 import Data.BigInteger (BigInteger)
-import Marlowe.Semantics (AccountId, Party)
+import Marlowe.Semantics (AccountId, Party, Token)
 
 -- Here's my justification for why this module should exist:
 -- In the semantics, there are two types that are used to represent the
@@ -17,17 +17,23 @@ import Marlowe.Semantics (AccountId, Party)
 --
 -- Note that all the types are basically the same. The additional data
 -- constructors are purely to make the model more self-documenting
-data Transfer
-  = AccountToAccount Account Account BigInteger
-  | AccountToWallet Account Wallet BigInteger
-  | WalletToAccount Wallet Account BigInteger
+type Transfer
+  = { sender :: Participant
+    , recipient :: Participant
+    , token :: Token
+    , quantity :: BigInteger
+    , termini :: Termini
+    }
 
-data Owner
-  = CurrentUser String
-  | OtherUser (Maybe String)
+data Termini
+  = AccountToAccount AccountId AccountId
+  | AccountToWallet AccountId Party
+  | WalletToAccount Party AccountId
 
-data Account
-  = Account AccountId Owner
+type Participant
+  = { nickname :: Maybe String
+    , isCurrentUser :: Boolean
+    }
 
-data Wallet
-  = Wallet Party Owner
+type Nickname
+  = String
