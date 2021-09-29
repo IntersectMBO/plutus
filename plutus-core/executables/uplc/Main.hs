@@ -16,7 +16,6 @@ import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory 
 import qualified Data.Aeson                               as Aeson
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (asum)
-import           Data.Function                            ((&))
 import           Data.Functor                             (void)
 import           Data.List                                (nub)
 import           Data.List.Split                          (splitOn)
@@ -28,8 +27,8 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import           Control.DeepSeq                          (NFData, rnf)
 import qualified Data.Text                                as T
 import           Options.Applicative
-import           System.Exit                              (exitFailure, exitSuccess)
-import           System.IO                                (hPrint, hPutStrLn, stderr)
+import           System.Exit                              (exitFailure)
+import           System.IO                                (hPrint, stderr)
 import           Text.Read                                (readMaybe)
 
 uplcHelpText :: String
@@ -194,19 +193,16 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
                             case nub rs of
                                 [a] -> pure a
                                 _   -> error "Timing evaluations returned inconsistent results"
-                handleResults :: _ -> ((Either _ _), _, [T.Text]) -> IO ()
                 handleResults t (res, budget, logs) = do
+                    case res of
+                        Left err -> hPrint stderr err >> exitFailure
+                        Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
                     case budgetMode of
                         Silent    -> pure ()
                         Verbose _ -> printBudgetState t cekModel budget
                     case traceMode of
                         None -> pure ()
                         _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
-                    case res of
-                        Left err -> do
-                            hPrint stderr err
-                            exitFailure
-                        Right _  -> exitSuccess
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::

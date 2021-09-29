@@ -47,11 +47,12 @@ formatHelp =
 formatReader :: String -> Maybe Format
 formatReader =
     \case
-         "textual"       -> Just Textual
-         "flat-named"    -> Just (Flat Named)
-         "flat"          -> Just (Flat DeBruijn)
-         "flat-deBruijn" -> Just (Flat DeBruijn)
-         _               -> Nothing
+         "textual"            -> Just Textual
+         "flat-named"         -> Just (Flat Named)
+         "flat"               -> Just (Flat DeBruijn)
+         "flat-deBruijn"      -> Just (Flat DeBruijn)
+         "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
+         _                    -> Nothing
 
 inputformat :: Parser Format
 inputformat = option (maybeReader formatReader)
