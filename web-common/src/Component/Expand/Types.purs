@@ -3,12 +3,12 @@ module Component.Expand.Types where
 import Halogen as H
 import Halogen.HTML as HH
 
-type Input ps pa m
+type Input parentSlots parentAction m
   = { initial :: State
     , render ::
         forall a.
-        { state :: State, toggle :: a, raise :: pa -> a } ->
-        H.ComponentHTML a ps m
+        { state :: State, toggle :: a, raise :: parentAction -> a } ->
+        H.ComponentHTML a parentSlots m
     }
 
 data Query a
@@ -24,5 +24,5 @@ data State
 type Slot
   = H.Slot Query
 
-type Component ps pa m
-  = H.Component HH.HTML Query (Input ps pa m) pa m
+type Component parentSlots parentAction m
+  = H.Component HH.HTML Query (Input parentSlots parentAction m) parentAction m

@@ -7,7 +7,10 @@ import Prologue
 import Component.Expand.Types (Component, Input, Query(..), Slot, State(..))
 import Halogen as H
 
-component :: forall ps pa m. Monad m => Component ps pa m
+component ::
+  forall parentSlots parentAction m.
+  Monad m =>
+  Component parentSlots parentAction m
 component =
   H.mkComponent
     { initialState
@@ -21,29 +24,44 @@ component =
             }
     }
 
-data Action ps pa m
+data Action parentSlots parentAction m
   = Toggled
-  | Raise pa
-  | Receive (Input ps pa m)
+  | Raise parentAction
+  | Receive (Input parentSlots parentAction m)
 
-type InnerState ps pa m
+type InnerState parentSlots parentAction m
   = { state :: State
     , render ::
         forall a.
-        { state :: State, toggle :: a, raise :: pa -> a } ->
-        H.ComponentHTML a ps m
+        { state :: State, toggle :: a, raise :: parentAction -> a } ->
+        H.ComponentHTML a parentSlots m
     }
 
-type DSL ps pa m a
-  = H.HalogenM (InnerState ps pa m) (Action ps pa m) ps pa m a
+type DSL parentSlots parentAction m a
+  = H.HalogenM (InnerState parentSlots parentAction m)
+      ( Action parentSlots
+          parentAction
+          m
+      )
+      parentSlots
+      parentAction
+      m
+      a
 
-initialState :: forall ps pa m. Input ps pa m -> InnerState ps pa m
+initialState ::
+  forall parentSlots parentAction m.
+  Input parentSlots parentAction m ->
+  InnerState parentSlots parentAction m
 initialState input =
   { state: input.initial
   , render: input.render
   }
 
-handleQuery :: forall ps pa m a. Monad m => Query a -> DSL ps pa m (Maybe a)
+handleQuery ::
+  forall parentSlots parentAction m a.
+  Monad m =>
+  Query a ->
+  DSL parentSlots parentAction m (Maybe a)
 handleQuery = case _ of
   Open a -> do
     void $ H.modify _ { state = Opened }
@@ -56,7 +74,11 @@ handleQuery = case _ of
     pure $ Just a
   IsOpen k -> Just <<< k <$> H.gets _.state
 
-handleAction :: forall ps pa m. Monad m => Action ps pa m -> DSL ps pa m Unit
+handleAction ::
+  forall parentSlots parentAction m.
+  Monad m =>
+  Action parentSlots parentAction m ->
+  DSL parentSlots parentAction m Unit
 handleAction = case _ of
   Toggled ->
     H.modify_ case _ of
