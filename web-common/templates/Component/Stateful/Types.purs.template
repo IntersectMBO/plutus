@@ -1,4 +1,3 @@
--- | This module contains all the public API types for the component.
 module Component.$name.Types where
 
 import Halogen as H
@@ -12,8 +11,8 @@ type Input
 
 data Msg
 
-type Slot
-  = H.Slot Query
+type Slot slot
+  = H.Slot Query Msg slot
 
-type Component
-  = H.Component HH.HTML Query Input Msg
+type Component m
+  = H.Component HH.HTML Query Input Msg m

@@ -1,38 +1,32 @@
--- | This module contains the implementation and entry point of the component
 module Component.$name
   ( component
-  , module Component.$name.Types
+  , $lname
+  , $lnameSlot
+  , module Types
   ) where
 
 import Prologue
+import Component.$name.State (handleAction, initialState)
 import Component.$name.Types (Component, Input, Msg, Query, Slot)
+import Component.$name.Types as Types
+import Component.$name.View (render)
+import Data.Symbol (SProxy(..))
 import Halogen as H
 import Halogen.HTML (text)
 
--------------------------------------------------------------------------------
--- Private types
--------------------------------------------------------------------------------
-data Action
-  = Init
-  | Receive Input
+$lnameSlot :: SProxy "$lnameSlot"
+$lnameSlot = SProxy
 
-type State
-  = {
-    }
+$lname ::
+  forall slots slot action m.
+  Ord slot =>
+  Monad m =>
+  slot ->
+  Input ->
+  (Msg -> action) ->
+  H.ComponentHTML action ( $lnameSlot :: Slot slot | slots ) m
+$lname slot input = HH.slot $lnameSlot slot component input <<< Just
 
-type Slots
-  = (
-    )
-
-type DSL
-  = H.HalogenM State Action Slots Msg
-
-type ComponentHTML m
-  = H.ComponentHTML Action Slots m
-
--------------------------------------------------------------------------------
--- Entry point
--------------------------------------------------------------------------------
 component :: forall m. Monad m => Component m
 component =
   H.mkComponent
@@ -46,23 +40,3 @@ component =
             , receive = Just <<< Receive
             }
     }
-
-initialState :: Input -> State
-initialState input =
-  {
-  }
-
--------------------------------------------------------------------------------
--- Rendering
--------------------------------------------------------------------------------
-render :: forall m. Monad m => State -> ComponentHTML m
-render state =
-  text "hello, world"
-
--------------------------------------------------------------------------------
--- Handlers
--------------------------------------------------------------------------------
-handleAction :: forall m. Monad m => Action -> DSL m Unit
-handleAction = case _ of
-  Init -> pure unit
-  Receive {} -> pure unit
