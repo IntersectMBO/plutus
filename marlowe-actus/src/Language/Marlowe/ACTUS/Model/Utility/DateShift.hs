@@ -6,104 +6,94 @@ module Language.Marlowe.ACTUS.Model.Utility.DateShift
   )
 where
 
-import           Data.Maybe                                       (fromJust)
-import           Data.Time                                        (Day, addDays, toGregorian)
+import           Data.Time                                        (LocalTime (..), addDays, toGregorian)
 import           Data.Time.Calendar.WeekDate                      (toWeekDate)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (BDC (..), Calendar (..), ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (..))
 
 {- Business Day Convention -}
 
-applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
-applyBDCWithCfg ScheduleConfig {..} = applyBDC (fromJust bdc) (fromJust calendar)
+applyBDCWithCfg :: ScheduleConfig -> LocalTime -> ShiftedDay
+applyBDCWithCfg
+  ScheduleConfig
+    { bdc = Just bdc',
+      calendar = Just calendar'
+    }
+  d = applyBDC bdc' calendar' d
+applyBDCWithCfg _ date = ShiftedDay {paymentDay = date, calculationDay = date}
 
-applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
+applyBDC :: BDC -> Calendar -> LocalTime -> ShiftedDay
 applyBDC BDC_NULL _ date =
   ShiftedDay { paymentDay = date, calculationDay = date }
 
-applyBDC BDC_SCF calendar date = ShiftedDay
-  { paymentDay     = getFollowingBusinessDay date calendar
-  , calculationDay = getFollowingBusinessDay date calendar
+applyBDC BDC_SCF cal date = ShiftedDay
+  { paymentDay     = getFollowingBusinessDay date cal
+  , calculationDay = getFollowingBusinessDay date cal
   }
 
-applyBDC BDC_SCMF calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedFollowing date calendar
-  , calculationDay = shiftModifiedFollowing date calendar
+applyBDC BDC_SCMF cal date = ShiftedDay
+  { paymentDay     = shiftModifiedFollowing date cal
+  , calculationDay = shiftModifiedFollowing date cal
   }
 
-applyBDC BDC_CSF calendar date = ShiftedDay
-  { paymentDay     = getFollowingBusinessDay date calendar
+applyBDC BDC_CSF cal date = ShiftedDay
+  { paymentDay     = getFollowingBusinessDay date cal
   , calculationDay = date
   }
 
-applyBDC BDC_CSMF calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedFollowing date calendar
+applyBDC BDC_CSMF cal date = ShiftedDay
+  { paymentDay     = shiftModifiedFollowing date cal
   , calculationDay = date
   }
 
-applyBDC BDC_SCP calendar date = ShiftedDay
-  { paymentDay     = getPreceedingBusinessDay date calendar
-  , calculationDay = getPreceedingBusinessDay date calendar
+applyBDC BDC_SCP cal date = ShiftedDay
+  { paymentDay     = getPreceedingBusinessDay date cal
+  , calculationDay = getPreceedingBusinessDay date cal
   }
 
-applyBDC BDC_SCMP calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedPreceeding date calendar
-  , calculationDay = shiftModifiedPreceeding date calendar
+applyBDC BDC_SCMP cal date = ShiftedDay
+  { paymentDay     = shiftModifiedPreceeding date cal
+  , calculationDay = shiftModifiedPreceeding date cal
   }
 
-applyBDC BDC_CSP calendar date = ShiftedDay
-  { paymentDay     = getPreceedingBusinessDay date calendar
+applyBDC BDC_CSP cal date = ShiftedDay
+  { paymentDay     = getPreceedingBusinessDay date cal
   , calculationDay = date
   }
 
-applyBDC BDC_CSMP calendar date = ShiftedDay
-  { paymentDay     = shiftModifiedPreceeding date calendar
+applyBDC BDC_CSMP cal date = ShiftedDay
+  { paymentDay     = shiftModifiedPreceeding date cal
   , calculationDay = date
   }
 
+shiftModifiedFollowing :: LocalTime -> Calendar -> LocalTime
+shiftModifiedFollowing lt@LocalTime {..} cal =
+  let (_, month, _) = toGregorian localDay
+      st@LocalTime {localDay = stLocalDay} = getFollowingBusinessDay lt cal
+      (_, shiftedMonth, _) = toGregorian stLocalDay
+   in if month == shiftedMonth then st else getPreceedingBusinessDay lt cal
 
-shiftModifiedFollowing :: Day -> Calendar -> Day
-shiftModifiedFollowing date calendar =
-  let (_, month, _)        = toGregorian date
-      shiftedFollowing     = getFollowingBusinessDay date calendar
-      (_, shiftedMonth, _) = toGregorian shiftedFollowing
-  in  if month == shiftedMonth
-        then shiftedFollowing
-        else getPreceedingBusinessDay date calendar
+shiftModifiedPreceeding :: LocalTime -> Calendar -> LocalTime
+shiftModifiedPreceeding lt@LocalTime {..} cal =
+  let (_, month, _) = toGregorian localDay
+      st@LocalTime {localDay = stLocalDay} = getPreceedingBusinessDay lt cal
+      (_, shiftedMonth, _) = toGregorian stLocalDay
+   in if month == shiftedMonth then st else getFollowingBusinessDay lt cal
 
-shiftModifiedPreceeding :: Day -> Calendar -> Day
-shiftModifiedPreceeding date calendar =
-  let (_, month, _)        = toGregorian date
-      shiftedPreceeding    = getPreceedingBusinessDay date calendar
-      (_, shiftedMonth, _) = toGregorian shiftedPreceeding
-  in  if month == shiftedMonth
-        then shiftedPreceeding
-        else getFollowingBusinessDay date calendar
+getFollowingBusinessDay :: LocalTime -> Calendar -> LocalTime
+getFollowingBusinessDay LocalTime {..} CLDR_MF =
+  let day = case toWeekDate localDay of
+        (_, _, 6) -> addDays 2 localDay
+        (_, _, 7) -> addDays 1 localDay
+        _         -> localDay
+   in LocalTime {localDay = day, localTimeOfDay = localTimeOfDay}
+getFollowingBusinessDay lt _ = lt
 
-getFollowingBusinessDay :: Day -> Calendar -> Day
-getFollowingBusinessDay date calendarType =
-  case calendarType of
-    CLDR_MF ->
-      case toWeekDate date of
-        (_, _, 6) ->
-          addDays 2 date
-        (_, _, 7) ->
-          addDays 1 date
-        _ ->
-          date
-    CLDR_NC ->
-      date
-
-getPreceedingBusinessDay :: Day -> Calendar -> Day
-getPreceedingBusinessDay date calendarType =
-  case calendarType of
-    CLDR_MF ->
-      case toWeekDate date of
-        (_, _, 6) ->
-          addDays (-1) date
-        (_, _, 7) ->
-          addDays (-2) date
-        _ ->
-          date
-    CLDR_NC ->
-      date
+getPreceedingBusinessDay :: LocalTime -> Calendar -> LocalTime
+getPreceedingBusinessDay LocalTime {..} CLDR_MF =
+  let day = case toWeekDate localDay of
+        (_, _, 6) -> addDays (-1) localDay
+        (_, _, 7) -> addDays (-2) localDay
+        _         -> localDay
+   in LocalTime {localDay = day, localTimeOfDay = localTimeOfDay}
+getPreceedingBusinessDay lt _ = lt

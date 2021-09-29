@@ -186,6 +186,69 @@ contractScreen viewInput state =
       , div [ classNames [ "self-end", "pb-4", "pr-4", "font-bold" ] ] [ text $ statusIndicatorMessage state ]
       ]
 
+statusIndicatorMessage :: State -> String
+statusIndicatorMessage state =
+  let
+    userParties = state ^. _userParties
+
+    participantsWithAction = Set.fromFoldable $ map fst $ state ^. _namedActions
+  -- FIXME: as part of SCP-2551 add"Contract starting"
+  in
+    if Set.isEmpty (Set.intersection userParties participantsWithAction) then
+      "Waiting for "
+        <> if Set.size participantsWithAction > 1 then
+            "multiple participants"
+          else case Set.findMin participantsWithAction of
+            Just (Role roleName) -> roleName
+            Just (PK pubKey) -> take 4 pubKey
+            Nothing -> " a timeout"
+    else
+      "Your turn..."
+
+cardNavigationButtons :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
+cardNavigationButtons state =
+  let
+    lastStep = currentStep state
+
+    selectedStep = state ^. _selectedStep
+
+    contractIsClosed = isContractClosed state
+
+    hasLeftStep = selectedStep > 0
+
+    hasRightStep = selectedStep < lastStep
+
+    buttonClasses isActive = [ "leading-none", "text-xl" ] <> applyWhen (not isActive) [ "text-darkgray", "cursor-none" ]
+
+    leftButton =
+      [ button
+          [ classNames $ buttonClasses hasLeftStep
+          , onClick \_ -> if hasLeftStep then (Just $ MoveToStep $ selectedStep - 1) else Nothing
+          , enabled hasLeftStep
+          , id_ "previousStepButton"
+          ]
+          [ icon_ Icon.ArrowLeft ]
+      , tooltip "Previous step" (RefId "previousStepButton") Bottom
+      ]
+
+    rightButton =
+      [ button
+          [ classNames $ buttonClasses hasRightStep
+          , onClick \_ -> if hasRightStep then (Just $ MoveToStep $ selectedStep + 1) else Nothing
+          , enabled hasRightStep
+          , id_ "nextStepButton"
+          ]
+          [ icon_ Icon.ArrowRight ]
+      , tooltip "Next step" (RefId "nextStepButton") Bottom
+      ]
+  in
+    div [ classNames [ "flex-grow" ] ]
+      [ div [ classNames [ "flex", "items-center", "px-6", "py-2", "bg-white", "rounded", "shadow" ] ]
+          $ leftButton
+          <> [ icon Icon.Info [ "px-4", "invisible" ] ]
+          <> rightButton
+      ]
+
 -- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
 actionConfirmationCard ::
   forall m.

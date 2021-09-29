@@ -20,7 +20,7 @@ import           Playground.Types             (ContractCall (AddBlocks), Evaluat
                                                wallets)
 import           Test.Tasty                   (TestTree, testGroup)
 import           Test.Tasty.HUnit             (assertEqual, testCase)
-import           Wallet.Emulator.Types        (Wallet (Wallet))
+import           Wallet.Emulator.Types        (WalletNumber (..))
 
 tests :: TestTree
 tests = testGroup "Playground.Interpreter" [mkRunScriptTest]
@@ -34,8 +34,8 @@ mkRunScriptTest =
                       JSON.toJSON
                           ([AddBlocks 2, AddBlocks 4] :: [SimulatorAction])
                   wallets =
-                      [ SimulatorWallet (Wallet 1) (Ada.toValue 5)
-                      , SimulatorWallet (Wallet 2) (Ada.toValue 10)
+                      [ SimulatorWallet (WalletNumber 1) (Ada.toValue 5)
+                      , SimulatorWallet (WalletNumber 2) (Ada.toValue 10)
                       ]
               expr :: Either PlaygroundError String <-
                   runExceptT $

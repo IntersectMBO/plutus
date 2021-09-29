@@ -1,67 +1,122 @@
 {
   "then": {
-    "timeout_continuation": "close",
+    "timeout": 100,
     "when": [
       {
-        "case": {
-          "of_token": {
-            "token_name": "",
-            "currency_symbol": ""
-          },
-          "deposits": {
-            "and": {
-              "minus": {
-                "negate": 100
-              },
-              "value": 100
-            },
-            "add": 100
-          },
-          "into_account": {
-            "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-          },
-          "party": {
-            "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-          }
-        },
         "then": {
           "be": {
+            "add": 100,
             "and": {
               "minus": {
                 "negate": 100
               },
               "value": 100
-            },
-            "add": 100
+            }
           },
           "then": {
-            "pay": {
-              "use_value": "x"
-            },
             "to": {
               "party": {
                 "role_token": "Bob"
               }
             },
+            "then": "close",
             "token": {
-              "token_name": "",
-              "currency_symbol": ""
+              "currency_symbol": "",
+              "token_name": ""
             },
             "from_account": {
-              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
             },
-            "then": "close"
+            "pay": {
+              "use_value": "x"
+            }
           },
           "let": "x"
+        },
+        "case": {
+          "deposits": {
+            "add": 100,
+            "and": {
+              "minus": {
+                "negate": 100
+              },
+              "value": 100
+            }
+          },
+          "party": {
+            "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+          },
+          "of_token": {
+            "currency_symbol": "",
+            "token_name": ""
+          },
+          "into_account": {
+            "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+          }
         }
       },
       {
+        "then": {
+          "if": {
+            "either": {
+              "chose_something_for": {
+                "choice_owner": {
+                  "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+                },
+                "choice_name": "choice"
+              }
+            },
+            "or": {
+              "value": {
+                "value_of_choice": {
+                  "choice_owner": {
+                    "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+                  },
+                  "choice_name": "choice"
+                }
+              },
+              "equal_to": {
+                "divide_by": 10,
+                "multiply": 100,
+                "times": 1
+              }
+            }
+          },
+          "then": {
+            "to": {
+              "account": {
+                "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+              }
+            },
+            "then": "close",
+            "token": {
+              "currency_symbol": "6161",
+              "token_name": "name"
+            },
+            "from_account": {
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+            },
+            "pay": {
+              "by": 100,
+              "divide": {
+                "amount_of_token": {
+                  "currency_symbol": "6161",
+                  "token_name": "name"
+                },
+                "in_account": {
+                  "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+                }
+              }
+            }
+          },
+          "else": "close"
+        },
         "case": {
           "for_choice": {
-            "choice_name": "choice",
             "choice_owner": {
-              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-            }
+              "pk_hash": "a096d51da85c3eaabe2718be7b59f51291979935ad77b8deb4622fa3"
+            },
+            "choice_name": "choice"
           },
           "choose_between": [
             {
@@ -73,74 +128,22 @@
               "from": 10
             }
           ]
-        },
-        "then": {
-          "if": {
-            "either": {
-              "chose_something_for": {
-                "choice_name": "choice",
-                "choice_owner": {
-                  "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-                }
-              }
-            },
-            "or": {
-              "value": {
-                "value_of_choice": {
-                  "choice_name": "choice",
-                  "choice_owner": {
-                    "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-                  }
-                }
-              },
-              "equal_to": {
-                "multiply": 100,
-                "divide_by": 10,
-                "times": 1
-              }
-            }
-          },
-          "then": {
-            "pay": {
-              "amount_of_token": {
-                "token_name": "name",
-                "currency_symbol": "6161"
-              },
-              "in_account": {
-                "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-              }
-            },
-            "to": {
-              "account": {
-                "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-              }
-            },
-            "token": {
-              "token_name": "name",
-              "currency_symbol": "6161"
-            },
-            "from_account": {
-              "pk_hash": "35dedd2982a03cf39e7dce03c839994ffdec2ec6b04f1cf2d40e61a3"
-            },
-            "then": "close"
-          },
-          "else": "close"
         }
       },
       {
+        "then": "close",
         "case": {
           "notify_if": {
-            "and": true,
             "both": {
               "value": "slot_interval_start",
               "lt": "slot_interval_end"
-            }
+            },
+            "and": true
           }
-        },
-        "then": "close"
+        }
       }
     ],
-    "timeout": 100
+    "timeout_continuation": "close"
   },
   "assert": true
 }

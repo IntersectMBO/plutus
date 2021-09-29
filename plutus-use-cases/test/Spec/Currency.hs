@@ -34,9 +34,6 @@ tests = testGroup "currency"
 
     ]
 
-w1 :: Wallet
-w1 = Wallet 1
-
 theContract :: Contract () EmptySchema Cur.CurrencyError OneShotCurrency
 theContract =
     let amounts = [("my currency", 1000), ("my token", 1)] in

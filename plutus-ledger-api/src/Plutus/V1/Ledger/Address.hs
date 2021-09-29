@@ -4,7 +4,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -40,7 +39,7 @@ data Address = Address{ addressCredential :: Credential, addressStakingCredentia
 instance Pretty Address where
     pretty (Address cred stakingCred) =
         let staking = maybe "no staking credential" pretty stakingCred in
-        "addressed to" <+> pretty cred <+> parens staking
+        pretty cred <+> parens staking
 
 instance PlutusTx.Eq Address where
     {-# INLINABLE (==) #-}

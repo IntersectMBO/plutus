@@ -81,7 +81,6 @@ tests = testGroup "all tests" [
         testProperty "accept valid txn 2" validTrace2,
         testProperty "reject invalid txn" invalidTrace,
         testProperty "notify wallet" notifyWallet,
-        testProperty "watch funds at an address" walletWatchinOwnAddress,
         testProperty "log script validation failures" invalidScript,
         testProperty "payToPubkey" payToPubKeyScript,
         testProperty "payToPubkey-2" payToPubKeyScript2
@@ -106,7 +105,6 @@ tests = testGroup "all tests" [
         ]
     ]
 
-
 captureTrace
     :: EmulatorTrace ()
     -> BSL.ByteString
@@ -126,9 +124,9 @@ capturePrintEffect effs = snd $ Eff.run (runWriter (Eff.reinterpret f effs))
 
 
 wallet1, wallet2, wallet3 :: Wallet
-wallet1 = Wallet 1
-wallet2 = Wallet 2
-wallet3 = Wallet 3
+wallet1 = knownWallet 1
+wallet2 = knownWallet 2
+wallet3 = knownWallet 3
 
 pubKey1, pubKey2, pubKey3 :: PubKey
 pubKey1 = walletPubKey wallet1
@@ -267,7 +265,6 @@ invalidScript = property $ do
         validator :: () -> () -> ScriptContext -> Bool
         validator _ _ _ = PlutusTx.traceError "I always fail everything"
 
-
 txnFlowsTest :: Property
 txnFlowsTest =
     checkPredicateGen Gen.generatorModel
@@ -282,12 +279,6 @@ notifyWallet :: Property
 notifyWallet =
     checkPredicateGen Gen.generatorModel
     (walletFundsChange wallet1 mempty)
-    (pure ())
-
-walletWatchinOwnAddress :: Property
-walletWatchinOwnAddress =
-    checkPredicateGen Gen.generatorModel
-    (walletWatchingAddress wallet1 (Wallet.walletAddress wallet1))
     (pure ())
 
 payToPubKeyScript :: Property

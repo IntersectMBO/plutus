@@ -14,7 +14,6 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
-{-# options_ghc -fno-strictness         #-}
 {-# options_ghc -fno-specialise         #-}
 
 module Plutus.Contracts.Uniswap.OnChain

@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-|
 A simple beta-reduction pass.
-
 -}
 module PlutusIR.Transform.Beta (
   beta
@@ -15,7 +14,6 @@ import           Control.Lens  (transformOf)
 
 {-|
 A single non-recursive application of the beta rule.
-
 -}
 betaStep
     :: Term tyname name uni fun a
@@ -56,7 +54,6 @@ and types
 @
 
 -}
-
 beta
     :: Term tyname name uni fun a
     -> Term tyname name uni fun a

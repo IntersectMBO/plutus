@@ -84,7 +84,6 @@ library
         recursion-schemes -any,
         plutus-contract -any,
         row-types -any,
-        serialise -any,
         servant >= 0.16,
         servant-client -any,
         servant-client-core -any,

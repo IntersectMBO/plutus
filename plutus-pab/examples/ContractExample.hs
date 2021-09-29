@@ -25,6 +25,7 @@ import qualified ContractExample.AtomicSwap                as Contracts.AtomicSw
 import qualified ContractExample.PayToWallet               as Contracts.PayToWallet
 import qualified ContractExample.WaitForTx                 as Contracts.WaitForTx
 import           Data.Data                                 (Proxy (Proxy))
+import qualified Data.OpenApi.Schema                       as OpenApi
 import           Data.Row
 import           Language.PureScript.Bridge                (equal, genericShow, mkSumType)
 import           Language.PureScript.Bridge.TypeParameters (A)
@@ -59,7 +60,7 @@ data ExampleContracts = UniswapInit
                       | PingPong
                       | WaitForTx TxId
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 instance Pretty ExampleContracts where
     pretty = viaShow

@@ -4,30 +4,38 @@
 
 module Main where
 
-import           Data.Aeson                                  (decode)
-import           Data.Int                                    (Int32)
-import           Data.Map                                    as M (empty)
-import           Data.String                                 (IsString (fromString))
-import           Data.Time.Calendar                          (showGregorian)
-import           Language.Marlowe.ACTUS.Analysis             (sampleCashflows)
-import           Language.Marlowe.ACTUS.Definitions.Schedule (CashFlow (..))
-import           Language.R                                  (R)
-import qualified Language.R                                  as R
+import           Data.Aeson                                        (decode)
+import           Data.Int                                          (Int32)
+import           Data.String                                       (IsString (fromString))
+import           Data.Time                                         (LocalTime)
+import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (..))
+import           Language.R                                        (R)
+import qualified Language.R                                        as R
 import           Language.R.QQ
+
+riskFactors :: EventType -> LocalTime -> RiskFactors
+riskFactors _ _ =
+    RiskFactorsPoly
+        { o_rf_CURS = 1.0,
+          o_rf_RRMO = 1.0,
+          o_rf_SCMO = 1.0,
+          pp_payoff = 0.0
+        }
 
 get_dates :: String -> R s [String]
 get_dates terms = return $ case (decode $ fromString terms) of
-    Just terms' ->
-      let
-        cfs = sampleCashflows M.empty terms'
-        date = showGregorian <$> cashCalculationDay <$> cfs
-        event = show <$> cashEvent <$> cfs
+    Just terms' -> let
+          cfs = genProjectedCashflows riskFactors terms'
+          date = show <$> cashCalculationDay <$> cfs
+          event = show <$> cashEvent <$> cfs
       in (\(d, e) -> d ++ " " ++ e) <$> (zip date event)
     Nothing -> []
 
 get_cfs :: String -> R s [Double]
 get_cfs terms = return $ case (decode $ fromString terms) of
-    Just terms' -> amount <$> sampleCashflows M.empty terms'
+    Just terms' -> amount <$> genProjectedCashflows riskFactors terms'
     Nothing     -> []
 
 r_shiny :: R s Int32

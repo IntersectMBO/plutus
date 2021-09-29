@@ -58,7 +58,7 @@ newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
 instance FromJSON POSIXTime where
   parseJSON v@(Number n) =
       either (\_ -> prependFailure "parsing POSIXTime failed, " (typeMismatch "Integer" v))
-             (return . POSIXTime)
+             (Haskell.return . POSIXTime)
              (floatingOrInteger n :: Either Haskell.Double Integer)
   parseJSON invalid =
       prependFailure "parsing POSIXTime failed, " (typeMismatch "Number" invalid)

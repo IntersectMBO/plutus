@@ -9,7 +9,7 @@ module API.Wallet
 import Prologue
 import API.Request (doGetRequest, doEmptyPostRequest, doPostRequest)
 import API.Url (toUrlPiece)
-import Cardano.Wallet.Types (WalletInfo)
+import Cardano.Wallet.Mock.Types (WalletInfo)
 import Control.Monad.Error.Class (class MonadError)
 import Effect.Aff.Class (class MonadAff)
 import Plutus.V1.Ledger.Tx (Tx)

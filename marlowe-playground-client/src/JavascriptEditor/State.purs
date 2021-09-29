@@ -200,7 +200,7 @@ decorationHeader :: String
 decorationHeader =
   """import {
     PK, Role, Account, Party, ada, AvailableMoney, Constant, ConstantParam,
-    NegValue, AddValue, SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart,
+    NegValue, AddValue, SubValue, MulValue, DivValue, Scale, ChoiceValue, SlotIntervalStart,
     SlotIntervalEnd, UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething,
     ValueGE, ValueGT, ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit,
     Choice, Notify, Close, Pay, If, When, Let, Assert, SomeNumber, AccountId,

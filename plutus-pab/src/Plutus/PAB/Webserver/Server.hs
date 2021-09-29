@@ -18,47 +18,53 @@ module Plutus.PAB.Webserver.Server
     , startServerDebug'
     ) where
 
-import           Cardano.Wallet.Types            (WalletInfo (..))
-import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
-import           Control.Concurrent.Availability (Availability, available, newToken)
-import qualified Control.Concurrent.STM          as STM
-import           Control.Monad                   (void, when)
-import           Control.Monad.Except            (ExceptT (ExceptT))
-import           Control.Monad.Freer.Extras.Log  (logInfo, logWarn)
-import           Control.Monad.IO.Class          (liftIO)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Bifunctor                  (first)
-import qualified Data.ByteString.Lazy.Char8      as LBS
-import           Data.Function                   ((&))
-import           Data.Monoid                     (Endo (..))
-import           Data.Proxy                      (Proxy (Proxy))
-import           Ledger.Crypto                   (pubKeyHash)
-import           Network.Wai                     (Middleware)
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Network.Wai.Middleware.Cors     (simpleCors)
-import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
-import qualified Plutus.PAB.Core                 as Core
-import qualified Plutus.PAB.Effects.Contract     as Contract
-import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
-import           Plutus.PAB.Simulator            (Simulation)
-import qualified Plutus.PAB.Simulator            as Simulator
-import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl, defaultWebServerConfig)
-import           Plutus.PAB.Webserver.API        (API, WSAPI, WalletProxy)
-import           Plutus.PAB.Webserver.Handler    (apiHandler, walletProxy, walletProxyClientEnv)
-import qualified Plutus.PAB.Webserver.WebSocket  as WS
-import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
-                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
+import           Cardano.Wallet.Mock.Types              (WalletInfo (..))
+import           Control.Concurrent                     (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
+import           Control.Concurrent.Availability        (Availability, available, newToken)
+import qualified Control.Concurrent.STM                 as STM
+import           Control.Monad                          (void, when)
+import           Control.Monad.Except                   (ExceptT (ExceptT))
+import           Control.Monad.Freer.Extras.Log         (logInfo, logWarn)
+import           Control.Monad.IO.Class                 (liftIO)
+import           Data.Aeson                             (FromJSON, ToJSON)
+import           Data.Bifunctor                         (first)
+import qualified Data.ByteString.Lazy.Char8             as LBS
+import           Data.Function                          ((&))
+import           Data.Monoid                            (Endo (..))
+import qualified Data.OpenApi.Schema                    as OpenApi
+import           Data.Proxy                             (Proxy (Proxy))
+import           Ledger.Crypto                          (pubKeyHash)
+import           Network.Wai                            (Middleware)
+import qualified Network.Wai.Handler.Warp               as Warp
+import qualified Network.Wai.Middleware.Cors            as Cors
+import qualified Network.Wai.Middleware.Servant.Options as Cors
+import           Plutus.PAB.Core                        (PABAction, PABRunner (..))
+import qualified Plutus.PAB.Core                        as Core
+import qualified Plutus.PAB.Effects.Contract            as Contract
+import qualified Plutus.PAB.Monitoring.PABLogMsg        as LM
+import           Plutus.PAB.Simulator                   (Simulation)
+import qualified Plutus.PAB.Simulator                   as Simulator
+import           Plutus.PAB.Types                       (PABError, WebserverConfig (..), baseUrl,
+                                                         defaultWebServerConfig)
+import           Plutus.PAB.Webserver.API               (API, SwaggerAPI, WSAPI, WalletProxy)
+import           Plutus.PAB.Webserver.Handler           (apiHandler, swagger, walletProxy, walletProxyClientEnv)
+import qualified Plutus.PAB.Webserver.WebSocket         as WS
+import           Servant                                (Application, Handler (Handler), Raw, ServerT, err500, errBody,
+                                                         hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import qualified Servant
-import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
+import           Servant.Client                         (BaseUrl (baseUrlPort), ClientEnv)
+import           Wallet.Emulator.Wallet                 (WalletId)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
     mapError :: PABError -> Servant.ServerError
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
-type CombinedAPI t =
-      API (Contract.ContractDef t) Integer
-      :<|> WSAPI
+type CombinedAPI t = BaseCombinedAPI t :<|> SwaggerAPI
+
+type BaseCombinedAPI t =
+    API (Contract.ContractDef t) WalletId
+    :<|> WSAPI
 
 app ::
     forall t env.
@@ -66,6 +72,7 @@ app ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     ) =>
     Maybe FilePath
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ wallet client (if wallet proxy is enabled)
@@ -74,18 +81,18 @@ app ::
 app fp walletClient pabRunner = do
     let apiServer :: ServerT (CombinedAPI t) Handler
         apiServer =
-            Servant.hoistServer
-                (Proxy @(CombinedAPI t))
+            (Servant.hoistServer
+                (Proxy @(BaseCombinedAPI t))
                 (asHandler pabRunner)
-                (apiHandler :<|> WS.wsHandler)
+                (apiHandler :<|> WS.wsHandler)) :<|> (swagger @t)
 
     case fp of
         Nothing -> do
             let wp = either walletProxyClientEnv walletProxy walletClient
-                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer))
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy WalletId))
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @(WalletProxy Integer))
+                        (Proxy @(WalletProxy WalletId))
                         (asHandler pabRunner)
                         wp
             Servant.serve rest (apiServer :<|> wpServer)
@@ -93,12 +100,12 @@ app fp walletClient pabRunner = do
             let wp = either walletProxyClientEnv walletProxy walletClient
                 wpServer =
                     Servant.hoistServer
-                        (Proxy @(WalletProxy Integer))
+                        (Proxy @(WalletProxy WalletId))
                         (asHandler pabRunner)
                         wp
                 fileServer :: ServerT Raw Handler
                 fileServer = serveDirectoryFileServer filePath
-                rest = Proxy @(CombinedAPI t :<|> (WalletProxy Integer) :<|> Raw)
+                rest = Proxy @(CombinedAPI t :<|> (WalletProxy WalletId) :<|> Raw)
             Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
 
@@ -111,6 +118,7 @@ startServer ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => WebserverConfig -- ^ Optional file path for static assets
     -> Either ClientEnv (PABAction t env WalletInfo)
@@ -119,9 +127,16 @@ startServer ::
 startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy, endpointTimeout} walletClient availability = do
     when permissiveCorsPolicy $
       logWarn @(LM.PABMultiAgentMsg t) (LM.UserLog "Warning: Using a very permissive CORS policy! *Any* website serving JavaScript can interact with these endpoints.")
-    startServer' [mw] (baseUrlPort baseUrl) walletClient staticDir availability (timeout endpointTimeout)
+    startServer' middlewares (baseUrlPort baseUrl) walletClient staticDir availability (timeout endpointTimeout)
       where
-        mw = if permissiveCorsPolicy then simpleCors else id
+        middlewares = if permissiveCorsPolicy then corsMiddlewares else []
+        corsMiddlewares =
+            [ -- a custom CORS policy since 'simpleCors' doesn't support "content-type" header by default
+            let policy = Cors.simpleCorsResourcePolicy { Cors.corsRequestHeaders = [ "content-type" ] }
+            in Cors.cors (const $ Just policy)
+            -- this middleware handles preflight OPTIONS browser requests
+            , Cors.provideOptions (Proxy @(API (Contract.ContractDef t) Integer))
+            ]
         -- By default we use the normal request timeout: 30 seconds. But if
         -- someone has asked for a longer endpoint timeout, we need to set
         -- that to be the webserver timeout as well.
@@ -137,6 +152,7 @@ startServer' ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => [Middleware] -- ^ Optional wai middleware
     -> Int -- ^ Port
@@ -161,6 +177,7 @@ startServer' waiMiddlewares port walletClient staticPath availability timeout = 
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
             & Warp.setTimeout timeout
+            & Warp.setHost "*6" -- HostIPv6@ - "any IPv4 or IPv6 hostname, IPv6 preferred"
         middleware = appEndo $ foldMap Endo waiMiddlewares
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
@@ -177,6 +194,7 @@ startServerDebug ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => Simulation t (Simulation t ())
 startServerDebug = startServerDebug' defaultWebServerConfig
@@ -188,6 +206,7 @@ startServerDebug' ::
     , ToJSON (Contract.ContractDef t)
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
+    , OpenApi.ToSchema (Contract.ContractDef t)
     )
     => WebserverConfig
     -> Simulation t (Simulation t ())

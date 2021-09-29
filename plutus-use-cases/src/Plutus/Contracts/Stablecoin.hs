@@ -97,7 +97,7 @@ import qualified Ledger.Value                 as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError, OnChainState (..), SMContractError, State (..),
                                                StateMachine, StateMachineClient (..), Void)
-import qualified Plutus.Contract.StateMachine as StateMachine
+import qualified Plutus.Contract.StateMachine as SM
 import qualified PlutusTx
 import           PlutusTx.Prelude
 import           PlutusTx.Ratio               as R
@@ -152,7 +152,7 @@ data BankState =
 
 -- | Initialise the 'BankState' with zero deposits.
 initialState :: StateMachineClient BankState Input -> BankState
-initialState StateMachineClient{scInstance=StateMachine.StateMachineInstance{StateMachine.typedValidator}} =
+initialState StateMachineClient{scInstance=SM.StateMachineInstance{SM.typedValidator}} =
     BankState
         { bsReserves = 0
         , bsStablecoins = 0
@@ -358,7 +358,7 @@ data InvalidStateReason
     deriving (Haskell.Show)
 
 stablecoinStateMachine :: Stablecoin -> StateMachine BankState Input
-stablecoinStateMachine sc = StateMachine.mkStateMachine Nothing (transition sc) isFinal
+stablecoinStateMachine sc = SM.mkStateMachine Nothing (transition sc) isFinal
     -- the state machine never stops (OK for the prototype but we probably need
     -- to add a final state to the real thing)
     where isFinal _ = False
@@ -366,7 +366,7 @@ stablecoinStateMachine sc = StateMachine.mkStateMachine Nothing (transition sc) 
 typedValidator :: Stablecoin -> Scripts.TypedValidator (StateMachine BankState Input)
 typedValidator stablecoin =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode stablecoin
-        validator d = StateMachine.mkValidator (stablecoinStateMachine d)
+        validator d = SM.mkValidator (stablecoinStateMachine d)
         wrap = Scripts.wrapValidator @BankState @Input
     in Scripts.mkTypedValidator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
 
@@ -376,7 +376,7 @@ machineClient ::
     -> StateMachineClient BankState Input
 machineClient inst stablecoin =
     let machine = stablecoinStateMachine stablecoin
-    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
+    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 type StablecoinSchema =
         Endpoint "run step" Input
@@ -395,23 +395,23 @@ instance AsContractError StablecoinError where
     _ContractError = _InitialiseEPError . _ContractError
 
 instance AsSMContractError StablecoinError where
-    _SMContractError = _StateMachineError . StateMachine._SMContractError
+    _SMContractError = _StateMachineError . SM._SMContractError
 
 -- | A 'Contract' that initialises the state machine and then accepts 'Input'
 --   transitions.
 contract :: Promise () StablecoinSchema StablecoinError ()
 contract = endpoint @"initialise" $ \sc -> do
     let theClient = machineClient (typedValidator sc) sc
-    _ <- StateMachine.runInitialise theClient (initialState theClient) mempty
+    _ <- SM.runInitialise theClient (initialState theClient) mempty
     forever $ awaitPromise $ endpoint @"run step" $ \i -> do
         checkTransition theClient sc i
-        StateMachine.runStep theClient i
+        SM.runStep theClient i
 
 -- | Apply 'checkValidState' to the states before and after a transition
 --   and log a warning if something isn't right.
 checkTransition :: StateMachineClient BankState Input -> Stablecoin -> Input -> Contract () StablecoinSchema StablecoinError ()
 checkTransition theClient sc i@Input{inpConversionRate} = do
-        currentState <- mapError StateMachineError $ StateMachine.getOnChainState theClient
+        currentState <- mapError StateMachineError $ SM.getOnChainState theClient
         case checkHashOffChain inpConversionRate of
             Right Observation{obsValue} -> do
                 case currentState of

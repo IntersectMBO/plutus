@@ -1,11 +1,17 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Language.Marlowe.ACTUS.Model.Utility.YearFraction where
 
-import           Data.Time                                        (Day, diffDays, fromGregorian, gregorianMonthLength,
+import           Data.Time                                        (Day, LocalTime (..), TimeOfDay (..), addLocalTime,
+                                                                   diffDays, fromGregorian, gregorianMonthLength,
                                                                    isLeapYear, toGregorian)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360, DCC_E30_360ISDA))
 
-yearFraction :: DCC -> Day -> Day -> Maybe Day -> Double
-yearFraction DCC_A_AISDA startDay endDay _
+yearFraction :: DCC -> LocalTime -> LocalTime -> Maybe LocalTime -> Double
+yearFraction dcc x y o = yearFraction' dcc (localDay x) (localDay $ clipToMidnight y) (localDay <$> o)
+
+yearFraction' :: DCC -> Day -> Day -> Maybe Day -> Double
+yearFraction' DCC_A_AISDA startDay endDay _
   | startDay <= endDay
   = let
       (d1Year, _, _) = toGregorian startDay
@@ -23,24 +29,24 @@ yearFraction DCC_A_AISDA startDay endDay _
             secondFractionDays = fromIntegral (diffDays endDay d2YearLastDay)
           in
             (firstFractionDays / d1YearFraction)
-              + (secondFractionDays / d2YearFraction) + (fromIntegral d2Year) - (fromIntegral d1Year) - 1
+              + (secondFractionDays / d2YearFraction) + fromIntegral d2Year - fromIntegral d1Year - 1
   | otherwise
   = 0.0
 
-yearFraction DCC_A_360 startDay endDay _
+yearFraction' DCC_A_360 startDay endDay _
   | startDay <= endDay
   = let daysDiff = fromIntegral (diffDays endDay startDay) in daysDiff / 360.0
   | otherwise
   = 0.0
 
-yearFraction DCC_A_365 startDay endDay _
+yearFraction' DCC_A_365 startDay endDay _
   | startDay <= endDay
   = let daysDiff = fromIntegral (diffDays endDay startDay) in daysDiff / 365.0
   | otherwise
   = 0.0
 
-yearFraction DCC_E30_360ISDA _ _ Nothing = error "DCC_E30_360ISDA requires maturity date"
-yearFraction DCC_E30_360ISDA startDay endDay (Just maturityDate)
+yearFraction' DCC_E30_360ISDA _ _ Nothing = error "DCC_E30_360ISDA requires maturity date"
+yearFraction' DCC_E30_360ISDA startDay endDay (Just maturityDate)
   | startDay <= endDay
   = let
       (d1Year, d1Month, d1Day) = toGregorian startDay
@@ -63,7 +69,7 @@ yearFraction DCC_E30_360ISDA startDay endDay (Just maturityDate)
   | otherwise
   = 0.0
 
-yearFraction DCC_E30_360 startDay endDay _
+yearFraction' DCC_E30_360 startDay endDay _
   | startDay <= endDay
   = let (d1Year, d1Month, d1Day) = toGregorian startDay
         (d2Year, d2Month, d2Day) = toGregorian endDay
@@ -79,8 +85,13 @@ yearFraction DCC_E30_360 startDay endDay _
   | otherwise
   = 0.0
 
-yearFraction dcc _ _ _ =
+yearFraction' dcc _ _ _ =
   error $ "Unsupported day count convention: " ++ show dcc
 
 isLastDayOfMonth :: Integer -> Int -> Int -> Bool
 isLastDayOfMonth year month day = day == gregorianMonthLength year month
+
+-- |Advance to midnight, if one second before midnight - see note in ACTUS specification (2.8. Date/Time)
+clipToMidnight :: LocalTime -> LocalTime
+clipToMidnight lt@LocalTime {..} | localTimeOfDay == TimeOfDay 23 59 59 = addLocalTime 1 lt
+clipToMidnight lt  = lt

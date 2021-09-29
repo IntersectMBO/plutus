@@ -78,6 +78,8 @@
           "Plutus/V1/Ledger/TxId"
           "Plutus/V1/Ledger/Time"
           "Plutus/V1/Ledger/Value"
+          "Plutus/V2/Ledger/Api"
+          "Plutus/V2/Ledger/Contexts"
           ];
         hsSourceDirs = [ "src" ];
         };

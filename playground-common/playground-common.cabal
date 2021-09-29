@@ -86,7 +86,8 @@ library
         freer-simple -any,
         uuid -any,
         streaming -any,
-        foldl -any
+        foldl -any,
+        openapi3 -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0

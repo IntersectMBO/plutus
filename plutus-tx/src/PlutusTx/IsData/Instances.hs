@@ -1,14 +1,14 @@
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module PlutusTx.IsData.Instances where
 
-import           Prelude            (Bool (..), Either (..), Maybe (..))
-
+import           PlutusTx.Bool      (Bool (..))
+import           PlutusTx.Either    (Either (..))
 import           PlutusTx.IsData.TH
+import           PlutusTx.Maybe     (Maybe (..))
 
 -- While these types should be stable, we really don't want them changing, so index
 -- them explicitly to be sure.

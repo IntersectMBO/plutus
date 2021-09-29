@@ -110,6 +110,7 @@ valueShow (AddValue val1 val2) = "(" ++ valueShow val1 ++ " + " ++ valueShow val
 valueShow (NegValue val1) = "-" ++ valueShow val1
 valueShow (SubValue val1 val2) = "(" ++ valueShow val1 ++ " - " ++ valueShow val2 ++ ")"
 valueShow (MulValue val1 val2) = "(" ++ valueShow val1 ++ " * " ++ valueShow val2 ++ ")"
+valueShow (DivValue val1 val2) = "(" ++ valueShow val1 ++ " / " ++ valueShow val2 ++ ")"
 valueShow (ChoiceValue (ChoiceId id party)) = show party ++ " choice on " ++ show id
 valueShow (Cond obs val1 val2) = "(" ++ observationShow obs ++ " ? " ++ valueShow val1 ++ " : " ++ valueShow val2 ++ ")"
 valueShow (UseValue (ValueId id)) = show id

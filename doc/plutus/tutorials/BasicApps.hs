@@ -115,7 +115,7 @@ lockFunds s@SplitData{amount} = do
 unlockFunds :: SplitData -> Contract () SplitSchema T.Text ()
 unlockFunds SplitData{recipient1, recipient2, amount} = do
     let contractAddress = Scripts.validatorAddress splitValidator
-    utxos <- utxoAt contractAddress
+    utxos <- utxosAt contractAddress
     let half = Ada.divide amount 2
         tx =
             collectFromScript utxos ()

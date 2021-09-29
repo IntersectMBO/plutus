@@ -236,3 +236,6 @@ thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
 test = ε ▻ (ƛ (con unit) · (ibuiltin iData · con (integer (+ 0))))
+
+postulate
+  lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)

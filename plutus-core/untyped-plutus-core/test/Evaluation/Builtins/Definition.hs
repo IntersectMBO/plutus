@@ -181,7 +181,7 @@ test_FailingSucc =
                     mkConstant @Integer @DefaultUni () 0
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
-            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+            traverse (try . evaluate) $ typecheckEvaluateCek defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
 
 -- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
@@ -209,7 +209,7 @@ test_FailingPlus =
                     ]
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
-            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+            traverse (try . evaluate) $ typecheckEvaluateCek defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
 
 -- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget

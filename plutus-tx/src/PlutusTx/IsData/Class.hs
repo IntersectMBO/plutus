@@ -1,24 +1,24 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import           Prelude                    (Int, Integer, Maybe (..), error)
+import qualified Prelude                    as Haskell (Int, error)
 
 import qualified PlutusCore.Data            as PLC
+import           PlutusTx.Base
 import           PlutusTx.Builtins          as Builtins
 import           PlutusTx.Builtins.Internal (BuiltinData (..))
 import qualified PlutusTx.Builtins.Internal as BI
+import           PlutusTx.Maybe             (Maybe (..))
 
 import           PlutusTx.Applicative
-import           PlutusTx.Functor
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Trace
 
 import           Data.Kind
@@ -58,14 +58,14 @@ instance UnsafeFromData BuiltinData where
     unsafeFromBuiltinData d = d
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => ToData Int where
-    toBuiltinData = Prelude.error "unsupported"
+    => ToData Haskell.Int where
+    toBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => FromData Int where
-    fromBuiltinData = Prelude.error "unsupported"
+    => FromData Haskell.Int where
+    fromBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => UnsafeFromData Int where
-    unsafeFromBuiltinData = Prelude.error "unsupported"
+    => UnsafeFromData Haskell.Int where
+    unsafeFromBuiltinData = Haskell.error "unsupported"
 
 instance ToData Integer where
     {-# INLINABLE toBuiltinData #-}
@@ -134,7 +134,7 @@ instance FromData Void where
     fromBuiltinData _ = Nothing
 instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData _ = traceError "Pg" {-"unsafeFromBuiltinData: Void is not supported"-}
+    unsafeFromBuiltinData _ = traceError voidIsNotSupportedError
 
 -- | Convert a value to 'PLC.Data'.
 toData :: (ToData a) => a -> PLC.Data

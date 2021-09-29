@@ -28,7 +28,6 @@ data RType = RTyVar Integer
            | RTyMu RType RType
            deriving Show
 
--- I don't need this...
 data RTyCon = RTyConInt
             | RTyConBS
             | RTyConStr
@@ -74,7 +73,11 @@ convTyCon (SomeTypeIn DefaultUniString)     = RTyConStr
 convTyCon (SomeTypeIn DefaultUniBool)       = RTyConBool
 convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
 convTyCon (SomeTypeIn DefaultUniData)       = RTyConData
-convTyCon _                                 = error "unsupported builtin"
+convTyCon (SomeTypeIn (DefaultUniApply DefaultUniProtoList a)) = RTyConList (RTyCon (convTyCon (SomeTypeIn a)))
+convTyCon (SomeTypeIn (DefaultUniApply (DefaultUniApply DefaultUniProtoPair a) b)) = RTyConPair (RTyCon (convTyCon (SomeTypeIn a))) (RTyCon (convTyCon (SomeTypeIn b)))
+convTyCon (SomeTypeIn (DefaultUniApply _ _)) = error "unsupported builtin type application"
+convTyCon (SomeTypeIn DefaultUniProtoList) = error "unsupported usage of builtin list type"
+convTyCon (SomeTypeIn DefaultUniProtoPair) = error "unsupported usage of builtin pair type"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -113,10 +116,26 @@ unconvTyCon i RTyConBS         = SomeTypeIn DefaultUniByteString
 unconvTyCon i RTyConStr        = SomeTypeIn DefaultUniString
 unconvTyCon i RTyConBool       = SomeTypeIn DefaultUniBool
 unconvTyCon i RTyConUnit       = SomeTypeIn DefaultUniUnit
+unconvTyCon i (RTyConList (RTyCon a)) =
+  case unconvTyCon i a of
+    SomeTypeIn a' -> case decodeKindedUni (encodeUni a') of
+      Nothing -> error "encode;decode failed"
+      Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
+        Nothing   -> error "higher kinded thing in list"
+        Just Refl -> SomeTypeIn (DefaultUniList ka)
 unconvTyCon i (RTyConList a) =
-  error "builtin lists not supported"
+  error "builtin lists of arbitrary type not supported"
+unconvTyCon i (RTyConPair (RTyCon a) (RTyCon b)) =
+  case (unconvTyCon i a,unconvTyCon i b) of
+    (SomeTypeIn a',SomeTypeIn b') ->
+      case (decodeKindedUni (encodeUni a'),decodeKindedUni (encodeUni b')) of
+        (Just (SomeTypeIn (Kinded ka)),Just (SomeTypeIn (Kinded kb))) ->
+          case (checkStar @DefaultUni ka,checkStar @DefaultUni kb) of
+            (Just Refl,Just Refl) -> SomeTypeIn (DefaultUniPair ka kb)
+            _                     -> error "higher kinded thing in pair"
+        _ -> error "encode;decode failed"
 unconvTyCon i (RTyConPair a b) =
-  error "builtin pairs not supported"
+  error "builtin pairs of arbitrary type not supported"
 unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
 
 tmnames = ['a' .. 'z']

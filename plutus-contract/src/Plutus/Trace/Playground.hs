@@ -59,7 +59,7 @@ import           Wallet.Emulator.MultiAgent                 (EmulatorEvent, Emul
                                                              MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
 import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..), initialChainState,
                                                              runTraceStream)
-import           Wallet.Emulator.Wallet                     (Wallet (..))
+import           Wallet.Emulator.Wallet                     (Wallet (..), knownWallets)
 import           Wallet.Types                               (ContractInstanceId)
 
 {- Note [Playground traces]
@@ -130,7 +130,7 @@ runPlaygroundStream :: forall w s e effs a.
     -> PlaygroundTrace a
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
 runPlaygroundStream conf contract =
-    let wallets = fromMaybe (Wallet <$> [1..10]) (preview (initialChainState . _Left . to Map.keys) conf)
+    let wallets = fromMaybe knownWallets (preview (initialChainState . _Left . to Map.keys) conf)
     in runTraceStream conf . interpretPlaygroundTrace contract wallets
 
 interpretPlaygroundTrace :: forall w s e effs a.

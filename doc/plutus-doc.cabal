@@ -40,7 +40,9 @@ executable doc-doctests
     import: lang
     if(impl(ghcjs) || os(windows))
       buildable: False
-    hs-source-dirs: plutus/tutorials
+    hs-source-dirs:
+      plutus/tutorials
+      plutus/howtos
     main-is: Main.hs
     ghc-options: -Wno-unused-imports
     build-tool-depends: doctest:doctest -any
@@ -50,7 +52,9 @@ executable doc-doctests
       BasicPolicies
       BasicApps
       GameModel
+      HandlingBlockchainEvents
       HelloWorldApp
+      WriteScriptsTo
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
@@ -70,7 +74,8 @@ executable doc-doctests
       QuickCheck -any,
       random -any,
       text -any,
-      aeson -any
+      aeson -any,
+      plutus-chain-index
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

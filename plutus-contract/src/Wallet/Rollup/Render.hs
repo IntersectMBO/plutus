@@ -36,8 +36,7 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger                                (Address, Blockchain, Tx (Tx), TxId, TxIn (TxIn),
-                                                        TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
+import           Ledger                                (Address, Blockchain, Tx (Tx), TxId, TxIn (TxIn), TxInType (..),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
                                                         Value, txFee, txMint, txOutValue, txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
@@ -277,6 +276,7 @@ instance Render TxIn where
 instance Render TxInType where
     render (ConsumeScriptAddress validator _ _) = render validator
     render ConsumePublicKeyAddress              = pure mempty
+    render ConsumeSimpleScriptAddress           = pure mempty
 
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =

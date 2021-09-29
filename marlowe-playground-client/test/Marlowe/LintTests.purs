@@ -34,6 +34,9 @@ all = do
     test "in OrObs" orObsSimplifies
     test "of OrObs with False constant" orObsSimplifiesWithFalse
     test "of non-reduced Scale" nonReducedScaleSimplified
+    test "of DivValue 0 / _" divZeroSimplified
+    test "of DivValue by 0" divByZeroSimplified
+    test "of DivValue with constant" divConstantSimplified
     test "of Scale with constant" scaleConstantSimplified
     test "of Scale with constant expression" scaleConstantExpressionSimplified
     test "Invalid bound in Case" unreachableCaseInvalidBound
@@ -273,6 +276,33 @@ nonReducedScaleSimplified =
     simplifiableExpression = "(Scale (362%194) SlotIntervalStart)"
 
     simplification = "(Scale (181%97) SlotIntervalStart)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
+
+divZeroSimplified :: Test
+divZeroSimplified =
+  let
+    simplifiableExpression = "(DivValue (Constant 0) (Constant 3))"
+
+    simplification = "(Constant 0)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
+
+divByZeroSimplified :: Test
+divByZeroSimplified =
+  let
+    simplifiableExpression = "(DivValue (Constant 42) (Constant 0))"
+
+    simplification = "(Constant 0)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
+
+divConstantSimplified :: Test
+divConstantSimplified =
+  let
+    simplifiableExpression = "(DivValue (Constant 7) (Constant -3))"
+
+    simplification = "(Constant -2)"
   in
     testValueSimplificationWarning letContract simplifiableExpression simplification
 

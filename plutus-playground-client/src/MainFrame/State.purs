@@ -72,14 +72,14 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulator.View (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos, lookupContractDemo)
 import Validation (_argumentValues, _argument)
-import Wallet.Emulator.Wallet (Wallet(Wallet))
+import Wallet.Emulator.Wallet (WalletNumber(WalletNumber))
 import Wallet.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Web.HTML.Event.DataTransfer as DataTransfer
 
 mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet
 mkSimulatorWallet currencies walletId =
   SimulatorWallet
-    { simulatorWalletWallet: Wallet { getWallet: walletId }
+    { simulatorWalletWallet: WalletNumber { getWallet: walletId }
     , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 100_000_000)
     }
 

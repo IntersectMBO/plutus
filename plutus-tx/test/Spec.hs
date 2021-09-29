@@ -6,8 +6,10 @@ module Main(main) where
 import qualified Codec.CBOR.FlatTerm as FlatTerm
 import           Codec.Serialise     (deserialiseOrFail, serialise)
 import qualified Codec.Serialise     as Serialise
+import           Control.Exception   (ErrorCall, catch)
 import qualified Data.ByteString     as BS
 import           Data.Either         (isLeft)
+import           Data.Word
 import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
@@ -19,7 +21,7 @@ import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
 import           Prelude             hiding (Rational, negate, recip)
 import           Test.Tasty
-import           Test.Tasty.HUnit    (testCase, (@?=))
+import           Test.Tasty.HUnit    (Assertion, testCase, (@?=))
 import           Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
@@ -122,7 +124,7 @@ sixtyFourByteInteger = 2^((64 :: Integer) *8)
 genData :: MonadGen m => m Data
 genData =
     let st = Gen.subterm genData id
-        positiveInteger = Gen.integral (Range.linear 0 100000)
+        constrIndex = fromIntegral <$> (Gen.integral @_ @Word64 Range.linearBounded)
         reasonableInteger = Gen.integral (Range.linear (-100000) 100000)
         -- over 64 bytes
         reallyBigInteger = Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
@@ -137,7 +139,7 @@ genData =
         , I <$> reallyBigInteger
         , I <$> reallyBigNInteger
         , B <$> someBytes ]
-        [ Constr <$> positiveInteger <*> constructorArgList
+        [ Constr <$> constrIndex <*> constructorArgList
         , List <$> constructorArgList
         , Map <$> kvMapList
         ]
@@ -167,7 +169,15 @@ ratioTests = testGroup "Ratio"
   [ testProperty "reciprocal ordering 1" reciprocalOrdering1
   , testProperty "reciprocal ordering 2" reciprocalOrdering2
   , testProperty "reciprocal ordering 3" reciprocalOrdering3
+  , testCase "recip 0 % 2 fails" reciprocalFailsZeroNumerator
   ]
+
+-- We check that 'recip' throws an exception if the numerator is zero
+reciprocalFailsZeroNumerator :: Assertion
+reciprocalFailsZeroNumerator = do
+  res <- catch (pure $! recip $ 0 % 2) $ \(_ :: ErrorCall) -> pure $ 1 % 1
+  -- the result should be 1 % 1 if there was an exception
+  res @?= (1 % 1)
 
 genPositiveRational :: Monad m => PropertyT m Rational
 genPositiveRational = do

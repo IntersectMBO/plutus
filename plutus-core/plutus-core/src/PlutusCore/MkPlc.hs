@@ -124,11 +124,11 @@ embed = \case
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni fun ann -> term ann
-mkVar ann = var ann . varDeclName
+mkVar ann = var ann . _varDeclName
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname uni ann
-mkTyVar ann = TyVar ann . tyVarDeclName
+mkTyVar ann = TyVar ann . _tyVarDeclName
 
 -- | A definition. Pretty much just a pair with more descriptive names.
 data Def var val = Def
@@ -171,7 +171,7 @@ functionDefToType (FunctionDef _ _ funTy _) = functionTypeToType funTy
 functionDefVarDecl :: FunctionDef term tyname name uni fun ann -> VarDecl tyname name uni fun ann
 functionDefVarDecl (FunctionDef ann name funTy _) = VarDecl ann name $ functionTypeToType funTy
 
--- | Make a 'FunctioDef'. Return 'Nothing' if the provided type is not functional.
+-- | Make a 'FunctionDef'. Return 'Nothing' if the provided type is not functional.
 mkFunctionDef
     :: ann
     -> name

@@ -1,7 +1,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Bool (Bool(..), (&&), (||), not) where
+module PlutusTx.Bool (Bool(..), (&&), (||), not, otherwise) where
 
-import           Prelude hiding (not, (&&), (||))
+{-
+We export off-chain Haskell's Bool type as on-chain Plutus's Bool type since they are the same.
+-}
+
+import           Prelude (Bool (..), otherwise)
 
 {- HLINT ignore -}
 

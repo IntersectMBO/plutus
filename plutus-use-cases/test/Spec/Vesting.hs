@@ -26,10 +26,6 @@ import qualified PlutusTx
 import qualified PlutusTx.Numeric         as Numeric
 import           Prelude                  hiding (not)
 
-w1, w2 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-
 tests :: TestTree
 tests =
     let con = vestingContract (vesting startTime) in

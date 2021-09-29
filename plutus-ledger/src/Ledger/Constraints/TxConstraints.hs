@@ -10,7 +10,6 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -29,7 +28,8 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import qualified Plutus.V1.Ledger.Interval as I
-import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MintingPolicyHash, Redeemer (..), ValidatorHash)
+import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MintingPolicyHash, Redeemer, ValidatorHash,
+                                            unitRedeemer)
 import           Plutus.V1.Ledger.Time     (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx       (TxOutRef)
 import           Plutus.V1.Ledger.Value    (TokenName, Value, isZero)
@@ -205,7 +205,7 @@ mustPayToOtherScript vh dv vl =
 {-# INLINABLE mustMintValue #-}
 -- | Create the given value
 mustMintValue :: forall i o. Value -> TxConstraints i o
-mustMintValue = mustMintValueWithRedeemer (Redeemer $ PlutusTx.toBuiltinData ())
+mustMintValue = mustMintValueWithRedeemer unitRedeemer
 
 {-# INLINABLE mustMintValueWithRedeemer #-}
 -- | Create the given value
@@ -218,7 +218,7 @@ mustMintValueWithRedeemer red = foldMap valueConstraint . (AssocMap.toList . Val
 {-# INLINABLE mustMintCurrency #-}
 -- | Create the given amount of the currency
 mustMintCurrency :: forall i o. MintingPolicyHash -> TokenName -> Integer -> TxConstraints i o
-mustMintCurrency mps = mustMintCurrencyWithRedeemer mps (Redeemer $ PlutusTx.toBuiltinData ())
+mustMintCurrency mps = mustMintCurrencyWithRedeemer mps unitRedeemer
 
 {-# INLINABLE mustMintCurrencyWithRedeemer #-}
 -- | Create the given amount of the currency

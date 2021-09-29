@@ -161,6 +161,7 @@ getMarloweConstructors ValueType =
     , (Tuple "AddValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "SubValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "MulValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "DivValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "Scale" $ ArgumentArray [ DefaultRational (Rational one one), DataArg ValueType ])
     , (Tuple "ChoiceValue" $ ArgumentArray [ GenArg ChoiceIdType ])
     , (Tuple "SlotIntervalStart" $ ArgumentArray [])
@@ -817,6 +818,7 @@ data Value
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
   | MulValue (Term Value) (Term Value)
+  | DivValue (Term Value) (Term Value)
   | Scale (TermWrapper Rational) (Term Value)
   | ChoiceValue ChoiceId
   | SlotIntervalStart
@@ -848,6 +850,7 @@ instance templateValue :: Template Value Placeholders where
   getPlaceholderIds (AddValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (SubValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (MulValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (DivValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
   getPlaceholderIds (Scale _ v) = getPlaceholderIds v
   getPlaceholderIds (ChoiceValue _) = mempty
   getPlaceholderIds SlotIntervalStart = mempty
@@ -864,6 +867,7 @@ instance fillableValue :: Fillable Value TemplateContent where
     AddValue lhs rhs -> AddValue (go lhs) (go rhs)
     SubValue lhs rhs -> SubValue (go lhs) (go rhs)
     MulValue lhs rhs -> MulValue (go lhs) (go rhs)
+    DivValue lhs rhs -> DivValue (go lhs) (go rhs)
     Scale f v -> Scale f $ go v
     ChoiceValue _ -> val
     SlotIntervalStart -> val
@@ -882,6 +886,7 @@ instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm (AddValue a b) = EM.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = EM.SubValue <$> fromTerm a <*> fromTerm b
   fromTerm (MulValue a b) = EM.MulValue <$> fromTerm a <*> fromTerm b
+  fromTerm (DivValue a b) = EM.DivValue <$> fromTerm a <*> fromTerm b
   fromTerm (Scale a b) = EM.Scale <$> fromTerm a <*> fromTerm b
   fromTerm (ChoiceValue a) = EM.ChoiceValue <$> fromTerm a
   fromTerm SlotIntervalStart = pure EM.SlotIntervalStart
@@ -903,6 +908,7 @@ instance valueHasContractData :: HasContractData Value where
   gatherContractData (AddValue a b) s = gatherContractData a s <> gatherContractData b s
   gatherContractData (SubValue a b) s = gatherContractData a s <> gatherContractData b s
   gatherContractData (MulValue a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (DivValue a b) s = gatherContractData a s <> gatherContractData b s
   gatherContractData (Scale _ a) s = gatherContractData a s
   gatherContractData (ChoiceValue a) s = gatherContractData a s
   gatherContractData (Cond c a b) s = gatherContractData c s <> gatherContractData a s <> gatherContractData b s

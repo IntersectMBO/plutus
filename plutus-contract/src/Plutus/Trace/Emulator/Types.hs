@@ -71,6 +71,7 @@ import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fil
 import           GHC.Generics                   (Generic)
 import           Ledger.Blockchain              (Block)
 import           Ledger.Slot                    (Slot (..))
+import           Plutus.ChainIndex              (ChainIndexQueryEffect)
 import           Plutus.Contract                (Contract (..), WalletAPIError)
 import           Plutus.Contract.Effects        (PABReq, PABResp)
 import           Plutus.Contract.Resumable      (Request (..), Requests (..), Response (..))
@@ -80,7 +81,7 @@ import           Plutus.Contract.Types          (ResumableResult (..), Suspended
 import qualified Plutus.Contract.Types          as Contract.Types
 import           Plutus.Trace.Scheduler         (AgentSystemCall, ThreadId)
 import qualified Wallet.API                     as WAPI
-import qualified Wallet.Effects                 as Wallet
+import           Wallet.Effects                 (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.Wallet         (Wallet (..))
 import           Wallet.Types                   (ContractInstanceId, EndpointDescription, Notification (..),
@@ -119,10 +120,10 @@ makeLenses ''EmulatorThreads
 --   In the PAB they are handled by the actual wallet/node/chain index,
 --   mediated by the PAB runtime.
 type EmulatedWalletEffects' effs =
-        Wallet.WalletEffect
+        WalletEffect
         ': Error WAPI.WalletAPIError
-        ': Wallet.NodeClientEffect
-        ': Wallet.ChainIndexEffect
+        ': NodeClientEffect
+        ': ChainIndexQueryEffect
         ': LogObserve (LogMessage T.Text)
         ': LogMsg RequestHandlerLogMsg
         ': LogMsg TxBalanceMsg

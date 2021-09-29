@@ -10,6 +10,7 @@ import           Plugin.Errors.Spec
 import           Plugin.Functions.Spec
 import           Plugin.Laziness.Spec
 import           Plugin.Primitives.Spec
+import           Plugin.Profiling.Spec
 import           Plugin.Typeclasses.Spec
 
 tests :: TestNested
@@ -21,4 +22,5 @@ tests = testNested "Plugin" [
   , laziness
   , errors
   , typeclasses
+  , profiling
   ]

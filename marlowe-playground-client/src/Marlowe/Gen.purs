@@ -225,6 +225,7 @@ genValue' size
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , MulValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , DivValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , Scale <$> genTermWrapper genRational <*> genNewValue
             , ChoiceValue <$> genChoiceId
             , UseValue <$> genTermWrapper genValueId

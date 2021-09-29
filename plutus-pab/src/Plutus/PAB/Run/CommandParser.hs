@@ -147,9 +147,9 @@ allServersParser =
     flip info (fullDesc <> progDesc "Run all the mock servers needed.") $ do
         pure  (ForkCommands
                    [ StartMockNode
-                   , ChainIndex
                    , MockWallet
                    , PABWebserver
+                   , ChainIndex
                    ])
 
 clientServicesParser :: Mod CommandFields ConfigCommand
@@ -157,9 +157,9 @@ clientServicesParser =
     command "client-services" $
     info
         (pure (ForkCommands
-                    [ ChainIndex
-                    , MockWallet
+                    [ MockWallet
                     , PABWebserver
+                    , ChainIndex
                     ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 
