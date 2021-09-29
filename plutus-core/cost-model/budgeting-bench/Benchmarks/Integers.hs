@@ -32,7 +32,7 @@ benchTwoIntegers gen makeArgs builtinName =
       (inputs', _)  = makeArgs gen'
 
 {- Some larger inputs for cases where we're using the same number for both
-   arguments.  (A) If we're not examining all NxN pairs then we can eaxmine
+   arguments.  (A) If we're not examining all NxN pairs then we can examine
    larger arguments without taking too much time. (B) for things like EqInteger
    the results are very uniform with the smaller numbers, leading to occasional
    models with negative slopes.  Using larger numbers may help to avoid this. -}
