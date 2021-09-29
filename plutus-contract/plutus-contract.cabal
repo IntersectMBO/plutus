@@ -67,6 +67,7 @@ library
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
+        Wallet.Emulator.MockWallet
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.Stream
@@ -143,7 +144,8 @@ library
         openapi3 -any,
         cardano-wallet-core -any,
         text-class -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        cardano-addresses -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

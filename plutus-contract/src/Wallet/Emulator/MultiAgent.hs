@@ -234,8 +234,8 @@ data EmulatorState = EmulatorState {
 makeLenses ''EmulatorState
 
 walletState :: Wallet -> Lens' EmulatorState Wallet.WalletState
-walletState wallet@(Wallet (MockWallet privKey)) = walletStates . at wallet . anon (Wallet.emptyWalletState privKey) (const False)
-walletState (Wallet (CardanoWallet _)) = error "Cardano wallets not supported in emulator"
+walletState = undefined -- wallet@(Wallet (MockWallet privKey)) = walletStates . at wallet . anon (Wallet.emptyWalletState privKey) (const False)
+-- walletState (Wallet (CardanoWallet _)) = error "Cardano wallets not supported in emulator"
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.

@@ -213,7 +213,8 @@ library
         beam-sqlite -any,
         beam-migrate -any,
         sqlite-simple -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        cardano-wallet-core -any
 
 executable plutus-pab-setup
     main-is:          Main.hs

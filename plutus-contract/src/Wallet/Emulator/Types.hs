@@ -23,7 +23,7 @@ module Wallet.Emulator.Types(
     knownWallet,
     WalletNumber(..),
     toWalletNumber,
-    fromWalletNumber,
+    -- fromWalletNumber,
     TxPool,
     -- * Emulator
     EmulatorEffs,

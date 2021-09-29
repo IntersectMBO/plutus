@@ -38,32 +38,34 @@ module Cardano.Wallet.Mock.Types (
     , fromWalletState
     ) where
 
-import           Cardano.BM.Data.Tracer             (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
-import           Cardano.ChainIndex.Types           (ChainIndexUrl)
-import qualified Cardano.Crypto.Wallet              as Crypto
-import           Control.Monad.Freer                (Eff)
-import           Control.Monad.Freer.Error          (Error)
-import           Control.Monad.Freer.Extras.Log     (LogMsg)
-import           Control.Monad.Freer.State          (State)
-import           Control.Monad.Freer.TH             (makeEffect)
-import           Data.Aeson                         (FromJSON, ToJSON)
-import           Data.Default                       (Default, def)
-import           Data.Map.Strict                    (Map)
-import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
-import           GHC.Generics                       (Generic)
-import           Ledger                             (PubKey, PubKeyHash)
-import qualified Ledger.Crypto                      as Crypto
-import           Plutus.ChainIndex                  (ChainIndexQueryEffect)
-import           Plutus.PAB.Arbitrary               ()
-import           Servant                            (ServerError (..))
-import           Servant.Client                     (BaseUrl (..), ClientError, Scheme (..))
-import           Servant.Client.Internal.HttpClient (ClientEnv)
-import           Wallet.Effects                     (NodeClientEffect, WalletEffect)
-import           Wallet.Emulator.Error              (WalletAPIError)
-import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet (..), WalletId (..), WalletState (..))
+import           Cardano.BM.Data.Tracer                     (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras              (Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types                   (ChainIndexUrl)
+import qualified Cardano.Crypto.Wallet                      as Crypto
+import           Cardano.Wallet.Primitive.AddressDerivation (digest)
+import qualified Cardano.Wallet.Primitive.Types             as Cardano.Wallet
+import           Control.Monad.Freer                        (Eff)
+import           Control.Monad.Freer.Error                  (Error)
+import           Control.Monad.Freer.Extras.Log             (LogMsg)
+import           Control.Monad.Freer.State                  (State)
+import           Control.Monad.Freer.TH                     (makeEffect)
+import           Data.Aeson                                 (FromJSON, ToJSON)
+import           Data.Default                               (Default, def)
+import           Data.Map.Strict                            (Map)
+import           Data.Text                                  (Text)
+import           Data.Text.Prettyprint.Doc                  (Pretty (..), (<+>))
+import           GHC.Generics                               (Generic)
+import           Ledger                                     (PubKey, PubKeyHash)
+import qualified Ledger.Crypto                              as Crypto
+import           Plutus.ChainIndex                          (ChainIndexQueryEffect)
+import           Plutus.PAB.Arbitrary                       ()
+import           Servant                                    (ServerError (..))
+import           Servant.Client                             (BaseUrl (..), ClientError, Scheme (..))
+import           Servant.Client.Internal.HttpClient         (ClientEnv)
+import           Wallet.Effects                             (NodeClientEffect, WalletEffect)
+import           Wallet.Emulator.Error                      (WalletAPIError)
+import           Wallet.Emulator.LogMessages                (TxBalanceMsg)
+import           Wallet.Emulator.Wallet                     (Wallet (..), WalletId (..), WalletState (..))
 
 -- | Information about an emulated wallet.
 data WalletInfo =
@@ -82,7 +84,7 @@ fromWalletState WalletState{_ownPrivateKey} =
     let xpub = Crypto.toXPub _ownPrivateKey
         pk   = Crypto.xPubToPublicKey xpub
     in WalletInfo
-            { wiWallet = Wallet (XPubWallet xpub)
+            { wiWallet = Wallet $ CardanoWallet $ Cardano.Wallet.WalletId $ digest $ _
             , wiPubKey = Just pk
             , wiPubKeyHash = Crypto.pubKeyHash pk
             }

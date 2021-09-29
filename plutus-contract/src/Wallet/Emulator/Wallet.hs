@@ -23,7 +23,6 @@ module Wallet.Emulator.Wallet where
 import           Cardano.Crypto.Hash            as Crypto
 import qualified Cardano.Crypto.Wallet          as Crypto
 import qualified Cardano.Wallet.Primitive.Types as Cardano.Wallet
-import           Control.Applicative            (Alternative (..))
 import           Control.Lens                   hiding (from, to)
 import           Control.Monad                  (foldM)
 import           Control.Monad.Freer
@@ -97,9 +96,7 @@ instance Pretty Wallet where
 deriving anyclass instance OpenApi.ToSchema Wallet
 deriving anyclass instance OpenApi.ToSchema Cardano.Wallet.WalletId
 
-data WalletId =
-    MockWallet Crypto.XPrv
-    | CardanoWallet  Cardano.Wallet.WalletId
+newtype WalletId = WalletId { unWalletId :: Cardano.Wallet.WalletId }
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSONKey)
 
@@ -124,31 +121,15 @@ instance Hashable Crypto.XPrv where
 deriving anyclass instance OpenApi.ToSchema WalletId
 
 toBase16 :: WalletId -> T.Text
-toBase16 (MockWallet xprv)    = encodeByteString $ Crypto.unXPrv xprv
-toBase16 (CardanoWallet wllt) = toText wllt
+toBase16 = toText . unWalletId
 
 fromBase16 :: T.Text -> Either String WalletId
-fromBase16 s = bimap show CardanoWallet (fromText s) <|> decode where
-    decode = do
-            bs <- tryDecode s
-            case BS.length bs of
-                128 -> MockWallet <$> Crypto.xprv bs
-                _   -> Left "fromBase16 error: bytestring length should be 128"
-
--- | Get a wallet's extended public key
-walletXPub :: Wallet -> Maybe Crypto.XPub
-walletXPub (Wallet (MockWallet xprv)) = Just (Crypto.toXPub xprv)
-walletXPub _                          = Nothing
-
--- | Get a wallet's public key.
-walletPubKey :: Wallet -> Maybe PubKey
-walletPubKey = fmap Crypto.xPubToPublicKey . walletXPub
+fromBase16 s = bimap show WalletId (fromText s)
 
 -- | The public key hash of a wallet.
 walletPubKeyHash :: Wallet -> PubKeyHash
 walletPubKeyHash = \case
-    Wallet (MockWallet xprv)                           -> pubKeyHash $ Crypto.xPubToPublicKey $ Crypto.toXPub xprv
-    Wallet (CardanoWallet (Cardano.Wallet.WalletId i)) -> PubKeyHash $ PlutusTx.toBuiltin @ByteString $ convert i
+    Wallet (WalletId (Cardano.Wallet.WalletId i)) -> PubKeyHash $ PlutusTx.toBuiltin @ByteString $ convert i
 
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
@@ -157,7 +138,7 @@ walletAddress = pubKeyHashAddress . walletPubKeyHash
 -- | The wallets used in mockchain simulations by default. There are
 --   ten wallets because the emulator comes with ten private keys.
 knownWallets :: [Wallet]
-knownWallets = Wallet . MockWallet <$> knownPrivateKeys
+knownWallets = undefined -- Wallet . MockWallet <$> knownPrivateKeys
 
 -- | Get a known wallet from an @Integer@ indexed from 1 to 10.
 knownWallet :: Integer -> Wallet
@@ -169,8 +150,8 @@ newtype WalletNumber = WalletNumber { getWallet :: Integer }
     deriving newtype (ToHttpApiData, FromHttpApiData)
     deriving anyclass (FromJSON, ToJSON)
 
-fromWalletNumber :: WalletNumber -> Wallet
-fromWalletNumber (WalletNumber i) = knownWallet i
+-- fromWalletNumber :: WalletNumber -> Wallet
+-- fromWalletNumber (WalletNumber i) = knownWallet i
 
 toWalletNumber :: Wallet -> WalletNumber
 toWalletNumber w =
@@ -238,7 +219,7 @@ handleWallet feeCfg = \case
     SubmitTxn tx -> do
         logInfo $ SubmittingTx tx
         publishTx tx
-    OwnPubKeyHash -> gets (walletPubKeyHash . Wallet . MockWallet . _ownPrivateKey)
+    OwnPubKeyHash -> gets (walletPubKeyHash . Wallet . undefined . _ownPrivateKey)
     BalanceTx utx' -> runError $ do
         logInfo $ BalancingUnbalancedTx utx'
         utxo <- get >>= ownOutputs
@@ -486,8 +467,8 @@ signWallet wllt = SigningProcess $
 -- | Sign the transaction with the private key of the given public
 --   key. Fails if the wallet doesn't have the private key.
 signTxnWithKey :: (Member (Error WAPI.WalletAPIError) r) => Wallet -> Tx -> PubKeyHash -> Eff r Tx
-signTxnWithKey (Wallet (MockWallet prv)) tx pubK = signTxWithPrivateKey prv tx pubK
-signTxnWithKey wllt _ _                          = throwError . WAPI.PrivateKeyNotFound $ walletPubKeyHash wllt
+signTxnWithKey _ = undefined -- (Wallet (MockWallet prv)) tx pubK = signTxWithPrivateKey prv tx pubK
+-- signTxnWithKey wllt _ _                          = throwError . WAPI.PrivateKeyNotFound $ walletPubKeyHash wllt
 
 -- | Sign the transaction with the private key, if the hash is that of the
 --   private key.
