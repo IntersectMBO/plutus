@@ -60,7 +60,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "b543720b25df6ffdfcf9227afafc5b8c1fabfae8",
         "type": "github"
       }
     },
@@ -93,7 +92,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "23545a41ef50c4328e3f95b9a63db59f3ada3518",
         "type": "github"
       }
     },
@@ -127,7 +125,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "7215f083b37741446aa325b20c8ba9f9f76015eb",
         "type": "github"
       }
     },
@@ -144,7 +141,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "cbd497f5844249ef8fe617166337d59f2a6ebe90",
         "type": "github"
       }
     },
@@ -162,7 +158,6 @@
         "owner": "NixOS",
         "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
-        "rev": "6525bbc06a39f26750ad8ee0d40000ddfdc24acb",
         "type": "github"
       }
     },
@@ -262,7 +257,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "stackage.nix",
-        "rev": "e32c8b06d56954865725514ce0d98d5d1867e43a",
         "type": "github"
       }
     }
