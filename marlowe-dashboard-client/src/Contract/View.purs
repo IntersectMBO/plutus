@@ -4,10 +4,12 @@ module Contract.View
   ) where
 
 import Prologue hiding (div)
-import Contacts.State (adaToken, getAda)
+import Component.Transfer (transfer)
+import Component.Transfer.Types (Termini(..))
+import Contacts.State (adaToken)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _stateMetadata, _stateNickname, _userParties)
-import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), StartedState, State(..), StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)
+import Contract.State (currentStep, isContractClosed, partyToParticipant, paymentToTransfer)
+import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), StartedState, State(..), StepBalance, Tab(..), TimeoutInfo, scrollContainerRef)
 import Css as Css
 import Data.Array (foldr, fromFoldable, intercalate, length)
 import Data.Array as Array
@@ -39,7 +41,7 @@ import Marlowe.Execution.State (expandBalances)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended.Metadata (_contractName, _contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Bound(..), ChoiceId(..), Contract(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Bound(..), ChoiceId(..), Contract(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -359,13 +361,7 @@ renderPaymentSummary stepNumber state step =
   let
     expanded = step ^. _expandPayments
 
-    -- TODO: This function is currently hard-coded to ADA, we should rethink how to deal with this
-    --       when we support multiple tokens
-    paymentToMovement (Payment from (Account to) money) = Transfer from to adaToken $ getAda money
-
-    paymentToMovement (Payment from (Party to) money) = PayOut from to adaToken $ getAda money
-
-    movements = paymentToMovement <$> step ^. _resultingPayments
+    transfers = paymentToTransfer state <$> step ^. _resultingPayments
 
     expandIcon = if expanded then Icon.ExpandLess else Icon.ExpandMore
   in
@@ -383,8 +379,10 @@ renderPaymentSummary stepNumber state step =
             []
           else
             [ div [ classNames [ "px-4" ] ]
-                ( movements <#> \movement -> div [ classNames [ "py-4" ] ] [ renderMovement state movement ]
-                )
+                $ div [ classNames [ "py-4" ] ]
+                <<< pure
+                <<< transfer
+                <$> transfers
             ]
       )
 
@@ -431,7 +429,14 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
         (map renderPastAction inputs)
 
     renderPastAction = case _ of
-      S.IDeposit intoAccountOf by token value -> renderMovement state (PayIn by intoAccountOf token value)
+      S.IDeposit recipient sender token quantity ->
+        transfer
+          { sender: partyToParticipant state sender
+          , recipient: partyToParticipant state recipient
+          , token
+          , quantity
+          , termini: WalletToAccount sender recipient
+          }
       S.IChoice (ChoiceId choiceIdKey _) chosenNum ->
         div []
           [ h4_ [ text "Chose:" ]
@@ -629,38 +634,6 @@ participantWithNickname state party =
       Role roleName, Just nickname -> roleName <> " (" <> nickname <> ")"
       Role roleName, Nothing -> roleName
 
-renderMovement :: StartedState -> Movement -> forall p a. HTML p a
-renderMovement state movement =
-  let
-    fromParty = case movement of
-      PayIn from _ _ _ -> renderParty state from
-      Transfer from _ _ _ -> renderPartyAccount [] state from
-      PayOut from _ _ _ -> renderPartyAccount [] state from
-
-    toParty = case movement of
-      PayIn _ to _ _ -> renderPartyAccount [] state to
-      Transfer _ to _ _ -> renderPartyAccount [] state to
-      PayOut _ to _ _ -> renderParty state to
-
-    token = case movement of
-      PayIn _ _ t _ -> t
-      Transfer _ _ t _ -> t
-      PayOut _ _ t _ -> t
-
-    value = case movement of
-      PayIn _ _ _ v -> v
-      Transfer _ _ _ v -> v
-      PayOut _ _ _ v -> v
-  in
-    div [ classNames [ "flex", "flex-col" ] ]
-      [ fromParty
-      , div [ classNames [ "flex", "justify-between", "items-center" ] ]
-          [ icon Icon.South [ "text-purple", "text-xs", "ml-1" ]
-          , span [ classNames [ "text-xs", "text-green" ] ] [ text $ humanizeValue token value ]
-          ]
-      , toParty
-      ]
-
 accountIndicator ::
   forall p a.
   { colorStyles :: Array String, otherStyles :: Array String, name :: String } ->
@@ -697,20 +670,6 @@ renderParty state party =
   in
     div [ classNames $ [ "text-xs", "flex", "gap-1" ] ]
       [ firstLetterInCircle { styles: [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ], name: participantName }
-      , div [ classNames [ "font-semibold" ] ]
-          [ text $ if Set.member party userParties then participantName <> " (you)" else participantName
-          ]
-      ]
-
-renderPartyAccount :: forall p a. Array String -> StartedState -> Party -> HTML p a
-renderPartyAccount styles state party =
-  let
-    participantName = participantWithNickname state party
-
-    userParties = state ^. _userParties
-  in
-    div [ classNames $ [ "text-xs", "flex" ] <> styles ]
-      [ accountIndicator { colorStyles: [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ], otherStyles: [], name: participantName }
       , div [ classNames [ "font-semibold" ] ]
           [ text $ if Set.member party userParties then participantName <> " (you)" else participantName
           ]

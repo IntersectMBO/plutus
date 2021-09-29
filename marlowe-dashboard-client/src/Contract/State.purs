@@ -9,6 +9,8 @@ module Contract.State
   , applyTx
   , applyTimeout
   , toInput
+  , partyToParticipant
+  , paymentToTransfer
   ) where
 
 import Prologue
@@ -16,6 +18,10 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
+import Component.Transfer.Types (Termini(..), Transfer, Participant)
+import Contacts.Lenses (_assets, _pubKeyHash, _walletInfo)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletDetails, WalletNickname)
 import Contract.Lenses (_Started, _executionState, _expandPayments, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), StartedState, State(..), Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
@@ -65,10 +71,8 @@ import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract, MarloweData, MarloweParams, Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _marloweContract, _marloweState, _minSlot, _rolesCurrency)
 import Marlowe.Semantics (Input(..)) as Semantic
+import Marlowe.Semantics as Semantics
 import Toast.Types (ajaxErrorToast, successToast)
-import Contacts.Lenses (_assets, _pubKeyHash, _walletInfo)
-import Contacts.State (adaToken)
-import Contacts.Types (WalletDetails, WalletNickname)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
@@ -592,3 +596,26 @@ selectCenteredStepEventSource scrollContainer =
       $ do
           unsubscribeSelectEventListener
           unsubscribeSnapEventListener
+
+paymentToTransfer :: StartedState -> Semantics.Payment -> Transfer
+paymentToTransfer state (Semantics.Payment sender payee money) = case payee of
+  Semantics.Party recipient ->
+    makeTransfer recipient
+      $ AccountToWallet sender recipient
+  Semantics.Account recipient ->
+    makeTransfer recipient
+      $ AccountToAccount sender recipient
+  where
+  makeTransfer recipient termini =
+    { sender: partyToParticipant state sender
+    , recipient: partyToParticipant state recipient
+    , token: adaToken
+    , quantity: getAda money
+    , termini
+    }
+
+partyToParticipant :: StartedState -> Semantics.Party -> Participant
+partyToParticipant { participants, userParties } party =
+  { nickname: join $ Map.lookup party $ participants
+  , isCurrentUser: Set.member party userParties
+  }

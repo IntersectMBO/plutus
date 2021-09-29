@@ -16,16 +16,13 @@ import Component.Link (link)
 import Component.Row (row)
 import Component.Row as Row
 import Component.Transfer (transfer)
-import Component.Transfer.Types (Termini(..), Participant)
-import Contacts.State (getAda)
-import Contract.State (currentStep, toInput)
+import Component.Transfer.Types (Termini(..))
+import Contract.State (currentStep, partyToParticipant, paymentToTransfer, toInput)
 import Contract.Types (Action(..))
 import Data.Array (fromFoldable)
 import Data.Default (default)
 import Data.Foldable (length)
 import Data.List as List
-import Data.Map as Map
-import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Halogen (ComponentHTML)
 import Halogen.Css (classNames)
@@ -33,7 +30,7 @@ import Halogen.HTML (HTML, div, div_, lazy, p, slot, span, text)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.State (mkTx)
 import Marlowe.Execution.Types (NamedAction(..))
-import Marlowe.Semantics (ChoiceId(..), Contract(..), Party, Payee(..), Payment(..), TransactionOutput(..)) as Semantics
+import Marlowe.Semantics (ChoiceId(..), Contract(..), TransactionOutput(..)) as Semantics
 import Marlowe.Semantics (Token(..), computeTransaction)
 import Material.Icons (icon_)
 import Material.Icons as Icon
@@ -62,7 +59,7 @@ render =
         ]
 
 summary :: forall m. Monad m => Input -> ComponentHTML Action ChildSlots m
-summary input@{ action } =
+summary input@{ action, contractState } =
   sectionBox [ "overflow-y-scroll" ]
     $ column Column.Divided [ "space-y-4" ]
         [ column default []
@@ -78,8 +75,8 @@ summary input@{ action } =
             , box Box.Card [] case action of
                 MakeDeposit recipient sender token quantity ->
                   transfer
-                    { sender: toParticipant input sender
-                    , recipient: toParticipant input recipient
+                    { sender: partyToParticipant contractState sender
+                    , recipient: partyToParticipant contractState recipient
                     , token
                     , quantity
                     , termini: WalletToAccount sender recipient
@@ -110,11 +107,11 @@ summary input@{ action } =
         ]
 
 rusults :: forall w i. Input -> i -> Expand.State -> HTML w i
-rusults input@{ action, contractState, currentSlot } toggle = case _ of
+rusults { action, contractState, currentSlot } toggle = case _ of
   Expand.Opened ->
     layout Icon.ExpandLess
       $ box Box.Card []
-      <$> (fromFoldable $ payment <$> payments)
+      <$> (fromFoldable $ transfer <<< paymentToTransfer contractState <$> payments)
       <> if willClose then
           [ row Row.Between []
               [ text "Contract finishes"
@@ -134,23 +131,6 @@ rusults input@{ action, contractState, currentSlot } toggle = case _ of
         ]
       <> children
 
-  payment (Semantics.Payment sender payee money) =
-    transfer case payee of
-      Semantics.Party recipient ->
-        makeTransfer recipient
-          $ AccountToWallet sender recipient
-      Semantics.Account recipient ->
-        makeTransfer recipient
-          $ AccountToAccount sender recipient
-    where
-    makeTransfer recipient termini =
-      { sender: toParticipant input sender
-      , recipient: toParticipant input recipient
-      , token: (Token "" "")
-      , quantity: getAda money
-      , termini
-      }
-
   contract = contractState.executionState.contract
 
   semanticState = contractState.executionState.semanticState
@@ -168,20 +148,9 @@ rusults input@{ action, contractState, currentSlot } toggle = case _ of
 
   willClose = case txOutput of
     Semantics.TransactionOutput { txOutContract } -> txOutContract == Semantics.Close
-    _ -> input.action == CloseContract
+    _ -> action == CloseContract
 
   count = length payments + if willClose then 1 else 0
-
-toParticipant :: Input -> Semantics.Party -> Participant
-toParticipant { contractState: { participants, userParties }, userNickname } party =
-  if Set.member party userParties then
-    { nickname: Just userNickname
-    , isCurrentUser: true
-    }
-  else
-    { nickname: join $ Map.lookup party $ participants
-    , isCurrentUser: false
-    }
 
 confirmation :: forall w. Input -> HTML w Action
 confirmation { action, transactionFeeQuote, walletBalance } =
