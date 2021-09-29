@@ -171,6 +171,8 @@ main = do
 
       Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
 
+        Sqlite.execute_ conn "PRAGMA journal_mode=WAL"
+
         Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb
 
