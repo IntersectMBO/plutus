@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE ViewPatterns     #-}
 
-module Benchmarks.Common
+module Common
 where
 
 import           PlutusCore

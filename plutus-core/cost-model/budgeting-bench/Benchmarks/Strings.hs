@@ -2,8 +2,8 @@
 
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
-import           Benchmarks.Common
 import           Benchmarks.Generators
+import           Common
 
 import           PlutusCore
 

@@ -1,7 +1,7 @@
 module Benchmarks.Bool (makeBenchmarks) where
 
-import           Benchmarks.Common
 import           Benchmarks.Generators
+import           Common
 
 import           PlutusCore
 

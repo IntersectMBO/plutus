@@ -484,8 +484,8 @@ benchmark cost-model-budgeting-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
     other-modules:
+        Common
         CriterionExtensions
-        Benchmarks.Common
         Benchmarks.Generators
         Benchmarks.Bool
         Benchmarks.ByteStrings

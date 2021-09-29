@@ -2,8 +2,8 @@ module Benchmarks.Tracing (makeBenchmarks) where
 
 import           PlutusCore
 
-import           Benchmarks.Common
 import           Benchmarks.Generators
+import           Common
 
 import           Criterion.Main
 import           System.Random         (StdGen)
