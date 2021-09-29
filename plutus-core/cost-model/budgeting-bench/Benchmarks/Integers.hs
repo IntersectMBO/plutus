@@ -1,12 +1,12 @@
 module Benchmarks.Integers (makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import           System.Random         (StdGen)
+import           System.Random  (StdGen)
 
 ---------------- Integer builtins ----------------
 

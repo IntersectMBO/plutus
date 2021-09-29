@@ -1,6 +1,6 @@
 {- |  Generators for various types of data for benchmarking built-in functions -}
 
-module Benchmarks.Generators where
+module Generators where
 
 import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage (..))

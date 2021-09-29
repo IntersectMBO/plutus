@@ -485,7 +485,7 @@ benchmark cost-model-budgeting-bench
     other-modules:
         Common
         CriterionExtensions
-        Benchmarks.Generators
+        Generators
         Benchmarks.Bool
         Benchmarks.ByteStrings
         Benchmarks.CryptoAndHashes

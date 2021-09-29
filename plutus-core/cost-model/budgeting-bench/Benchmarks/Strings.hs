@@ -2,14 +2,14 @@
 
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import qualified Data.Text             as T
-import           System.Random         (StdGen)
+import qualified Data.Text      as T
+import           System.Random  (StdGen)
 
 
 {- The memory usage of a string is defined to be four bytes per character.  Plutus

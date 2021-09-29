@@ -14,8 +14,8 @@
 
 module Benchmarks.Nops (makeBenchmarks) where
 
-import           Benchmarks.Generators                           (randNwords)
 import           Common
+import           Generators                                      (randNwords)
 
 import           PlutusCore
 import           PlutusCore.Constant

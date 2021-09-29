@@ -7,8 +7,8 @@ module Benchmarks.Unit (makeBenchmarks) where
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.ExMemory
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           Control.DeepSeq                        (NFData)
 import           Criterion.Main

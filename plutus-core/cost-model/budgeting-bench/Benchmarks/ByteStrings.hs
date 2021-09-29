@@ -1,15 +1,15 @@
 module Benchmarks.ByteStrings (makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import qualified Data.ByteString       as BS
-import           System.Random         (StdGen, randomR)
+import qualified Data.ByteString as BS
+import           System.Random   (StdGen, randomR)
 
-import qualified Hedgehog              as H
+import qualified Hedgehog        as H
 
 ---------------- ByteString builtins ----------------
 

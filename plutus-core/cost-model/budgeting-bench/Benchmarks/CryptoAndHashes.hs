@@ -2,8 +2,8 @@
 
 module Benchmarks.CryptoAndHashes (makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 

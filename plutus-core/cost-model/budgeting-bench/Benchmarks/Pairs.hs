@@ -1,12 +1,12 @@
 module Benchmarks.Pairs (makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import           System.Random         (StdGen)
+import           System.Random  (StdGen)
 
 
 -- The pair projection operations should be constant time, but we check that by

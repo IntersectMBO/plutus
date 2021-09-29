@@ -1,14 +1,14 @@
 module Benchmarks.Lists (makeBenchmarks) where
 
-import           Benchmarks.Generators
 import           Common
+import           Generators
 
 import           PlutusCore
 
 import           Criterion.Main
-import           Data.ByteString       (ByteString)
-import qualified Hedgehog              as H
-import           System.Random         (StdGen)
+import           Data.ByteString (ByteString)
+import qualified Hedgehog        as H
+import           System.Random   (StdGen)
 
 
 
