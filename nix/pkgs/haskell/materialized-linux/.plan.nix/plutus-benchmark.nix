@@ -145,6 +145,21 @@
           modules = [ "NaturalSort" "Paths_plutus_benchmark" ];
           hsSourceDirs = [ "validation" ];
           };
+        "cek-calibration" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "cek-calibration" ];
+          };
         };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-benchmark; }

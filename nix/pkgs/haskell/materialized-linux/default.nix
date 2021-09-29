@@ -1719,6 +1719,7 @@
           "servant-subscriber".components.exes."subscriber-psGenerator".planned = lib.mkOverride 900 true;
           "persistent-sqlite".components.library.planned = lib.mkOverride 900 true;
           "ordered-containers".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.benchmarks."cek-calibration".planned = lib.mkOverride 900 true;
           "finite-typelits".components.library.planned = lib.mkOverride 900 true;
           "quickcheck-arbitrary-adt".components.library.planned = lib.mkOverride 900 true;
           "connection".components.library.planned = lib.mkOverride 900 true;
