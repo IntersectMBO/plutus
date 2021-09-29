@@ -14,23 +14,16 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventTy
                                                                          RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStateMarlowe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweTime)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition       (CtxSTF (..))
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf', sup')
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
-data CtxSTF = CtxSTF
-  { contractTerms :: ContractTerms
-  , fpSchedule    :: [ShiftedDay]
-  , prSchedule    :: [ShiftedDay]
-  }
+stateTransition :: EventType -> RiskFactorsMarlowe -> LocalTime -> LocalTime -> ContractStateMarlowe -> Reader (CtxSTF Double LocalTime) ContractStateMarlowe
+stateTransition ev rf t1 t2 st = ask >>= \CtxSTF{..} -> return $ stateTransitionFs' ev rf contractTerms t1 t2 st fpSchedule prSchedule maturity
 
-stateTransition :: EventType -> RiskFactorsMarlowe -> LocalTime -> LocalTime -> ContractStateMarlowe -> Reader CtxSTF ContractStateMarlowe
-stateTransition ev rf t1 t2 st = ask >>= \CtxSTF{..} -> return $ stateTransitionFs' ev rf contractTerms t1 t2 st fpSchedule prSchedule
-
-stateTransitionFs' :: EventType -> RiskFactorsMarlowe -> ContractTerms -> LocalTime -> LocalTime -> ContractStateMarlowe -> [ShiftedDay] -> [ShiftedDay] -> ContractStateMarlowe
+stateTransitionFs' :: EventType -> RiskFactorsMarlowe -> ContractTerms -> LocalTime -> LocalTime -> ContractStateMarlowe -> [LocalTime] -> [LocalTime] -> Maybe LocalTime -> ContractStateMarlowe
 stateTransitionFs'
   ev
   RiskFactorsPoly{..}
@@ -45,6 +38,7 @@ stateTransitionFs'
   st'
   fpSchedule
   prSchedule
+  maturity
   = stf ct ev st'
     where
       stf :: ContractTerms -> EventType -> ContractStateMarlowe -> ContractStateMarlowe
@@ -220,9 +214,9 @@ stateTransitionFs'
 
       time = marloweTime curDate
 
-      tfp_minus = maybe curDate calculationDay (sup fpSchedule curDate)
-      tfp_plus = maybe curDate calculationDay (inf fpSchedule curDate)
-      tpr_plus = maybe curDate calculationDay (inf prSchedule curDate)
+      tfp_minus = fromMaybe curDate (sup' fpSchedule curDate)
+      tfp_plus = fromMaybe curDate (inf' fpSchedule curDate)
+      tpr_plus = fromMaybe curDate (inf' prSchedule curDate)
 
       y_tfpminus_t = constnt $ _y dayCountConvention tfp_minus curDate ct_MD
       y_tfpminus_tfpplus = constnt $ _y dayCountConvention tfp_minus tfp_plus ct_MD
@@ -230,8 +224,8 @@ stateTransitionFs'
       y_sd_t = constnt $ _y dayCountConvention prevDate curDate ct_MD
       y_t = constnt $ _y dayCountConvention curDate tpr_plus ct_MD
 
-      prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
+      prDates = prSchedule ++ maybeToList maturity
       prDatesAfterSd = filter (\d -> d > curDate) prDates
       ti = zipWith (\tn tm -> constnt $ _y dayCountConvention tn tm ct_MD) prDatesAfterSd (tail prDatesAfterSd)
 
-stateTransitionFs' _ _ _ _ _ st _ _  = st
+stateTransitionFs' _ _ _ _ _ st _ _ _ = st

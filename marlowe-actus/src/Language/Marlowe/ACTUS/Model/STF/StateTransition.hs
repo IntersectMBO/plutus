@@ -21,6 +21,7 @@ data CtxSTF a b = CtxSTF
   { contractTerms :: ContractTermsPoly a b
   , fpSchedule    :: [b]
   , prSchedule    :: [b]
+  , ipSchedule    :: [b]
   , maturity      :: Maybe b
   }
 

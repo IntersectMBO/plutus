@@ -38,16 +38,18 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Ass
                                                                              Assertions (..), ContractTerms,
                                                                              ContractTermsPoly (..),
                                                                              TermValidationError (..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
+                                                                             calculationDay)
 import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, marloweTime,
                                                                              timeToSlotNumber, toMarloweFixedPoint,
                                                                              useval)
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability   (validateTerms)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initializeState)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffFs                  (payoffFs)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs         (CtxSTF (..), stateTransition)
-
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        as S (maturity)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (CtxSTF (..))
+import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs         (stateTransition)
 import           Language.Marlowe.ACTUS.Ops                                 as O (ActusNum (..), YearFractionOps (_y))
 import           Ledger.Value                                               (TokenName (TokenName))
 import           Prelude                                                    as P hiding (Fractional, Num, (*), (+), (/))
@@ -160,7 +162,7 @@ genFsContract' ct =
       paymentDayCashflows = Slot . timeToSlotNumber . cashPaymentDay <$> projectedCashflows
       previousDates = ct_SD ct : (cashCalculationDay <$> projectedCashflows)
 
-      gen :: (CashFlow, LocalTime, EventType, Slot, Integer) -> Contract -> Reader CtxSTF Contract
+      gen :: (CashFlow, LocalTime, EventType, Slot, Integer) -> Contract -> Reader (CtxSTF Double LocalTime) Contract
       gen (cf, prevDate, ev, date, i) cont = do
 
         -- orcale
@@ -251,19 +253,20 @@ genFsContract' ct =
           L.zip5 projectedCashflows previousDates eventTypesOfCashflows paymentDayCashflows [1 ..]
    in -- withCollateral cont = receiveCollateral "counterparty" (collateralAmount ct) (timeToSlotNumber $ ct_SD ct) cont
       -- in withCollateral $ initializeStateFs scheduleAcc
-      initializeStateFs (runReader scheduleAcc (CtxSTF ct fpSchedule prSchedule))
-  where
-    fpSchedule = schedule FP ct
-    prSchedule = schedule PR ct
+      runReader (stateInitialisation <$> initializeState <*> scheduleAcc) initCtx
+
+ where
+    fpSchedule = calculationDay <$> schedule FP ct
+    prSchedule = calculationDay <$> schedule PR ct
+    ipSchedule = calculationDay <$> schedule IP ct
+
+    initCtx = CtxSTF ct fpSchedule prSchedule ipSchedule (S.maturity ct)
 
     postProcess cont =
       let ctr = constraints ct
           toAssert = genZeroRiskAssertions ct <$> (assertions =<< maybeToList ctr)
           compose = appEndo . mconcat . map Endo
        in compose toAssert cont
-
-    initializeStateFs :: Contract -> Contract
-    initializeStateFs cont = maybe cont (flip stateInitialisation cont) (initialize ct)
 
     stateInitialisation :: ContractState -> Contract -> Contract
     stateInitialisation ContractStatePoly {..} continue =
