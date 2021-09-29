@@ -186,7 +186,7 @@ tests =
             (assertDone theContract tag (const True) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
 
-        , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError TxStatus =
                 submitTx payment >>= awaitTxStatusChange . Ledger.txId
           in run "await change in tx status"
@@ -195,7 +195,7 @@ tests =
 
         , let c :: Contract [TxOutStatus] Schema ContractError () = do
                 -- Submit a payment tx of 10 lovelace to W2.
-                let w2PubKeyHash = Crypto.pubKeyHash $ walletPubKey w2
+                let w2PubKeyHash = walletPubKeyHash w2
                 let payment = Constraints.mustPayToPubKey w2PubKeyHash
                                                           (Ada.lovelaceValueOf 10)
                 tx <- submitTx payment
@@ -210,7 +210,7 @@ tests =
                 -- We submit another tx which spends the utxo belonging to the
                 -- contract's caller. It's status should be changed eventually
                 -- to confirmed spent.
-                pubKeyHash <- Crypto.pubKeyHash <$> ownPubKey
+                pubKeyHash <- ownPubKeyHash
                 ciTxOutM <- txOutFromRef utxo
                 let lookups = Constraints.unspentOutputs (maybe mempty (Map.singleton utxo) ciTxOutM)
                 submitTxConstraintsWith @Void lookups $ Constraints.mustSpendPubKeyOutput utxo

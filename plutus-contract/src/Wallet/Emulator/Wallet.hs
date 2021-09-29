@@ -21,7 +21,6 @@
 module Wallet.Emulator.Wallet where
 
 import           Cardano.Crypto.Hash            as Crypto
-import qualified Cardano.Crypto.Wallet          as Crypto
 import qualified Cardano.Wallet.Primitive.Types as Cardano.Wallet
 import           Control.Lens                   hiding (from, to)
 import           Control.Monad                  (foldM)
@@ -32,14 +31,10 @@ import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH         (makeEffect)
 import           Data.Aeson                     (FromJSON (..), ToJSON (..), ToJSONKey)
 import qualified Data.Aeson                     as Aeson
-import           Data.Aeson.Extras
 import           Data.Bifunctor
 import           Data.ByteArray                 (convert)
-import qualified Data.ByteString                as BS
 import           Data.Default                   (Default (def))
 import           Data.Foldable
-import           Data.Hashable                  (Hashable (..))
-import           Data.List                      (elemIndex)
 import qualified Data.Map                       as Map
 import           Data.Maybe
 import qualified Data.OpenApi.Schema            as OpenApi
@@ -53,10 +48,11 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic (..))
 import           Ledger                         hiding (from, to)
 import qualified Ledger.Ada                     as Ada
+import           Ledger.CardanoWallet           (MockWallet)
+import qualified Ledger.CardanoWallet           as CW
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
 import qualified Ledger.Constraints.OffChain    as U
 import           Ledger.Credential              (Credential (..))
-import qualified Ledger.Crypto                  as Crypto
 import           Ledger.Fee                     (FeeConfig (..), calcFees)
 import           Ledger.TimeSlot                (posixTimeRangeToContainedSlotRange)
 import qualified Ledger.Tx                      as Tx
@@ -81,11 +77,20 @@ newtype SigningProcess = SigningProcess {
 instance Show SigningProcess where
     show = const "SigningProcess <...>"
 
--- | A wallet in the emulator model.
+-- | A wallet identifier
 newtype Wallet = Wallet { getWalletId :: WalletId }
     deriving (Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData)
     deriving anyclass (ToJSON, FromJSON, ToJSONKey)
+
+toMockWallet :: MockWallet -> Wallet
+toMockWallet = Wallet . WalletId . CW.mwWalletId
+
+knownWallets :: [Wallet]
+knownWallets = toMockWallet <$> CW.knownWallets
+
+knownWallet :: Integer -> Wallet
+knownWallet = toMockWallet . CW.fromWalletNumber . CW.WalletNumber
 
 instance Show Wallet where
     showsPrec p (Wallet i) = showParen (p > 9) $ showString "Wallet " . shows i
@@ -110,14 +115,6 @@ instance ToHttpApiData WalletId where
     toUrlPiece = toBase16
 instance FromHttpApiData WalletId where
     parseUrlPiece = first T.pack . fromBase16
-instance Show Crypto.XPrv where
-    show = T.unpack . encodeByteString . Crypto.unXPrv
-instance Eq Crypto.XPrv where
-    l == r = Crypto.unXPrv l == Crypto.unXPrv r
-instance Ord Crypto.XPrv where
-    compare l r = compare (Crypto.unXPrv l) (Crypto.unXPrv r)
-instance Hashable Crypto.XPrv where
-    hashWithSalt i = hashWithSalt i . Crypto.unXPrv
 deriving anyclass instance OpenApi.ToSchema WalletId
 
 toBase16 :: WalletId -> T.Text
@@ -134,30 +131,6 @@ walletPubKeyHash = \case
 -- | Get a wallet's address.
 walletAddress :: Wallet -> Address
 walletAddress = pubKeyHashAddress . walletPubKeyHash
-
--- | The wallets used in mockchain simulations by default. There are
---   ten wallets because the emulator comes with ten private keys.
-knownWallets :: [Wallet]
-knownWallets = undefined -- Wallet . MockWallet <$> knownPrivateKeys
-
--- | Get a known wallet from an @Integer@ indexed from 1 to 10.
-knownWallet :: Integer -> Wallet
-knownWallet = (knownWallets !!) . pred . fromInteger
-
--- | Wrapper for config files and APIs
-newtype WalletNumber = WalletNumber { getWallet :: Integer }
-    deriving (Show, Eq, Ord, Generic)
-    deriving newtype (ToHttpApiData, FromHttpApiData)
-    deriving anyclass (FromJSON, ToJSON)
-
--- fromWalletNumber :: WalletNumber -> Wallet
--- fromWalletNumber (WalletNumber i) = knownWallet i
-
-toWalletNumber :: Wallet -> WalletNumber
-toWalletNumber w =
-  maybe (error "toWalletNumber: not a known wallet")
-        (WalletNumber . toInteger . succ)
-        $ elemIndex w knownWallets
 
 data WalletEvent =
     GenericLog T.Text
@@ -178,7 +151,7 @@ makePrisms ''WalletEvent
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
-    _ownPrivateKey           :: PrivateKey, -- ^ User's 'PrivateKey'.
+    _mockWallet              :: MockWallet, -- ^ mock wallet with the user's private key
     _nodeClient              :: NodeClientState,
     _chainIndexEmulatorState :: ChainIndexEmulatorState,
     _signingProcess          :: SigningProcess
@@ -186,26 +159,26 @@ data WalletState = WalletState {
 
 makeLenses ''WalletState
 
+ownPrivateKey :: WalletState -> PrivateKey
+ownPrivateKey = CW.privateKey . _mockWallet
+
+ownPublicKey :: WalletState -> PubKey
+ownPublicKey = CW.pubKey . _mockWallet
+
 -- | Get the user's own public-key address.
 ownAddress :: WalletState -> Address
-ownAddress = pubKeyAddress . toPublicKey . view ownPrivateKey
+ownAddress = pubKeyAddress . toPublicKey . ownPrivateKey
 
 -- | An empty wallet using the given private key.
 -- for that wallet as the sole watched address.
-emptyWalletState :: PrivateKey -> WalletState
-emptyWalletState pk = WalletState pk emptyNodeClientState mempty sp where
-    sp = signWithPrivateKey pk
+fromMockWallet :: MockWallet -> WalletState
+fromMockWallet mw = WalletState mw emptyNodeClientState mempty sp where
+    sp = signWithPrivateKey (CW.privateKey mw)
 
-{-# DEPRECATED PaymentArgs "Not used anywhere" #-}
-data PaymentArgs =
-    PaymentArgs
-        { availableFunds :: Map.Map TxOutRef TxOutTx
-        -- ^ Funds that may be spent in order to balance the payment
-        , ownPubKey      :: PubKey
-        -- ^ Where to send the change (if any)
-        , requestedValue :: Value
-        -- ^ The value that must be covered by the payment's inputs
-        }
+-- | Empty wallet state for an emulator 'Wallet'. Returns 'Nothing' if the wallet
+--   is not known in the emulator.
+emptyWalletState :: Wallet -> Maybe WalletState
+emptyWalletState (Wallet wid) = fmap fromMockWallet $ find ((==) wid . WalletId . CW.mwWalletId) CW.knownWallets
 
 handleWallet ::
     ( Member NodeClientEffect effs
@@ -219,7 +192,7 @@ handleWallet feeCfg = \case
     SubmitTxn tx -> do
         logInfo $ SubmittingTx tx
         publishTx tx
-    OwnPubKeyHash -> gets (walletPubKeyHash . Wallet . undefined . _ownPrivateKey)
+    OwnPubKeyHash -> gets (CW.pubKeyHash . _mockWallet)
     BalanceTx utx' -> runError $ do
         logInfo $ BalancingUnbalancedTx utx'
         utxo <- get >>= ownOutputs
@@ -240,7 +213,7 @@ handleAddSignature ::
     => Tx
     -> Eff effs Tx
 handleAddSignature tx = do
-    privKey <- gets _ownPrivateKey
+    privKey <- gets ownPrivateKey
     pure (addSignature privKey tx)
 
 ownOutputs :: forall effs.
@@ -248,12 +221,12 @@ ownOutputs :: forall effs.
     )
     => WalletState
     -> Eff effs (Map.Map TxOutRef ChainIndexTxOut)
-ownOutputs WalletState{_ownPrivateKey} = do
+ownOutputs WalletState{_mockWallet} = do
     refs <- allUtxoSet (Just def)
     Map.fromList . catMaybes <$> traverse txOutRefTxOutFromRef refs
   where
     cred :: Credential
-    cred = addressCredential $ pubKeyAddress $ toPublicKey _ownPrivateKey
+    cred = addressCredential $ pubKeyAddress $ toPublicKey $ CW.privateKey _mockWallet
 
     -- Accumulate all unspent 'TxOutRef's from the resulting pages.
     allUtxoSet :: Maybe (PageQuery TxOutRef) -> Eff effs [TxOutRef]
@@ -316,7 +289,7 @@ handleBalanceTx ::
 handleBalanceTx utxo UnbalancedTx{unBalancedTxTx} = do
     let filteredUnbalancedTxTx = removeEmptyOutputs unBalancedTxTx
     let txInputs = Set.toList $ Tx.txInputs filteredUnbalancedTxTx
-    ownPubKey <- gets (toPublicKey . view ownPrivateKey)
+    ownPubKey <- gets ownPublicKey
     inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs filteredUnbalancedTxTx)
     collateral  <- traverse lookupValue (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
     let fees = txFee filteredUnbalancedTxTx
@@ -450,7 +423,7 @@ takeUntil p (x:xs)
     | otherwise      = x : takeUntil p xs
 
 -- | The default signing process is 'signWallet'
-defaultSigningProcess :: Wallet -> SigningProcess
+defaultSigningProcess :: MockWallet -> SigningProcess
 defaultSigningProcess = signWallet
 
 signWithPrivateKey :: PrivateKey -> SigningProcess
@@ -460,15 +433,13 @@ signWithPrivateKey pk = SigningProcess $
 -- | Sign the transaction by calling 'WAPI.signTxnWithKey' (throwing a
 --   'PrivateKeyNotFound' error if called with a key other than the
 --   wallet's private key)
-signWallet :: Wallet -> SigningProcess
+signWallet :: MockWallet -> SigningProcess
 signWallet wllt = SigningProcess $
     \pks tx -> foldM (signTxnWithKey wllt) tx pks
 
--- | Sign the transaction with the private key of the given public
---   key. Fails if the wallet doesn't have the private key.
-signTxnWithKey :: (Member (Error WAPI.WalletAPIError) r) => Wallet -> Tx -> PubKeyHash -> Eff r Tx
-signTxnWithKey _ = undefined -- (Wallet (MockWallet prv)) tx pubK = signTxWithPrivateKey prv tx pubK
--- signTxnWithKey wllt _ _                          = throwError . WAPI.PrivateKeyNotFound $ walletPubKeyHash wllt
+-- | Sign the transaction with the private key of the mock wallet.
+signTxnWithKey :: (Member (Error WAPI.WalletAPIError) r) => MockWallet -> Tx -> PubKeyHash -> Eff r Tx
+signTxnWithKey mw tx pkh = signTxWithPrivateKey (CW.privateKey mw) tx pkh
 
 -- | Sign the transaction with the private key, if the hash is that of the
 --   private key.
@@ -515,7 +486,7 @@ type WalletSet = Map.Map Wallet WalletState
 walletPubKeyHashes :: WalletSet -> Map.Map PubKeyHash Wallet
 walletPubKeyHashes = foldl' f Map.empty . Map.toList
   where
-    f m (w, ws) = Map.insert (pubKeyHash $ toPublicKey $ _ownPrivateKey ws) w m
+    f m (w, ws) = Map.insert (CW.pubKeyHash $ _mockWallet ws) w m
 
 -- | For a set of wallets, convert them into a map of value: entity,
 -- where entity is one of 'Entity'.

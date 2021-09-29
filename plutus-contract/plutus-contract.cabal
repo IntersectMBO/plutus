@@ -67,7 +67,6 @@ library
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
-        Wallet.Emulator.MockWallet
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.Stream

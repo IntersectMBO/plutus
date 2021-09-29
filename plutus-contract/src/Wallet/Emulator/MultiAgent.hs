@@ -27,6 +27,7 @@ import           Control.Monad.Freer.State
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.Map                          (Map)
 import qualified Data.Map                          as Map
+import           Data.Maybe                        (fromMaybe)
 import qualified Data.Text                         as T
 import           Data.Text.Extras                  (tshow)
 import           Data.Text.Prettyprint.Doc
@@ -44,7 +45,7 @@ import qualified Wallet.API                        as WAPI
 import qualified Wallet.Emulator.Chain             as Chain
 import           Wallet.Emulator.LogMessages       (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient        as NC
-import           Wallet.Emulator.Wallet            (Wallet (..), WalletId (..))
+import           Wallet.Emulator.Wallet            (Wallet (..))
 import qualified Wallet.Emulator.Wallet            as Wallet
 import           Wallet.Types                      (AssertionError (..))
 
@@ -234,8 +235,8 @@ data EmulatorState = EmulatorState {
 makeLenses ''EmulatorState
 
 walletState :: Wallet -> Lens' EmulatorState Wallet.WalletState
-walletState = undefined -- wallet@(Wallet (MockWallet privKey)) = walletStates . at wallet . anon (Wallet.emptyWalletState privKey) (const False)
--- walletState (Wallet (CardanoWallet _)) = error "Cardano wallets not supported in emulator"
+walletState wallet = walletStates . at wallet . anon emptyState (const False) where
+    emptyState = fromMaybe (error $ "walletState: not a known wallet: " <> show wallet) (Wallet.emptyWalletState wallet)
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
