@@ -1,4 +1,4 @@
-module Component.Avatar
+module Component.Avatar.View
   ( avatar
   , avatarWithChildren
   ) where

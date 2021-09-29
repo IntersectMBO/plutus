@@ -1,11 +1,11 @@
-module Component.WalletId
+module Component.WalletId.View
   ( defaultInput
   , render
   ) where
 
 import Prologue
-import Component.Input as Input
-import Component.Label as Label
+import Component.Input.View as Input
+import Component.Label.View as Label
 import Component.WalletId.Types (Input)
 import Data.Newtype (unwrap)
 import Data.UUID (emptyUUID, toString) as UUID

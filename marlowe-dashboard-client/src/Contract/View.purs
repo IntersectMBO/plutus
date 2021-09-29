@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prologue hiding (div)
-import Component.Transfer (transfer)
+import Component.Transfer.View (transfer)
 import Component.Transfer.Types (Termini(..))
 import Contacts.State (adaToken)
 import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _stateMetadata, _stateNickname, _userParties)

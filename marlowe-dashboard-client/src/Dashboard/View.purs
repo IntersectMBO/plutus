@@ -5,8 +5,8 @@ module Dashboard.View
 
 import Prologue hiding (Either(..), div)
 import Clipboard (Action(..)) as Clipboard
-import Component.ConfirmInput as ConfirmInput
-import Component.WalletId as WalletId
+import Component.ConfirmInput.View as ConfirmInput
+import Component.WalletId.View as WalletId
 import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
 import Contacts.State (adaToken, getAda)
 import Contacts.Types (WalletDetails)

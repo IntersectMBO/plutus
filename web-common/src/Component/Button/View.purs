@@ -1,4 +1,4 @@
-module Component.Button (button) where
+module Component.Button.View (button) where
 
 import Prologue
 import Component.Button.Types (Variant(..))

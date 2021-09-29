@@ -24,8 +24,8 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon_)
 import Contacts.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
 import Contacts.Types (Action(..), CardSection(..), State, WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
-import Component.Label as Label
-import Component.WalletId as WalletId
+import Component.Label.View as Label
+import Component.WalletId.View as WalletId
 
 contactsCard :: forall p. WalletDetails -> State -> HTML p Action
 contactsCard currentWallet state =

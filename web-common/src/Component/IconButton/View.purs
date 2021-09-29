@@ -1,4 +1,4 @@
-module Component.IconButton (iconButton) where
+module Component.IconButton.View (iconButton) where
 
 import Prologue
 import Data.Maybe (isNothing)

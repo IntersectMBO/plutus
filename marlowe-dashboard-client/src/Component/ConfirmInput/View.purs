@@ -1,21 +1,21 @@
-module Component.ConfirmInput (render) where
+module Component.ConfirmInput.View (render) where
 
 import Prologue hiding (div)
 import Component.Amount (amount)
 import Component.Box (box)
 import Component.Box as Box
-import Component.Button (button)
+import Component.Button.View (button)
 import Component.Button.Types as Button
 import Component.Column (column)
 import Component.Column as Column
 import Component.ConfirmInput.Types (Input)
 import Component.Expand as Expand
 import Component.Heading (Preset(..), heading)
-import Component.IconButton (iconButton)
+import Component.IconButton.View (iconButton)
 import Component.Link (link)
 import Component.Row (row)
 import Component.Row as Row
-import Component.Transfer (transfer)
+import Component.Transfer.View (transfer)
 import Component.Transfer.Types (Termini(..))
 import Contract.State (currentStep, partyToParticipant, paymentToTransfer, toInput)
 import Contract.Types (Action(..))
@@ -23,10 +23,9 @@ import Data.Array (fromFoldable)
 import Data.Default (default)
 import Data.Foldable (length)
 import Data.List as List
-import Data.Symbol (SProxy(..))
 import Halogen (ComponentHTML)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, div, div_, lazy, p, slot, span, text)
+import Halogen.HTML (HTML, div, div_, lazy, p, span, text)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.State (mkTx)
 import Marlowe.Execution.Types (NamedAction(..))

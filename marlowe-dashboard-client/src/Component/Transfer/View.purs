@@ -1,9 +1,9 @@
-module Component.Transfer (transfer) where
+module Component.Transfer.View (transfer) where
 
 import Prologue
 import Component.Amount (amount)
 import Component.Avatar.Types (Size(..)) as Avatar
-import Component.Avatar (avatar)
+import Component.Avatar.View (avatar)
 import Component.Column (column)
 import Component.Column as Column
 import Component.Row (row)

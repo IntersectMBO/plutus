@@ -1,4 +1,4 @@
-module Component.Input
+module Component.Input.View
   ( defaultInput
   , renderWithChildren
   , render

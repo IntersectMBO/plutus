@@ -1,7 +1,7 @@
 module Template.View (contractTemplateCard) where
 
 import Prologue hiding (Either(..), div)
-import Component.Label as Label
+import Component.Label.View as Label
 import Contacts.Lenses (_walletNickname)
 import Contacts.State (adaToken, getAda)
 import Contacts.Types (WalletLibrary)

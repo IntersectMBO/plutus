@@ -1,4 +1,4 @@
-module Component.Label
+module Component.Label.View
   ( defaultInput
   , render
   , renderWithChildren
