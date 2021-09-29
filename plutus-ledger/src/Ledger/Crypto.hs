@@ -14,8 +14,8 @@ module Ledger.Crypto
     , passPhrase
     ) where
 
-import           Cardano.Crypto.Hash     as Crypto
 import qualified Cardano.Crypto.Wallet   as Crypto
+import           Crypto.Hash             as Crypto
 import qualified Data.ByteArray          as BA
 import qualified Data.ByteString         as BS
 import           Plutus.V1.Ledger.Api
@@ -30,8 +30,8 @@ pubKeyHash :: PubKey -> PubKeyHash
 pubKeyHash (PubKey (LedgerBytes bs)) =
     PubKeyHash
       $ toBuiltin
-      $ Crypto.hashToBytes
-      $ Crypto.hashWith @Crypto.Blake2b_224 id (fromBuiltin bs)
+      $ BA.convert @_ @BS.ByteString
+      $ Crypto.hashWith Crypto.Blake2b_160 (fromBuiltin bs)
 
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool
