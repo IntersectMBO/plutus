@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind -fno-warn-name-shadowing #-}
-module Spec.Vesting where
+module Spec.Vesting (tests, prop_Vesting, prop_CheckNoLockedFundsProof, retrieveFundsTrace) where
 
 import           Control.Lens                       hiding (elements)
 import           Control.Monad                      (void, when)
@@ -20,7 +20,6 @@ import           Test.Tasty
 import qualified Test.Tasty.HUnit                   as HUnit
 import           Test.Tasty.QuickCheck              (testProperty)
 
-import           Ledger                             (validatorHash)
 import qualified Ledger
 import qualified Ledger.Ada                         as Ada
 import           Ledger.Slot
@@ -159,12 +158,6 @@ instance ContractModel VestingModel where
   shrinkAction _ (Vest _)             = []
   shrinkAction _ (Retrieve w v)       = Retrieve w <$> shrinkValue v
   shrinkAction _ (WaitUntil (Slot n)) = [ WaitUntil (Slot n') | n' <- shrink n ]
-
-validator :: Ledger.Validator
-validator = vestingScript params
-
-vh :: Ledger.ValidatorHash
-vh = validatorHash validator
 
 wallets :: [Wallet]
 wallets = [w1, w2, w3]
