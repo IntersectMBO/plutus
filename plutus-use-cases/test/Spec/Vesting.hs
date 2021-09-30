@@ -52,12 +52,12 @@ params = vesting (TimeSlot.scSlotZeroTime def)
 -- * QuickCheck model
 
 data VestingModel =
-  VestingModel { _vestedAmount :: Value
-               , _vested       :: [Wallet]
-               , _t1Slot       :: Slot
-               , _t2Slot       :: Slot
-               , _t1Amount     :: Value
-               , _t2Amount     :: Value
+  VestingModel { _vestedAmount :: Value -- ^ How much value is in the contract
+               , _vested       :: [Wallet] -- ^ What wallets have already vested money
+               , _t1Slot       :: Slot -- ^ The time for the first tranche
+               , _t2Slot       :: Slot -- ^ The time for the second tranche
+               , _t1Amount     :: Value -- ^ The size of the first tranche
+               , _t2Amount     :: Value -- ^ The size of the second tranche
                } deriving (Show, Eq)
 
 makeLenses 'VestingModel
@@ -65,6 +65,9 @@ makeLenses 'VestingModel
 deriving instance Eq (ContractInstanceKey VestingModel w schema err)
 deriving instance Show (ContractInstanceKey VestingModel w schema err)
 
+-- This instance models the behaviour of the vesting contract. There are some peculiarities
+-- that stem from the implementation of the contract that are apparent in the precondition
+-- to the `Vest` endpoint.
 instance ContractModel VestingModel where
   data ContractInstanceKey VestingModel w schema err where
     WalletKey :: Wallet -> ContractInstanceKey VestingModel () VestingSchema VestingError
@@ -93,6 +96,7 @@ instance ContractModel VestingModel where
 
     WaitUntil slot -> void $ Trace.waitUntilSlot slot
 
+  -- Vest the sum of the two tranches
   nextState (Vest w) = do
     let amount =  vestingTrancheAmount (vestingTranche1 params)
                <> vestingTrancheAmount (vestingTranche2 params)
@@ -101,22 +105,17 @@ instance ContractModel VestingModel where
     vested       $~ (w:)
     wait 1
 
-  nextState (Retrieve w val) = do
+  -- Retrieve `v` value as long as that leaves enough value to satisfy
+  -- the tranche requirements
+  nextState (Retrieve w v) = do
     slot   <- viewModelState currentSlot
-    t1     <- viewContractState t1Slot
-    t1v    <- viewContractState t1Amount
-    t2     <- viewContractState t2Slot
-    t2v    <- viewContractState t2Amount
     amount <- viewContractState vestedAmount
-    let availableValue = mconcat $  [ t1v | slot > t1 ]
-                                 ++ [ t2v | slot > t2 ]
-        amountLeft = amount Numeric.- val
-        totalAmount = t1v <> t2v
-    when (  amountLeft `geq` (totalAmount Numeric.- availableValue)
-         && val `leq` amount
+    s      <- getContractState
+    when ( enoughValueLeft slot s v
+         && v `leq` amount
          && Ledger.pubKeyHash (walletPubKey w) == vestingOwner params) $ do
-      deposit w val
-      vestedAmount $= (amount Numeric.- val)
+      deposit w v
+      vestedAmount $= (amount Numeric.- v)
     wait 2
 
   nextState (WaitUntil s) = do
@@ -124,25 +123,18 @@ instance ContractModel VestingModel where
     when (slot < s) $ do
       waitUntil s
 
-  precondition s (Vest w) =  w `notElem` s ^. contractState . vested
-                          && Ledger.pubKeyHash (walletPubKey w) /= vestingOwner params
-                          && slot < t1
+  precondition s (Vest w) =  w `notElem` s ^. contractState . vested -- After a wallet has vested the contract shuts down
+                          && Ledger.pubKeyHash (walletPubKey w) /= vestingOwner params -- The vesting owner shouldn't vest
+                          && slot < t1 -- If you vest after slot 1 it can cause the vesting owner to terminate prematurely
     where
       slot   = s ^. currentSlot
       t1     = s ^. contractState . t1Slot
 
-  precondition s (Retrieve w v) =  mustRemainLocked `leq` (amount Numeric.- v)
+  precondition s (Retrieve w v) = enoughValueLeft slot (s ^. contractState) v
                                 && Ledger.pubKeyHash (walletPubKey w) == vestingOwner params
     where
-      amount = s ^. contractState . vestedAmount
       slot   = s ^. currentSlot
-      t1     = s ^. contractState . t1Slot
-      t1v    = s ^. contractState . t1Amount
-      t2     = s ^. contractState . t2Slot
-      t2v    = s ^. contractState . t2Amount
-      availableValue   = mconcat $ [ t1v | slot > t1 ] ++ [ t2v | slot > t2 ]
-      totalValue       = t1v <> t2v
-      mustRemainLocked = totalValue Numeric.- availableValue
+
 
   precondition s (WaitUntil slot') = s ^. currentSlot < slot'
 
@@ -158,6 +150,25 @@ instance ContractModel VestingModel where
   shrinkAction _ (Vest _)             = []
   shrinkAction _ (Retrieve w v)       = Retrieve w <$> shrinkValue v
   shrinkAction _ (WaitUntil (Slot n)) = [ WaitUntil (Slot n') | n' <- shrink n ]
+
+-- | Check that the amount of value left in the contract
+-- is at least the amount that remains locked at the current
+-- slot.
+enoughValueLeft :: Slot -- ^ current slot
+                -> VestingModel
+                -> Value
+                -> Bool
+enoughValueLeft slot s take =
+  let availableValue   = mconcat $ [ t1v | slot > t1 ] ++ [ t2v | slot > t2 ]
+      totalValue       = t1v <> t2v
+      mustRemainLocked = totalValue Numeric.- availableValue
+  in mustRemainLocked `leq` (vested Numeric.- take)
+  where
+    vested = s ^. vestedAmount
+    t1     = s ^. t1Slot
+    t1v    = s ^. t1Amount
+    t2     = s ^. t2Slot
+    t2v    = s ^. t2Amount
 
 wallets :: [Wallet]
 wallets = [w1, w2, w3]
@@ -179,6 +190,8 @@ noLockProof = NoLockedFundsProof{
       nlfpMainStrategy   = mainStrat,
       nlfpWalletStrategy = walletStrat }
     where
+        -- To get all the money out simply wait until after the
+        -- deadline and take as much money as has been vested.
         mainStrat = do
             amount <- viewContractState vestedAmount
             t2     <- viewContractState t2Slot
@@ -188,6 +201,7 @@ noLockProof = NoLockedFundsProof{
             when (amount `gt` mempty) $ do
               action (Retrieve w1 amount)
 
+        -- No one but w1 ever gets any money out of the contract.
         walletStrat w | w == w1 = mainStrat
                       | otherwise = return ()
 
