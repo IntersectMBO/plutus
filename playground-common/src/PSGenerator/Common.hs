@@ -311,7 +311,6 @@ servantBridge = headersBridge <|> headerBridge
 ledgerTypes :: [SumType 'Haskell]
 ledgerTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConfig)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConversionError)

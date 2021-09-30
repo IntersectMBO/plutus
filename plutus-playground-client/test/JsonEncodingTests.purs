@@ -18,6 +18,7 @@ import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterResult)
 import PlutusTx.AssocMap as AssocMap
+import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
@@ -100,7 +101,14 @@ jsonHandlingTests = do
       assertEncodesTo
         aValue
         "test/value_ada.json"
+    test "Encode POSIXTime" do
+      let
+        aValue = POSIXTime { getPOSIXTime: (BigInteger.fromInt 50) }
+      assertEncodesTo
+        aValue
+        "test/value_posixtime.json"
     suite "Roundtrips" do
+      testRoundTrip "POSIXTime" arbitraryPOSIXTime
       testRoundTrip "BigInteger" arbitraryBigInteger
       testRoundTrip "CurrencySymbol" arbitraryCurrencySymbol
       testRoundTrip "TokenName" arbitraryTokenName
@@ -157,6 +165,11 @@ arbitraryBigInteger = do
     intSized :: Gen BigInteger
     intSized = BigInteger.fromInt <$> arbitrary
   product <$> vectorOf 5 intSized
+
+arbitraryPOSIXTime :: Gen POSIXTime
+arbitraryPOSIXTime = do
+  intSized <- BigInteger.fromInt <$> arbitrary
+  pure $ POSIXTime { getPOSIXTime: intSized }
 
 arbitraryKnownCurrency :: Gen KnownCurrency
 arbitraryKnownCurrency = do
