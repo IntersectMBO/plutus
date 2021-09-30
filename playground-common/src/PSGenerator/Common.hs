@@ -136,6 +136,12 @@ integerBridge = do
     typeName ^== "Integer"
     pure psBigInteger
 
+word64Bridge :: BridgePart
+word64Bridge = do
+    typeName ^== "Word64"
+    typeModule ^== "GHC.Word"
+    pure psBigInteger
+
 digestBridge :: BridgePart
 digestBridge = do
     typeName ^== "Digest"
@@ -187,7 +193,7 @@ someCardanoApiTxBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> word64Bridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 

@@ -20,10 +20,12 @@ module Plutus.ChainIndex.UtxoState(
     , tubUnmatchedSpentInputs
     , UtxoIndex
     , utxoState
+    , utxoBlockCount
     , fromBlock
     , fromTx
     , isUnspentOutput
     , tip
+    , viewTip
     , unspentOutputs
     -- * Extending the UTXO index
     , InsertUtxoPosition(..)
@@ -34,14 +36,19 @@ module Plutus.ChainIndex.UtxoState(
     , RollbackFailed(..)
     , RollbackResult(..)
     , rollback
-    , viewTip
+    , rollbackWith
+    -- * Limit the UTXO index size
+    , ReduceBlockCountResult(..)
+    , reduceBlockCount
     ) where
 
+import           Codec.Serialise                   (Serialise)
 import           Control.Lens                      (makeLenses, view)
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           Data.FingerTree                   (FingerTree, Measured (..))
 import qualified Data.FingerTree                   as FT
 import           Data.Function                     (on)
+import           Data.Monoid                       (Sum (..))
 import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
 import           Data.Set                          (Set)
 import qualified Data.Set                          as Set
@@ -60,7 +67,7 @@ data TxUtxoBalance =
         , _tubUnmatchedSpentInputs :: Set TxOutRef -- ^ Outputs spent by the transaction(s)
         }
         deriving stock (Eq, Show, Generic)
-        deriving anyclass (FromJSON, ToJSON)
+        deriving anyclass (FromJSON, ToJSON, Serialise)
 
 
 makeLenses ''TxUtxoBalance
@@ -96,14 +103,17 @@ fromTx tx =
         , _tubUnmatchedSpentInputs = Set.mapMonotonic txInRef (view citxInputs tx)
         }
 
-type UtxoIndex a = FingerTree (UtxoState a) (UtxoState a)
-instance Monoid a => Measured (UtxoState a) (UtxoState a) where
-    measure = id
+newtype BlockCount = BlockCount { getBlockCount :: Int } deriving (Semigroup, Monoid) via (Sum Int)
 
-utxoState :: Measured (UtxoState a) (UtxoState a)
-          => UtxoIndex a
-          -> UtxoState a
-utxoState = measure
+type UtxoIndex a = FingerTree (BlockCount, UtxoState a) (UtxoState a)
+instance Monoid a => Measured (BlockCount, UtxoState a) (UtxoState a) where
+    measure u = (BlockCount 1, u)
+
+utxoState :: Monoid a => UtxoIndex a -> UtxoState a
+utxoState = snd . measure
+
+utxoBlockCount :: Monoid a => UtxoIndex a -> Int
+utxoBlockCount = getBlockCount . fst . measure
 
 -- | Whether a 'TxOutRef' is a member of the UTXO set (ie. unspent)
 isUnspentOutput :: TxOutRef -> UtxoState TxUtxoBalance -> Bool
@@ -111,6 +121,9 @@ isUnspentOutput r = Set.member r . view (usTxUtxoData . tubUnspentOutputs)
 
 tip :: UtxoState a -> Tip
 tip = view usTip
+
+viewTip :: Monoid a => UtxoIndex a -> Tip
+viewTip = tip . utxoState
 
 instance Eq a => Ord (UtxoState a) where
     compare = compare `on` tip
@@ -139,16 +152,16 @@ instance Pretty (InsertUtxoSuccess a) where
 
 -- | Insert a 'UtxoState' into the index
 insert ::
-       ( Measured (UtxoState a) (UtxoState a)
+       ( Monoid a
        , Eq a
        )
        => UtxoState a
-       -> FingerTree (UtxoState a) (UtxoState a)
+       -> UtxoIndex a
        -> Either InsertUtxoFailed (InsertUtxoSuccess a)
 insert   UtxoState{_usTip=TipAtGenesis} _ = Left InsertUtxoNoTip
 insert s@UtxoState{_usTip=thisTip} ix =
-    let (before, after) = FT.split (s <=)  ix
-    in case tip (measure after) of
+    let (before, after) = FT.split ((s <=) . snd) ix
+    in case tip (utxoState after) of
         TipAtGenesis -> Right $ InsertUtxoSuccess{newIndex = before FT.|> s, insertPosition = InsertAtEnd}
         t | t > thisTip -> Right $ InsertUtxoSuccess{newIndex = (before FT.|> s) <> after, insertPosition = InsertBeforeEnd}
           | otherwise   -> Left  $ DuplicateBlock t
@@ -159,27 +172,35 @@ data RollbackResult a =
         , rolledBackIndex :: UtxoIndex a
         }
 
-viewTip :: Measured (UtxoState a) (UtxoState a)
-        => UtxoIndex a
-        -> Tip
-viewTip = tip . measure
-
 -- | Perform a rollback on the utxo index
 rollback :: Point
          -> UtxoIndex TxUtxoBalance
          -> Either RollbackFailed (RollbackResult TxUtxoBalance)
-rollback _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
-rollback targetPoint idx@(viewTip -> currentTip)
+rollback = rollbackWith const
+
+-- | Perform a rollback on the utxo index, with a callback to calculate the new index.
+rollbackWith
+    :: Monoid a
+    => (UtxoIndex a -> UtxoIndex a -> UtxoIndex a) -- ^ Calculate the new index given the index before and the index after the rollback point.
+    -> Point
+    -> UtxoIndex a
+    -> Either RollbackFailed (RollbackResult a)
+rollbackWith _ PointAtGenesis (viewTip -> TipAtGenesis) = Right (RollbackResult TipAtGenesis mempty)
+rollbackWith _ _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
+rollbackWith f targetPoint idx@(viewTip -> currentTip)
+    -- Already at the target point
+    |  targetPoint `pointsToTip` currentTip =
+        Right RollbackResult{newTip=currentTip, rolledBackIndex=idx}
     -- The rollback happened sometime after the current tip.
     | not (targetPoint `pointLessThanTip` currentTip) =
         Left TipMismatch{foundTip=currentTip, targetPoint}
     | otherwise = do
-        let (before, _) = FT.split (pointLessThanTip targetPoint . tip) idx
+        let (before, after) = FT.split ((targetPoint `pointLessThanTip`) . tip . snd) idx
 
-        case tip (measure before) of
+        case viewTip before of
             TipAtGenesis -> Left $ OldPointNotFound targetPoint
             oldTip | targetPoint `pointsToTip` oldTip ->
-                       Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
+                       Right RollbackResult{newTip=oldTip, rolledBackIndex=f before after}
                    | otherwise                        ->
                        Left  TipMismatch{foundTip=oldTip, targetPoint=targetPoint}
     where
@@ -187,3 +208,23 @@ rollback targetPoint idx@(viewTip -> currentTip)
       pointLessThanTip PointAtGenesis  _               = True
       pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
       pointLessThanTip _               TipAtGenesis    = False
+
+data ReduceBlockCountResult a
+    = BlockCountNotReduced
+    | ReduceBlockCountResult
+        { reducedIndex  :: UtxoIndex a
+        , combinedState :: UtxoState a
+        }
+
+-- | Reduce the number of 'UtxoState's. The given number is the minimum, the index is reduced when it larger than twice that size.
+-- The new index is prefixed with one 'UtxoState' that contains the combined state of the removed 'UtxoState's.
+reduceBlockCount :: Monoid a => Int -> UtxoIndex a -> ReduceBlockCountResult a
+reduceBlockCount minCount ix
+    | utxoBlockCount ix <= 2 * minCount = BlockCountNotReduced
+    | otherwise =
+        let (old, keep) = FT.split ((> (utxoBlockCount ix - minCount)) . getBlockCount . fst) ix
+            combinedState = utxoState old
+        in ReduceBlockCountResult
+            { reducedIndex = combinedState FT.<| keep
+            , combinedState = combinedState
+            }

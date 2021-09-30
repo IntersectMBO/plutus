@@ -17,7 +17,6 @@ import           Cardano.Node.Types                     (NodeMode (..))
 import           Cardano.Protocol.Socket.Client         (ChainSyncEvent (..))
 import qualified Cardano.Protocol.Socket.Client         as Client
 import qualified Cardano.Protocol.Socket.Mock.Client    as MockClient
-import           Data.FingerTree                        (Measured (..))
 import qualified Data.Map                               as Map
 import           Data.Monoid                            (Last (..), Sum (..))
 import           Ledger                                 (Block, OnChainTx, Slot, TxId (..))
@@ -41,7 +40,8 @@ import           Plutus.ChainIndex                      (BlockNumber (..), Chain
                                                          InsertUtxoFailed (..), InsertUtxoSuccess (..),
                                                          RollbackFailed (..), RollbackResult (..), Tip (..),
                                                          TxConfirmedState (..), TxIdState (..), TxValidity (..),
-                                                         UtxoState (..), blockId, citxTxId, fromOnChainTx, insert)
+                                                         UtxoState (..), blockId, citxTxId, fromOnChainTx, insert,
+                                                         utxoState)
 import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoPoint)
 import           Plutus.ChainIndex.TxIdState            (rollback)
 
@@ -143,7 +143,7 @@ updateTransactionState
   -> STM (Either SyncActionFailure ())
 updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
     txIdStateIndex <- STM.readTVar beTxChanges
-    let txIdState = _usTxUtxoData $ measure $ txIdStateIndex
+    let txIdState = _usTxUtxoData $ utxoState $ txIdStateIndex
     blockNumber <- STM.readTVar beCurrentBlock
     let txIdState' = foldl' (insertNewTx blockNumber) txIdState xs
         is  = insert (UtxoState txIdState' tip) txIdStateIndex

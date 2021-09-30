@@ -26,7 +26,6 @@ import           Control.Monad.Freer.Error            (Error, throwError)
 import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State            (State, get, gets, modify, put)
 import           Data.Default                         (Default (..))
-import           Data.FingerTree                      (Measured (..))
 import           Data.Maybe                           (catMaybes, fromMaybe)
 import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
 import qualified Data.Set                             as Set
@@ -42,13 +41,12 @@ import           Ledger.Scripts                       (ScriptHash (ScriptHash))
 import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, redeemerMap,
-                                                       scriptMap, txMap)
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
-import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
+import           Plutus.ChainIndex.Types              (Diagnostics (..), Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
-                                                       UtxoIndex, isUnspentOutput, tip)
+                                                       UtxoIndex, isUnspentOutput, tip, utxoState)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
 
@@ -124,22 +122,22 @@ handleQuery = \case
     RedeemerFromHash h -> gets (view $ diskState . redeemerMap . at h)
     TxFromTxId i -> getTxFromTxId i
     UtxoSetMembership r -> do
-        utxoState <- gets (measure . view utxoIndex)
-        case tip utxoState of
+        utxo <- gets (utxoState . view utxoIndex)
+        case tip utxo of
             TipAtGenesis -> throwError QueryFailedNoTip
-            tp           -> pure (tp, isUnspentOutput r utxoState)
+            tp           -> pure (tp, isUnspentOutput r utxo)
     UtxoSetAtAddress cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
-            utxoState = view (utxoIndex . to measure) state
-            page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxoState) (fromMaybe mempty outRefs)
-        case tip utxoState of
+            utxo = view (utxoIndex . to utxoState) state
+            page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxo) (fromMaybe mempty outRefs)
+        case tip utxo of
             TipAtGenesis -> do
                 logWarn TipIsGenesis
                 pure (TipAtGenesis, pageOf def Set.empty)
             tp           -> pure (tp, page)
     GetTip ->
-        gets (tip . measure . view utxoIndex)
+        gets (tip . utxoState . view utxoIndex)
 
 handleControl ::
     forall effs.
@@ -183,4 +181,12 @@ handleControl = \case
             . view utxoIndex
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
         modify $ set diskState newDiskState
-    GetDiagnostics -> diagnostics . _diskState <$> get @ChainIndexEmulatorState
+    GetDiagnostics -> diagnostics <$> get @ChainIndexEmulatorState
+
+diagnostics :: ChainIndexEmulatorState -> Diagnostics
+diagnostics (ChainIndexEmulatorState ds ui) =
+    let UtxoState.TxUtxoBalance outputs inputs = UtxoState._usTxUtxoData $ UtxoState.utxoState ui
+    in (DiskState.diagnostics ds)
+        { numUnspentOutputs  = length outputs
+        , numUnmatchedInputs = length inputs
+        }

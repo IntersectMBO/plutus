@@ -44,10 +44,10 @@ import           Control.Monad.Freer.Error                (Error, throwError)
 import           Control.Monad.Freer.TH                   (makeEffect)
 import           Data.ByteString                          (ByteString)
 import           Data.Foldable                            (traverse_)
-import           Data.Int                                 (Int16, Int64)
 import           Data.Kind                                (Constraint)
 import           Data.Semigroup.Generic                   (GenericSemigroupMonoid (..))
 import qualified Data.Text                                as Text
+import           Data.Word                                (Word64)
 import           Database.Beam                            (Beamable, Columnar, Database, DatabaseEntity,
                                                            DatabaseSettings, FromBackendRow, Generic, Identity,
                                                            MonadIO (liftIO), SqlDelete, SqlSelect, SqlUpdate,
@@ -110,29 +110,25 @@ instance Table AddressRowT where
     data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
     primaryKey (AddressRow c o) = AddressRowId c o
 
--- The tip row id is always 0, beam doesn't handle empty primary keys very well
-tipRowId :: Int16
-tipRowId = 0
-
-data TipRowT f = TipRow
-    { _tipRowId          :: Columnar f Int16
-    , _tipRowSlot        :: Columnar f ByteString
-    , _tipRowBlockId     :: Columnar f ByteString
-    , _tipRowBlockNumber :: Columnar f Int64
+data UtxoRowT f = UtxoRow
+    { _utxoRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
+    , _utxoRowBlockId     :: Columnar f ByteString
+    , _utxoRowBlockNumber :: Columnar f Word64
+    , _utxoRowBalance     :: Columnar f ByteString
     } deriving (Generic, Beamable)
 
-type TipRow = TipRowT Identity
+type UtxoRow = UtxoRowT Identity
 
-instance Table TipRowT where
-    data PrimaryKey TipRowT f = TipRowId (Columnar f Int16) deriving (Generic, Beamable)
-    primaryKey = TipRowId . _tipRowId
+instance Table UtxoRowT where
+    data PrimaryKey UtxoRowT f = UtxoRowId (Columnar f Word64) deriving (Generic, Beamable)
+    primaryKey = UtxoRowId . _utxoRowSlot
 
 data Db f = Db
     { datumRows   :: f (TableEntity DatumRowT)
     , scriptRows  :: f (TableEntity ScriptRowT)
     , txRows      :: f (TableEntity TxRowT)
     , addressRows :: f (TableEntity AddressRowT)
-    , tipRow      :: f (TableEntity TipRowT)
+    , utxoRows    :: f (TableEntity UtxoRowT)
     } deriving (Generic, Database be)
 
 type AllTables (c :: * -> Constraint) f =
@@ -140,7 +136,7 @@ type AllTables (c :: * -> Constraint) f =
     , c (f (TableEntity ScriptRowT))
     , c (f (TableEntity TxRowT))
     , c (f (TableEntity AddressRowT))
-    , c (f (TableEntity TipRowT))
+    , c (f (TableEntity UtxoRowT))
     )
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Semigroup f => Semigroup (Db f)
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Monoid f => Monoid (Db f)
@@ -155,7 +151,7 @@ checkedSqliteDb = defaultMigratableDbSettings
     , scriptRows  = renameCheckedEntity (const "scripts")
     , txRows      = renameCheckedEntity (const "txs")
     , addressRows = renameCheckedEntity (const "addresses")
-    , tipRow      = renameCheckedEntity (const "tip")
+    , utxoRows    = renameCheckedEntity (const "utxo")
     }
 
 type BeamableSqlite table = (Beamable table, FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table)
@@ -233,7 +229,7 @@ runBeam trace conn action = loop (5::Int)
     where
         loop retries = do
             let traceSql = logDebug trace . SqlLog
-            resultEither <- liftIO $ try $ Sqlite.withTransaction conn $ runBeamSqliteDebug traceSql conn action
+            resultEither <- liftIO $ try $ runBeamSqliteDebug traceSql conn action
             case resultEither of
                 -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
                 -- missing database. When this exception is raised, we suppose it's

@@ -12,13 +12,14 @@ import           Control.Monad.Freer                  (Eff, Member, runM, sendM)
 import           Control.Monad.Freer.Error            (Error, runError, throwError)
 import           Data.Bifunctor                       (Bifunctor (..))
 import           Data.Either                          (isRight)
-import           Data.FingerTree                      (Measured (..))
+import qualified Data.FingerTree                      as FT
 import           Data.Foldable                        (fold, toList)
 import           Data.List                            (nub, sort)
 import qualified Data.Map                             as Map
 import qualified Data.Set                             as Set
 import qualified Generators                           as Gen
-import           Hedgehog                             (Property, annotateShow, assert, failure, forAll, property, (===))
+import           Hedgehog                             (Property, annotateShow, assert, failure, forAll, property, (/==),
+                                                       (===))
 import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
@@ -58,6 +59,7 @@ utxoBalanceTests =
       [ testProperty "insert new blocks at end" insertAtEnd
       , testProperty "rollback" rollback
       , testProperty "block number ascending order" blockNumberAscending
+      , testProperty "reduce block count" reduceBlockCount
       ]
   ]
 
@@ -84,7 +86,7 @@ rollbackTxIdState = property $ do
                       <$> Gen.genTxIdStateTipAndTxId
                           <*> Gen.genTxIdStateTipAndTxId
 
-  let getState = UtxoState._usTxUtxoData . measure
+  let getState = UtxoState._usTxUtxoData . UtxoState.utxoState
 
       Right s1 = UtxoState.insert (UtxoState.UtxoState (TxIdState.fromTx (BlockNumber 0) txA) tipA) mempty
       f1 = newIndex s1
@@ -143,9 +145,9 @@ transactionDepthIncreases = property $ do
       f1 = newIndex s1
       f2 = newIndex s2
 
-  let status1 = transactionStatus (BlockNumber 0) (UtxoState._usTxUtxoData (measure f1)) (txA ^. citxTxId)
-      status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
-      status3 = transactionStatus (BlockNumber (1 + d)) (UtxoState._usTxUtxoData (measure f2)) (txA ^. citxTxId)
+  let status1 = transactionStatus (BlockNumber 0) (UtxoState._usTxUtxoData (UtxoState.utxoState f1)) (txA ^. citxTxId)
+      status2 = transactionStatus (BlockNumber 1) (UtxoState._usTxUtxoData (UtxoState.utxoState f2)) (txA ^. citxTxId)
+      status3 = transactionStatus (BlockNumber (1 + fromIntegral d)) (UtxoState._usTxUtxoData (UtxoState.utxoState f2)) (txA ^. citxTxId)
 
   status2 === (increaseDepth <$> status1)
   status3 === (Right $ Committed TxValid)
@@ -274,6 +276,19 @@ blockNumberAscending = property $ do
             let items = tipBlockNo' . UtxoState.tip <$> toList newIndex
             items === sort items
     where
-        tipBlockNo' :: Tip -> Int
         tipBlockNo' TipAtGenesis               = error "There should be no empty UtxoState."
         tipBlockNo' (Tip _ _ (BlockNumber no)) = no
+
+-- | Reducing the block count does not change the utxo state.
+reduceBlockCount :: Property
+reduceBlockCount = property $ do
+    numBlocks <- forAll $ Gen.integral (Range.linear 0 500)
+    blocks <- forAll $ Gen.evalUtxoGenState $ replicateM numBlocks Gen.genNonEmptyBlock
+    let utxoIndex = foldMap (FT.singleton . uncurry UtxoState.fromBlock) blocks
+    minCount <- forAll $ Gen.integral (Range.linear 0 numBlocks)
+    case UtxoState.reduceBlockCount minCount utxoIndex of
+        UtxoState.BlockCountNotReduced -> assert $ UtxoState.utxoBlockCount utxoIndex <= minCount * 2
+        UtxoState.ReduceBlockCountResult limitedIndex (UtxoState.UtxoState _ tip) -> do
+            UtxoState.utxoState limitedIndex === UtxoState.utxoState utxoIndex
+            UtxoState.utxoBlockCount limitedIndex === minCount + 1
+            tip /== TipAtGenesis

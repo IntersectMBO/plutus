@@ -111,7 +111,7 @@ txIdStateTip TxIdGenState {_txgsBlocks, _txgsNumTransactions} =
     Tip
         { tipSlot    = Slot (fromIntegral numBlocks) -- Because in every slot we have one block.
         , tipBlockId = BlockId $ BSL.toStrict $ serialise numBlocks
-        , tipBlockNo = BlockNumber numBlocks
+        , tipBlockNo = BlockNumber (fromIntegral numBlocks)
         }
   where
     numBlocks = length _txgsBlocks
@@ -121,7 +121,7 @@ genStateTip UtxoGenState{_uxUtxoSet, _uxNumTransactions, _uxNumBlocks} =
     Tip
         { tipSlot    = fromIntegral _uxNumBlocks
         , tipBlockId = BlockId $ BSL.toStrict $ serialise _uxNumBlocks -- TODO: Incl. hash of utxo set!
-        , tipBlockNo = BlockNumber _uxNumBlocks
+        , tipBlockNo = BlockNumber (fromIntegral _uxNumBlocks)
         }
 
 initialState :: UtxoGenState
@@ -238,7 +238,7 @@ genTxIdState = sendM genChainAction >>= \case
     DoNothing -> pure mempty
     AddTx     -> do
       blockNumber <- length <$> gets (view txgsBlocks)
-      TxIdState.fromTx (BlockNumber blockNumber) <$> genTxIdStateTx
+      TxIdState.fromTx (BlockNumber (fromIntegral blockNumber)) <$> genTxIdStateTx
 
 execTxIdGenState :: forall m a. Monad m => Eff '[State TxIdGenState, m] a -> m TxIdGenState
 execTxIdGenState = runM . execState state

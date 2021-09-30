@@ -55,7 +55,6 @@ import           Control.Lens                (view)
 import           Control.Monad               (guard, (<=<))
 import           Data.Aeson                  (Value)
 import           Data.Default                (def)
-import           Data.FingerTree             (Measured (..))
 import           Data.Foldable               (fold)
 import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Map                    (Map)
@@ -69,7 +68,7 @@ import qualified Ledger.TimeSlot             as TimeSlot
 import qualified Ledger.Value                as Value
 import           Plutus.ChainIndex           (BlockNumber (..), ChainIndexTx, TxIdState (..), TxStatus (..),
                                               transactionStatus)
-import           Plutus.ChainIndex.UtxoState (UtxoIndex, UtxoState (..))
+import           Plutus.ChainIndex.UtxoState (UtxoIndex, UtxoState (..), utxoState)
 import           Plutus.Contract.Effects     (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable   (IterationID, Request (..), RequestID)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue (..),
@@ -389,7 +388,7 @@ insertInstance instanceID state (InstancesState m) = STM.modifyTVar m (Map.inser
 -- | Wait for the status of a transaction to change.
 waitForTxStatusChange :: TxStatus -> TxId -> BlockchainEnv -> STM TxStatus
 waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges, beCurrentBlock} = do
-    txIdState   <- _usTxUtxoData . measure <$> STM.readTVar beTxChanges
+    txIdState   <- _usTxUtxoData . utxoState <$> STM.readTVar beTxChanges
     blockNumber <- STM.readTVar beCurrentBlock
     let newStatus = transactionStatus blockNumber txIdState tx
     -- Succeed only if we _found_ a status and it was different; if
