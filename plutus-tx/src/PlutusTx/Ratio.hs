@@ -201,13 +201,11 @@ recip (x :% y) = reduce n d
 fromInteger :: Integer -> Ratio Integer
 fromInteger n = n :% 1
 
-{-# INLINABLE fromGHC #-}
 -- | Convert a 'Data.Ratio.Rational' to a
 --   Plutus-compatible 'PlutusTx.Ratio.Rational'
 fromGHC :: Ratio.Rational -> Ratio Integer
 fromGHC (n Ratio.:% d) = n :% d
 
-{-# INLINABLE toGHC #-}
 -- | Convert a 'PlutusTx.Ratio.Rational' to a
 --   'Data.Ratio.Rational'
 toGHC :: Rational -> Ratio.Rational
