@@ -9,9 +9,12 @@ import Prelude
 import Cardano.Wallet.Mock.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
+import Data.Either (Either)
+import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Data.Json.JsonNTuple (JsonNTuple(..))
 import Marlowe.PAB (PlutusAppId(..)) as Front

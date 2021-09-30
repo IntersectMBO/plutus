@@ -42,8 +42,7 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, Slot (..), TokenName, TxOut (..),
-                                               TxOutTx (..), eitherTx, inScripts, pubKeyHash, txOutDatum, txOutValue,
-                                               txOutputs)
+                                               inScripts, pubKeyHash, txOutValue)
 import qualified Ledger
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
@@ -56,7 +55,7 @@ import qualified Ledger.Value                 as Val
 import           Plutus.ChainIndex            (_ValidTx, citxInputs, citxOutputs, citxTxId)
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachineClient (..), Void,
-                                               WaitingResult (..), getStates)
+                                               WaitingResult (..))
 import qualified Plutus.Contract.StateMachine as SM
 import           Plutus.Contract.Wallet       (getUnspentOutput)
 import qualified Plutus.Contracts.Currency    as Currency
