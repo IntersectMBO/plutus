@@ -168,7 +168,7 @@ scientificBridge = do
 ratioBridge :: BridgePart
 ratioBridge = do
     typeName ^== "Ratio"
-    typeModule ^== "Data.Ratio"
+    typeModule ^== "PlutusTx.Ratio"
     pure psRatio
 
 naturalBridge :: BridgePart
