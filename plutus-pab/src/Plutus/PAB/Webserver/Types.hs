@@ -26,7 +26,7 @@ import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedRespon
 import           Schema                                  (FormSchema)
 import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
-import           Wallet.Types                            (ContractInstanceId)
+import           Wallet.Types                            (ContractActivityStatus, ContractInstanceId)
 
 data ContractReport t =
     ContractReport
@@ -89,6 +89,7 @@ data ContractInstanceClientState t =
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
         , cicWallet       :: Wallet
         , cicDefinition   :: t
+        , cicStatus       :: ContractActivityStatus
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

@@ -10,6 +10,8 @@ module Wallet.Types(
     ContractInstanceId(..)
     , contractInstanceIDs
     , randomID
+    , ContractActivityStatus(..)
+    , parseContractActivityStatus
     , Notification(..)
     , EndpointDescription(..)
     , EndpointValue(..)
@@ -116,6 +118,15 @@ contractInstanceIDs = ContractInstanceId <$> UUID.mockUUIDs
 
 randomID :: IO ContractInstanceId
 randomID = ContractInstanceId <$> UUID.nextRandom
+
+data ContractActivityStatus = Active | Stopped | Done deriving (Eq, Show, Generic, ToJSON, FromJSON, OpenApi.ToSchema)
+
+parseContractActivityStatus :: Text -> Maybe ContractActivityStatus
+parseContractActivityStatus t = case T.toLower t of
+    "active"  -> Just Active
+    "stopped" -> Just Stopped
+    "done"    -> Just Done
+    _         -> Nothing
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)

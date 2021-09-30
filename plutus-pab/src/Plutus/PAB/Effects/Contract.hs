@@ -24,6 +24,7 @@ module Plutus.PAB.Effects.Contract(
     , getState
     , getDefinition
     , getActiveContracts
+    , getContracts
     , putStartInstance
     , putStopInstance
     -- * Storing and retrieving definitions of contracts
@@ -44,7 +45,7 @@ import           Plutus.Contract.State      (ContractResponse)
 import qualified Plutus.Contract.State      as C
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs)
 import           Schema                     (FormSchema)
-import           Wallet.Types               (ContractInstanceId)
+import           Wallet.Types               (ContractActivityStatus (..), ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
 --   parameter @contract@ is to allow for different ways of running
@@ -121,7 +122,7 @@ data ContractStore t r where
     PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t () -- ^ Record the updated state of the contract instance
     GetState :: ContractInstanceId -> ContractStore t (State t) -- ^ Retrieve the last recorded state of the contract instance
     PutStopInstance :: ContractInstanceId -> ContractStore t () -- ^ Record the fact that a contract instance has stopped
-    GetActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get all active contracts with their activation args
+    GetContracts :: Maybe ContractActivityStatus -> ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get contracts with their activation args by status (all by default)
 
 putStartInstance ::
     forall t effs.
@@ -174,8 +175,17 @@ getActiveContracts ::
     ( Member (ContractStore t) effs
     )
     => Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
-getActiveContracts =
-    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = GetActiveContracts
+getActiveContracts = getContracts @t (Just Active)
+
+-- | All contracts with their definitions by given status (all by default)
+getContracts ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => Maybe ContractActivityStatus
+    -> Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
+getContracts mStatus =
+    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = GetContracts mStatus
     in send command
 
 -- | Get the definition of a running contract

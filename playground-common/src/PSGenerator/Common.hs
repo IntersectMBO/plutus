@@ -57,9 +57,9 @@ import           Wallet.API                                (WalletAPIError)
 import qualified Wallet.Emulator.Types                     as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
-import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
-                                                            EndpointDescription, EndpointValue, MatchingError,
-                                                            Notification, NotificationError)
+import           Wallet.Types                              (AssertionError, ContractActivityStatus, ContractError,
+                                                            ContractInstanceId, EndpointDescription, EndpointValue,
+                                                            MatchingError, Notification, NotificationError)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -369,6 +369,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractActivityStatus)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UserThreadMsg)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SchedulerLog)

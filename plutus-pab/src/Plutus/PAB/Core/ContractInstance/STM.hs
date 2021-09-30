@@ -43,7 +43,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , observableContractState
     , instanceState
     , instanceIDs
-    , runningInstances
+    , instancesWithStatuses
     , instancesClientEnv
     , InstanceClientEnv(..)
     ) where
@@ -73,6 +73,7 @@ import           Plutus.Contract.Effects     (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable   (IterationID, Request (..), RequestID)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue (..),
                                               NotificationError (..))
+import qualified Wallet.Types                as Wallet (ContractActivityStatus (..))
 
 {- Note [Contract instance thread model]
 
@@ -409,14 +410,17 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
 
--- | The IDs of contract instances that are currently running
-runningInstances :: InstancesState -> STM (Set ContractInstanceId)
-runningInstances (InstancesState m) = do
-    let flt :: InstanceState -> STM (Maybe InstanceState)
-        flt s@InstanceState{issStatus} = do
+-- | The IDs of contract instances with their statuses
+instancesWithStatuses :: InstancesState -> STM (Map ContractInstanceId Wallet.ContractActivityStatus)
+instancesWithStatuses (InstancesState m) = do
+    let parseStatus :: Activity -> Wallet.ContractActivityStatus
+        parseStatus = \case
+            Active  -> Wallet.Active
+            Stopped -> Wallet.Stopped
+            Done _  -> Wallet.Done
+    let flt :: InstanceState -> STM Wallet.ContractActivityStatus
+        flt InstanceState{issStatus} = do
             status <- STM.readTVar issStatus
-            case status of
-                Active -> pure (Just s)
-                _      -> pure Nothing
+            return $ parseStatus status
     mp <- STM.readTVar m
-    Map.keysSet . Map.mapMaybe id <$> traverse flt mp
+    traverse flt mp
