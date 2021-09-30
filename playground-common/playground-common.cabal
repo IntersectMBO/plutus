@@ -56,7 +56,6 @@ library
         http-conduit -any,
         jwt -any,
         lens -any,
-        memory -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,

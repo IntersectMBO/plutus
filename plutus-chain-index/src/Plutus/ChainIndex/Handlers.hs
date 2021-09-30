@@ -17,48 +17,51 @@ module Plutus.ChainIndex.Handlers
     , ChainIndexState
     ) where
 
-import qualified Cardano.Api                       as C
-import           Codec.Serialise                   (Serialise, deserialiseOrFail, serialise)
-import           Control.Applicative               (Const (..))
-import           Control.Lens                      (Lens', _Just, ix, view, (^?))
-import           Control.Monad.Freer               (Eff, Member, type (~>))
-import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRowsInBatches, combined,
-                                                    deleteRows, selectList, selectOne, updateRows)
-import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
-import           Control.Monad.Freer.State         (State, get, gets, put)
-import           Data.ByteString                   (ByteString)
-import qualified Data.ByteString.Lazy              as BSL
-import           Data.Default                      (def)
-import           Data.Either                       (fromRight)
-import qualified Data.FingerTree                   as FT
-import qualified Data.Map                          as Map
-import           Data.Maybe                        (catMaybes, fromMaybe, mapMaybe)
-import           Data.Monoid                       (Ap (..))
-import           Data.Proxy                        (Proxy (..))
-import qualified Data.Set                          as Set
-import           Data.Word                         (Word64)
-import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
-                                                    delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (asc_, desc_, exists_, orderBy_, update, (&&.), (<-.), (<.), (==.),
-                                                    (>.))
-import           Database.Beam.Schema.Tables       (zipTables)
-import           Database.Beam.Sqlite              (Sqlite)
-import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
-                                                    MintingPolicyHash (..), RedeemerHash (..), StakeValidatorHash (..),
-                                                    TxId (..), TxOut (..), TxOutRef (..), ValidatorHash (..))
-import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
-import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
+import qualified Cardano.Api                           as C
+import           Codec.Serialise                       (Serialise, deserialiseOrFail, serialise)
+import           Control.Applicative                   (Const (..))
+import           Control.Lens                          (Lens', _Just, ix, view, (^?))
+import           Control.Monad.Freer                   (Eff, Member, type (~>))
+import           Control.Monad.Freer.Error             (Error, throwError)
+import           Control.Monad.Freer.Extras            (selectPage)
+import           Control.Monad.Freer.Extras.Beam       (BeamEffect (..), BeamableSqlite, addRowsInBatches, combined,
+                                                        deleteRows, selectList, selectOne, updateRows)
+import           Control.Monad.Freer.Extras.Log        (LogMsg, logDebug, logError, logWarn)
+import           Control.Monad.Freer.Extras.Pagination (Page (Page), PageQuery (..))
+import           Control.Monad.Freer.State             (State, get, gets, put)
+import           Data.ByteString                       (ByteString)
+import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Either                           (fromRight)
+import qualified Data.FingerTree                       as FT
+import qualified Data.Map                              as Map
+import           Data.Maybe                            (catMaybes, fromMaybe, mapMaybe)
+import           Data.Monoid                           (Ap (..))
+import           Data.Proxy                            (Proxy (..))
+import qualified Data.Set                              as Set
+import           Data.Word                             (Word64)
+import           Database.Beam                         (Identity, SqlOrd ((>.)), SqlSelect, TableEntity, aggregate_,
+                                                        all_, countAll_, delete, filter_, guard_, limit_, nub_,
+                                                        orderBy_, select, val_)
+import           Database.Beam.Query                   (asc_, desc_, exists_, update, (&&.), (<-.), (<.), (==.))
+import           Database.Beam.Schema.Tables           (zipTables)
+import           Database.Beam.Sqlite                  (Sqlite)
+import           Ledger                                (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
+                                                        MintingPolicyHash (..), RedeemerHash (..),
+                                                        StakeValidatorHash (..), TxId (..), TxOut (..), TxOutRef (..),
+                                                        ValidatorHash (..))
+import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbSchema
-import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
+import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
-import qualified Plutus.ChainIndex.TxUtxoBalance   as TxUtxoBalance
-import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
-                                                    Point (..), Tip (..), TxUtxoBalance (..), pageOf, tipAsPoint)
-import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
-import qualified Plutus.ChainIndex.UtxoState       as UtxoState
-import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential, ScriptCredential))
-import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
+import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
+import           Plutus.ChainIndex.Types               (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
+                                                        Point (..), Tip (..), TxUtxoBalance (..), tipAsPoint)
+import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
+import qualified Plutus.ChainIndex.UtxoState           as UtxoState
+import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
+import           PlutusTx.Builtins.Internal            (BuiltinByteString (..))
+import qualified PlutusTx.Prelude                      as PlutusTx
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
@@ -119,15 +122,7 @@ handleQuery = \case
         case UtxoState.tip utxoState of
             TipAtGenesis -> throwError QueryFailedNoTip
             tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxoState)
-    UtxoSetAtAddress cred -> do
-        utxoState <- gets @ChainIndexState UtxoState.utxoState
-        outRefs <- queryList . select $ _addressRowOutRef <$> filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred)) (all_ (addressRows db))
-        let page = pageOf def $ Set.fromList $ filter (\r -> TxUtxoBalance.isUnspentOutput r utxoState) outRefs
-        case UtxoState.tip utxoState of
-            TipAtGenesis -> do
-                logWarn TipIsGenesis
-                pure (TipAtGenesis, pageOf def Set.empty)
-            tp           -> pure (tp, page)
+    UtxoSetAtAddress pageQuery cred -> getUtxoSetAtAddress pageQuery cred
     GetTip -> getTip
 
 getTip :: Member BeamEffect effs => Eff effs Tip
@@ -175,6 +170,37 @@ getTxOutFromRef ref@TxOutRef{txOutRefId, txOutRefIdx} = do
                 d <- maybe (Left dh) Right <$> getDatumFromHash dh
                 pure $ Just $ ScriptChainIndexTxOut (txOutAddress txout) v d (txOutValue txout)
 
+getUtxoSetAtAddress
+  :: forall effs.
+    ( Member (State ChainIndexState) effs
+    , Member BeamEffect effs
+    , Member (LogMsg ChainIndexLog) effs
+    )
+  => PageQuery TxOutRef
+  -> Credential
+  -> Eff effs (Tip, Page TxOutRef)
+getUtxoSetAtAddress pageQuery cred = do
+  utxoState <- gets @ChainIndexState UtxoState.utxoState
+
+  case UtxoState.tip utxoState of
+      TipAtGenesis -> do
+          logWarn TipIsGenesis
+          pure (TipAtGenesis, Page pageQuery Nothing [])
+      tp           -> do
+          let query =
+                fmap _addressRowOutRef
+                  $ filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred))
+                  $ do
+                    utxo <- all_ (unspentOutputRows db)
+                    a <- all_ (addressRows db)
+                    guard_ (_addressRowOutRef a ==. _unspentOutputRowOutRef utxo)
+                    pure a
+
+          outRefs <- selectPage (fmap toByteString pageQuery) query
+          let page = fmap fromByteString outRefs
+
+          pure (tp, page)
+
 queryOneScript ::
     ( Member BeamEffect effs
     , Serialise a
@@ -189,13 +215,6 @@ queryOne ::
     ) => SqlSelect Sqlite ByteString
     -> Eff effs (Maybe a)
 queryOne = fmap (fmap fromByteString) . selectOne
-
-queryList ::
-    ( Member BeamEffect effs
-    , Serialise a
-    ) => SqlSelect Sqlite ByteString
-    -> Eff effs [a]
-queryList = fmap (fmap fromByteString) . selectList
 
 fromByteString :: Serialise a => ByteString -> a
 fromByteString
@@ -338,14 +357,23 @@ fromTx tx = mempty
         [ fromMap citxScripts ScriptRow
         , fromMap citxRedeemers ScriptRow
         ]
-    , txRows = fromPairs (const [(_citxTxId tx, tx)]) TxRow
+    , txRows = InsertRows [TxRow (PlutusTx.fromBuiltin $ getTxId $ _citxTxId tx) (toByteString tx)]
     , addressRows = fromPairs (fmap credential . txOutsWithRef) AddressRow
     }
     where
         credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
-        fromMap :: (BeamableSqlite t, Serialise k, Serialise v) => Lens' ChainIndexTx (Map.Map k v) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
+        fromMap
+          :: (BeamableSqlite t, Serialise k, Serialise v)
+          => Lens' ChainIndexTx (Map.Map k v)
+          -> (ByteString -> ByteString -> t Identity)
+          -> InsertRows (TableEntity t)
         fromMap l = fromPairs (Map.toList . view l)
-        fromPairs :: (BeamableSqlite t, Serialise k, Serialise v) => (ChainIndexTx -> [(k, v)]) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
+        fromPairs
+          :: (BeamableSqlite t, Serialise k, Serialise v)
+          => (ChainIndexTx
+          -> [(k, v)])
+          -> (ByteString -> ByteString -> t Identity)
+          -> InsertRows (TableEntity t)
         fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toByteString k) (toByteString v)) . l $ tx
 
 
