@@ -103,15 +103,17 @@ fromTx tx =
         , _tubUnmatchedSpentInputs = Set.mapMonotonic txInRef (view citxInputs tx)
         }
 
-type UtxoIndex a = FingerTree (Sum Int, UtxoState a) (UtxoState a)
-instance Monoid a => Measured (Sum Int, UtxoState a) (UtxoState a) where
-    measure u = (Sum 1, u)
+newtype BlockCount = BlockCount { getBlockCount :: Int } deriving (Semigroup, Monoid) via (Sum Int)
+
+type UtxoIndex a = FingerTree (BlockCount, UtxoState a) (UtxoState a)
+instance Monoid a => Measured (BlockCount, UtxoState a) (UtxoState a) where
+    measure u = (BlockCount 1, u)
 
 utxoState :: Monoid a => UtxoIndex a -> UtxoState a
 utxoState = snd . measure
 
 utxoBlockCount :: Monoid a => UtxoIndex a -> Int
-utxoBlockCount = getSum . fst . measure
+utxoBlockCount = getBlockCount . fst . measure
 
 -- | Whether a 'TxOutRef' is a member of the UTXO set (ie. unspent)
 isUnspentOutput :: TxOutRef -> UtxoState TxUtxoBalance -> Bool
@@ -176,9 +178,10 @@ rollback :: Point
          -> Either RollbackFailed (RollbackResult TxUtxoBalance)
 rollback = rollbackWith const
 
+-- | Perform a rollback on the utxo index, with a callback to calculate the new index.
 rollbackWith
     :: Monoid a
-    => (UtxoIndex a -> UtxoIndex a -> UtxoIndex a)
+    => (UtxoIndex a -> UtxoIndex a -> UtxoIndex a) -- ^ Calculate the new index given the index before and the index after the rollback point.
     -> Point
     -> UtxoIndex a
     -> Either RollbackFailed (RollbackResult a)
@@ -219,7 +222,7 @@ reduceBlockCount :: Monoid a => Int -> UtxoIndex a -> ReduceBlockCountResult a
 reduceBlockCount minCount ix
     | utxoBlockCount ix <= 2 * minCount = BlockCountNotReduced
     | otherwise =
-        let (old, keep) = FT.split ((> (utxoBlockCount ix - minCount)) . getSum . fst) ix
+        let (old, keep) = FT.split ((> (utxoBlockCount ix - minCount)) . getBlockCount . fst) ix
             combinedState = utxoState old
         in ReduceBlockCountResult
             { reducedIndex = combinedState FT.<| keep
