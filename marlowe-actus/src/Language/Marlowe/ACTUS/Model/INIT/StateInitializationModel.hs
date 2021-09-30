@@ -8,17 +8,17 @@ Note: initial states rely also on some schedules (and vice versa)
 -}
 
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-  ( initialize
-  , initializeState
+  ( initializeState
   )
 where
 
-import           Control.Monad.Reader                                   (Reader, ask)
+import           Control.Monad.Reader                                   (Reader, reader)
 import           Data.Maybe                                             (fromMaybe)
 import           Data.Time.LocalTime                                    (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..),
-                                                                         Cycle (..), FEB (..), IPCB (..), SCEF (..))
+                                                                         Cycle (..), FEB (..), IPCB (..), PRF,
+                                                                         SCEF (..))
 import           Language.Marlowe.ACTUS.Model.STF.StateTransition       (CtxSTF (..))
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf',
@@ -27,35 +27,27 @@ import           Language.Marlowe.ACTUS.Ops                             (RoleSig
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
+-- |'initializeState' initializes the state variables at t0 within the reader
 initializeState :: Reader (CtxSTF Double LocalTime) ContractState
-initializeState = ask >>= \CtxSTF {..} -> return $ initialize contractTerms fpSchedule prSchedule ipSchedule maturity
+initializeState = reader initializeState'
 
--- |init initializes the state variables at t0
-initialize :: ContractTerms -> [LocalTime] -> [LocalTime] -> [LocalTime] -> Maybe LocalTime -> ContractState
-initialize
-  ct@ContractTermsPoly
-    { ct_PRF = Just prf,
-      ct_SD = statusDate
-    }
-  fpSchedule
-  prSchedule
-  ipSchedule
-  m@(Just mat) =
+initializeState' :: CtxSTF Double LocalTime -> ContractState
+initializeState' CtxSTF {..}  =
     ContractStatePoly
-      { prnxt = nextPrincipalRedemptionPayment ct {ct_MD = m},
-        ipcb = interestPaymentCalculationBase ct {ct_MD = m},
-        tmd = mat,
-        nt = notionalPrincipal ct,
-        ipnr = nominalInterestRate ct,
-        ipac = accruedInterest ct,
-        feac = feeAccrued ct {ct_MD = m},
-        nsc = notionalScaling ct,
-        isc = interestScaling ct,
-        prf = prf,
-        sd = statusDate
+      { prnxt = nextPrincipalRedemptionPayment contractTerms {ct_MD = maturity},
+        ipcb = interestPaymentCalculationBase contractTerms {ct_MD = maturity},
+        tmd = contractMaturity maturity,
+        nt = notionalPrincipal contractTerms,
+        ipnr = nominalInterestRate contractTerms,
+        ipac = accruedInterest contractTerms,
+        feac = feeAccrued contractTerms {ct_MD = maturity},
+        nsc = notionalScaling contractTerms,
+        isc = interestScaling contractTerms,
+        prf = contractPerformance contractTerms,
+        sd = t0
       }
     where
-      t0 = statusDate
+      t0 = ct_SD contractTerms
 
       tfp_minus = fromMaybe t0 (sup' fpSchedule t0)
       tfp_plus = fromMaybe t0 (inf' fpSchedule t0)
@@ -128,9 +120,9 @@ initialize
         ContractTermsPoly
           { ct_DCC = Just dcc
           } =
-          let nt = notionalPrincipal ct
-              ipnr = nominalInterestRate ct
-           in _y dcc tminus t0 m * nt * ipnr
+          let nt = notionalPrincipal contractTerms
+              ipnr = nominalInterestRate contractTerms
+           in _y dcc tminus t0 maturity * nt * ipnr
       accruedInterest _ = 0.0
 
       nextPrincipalRedemptionPayment :: ContractTerms -> Double
@@ -160,7 +152,7 @@ initialize
               frac = annuity ipnr ti
            in frac * scale
           where
-            prDates = prSchedule ++ [mat]
+            prDates = prSchedule ++ [contractMaturity maturity]
             ti = zipWith (\tn tm -> _y dayCountConvention tn tm md) prDates (tail prDates)
       nextPrincipalRedemptionPayment _ = 0.0
 
@@ -207,4 +199,11 @@ initialize
             ct_MD = md
           } = _y dayCountConvention tfp_minus t0 md / _y dayCountConvention tfp_minus tfp_plus md * fer
       feeAccrued _ = 0.0
-initialize _ _ _ _ _ = error "maturity and prf need to be defined in ContractTerms"
+
+      contractPerformance :: ContractTerms -> PRF
+      contractPerformance ContractTermsPoly { ct_PRF = Just prf } = prf
+      contractPerformance _                                       = error "PRF is not set in ContractTerms"
+
+      contractMaturity :: Maybe LocalTime -> LocalTime
+      contractMaturity (Just mat) = mat
+      contractMaturity _          = error "Maturity is not specified"
