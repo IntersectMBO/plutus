@@ -54,7 +54,7 @@ cekmodel :: Parser CekModel
 cekmodel = flag Default Unit
            (  short '1'
            <> long "unit-cek-model"
-           <> help "Use unit AST node costs for CEK cost model (tallying mode only)"
+           <> help "Use unit AST node costs and builtin costs for CEK cost model (tallying mode only)"
            )
 
 evalOpts :: Parser EvalOptions
