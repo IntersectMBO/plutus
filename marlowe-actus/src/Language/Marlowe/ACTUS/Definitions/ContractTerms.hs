@@ -8,6 +8,7 @@ import           Data.Aeson.Types (FromJSON, ToJSON)
 import           Data.Maybe       (fromMaybe)
 import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
+import           Language.Marlowe (Observation, Value)
 
 -- |ContractType
 data CT = PAM -- ^ Principal at maturity
@@ -263,6 +264,7 @@ data ContractTermsPoly a b = ContractTermsPoly
   deriving anyclass (FromJSON, ToJSON)
 
 type ContractTerms = ContractTermsPoly Double LocalTime
+type ContractTermsMarlowe = ContractTermsPoly (Value Observation) (Value Observation)
 
 setDefaultContractTermValues :: ContractTerms -> ContractTerms
 setDefaultContractTermValues ct@ContractTermsPoly{..} =
