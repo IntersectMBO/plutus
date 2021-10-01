@@ -230,7 +230,7 @@ processMarloweCode text = do
   -}
   mProviders <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
   case mProviders of
-    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> liftEffect $ updateAdditionalContext caProvider ciProvider additionalContext
     _ -> pure unit
 
 runAjax ::
