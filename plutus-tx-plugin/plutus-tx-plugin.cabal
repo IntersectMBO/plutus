@@ -84,6 +84,8 @@ test-suite plutus-tx-tests
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
+        Budget.Lib
+        Budget.Spec
         IsData.Spec
         Lift.Spec
         Plugin.Spec
@@ -106,6 +108,7 @@ test-suite plutus-tx-tests
         base >=4.9 && <5,
         flat -any,
         deepseq -any,
+        filepath -any,
         integer-gmp -any,
         plutus-core -any,
         plutus-tx -any,

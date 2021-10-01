@@ -109,6 +109,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
@@ -128,6 +129,8 @@
             ];
           buildable = if flags.use-ghc-stub then false else true;
           modules = [
+            "Budget/Lib"
+            "Budget/Spec"
             "IsData/Spec"
             "Lift/Spec"
             "Plugin/Spec"
