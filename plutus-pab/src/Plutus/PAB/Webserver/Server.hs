@@ -33,7 +33,6 @@ import           Data.Function                          ((&))
 import           Data.Monoid                            (Endo (..))
 import qualified Data.OpenApi.Schema                    as OpenApi
 import           Data.Proxy                             (Proxy (Proxy))
-import           Ledger.Crypto                          (pubKeyHash)
 import           Network.Wai                            (Middleware)
 import qualified Network.Wai.Handler.Warp               as Warp
 import qualified Network.Wai.Middleware.Cors            as Cors
@@ -214,5 +213,5 @@ startServerDebug' conf = do
     tk <- newToken
     let mkWalletInfo = do
             (wllt, pk) <- Simulator.addWallet
-            pure $ WalletInfo{wiWallet = wllt, wiPubKey = Just pk, wiPubKeyHash = pubKeyHash pk}
+            pure $ WalletInfo{wiWallet = wllt, wiPubKeyHash = pk}
     snd <$> startServer conf (Right mkWalletInfo) tk

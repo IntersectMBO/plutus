@@ -93,7 +93,6 @@ import           Data.Default                                   (Default (..))
 import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
-import           Data.Maybe                                     (fromMaybe)
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -106,7 +105,6 @@ import           Ledger                                         (Address (..), B
 import qualified Ledger.Ada                                     as Ada
 import           Ledger.CardanoWallet                           (MockWallet)
 import qualified Ledger.CardanoWallet                           as CW
-import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.TimeSlot                                (SlotConfig (..))
@@ -138,7 +136,7 @@ import qualified Wallet.Emulator.Chain                          as Chain
 import           Wallet.Emulator.LogMessages                    (TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
 import qualified Wallet.Emulator.Stream                         as Emulator
-import           Wallet.Emulator.Wallet                         (Wallet (..), WalletId (..), knownWallet, knownWallets)
+import           Wallet.Emulator.Wallet                         (Wallet (..), knownWallet, knownWallets)
 import qualified Wallet.Emulator.Wallet                         as Wallet
 import           Wallet.Types                                   (ContractInstanceId, NotificationError)
 
@@ -302,6 +300,7 @@ handleServicesSimulator feeCfg slotCfg wallet =
         . reinterpret (runWalletState @t wallet)
         . reinterpretN @'[State Wallet.WalletState, Error WAPI.WalletAPIError, LogMsg TxBalanceMsg] (Wallet.handleWallet feeCfg)
 
+initialStateFromWallet :: Wallet -> AgentState t
 initialStateFromWallet = maybe (error "runWalletState") (initialAgentState . Wallet._mockWallet) . Wallet.emptyWalletState
 
 -- | Handle the 'State WalletState' effect by reading from and writing
@@ -736,18 +735,18 @@ instanceActivity = Core.instanceActivity
 
 -- | Create a new wallet with a random key, give it some funds
 --   and add it to the list of simulated wallets.
-addWallet :: forall t. Simulation t (Wallet,PubKey)
+addWallet :: forall t. Simulation t (Wallet,PubKeyHash)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
     mockWallet <- MockWallet.newWallet
     void $ liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWallets = currentWallets & at newWallet ?~ AgentState newState mempty
+        let newWallets = currentWallets & at (Wallet.toMockWallet mockWallet) ?~ AgentState (Wallet.fromMockWallet mockWallet) mempty
         STM.writeTVar _agentStates newWallets
     _ <- handleAgentThread (knownWallet 2)
             $ Modify.wrapError WalletError
-            $ MockWallet.distributeNewWalletFunds (Wallet.walletPubKeyHash newWallet)
-    pure (newWallet, walletKey)
+            $ MockWallet.distributeNewWalletFunds (CW.pubKeyHash mockWallet)
+    pure (Wallet.toMockWallet mockWallet, CW.pubKeyHash mockWallet)
 
 
 -- | Retrieve the balances of all the entities in the simulator.

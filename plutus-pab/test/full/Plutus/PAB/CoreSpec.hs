@@ -266,7 +266,7 @@ walletFundsChangeTest = runScenario $ do
     let stream = WS.walletFundsChange defaultWallet env
     (initialValue, next) <- liftIO (readOne stream)
     (wllt, pk) <- Simulator.addWallet
-    _ <- Simulator.payToPublicKeyHash defaultWallet (pubKeyHash pk) payment
+    _ <- Simulator.payToPublicKeyHash defaultWallet pk payment
     nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
     (finalValue, _) <- liftIO (readOne nextStream)
     let difference = initialValue <> inv finalValue
