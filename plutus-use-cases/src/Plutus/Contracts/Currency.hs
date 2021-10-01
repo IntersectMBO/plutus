@@ -22,6 +22,7 @@ module Plutus.Contracts.Currency(
     -- * Actions etc
     , mintContract
     , mintedValue
+    , mkCurrency
     , currencySymbol
     -- * Simple minting policy currency
     , SimpleMPS(..)
