@@ -231,7 +231,7 @@ handleDbStore trace conn eff = runBeam trace conn $ execute eff
         execute = \case
             AddRows _ [] -> pure ()
             -- Workaround for "too many SQL variables" sqlite error
-            -- The maximum is 999, and this only happens in this case with tables of max 2 columns, rounded down to 400 rows just in case
+            -- The maximum is 999, and this only happens in this case with tables of 2 columns, rounded down to 400 rows just in case
             AddRows table (splitAt 400 -> (batch, rest)) -> do
                 runInsert $ insertOnConflict table (insertValues batch) anyConflict onConflictDoNothing
                 execute $ AddRows table rest

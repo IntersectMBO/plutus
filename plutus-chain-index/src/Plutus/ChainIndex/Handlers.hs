@@ -38,8 +38,8 @@ import qualified Data.Set                          as Set
 import           Data.Word                         (Word64)
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (asc_, current_, desc_, exists_, orderBy_, update, (&&.), (/=.),
-                                                    (<-.), (<.), (<=.), (==.), (>.))
+import           Database.Beam.Query               (asc_, desc_, exists_, orderBy_, update, (&&.), (<-.), (<.), (==.),
+                                                    (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -79,21 +79,23 @@ restoreStateFromDb ::
     -> Eff effs ()
 restoreStateFromDb point = do
     rollbackUtxoDb point
-    -- utxo <- selectList . select $ all_ (utxoRows db)
-    -- let balances = Map.fromListWith (<>) . fmap toTxUtxoBalance $ utxo
-    -- tips <- selectList . select
-    --     . orderBy_ (asc_ . _tipRowSlot)
-    --     $ all_ (tipRows db)
-    -- put $ FT.fromList . fmap (toUtxoState balances) $ tips
-    -- where
-    --     toTxUtxoBalance :: UtxoRow -> (Word64, TxUtxoBalance)
-    --     toTxUtxoBalance (UtxoRow (TipRowId slot) isOutput _ outRef)
-    --         = if isOutput
-    --             then (slot, UtxoState.TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
-    --             else (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
-    --     toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
-    --     toUtxoState balances (TipRow slot bi bn)
-    --         = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
+    uo <- selectList . select $ all_ (unspentOutputRows db)
+    ui <- selectList . select $ all_ (unmatchedInputRows db)
+    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
+    tips <- selectList . select
+        . orderBy_ (asc_ . _tipRowSlot)
+        $ all_ (tipRows db)
+    put $ FT.fromList . fmap (toUtxoState balances) $ tips
+    where
+        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
+        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
+            = (slot, UtxoState.TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
+        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
+        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
+            = (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
+        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
+        toUtxoState balances (TipRow slot bi bn)
+            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
@@ -282,12 +284,24 @@ reduceOldUtxoDb (Tip slotNo _ _) = do
     -- Delete all the tips before 'slot'
     deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row <. val_ slot)
     -- Assign all the older utxo changes to 'slot'
-    updateRows $ update (unspentOutputRows db) (\row -> _unspentOutputRowTip row <-. TipRowId (val_ slot)) (\row -> unTipRowId (_unspentOutputRowTip row) <. val_ slot)
-    updateRows $ update (unmatchedInputRows db) (\row -> _unmatchedInputRowTip row <-. TipRowId (val_ slot)) (\row -> unTipRowId (_unmatchedInputRowTip row) <. val_ slot)
+    updateRows $ update
+        (unspentOutputRows db)
+        (\row -> _unspentOutputRowTip row <-. TipRowId (val_ slot))
+        (\row -> unTipRowId (_unspentOutputRowTip row) <. val_ slot)
+    updateRows $ update
+        (unmatchedInputRows db)
+        (\row -> _unmatchedInputRowTip row <-. TipRowId (val_ slot))
+        (\row -> unTipRowId (_unmatchedInputRowTip row) <. val_ slot)
     -- Among these older changes, delete the matching input/output pairs
-    deleteRows $
-        delete (unspentOutputRows db) (\output -> unTipRowId (_unspentOutputRowTip output) ==. val_ slot &&.
-            exists_ (filter_ (\input -> (unTipRowId (_unmatchedInputRowTip input) ==. val_ slot) &&. (_unspentOutputRowOutRef output ==. _unmatchedInputRowOutRef input)) (all_ (unmatchedInputRows db))))
+    -- We're deleting only the outputs here, the matching input is deleted by a trigger (See Main.hs)
+    deleteRows $ delete
+        (unspentOutputRows db)
+        (\output -> unTipRowId (_unspentOutputRowTip output) ==. val_ slot &&.
+            exists_ (filter_
+                (\input ->
+                    (unTipRowId (_unmatchedInputRowTip input) ==. val_ slot) &&.
+                    (_unspentOutputRowOutRef output ==. _unmatchedInputRowOutRef input))
+                (all_ (unmatchedInputRows db))))
     where
         slot :: Word64
         slot = fromIntegral slotNo
