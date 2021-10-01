@@ -13,8 +13,8 @@
 
 {- Note [Profiling instructions]
 Add the program to be profiled in the "Programs to be profiled" section of this file.
-Plugin options only work in the file the option is set,
-so you have to define the programs in this file.
+Plugin options only work in the file the option is set, so if you define the
+programs in another file, make sure to turn on the "profile-all" GHC plugin option.
 Add your program in @main@ by calling @writeLogToFile@.
 
 Check your program's .timelog file and make sure has proper log in it.
@@ -42,11 +42,12 @@ import qualified PlutusCore.Default        as PLC
 
 import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
+import           Data.Fixed                (Pico)
 import           Data.List                 (intercalate)
 import           Data.Maybe                (fromJust)
 import           Data.Proxy                (Proxy (Proxy))
 import qualified Data.Text                 as T
-import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime)
+import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime, nominalDiffTimeToSeconds)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
 import           System.IO                 (IOMode (WriteMode), withFile)
@@ -76,7 +77,7 @@ writeLogToFile fileName values = do
   log <- T.intercalate "\n" . view _2 <$> (rethrow $ runUPlcProfileExec values)
   writeFile filePath (T.unpack log)
   processed <- processLog filePath
-  writeFile (filePath<>".stacks") (printProcessedLog processed)
+  writeFile (filePath<>".stacks") (intercalate "\n" (map show processed))
   pure ()
 
 data ProfileEvent =
@@ -86,27 +87,25 @@ data Transition =
   Enter
   | Exit
 
+-- | Represent one of the "folded" flamegraph lines, which include fns it's in and time spent.
 data StackTime =
-  MkStackTime [T.Text] Double
+  MkStackTime [T.Text] Pico
 
-processLog :: FilePath -> IO [StackTime]
-processLog file = do
-  content <- readFile file
-  let lEvents = lines content -- turn to a list of events
-  pure $ getStacks (profileEvents lEvents)
-
-printProcessedLog :: [StackTime] -> String
-printProcessedLog ((MkStackTime fns duration):tl) =
+instance Show StackTime where
+  show (MkStackTime fns duration) =
     intercalate
       "; "
       -- reverse to make the functions in the order correct for flamegraphs.
       (reverse (map T.unpack fns))
       <>" "
-      -- multiplying the duration by a large number
-      -- to make the number show in a way flamegraph accepts.
-      <>show (duration*1000000)
-      <>"\n"<>printProcessedLog tl
-printProcessedLog _ = ""
+      -- turn duration in seconds to micro-seconds for readability
+      <>show (1000000*duration)
+
+processLog :: FilePath -> IO [StackTime]
+processLog file = do
+  content <- readFile file
+  let lEvents = lines content -- turn to a list of events
+  pure $ getStacks (map parseProfileEvent lEvents)
 
 parseProfileEvent :: String -> ProfileEvent
 parseProfileEvent str =
@@ -121,9 +120,6 @@ parseProfileEvent str =
     invalid -> error $
       "parseProfileEvent: invalid log, expecting a form of [t1,t2,t3,transition,var] but got "
       <> show invalid
-
-profileEvents :: [String] -> [ProfileEvent]
-profileEvents = map parseProfileEvent
 
 getStacks :: [ProfileEvent] -> [StackTime]
 getStacks = go []
@@ -143,11 +139,13 @@ getStacks = go []
               hd {timeSpentCalledFn = timeSpentCalledFn + duration}:tl
             updateTimeSpent [] = []
             updatedStack = updateTimeSpent poppedStack
-            fnsEntered = map varName updatedStack -- this is quadratic but it's fine for fg
+            -- this is quadratic but it's fine because we have to do quadratic
+            -- work anyway for fg and the input sizes are small.
+            fnsEntered = map varName updatedStack
         in
           -- time spent on this function is the total time spent
           -- minus the time spent on the function(s) it called.
-          MkStackTime (var:fnsEntered) (realToFrac (duration - timeSpentCalledFn)):go updatedStack tl
+          MkStackTime (var:fnsEntered) (nominalDiffTimeToSeconds (duration - timeSpentCalledFn)):go updatedStack tl
     go _ ((MkProfileEvent _ Exit _):tl) =
       error "go: tried to exit but couldn't."
     go [] [] = []
