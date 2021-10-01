@@ -1,3 +1,6 @@
+-- As 'POSIXTime' from 'Plutus.V1.Ledger.Time' has a custom 'FromJSON' and 'ToJSON'
+-- instances, we declare the corresponding 'POSIXTime' PureScript type here since
+-- the PSGenerator Generic instances won't match.
 module Plutus.V1.Ledger.Time where
 
 import Data.BigInteger (BigInteger, readBigInteger)

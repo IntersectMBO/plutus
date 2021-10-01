@@ -31,7 +31,6 @@ import           Ledger.Index                              (ExCPU, ExMemory, Scr
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Time                               (POSIXTime)
 import           Ledger.TimeSlot                           (SlotConfig, SlotConversionError)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
