@@ -12,20 +12,21 @@
 {- | Executable for profiling. See note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
-Add the program to be profiled in the "Programs to be profiled" section of this file.
-Plugin options only work in the file the option is set, so if you define the
-programs in another file, make sure to turn on the "profile-all" GHC plugin option.
-Add your program in @main@ by calling @writeLogToFile@.
+Work flow for profiling evaluation time:
+1. Compile your program with profile-all and dump-plc
+2. Run the dumped program with uplc --trace-mode LogsWithTimestamps --log-output logs
+3. Run logToStacks filePaths and input it to flamegraph.pl
 
-Check your program's .timelog file and make sure has proper log in it.
-You may get an error if the program's timed log is empty.
+Running @logToStacks@ gives you the program's .stacks file.
+@logToStacks@ takes file paths (of the dumped programs) as input.
 
 To get a flamegraph, you need to have flamegraph.pl from
 https://github.com/brendangregg/FlameGraph/.
-Input your program's .stack file to flamegraph.pl to get a flamegraph.
-After that, you can use a browser to view it.
-E.g.,
-$ ~/FlameGraph/flamegraph.pl < plutus-tx-plugin/executables/profile/fib4.timelog.stacks > fib4.svg
+Input your program's .stacks file to flamegraph.pl to get a flamegraph. E.g.
+$ ~/FlameGraph/flamegraph.pl < plutus-tx-plugin/executables/profile/fib4.stacks > fib4.svg
+
+4. Run firefox yourFile.svg
+flamegraph.pl turns the stacks into a .svg file. You can view the file with a browser. E.g.
 $ firefox fib4.svg
  -}
 
@@ -50,6 +51,7 @@ import qualified Data.Text                 as T
 import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime, nominalDiffTimeToSeconds)
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)
+import           System.Environment        (getArgs)
 import           System.IO                 (IOMode (WriteMode), withFile)
 
 data StackFrame
@@ -63,22 +65,17 @@ data StackFrame
   }
   deriving (Show)
 
--- | Write the time log of a program to a file in
--- the plutus-tx-plugin/executables/profile/ directory.
-writeLogToFile ::
-  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-  -- | Name of the file you want to save it as.
-  FilePath ->
-  -- | The program to be profiled.
-  [a] ->
+-- | Turn timed log to stacks in a format flamegraph.pl accepts.
+logToStacks ::
+  -- | The list of files of logs to be turned in stacks format.
+  [FilePath] ->
   IO ()
-writeLogToFile fileName values = do
-  let filePath = "plutus-tx-plugin/executables/profile/"<>fileName<>".timelog"
-  log <- T.intercalate "\n" . view _2 <$> (rethrow $ runUPlcProfileExec values)
-  writeFile filePath (T.unpack log)
-  processed <- processLog filePath
-  writeFile (filePath<>".stacks") (intercalate "\n" (map show processed))
+logToStacks (hd:tl) = do
+  processed <- processLog hd
+  writeFile (hd<>".stacks") (intercalate "\n" (map show processed))
+  logToStacks tl
   pure ()
+logToStacks [] = pure ()
 
 data ProfileEvent =
   MkProfileEvent UTCTime Transition T.Text
@@ -208,14 +205,7 @@ swapTest = plc (Proxy @"swap") (swap (True,1))
 
 main :: IO ()
 main = do
-  writeLogToFile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "addInt" [toUPlc addIntTest]
-  writeLogToFile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
-  writeLogToFile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  writeLogToFile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  writeLogToFile "id" [toUPlc idTest]
-  writeLogToFile "swap" [toUPlc swapTest]
-
+  lFilePath <- getArgs
+  logToStacks lFilePath
 
 

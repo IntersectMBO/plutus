@@ -129,7 +129,7 @@ test-suite plutus-tx-tests
     -- NOTE: we disable the simplifier as it simplifies away some tests
     ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
 
-executable profile
+executable logToStacks
     main-is: Main.hs
     hs-source-dirs: executables/profile, test
     other-modules:
