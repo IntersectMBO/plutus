@@ -49,7 +49,7 @@ import qualified Logging
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility   (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
-import           Plutus.ChainIndex.DbStore         (checkedSqliteDb)
+import           Plutus.ChainIndex.DbSchema        (checkedSqliteDb)
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                     appendBlock, rollback)
 import           Plutus.ChainIndex.Handlers        (ChainIndexState, getResumePoints, handleControl, handleQuery,

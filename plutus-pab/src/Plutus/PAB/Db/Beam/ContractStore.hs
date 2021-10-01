@@ -38,9 +38,9 @@ import qualified Data.Text.Encoding                  as Text
 import           Data.Typeable                       (Proxy (..), typeRep)
 import           Data.UUID                           (fromText, toText)
 import           Database.Beam
+import           Plutus.PAB.Db.Schema                hiding (ContractInstanceId)
 import           Plutus.PAB.Effects.Contract         (ContractStore (..), PABContract (..))
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, HasDefinitions (getContract), fromResponse, getResponse)
-import           Plutus.PAB.Effects.DbStore          hiding (ContractInstanceId)
 import           Plutus.PAB.Monitoring.Monitoring    (PABMultiAgentMsg)
 import           Plutus.PAB.Types                    (PABError (..))
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))

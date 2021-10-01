@@ -25,23 +25,11 @@ track changes over time.
 
 -}
 
-module Plutus.PAB.Effects.DbStore where
-import           Cardano.BM.Trace                (Trace, logDebug)
-import           Control.Exception               (try)
-import           Control.Monad.Freer             (Eff, LastMember, Member, type (~>))
-import           Control.Monad.Freer.Error       (Error, throwError)
-import           Control.Monad.Freer.Reader      (Reader, ask)
-import           Control.Monad.Freer.TH          (makeEffect)
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
+module Plutus.PAB.Db.Schema where
+import           Data.Text             (Text)
 import           Database.Beam
-import           Database.Beam.Backend.SQL
 import           Database.Beam.Migrate
-import           Database.Beam.Schema.Tables
-import           Database.Beam.Sqlite            (Sqlite, SqliteM, runBeamSqliteDebug)
-import qualified Database.SQLite.Simple          as Sqlite
-import           Plutus.PAB.Monitoring.PABLogMsg (PABLogMsg (..), PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                (PABError (MigrationNotDoneError, OtherError))
+import           Database.Beam.Sqlite  (Sqlite)
 
 data ContractInstanceT f
   = ContractInstance
@@ -59,7 +47,6 @@ ContractInstance
   (LensFor contractInstanceState)
   (LensFor contractInstanceActive)
   = tableLenses
-
 
 type ContractInstance   = ContractInstanceT Identity
 type ContractInstanceId = PrimaryKey ContractInstanceT Identity

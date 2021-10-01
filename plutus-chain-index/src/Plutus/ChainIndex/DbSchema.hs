@@ -28,7 +28,7 @@ database schema for the data which we wish to store:
 
 -}
 
-module Plutus.ChainIndex.DbStore where
+module Plutus.ChainIndex.DbSchema where
 
 import           Cardano.BM.Trace                         (Trace, logDebug)
 import           Control.Concurrent                       (threadDelay)
@@ -38,6 +38,7 @@ import           Control.Monad.Freer.Error                (Error, throwError)
 import           Control.Monad.Freer.TH                   (makeEffect)
 import           Data.ByteString                          (ByteString)
 import           Data.Foldable                            (traverse_)
+import           Data.Int                                 (Int16, Int64)
 import           Data.Kind                                (Constraint)
 import           Data.Semigroup.Generic                   (GenericSemigroupMonoid (..))
 import qualified Data.Text                                as Text
@@ -57,15 +58,6 @@ import           Database.Beam.Sqlite                     (Sqlite, SqliteM, runB
 import qualified Database.SQLite.Simple                   as Sqlite
 import           Plutus.ChainIndex.ChainIndexError        (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog          (ChainIndexLog (..))
-import           Data.ByteString        (ByteString)
-import           Data.Int               (Int16, Int64)
-import           Data.Kind              (Constraint)
-import           Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import           Database.Beam          (Beamable, Columnar, Database, DatabaseSettings, Generic, Identity, Table (..),
-                                         TableEntity, dbModification, withDbModification)
-import           Database.Beam.Migrate  (CheckedDatabaseSettings, defaultMigratableDbSettings, renameCheckedEntity,
-                                         unCheckDatabase)
-import           Database.Beam.Sqlite   (Sqlite)
 
 data DatumRowT f = DatumRow
     { _datumRowHash  :: Columnar f ByteString
