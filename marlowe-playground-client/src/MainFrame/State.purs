@@ -1,28 +1,30 @@
 module MainFrame.State (component) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
-import BlocklyComponent.Types as Blockly
-import BlocklyEditor.State as BlocklyEditor
-import BlocklyEditor.Types (_marloweCode)
-import BlocklyEditor.Types as BE
-import BottomPanel.Types as BP
-import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
+import Component.Blockly.Types as Blockly
+import Component.BottomPanel.Types as BP
+import Component.ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
+import Component.Demos.Types (Action(..), Demo(..)) as Demos
+import Component.MetadataTab.State (carryMetadataAction)
+import Component.NewProject.Types (Action(..), State, emptyState) as NewProject
+import Component.Projects.State (handleAction) as Projects
+import Component.Projects.Types (Action(..), State, _projects, emptyState) as Projects
+import Component.Projects.Types (Lang(..))
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), either, hush, note)
+import Data.Either (either, hush, note)
 import Data.Foldable (fold, for_)
 import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Newtype (unwrap)
-import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Env (Env)
@@ -32,7 +34,6 @@ import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
-import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (withAnalytics)
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
@@ -40,11 +41,6 @@ import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (eventListenerEventSource)
-import HaskellEditor.State as HaskellEditor
-import HaskellEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as HE
-import JavascriptEditor.State as JavascriptEditor
-import JavascriptEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as JS
-import JavascriptEditor.Types (CompilationState(..))
 import LoginPopup (openLoginPopup, informParentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
@@ -53,16 +49,22 @@ import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Extended.Metadata (emptyContractMetadata, getHintsFromMetadata)
 import Marlowe.Gists (PlaygroundFiles, mkNewGist, playgroundFiles)
-import MarloweEditor.State as MarloweEditor
-import MarloweEditor.Types as ME
-import MetadataTab.State (carryMetadataAction)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import NewProject.Types (Action(..), State, emptyState) as NewProject
+import Page.ActusBlockly as ActusBlockly
+import Page.BlocklyEditor.State as BlocklyEditor
+import Page.BlocklyEditor.Types (_marloweCode)
+import Page.BlocklyEditor.Types as BE
+import Page.HaskellEditor.State as HaskellEditor
+import Page.HaskellEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as HE
+import Page.JavascriptEditor.State as JavascriptEditor
+import Page.JavascriptEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as JS
+import Page.JavascriptEditor.Types (CompilationState(..))
+import Page.MarloweEditor.State as MarloweEditor
+import Page.MarloweEditor.Types as ME
+import Page.Simulation.State as Simulation
+import Page.Simulation.Types as ST
 import Prim.TypeError (class Warn, Text)
-import Projects.State (handleAction) as Projects
-import Projects.Types (Action(..), State, _projects, emptyState) as Projects
-import Projects.Types (Lang(..))
 import Rename.State (handleAction) as Rename
 import Rename.Types (Action(..), State, _projectName, emptyState) as Rename
 import Router (Route, SubRoute)
@@ -73,8 +75,6 @@ import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import SessionStorage as SessionStorage
-import SimulationPage.State as Simulation
-import SimulationPage.Types as ST
 import StaticData (gistIdLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)

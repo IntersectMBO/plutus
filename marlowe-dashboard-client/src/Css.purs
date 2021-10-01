@@ -30,8 +30,8 @@ module Css
   ) where
 
 import Prologue
+import Component.Icons (Icon, iconClass)
 import Halogen.Css (applyWhen)
-import Material.Icons (Icon, iconClass)
 
 -- max-width container
 maxWidthContainer :: Array String

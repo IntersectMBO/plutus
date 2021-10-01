@@ -9,7 +9,6 @@ module MainFrame.Lenses
   ) where
 
 import Prologue
-import Dashboard.Types (State) as Dashboard
 import Data.Lens (Lens', Traversal')
 import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)
@@ -17,8 +16,9 @@ import Data.Symbol (SProxy(..))
 import Data.Time.Duration (Minutes)
 import MainFrame.Types (State, WebSocketStatus)
 import Marlowe.Semantics (Slot)
+import Page.Dashboard.Types (State) as Dashboard
+import Page.Welcome.Types (State) as Welcome
 import Toast.Types (State) as Toast
-import Welcome.Types (State) as Welcome
 
 _webSocketStatus :: Lens' State WebSocketStatus
 _webSocketStatus = prop (SProxy :: SProxy "webSocketStatus")

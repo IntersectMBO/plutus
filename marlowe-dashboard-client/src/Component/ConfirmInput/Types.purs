@@ -1,9 +1,9 @@
 module Component.ConfirmInput.Types where
 
-import Contract.Types as Contract
 import Data.BigInteger (BigInteger)
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Semantics (Slot) as Semantics
+import Page.Contract.Types as Contract
 
 type Input
   = { action :: NamedAction

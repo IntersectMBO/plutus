@@ -6,6 +6,8 @@ import Component.Avatar.Types (Size(..)) as Avatar
 import Component.Avatar.View (avatar)
 import Component.Column (column)
 import Component.Column as Column
+import Component.Icons (Icon(..)) as Icon
+import Component.Icons (icon)
 import Component.Row (row)
 import Component.Row as Row
 import Component.Transfer.Types (Participant, Termini(..), Transfer)
@@ -15,8 +17,6 @@ import Data.String.Extra (capitalize, endsWith)
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, span, text)
 import Marlowe.Semantics (Party(..))
-import Material.Icons (Icon(..)) as Icon
-import Material.Icons (icon)
 
 transfer :: forall w i. Transfer -> HTML w i
 transfer { sender, recipient, token, quantity, termini } = case termini of

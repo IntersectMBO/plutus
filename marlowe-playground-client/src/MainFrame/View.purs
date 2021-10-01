@@ -1,30 +1,30 @@
 module MainFrame.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
-import BlocklyEditor.View as BlocklyEditor
+import Component.Modal.View (modal)
 import Data.Lens (has, (^.))
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Maybe (isNothing)
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
-import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Classes (marlowePlayLogo)
 import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, div, div_, footer, h1, header, img, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (href, id_, src, target)
-import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
-import JavascriptEditor.View as JSEditor
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, hasGlobalLoading)
 import Marlowe.ActusBlockly as AMB
-import MarloweEditor.View as MarloweEditor
-import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import SimulationPage.View as Simulation
+import Page.ActusBlockly as ActusBlockly
+import Page.BlocklyEditor.View as BlocklyEditor
+import Page.HaskellEditor.View (otherActions, render) as HaskellEditor
+import Page.JavascriptEditor.View as JSEditor
+import Page.MarloweEditor.View as MarloweEditor
+import Page.Simulation.View as Simulation
 
 render ::
   forall m.
