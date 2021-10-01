@@ -165,12 +165,6 @@ scientificBridge = do
     typeModule ^== "Data.Scientific"
     pure psNumber
 
-ratioBridge :: BridgePart
-ratioBridge = do
-    typeName ^== "Ratio"
-    typeModule ^== "PlutusTx.Ratio"
-    psRatio
-
 naturalBridge :: BridgePart
 naturalBridge = do
     typeName ^== "Natural"
@@ -197,15 +191,12 @@ someCardanoApiTxBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> word64Bridge <|> scientificBridge <|> digestBridge <|> ratioBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> word64Bridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 
 psBigInteger :: PSType
 psBigInteger = TypeInfo "purescript-foreign-generic" "Data.BigInteger" "BigInteger" []
-
-psRatio :: MonadReader BridgeData m => m PSType
-psRatio = TypeInfo "purescript-foreign-generic" "Data.Ratio" "Ratio" <$> psTypeParameters
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
