@@ -27,7 +27,6 @@ import           Control.Lens
 import           Control.Monad                (forM_, void)
 import           Control.Monad.Error.Lens     (catching, throwing)
 import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
-
 import qualified Data.List.NonEmpty           as NonEmpty
 import           Data.Map.Strict              (Map)
 import qualified Data.Map.Strict              as Map
@@ -43,16 +42,13 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, Slot (..), TokenName, TxOut (..),
-                                               ValidatorHash, inScripts, pubKeyHash, txOutValue)
-
+                                               inScripts, pubKeyHash, txOutValue)
 import qualified Ledger
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
-
 import           Ledger.Constraints
 import qualified Ledger.Constraints           as Constraints
 import           Ledger.Scripts               (datumHash, unitRedeemer)
-
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..), tyTxOutData)
 import qualified Ledger.Value                 as Val
@@ -65,7 +61,6 @@ import           Plutus.Contract.Wallet       (getUnspentOutput)
 import qualified Plutus.Contracts.Currency    as Currency
 import qualified PlutusTx
 import qualified PlutusTx.AssocMap            as AssocMap
-
 
 type MarloweSchema =
         Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
@@ -84,7 +79,6 @@ data MarloweError =
     | TransitionError (SM.InvalidTransition MarloweData MarloweInput)
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
-
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -159,7 +153,6 @@ type MarloweContractState = LastResult
 marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
 marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
     let client = mkMarloweClient params
-
     let go [] = pure InProgress
         go (tx:rest) = do
             res <- updateHistoryFromTx client params tx
@@ -168,7 +161,6 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
                 InProgress -> go rest
 
     go [] >>= checkpointLoop (follow client params)
-
 
   where
     follow client params = \case
@@ -223,7 +215,6 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
 
     findInput inst tx = do
         let inputs = Set.toList (view citxInputs tx) >>= maybeToList . inScripts
-
         let script = Scripts.validatorScript inst
         -- find previous Marlowe contract
         let marloweTxInputs = filter (\(validator, _, _) -> validator == script) inputs
@@ -295,8 +286,8 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
               lookups = Constraints.otherScript validator
                   <> Constraints.unspentOutputs utxos
                   <> Constraints.ownPubKeyHash pkh
-            utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
-            _ <- submitUnbalancedTx utx
+            tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
+            _ <- submitUnbalancedTx tx
             tell $ OK "redeem"
 
         marlowePlutusContract
@@ -406,9 +397,9 @@ setupMarloweParams owners contract = mapError (review _MarloweError) $ do
         pure (params, mempty, mempty)
     else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
     then do
-        let tokens = fmap (, 1) $ Set.toList roles
+        let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
         txOutRef@(Ledger.TxOutRef h i) <- getUnspentOutput
-        utxo <- utxoAt ownAddress
+        utxo <- utxosAt ownAddress
         let theCurrency = Currency.OneShotCurrency
                 { curRefTransactionOutput = (h, i)
                 , curAmounts              = AssocMap.fromList tokens
@@ -510,8 +501,10 @@ marloweParams rolesCurrency = MarloweParams
     { rolesCurrency = rolesCurrency
     , rolePayoutValidatorHash = mkRolePayoutValidatorHash rolesCurrency }
 
+
 defaultMarloweParams :: MarloweParams
 defaultMarloweParams = marloweParams adaSymbol
+
 
 newtype CompanionState = CompanionState (Map MarloweParams MarloweData)
   deriving (Semigroup,Monoid) via (Map MarloweParams MarloweData)
