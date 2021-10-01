@@ -31,7 +31,6 @@ import           Ledger.Index                              (ExCPU, ExMemory, Scr
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Time                               (POSIXTime)
 import           Ledger.TimeSlot                           (SlotConfig, SlotConversionError)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
@@ -317,7 +316,6 @@ servantBridge = headersBridge <|> headerBridge
 ledgerTypes :: [SumType 'Haskell]
 ledgerTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConfig)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConversionError)
