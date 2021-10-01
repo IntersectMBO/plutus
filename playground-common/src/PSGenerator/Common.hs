@@ -169,7 +169,7 @@ ratioBridge :: BridgePart
 ratioBridge = do
     typeName ^== "Ratio"
     typeModule ^== "PlutusTx.Ratio"
-    pure psRatio
+    psRatio
 
 naturalBridge :: BridgePart
 naturalBridge = do
@@ -204,8 +204,8 @@ miscBridge =
 psBigInteger :: PSType
 psBigInteger = TypeInfo "purescript-foreign-generic" "Data.BigInteger" "BigInteger" []
 
-psRatio :: PSType
-psRatio = TypeInfo "purescript-foreign-generic" "Data.Ratio" "Ratio" []
+psRatio :: MonadReader BridgeData m => m PSType
+psRatio = TypeInfo "purescript-foreign-generic" "Data.Ratio" "Ratio" <$> psTypeParameters
 
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
