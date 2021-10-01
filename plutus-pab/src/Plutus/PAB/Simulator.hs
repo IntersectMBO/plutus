@@ -93,6 +93,7 @@ import           Data.Default                                   (Default (..))
 import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
+import           Data.Maybe                                     (fromMaybe)
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -103,6 +104,8 @@ import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Blockchain, PubKeyHash, Tx, TxId,
                                                                  TxOut (..), eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
+import           Ledger.CardanoWallet                           (MockWallet)
+import qualified Ledger.CardanoWallet                           as CW
 import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
@@ -156,13 +159,12 @@ data AgentState t =
 
 makeLenses ''AgentState
 
-initialAgentState :: forall t. Wallet -> AgentState t
-initialAgentState (Wallet (MockWallet privKey)) =
+initialAgentState :: forall t. MockWallet -> AgentState t
+initialAgentState mw=
     AgentState
-        { _walletState   = Wallet.emptyWalletState privKey
+        { _walletState   = Wallet.fromMockWallet mw
         , _submittedFees = mempty
         }
-initialAgentState (Wallet _) = error "Only mock wallets supported in the simulator"
 
 data SimulatorState t =
     SimulatorState
@@ -179,7 +181,7 @@ initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) knownWallets
         Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
-        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) knownWallets
+        initialWallets = Map.fromList $ fmap (\w -> (Wallet.Wallet $ Wallet.WalletId $ CW.mwWalletId w, initialAgentState w)) CW.knownWallets
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -300,6 +302,8 @@ handleServicesSimulator feeCfg slotCfg wallet =
         . reinterpret (runWalletState @t wallet)
         . reinterpretN @'[State Wallet.WalletState, Error WAPI.WalletAPIError, LogMsg TxBalanceMsg] (Wallet.handleWallet feeCfg)
 
+initialStateFromWallet = maybe (error "runWalletState") (initialAgentState . Wallet._mockWallet) . Wallet.emptyWalletState
+
 -- | Handle the 'State WalletState' effect by reading from and writing
 --   to a TVar in the 'SimulatorState'
 runWalletState ::
@@ -326,7 +330,8 @@ runWalletState wallet = \case
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
                 Nothing -> do
-                    let newState = initialAgentState wallet & walletState .~ s
+                    let ws = maybe (error "runWalletState") (initialAgentState . Wallet._mockWallet) (Wallet.emptyWalletState wallet)
+                        newState = ws & walletState .~ s
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
                 Just s' -> do
                     let newState = s' & walletState .~ s
@@ -538,7 +543,7 @@ handleNodeClient slotCfg wallet = \case
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
                 Nothing -> do
-                    let newState = initialAgentState wallet & submittedFees . at (txId tx) ?~ txFee tx
+                    let newState = initialStateFromWallet wallet & submittedFees . at (txId tx) ?~ txFee tx
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
                 Just s' -> do
                     let newState = s' & submittedFees . at (txId tx) ?~ txFee tx
@@ -734,7 +739,7 @@ instanceActivity = Core.instanceActivity
 addWallet :: forall t. Simulation t (Wallet,PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (newWallet, newState, walletKey) <- MockWallet.newWallet
+    mockWallet <- MockWallet.newWallet
     void $ liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
         let newWallets = currentWallets & at newWallet ?~ AgentState newState mempty

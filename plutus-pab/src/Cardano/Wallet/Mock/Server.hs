@@ -30,7 +30,7 @@ import           Data.Coerce                         (coerce)
 import           Data.Function                       ((&))
 import qualified Data.Map.Strict                     as Map
 import           Data.Proxy                          (Proxy (Proxy))
-import           Ledger.Crypto                       (knownPrivateKeys)
+import qualified Ledger.CardanoWallet                as CW
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
 import           Network.HTTP.Client                 (defaultManagerSettings, newManager)
@@ -41,7 +41,7 @@ import           Servant                             (Application, NoContent (..
                                                       (:<|>) ((:<|>)))
 import           Servant.Client                      (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv)
 import           Wallet.Effects                      (balanceTx, submitTxn, totalFunds, walletAddSignature)
-import           Wallet.Emulator.Wallet              (Wallet (..), WalletId, emptyWalletState)
+import           Wallet.Emulator.Wallet              (Wallet (..), WalletId)
 import qualified Wallet.Emulator.Wallet              as Wallet
 
 app :: Trace IO WalletMsg
@@ -67,7 +67,7 @@ app trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg slotCfg =
 main :: Trace IO WalletMsg -> WalletConfig -> FeeConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl } feeCfg serverSocket slotCfg (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
-    let knownWallets = Map.fromList $ zip Wallet.knownWallets (emptyWalletState <$> knownPrivateKeys)
+    let knownWallets = Map.fromList $ zip Wallet.knownWallets (Wallet.fromMockWallet <$> CW.knownWallets)
     mVarState <- liftIO $ newMVar knownWallets
     txSendHandle    <- liftIO $ MockClient.runTxSender serverSocket
     chainSyncHandle <- Left <$> (liftIO $ MockClient.runChainSync' serverSocket slotCfg)
