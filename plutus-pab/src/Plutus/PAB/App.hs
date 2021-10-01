@@ -63,9 +63,9 @@ import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import qualified Plutus.PAB.Db.Beam.ContractStore               as BeamEff
 import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
+import           Plutus.PAB.Db.Schema                           (checkedSqliteDb)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinition (..))
 import           Plutus.PAB.Effects.Contract.Builtin            (Builtin, BuiltinHandler (..), HasDefinitions (..))
-import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb)
 import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..),
                                                                  PABMultiAgentMsg (BeamLogItem, UserLog))
@@ -133,7 +133,6 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
               . reinterpret (mapLog @_ @(PABLogMsg (Builtin a)) SMultiAgent)
               . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
               . interpret (Core.handleMappedReader @(AppEnv a) dbConnection)
-              -- . interpret (handleDbStore trace)
               . flip handleError (throwError . BeamEffectError)
               . interpret (handleBeam (convertLog (SMultiAgent . BeamLogItem) trace))
               . reinterpretN @'[_, _, _, _, _] BeamEff.handleContractStore

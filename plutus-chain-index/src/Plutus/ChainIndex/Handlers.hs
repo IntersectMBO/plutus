@@ -23,8 +23,8 @@ import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRows, combined, selectList,
-                                                    selectOne, deleteRows)
+import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRows, combined, deleteRows,
+                                                    selectList, selectOne)
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
@@ -48,7 +48,7 @@ import           Ledger                            (Address (..), ChainIndexTxOu
                                                     TxId (..), TxOut (..), TxOutRef (..), ValidatorHash (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
-import           Plutus.ChainIndex.DbStore
+import           Plutus.ChainIndex.DbSchema
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
 import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
