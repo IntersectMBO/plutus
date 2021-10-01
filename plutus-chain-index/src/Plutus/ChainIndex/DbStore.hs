@@ -110,25 +110,48 @@ instance Table AddressRowT where
     data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
     primaryKey (AddressRow c o) = AddressRowId c o
 
-data UtxoRowT f = UtxoRow
-    { _utxoRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
-    , _utxoRowBlockId     :: Columnar f ByteString
-    , _utxoRowBlockNumber :: Columnar f Word64
-    , _utxoRowBalance     :: Columnar f ByteString
+data TipRowT f = TipRow
+    { _tipRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
+    , _tipRowBlockId     :: Columnar f ByteString
+    , _tipRowBlockNumber :: Columnar f Word64
     } deriving (Generic, Beamable)
 
-type UtxoRow = UtxoRowT Identity
+type TipRow = TipRowT Identity
 
-instance Table UtxoRowT where
-    data PrimaryKey UtxoRowT f = UtxoRowId (Columnar f Word64) deriving (Generic, Beamable)
-    primaryKey = UtxoRowId . _utxoRowSlot
+instance Table TipRowT where
+    data PrimaryKey TipRowT f = TipRowId { unTipRowId :: Columnar f Word64 } deriving (Generic, Beamable)
+    primaryKey = TipRowId . _tipRowSlot
+
+data UnspentOutputRowT f = UnspentOutputRow
+    { _unspentOutputRowTip    :: PrimaryKey TipRowT f
+    , _unspentOutputRowOutRef :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type UnspentOutputRow = UnspentOutputRowT Identity
+
+instance Table UnspentOutputRowT where
+    data PrimaryKey UnspentOutputRowT f = UnspentOutputRowId (PrimaryKey TipRowT f) (Columnar f ByteString) deriving (Generic, Beamable)
+    primaryKey (UnspentOutputRow t o) = UnspentOutputRowId t o
+
+data UnmatchedInputRowT f = UnmatchedInputRow
+    { _unmatchedInputRowTip    :: PrimaryKey TipRowT f
+    , _unmatchedInputRowOutRef :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type UnmatchedInputRow = UnmatchedInputRowT Identity
+
+instance Table UnmatchedInputRowT where
+    data PrimaryKey UnmatchedInputRowT f = UnmatchedInputRowId (PrimaryKey TipRowT f) (Columnar f ByteString) deriving (Generic, Beamable)
+    primaryKey (UnmatchedInputRow t o) = UnmatchedInputRowId t o
 
 data Db f = Db
-    { datumRows   :: f (TableEntity DatumRowT)
-    , scriptRows  :: f (TableEntity ScriptRowT)
-    , txRows      :: f (TableEntity TxRowT)
-    , addressRows :: f (TableEntity AddressRowT)
-    , utxoRows    :: f (TableEntity UtxoRowT)
+    { datumRows          :: f (TableEntity DatumRowT)
+    , scriptRows         :: f (TableEntity ScriptRowT)
+    , txRows             :: f (TableEntity TxRowT)
+    , addressRows        :: f (TableEntity AddressRowT)
+    , tipRows            :: f (TableEntity TipRowT)
+    , unspentOutputRows  :: f (TableEntity UnspentOutputRowT)
+    , unmatchedInputRows :: f (TableEntity UnmatchedInputRowT)
     } deriving (Generic, Database be)
 
 type AllTables (c :: * -> Constraint) f =
@@ -136,7 +159,9 @@ type AllTables (c :: * -> Constraint) f =
     , c (f (TableEntity ScriptRowT))
     , c (f (TableEntity TxRowT))
     , c (f (TableEntity AddressRowT))
-    , c (f (TableEntity UtxoRowT))
+    , c (f (TableEntity TipRowT))
+    , c (f (TableEntity UnspentOutputRowT))
+    , c (f (TableEntity UnmatchedInputRowT))
     )
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Semigroup f => Semigroup (Db f)
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Monoid f => Monoid (Db f)
@@ -151,7 +176,9 @@ checkedSqliteDb = defaultMigratableDbSettings
     , scriptRows  = renameCheckedEntity (const "scripts")
     , txRows      = renameCheckedEntity (const "txs")
     , addressRows = renameCheckedEntity (const "addresses")
-    , utxoRows    = renameCheckedEntity (const "utxo")
+    , tipRows     = renameCheckedEntity (const "tips")
+    , unspentOutputRows  = renameCheckedEntity (const "unspent_outputs")
+    , unmatchedInputRows = renameCheckedEntity (const "unmatched_inputs")
     }
 
 type BeamableSqlite table = (Beamable table, FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table)
@@ -204,7 +231,7 @@ handleDbStore trace conn eff = runBeam trace conn $ execute eff
         execute = \case
             AddRows _ [] -> pure ()
             -- Workaround for "too many SQL variables" sqlite error
-            -- The maximum is 999, and this only happens in this case with tables of 2 columns, rounded down to 400 rows just in case
+            -- The maximum is 999, and this only happens in this case with tables of max 2 columns, rounded down to 400 rows just in case
             AddRows table (splitAt 400 -> (batch, rest)) -> do
                 runInsert $ insertOnConflict table (insertValues batch) anyConflict onConflictDoNothing
                 execute $ AddRows table rest

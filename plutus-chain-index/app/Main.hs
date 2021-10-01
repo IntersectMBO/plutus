@@ -177,6 +177,10 @@ main = do
         Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb
 
+        Sqlite.execute_ conn "DROP TRIGGER IF EXISTS delete_matching_input"
+        Sqlite.execute_ conn $
+          "CREATE TRIGGER delete_matching_input AFTER DELETE ON unspent_outputs BEGIN DELETE FROM unmatched_inputs WHERE input_row_tip__row_slot = old.output_row_tip__row_slot AND input_row_out_ref = old.output_row_out_ref; END"
+
         appState <- STM.newTVarIO mempty
         Just resumePoints <- runChainIndex trace appState conn getResumePoints
 
