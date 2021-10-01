@@ -1,14 +1,18 @@
 module Env
   ( Env
   , DataProvider(..)
+  , WebSocketManager
   ) where
 
 import Prologue
+import Capability.PlutusApps.MarloweApp.Types as MarloweApp
 import Effect.AVar (AVar)
 import Halogen (SubscriptionId)
 import Plutus.PAB.Webserver (SPParams_)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Servant.PureScript.Settings (SPSettings_)
-import Capability.PlutusApps.MarloweApp.Types as MarloweApp
+import Types (CombinedWSStreamToServer)
+import WebSocket.Support (WebSocketManager) as WS
 
 -- Application enviroment configuration
 type Env
@@ -25,7 +29,11 @@ type Env
     -- See note on Capability.PlutusApps.MarloweApp.Types
     , marloweAppEndpointMutex :: MarloweApp.EndpointMutex
     , dataProvider :: DataProvider
+    , wsManager :: WebSocketManager
     }
+
+type WebSocketManager
+  = WS.WebSocketManager CombinedWSStreamToClient CombinedWSStreamToServer
 
 -- The frontend app can be run with two different data providers: the Marlowe PAB (the PAB bundled
 -- up with the Marlowe Plutus contracts in one executable), or with the browser's localStorage

@@ -10,25 +10,21 @@ import Effect.Aff (Aff, forkAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
-import Env (DataProvider(..), Env)
+import Env (DataProvider(..), Env, WebSocketManager)
 import Foreign.Generic (defaultOptions)
-import Halogen (Component, hoist)
+import Halogen (hoist)
 import Halogen.Aff (awaitBody, runHalogenAff)
-import Halogen.HTML (HTML)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Action(..), Msg(..), Query(..))
 import Plutus.PAB.Webserver (SPParams_(SPParams_))
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Types (CombinedWSStreamToServer)
-import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
 
-mkEnvironment :: Effect Env
-mkEnvironment = do
+mkEnvironment :: WebSocketManager -> Effect Env
+mkEnvironment wsManager = do
   let
     SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/" }
 
@@ -44,24 +40,20 @@ mkEnvironment = do
     , contractStepCarouselSubscription
     , dataProvider: MarlowePAB
     , marloweAppEndpointMutex
+    , wsManager
     }
 
 main :: Effect Unit
 main = do
-  environment <- mkEnvironment
-  let
-    mainFrame :: Component HTML Query Action Msg Aff
-    mainFrame = hoist (runAppM environment) mkMainFrame
   runHalogenAff do
+    wsManager <- WS.mkWebSocketManager
+    environment <- liftEffect $ mkEnvironment wsManager
     body <- awaitBody
-    driver <- runUI mainFrame Init body
-    ---
+    driver <- runUI (hoist (runAppM environment) mkMainFrame) Init body
     void
       $ forkAff
       $ runProcess watchLocalStorageProcess -- do we need this?
     ---
-    wsManager :: WebSocketManager CombinedWSStreamToClient CombinedWSStreamToServer <-
-      mkWebSocketManager
     void
       $ forkAff
       $ WS.runWebSocketManager
@@ -71,9 +63,6 @@ main = do
     driver.subscribe
       $ consumer
       $ case _ of
-          (SendWebSocketMessage msg) -> do
-            WS.managerWriteOutbound wsManager $ WS.SendMessage msg
-            pure Nothing
           -- This handler allows us to call an action in the MainFrame from a child component
           -- (more info in the MainFrameLoop capability)
           (MainFrameActionMsg action) -> do
