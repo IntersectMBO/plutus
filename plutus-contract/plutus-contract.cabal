@@ -170,9 +170,9 @@ test-suite plutus-contract-test
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     hs-source-dirs: test
     other-modules:
-        --Spec.Contract
+        Spec.Contract
         Spec.ErrorChecking
-        --Spec.Emulator
+        Spec.Emulator
         Spec.Rows
         Spec.State
         Spec.ThreadToken

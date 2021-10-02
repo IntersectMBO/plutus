@@ -7,17 +7,17 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE TypeOperators      #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Spec.ErrorChecking where
 
 import           Control.Monad
-import qualified Data.Map                           as Map
 import           Data.Row
 import           Test.Tasty
 
 import qualified Ledger.Ada                         as Ada
 import           Ledger.Address
 import           Ledger.Constraints
-import           Ledger.Contexts                    (ScriptContext (..), TxInfo (..))
+import           Ledger.Contexts                    (ScriptContext (..))
 import           Ledger.Scripts
 import           Ledger.Tx
 import qualified Ledger.Typed.Scripts               as Scripts hiding (validatorHash)
@@ -26,7 +26,6 @@ import           Plutus.Contract                    as Contract
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Trace.Emulator              as Trace
-import           Plutus.V1.Ledger.Scripts
 import qualified PlutusTx
 import           PlutusTx.IsData.Class
 import           PlutusTx.Prelude
@@ -92,6 +91,8 @@ instance ContractModel DummyModel where
 
   nextState _ = wait 2
 
+  arbitraryAction _ = elements [FailFalse, FailHeadNil, DivZero, Success]
+
 data Validators
 instance Scripts.ValidatorTypes Validators where
     type instance RedeemerType Validators = Integer
@@ -108,7 +109,7 @@ handleSpecs = [ContractInstanceSpec (WalletKey w1) w1 contract]
 contract :: Contract () Schema ContractError ()
 contract = selectList [failFalseC, failHeadNilC, divZeroC, successC] >> contract
   where
-    run validator redeemer = void $ do
+    run validator = void $ do
       let addr = scriptAddress (validatorScript validator)
           hash = validatorHash (validatorScript validator)
           tx = mustPayToOtherScript hash (Datum $ toBuiltinData ()) (Ada.lovelaceValueOf 1)
@@ -119,16 +120,16 @@ contract = selectList [failFalseC, failHeadNilC, divZeroC, successC] >> contract
       submitTxConstraintsSpending validator utxos tx'
 
     failFalseC = endpoint @"failFalse" $ \ _ -> do
-      run v_failFalse (Redeemer $ toBuiltinData @Integer 0)
+      run v_failFalse
 
     failHeadNilC = endpoint @"failHeadNil" $ \ _ -> do
-      run v_failHeadNil (Redeemer $ toBuiltinData @Integer 0)
+      run v_failHeadNil
 
     divZeroC = endpoint @"divZero" $ \ _ -> do
-      run v_divZero (Redeemer $ toBuiltinData @Integer 0)
+      run v_divZero
 
     successC = endpoint @"success" $ \ _ -> do
-      run v_success (Redeemer $ toBuiltinData @Integer 0)
+      run v_success
 
 {-# INLINEABLE failFalse #-}
 failFalse :: () -> Integer -> ScriptContext -> Bool

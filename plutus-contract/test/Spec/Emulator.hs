@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Spec.Emulator(tests) where
 
 
@@ -301,8 +302,7 @@ payToPubKeyScript2 =
 
 pubKeyTransactions :: EmulatorTrace ()
 pubKeyTransactions = do
-    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        five = Ada.lovelaceValueOf 5
+    let five = Ada.lovelaceValueOf 5
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always five pubKey2
     _ <- Trace.nextSlot
     Trace.liftWallet wallet2 $ payToPublicKey_ W.always five pubKey3
@@ -312,8 +312,7 @@ pubKeyTransactions = do
 
 pubKeyTransactions2 :: EmulatorTrace ()
 pubKeyTransactions2 = do
-    let [w1, w2, w3] = [wallet1, wallet2, wallet3]
-        payment1 = initialBalance P.- Ada.lovelaceValueOf 100
+    let payment1 = initialBalance P.- Ada.lovelaceValueOf 100
         payment2 = initialBalance P.+ Ada.lovelaceValueOf 100
     Trace.liftWallet wallet1 $ payToPublicKey_ W.always payment1 pubKey2
     _ <- Trace.nextSlot
