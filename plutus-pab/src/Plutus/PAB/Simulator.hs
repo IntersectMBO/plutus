@@ -110,7 +110,7 @@ import           Ledger.TimeSlot                                (SlotConfig (..)
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.ChainIndex.Emulator                     (ChainIndexControlEffect, ChainIndexEmulatorState,
                                                                  ChainIndexError, ChainIndexLog,
-                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
+                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, UtxoSetWithCurrency, ValidatorFromHash),
                                                                  TxOutStatus, TxStatus, getTip)
 import qualified Plutus.ChainIndex.Emulator                     as ChainIndex
 import           Plutus.PAB.Core                                (EffectHandlers (..))
@@ -570,16 +570,17 @@ handleChainIndexEffect ::
     => ChainIndexQueryEffect
     ~> Eff effs
 handleChainIndexEffect = runChainIndexEffects @t . \case
-    DatumFromHash h          -> ChainIndex.datumFromHash h
-    ValidatorFromHash h      -> ChainIndex.validatorFromHash h
-    MintingPolicyFromHash h  -> ChainIndex.mintingPolicyFromHash h
-    StakeValidatorFromHash h -> ChainIndex.stakeValidatorFromHash h
-    RedeemerFromHash h       -> ChainIndex.redeemerFromHash h
-    TxOutFromRef ref         -> ChainIndex.txOutFromRef ref
-    TxFromTxId txid          -> ChainIndex.txFromTxId txid
-    UtxoSetMembership ref    -> ChainIndex.utxoSetMembership ref
-    UtxoSetAtAddress pq addr -> ChainIndex.utxoSetAtAddress pq addr
-    GetTip                   -> ChainIndex.getTip
+    DatumFromHash h           -> ChainIndex.datumFromHash h
+    ValidatorFromHash h       -> ChainIndex.validatorFromHash h
+    MintingPolicyFromHash h   -> ChainIndex.mintingPolicyFromHash h
+    StakeValidatorFromHash h  -> ChainIndex.stakeValidatorFromHash h
+    RedeemerFromHash h        -> ChainIndex.redeemerFromHash h
+    TxOutFromRef ref          -> ChainIndex.txOutFromRef ref
+    TxFromTxId txid           -> ChainIndex.txFromTxId txid
+    UtxoSetMembership ref     -> ChainIndex.utxoSetMembership ref
+    UtxoSetAtAddress pq addr  -> ChainIndex.utxoSetAtAddress pq addr
+    UtxoSetWithCurrency pq ac -> ChainIndex.utxoSetWithCurrency pq ac
+    GetTip                    -> ChainIndex.getTip
 
 -- | Start a thread that prints log messages to the terminal when they come in.
 printLogMessages ::
