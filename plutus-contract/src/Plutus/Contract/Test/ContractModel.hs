@@ -1186,7 +1186,7 @@ whitelistOk wl = noPreludePartials
     noPreludePartials = case Map.lookup "CekEvaluationFailure" wl of
       -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
       -- validator that returns a boolean fails correctly.
-      Just wle -> all (Prelude.not . (`isAcceptedBy` wle) . Just . Builtins.fromBuiltin) (map fst allErrorCodes \\ [checkHasFailedError])
+      Just wle -> all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wle)) (map fst allErrorCodes \\ [checkHasFailedError])
                && Prelude.not (Nothing `isAcceptedBy` wle) -- Covers the case for divide by zero with an empty log
       Nothing  -> True
 
