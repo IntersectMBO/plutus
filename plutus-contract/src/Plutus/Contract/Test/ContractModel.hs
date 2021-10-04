@@ -21,6 +21,7 @@
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE QuantifiedConstraints      #-}
 {-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -116,7 +117,7 @@ module Plutus.Contract.Test.ContractModel
     -- $checkNoPartiality
     , WhitelistEntry(..)
     , whitelistOk
-    , emptyWhitelist
+    , defaultWhitelist
     , checkErrorWhitelist
     , checkErrorWhitelistWithOptions
     ) where
@@ -1186,12 +1187,12 @@ whitelistOk wl = noPreludePartials
     noPreludePartials = case Map.lookup "CekEvaluationFailure" wl of
       -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
       -- validator that returns a boolean fails correctly.
-      Just wle -> all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wle)) (map fst allErrorCodes \\ [checkHasFailedError])
+      Just wle -> all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wle) (map fst allErrorCodes \\ [checkHasFailedError])
                && Prelude.not (Nothing `isAcceptedBy` wle) -- Covers the case for divide by zero with an empty log
       Nothing  -> True
 
-emptyWhitelist :: Whitelist
-emptyWhitelist = Map.singleton "CekEvaluationFailure" (WhitelistEntry False [Builtins.fromBuiltin checkHasFailedError])
+defaultWhitelist :: Whitelist
+defaultWhitelist = Map.singleton "CekEvaluationFailure" (WhitelistEntry False [Builtins.fromBuiltin checkHasFailedError])
 
 -- | Check that running a contract model does not result in validation
 -- failures that are not accepted by the whitelist.
@@ -1204,7 +1205,7 @@ checkErrorWhitelist = checkErrorWhitelistWithOptions defaultCheckOptions
 
 -- | Check that running a contract model does not result in validation
 -- failures that are not accepted by the whitelist.
-checkErrorWhitelistWithOptions :: ContractModel m
+checkErrorWhitelistWithOptions :: forall m. ContractModel m
                                => CheckOptions
                                -> [ContractInstanceSpec m]
                                -> Whitelist
@@ -1212,18 +1213,25 @@ checkErrorWhitelistWithOptions :: ContractModel m
                                -> Property
 checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go check acts
   where
+    check :: Predicate
     check = checkOnchain .&&. (assertNoFailedTransactions .||. checkOffchain)
+
+    checkOnChain :: Predicate
     checkOnchain = assertChainEvents checkEvents
 
+    checkOffChain :: Predicate
     checkOffchain = assertFailedTransaction (\ _ _ -> all (either checkEvent (const True) . sveResult))
 
+    checkEvent :: ScriptError -> Bool
     checkEvent (EvaluationError log e) = case Map.lookup e whitelist of
         Just wl -> listToMaybe (reverse log) `isAcceptedBy` wl
         Nothing -> False
     checkEvent _                       = True
 
+    checkEvents :: [ChainEvent] -> Bool
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
 
+    go :: Predicate -> Actions m -> Property
     go check actions = monadic (flip State.evalState mempty) $ finalChecks opts check $ do
                         QC.run $ setHandles $ activateWallets handleSpecs
                         void $ runActionsInState StateModel.initialState (toStateModelActions actions)

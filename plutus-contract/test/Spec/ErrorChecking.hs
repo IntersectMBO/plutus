@@ -33,6 +33,7 @@ import           PlutusTx.Prelude
 import qualified Prelude                            as Haskell
 
 import           Test.QuickCheck                    hiding (Success)
+import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck              hiding (Success)
 
 tests :: TestTree
@@ -40,24 +41,27 @@ tests = testGroup "error checking"
   [ testProperty "Normal failures allowed" $ withMaxSuccess 1 prop_FailFalse
   , testProperty "Failure due to head [] not allowed" $ withMaxSuccess 1 $ expectFailure prop_FailHeadNil
   , testProperty "Division by zero not allowed" $ withMaxSuccess 1 $ expectFailure prop_DivZero
-  , testProperty "Normal success allowed" $ withMaxSuccess 1 prop_Success ]
+  , testProperty "Normal success allowed" $ withMaxSuccess 1 prop_Success
+  , assertBool "defaultWhitelist OK" $ whitelistOk defaultWhitelist ]
 
 -- | Normal failures should be allowed
 prop_FailFalse :: Property
-prop_FailFalse = checkErrorWhitelist handleSpecs emptyWhitelist (Actions [FailFalse])
+prop_FailFalse = checkErrorWhitelist handleSpecs defaultWhitelist (Actions [FailFalse])
 
 -- | Head Nil failure should not be allowed
 prop_FailHeadNil :: Property
-prop_FailHeadNil = checkErrorWhitelist handleSpecs emptyWhitelist (Actions [FailHeadNil])
+prop_FailHeadNil = checkErrorWhitelist handleSpecs defaultWhitelist (Actions [FailHeadNil])
 
 -- | Head Nil failure should not be allowed
 prop_DivZero :: Property
-prop_DivZero = checkErrorWhitelist handleSpecs emptyWhitelist (Actions [DivZero])
+prop_DivZero = checkErrorWhitelist handleSpecs defaultWhitelist (Actions [DivZero])
 
 -- | Head Nil failure should not be allowed
 prop_Success :: Property
-prop_Success = checkErrorWhitelist handleSpecs emptyWhitelist (Actions [Success])
+prop_Success = checkErrorWhitelist handleSpecs defaultWhitelist (Actions [Success])
 
+-- | This QuickCheck model only provides an interface to the validators used in this
+-- test that are convenient for testing them in isolation.
 data DummyModel = DummyModel deriving Haskell.Show
 
 deriving instance Haskell.Eq (ContractInstanceKey DummyModel w schema err)
@@ -106,8 +110,10 @@ type Schema = Endpoint "failFalse" ()
 handleSpecs :: [ContractInstanceSpec DummyModel]
 handleSpecs = [ContractInstanceSpec (WalletKey w1) w1 contract]
 
+-- | For each endpoint in the schema: pay to the corresponding validator
+-- and then spend that UTxO
 contract :: Contract () Schema ContractError ()
-contract = selectList [failFalseC, failHeadNilC, divZeroC, successC] >> contract
+contract = selectList [failFalseC, failHeadNilC, divZeroC, successC]
   where
     run validator = void $ do
       let addr = scriptAddress (validatorScript validator)
@@ -131,6 +137,7 @@ contract = selectList [failFalseC, failHeadNilC, divZeroC, successC] >> contract
     successC = endpoint @"success" $ \ _ -> do
       run v_success
 
+-- | Always fail "benignly"
 {-# INLINEABLE failFalse #-}
 failFalse :: () -> Integer -> ScriptContext -> Bool
 failFalse _ _ _ = False
@@ -142,6 +149,7 @@ v_failFalse = Scripts.mkTypedValidator @Validators
     where
         wrap = Scripts.wrapValidator
 
+-- | Always fail due to a partial function
 {-# INLINEABLE failHeadNil #-}
 failHeadNil :: () -> Integer -> ScriptContext -> Bool
 failHeadNil _ _ _ = head []
@@ -153,6 +161,10 @@ v_failHeadNil = Scripts.mkTypedValidator @Validators
     where
         wrap = Scripts.wrapValidator
 
+-- TODO: The codebase isn't working properly for
+-- division by zero errors right now, c.f. note
+-- [Divide by zero]
+-- | Always fail with a division by zero error
 {-# INLINEABLE divZero #-}
 divZero :: () -> Integer -> ScriptContext -> Bool
 divZero _ _ _ = (10 `divide` 0) > 5
@@ -164,6 +176,7 @@ v_divZero = Scripts.mkTypedValidator @Validators
     where
         wrap = Scripts.wrapValidator
 
+-- | Always succeed
 {-# INLINEABLE success #-}
 success :: () -> Integer -> ScriptContext -> Bool
 success _ _ _ = True
