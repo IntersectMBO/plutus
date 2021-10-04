@@ -88,6 +88,7 @@ test-suite marlowe-actus-test
         Spec.Marlowe.ACTUS.Examples
         Spec.Marlowe.ACTUS.TestFramework
         Spec.Marlowe.ACTUS.QCGenerator
+        Spec.Marlowe.ACTUS.QCTests
     build-depends:
         vector -any,
         unordered-containers -any,
@@ -102,6 +103,7 @@ test-suite marlowe-actus-test
         bytestring -any,
         tasty -any,
         tasty-hunit -any,
+        tasty-quickcheck -any,
         text -any,
         cborg,
         plutus-ledger -any,
@@ -113,6 +115,7 @@ test-suite marlowe-actus-test
         marlowe -any,
         time -any,
         validation -any,
+        pretty-simple -any,
         QuickCheck
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
