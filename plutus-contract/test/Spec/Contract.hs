@@ -9,50 +9,42 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 module Spec.Contract(tests, loopCheckpointContract, initial, upd) where
 
-import           Control.Lens                         hiding ((.>))
-import           Control.Monad                        (forM_, forever, void)
+import           Control.Lens                   hiding ((.>))
+import           Control.Monad                  (forever, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                 (catchError, throwError)
-import           Control.Monad.Freer                  (Eff)
-import           Control.Monad.Freer.Extras.Log       (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log       as Log
-import           Data.Functor.Apply                   ((.>))
-import qualified Data.Map                             as Map
+import           Control.Monad.Except           (catchError)
+import           Control.Monad.Freer.Extras.Log (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log as Log
+import           Data.Functor.Apply             ((.>))
+import qualified Data.Map                       as Map
 import           Test.Tasty
 
-import           Ledger                               (Address, PubKey, Slot, TxId (TxId))
+import           Ledger                         (Address, PubKey)
 import qualified Ledger
-import qualified Ledger.Ada                           as Ada
-import qualified Ledger.Constraints                   as Constraints
-import qualified Ledger.Crypto                        as Crypto
-import           Plutus.Contract                      as Con
-import qualified Plutus.Contract.State                as State
+import qualified Ledger.Ada                     as Ada
+import qualified Ledger.Constraints             as Constraints
+import qualified Ledger.Crypto                  as Crypto
+import           Plutus.Contract                as Con
+import qualified Plutus.Contract.State          as State
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                (ResumableResult (..), responses)
-import           Plutus.Contract.Util                 (loopM)
-import qualified Plutus.Trace                         as Trace
-import           Plutus.Trace.Emulator                (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
-                                                       activeEndpoints, callEndpoint)
-import           Plutus.Trace.Emulator.Types          (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                       ContractInstanceState (..), UserThreadMsg (..))
+import           Plutus.Contract.Types          (ResumableResult (..), responses)
+import           Plutus.Contract.Util           (loopM)
+import qualified Plutus.Trace                   as Trace
+import           Plutus.Trace.Emulator          (ContractInstanceTag, EmulatorTrace, activateContract, activeEndpoints,
+                                                 callEndpoint)
+import           Plutus.Trace.Emulator.Types    (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                 ContractInstanceState (..), UserThreadMsg (..))
 import qualified PlutusTx
-import           PlutusTx.Lattice
-import           Prelude                              hiding (not)
-import qualified Prelude                              as P
-import qualified Wallet.Emulator                      as EM
-import           Wallet.Emulator.Wallet               (walletAddress)
+import           Prelude                        hiding (not)
+import qualified Wallet.Emulator                as EM
+import           Wallet.Emulator.Wallet         (walletAddress)
 
-import           Data.Monoid                          (Last (Last))
-import           Data.Void
-import           Plutus.ChainIndex                    (RollbackState (..), TxOutState (..), TxOutStatus, TxStatus,
-                                                       TxValidity (TxValid))
-import           Plutus.Contract.Effects              (ActiveEndpoint (..))
-import qualified Plutus.Contract.Request              as Endpoint
-import           Plutus.Contract.Resumable            (IterationID, Response (..))
-import           Plutus.Contract.Trace.RequestHandler (maybeToHandler)
+import           Plutus.Contract.Effects        (ActiveEndpoint (..))
 
 tests :: TestTree
 tests =
@@ -249,7 +241,7 @@ tests =
             )
             $ do
                 hdl <- activateContract w1 loopCheckpointContract tag
-                forM_ [1..4] (\_ -> callEndpoint @"1" hdl 1)
+                sequence_ . replicate 4 $ callEndpoint @"1" hdl 1
 
         , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> awaitPromise (endpoint @"1" (logInfo . (<>) "Received value: " . show))
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
