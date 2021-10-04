@@ -8,6 +8,7 @@ module PSGenerator.Common where
 
 import           Auth                                      (AuthRole, AuthStatus)
 import           Control.Applicative                       (empty, (<|>))
+import           Control.Monad.Freer.Extras.Beam           (BeamError, BeamLog)
 import           Control.Monad.Reader                      (MonadReader)
 import           Data.Proxy                                (Proxy (Proxy))
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
@@ -396,6 +397,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTxOut)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BeamError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BeamLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoPosition)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoFailed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @RollbackFailed)
