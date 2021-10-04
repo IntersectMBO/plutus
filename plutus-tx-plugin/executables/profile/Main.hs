@@ -1,19 +1,10 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 {- | Executable for profiling. See note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
 Work flow for profiling evaluation time:
-1. Compile your program with profile-all and dump-plc
+1. Compile your program with the GHC plugin option profile-all and dump-plc
 2. Run the dumped program with uplc --trace-mode LogsWithTimestamps --log-output logs
 3. Run logToStacks filePaths and input it to flamegraph.pl
 
@@ -31,28 +22,12 @@ $ firefox fib4.svg
  -}
 
 module Main where
-import           Common
-import           PlcTestUtils              (ToUPlc (toUPlc), rethrow, runUPlcProfileExec)
-import           Plugin.Basic.Spec
 
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code             (CompiledCode)
-import           PlutusTx.Plugin           (plc)
-
-import qualified PlutusCore.Default        as PLC
-
-import           Control.Lens.Combinators  (_2)
-import           Control.Lens.Getter       (view)
-import           Data.Fixed                (Pico)
-import           Data.List                 (intercalate)
-import           Data.Maybe                (fromJust)
-import           Data.Proxy                (Proxy (Proxy))
-import qualified Data.Text                 as T
-import           Data.Time.Clock           (NominalDiffTime, UTCTime, diffUTCTime, nominalDiffTimeToSeconds)
-import           Prettyprinter.Internal    (pretty)
-import           Prettyprinter.Render.Text (hPutDoc)
-import           System.Environment        (getArgs)
-import           System.IO                 (IOMode (WriteMode), withFile)
+import           Data.Fixed         (Pico)
+import           Data.List          (intercalate)
+import qualified Data.Text          as T
+import           Data.Time.Clock    (NominalDiffTime, UTCTime, diffUTCTime, nominalDiffTimeToSeconds)
+import           System.Environment (getArgs)
 
 data StackFrame
   = MkStackFrame
@@ -148,60 +123,6 @@ getStacks = go []
     go [] [] = []
     go stacks [] = error $
       "go: stack " <> show stacks <> " isn't empty but the log is."
-
--------------------- Programs to be profiled -------------------
-
-fact :: Integer -> Integer
-fact n =
-  if Builtins.equalsInteger n 0
-    then 1
-    else Builtins.multiplyInteger n (fact (Builtins.subtractInteger n 1))
-
-factTest :: CompiledCode (Integer -> Integer)
-factTest = plc (Proxy @"fact") fact
-
-fib :: Integer -> Integer
-fib n = if Builtins.equalsInteger n 0
-          then 0
-          else if Builtins.equalsInteger n 1
-          then 1
-          else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
-
-fibTest :: CompiledCode (Integer -> Integer)
--- not using case to avoid literal cases
-fibTest = plc (Proxy @"fib") fib
-
-addInt :: Integer -> Integer -> Integer
-addInt x = Builtins.addInteger x
-
-addIntTest :: CompiledCode (Integer -> Integer -> Integer)
-addIntTest = plc (Proxy @"addInt") addInt
-
--- \x y -> let f z = z + 1 in f x + f y
-letInFunTest :: CompiledCode (Integer -> Integer -> Integer)
-letInFunTest =
-  plc
-    (Proxy @"letInFun")
-    (\(x::Integer) (y::Integer)
-      -> let f z = Builtins.addInteger z 1 in Builtins.addInteger (f x) (f y))
-
--- \x y z -> let f n = n + 1 in z * (f x + f y)
-letInFunMoreArgTest :: CompiledCode (Integer -> Integer -> Integer -> Integer)
-letInFunMoreArgTest =
-  plc
-    (Proxy @"letInFun")
-    (\(x::Integer) (y::Integer) (z::Integer)
-      -> let f n = Builtins.addInteger n 1 in
-        Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y)))
-
-idTest :: CompiledCode Integer
-idTest = plc (Proxy @"id") (id (1::Integer))
-
-swap :: (a,b) -> (b,a)
-swap (a,b) = (b,a)
-
-swapTest :: CompiledCode (Integer,Bool)
-swapTest = plc (Proxy @"swap") (swap (True,1))
 
 main :: IO ()
 main = do
