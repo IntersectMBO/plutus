@@ -2,6 +2,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.ErrorCodes where
 
+import           Data.Map          (Map)
+import qualified Data.Map          as Map
 import           PlutusTx.Builtins as Builtins
 import           Prelude           (String)
 
@@ -17,26 +19,26 @@ They help to trace the errors in on-chain code.
 -}
 
 -- | A list of all error codes used in the plutus prelude
-allErrorCodes :: [(Builtins.BuiltinString, String)]
-allErrorCodes = [ ("PT1", "TH Generation of Indexed Data Error")
-                , ("PT2", "Void is not supported")
-                , ("PT3", "Ratio number can't have a zero denominator")
-                , ("PT4", "'round' got an incorrect input")
-                , ("PT5", "'check' input is 'False'")
-                , ("PT6", "PlutusTx.List.!!: negative index")
-                , ("PT7", "PlutusTx.List.!!: index too large")
-                , ("PT8", "PlutusTx.List.head: empty list")
-                , ("PT9", "PlutusTx.List.tail: empty list")
-                , ("PT10", "PlutusTx.Enum.().succ: bad argument")
-                , ("PT11", "PlutusTx.Enum.().pred: bad argument")
-                , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
-                , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
-                , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
-                , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
-                , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
-                , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
-                , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
-                ]
+allErrorCodes :: Map Builtins.BuiltinString String
+allErrorCodes = Map.fromList [ ("PT1", "TH Generation of Indexed Data Error")
+                             , ("PT2", "Void is not supported")
+                             , ("PT3", "Ratio number can't have a zero denominator")
+                             , ("PT4", "'round' got an incorrect input")
+                             , ("PT5", "'check' input is 'False'")
+                             , ("PT6", "PlutusTx.List.!!: negative index")
+                             , ("PT7", "PlutusTx.List.!!: index too large")
+                             , ("PT8", "PlutusTx.List.head: empty list")
+                             , ("PT9", "PlutusTx.List.tail: empty list")
+                             , ("PT10", "PlutusTx.Enum.().succ: bad argument")
+                             , ("PT11", "PlutusTx.Enum.().pred: bad argument")
+                             , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
+                             , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
+                             , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
+                             , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
+                             , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
+                             , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
+                             , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
+                             ]
 
 -- | The error happens in TH generation of indexed data
 {-# INLINABLE reconstructCaseError #-}
