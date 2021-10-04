@@ -125,21 +125,23 @@ runSort sort l =
 
 main :: IO ()
 main = do
-    let l1 = [1000,999..1] :: [Integer]
-        l2 = [1..1000] :: [Integer]
-        l3 = [1..] :: [Integer]
-        r = getStdRandom (randomR (1,10000000))
-    l4 <- replicateM 1000 (r :: IO Integer)
-    let l = l4
-        doSort sort = mapM_ (\n -> runSort sort (take n l)) [100,200..1000]
-    putStrLn "Mergesort"
-    putStrLn "---------"
-    doSort msortPlc
-    putStrLn "\n"
-    putStrLn "Insertion sort"
-    putStrLn "--------------"
-    doSort isortPlc
-    putStrLn "\n"
-    putStrLn "Quicksort"
-    putStrLn "---------"
-    doSort qsortPlc
+  let r = getStdRandom (randomR (1,10000000))
+  l0 <- replicateM 1000 (r :: IO Integer)
+  let l1 = [1000,999..1] :: [Integer]
+      l2 = [1..1000] :: [Integer]  --- Worst case for insertion sort
+      l3 = [1..] :: [Integer]
+      l4 = [2,4..1000] ++ [1,3..999] :: [Integer] -- Supposed to be worst case for mergeSort, but the random one is worse.
+      l = l1
+      doSort sort = mapM_ (\n -> runSort sort (take n l)) [100,200..1000]
+  putStrLn "Mergesort"
+  putStrLn "---------"
+  doSort msortPlc
+  putStrLn "\n"
+  putStrLn "Insertion sort"
+  putStrLn "--------------"
+  doSort isortPlc
+  putStrLn "\n"
+  putStrLn "Quicksort"
+  putStrLn "---------"
+  doSort qsortPlc
+

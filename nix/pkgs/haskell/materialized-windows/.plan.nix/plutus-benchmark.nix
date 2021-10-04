@@ -74,6 +74,19 @@
           hsSourceDirs = [ "nofib/exe" ];
           mainPath = [ "Main.hs" ];
           };
+        "list-sort" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "list-sort/exe" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       tests = {
         "plutus-benchmark-nofib-tests" = {
