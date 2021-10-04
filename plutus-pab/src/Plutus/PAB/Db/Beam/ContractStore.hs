@@ -108,8 +108,9 @@ handleContractStore ::
   ~> Eff effs
 handleContractStore = \case
   PutStartInstance args instanceId ->
-    addRows (_contractInstances db)
-      $ [ mkRow args instanceId ]
+    addRows
+      $ insert (_contractInstances db)
+      $ insertValues [ mkRow args instanceId ]
 
   PutState _ instanceId state ->
     let encode' = Text.decodeUtf8 . B.concat . LB.toChunks . encode . getResponse
