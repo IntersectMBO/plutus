@@ -193,7 +193,7 @@ runPabInstanceEndpoints pabConfig instanceId endpoints = do
   apiClientEnv <- getClientEnv pabConfig
 
   let PabClient{activateContract, instanceClient} = pabClient @TestingContracts @Integer
-      callEndpoint = callInstanceEndpoint . instanceClient . Text.pack .show . unContractInstanceId $ instanceId
+      callEndpoint = callInstanceEndpoint . instanceClient $ instanceId
 
   forM_ endpoints $ \e -> do
     x <- runClientM (callEndpoint (ep e) (toJSON ())) apiClientEnv
