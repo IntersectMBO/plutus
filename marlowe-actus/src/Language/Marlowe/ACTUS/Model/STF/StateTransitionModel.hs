@@ -143,7 +143,16 @@ _STF_IP_PAM
         feac = y_sd_t * fer * nt,
         sd = t
       }
-_STF_IP_PAM _ st _ _ = st
+_STF_IP_PAM
+  _
+  st
+  t
+  _ =
+    st
+      { ipac = _zero,
+        feac = _zero,
+        sd = t
+      }
 
 _STF_IPCI_PAM :: (ActusOps a, ActusNum a) => ContractTermsPoly a b -> ContractStatePoly a b -> b -> a -> ContractStatePoly a b
 _STF_IPCI_PAM
@@ -316,7 +325,25 @@ _STF_PR_LAM
             ipac = ipac + ipnr * ipcb * y_sd_t,
             sd = t
           }
-_STF_PR_LAM _ st _ _ = st
+_STF_PR_LAM
+  ct@ContractTermsPoly
+    { ct_CNTRL = cntrl
+    }
+  st@ContractStatePoly {..}
+  t
+  y_sd_t =
+    let nt' = nt - _r cntrl * (prnxt - _r cntrl * _max _zero (_abs prnxt - _abs nt))
+        ipcb' = interestCalculationBase ct
+          where
+            interestCalculationBase ContractTermsPoly {ct_IPCB = Just IPCB_NTL} = ipcb
+            interestCalculationBase _                                           = nt'
+     in st
+          { nt = nt',
+            feac = feac,
+            ipcb = ipcb',
+            ipac = ipac + ipnr * ipcb * y_sd_t,
+            sd = t
+          }
 
 _STF_MD_LAM :: ActusOps a => ContractStatePoly a b -> b -> ContractStatePoly a b
 _STF_MD_LAM st t =
@@ -369,7 +396,23 @@ _STF_PY_LAM
             feac = feac',
             sd = t
           }
-_STF_PY_LAM _ st _ _ _ _ = st
+_STF_PY_LAM
+  ct
+  st@ContractStatePoly {..}
+  t
+  y_sd_t
+  _
+  _ =
+    let ipac' = ipac + y_sd_t * ipnr * ipcb
+        feac' = feeAccrued ct
+          where
+            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac
+            feeAccrued _                                       = _zero
+     in st
+          { ipac = ipac',
+            feac = feac',
+            sd = t
+          }
 
 _STF_FP_LAM :: (ActusNum a, ActusOps a) => ContractStatePoly a b -> b -> a -> ContractStatePoly a b
 _STF_FP_LAM
@@ -502,7 +545,7 @@ _STF_PR_NAM
 _STF_RR_ANN :: RoleSignOps a => ContractTermsPoly a b -> ContractStatePoly a b -> RiskFactorsPoly a -> b -> a -> a -> a -> [a] -> ContractStatePoly a b
 _STF_RR_ANN
   ct@ContractTermsPoly
-    { ct_FER = Just feeRate,
+    { ct_FER = feeRate,
       ct_RRLF = Just rrlf,
       ct_RRLC = Just rrlc,
       ct_RRPC = Just rrpc,
@@ -521,8 +564,8 @@ _STF_RR_ANN
     let ipac' = ipac + y_sd_t * ipnr * ipcb
         feac' = feeAccrued ct
           where
-            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * feeRate
-            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * feeRate
+            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * fromMaybe _zero feeRate
+            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * fromMaybe _zero feeRate
         ipnr' = _min (_max (ipnr + delta_r) rrlf) rrlc
           where
             delta_r = _min (_max (o_rf_RRMO * rrmlt + rrsp - ipnr) rrpf) rrpc
@@ -539,7 +582,7 @@ _STF_RR_ANN _ st _ _ _ _ _ _ = st
 _STF_RRF_ANN :: RoleSignOps a => ContractTermsPoly a b -> ContractStatePoly a b -> b -> a -> a -> a -> [a] -> ContractStatePoly a b
 _STF_RRF_ANN
   ct@ContractTermsPoly
-    { ct_FER = Just feeRate,
+    { ct_FER = feeRate,
       ct_RRNXT = Just rrnxt,
       ct_CNTRL = cntrl
     }
@@ -552,8 +595,8 @@ _STF_RRF_ANN
     let ipac' = ipac + y_sd_t * ipnr * ipcb
         feac' = feeAccrued ct
           where
-            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * feeRate
-            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * feeRate
+            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * fromMaybe _zero feeRate
+            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * fromMaybe _zero feeRate
         ipnr' = rrnxt
         prnxt' = annuity ipnr' ti
      in st
@@ -568,7 +611,7 @@ _STF_RRF_ANN _ st _ _ _ _ _ = st
 _STF_PRF_ANN :: RoleSignOps a => ContractTermsPoly a b -> ContractStatePoly a b -> b -> a -> a -> a -> a -> [a] -> ContractStatePoly a b
 _STF_PRF_ANN
   ct@ContractTermsPoly
-    { ct_FER = Just feeRate,
+    { ct_FER = feeRate,
       ct_CNTRL = cntrl
     }
   st@ContractStatePoly {..}
@@ -581,8 +624,8 @@ _STF_PRF_ANN
     let ipac' = ipac + y_sd_t * ipnr * ipcb
         feac' = feeAccrued ct
           where
-            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * feeRate
-            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * feeRate
+            feeAccrued ContractTermsPoly {ct_FEB = Just FEB_N} = feac + y_sd_t * nt * fromMaybe _zero feeRate
+            feeAccrued _ = (y_tfpminus_t / y_tfpminus_tfpplus) * _r cntrl * fromMaybe _zero feeRate
         prnxt' = _r cntrl * frac * scale
           where
             scale = nt + ipac' + y_t * ipnr * nt
@@ -593,4 +636,3 @@ _STF_PRF_ANN
             prnxt = prnxt',
             sd = t
           }
-_STF_PRF_ANN _ st _ _ _ _ _ _ = st

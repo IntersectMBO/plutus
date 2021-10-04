@@ -73,7 +73,7 @@ genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
 
       states =
         filter filtersStates . tail $
-          runReader (sequence . scanl applyStateTransition initialState $ schedules) context
+          runReader (sequence $ scanl applyStateTransition initialState schedules) context
         where
           initialState = initializeState <&> (,AD,ShiftedDay ct_SD ct_SD)
 
