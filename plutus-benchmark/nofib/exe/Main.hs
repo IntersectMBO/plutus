@@ -150,11 +150,11 @@ queensOptions =
 
 progAndArgs :: Parser ProgAndArgs
 progAndArgs = hsubparser
-  (  command "clausify"  (info clausifyOptions      (progDesc "Run the Clausify benchmark."))
-  <> command "queens"    (info queensOptions        (progDesc "Run the Queens benchmark."))
-  <> command "knights"   (info knightsOptions       (progDesc "Run the Knights benchmark"))
-  <> command "lastpiece" (info lastpieceOptions     (progDesc "Run the Lastpiece benchmark"))
-  <> command "prime"     (info primeOptions         (progDesc "Run the Prime benchmark on a known prime (see help)"))
+  (  command "clausify"  (info clausifyOptions  (progDesc "Run the Clausify benchmark."))
+  <> command "queens"    (info queensOptions    (progDesc "Run the Queens benchmark."))
+  <> command "knights"   (info knightsOptions   (progDesc "Run the Knights benchmark"))
+  <> command "lastpiece" (info lastpieceOptions (progDesc "Run the Lastpiece benchmark"))
+  <> command "prime"     (info primeOptions     (progDesc "Run the Prime benchmark on a known prime (see help)"))
   <> command "primetest" (info primetestOptions (progDesc "Run the Prime benchmark on a positive integer N")) )
 
 

@@ -164,3 +164,16 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-hunit -any
       , tasty-quickcheck -any
       , mtl -any
+
+
+executable list-sort
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs:
+      list-sort/exe
+  build-depends:
+      base >=4.7 && <5
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , plutus-core -any
+    , transformers -any
