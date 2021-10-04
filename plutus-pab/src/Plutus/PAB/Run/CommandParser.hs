@@ -159,7 +159,6 @@ clientServicesParser =
         (pure (ForkCommands
                     [ MockWallet
                     , PABWebserver
-                    , ChainIndex
                     ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 

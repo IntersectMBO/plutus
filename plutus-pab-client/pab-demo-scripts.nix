@@ -54,6 +54,7 @@ let
 
   # mock node, needs to be the same for all PABs
   node-port = "8082";
+  chain-index-port = "9083";
   db-file = "/tmp/pab-core.db";
 
   pab-setup = "${pab-exes.plutus-pab-setup}/bin/plutus-pab-setup";
@@ -64,7 +65,7 @@ let
     webserver-port = "9080";
     walletserver-port = "9081";
     nodeserver-port = "${node-port}";
-    chain-index-port = "9083";
+    chain-index-port = "${chain-index-port}";
     signing-process-port = "9084";
     metadata-server-port = "9085";
     wallet = "1";
@@ -76,7 +77,7 @@ let
     webserver-port = "9086";
     walletserver-port = "9087";
     nodeserver-port = "${node-port}";
-    chain-index-port = "9088";
+    chain-index-port = "${chain-index-port}";
     signing-process-port = "9089";
     metadata-server-port = "9090";
     wallet = "2";
