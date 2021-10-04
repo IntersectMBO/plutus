@@ -71,7 +71,7 @@
         hsSourceDirs = [ "src" ];
         };
       exes = {
-        "profile" = {
+        "logToStacks" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
