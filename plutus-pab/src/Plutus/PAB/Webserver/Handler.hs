@@ -26,7 +26,7 @@ module Plutus.PAB.Webserver.Handler
 import qualified Cardano.Wallet.Mock.Client              as Wallet.Client
 import           Cardano.Wallet.Mock.Types               (WalletInfo (..))
 import           Control.Lens                            (preview)
-import           Control.Monad                           (join, (>=>))
+import           Control.Monad                           (join)
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
@@ -37,7 +37,6 @@ import           Data.Maybe                              (fromMaybe, mapMaybe)
 import           Data.OpenApi.Schema                     (ToSchema)
 import           Data.Proxy                              (Proxy (..))
 import           Data.Text                               (Text)
-import qualified Data.UUID                               as UUID
 import           Ledger                                  (Value, pubKeyHash)
 import           Ledger.Constraints.OffChain             (UnbalancedTx)
 import           Ledger.Tx                               (Tx)
@@ -85,12 +84,6 @@ contractSchema contractId = do
     case def of
         Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID
         Nothing                           -> throwError (ContractInstanceNotFound contractId)
-
-parseContractId :: Text -> PABAction t env ContractInstanceId
-parseContractId t =
-    case UUID.fromText t of
-        Just uuid -> pure $ ContractInstanceId uuid
-        Nothing   -> throwError $ InvalidUUIDError t
 
 -- | Handler for the API
 apiHandler ::
