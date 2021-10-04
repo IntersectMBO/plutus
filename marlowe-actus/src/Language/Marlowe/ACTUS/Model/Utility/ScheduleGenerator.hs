@@ -15,8 +15,6 @@ module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   )
 where
 
-import           Control.Arrow                                    ((>>>))
-import           Data.Function                                    ((&))
 import qualified Data.List                                        as L (delete, init, last, length)
 import           Data.Time                                        (LocalTime (..))
 import           Data.Time.Calendar                               (addDays, addGregorianMonthsClip,
@@ -26,7 +24,6 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle (..), E
                                                                    ScheduleConfig (..), Stub (LongStub))
 import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (..), ShiftedSchedule)
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
-
 
 maximumMaybe :: Ord a => [a] -> Maybe a
 maximumMaybe [] = Nothing
@@ -60,22 +57,15 @@ correction Cycle{ stub = stub, includeEndDay = includeEndDay} anchorDate endDate
   let
     lastDate = L.last schedule
     schedule' = L.init schedule
-    schedule'Size = L.length schedule'
+    scheduleSize = L.length schedule'
     schedule'' =
-      -- if includeEndDay then
-      --   schedule' ++ [endDate]
-      -- else
-      --   if endDate == anchorDate then
-      --     L.delete anchorDate schedule'
-      --   else
-      --     schedule'
       if not includeEndDay && endDate == anchorDate then
         L.delete anchorDate schedule'
       else
         schedule'
   in
     if stub == LongStub && L.length schedule'' > 2 && endDate /= lastDate then
-      L.delete (schedule'' !! (schedule'Size - 1)) schedule''
+      L.delete (schedule'' !! (scheduleSize - 1)) schedule''
     else
       schedule''
 
@@ -89,12 +79,11 @@ addEndDay includeEndDay endDate schedule =
 generateRecurrentSchedule :: Cycle -> LocalTime -> LocalTime -> [LocalTime]
 generateRecurrentSchedule Cycle {..} anchorDate endDate =
   let go :: LocalTime -> Integer -> [LocalTime] -> [LocalTime]
-      go current k acc = if current >= endDate
+      go current k acc = if current >= endDate || n == 0
         then acc ++ [current]
-        else
-          (let current' = shiftDate anchorDate (k * n) p
-           in  go current' (k + 1) (acc ++ [current])
-          )
+        else let current' = shiftDate anchorDate (k * n) p
+              in  go current' (k + 1) (acc ++ [current])
+
   in  go anchorDate 1 []
 
 generateRecurrentScheduleWithCorrections :: LocalTime -> Cycle -> LocalTime -> ScheduleConfig -> ShiftedSchedule
@@ -107,12 +96,9 @@ generateRecurrentScheduleWithCorrections
       calendar = Just calendar',
       bdc = Just bdc'
     } =
-    generateRecurrentSchedule cycle anchorDate endDate
-      & ( correction cycle anchorDate endDate
-            >>> (fmap $ applyEOMC anchorDate cycle eomc')
-            >>> (fmap $ applyBDC bdc' calendar')
-            >>> addEndDay (includeEndDay cycle) endDate
-        )
+      let s = generateRecurrentSchedule cycle anchorDate endDate
+          c = correction cycle anchorDate endDate s
+        in addEndDay (includeEndDay cycle) endDate $ fmap (applyBDC bdc' calendar' . applyEOMC anchorDate cycle eomc') c
 generateRecurrentScheduleWithCorrections _ _ _ _ = []
 
 plusCycle :: LocalTime -> Cycle -> LocalTime
