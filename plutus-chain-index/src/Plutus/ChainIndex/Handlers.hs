@@ -38,7 +38,8 @@ import qualified Data.Set                          as Set
 import           Data.Word                         (Word64)
 import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
                                                     delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (desc_, orderBy_, (<=.), (==.), (>.))
+import           Database.Beam.Query               (asc_, desc_, exists_, orderBy_, update, (&&.), (<-.), (<.), (==.),
+                                                    (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
 import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
@@ -62,9 +63,9 @@ type ChainIndexState = UtxoIndex TxUtxoBalance
 getResumePoints :: Member DbStoreEffect effs => Eff effs [C.ChainPoint]
 getResumePoints = do
     rows <- selectList . select
-        . fmap (\row -> (_utxoRowSlot row, _utxoRowBlockId row))
-        . orderBy_ (desc_ . _utxoRowSlot)
-        $ all_ (utxoRows db)
+        . fmap (\row -> (_tipRowSlot row, _tipRowBlockId row))
+        . orderBy_ (desc_ . _tipRowSlot)
+        $ all_ (tipRows db)
     pure $ mapMaybe toChainPoint rows
     where
         toChainPoint :: (Word64, ByteString) -> Maybe C.ChainPoint
@@ -78,14 +79,23 @@ restoreStateFromDb ::
     -> Eff effs ()
 restoreStateFromDb point = do
     rollbackUtxoDb point
-    rows <- selectList . select
-        . orderBy_ (desc_ . _utxoRowSlot)
-        $ all_ (utxoRows db)
-    put $ FT.fromList . fmap toUtxoState . reverse $ rows
+    uo <- selectList . select $ all_ (unspentOutputRows db)
+    ui <- selectList . select $ all_ (unmatchedInputRows db)
+    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
+    tips <- selectList . select
+        . orderBy_ (asc_ . _tipRowSlot)
+        $ all_ (tipRows db)
+    put $ FT.fromList . fmap (toUtxoState balances) $ tips
     where
-        toUtxoState :: UtxoRow -> UtxoState.UtxoState TxUtxoBalance
-        toUtxoState (UtxoRow slot bi bn balance)
-            = UtxoState.UtxoState (fromByteString balance) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
+        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
+        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
+            = (slot, UtxoState.TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
+        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
+        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
+            = (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
+        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
+        toUtxoState balances (TipRow slot bi bn)
+            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
@@ -120,10 +130,10 @@ handleQuery = \case
 
 getTip :: Member DbStoreEffect effs => Eff effs Tip
 getTip = do
-    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _utxoRowSlot) (all_ (utxoRows db)))
+    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _tipRowSlot) (all_ (tipRows db)))
     pure $ case row of
-        Nothing                     -> TipAtGenesis
-        Just (UtxoRow slot bi bn _) -> Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn)
+        Nothing                  -> TipAtGenesis
+        Just (TipRow slot bi bn) -> Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn)
 
 getDatumFromHash :: Member DbStoreEffect effs => DatumHash -> Eff effs (Maybe Datum)
 getDatumFromHash (DatumHash (BuiltinByteString dh)) =
@@ -217,8 +227,7 @@ handleControl = \case
                   UtxoState.BlockCountNotReduced -> put newIndex
                   lbcResult -> do
                     put $ UtxoState.reducedIndex lbcResult
-                    deleteOldUtxoDb $ UtxoState._usTip $ UtxoState.combinedState lbcResult
-                    insertUtxoDb $ UtxoState.combinedState lbcResult
+                    reduceOldUtxoDb $ UtxoState._usTip $ UtxoState.combinedState lbcResult
                 insert $ foldMap fromTx transactions
                 insertUtxoDb newUtxoState
                 logDebug $ InsertionSuccess tip_ insertPosition
@@ -260,16 +269,49 @@ insertUtxoDb ::
     => UtxoState.UtxoState UtxoState.TxUtxoBalance
     -> Eff effs ()
 insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
-insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
-    = addRows (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
+insertUtxoDb (UtxoState.UtxoState (UtxoState.TxUtxoBalance outputs inputs) (Tip sl (BlockId bi) (BlockNumber bn)))
+    = insert $ mempty
+        { tipRows = InsertRows [TipRow (fromIntegral sl) bi bn]
+        , unspentOutputRows = InsertRows $ UnspentOutputRow tipRowId . toByteString <$> Set.toList outputs
+        , unmatchedInputRows = InsertRows $ UnmatchedInputRow tipRowId . toByteString <$> Set.toList inputs
+        }
+        where
+            tipRowId = TipRowId (fromIntegral sl)
 
-deleteOldUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
-deleteOldUtxoDb TipAtGenesis = pure ()
-deleteOldUtxoDb (Tip slot _ _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row <=. val_ (fromIntegral slot))
+reduceOldUtxoDb :: Member DbStoreEffect effs => Tip -> Eff effs ()
+reduceOldUtxoDb TipAtGenesis = pure ()
+reduceOldUtxoDb (Tip slotNo _ _) = do
+    -- Delete all the tips before 'slot'
+    deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row <. val_ slot)
+    -- Assign all the older utxo changes to 'slot'
+    updateRows $ update
+        (unspentOutputRows db)
+        (\row -> _unspentOutputRowTip row <-. TipRowId (val_ slot))
+        (\row -> unTipRowId (_unspentOutputRowTip row) <. val_ slot)
+    updateRows $ update
+        (unmatchedInputRows db)
+        (\row -> _unmatchedInputRowTip row <-. TipRowId (val_ slot))
+        (\row -> unTipRowId (_unmatchedInputRowTip row) <. val_ slot)
+    -- Among these older changes, delete the matching input/output pairs
+    -- We're deleting only the outputs here, the matching input is deleted by a trigger (See Main.hs)
+    deleteRows $ delete
+        (unspentOutputRows db)
+        (\output -> unTipRowId (_unspentOutputRowTip output) ==. val_ slot &&.
+            exists_ (filter_
+                (\input ->
+                    (unTipRowId (_unmatchedInputRowTip input) ==. val_ slot) &&.
+                    (_unspentOutputRowOutRef output ==. _unmatchedInputRowOutRef input))
+                (all_ (unmatchedInputRows db))))
+    where
+        slot :: Word64
+        slot = fromIntegral slotNo
 
 rollbackUtxoDb :: Member DbStoreEffect effs => Point -> Eff effs ()
-rollbackUtxoDb PointAtGenesis = deleteRows $ delete (utxoRows db) (const (val_ True))
-rollbackUtxoDb (Point slot _) = deleteRows $ delete (utxoRows db) (\row -> _utxoRowSlot row >. val_ (fromIntegral slot))
+rollbackUtxoDb PointAtGenesis = deleteRows $ delete (tipRows db) (const (val_ True))
+rollbackUtxoDb (Point slot _) = do
+    deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row >. val_ (fromIntegral slot))
+    deleteRows $ delete (unspentOutputRows db) (\row -> unTipRowId (_unspentOutputRowTip row) >. val_ (fromIntegral slot))
+    deleteRows $ delete (unmatchedInputRows db) (\row -> unTipRowId (_unmatchedInputRowTip row) >. val_ (fromIntegral slot))
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)

@@ -110,25 +110,58 @@ instance Table AddressRowT where
     data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
     primaryKey (AddressRow c o) = AddressRowId c o
 
-data UtxoRowT f = UtxoRow
-    { _utxoRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
-    , _utxoRowBlockId     :: Columnar f ByteString
-    , _utxoRowBlockNumber :: Columnar f Word64
-    , _utxoRowBalance     :: Columnar f ByteString
+data TipRowT f = TipRow
+    { _tipRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
+    , _tipRowBlockId     :: Columnar f ByteString
+    , _tipRowBlockNumber :: Columnar f Word64
     } deriving (Generic, Beamable)
 
-type UtxoRow = UtxoRowT Identity
+type TipRow = TipRowT Identity
 
-instance Table UtxoRowT where
-    data PrimaryKey UtxoRowT f = UtxoRowId (Columnar f Word64) deriving (Generic, Beamable)
-    primaryKey = UtxoRowId . _utxoRowSlot
+instance Table TipRowT where
+    data PrimaryKey TipRowT f = TipRowId { unTipRowId :: Columnar f Word64 } deriving (Generic, Beamable)
+    primaryKey = TipRowId . _tipRowSlot
+
+{-
+The UnspentOutputRow and UnmatchedInputRow tables represent the TxUtxoBalance part of the UtxoState data on disk.
+In particular the tip is the one that produced the utxo, except for the rows
+that come from transactions that can no longer be rolled back:
+In the UtxoState data that can no longer be rolled back are combined in a single TxUtxoBalance value.
+The tip in those cases is the most recent tip that can no longer be rolled back.
+(This is an automatic result of the Monoid instance on TxUtxoBalance, and is a bit weird when spelled
+out as a database design, but the disk state and in memory state should be kept in sync.)
+-}
+
+data UnspentOutputRowT f = UnspentOutputRow
+    { _unspentOutputRowTip    :: PrimaryKey TipRowT f
+    , _unspentOutputRowOutRef :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type UnspentOutputRow = UnspentOutputRowT Identity
+
+instance Table UnspentOutputRowT where
+    data PrimaryKey UnspentOutputRowT f = UnspentOutputRowId (PrimaryKey TipRowT f) (Columnar f ByteString) deriving (Generic, Beamable)
+    primaryKey (UnspentOutputRow t o) = UnspentOutputRowId t o
+
+data UnmatchedInputRowT f = UnmatchedInputRow
+    { _unmatchedInputRowTip    :: PrimaryKey TipRowT f
+    , _unmatchedInputRowOutRef :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type UnmatchedInputRow = UnmatchedInputRowT Identity
+
+instance Table UnmatchedInputRowT where
+    data PrimaryKey UnmatchedInputRowT f = UnmatchedInputRowId (PrimaryKey TipRowT f) (Columnar f ByteString) deriving (Generic, Beamable)
+    primaryKey (UnmatchedInputRow t o) = UnmatchedInputRowId t o
 
 data Db f = Db
-    { datumRows   :: f (TableEntity DatumRowT)
-    , scriptRows  :: f (TableEntity ScriptRowT)
-    , txRows      :: f (TableEntity TxRowT)
-    , addressRows :: f (TableEntity AddressRowT)
-    , utxoRows    :: f (TableEntity UtxoRowT)
+    { datumRows          :: f (TableEntity DatumRowT)
+    , scriptRows         :: f (TableEntity ScriptRowT)
+    , txRows             :: f (TableEntity TxRowT)
+    , addressRows        :: f (TableEntity AddressRowT)
+    , tipRows            :: f (TableEntity TipRowT)
+    , unspentOutputRows  :: f (TableEntity UnspentOutputRowT)
+    , unmatchedInputRows :: f (TableEntity UnmatchedInputRowT)
     } deriving (Generic, Database be)
 
 type AllTables (c :: * -> Constraint) f =
@@ -136,7 +169,9 @@ type AllTables (c :: * -> Constraint) f =
     , c (f (TableEntity ScriptRowT))
     , c (f (TableEntity TxRowT))
     , c (f (TableEntity AddressRowT))
-    , c (f (TableEntity UtxoRowT))
+    , c (f (TableEntity TipRowT))
+    , c (f (TableEntity UnspentOutputRowT))
+    , c (f (TableEntity UnmatchedInputRowT))
     )
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Semigroup f => Semigroup (Db f)
 deriving via (GenericSemigroupMonoid (Db f)) instance AllTables Monoid f => Monoid (Db f)
@@ -151,7 +186,9 @@ checkedSqliteDb = defaultMigratableDbSettings
     , scriptRows  = renameCheckedEntity (const "scripts")
     , txRows      = renameCheckedEntity (const "txs")
     , addressRows = renameCheckedEntity (const "addresses")
-    , utxoRows    = renameCheckedEntity (const "utxo")
+    , tipRows     = renameCheckedEntity (const "tips")
+    , unspentOutputRows  = renameCheckedEntity (const "unspent_outputs")
+    , unmatchedInputRows = renameCheckedEntity (const "unmatched_inputs")
     }
 
 type BeamableSqlite table = (Beamable table, FieldsFulfillConstraint (BeamSqlBackendCanSerialize Sqlite) table)
