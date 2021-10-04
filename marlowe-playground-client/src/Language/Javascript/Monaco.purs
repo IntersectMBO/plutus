@@ -2,7 +2,6 @@ module Language.Javascript.Monaco where
 
 import Prelude
 import Data.Maybe (Maybe(..))
-import Effect.Class (class MonadEffect)
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
 import Monaco (Editor, LanguageExtensionPoint(..))
@@ -13,7 +12,7 @@ languageExtensionPoint = LanguageExtensionPoint { id: "typescript" }
 refLabel :: RefLabel
 refLabel = RefLabel "jsEditor"
 
-settings :: forall m. MonadEffect m => (Editor -> m Unit) -> Settings m
+settings :: forall m. Applicative m => (Editor -> m Unit) -> Settings m
 settings setup =
   { languageExtensionPoint
   , theme: Nothing
