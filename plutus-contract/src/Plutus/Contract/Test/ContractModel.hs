@@ -1155,7 +1155,7 @@ data WhitelistEntry = WhitelistEntry { acceptEmptyLog :: Bool, errorPrefixes :: 
 -- | A whitelist associates errors with a whitelist entry
 type Whitelist = Map String WhitelistEntry
 
--- | Check that a log is accepted by a whitelist entry
+-- | Check that the last entry in a log is accepted by a whitelist entry
 isAcceptedBy :: Maybe Text.Text -> WhitelistEntry -> Bool
 isAcceptedBy Nothing wle          = acceptEmptyLog wle
 isAcceptedBy (Just lastEntry) wle = any (`Text.isPrefixOf` lastEntry) (errorPrefixes wle)
