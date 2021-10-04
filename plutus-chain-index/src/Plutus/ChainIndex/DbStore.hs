@@ -122,6 +122,16 @@ instance Table TipRowT where
     data PrimaryKey TipRowT f = TipRowId { unTipRowId :: Columnar f Word64 } deriving (Generic, Beamable)
     primaryKey = TipRowId . _tipRowSlot
 
+{-
+The UnspentOutputRow and UnmatchedInputRow tables represent the TxUtxoBalance part of the UtxoState data on disk.
+In particular the tip is the one that produced the utxo, except for the rows
+that come from transactions that can no longer be rolled back:
+In the UtxoState data that can no longer be rolled back are combined in a single TxUtxoBalance value.
+The tip in those cases is the most recent tip that can no longer be rolled back.
+(This is an automatic result of the Monoid instance on TxUtxoBalance, and is a bit weird when spelled
+out as a database design, but the disk state and in memory state should be kept in sync.)
+-}
+
 data UnspentOutputRowT f = UnspentOutputRow
     { _unspentOutputRowTip    :: PrimaryKey TipRowT f
     , _unspentOutputRowOutRef :: Columnar f ByteString
