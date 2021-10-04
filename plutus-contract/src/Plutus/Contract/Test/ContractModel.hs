@@ -1213,13 +1213,13 @@ checkErrorWhitelistWithOptions :: forall m. ContractModel m
                                -> Property
 checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go check acts
   where
-    check :: Predicate
+    check :: TracePredicate
     check = checkOnchain .&&. (assertNoFailedTransactions .||. checkOffchain)
 
-    checkOnChain :: Predicate
+    checkOnchain :: TracePredicate
     checkOnchain = assertChainEvents checkEvents
 
-    checkOffChain :: Predicate
+    checkOffchain :: TracePredicate
     checkOffchain = assertFailedTransaction (\ _ _ -> all (either checkEvent (const True) . sveResult))
 
     checkEvent :: ScriptError -> Bool
@@ -1231,7 +1231,7 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
     checkEvents :: [ChainEvent] -> Bool
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
 
-    go :: Predicate -> Actions m -> Property
+    go :: TracePredicate -> Actions m -> Property
     go check actions = monadic (flip State.evalState mempty) $ finalChecks opts check $ do
                         QC.run $ setHandles $ activateWallets handleSpecs
                         void $ runActionsInState StateModel.initialState (toStateModelActions actions)

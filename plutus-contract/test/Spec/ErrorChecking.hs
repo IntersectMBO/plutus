@@ -42,7 +42,7 @@ tests = testGroup "error checking"
   , testProperty "Failure due to head [] not allowed" $ withMaxSuccess 1 $ expectFailure prop_FailHeadNil
   , testProperty "Division by zero not allowed" $ withMaxSuccess 1 $ expectFailure prop_DivZero
   , testProperty "Normal success allowed" $ withMaxSuccess 1 prop_Success
-  , assertBool "defaultWhitelist OK" $ whitelistOk defaultWhitelist ]
+  , testCase "Check defaultWhitelist is ok" $ assertBool "whitelistOk defaultWhitelist" $ whitelistOk defaultWhitelist ]
 
 -- | Normal failures should be allowed
 prop_FailFalse :: Property
