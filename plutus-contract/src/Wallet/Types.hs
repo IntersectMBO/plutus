@@ -10,13 +10,11 @@ module Wallet.Types(
     ContractInstanceId(..)
     , contractInstanceIDs
     , randomID
+    , ContractActivityStatus(..)
+    , parseContractActivityStatus
     , Notification(..)
     , EndpointDescription(..)
     , EndpointValue(..)
-    , AddressChangeRequest(..)
-    , targetSlot
-    , slotRange
-    , AddressChangeResponse(..)
     -- * Error types
     , MatchingError(..)
     , AsMatchingError(..)
@@ -45,11 +43,11 @@ import qualified Data.UUID.V4                     as UUID
 import           GHC.Generics                     (Generic)
 import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Ledger                           (Address, OnChainTx, Slot, SlotRange, eitherTx, interval, txId)
 import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
 
+import qualified Data.OpenApi.Schema              as OpenApi
 
 -- | An error
 newtype MatchingError = WrongVariantError { unWrongVariantError :: Text }
@@ -111,7 +109,7 @@ instance AsCheckpointError ContractError where
 newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
     deriving (Eq, Ord, Show, Generic)
     deriving newtype (FromJSONKey, ToJSONKey)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
     deriving Pretty via (PrettyShow UUID)
 
 -- | A pure list of all 'ContractInstanceId' values. To be used in testing.
@@ -121,10 +119,19 @@ contractInstanceIDs = ContractInstanceId <$> UUID.mockUUIDs
 randomID :: IO ContractInstanceId
 randomID = ContractInstanceId <$> UUID.nextRandom
 
+data ContractActivityStatus = Active | Stopped | Done deriving (Eq, Show, Generic, ToJSON, FromJSON, OpenApi.ToSchema)
+
+parseContractActivityStatus :: Text -> Maybe ContractActivityStatus
+parseContractActivityStatus t = case T.toLower t of
+    "active"  -> Just Active
+    "stopped" -> Just Stopped
+    "done"    -> Just Done
+    _         -> Nothing
+
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
     deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
@@ -172,49 +179,3 @@ instance Pretty NotificationError where
                     <+> pretty ep
 
 makeClassyPrisms ''NotificationError
-
--- | Information about transactions that spend or produce an output at
---   an address in a slot range.
-data AddressChangeResponse =
-    AddressChangeResponse
-        { acrAddress   :: Address -- ^ The address
-        , acrSlotRange :: SlotRange -- ^ The slot range
-        , acrTxns      :: [OnChainTx] -- ^ Transactions that were validated in the slot range and spent or produced at least one output at the address.
-        }
-        deriving stock (Eq, Generic, Show)
-        deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty AddressChangeResponse where
-    pretty AddressChangeResponse{acrAddress, acrTxns, acrSlotRange} =
-        hang 2 $ vsep
-            [ "Address:" <+> pretty acrAddress
-            , "Slot range:" <+> pretty acrSlotRange
-            , "Tx IDs:" <+> pretty (eitherTx txId txId <$> acrTxns)
-            ]
-
--- | Request for information about transactions that spend or produce
---   outputs at a specific address in a slot range.
-data AddressChangeRequest =
-    AddressChangeRequest
-        { acreqSlotRangeFrom :: Slot
-        , acreqSlotRangeTo   :: Slot
-        , acreqAddress       :: Address -- ^ The address
-        }
-        deriving stock (Eq, Generic, Show, Ord)
-        deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =
-        hang 2 $ vsep
-            [ "From " <+> pretty acreqSlotRangeFrom <+> "to" <+> pretty acreqSlotRangeTo
-            , "Address:" <+> pretty acreqAddress
-            ]
-
--- | The earliest slot in which we can respond to an 'AddressChangeRequest'.
-targetSlot :: AddressChangeRequest -> Slot
-targetSlot = succ . acreqSlotRangeTo
-
--- | The slot range for this request
-slotRange :: AddressChangeRequest -> SlotRange
-slotRange AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo} =
-    interval acreqSlotRangeFrom acreqSlotRangeTo

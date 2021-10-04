@@ -13,7 +13,7 @@ import Playground.Types (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Transaction.View (extractAmount)
-import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Emulator.Wallet (WalletNumber(..))
 
 all :: TestSuite
 all =
@@ -56,7 +56,7 @@ wallets =
   mapWithIndex
     ( \id value ->
         SimulatorWallet
-          { simulatorWalletWallet: Wallet { getWallet: BigInteger.fromInt id }
+          { simulatorWalletWallet: WalletNumber { getWallet: BigInteger.fromInt id }
           , simulatorWalletBalance: value
           }
     )

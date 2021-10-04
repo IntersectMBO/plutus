@@ -33,7 +33,7 @@ import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (Value)
 import           Playground.Contract
 import           Plutus.Contract
-import qualified PlutusTx             as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude     hiding (Applicative (..))
 
 -- | These are the data script and redeemer types. We are using an integer
@@ -82,7 +82,7 @@ publish = endpoint @"publish" $ \(i, lockedFunds) -> do
 -- | The "redeem" contract endpoint.
 redeem :: AsContractError e => Promise () Schema e ()
 redeem = endpoint @"redeem" $ \myRedeemerValue -> do
-    unspentOutputs <- utxoAt contractAddress
+    unspentOutputs <- utxosAt contractAddress
     let redeemer = MyRedeemer myRedeemerValue
         tx       = collectFromScript unspentOutputs redeemer
     void $ submitTxConstraintsSpending starterInstance unspentOutputs tx

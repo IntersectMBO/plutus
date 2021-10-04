@@ -20,18 +20,19 @@ module Plutus.Trace.Effects.EmulatorControl(
     , freezeContractInstance
     , thawContractInstance
     , chainState
+    , discardWallets
     , handleEmulatorControl
     , getSlotConfig
     ) where
 
-import           Control.Lens                           (at, view)
+import           Control.Lens                           (over, view)
 import           Control.Monad                          (void)
 import           Control.Monad.Freer                    (Eff, Member, type (~>))
 import           Control.Monad.Freer.Coroutine          (Yield)
 import           Control.Monad.Freer.Error              (Error)
-import           Control.Monad.Freer.State              (State, gets)
+import           Control.Monad.Freer.State              (State, gets, modify)
 import           Control.Monad.Freer.TH                 (makeEffect)
-import           Data.Maybe                             (fromMaybe)
+import qualified Data.Map                               as Map
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types            (EmulatorMessage (Freeze), EmulatorThreads)
@@ -39,7 +40,8 @@ import           Plutus.Trace.Scheduler                 (EmSystemCall, MessageCa
                                                          ThreadCall (Thaw), mkSysCall)
 import qualified Wallet.Emulator                        as EM
 import           Wallet.Emulator.Chain                  (ChainState)
-import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentControlEffect, walletControlAction)
+import           Wallet.Emulator.MultiAgent             (EmulatorState, MultiAgentControlEffect, walletControlAction,
+                                                         walletState)
 import           Wallet.Emulator.Wallet                 (SigningProcess, Wallet, WalletState)
 import qualified Wallet.Emulator.Wallet                 as W
 import           Wallet.Types                           (ContractInstanceId)
@@ -69,6 +71,7 @@ data EmulatorControl r where
     ThawContractInstance :: ContractInstanceId -> EmulatorControl ()
     ChainState :: EmulatorControl ChainState
     GetSlotConfig :: EmulatorControl SlotConfig
+    DiscardWallets :: (Wallet -> Bool) -> EmulatorControl ()  -- ^ Discard wallets matching the predicate.
 
 -- | Interpret the 'EmulatorControl' effect in the 'MultiAgentEffect' and
 --   scheduler system calls.
@@ -85,7 +88,7 @@ handleEmulatorControl ::
     ~> Eff effs
 handleEmulatorControl slotCfg = \case
     SetSigningProcess wllt sp -> walletControlAction wllt $ W.setSigningProcess sp
-    AgentState wllt -> gets @EmulatorState (fromMaybe (W.emptyWalletState wllt) . view (EM.walletStates . at wllt))
+    AgentState wllt -> gets @EmulatorState (view (walletState wllt))
     FreezeContractInstance i -> do
         threadId <- getThread i
         -- see note [Freeze and Thaw]
@@ -96,5 +99,6 @@ handleEmulatorControl slotCfg = \case
         void $ mkSysCall @effs2 @EmulatorMessage Normal (Right $ Thaw threadId)
     ChainState -> gets (view EM.chainState)
     GetSlotConfig -> return slotCfg
+    DiscardWallets discard -> modify @EmulatorState $ over EM.walletStates (Map.filterWithKey (\ k _ -> not $ discard k))
 
 makeEffect ''EmulatorControl

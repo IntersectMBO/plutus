@@ -22,7 +22,7 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
-    coDoSimplifierRemoveDeadBindings,
+    coProfile,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -45,6 +45,7 @@ import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.LetMerge        as LetMerge
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
+import qualified PlutusIR.Transform.RecSplit        as RecSplit
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 import qualified PlutusIR.Transform.Unwrap          as Unwrap
@@ -95,7 +96,6 @@ availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
-    , Pass "remove dead bindings" (onOption coDoSimplifierRemoveDeadBindings) DeadCode.removeDeadBindings
     ]
 
 -- | Actual simplifier
@@ -108,7 +108,7 @@ simplify = foldl' (>=>) pure (map applyPass availablePasses)
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ DeadCode.removeDeadBindings >=> simplify'
+simplifyTerm = runIfOpts $ simplify'
     -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -128,7 +128,7 @@ simplifyTerm = runIfOpts $ DeadCode.removeDeadBindings >=> simplify'
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
 floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-floatTerm = runIfOpts $ pure . LetMerge.letMerge . LetFloat.floatTerm
+floatTerm = runIfOpts $ pure . LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -142,7 +142,8 @@ typeCheckTerm t = do
 check :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
 check arg = do
     shouldCheck <- view (ccOpts . coPedantic)
-    if shouldCheck then typeCheckTerm arg else pure ()
+    -- the typechecker requires global uniqueness, so rename here
+    if shouldCheck then typeCheckTerm =<< PLC.rename arg else pure ()
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -157,6 +158,8 @@ compileToReadable =
     >=> (<$ logVerbose "  !!! rename")
     >=> PLC.rename
     >=> through typeCheckTerm
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! floatTerm")
@@ -164,7 +167,7 @@ compileToReadable =
     >=> through check
 
 -- | The 2nd half of the PIR compiler pipeline.
--- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
+-- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
 -- Note: the result *does* have globally unique names.
 compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m (PLCTerm uni fun a)
 compileReadableToPlc =
@@ -184,23 +187,21 @@ compileReadableToPlc =
     >=> through check
     >=> (<$ logVerbose "  !!! compileLets RecTerms")
     >=> Let.compileLets Let.RecTerms
-    -- TODO: add 'check' steps from here on. Can't do this since we seem to generate a wrong type
-    -- somewhere in the recursive binding compilation step
     >=> through check
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
-    >=> (<$ logVerbose "  !!! rename")
-    >=> PLC.rename
+    >=> (<$ logVerbose "  !!! removeDeadBindings")
+    >=> DeadCode.removeDeadBindings
     >=> through check
-    -- NOTE: There was a bug in renamer handling non-rec terms, so we need to
-    -- rename again.
-    -- https://jira.iohk.io/browse/SCP-2156
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets Types")
     >=> Let.compileLets Let.Types
+    >=> through check
     >=> (<$ logVerbose "  !!! compileLets NonRecTerms")
     >=> Let.compileLets Let.NonRecTerms
+    >=> through check
     >=> (<$ logVerbose "  !!! lowerTerm")
     >=> lowerTerm
 

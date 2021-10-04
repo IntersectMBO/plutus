@@ -28,8 +28,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , waitForUtxoSpent
     , addUtxoProducedReq
     , waitForUtxoProduced
-    , addAddress
-    , addTransaction
     , setActivity
     , setObservableState
     , openEndpoints
@@ -40,42 +38,42 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , InstancesState
     , emptyInstancesState
     , insertInstance
-    , watchedAddresses
-    , watchedTransactions
     , callEndpointOnInstance
     , callEndpointOnInstanceTimeout
     , observableContractState
     , instanceState
     , instanceIDs
-    , runningInstances
+    , instancesWithStatuses
     , instancesClientEnv
     , InstanceClientEnv(..)
     ) where
 
-import           Control.Applicative              (Alternative (..))
-import           Control.Concurrent.STM           (STM, TMVar, TVar)
-import qualified Control.Concurrent.STM           as STM
-import           Control.Lens                     (view)
-import           Control.Monad                    (guard, (<=<))
-import           Data.Aeson                       (Value)
-import           Data.Default                     (def)
-import           Data.Foldable                    (fold)
-import           Data.List.NonEmpty               (NonEmpty)
-import           Data.Map                         (Map)
-import qualified Data.Map                         as Map
-import           Data.Set                         (Set)
-import qualified Data.Set                         as Set
-import           Ledger                           (Address, OnChainTx, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
-import           Ledger.AddressMap                (AddressMap)
-import qualified Ledger.AddressMap                as AM
-import           Ledger.Time                      (POSIXTime (..))
-import qualified Ledger.TimeSlot                  as TimeSlot
-import qualified Ledger.Value                     as Value
-import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxStatus (..))
-import           Plutus.Contract.Resumable        (IterationID, Request (..), RequestID)
-import           Wallet.Emulator.ChainIndex.Index (ChainIndex)
-import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue (..),
-                                                   NotificationError (..))
+import           Control.Applicative         (Alternative (..))
+import           Control.Concurrent.STM      (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM      as STM
+import           Control.Lens                (view)
+import           Control.Monad               (guard, (<=<))
+import           Data.Aeson                  (Value)
+import           Data.Default                (def)
+import           Data.Foldable               (fold)
+import           Data.List.NonEmpty          (NonEmpty)
+import           Data.Map                    (Map)
+import qualified Data.Map                    as Map
+import           Data.Set                    (Set)
+import           Ledger                      (Address, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
+import           Ledger.AddressMap           (AddressMap)
+import qualified Ledger.AddressMap           as AM
+import           Ledger.Time                 (POSIXTime (..))
+import qualified Ledger.TimeSlot             as TimeSlot
+import qualified Ledger.Value                as Value
+import           Plutus.ChainIndex           (BlockNumber (..), ChainIndexTx, TxIdState (..), TxStatus (..),
+                                              transactionStatus)
+import           Plutus.ChainIndex.UtxoState (UtxoIndex, UtxoState (..), utxoState)
+import           Plutus.Contract.Effects     (ActiveEndpoint (..))
+import           Plutus.Contract.Resumable   (IterationID, Request (..), RequestID)
+import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue (..),
+                                              NotificationError (..))
+import qualified Wallet.Types                as Wallet (ContractActivityStatus (..))
 
 {- Note [Contract instance thread model]
 
@@ -139,23 +137,23 @@ data OpenEndpoint =
 data OpenTxOutSpentRequest =
     OpenTxOutSpentRequest
         { osrOutRef     :: TxOutRef -- ^ The 'TxOutRef' that the instance is watching
-        , osrSpendingTx :: TMVar OnChainTx -- ^ A place to write the spending transaction to
+        , osrSpendingTx :: TMVar ChainIndexTx -- ^ A place to write the spending transaction to
         }
 
 data OpenTxOutProducedRequest =
     OpenTxOutProducedRequest
         { otxAddress       :: Address -- ^ 'Address' that the contract instance is watching (TODO: Should be ViewAddress -- SCP-2628)
-        , otxProducingTxns :: TMVar (NonEmpty OnChainTx) -- ^ A place to write the producing transactions to
+        , otxProducingTxns :: TMVar (NonEmpty ChainIndexTx) -- ^ A place to write the producing transactions to
         }
 
 -- | Data about the blockchain that contract instances
 --   may be interested in.
 data BlockchainEnv =
     BlockchainEnv
-        { beCurrentSlot :: TVar Slot -- ^ Current slot
-        , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
-        , beTxIndex     :: TVar ChainIndex -- ^ Local chain index (not persisted). TODO: Should not be part of 'BlockchainEnv'
-        , beTxChanges   :: TVar (Map TxId (TVar TxStatus)) -- ^ Map of transaction IDs to statuses
+        { beCurrentSlot  :: TVar Slot -- ^ Current slot
+        , beAddressMap   :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
+        , beTxChanges    :: TVar (UtxoIndex TxIdState) -- ^ Map holding metadata which determines the status of transactions.
+        , beCurrentBlock :: TVar BlockNumber -- ^ Current block
         }
 
 -- | Initialise an empty 'BlockchainEnv' value
@@ -165,7 +163,7 @@ emptyBlockchainEnv =
         <$> STM.newTVar 0
         <*> STM.newTVar mempty
         <*> STM.newTVar mempty
-        <*> STM.newTVar mempty
+        <*> STM.newTVar (BlockNumber 0)
 
 -- | Wait until the current slot is greater than or equal to the
 --   target slot, then return the current slot.
@@ -202,8 +200,6 @@ data Activity =
 data InstanceState =
     InstanceState
         { issEndpoints       :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
-        , issAddresses       :: TVar (Set Address) -- ^ Addresses that the contract wants to watch -- FIXME: Delete?
-        , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
         , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
         , issStop            :: TMVar () -- ^ Stop the instance if a value is written into the TMVar.
@@ -216,8 +212,6 @@ emptyInstanceState :: STM InstanceState
 emptyInstanceState =
     InstanceState
         <$> STM.newTVar mempty
-        <*> STM.newTVar mempty
-        <*> STM.newTVar mempty
         <*> STM.newTVar Active
         <*> STM.newTVar Nothing
         <*> STM.newEmptyTMVar
@@ -252,15 +246,6 @@ instanceClientEnv InstanceState{issTxOutRefs, issAddressRefs} =
     <$> (Map.fromList . fmap ((\r@OpenTxOutSpentRequest{osrOutRef} -> (osrOutRef, [r])) . snd) . Map.toList <$> STM.readTVar issTxOutRefs)
     <*> (Map.fromList . fmap ((\r@OpenTxOutProducedRequest{otxAddress} -> (otxAddress, [r])) . snd) . Map.toList  <$> STM.readTVar issAddressRefs)
 
--- | Add an address to the set of addresses that the instance is watching
-addAddress :: Address -> InstanceState -> STM ()
-addAddress addr InstanceState{issAddresses} = STM.modifyTVar issAddresses (Set.insert addr)
-
--- | Add a transaction hash to the set of transactions that the instance is
---   interested in
-addTransaction :: TxId -> InstanceState -> STM ()
-addTransaction txid InstanceState{issTransactions} = STM.modifyTVar issTransactions (Set.insert txid)
-
 -- | Set the 'Activity' of the instance
 setActivity :: Activity -> InstanceState -> STM ()
 setActivity a InstanceState{issStatus} = STM.writeTVar issStatus a
@@ -285,7 +270,7 @@ addUtxoSpentReq Request{rqID, itID, rqRequest} InstanceState{issTxOutRefs} = do
     request <- OpenTxOutSpentRequest rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issTxOutRefs (Map.insert (rqID, itID) request)
 
-waitForUtxoSpent :: Request TxOutRef -> InstanceState -> STM OnChainTx
+waitForUtxoSpent :: Request TxOutRef -> InstanceState -> STM ChainIndexTx
 waitForUtxoSpent Request{rqID, itID} InstanceState{issTxOutRefs} = do
     theMap <- STM.readTVar issTxOutRefs
     case Map.lookup (rqID, itID) theMap of
@@ -299,7 +284,7 @@ addUtxoProducedReq Request{rqID, itID, rqRequest} InstanceState{issAddressRefs} 
     request <- OpenTxOutProducedRequest rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issAddressRefs (Map.insert (rqID, itID) request)
 
-waitForUtxoProduced :: Request Address -> InstanceState -> STM (NonEmpty OnChainTx)
+waitForUtxoProduced :: Request Address -> InstanceState -> STM (NonEmpty ChainIndexTx)
 waitForUtxoProduced Request{rqID, itID} InstanceState{issAddressRefs} = do
     theMap <- STM.readTVar issAddressRefs
     case Map.lookup (rqID, itID) theMap of
@@ -401,30 +386,18 @@ finalResult instanceId m = do
 insertInstance :: ContractInstanceId -> InstanceState -> InstancesState -> STM ()
 insertInstance instanceID state (InstancesState m) = STM.modifyTVar m (Map.insert instanceID state)
 
--- | The addresses that are currently watched by the contract instances
-watchedAddresses :: InstancesState -> STM (Set Address)
-watchedAddresses (InstancesState m) = do
-    mp <- STM.readTVar m
-    allSets <- traverse (STM.readTVar . issAddresses) (snd <$> Map.toList mp)
-    pure $ fold allSets
-
--- | The transactions that are currently watched by the contract instances
-watchedTransactions :: InstancesState -> STM (Set TxId)
-watchedTransactions (InstancesState m) = do
-    mp <- STM.readTVar m
-    allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
-    pure $ fold allSets
-
 -- | Wait for the status of a transaction to change.
 waitForTxStatusChange :: TxStatus -> TxId -> BlockchainEnv -> STM TxStatus
-waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges} = do
-    idx <- STM.readTVar beTxChanges
-    case Map.lookup tx idx of
-        Nothing -> empty -- TODO: should be an error?
-        Just tv' -> do
-            newStatus <- STM.readTVar tv'
-            guard $ oldStatus /= newStatus
-            pure newStatus
+waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges, beCurrentBlock} = do
+    txIdState   <- _usTxUtxoData . utxoState <$> STM.readTVar beTxChanges
+    blockNumber <- STM.readTVar beCurrentBlock
+    let newStatus = transactionStatus blockNumber txIdState tx
+    -- Succeed only if we _found_ a status and it was different; if
+    -- the status hasn't changed, _or_ there was an error computing
+    -- the status, keep retrying.
+    case newStatus of
+      Right s | s /= oldStatus -> pure s
+      _                        -> empty
 
 -- | The value at an address
 valueAt :: Address -> BlockchainEnv -> STM Value.Value
@@ -437,14 +410,17 @@ valueAt addr BlockchainEnv{beAddressMap} = do
 currentSlot :: BlockchainEnv -> STM Slot
 currentSlot BlockchainEnv{beCurrentSlot} = STM.readTVar beCurrentSlot
 
--- | The IDs of contract instances that are currently running
-runningInstances :: InstancesState -> STM (Set ContractInstanceId)
-runningInstances (InstancesState m) = do
-    let flt :: InstanceState -> STM (Maybe InstanceState)
-        flt s@InstanceState{issStatus} = do
+-- | The IDs of contract instances with their statuses
+instancesWithStatuses :: InstancesState -> STM (Map ContractInstanceId Wallet.ContractActivityStatus)
+instancesWithStatuses (InstancesState m) = do
+    let parseStatus :: Activity -> Wallet.ContractActivityStatus
+        parseStatus = \case
+            Active  -> Wallet.Active
+            Stopped -> Wallet.Stopped
+            Done _  -> Wallet.Done
+    let flt :: InstanceState -> STM Wallet.ContractActivityStatus
+        flt InstanceState{issStatus} = do
             status <- STM.readTVar issStatus
-            case status of
-                Active -> pure (Just s)
-                _      -> pure Nothing
+            return $ parseStatus status
     mp <- STM.readTVar m
-    Map.keysSet . Map.mapMaybe id <$> traverse flt mp
+    traverse flt mp

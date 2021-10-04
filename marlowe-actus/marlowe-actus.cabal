@@ -33,7 +33,6 @@ library
     base -any,
     bytestring,
     containers -any,
-    mtl,
     newtype-generics,
     template-haskell -any,
     plutus-tx -any,
@@ -42,10 +41,10 @@ library
     text,
     vector,
     marlowe -any,
+    mtl -any,
     time -any,
     sort -any,
-    validation -any,
-    QuickCheck
+    validation -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -54,8 +53,8 @@ library
   exposed-modules:
     Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.Generator
-    Language.Marlowe.ACTUS.QCGenerator
     Language.Marlowe.ACTUS.Analysis
+    Language.Marlowe.ACTUS.Ops
     Language.Marlowe.ACTUS.Definitions.BusinessEvents
     Language.Marlowe.ACTUS.Definitions.ContractTerms
     Language.Marlowe.ACTUS.Definitions.ContractState
@@ -69,16 +68,12 @@ library
     Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
     Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-    Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-    Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
     Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
     Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
+    Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
-    Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
-  other-modules:
-    Language.Marlowe.ACTUS.Ops
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wunused-packages
     -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -105,12 +100,10 @@ executable marlowe-shiny
       Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-      Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+      Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction
-      Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
       Language.Marlowe.ACTUS.Ops
     hs-source-dirs: app src
     default-language: Haskell2010
@@ -162,12 +155,10 @@ executable marlowe-actus-test-kit
       Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
       Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
       Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-      Language.Marlowe.ACTUS.Model.INIT.StateInitialization
-      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+      Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity
       Language.Marlowe.ACTUS.Model.Utility.DateShift
       Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
       Language.Marlowe.ACTUS.Model.Utility.YearFraction
-      Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
       Language.Marlowe.ACTUS.Ops
     hs-source-dirs: testkit src
     default-language: Haskell2010
@@ -202,8 +193,8 @@ test-suite marlowe-actus-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-        Spec.Marlowe.Util
-        Spec.Marlowe.Actus
+        Spec.Marlowe.ACTUS.Examples
+        Spec.Marlowe.ACTUS.TestFramework
     build-depends:
         vector -any,
         unordered-containers -any,

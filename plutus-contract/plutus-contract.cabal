@@ -42,8 +42,6 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
-        Plutus.Contract.CardanoAPI
-        Plutus.Contract.CardanoAPITemp
         Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
@@ -62,11 +60,10 @@ library
         Plutus.Contract.Util
         Plutus.Contract.Wallet
         Plutus.Contract.Typed.Tx
+        Plutus.Contract.Secrets
         Wallet.Emulator
         Wallet.Emulator.Types
         Wallet.Emulator.Chain
-        Wallet.Emulator.ChainIndex
-        Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
@@ -104,17 +101,11 @@ library
         plutus-ledger -any,
         plutus-ledger-api -any,
         plutus-tx -any,
-        freer-extras -any,
+        freer-extras -any
     build-depends:
         cardano-api -any,
+        cardano-crypto -any,
         cardano-ledger-core -any,
-    -- Temporary for Plutus.Contract.CardanoAPITemp
-    build-depends:
-        cardano-ledger-alonzo -any,
-        cardano-ledger-shelley-ma -any,
-        ouroboros-consensus-shelley -any,
-        shelley-spec-ledger -any,
-        strict-containers -any,
     build-depends:
         aeson >= 1.5.2,
         aeson-pretty -any,
@@ -155,6 +146,7 @@ library
         uuid -any,
         IntervalMap -any,
         QuickCheck -any,
+        openapi3 -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -184,6 +176,7 @@ test-suite plutus-contract-test
         Spec.Rows
         Spec.State
         Spec.ThreadToken
+        Spec.Secrets
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -194,6 +187,7 @@ test-suite plutus-contract-test
         tasty -any,
         tasty-golden -any,
         tasty-hunit -any,
+        tasty-quickcheck -any,
         tasty-hedgehog -any,
         text -any,
         mtl -any,

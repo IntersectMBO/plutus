@@ -13,6 +13,7 @@ module Plutus.PAB.Webserver.Types where
 import           Data.Aeson                              (FromJSON, ToJSON)
 import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
+import qualified Data.OpenApi.Schema                     as OpenApi
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           GHC.Generics                            (Generic)
 import           Ledger                                  (Tx, TxId)
@@ -25,7 +26,7 @@ import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedRespon
 import           Schema                                  (FormSchema)
 import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Rollup.Types                     (AnnotatedTx)
-import           Wallet.Types                            (ContractInstanceId)
+import           Wallet.Types                            (ContractActivityStatus, ContractInstanceId)
 
 data ContractReport t =
     ContractReport
@@ -33,7 +34,7 @@ data ContractReport t =
         , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse PABReq)]
         }
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 data ChainReport =
     ChainReport
@@ -42,7 +43,7 @@ data ChainReport =
         , annotatedBlockchain :: [[AnnotatedTx]]
         }
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, OpenApi.ToSchema)
 
 emptyChainReport :: ChainReport
 emptyChainReport = ChainReport mempty mempty mempty
@@ -53,7 +54,7 @@ data FullReport t =
         , chainReport    :: ChainReport
         }
     deriving stock (Generic, Eq, Show)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
 
 data ContractSignatureResponse t =
     ContractSignatureResponse
@@ -63,14 +64,18 @@ data ContractSignatureResponse t =
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
 
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractSignatureResponse t)
+
 -- | Data needed to start a new instance of a contract.
 data ContractActivationArgs t =
     ContractActivationArgs
         { caID     :: t -- ^ ID of the contract
-        , caWallet :: Wallet -- ^ Wallet that should be used for this instance
+        , caWallet :: Maybe Wallet -- ^ Wallet that should be used for this instance, `knownWallet 1` is used in the Nothing case.
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractActivationArgs t)
 
 instance Pretty t => Pretty (ContractActivationArgs t) where
     pretty ContractActivationArgs{caID, caWallet} =
@@ -84,9 +89,12 @@ data ContractInstanceClientState t =
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
         , cicWallet       :: Wallet
         , cicDefinition   :: t
+        , cicStatus       :: ContractActivityStatus
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
+
+deriving instance OpenApi.ToSchema t => OpenApi.ToSchema (ContractInstanceClientState t)
 
 -- | Status updates for contract instances streamed to client
 data InstanceStatusToClient

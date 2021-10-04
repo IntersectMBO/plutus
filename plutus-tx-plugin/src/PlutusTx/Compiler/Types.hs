@@ -31,8 +31,10 @@ import qualified Language.Haskell.TH.Syntax    as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 
--- | Compilation options. Empty currently.
-data CompileOptions = CompileOptions {}
+-- | Compilation options.
+newtype CompileOptions = CompileOptions {
+    coProfile :: ProfileOpts
+}
 
 data CompileContext uni fun = CompileContext {
     ccOpts            :: CompileOptions,
@@ -42,6 +44,12 @@ data CompileContext uni fun = CompileContext {
     ccScopes          :: ScopeStack uni fun,
     ccBlackholed      :: Set.Set GHC.Name
     }
+
+-- | Profiling options. @All@ profiles everything. @None@ is the default.
+data ProfileOpts =
+    All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
+    | None
+    deriving (Eq)
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
 -- will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use

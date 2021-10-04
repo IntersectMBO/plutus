@@ -13,10 +13,10 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
-{-# LANGUAGE TypeOperators         #-}
 module Plutus.PAB.App(
     App,
     runApp,
@@ -30,14 +30,13 @@ module Plutus.PAB.App(
 
 import           Cardano.Api.NetworkId.Extra                    (NetworkIdWrapper (..))
 import           Cardano.BM.Trace                               (Trace, logDebug)
-import           Cardano.ChainIndex.Client                      (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
 import qualified Cardano.Node.Client                            as NodeClient
 import           Cardano.Node.Types                             (MockServerConfig (..))
 import qualified Cardano.Protocol.Socket.Mock.Client            as MockClient
-import qualified Cardano.Wallet.Client                          as WalletClient
-import qualified Cardano.Wallet.Types                           as Wallet
+import qualified Cardano.Wallet.Mock.Client                     as WalletClient
+import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
@@ -55,6 +54,7 @@ import qualified Database.SQLite.Simple                         as Sqlite
 import           Network.HTTP.Client                            (managerModifyRequest, newManager,
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
+import qualified Plutus.ChainIndex.Client                       as ChainIndex
 import           Plutus.PAB.Core                                (EffectHandlers (..), PABAction)
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
@@ -157,7 +157,7 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
             . flip handleError (throwError . ChainIndexError)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . reinterpret (Core.handleMappedReader @(AppEnv a) @ClientEnv chainIndexEnv)
-            . reinterpret2 (handleChainIndexClient @IO)
+            . reinterpret2 (ChainIndex.handleChainIndexClient @IO)
 
             -- handle 'WalletEffect'
             . flip handleError (throwError . WalletClientError)

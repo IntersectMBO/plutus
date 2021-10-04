@@ -45,6 +45,7 @@ import           Plutus.PAB.Types                    (Config (..))
 import           TxInject.RandomTx                   (generateTx)
 import           Wallet.Emulator                     (chainState, txPool, walletPubKey)
 import           Wallet.Emulator.MultiAgent          (emulatorStateInitialDist)
+import           Wallet.Emulator.Wallet              (fromWalletNumber)
 
 {- | The `Stats` are used by both the producer and consumer to track the number of
      generated transactions (used to verify if we respect the requested TPS rate)
@@ -71,7 +72,7 @@ data AppEnv = AppEnv
 initialUtxoIndex :: Config -> UtxoIndex
 initialUtxoIndex config =
   let dist = Map.fromList $
-               zip (config & nodeServerConfig & mscInitialTxWallets)
+               zip (config & nodeServerConfig & mscInitialTxWallets & fmap fromWalletNumber)
                    (repeat (Ada.adaValueOf 1000_000_000))
       initialTxs =
         view (chainState . txPool) $

@@ -7,7 +7,7 @@
       x
       (con integer)
       (let
-        (rec)
+        (nonrec)
         (termbind
           (strict) (vardecl nonvalue (con integer)) [ value (con integer 3) ]
         )

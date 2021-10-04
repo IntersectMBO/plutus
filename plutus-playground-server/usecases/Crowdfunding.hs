@@ -153,7 +153,7 @@ theCampaign :: POSIXTime -> Campaign
 theCampaign startTime = Campaign
     { campaignDeadline = startTime + 40000
     , campaignCollectionDeadline = startTime + 60000
-    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
+    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.knownWallet 1)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
@@ -194,7 +194,7 @@ scheduleCollection cmp =
         let inst = typedValidator cmp
 
         _ <- awaitTime $ campaignDeadline cmp
-        unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
+        unspentOutputs <- utxosAt (Scripts.validatorAddress inst)
 
         let tx = Typed.collectFromScript unspentOutputs Collect
                 <> Constraints.mustValidateIn (collectionRange cmp)

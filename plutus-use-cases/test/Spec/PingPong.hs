@@ -31,10 +31,6 @@ twoParties =
         p2 = PingPong.runStop
     in awaitPromise (p1 `select` fmap (const Nothing) p2)
 
-w1, w2 :: Wallet
-w1 = Wallet 1
-w2 = Wallet 2
-
 tests :: TestTree
 tests = testGroup "pingpong"
     [ checkPredicate "activate endpoints"

@@ -143,8 +143,8 @@ bindingDeps b = case b of
         -- All the datatype bindings depend on each other since they can't be used separately. Consider
         -- the identity function on a datatype type - it only uses the type variable, but the whole definition
         -- will therefore be kept, and so we must consider any uses in e.g. the constructors as live.
-        let tyus = fmap (view PLC.theUnique) $ tyVarDeclName d : fmap tyVarDeclName tvs
-        let tus = fmap (view PLC.theUnique) $ destr : fmap varDeclName constrs
+        let tyus = fmap (view PLC.theUnique) $ _tyVarDeclName d : fmap _tyVarDeclName tvs
+        let tus = fmap (view PLC.theUnique) $ destr : fmap _varDeclName constrs
         let localDeps = G.clique (fmap Variable $ tyus ++ tus)
         pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
 

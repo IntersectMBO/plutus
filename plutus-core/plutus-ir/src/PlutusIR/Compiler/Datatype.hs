@@ -65,7 +65,7 @@ replaceFunTyTarget newTarget t = case t of
 -- | Given the type of a constructor, get the type of the "case" type with the given result type.
 -- @constructorCaseType R (A->Maybe A) = (A -> R)@
 constructorCaseType :: Type tyname uni a -> VarDecl tyname name uni fun a -> Type tyname uni a
-constructorCaseType resultType = replaceFunTyTarget resultType . varDeclType
+constructorCaseType resultType = replaceFunTyTarget resultType . _varDeclType
 
 -- | Get recursively all the domains and codomains of a type.
 -- @funTySections (A->B->C) = [A, B, C]@
@@ -90,14 +90,14 @@ funResultType = NE.last . funTySections
 -- | Given the type of a constructor, get its argument types.
 -- @constructorArgTypes (A->Maybe A) = [A]
 constructorArgTypes :: VarDecl tyname name uni fun a -> [Type tyname uni a]
-constructorArgTypes = funTyArgs . varDeclType
+constructorArgTypes = funTyArgs . _varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
 unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni fun a -> Type tyname uni a -> Type tyname uni a
-unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
+unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni fun a -> m TyName
-resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
+resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ _tyVarDeclName tn)
 
 -- Datatypes
 
@@ -290,7 +290,7 @@ mkDatatypeType r pf (Datatype ann tn tvs _ _) = case r of
     -- We are reusing the same type name for the fixpoint variable. This is fine
     -- so long as we do renaming later, since we only reuse the name inside an inner binder
     Rec    -> do
-        RecursiveType <$> (liftQuote $ Types.makeRecursiveType @uni @(Provenance a) ann (tyVarDeclName tn) tvs pf)
+        RecursiveType <$> (liftQuote $ Types.makeRecursiveType @uni @(Provenance a) ann (_tyVarDeclName tn) tvs pf)
 
 -- | The type of a datatype-value is of the form `[TyCon tyarg1 tyarg2 ... tyargn]`
 mkDatatypeValueType :: a -> Datatype TyName Name uni fun a -> Type TyName uni a
@@ -308,7 +308,7 @@ mkConstructorType :: Datatype TyName Name uni fun (Provenance a) -> VarDecl TyNa
 -- we don't need to do anything to the declared type
 -- see note [Abstract data types]
 -- FIXME: normalize constructors also here
-mkConstructorType (Datatype _ _ tvs _ _) constr = PIR.mkIterTyForall  tvs $ varDeclType constr
+mkConstructorType (Datatype _ _ tvs _ _) constr = PIR.mkIterTyForall  tvs $ _varDeclType constr
 
 -- See note [Scott encoding of datatypes]
 -- | Make a constructor of a 'Datatype' with the given pattern functor. The constructor argument mostly serves to identify the constructor
@@ -443,7 +443,7 @@ compileDatatypeDefs r d@(Datatype ann tn _ destr constrs) = do
 
     constrDefs <- for (zip constrs [0..]) $ \(c, i) -> do
         let constrTy = mkConstructorType d c
-        PIR.Def (VarDecl ann (varDeclName c) constrTy) <$> mkConstructor (PIR.defVal concreteTyDef) d i
+        PIR.Def (VarDecl ann (_varDeclName c) constrTy) <$> mkConstructor (PIR.defVal concreteTyDef) d i
 
     destrDef <- do
         let destTy = mkDestructorTy ann pf d

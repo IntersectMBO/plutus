@@ -53,11 +53,13 @@
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+          (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
           "Plutus/Contracts"
           "Plutus/Contracts/Auction"
+          "Plutus/Contracts/SealedBidAuction"
           "Plutus/Contracts/TokenAccount"
           "Plutus/Contracts/Crowdfunding"
           "Plutus/Contracts/Currency"
@@ -95,6 +97,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
@@ -120,6 +123,7 @@
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
@@ -165,6 +169,7 @@
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
@@ -185,6 +190,7 @@
           buildable = true;
           modules = [
             "Spec/Auction"
+            "Spec/SealedBidAuction"
             "Spec/Crowdfunding"
             "Spec/Currency"
             "Spec/ErrorHandling"

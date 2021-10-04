@@ -5,58 +5,48 @@
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
 
 import           Data.Aeson.Types (ToJSON)
-import           Data.Map
-import           Data.Time
 import           GHC.Generics     (Generic)
+import           Language.Marlowe (Observation, Value)
 
 {-| ACTUS event types
     https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-event.json
 -}
 data EventType =
-      AD   -- Monitoring
-    | IED  -- Initial Exchange
-    | PR   -- Principal Redemption
-    | PI   -- Principal Increase
-    | PRF  -- Principal Payment Amount Fixing
-    | PY   -- Penalty Payment
-    | FP   -- Fee Payment
-    | PRD  -- Purchase
-    | TD   -- Termination
-    | IP   -- Interest Payment
-    | IPCI -- Interest Capitalization
-    | IPCB -- Interest Calculation Base Fixing
-    | RR   -- Rate Reset Fixing with Unknown Rate
-    | PP   -- Principal Prepayment (unscheduled event)
-    | CE   -- Credit Event
-    | MD   -- Maturity
-    | RRF  -- Rate Reset Fixing with Known Rate
-    | SC   -- Scaling Index Fixing
-    | STD  -- Settlement
-    | DV   -- Dividend Payment
-    | XD   -- Exercise
-    | MR   -- Margin Call
-    | PD   -- Principal Drawing
-    deriving (Eq, Show, Read, Ord)
+      IED  -- ^ Initial Exchange
+    | FP   -- ^ Fee Payment
+    | PR   -- ^ Principal Redemption
+    | PD   -- ^ Principal Drawing
+    | PY   -- ^ Penalty Payment
+    | PP   -- ^ Principal Prepayment (unscheduled event)
+    | IP   -- ^ Interest Payment
+    | IPCI -- ^ Interest Capitalization
+    | CE   -- ^ Credit Event
+    | RRF  -- ^ Rate Reset Fixing with Known Rate
+    | RR   -- ^ Rate Reset Fixing with Unknown Rate
+    | PRF  -- ^ Principal Payment Amount Fixing
+    | DV   -- ^ Dividend Payment
+    | PRD  -- ^ Purchase
+    | MR   -- ^ Margin Call
+    | TD   -- ^ Termination
+    | SC   -- ^ Scaling Index Fixing
+    | IPCB -- ^ Interest Calculation Base Fixing
+    | MD   -- ^ Maturity
+    | XD   -- ^ Exercise
+    | STD  -- ^ Settlement
+    | PI   -- ^ Principal Increase
+    | AD   -- ^ Monitoring
+    deriving (Eq, Show, Read, Ord, Enum)
 
-data RiskFactors = RiskFactors
-    { o_rf_CURS :: Double
-    , o_rf_RRMO :: Double
-    , o_rf_SCMO :: Double
-    , pp_payoff :: Double
+{-| Risk factor observer
+-}
+data RiskFactorsPoly a = RiskFactorsPoly
+    { o_rf_CURS :: a
+    , o_rf_RRMO :: a
+    , o_rf_SCMO :: a
+    , pp_payoff :: a
     }
     deriving stock (Generic)
     deriving (Show, ToJSON)
 
-type DataObserved = Map String ValuesObserved
-
-data ValuesObserved = ValuesObserved
-  { identifier :: String
-  , values     :: [ValueObserved]
-  }
-  deriving (Show)
-
-data ValueObserved = ValueObserved
-  { timestamp :: Day
-  , value     :: Double
-  }
-  deriving (Show)
+type RiskFactors = RiskFactorsPoly Double
+type RiskFactorsMarlowe = RiskFactorsPoly (Value Observation)

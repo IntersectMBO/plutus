@@ -29,6 +29,7 @@ import qualified Data.ByteString.Char8               as B
 import qualified Data.ByteString.Lazy.Char8          as LB
 import           Data.Map                            (Map)
 import qualified Data.Map                            as Map
+import           Data.Maybe                          (fromMaybe)
 import           Data.Text                           (Text)
 import qualified Data.Text                           as Text
 import           Data.Text.Encoding                  (encodeUtf8Builder)
@@ -43,7 +44,8 @@ import           Plutus.PAB.Monitoring.Monitoring    (PABMultiAgentMsg)
 import           Plutus.PAB.Types                    (PABError (..))
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet              (Wallet (..))
-import           Wallet.Types                        (ContractInstanceId (..))
+import qualified Wallet.Emulator.Wallet              as Wallet
+import           Wallet.Types                        (ContractActivityStatus (..), ContractInstanceId (..))
 
 -- | Convert from the internal representation of a contract into the database
 -- representation.
@@ -56,7 +58,7 @@ mkRow ContractActivationArgs{caID, caWallet} instanceId
   = ContractInstance
       (uuidStr instanceId)
       (Text.decodeUtf8 $ B.concat $ LB.toChunks $ encode caID)
-      (Text.pack . show . getWallet $ caWallet)
+      (Wallet.toBase16 . getWalletId . fromMaybe (Wallet.knownWallet 1) $ caWallet)
       Nothing -- No state, initially
       True    -- 'Active' immediately
 
@@ -80,9 +82,9 @@ mkContracts xs =
                       . encodeUtf8Builder
                       . _contractInstanceContractId
                       $ ci
-          let wallet = Wallet . read . Text.unpack . _contractInstanceWallet $ ci
+          wallet <- fmap Wallet . either (const Nothing) Just . Wallet.fromBase16 . _contractInstanceWallet $ ci
           return ( ciId
-                 , ContractActivationArgs contractId wallet
+                 , ContractActivationArgs contractId (Just wallet)
                  )
 
 -- | Our database doesn't store UUIDs natively, so we need to convert them
@@ -151,11 +153,13 @@ handleContractStore = \case
           (\ci -> ci ^. contractInstanceActive <-. val_ False)
           (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
 
-  GetActiveContracts ->
+  GetContracts mStatus ->
     fmap mkContracts
       $ selectList
       $ select
       $ do
           ci <- all_ (_contractInstances db)
-          guard_ ( ci ^. contractInstanceActive )
+          case mStatus of
+            Just s -> guard_ ( ci ^. contractInstanceActive ==. val_ (s == Active) )
+            _      -> pure ()
           pure ci

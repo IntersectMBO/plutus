@@ -69,7 +69,7 @@ module Plutus.PAB.Simulator(
     , waitForValidatedTxCount
     ) where
 
-import qualified Cardano.Wallet.Mock                            as MockWallet
+import qualified Cardano.Wallet.Mock.Handlers                   as MockWallet
 import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
@@ -79,7 +79,7 @@ import           Control.Monad                                  (forM_, forever,
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Error                      (Error, handleError, throwError)
+import           Control.Monad.Freer.Error                      (Error, handleError, runError, throwError)
 import qualified Control.Monad.Freer.Extras                     as Modify
 import           Control.Monad.Freer.Extras.Log                 (LogLevel (Info), LogMessage, LogMsg (..),
                                                                  handleLogWriter, logInfo, logLevel, mapLog)
@@ -102,12 +102,16 @@ import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
                                                                  eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
-import           Ledger.Crypto                                  (PubKey, pubKeyHash)
+import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.TimeSlot                                (SlotConfig)
 import           Ledger.Value                                   (Value, flattenValue)
-import           Plutus.Contract.Effects                        (TxStatus)
+import           Plutus.ChainIndex.Emulator                     (ChainIndexControlEffect, ChainIndexEmulatorState,
+                                                                 ChainIndexError, ChainIndexLog,
+                                                                 ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
+                                                                 TxStatus, getTip)
+import qualified Plutus.ChainIndex.Emulator                     as ChainIndex
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
@@ -120,20 +124,17 @@ import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError, WalletNotFound))
 import           Plutus.PAB.Webserver.Types                     (ContractActivationArgs (..))
+import           Plutus.Trace.Emulator.System                   (appendNewTipBlock)
 import           Plutus.V1.Ledger.Slot                          (Slot)
 import qualified Wallet.API                                     as WAPI
-import           Wallet.Effects                                 (ChainIndexEffect (..), NodeClientEffect (..),
-                                                                 WalletEffect)
-import qualified Wallet.Effects                                 as WalletEffects
+import           Wallet.Effects                                 (NodeClientEffect (..), WalletEffect)
 import qualified Wallet.Emulator                                as Emulator
 import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState (..))
 import qualified Wallet.Emulator.Chain                          as Chain
-import qualified Wallet.Emulator.ChainIndex                     as ChainIndex
 import           Wallet.Emulator.LogMessages                    (TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
-import           Wallet.Emulator.NodeClient                     (ChainClientNotification (..))
 import qualified Wallet.Emulator.Stream                         as Emulator
-import           Wallet.Emulator.Wallet                         (Wallet (..))
+import           Wallet.Emulator.Wallet                         (Wallet (..), WalletId (..), knownWallet, knownWallets)
 import qualified Wallet.Emulator.Wallet                         as Wallet
 import           Wallet.Types                                   (ContractInstanceId, NotificationError)
 
@@ -155,18 +156,19 @@ data AgentState t =
 makeLenses ''AgentState
 
 initialAgentState :: forall t. Wallet -> AgentState t
-initialAgentState wallet =
+initialAgentState (Wallet (MockWallet privKey)) =
     AgentState
-        { _walletState   = Wallet.emptyWalletState wallet
+        { _walletState   = Wallet.emptyWalletState privKey
         , _submittedFees = mempty
         }
+initialAgentState (Wallet (XPubWallet _)) = error "Only mock wallets supported in the simulator"
 
 data SimulatorState t =
     SimulatorState
         { _logMessages :: TQueue (LogMessage (PABMultiAgentMsg t))
         , _chainState  :: TVar ChainState
         , _agentStates :: TVar (Map Wallet (AgentState t))
-        , _chainIndex  :: TVar ChainIndex.ChainIndexState
+        , _chainIndex  :: TVar ChainIndexEmulatorState
         , _instances   :: TVar (Map ContractInstanceId (SimulatorContractInstanceState t))
         }
 
@@ -174,10 +176,9 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
-    let wallets = Wallet <$> [1..10]
-        initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) wallets
+    let initialDistribution = Map.fromList $ fmap (, Ada.adaValueOf 100_000) knownWallets
         Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
-        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) wallets
+        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) knownWallets
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -198,7 +199,7 @@ type SimulatorContractHandler t =
 
 type SimulatorEffectHandlers t = EffectHandlers t (SimulatorState t)
 
--- | Build 'EffectHandlers' for running a contract in the simulator
+-- | Build 'EffectHandlers' for running a contract in the simulator.
 mkSimulatorHandlers ::
     forall t.
     ( Pretty (Contract.ContractDef t)
@@ -264,7 +265,7 @@ handleServicesSimulator ::
     => FeeConfig
     -> SlotConfig
     -> Wallet
-    -> Eff (WalletEffect ': ChainIndexEffect ': NodeClientEffect ': effs)
+    -> Eff (WalletEffect ': ChainIndexQueryEffect ': NodeClientEffect ': effs)
     ~> Eff effs
 handleServicesSimulator feeCfg slotCfg wallet =
     let makeTimedChainIndexEvent wllt =
@@ -277,6 +278,7 @@ handleServicesSimulator feeCfg slotCfg wallet =
             . reinterpret (Core.timed @EmulatorEvent' @(LogMsg Emulator.EmulatorEvent ': effs))
             . reinterpret (mapLog ChainEvent)
     in
+        -- handle 'NodeClientEffect'
         makeTimedChainEvent
         . interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
@@ -285,10 +287,12 @@ handleServicesSimulator feeCfg slotCfg wallet =
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpret2 (handleNodeClient @t slotCfg wallet)
 
+        -- handle 'ChainIndexQueryEffect'
         . makeTimedChainIndexEvent wallet
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
 
+        -- handle 'WalletEffect'
         . interpret (mapLog @_ @(PABMultiAgentMsg t) (WalletBalancingMsg wallet))
         . flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
@@ -357,12 +361,11 @@ makeBlock slotCfg = do
             interpret (logIntoTQueue @_ @(SimulatorState t) (view logMessages))
             . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
-            . reinterpret (mapLog (ChainIndexEvent (Wallet 0)))
+            . reinterpret (mapLog (ChainIndexEvent (knownWallet 1)))
     delayThread (1000 :: Millisecond)
     void
-        $ makeTimedChainIndexEvent
         $ makeTimedChainEvent
-        $ interpret (handleChainIndexControlEffect @t)
+        $ makeTimedChainIndexEvent
         $ interpret (handleChainControl @t slotCfg)
         $ Chain.processBlock >> Chain.modifySlot succ
 
@@ -436,7 +439,7 @@ handleChainControl ::
     , Member (Reader BlockchainEnv) effs
     , Member (Reader Instances.InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
-    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    , Member (LogMsg ChainIndexLog) effs
     )
     => SlotConfig
     -> ChainControlEffect
@@ -446,15 +449,16 @@ handleChainControl slotCfg = \case
         blockchainEnv <- ask @BlockchainEnv
         instancesState <- ask @Instances.InstancesState
         (txns, slot) <- runChainEffects @t @_ slotCfg ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
-        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
+
+        -- Adds a new tip on the chain index given the block and slot number
+        runChainIndexEffects @t $ do
+          currentTip <- getTip
+          appendNewTipBlock currentTip txns slot
 
         void $ liftIO $ STM.atomically $ BlockchainEnv.processMockBlock instancesState blockchainEnv txns slot
 
         pure txns
-    Chain.ModifySlot f -> do
-        slot <- runChainEffects @t @_ slotCfg (Chain.modifySlot f)
-        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ SlotChanged slot)
-        pure slot
+    Chain.ModifySlot f -> runChainEffects @t @_ slotCfg (Chain.modifySlot f)
 
 runChainEffects ::
     forall t a effs.
@@ -484,25 +488,29 @@ runChainEffects slotCfg action = do
 runChainIndexEffects ::
     forall t a m effs.
     ( Member (Reader (SimulatorState t)) effs
-    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    , Member (LogMsg ChainIndexLog) effs
     , LastMember m effs
     , MonadIO m
     )
-    => Eff (ChainIndexEffect ': ChainIndex.ChainIndexControlEffect ': ChainIndex.ChainIndexEffs) a
+    => Eff (ChainIndexQueryEffect ': ChainIndexControlEffect ': '[State ChainIndexEmulatorState, LogMsg ChainIndexLog, Error ChainIndexError]) a
     -> Eff effs a
 runChainIndexEffects action = do
     SimulatorState{_chainIndex} <- ask @(SimulatorState t)
     (a, logs) <- liftIO $ STM.atomically $ do
                     oldState <- STM.readTVar _chainIndex
-                    let ((a, newState), logs) =
+                    let resultE =
                             run
-                            $ runWriter @[LogMessage ChainIndex.ChainIndexEvent]
-                            $ reinterpret @(LogMsg ChainIndex.ChainIndexEvent) @(Writer [LogMessage ChainIndex.ChainIndexEvent]) (handleLogWriter _singleton)
+                            $ runError
+                            $ runWriter @[LogMessage ChainIndexLog]
+                            $ reinterpret @(LogMsg ChainIndexLog) @(Writer [LogMessage ChainIndexLog]) (handleLogWriter _singleton)
                             $ runState oldState
-                            $ ChainIndex.handleChainIndexControl
-                            $ ChainIndex.handleChainIndex action
-                    STM.writeTVar _chainIndex newState
-                    pure (a, logs)
+                            $ interpret ChainIndex.handleControl
+                            $ interpret ChainIndex.handleQuery action
+                    case resultE of
+                      Left e -> error (show e)
+                      Right ((a, newState), logs) -> do
+                        STM.writeTVar _chainIndex newState
+                        pure (a, logs)
     traverse_ (send . LMessage) logs
     pure a
 
@@ -552,26 +560,21 @@ handleChainIndexEffect ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
+    , Member (LogMsg ChainIndexLog) effs
     )
-    => ChainIndexEffect
+    => ChainIndexQueryEffect
     ~> Eff effs
 handleChainIndexEffect = runChainIndexEffects @t . \case
-    StartWatching a  -> WalletEffects.startWatching a
-    WatchedAddresses -> WalletEffects.watchedAddresses
-    ConfirmedBlocks  -> WalletEffects.confirmedBlocks
-    AddressChanged r -> WalletEffects.addressChanged r
-
-handleChainIndexControlEffect ::
-    forall t effs.
-    ( LastMember IO effs
-    , Member (Reader (SimulatorState t)) effs
-    , Member (LogMsg ChainIndex.ChainIndexEvent) effs
-    )
-    => ChainIndex.ChainIndexControlEffect
-    ~> Eff effs
-handleChainIndexControlEffect = runChainIndexEffects @t . \case
-    ChainIndex.ChainIndexNotify n -> ChainIndex.chainIndexNotify n
+    DatumFromHash h          -> ChainIndex.datumFromHash h
+    ValidatorFromHash h      -> ChainIndex.validatorFromHash h
+    MintingPolicyFromHash h  -> ChainIndex.mintingPolicyFromHash h
+    StakeValidatorFromHash h -> ChainIndex.stakeValidatorFromHash h
+    RedeemerFromHash h       -> ChainIndex.redeemerFromHash h
+    TxOutFromRef ref         -> ChainIndex.txOutFromRef ref
+    TxFromTxId txid          -> ChainIndex.txFromTxId txid
+    UtxoSetMembership ref    -> ChainIndex.utxoSetMembership ref
+    UtxoSetAtAddress addr    -> ChainIndex.utxoSetAtAddress addr
+    GetTip                   -> ChainIndex.getTip
 
 -- | Start a thread that prints log messages to the terminal when they come in.
 printLogMessages ::
@@ -619,7 +622,7 @@ handleContractStore = \case
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
-    Contract.GetActiveContracts -> do
+    Contract.GetContracts _ -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
     Contract.PutStartInstance{} -> pure ()
@@ -725,14 +728,14 @@ instanceActivity = Core.instanceActivity
 addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (publicKey, privateKey) <- MockWallet.newKeyPair
+    (newWallet, newState) <- MockWallet.newWallet
+    let publicKey = Wallet.walletPubKey newWallet
     result <- liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWallet = MockWallet.pubKeyHashWallet (pubKeyHash publicKey)
-            newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
+        let newWallets = currentWallets & at newWallet ?~ AgentState newState mempty
         STM.writeTVar _agentStates newWallets
         pure (newWallet, publicKey)
-    _ <- handleAgentThread (Wallet 2)
+    _ <- handleAgentThread (knownWallet 2)
             $ Modify.wrapError WalletError
             $ MockWallet.distributeNewWalletFunds publicKey
     pure result

@@ -77,20 +77,19 @@ package cardano-api
 -- when decoding invalid (e.g. malicious) text literals.
 source-repository-package
   type: git
-  -- location: https://github.com/Quid2/flat.git
-  location: https://github.com/michaelpj/flat.git
+  location: https://github.com/Quid2/flat.git
   tag: ee59880f47ab835dbd73bea0847dab7869fc20d8
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
   type: git
-  location: https://github.com/shmish111/purescript-bridge.git
+  location: https://github.com/input-output-hk/purescript-bridge.git
   tag: 6a92d7853ea514be8b70bab5e72077bf5a510596
 
 source-repository-package
   type: git
-  location: https://github.com/shmish111/servant-purescript.git
-  tag: a76104490499aa72d40c2790d10e9383e0dbde63
+  location: https://github.com/input-output-hk/servant-purescript.git
+  tag: a0c7c7e37c95564061247461aef4be505a853538
 
 source-repository-package
   type: git
@@ -100,7 +99,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
+  tag: 592aa61d657ad5935a33bace1243abce3728b643
   subdir:
     base-deriving-via
     binary
@@ -123,8 +122,26 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/input-output-hk/cardano-addresses
+  tag: d2f86caa085402a953920c6714a0de6a50b655ec
+  subdir:
+    core
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/cardano-wallet
+  tag: ae7569293e94241ef6829139ec02bd91abd069df
+  subdir:
+    lib/text-class
+    lib/strict-non-empty-containers
+    lib/core
+    lib/test-utils
+    lib/numeric
+
+source-repository-package
+  type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: 877ce057ff6fb086474c8eaad53f2b7f0e0fce6b
+  tag: 5d37a927046bc7da2887830d8e35cf604622ce09
   subdir:
     monoidal-synchronisation
     typed-protocols
@@ -139,11 +156,22 @@ source-repository-package
     io-sim
     io-classes
     network-mux
+    ntp-client
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/iohk-monitoring-framework
-  tag: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
+  -- Important Note: Read below, before changing this!
+  tag: 46f994e216a1f8b36fe4669b47b2a7011b0e153c
+  -- Are you thinking of updating this tag to some other commit?  Please
+  -- ensure that the commit you are about to use is the latest one from
+  -- the *develop* branch of this repo:
+  --   * <https://github.com/input-output-hk/iohk-monitoring-framework/commits/develop>
+  -- (not master!)
+  --
+  -- In particular we rely on the code from this PR:
+  --  * <https://github.com/input-output-hk/iohk-monitoring-framework/pull/622>
+  -- being merged.
   subdir:
     iohk-monitoring
     tracer-transformers
@@ -156,8 +184,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: d5b184a820853c7ba202efd615b8fadca1acb52c
+  location: https://github.com/raduom/cardano-ledger-specs
+  tag: ef6bb99782d61316da55470620c7da994cc352b2
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -166,6 +194,7 @@ source-repository-package
     byron/ledger/impl
     byron/ledger/impl/test
     semantics/executable-spec
+    cardano-protocol-tpraos
     semantics/small-steps-test
     shelley/chain-and-ledger/dependencies/non-integer
     shelley/chain-and-ledger/executable-spec
@@ -180,7 +209,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: ed11e8b6429d4af1cb2539460e5cb2283a06b2dc
+  tag: ed7fdbf65f40f8e194850b87dd8c631fe26154e6
   subdir:
     cardano-api
     cardano-node

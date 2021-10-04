@@ -72,7 +72,7 @@ compileRecTerms
 compileRecTerms body bs = do
     p <- lift getEnclosing
     fixpoint <- mkFixpoint bs
-    Tuple.bindTuple p (PIR.varDeclName . PIR.defVar <$> toList bs) fixpoint body
+    Tuple.bindTuple p (PIR._varDeclName . PIR.defVar <$> toList bs) fixpoint body
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint

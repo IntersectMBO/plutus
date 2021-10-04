@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE MonoLocalBinds     #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -14,7 +13,6 @@ module Plutus.Contract.Wallet(
       balanceTx
     , handleTx
     , getUnspentOutput
-    , WAPI.startWatching
     , WAPI.signTxAndSubmit
     -- * Exporting transactions
     , ExportTx(..)
@@ -50,9 +48,9 @@ import           Ledger.Crypto               (PubKey (..), pubKeyHash)
 import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
-import           Plutus.Contract.Types       (Contract)
+import           Plutus.Contract.Types       (Contract (..))
 import qualified Wallet.API                  as WAPI
-import           Wallet.Effects
+import           Wallet.Effects              (WalletEffect, balanceTx)
 import           Wallet.Emulator.Error       (WalletAPIError)
 import           Wallet.Types                (AsContractError (_ConstraintResolutionError, _OtherError))
 

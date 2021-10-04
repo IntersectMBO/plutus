@@ -67,7 +67,7 @@ handleContractStore = \case
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
-    Contract.GetActiveContracts -> do
+    Contract.GetContracts _ -> do
         instancesTVar <- unInMemInstances <$> ask @(InMemInstances t)
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
     Contract.PutStartInstance{} -> pure ()

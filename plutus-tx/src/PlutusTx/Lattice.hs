@@ -2,7 +2,8 @@
 module PlutusTx.Lattice where
 
 import           PlutusTx.Bool
-import           Prelude       hiding (not, (&&), (||))
+import           PlutusTx.Monoid
+import           PlutusTx.Semigroup
 
 -- | A join semi-lattice, i.e. a partially ordered set equipped with a
 -- binary operation '(\/)'.

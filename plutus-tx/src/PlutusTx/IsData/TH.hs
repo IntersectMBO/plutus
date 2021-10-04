@@ -6,12 +6,17 @@ import           Data.Traversable
 
 import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
+import           PlutusTx.ErrorCodes
 
 import qualified PlutusTx.Applicative         as PlutusTx
 
 import           PlutusTx.Builtins            as Builtins
 import qualified PlutusTx.Builtins.Internal   as BI
 import           PlutusTx.IsData.Class
+import           PlutusTx.Trace               (traceError)
+
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                      as Haskell
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
@@ -103,7 +108,7 @@ unsafeFromDataClause indexedCons = do
     let cases =
             foldl'
             (\kont ixCon -> unsafeReconstructCase ixCon (TH.varE indexName) [| BI.snd $(TH.varE tupName) |] kont)
-            [| Builtins.error () |]
+            [| traceError reconstructCaseError |]
             indexedCons
     let body =
           [|
