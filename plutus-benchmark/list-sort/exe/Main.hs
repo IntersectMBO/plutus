@@ -11,22 +11,22 @@
 module Main where
 
 import           Control.Exception
-import           Control.Monad                            ()
+import           Control.Monad                            (replicateM)
 import           Control.Monad.Trans.Except
 import           Prelude                                  (div)
 import           System.IO
+import           System.Random
 import           Text.Printf                              (printf)
 
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Default
--- import qualified PlutusCore.Pretty                        as PLC
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
 import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..))
 import qualified PlutusTx                                 as Tx
 import           PlutusTx.Prelude                         as Tx
 import qualified UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 
 -- Insertion sort
@@ -106,36 +106,40 @@ getUnDBrTerm term =
 
 evaluateWithCek
     :: UPLC.Term Name DefaultUni DefaultFun ()
-    -> ( Either (CekEvaluationException DefaultUni DefaultFun)
+    -> ( Either (Cek.CekEvaluationException DefaultUni DefaultFun)
                 (UPLC.Term Name DefaultUni DefaultFun ())
-       , CountingSt)
-evaluateWithCek = runCekNoEmit PLC.defaultCekParameters Cek.counting
+       , Cek.CountingSt)
+evaluateWithCek = Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting
 
 runSort :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer]) -> [Integer] -> IO ()
 runSort sort l =
     let UPLC.Program _ _ code  = Tx.getPlc $ sort `Tx.applyCode` Tx.liftCode l
     in case evaluateWithCek $ getUnDBrTerm code of
          (Left _, _)  -> putStrLn "Error"
-         (Right _, CountingSt c) ->
+         (Right _, Cek.CountingSt c) ->
              let ExCPU cpu = exBudgetCPU c
              in putStr $ printf "%-4d %s\n" (length l) (PLC.show $ cpu`div` 1000000)
 
+
+
+
 main :: IO ()
-main =
+main = do
     let l1 = [1000,999..1] :: [Integer]
         l2 = [1..1000] :: [Integer]
         l3 = [1..] :: [Integer]
-        l = l3
+        r = getStdRandom (randomR (1,10000000))
+    l4 <- replicateM 1000 (r :: IO Integer)
+    let l = l4
         doSort sort = mapM_ (\n -> runSort sort (take n l)) [100,200..1000]
-    in do
-      putStrLn "Mergesort"
-      putStrLn "---------"
-      doSort msortPlc
-      putStrLn "\n"
-      putStrLn "Insertion sort"
-      putStrLn "--------------"
-      doSort isortPlc
-      putStrLn "\n"
-      putStrLn "Quicksort"
-      putStrLn "---------"
-      doSort qsortPlc
+    putStrLn "Mergesort"
+    putStrLn "---------"
+    doSort msortPlc
+    putStrLn "\n"
+    putStrLn "Insertion sort"
+    putStrLn "--------------"
+    doSort isortPlc
+    putStrLn "\n"
+    putStrLn "Quicksort"
+    putStrLn "---------"
+    doSort qsortPlc

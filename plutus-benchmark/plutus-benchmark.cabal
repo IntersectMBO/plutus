@@ -176,4 +176,5 @@ executable list-sort
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+    , random -any
     , transformers -any
