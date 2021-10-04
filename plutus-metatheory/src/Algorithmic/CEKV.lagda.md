@@ -1027,33 +1027,71 @@ postulate dischargeB'-lem : ∀ {A}{C b}{as a as'}{p : as <>> a ∷ as' ∈ arit
 postulate BUILTIN-lem : ∀ b {A}{az}(p : az <>> [] ∈ arity b)(q : BAPP b p A) → Red.BUILTIN' b p (cek2ckBAPP q) ≡ cek2ckClos (BUILTIN' b p q) []
 
 import Algorithmic.CC as CC
-thm64 : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
-thm64 s s  base        = CK.base
-thm64 (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (lookup x ρ)) (cek2ckVal (lookup x ρ)) (cek2ckStack s)) (thm64 _ s' q)
-thm64 (s ; ρ ▻ ƛ L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ (L · M)) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ Λ L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ (L ·⋆ A)) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (s ; ρ ▻ ibuiltin b) s' (step* refl q) = CK.step* (ival-lem b) (thm64 _ s' q)
-thm64 (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (ε ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
+thm65a : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
+thm65a s s  base        = CK.base
+thm65a (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (lookup x ρ)) (cek2ckVal (lookup x ρ)) (cek2ckStack s)) (thm65a _ s' q)
+thm65a (s ; ρ ▻ ƛ L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ (L · M)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ Λ L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ (L ·⋆ A)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ ibuiltin b) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
+thm65a (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (ε ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
   (dischargeBody-lem M ρ V)
-  (thm64 _ s' q)
-thm64 ((s , (V-I⇒ b {as' = []} p x ·-)) ◅ V) s' (step* refl q) = CK.step*
+  (thm65a _ s' q)
+thm65a ((s , (V-I⇒ b {as' = []} p x ·-)) ◅ V) s' (step* refl q) = CK.step*
   (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app p x V)))
-  (thm64 _ s' q)
-thm64 ((s , (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) ◅ V) s' (step* refl q) = CK.step* (dischargeB'-lem (cek2ckStack s)) (thm64 _ s' q)
-thm64 ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm64 _ s' q)
-thm64 ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x) s' (step* refl q) = CK.step*
+  (thm65a _ s' q)
+thm65a ((s , (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) ◅ V) s' (step* refl q) = CK.step* (dischargeB'-lem (cek2ckStack s)) (thm65a _ s' q)
+thm65a ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm65a _ s' q)
+thm65a ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x) s' (step* refl q) = CK.step*
   (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app⋆ p x refl)))
-  (thm64 _ s' q)
-thm64 ((s , -·⋆ A) ◅ V-IΠ b {as' = x₁ ∷ as'} p x) s' (step* refl q) = CK.step* (dischargeB-lem (cek2ckStack s)) (thm64 _ s' q)
-thm64 ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm64 _ s' q))
-thm64 (□ V) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
-thm64 (◆ A) s' (step* refl q) = CK.step* refl (thm64 _ s' q)
+  (thm65a _ s' q)
+thm65a ((s , -·⋆ A) ◅ V-IΠ b {as' = x₁ ∷ as'} p x) s' (step* refl q) = CK.step* (dischargeB-lem (cek2ckStack s)) (thm65a _ s' q)
+thm65a ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm65a _ s' q))
+thm65a (□ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (◆ A) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+
+{-
+thm65b : ∀{A}(s s' : CK.State A) → s CK.-→s s' → ck2cekState s -→s ck2cekState s'
+thm65b s .s CK.base = base
+thm65b (s CK.▻ ƛ L) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ (L · M)) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ Λ L) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ (L ·⋆ A)) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ wrap A B L) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ unwrap L) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ con c) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (s CK.▻ ibuiltin b) s' (CK.step* x p) = {!!}
+thm65b (s CK.▻ error _) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (CK.ε CK.◅ V) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b ((s CK., (Red.-· M)) CK.◅ V) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p) 
+thm65b ((s CK., (Red.V-ƛ M Red.·-)) CK.◅ V) s' (CK.step* refl p) =
+  step* {!!} (thm65b _ s' p)
+thm65b ((s CK., (Red.V-I⇒ b p₁ x₁ Red.·-)) CK.◅ V) s' (CK.step* x p) = {!!}
+thm65b ((s CK., Red.-·⋆ A) CK.◅ V) s' (CK.step* x p) = {!!}
+thm65b ((s CK., Red.wrap-) CK.◅ V) s' (CK.step* x p) = {!!}
+thm65b ((s CK., Red.unwrap-) CK.◅ V) s' (CK.step* x p) = {!!}
+thm65b (CK.□ V) s' (CK.step* refl p) =
+  step* refl (thm65b _ s' p)
+thm65b (CK.◆ A) s' (CK.step* refl p) = 
+  step* refl (thm65b _ s' p)
+-}
+
+
