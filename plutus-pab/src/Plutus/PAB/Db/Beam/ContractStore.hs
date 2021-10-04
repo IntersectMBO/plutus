@@ -93,7 +93,7 @@ mkContracts xs =
 uuidStr :: ContractInstanceId -> Text
 uuidStr = toText . unContractInstanceId
 
--- | Run the 'ContractStore' actions in the 'DbStore' context.
+-- | Run the 'ContractStore' actions against the database.
 handleContractStore ::
   forall a effs.
   ( Member BeamEffect effs
