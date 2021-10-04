@@ -1217,7 +1217,9 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
 
     checkOffchain = assertFailedTransaction (\ _ _ -> all (either checkEvent (const True) . sveResult))
 
-    checkEvent (EvaluationError log e) = maybe False (listToMaybe (reverse log) `isAcceptedBy`) (Map.lookup e whitelist)
+    checkEvent (EvaluationError log e) = case Map.lookup e whitelist of
+        Just wl -> listToMaybe (reverse log) `isAcceptedBy` wl
+        Nothing -> False
     checkEvent _                       = True
 
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
