@@ -23,8 +23,8 @@ import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error         (Error, throwError)
-import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRows, combined, deleteRows,
-                                                    selectList, selectOne)
+import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSqlite, addRowsInBatches, combined,
+                                                    deleteRows, selectList, selectOne)
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
@@ -249,11 +249,16 @@ handleControl = \case
             , DeleteRows $ truncateTable (scriptRows db)
             , DeleteRows $ truncateTable (txRows db)
             , DeleteRows $ truncateTable (addressRows db)
-            ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRows tbl rows]) db insertRows)
+            ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRowsInBatches batchSize tbl rows]) db insertRows)
         where
             truncateTable table = delete table (const (val_ True))
     GetDiagnostics -> diagnostics
 
+
+-- Use a batch size of 400 so that we don't hit the sql too-many-variables
+-- limit.
+batchSize :: Int
+batchSize = 400
 
 insertUtxoDb ::
     ( Member BeamEffect effs
@@ -263,7 +268,7 @@ insertUtxoDb ::
     -> Eff effs ()
 insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
 insertUtxoDb (UtxoState.UtxoState balance (Tip sl (BlockId bi) (BlockNumber bn)))
-    = addRows (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
+    = addRowsInBatches batchSize (utxoRows db) [UtxoRow (fromIntegral sl) bi bn (toByteString balance)]
 
 deleteOldUtxoDb :: Member BeamEffect effs => Tip -> Eff effs ()
 deleteOldUtxoDb TipAtGenesis = pure ()
@@ -282,7 +287,7 @@ instance BeamableSqlite t => Monoid (InsertRows (TableEntity t)) where
     mempty = InsertRows []
 
 insert :: Member BeamEffect effs => Db InsertRows -> Eff effs ()
-insert = getAp . getConst . zipTables Proxy (\tbl (InsertRows rows) -> Const $ Ap $ addRows tbl rows) db
+insert = getAp . getConst . zipTables Proxy (\tbl (InsertRows rows) -> Const $ Ap $ addRowsInBatches batchSize tbl rows) db
 
 fromTx :: ChainIndexTx -> Db InsertRows
 fromTx tx = mempty

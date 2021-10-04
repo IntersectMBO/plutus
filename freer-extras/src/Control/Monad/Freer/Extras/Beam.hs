@@ -31,7 +31,7 @@ import           Data.Foldable                            (traverse_)
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Database.Beam                            (Beamable, DatabaseEntity, FromBackendRow, Identity,
-                                                           MonadIO (liftIO), SqlDelete, SqlSelect, SqlUpdate,
+                                                           MonadIO (liftIO), SqlDelete, SqlInsert, SqlSelect, SqlUpdate,
                                                            TableEntity, insertValues, runDelete, runInsert,
                                                            runSelectReturningList, runSelectReturningOne, runUpdate)
 import           Database.Beam.Backend.SQL                (BeamSqlBackendCanSerialize)
@@ -63,10 +63,18 @@ instance Pretty BeamLog where
     SqlLog s -> "SqlLog" <> colon <+> pretty s
 
 data BeamEffect r where
+  -- Workaround for "too many SQL variables" sqlite error. Provide a
+  -- batch size so that we avoid the error. The maximum is 999.
+  AddRowsInBatches
+    :: BeamableSqlite table
+    => Int
+    -> DatabaseEntity Sqlite db (TableEntity table)
+    -> [table Identity]
+    -> BeamEffect ()
+
   AddRows
     :: BeamableSqlite table
-    => DatabaseEntity Sqlite db (TableEntity table)
-    -> [table Identity]
+    => SqlInsert Sqlite table
     -> BeamEffect ()
 
   UpdateRows
@@ -106,16 +114,11 @@ handleBeam trace eff = runBeam trace $ execute eff
   where
     execute :: BeamEffect ~> SqliteM
     execute = \case
-        AddRows _ [] -> pure ()
-        -- TODO: This is no good; here we don't know how many columns the
-        -- table has, so we can't do this hack.
-        --
-        -- Workaround for "too many SQL variables" sqlite error
-        -- The maximum is 999, and this only happens in this case with tables of 2 columns, rounded down to 400 rows just in case
-        AddRows table (splitAt 400 -> (batch, rest)) -> do
+        AddRowsInBatches _ _ [] -> pure ()
+        AddRowsInBatches n table (splitAt n -> (batch, rest)) -> do
             runInsert $ insertOnConflict table (insertValues batch) anyConflict onConflictDoNothing
-            execute $ AddRows table rest
-
+            execute $ AddRowsInBatches n table rest
+        AddRows    q    -> runInsert q
         UpdateRows q    -> runUpdate q
         DeleteRows q    -> runDelete q
         SelectList q    -> runSelectReturningList q
