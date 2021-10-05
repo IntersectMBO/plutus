@@ -47,6 +47,7 @@ import           Ledger                            (Address (..), ChainIndexTxOu
                                                     TxOut (..), TxOutRef (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
+import           Plutus.ChainIndex.Compatibility   (toCardanoPoint)
 import           Plutus.ChainIndex.DbSchema
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
@@ -59,15 +60,9 @@ import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
 getResumePoints :: Member BeamEffect effs => Eff effs [C.ChainPoint]
-getResumePoints = do
-    rows <- selectList . select
-        . fmap (\row -> (_tipRowSlot row, _tipRowBlockId row))
-        . orderBy_ (desc_ . _tipRowSlot)
-        $ all_ (tipRows db)
-    pure $ mapMaybe toChainPoint rows
-    where
-        toChainPoint :: (Word64, ByteString) -> Maybe C.ChainPoint
-        toChainPoint (slot, bi) = C.ChainPoint (C.SlotNo slot) <$> C.deserialiseFromRawBytes (C.AsHash (C.proxyToAsType (Proxy :: Proxy C.BlockHeader))) bi
+getResumePoints
+    = fmap (mapMaybe (toCardanoPoint . tipAsPoint . fromDbValue . Just))
+    . selectList . select . orderBy_ (desc_ . _tipRowSlot) . all_ $ tipRows db
 
 restoreStateFromDb ::
     ( Member (State ChainIndexState) effs
