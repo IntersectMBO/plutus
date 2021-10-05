@@ -24,7 +24,7 @@ exports.defineTheme_ = function (monaco, theme) {
 }
 
 exports.setMonarchTokensProvider_ = function (monaco, languageId, languageDef) {
-  monaco.languages.setMonarchTokensProvider(languageId, languageDef);
+  return monaco.languages.setMonarchTokensProvider(languageId, languageDef);
 }
 
 exports.setModelMarkers_ = function (monaco, model, owner, markers) {
@@ -101,7 +101,7 @@ exports.getLineCount_ = function (model) {
 }
 
 exports.setTokensProvider_ = function (monaco, languageId, provider) {
-  monaco.languages.setTokensProvider(languageId, provider);
+  return monaco.languages.setTokensProvider(languageId, provider);
 }
 
 exports.completionItemKind_ = function (name) {
@@ -113,19 +113,19 @@ exports.markerSeverity_ = function (name) {
 }
 
 exports.registerHoverProvider_ = function (monaco, languageId, provider) {
-  monaco.languages.registerHoverProvider(languageId, provider);
+  return monaco.languages.registerHoverProvider(languageId, provider);
 }
 
 exports.registerCompletionItemProvider_ = function (monaco, languageId, provider) {
-  monaco.languages.registerCompletionItemProvider(languageId, provider);
+  return monaco.languages.registerCompletionItemProvider(languageId, provider);
 }
 
 exports.registerCodeActionProvider_ = function (monaco, languageId, actionProvider) {
-  monaco.languages.registerCodeActionProvider(languageId, actionProvider);
+  return monaco.languages.registerCodeActionProvider(languageId, actionProvider);
 }
 
 exports.registerDocumentFormattingEditProvider_ = function (monaco, languageId, formatter) {
-  monaco.languages.registerDocumentFormattingEditProvider(languageId, formatter);
+  return monaco.languages.registerDocumentFormattingEditProvider(languageId, formatter);
 }
 
 exports.setPosition_ = function (editor, position) {
@@ -188,4 +188,8 @@ exports.completionItemKindOrd_ = function (lt, eq, gt, a, b) {
 
 exports.setReadOnly_ = function (editor, val) {
   editor.updateOptions({ readOnly: val })
+}
+
+exports.dispose_ = function (disposable) {
+  disposable.dispose();
 }

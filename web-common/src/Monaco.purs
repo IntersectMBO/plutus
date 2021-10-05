@@ -107,6 +107,8 @@ foreign import data ITextMarker :: Type
 
 foreign import data CompletionItemKind :: Type
 
+foreign import data IDisposable :: Type
+
 foreign import completionItemKindEq_ :: Fn2 CompletionItemKind CompletionItemKind Boolean
 
 instance eqCompletionItemKind :: Eq CompletionItemKind where
@@ -231,7 +233,7 @@ foreign import registerLanguage_ :: EffectFn2 Monaco Foreign Unit
 
 foreign import defineTheme_ :: EffectFn2 Monaco Theme Unit
 
-foreign import setMonarchTokensProvider_ :: EffectFn3 Monaco String MonarchLanguage Unit
+foreign import setMonarchTokensProvider_ :: EffectFn3 Monaco String MonarchLanguage IDisposable
 
 foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMarkerData) Unit
 
@@ -255,19 +257,19 @@ foreign import setValue_ :: EffectFn2 ITextModel String Unit
 
 foreign import getLineCount_ :: Fn1 ITextModel Int
 
-foreign import setTokensProvider_ :: EffectFn3 Monaco String TokensProvider Unit
+foreign import setTokensProvider_ :: EffectFn3 Monaco String TokensProvider IDisposable
 
 foreign import completionItemKind_ :: Fn1 String CompletionItemKind
 
 foreign import markerSeverity_ :: Fn1 String MarkerSeverity
 
-foreign import registerHoverProvider_ :: EffectFn3 Monaco String HoverProvider Unit
+foreign import registerHoverProvider_ :: EffectFn3 Monaco String HoverProvider IDisposable
 
-foreign import registerCompletionItemProvider_ :: EffectFn3 Monaco String CompletionItemProvider Unit
+foreign import registerCompletionItemProvider_ :: EffectFn3 Monaco String CompletionItemProvider IDisposable
 
-foreign import registerCodeActionProvider_ :: EffectFn3 Monaco String CodeActionProvider Unit
+foreign import registerCodeActionProvider_ :: EffectFn3 Monaco String CodeActionProvider IDisposable
 
-foreign import registerDocumentFormattingEditProvider_ :: EffectFn3 Monaco String DocumentFormattingEditProvider Unit
+foreign import registerDocumentFormattingEditProvider_ :: EffectFn3 Monaco String DocumentFormattingEditProvider IDisposable
 
 foreign import setPosition_ :: EffectFn2 Editor IPosition Unit
 
@@ -290,6 +292,8 @@ foreign import enableVimBindings_ :: EffectFn1 Editor (Effect Unit)
 foreign import enableEmacsBindings_ :: EffectFn1 Editor (Effect Unit)
 
 foreign import setReadOnly_ :: EffectFn2 Editor Boolean Unit
+
+foreign import dispose_ :: EffectFn1 IDisposable Unit
 
 markerSeverity :: String -> MarkerSeverity
 markerSeverity = runFn1 markerSeverity_
@@ -322,7 +326,7 @@ registerLanguage monaco language =
 defineTheme :: Monaco -> Theme -> Effect Unit
 defineTheme = runEffectFn2 defineTheme_
 
-setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
+setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect IDisposable
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
 addExtraTypeScriptLibsJS :: Monaco -> Effect Unit
@@ -358,19 +362,19 @@ setModelMarkers = runEffectFn4 setModelMarkers_
 getModelMarkers :: Monaco -> ITextModel -> Effect (Array IMarker)
 getModelMarkers = runEffectFn2 getModelMarkers_
 
-setTokensProvider :: Monaco -> String -> TokensProvider -> Effect Unit
+setTokensProvider :: Monaco -> String -> TokensProvider -> Effect IDisposable
 setTokensProvider = runEffectFn3 setTokensProvider_
 
-registerHoverProvider :: Monaco -> String -> HoverProvider -> Effect Unit
+registerHoverProvider :: Monaco -> String -> HoverProvider -> Effect IDisposable
 registerHoverProvider = runEffectFn3 registerHoverProvider_
 
-registerCompletionItemProvider :: Monaco -> String -> CompletionItemProvider -> Effect Unit
+registerCompletionItemProvider :: Monaco -> String -> CompletionItemProvider -> Effect IDisposable
 registerCompletionItemProvider = runEffectFn3 registerCompletionItemProvider_
 
-registerCodeActionProvider :: Monaco -> String -> CodeActionProvider -> Effect Unit
+registerCodeActionProvider :: Monaco -> String -> CodeActionProvider -> Effect IDisposable
 registerCodeActionProvider = runEffectFn3 registerCodeActionProvider_
 
-registerDocumentFormattingEditProvider :: Monaco -> String -> DocumentFormattingEditProvider -> Effect Unit
+registerDocumentFormattingEditProvider :: Monaco -> String -> DocumentFormattingEditProvider -> Effect IDisposable
 registerDocumentFormattingEditProvider = runEffectFn3 registerDocumentFormattingEditProvider_
 
 setPosition :: Editor -> IPosition -> Effect Unit
@@ -405,3 +409,6 @@ enableEmacsBindings = runEffectFn1 enableEmacsBindings_
 
 setReadOnly :: Editor -> Boolean -> Effect Unit
 setReadOnly = runEffectFn2 setReadOnly_
+
+dispose :: IDisposable -> Effect Unit
+dispose = runEffectFn1 dispose_
