@@ -72,6 +72,7 @@ library
         base -any,
         aeson -any,
         bytestring -any,
+        utf8-string -any,
         cardano-api,
         containers -any,
         data-default -any,
@@ -88,6 +89,7 @@ library
         prettyprinter -any,
         hashable -any,
         freer-simple -any,
+        safe -any,
         streaming -any,
         semigroups -any,
         openapi3 -any
