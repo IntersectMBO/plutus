@@ -50,6 +50,7 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
+import qualified Ledger.CardanoWallet                       as CW
 import qualified PSGenerator.Common
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
@@ -110,7 +111,7 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Warning)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SourceCode)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.Wallet)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EM.WalletNumber)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @CW.WalletNumber)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Simulation)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
