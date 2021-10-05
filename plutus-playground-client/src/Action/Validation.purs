@@ -6,7 +6,7 @@ import Playground.Types (ContractCall(..), SimulatorWallet)
 import Prelude ((==), (&&), (<<<))
 import Schema.Types (FormArgument)
 import Validation (isValid)
-import Wallet.Emulator.Wallet (WalletNumber)
+import Ledger.CardanoWallet (WalletNumber)
 import Wallet.Lenses (_simulatorWalletWallet, _walletId)
 
 actionIsValid :: Array SimulatorWallet -> ContractCall FormArgument -> Boolean

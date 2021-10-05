@@ -33,7 +33,7 @@ import Playground.Lenses (_recipient, _amount)
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..), _PayToWallet)
 import Schema (FormArgumentF(..), FormSchema(..))
 import ValueEditor (ValueEvent(..))
-import Wallet.Emulator.Wallet (WalletNumber)
+import Ledger.CardanoWallet (WalletNumber)
 
 data SimulationAction
   = ModifyActions ActionEvent

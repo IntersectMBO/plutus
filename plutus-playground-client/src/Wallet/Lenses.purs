@@ -13,7 +13,7 @@ import Playground.Types (SimulatorWallet, _SimulatorWallet)
 import Plutus.V1.Ledger.Crypto (PubKey, _PubKey)
 import Plutus.V1.Ledger.Value (Value)
 import Prelude ((<<<))
-import Wallet.Emulator.Wallet (WalletNumber, _WalletNumber)
+import Ledger.CardanoWallet (WalletNumber, _WalletNumber)
 
 _simulatorWalletWallet :: Lens' SimulatorWallet WalletNumber
 _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletWallet")
