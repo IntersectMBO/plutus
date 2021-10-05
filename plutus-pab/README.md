@@ -49,15 +49,17 @@ Now we start an additional PAB connecting to the same node, in another terminal:
 $ ./result/bin/pab-start-second-pab
 ```
 
-Finally we can start the pab web frontend using tool provided by nix environment, in a third terminal:
+Finally we can start the pab web frontend using tool provided by nix environment, in a third terminal at root of plutus repo:
 
 ```
 $ nix-shell
-$ cd ../plutus-pab-client
+$ cd plutus-pab-client
 $ npm start
 ```
 
 The client is now running at https://localhost:8009 -- See [pab-demo-scripts.nix](https://github.com/input-output-hk/plutus/blob/pab-readme/plutus-pab-client/pab-demo-scripts.nix) for details on the service invcation and contract installation.
+
+**Note**: In order to support local modification of the client's pab config, a copy of `plutus-pab/plutus-pab.yaml.sample` is used only in the absense of `plutus-pab-client/plutus-pab.yaml`. You will need to manually delete the client's copy if the sample config's schema is updated.
 
 **Note**: By default the frontend will forward requests to `localhost:9080` - the first PAB instance. Connecting to the second
 instance currently requires changing the proxy config in [webpack.config.js](https://github.com/input-output-hk/plutus/blob/master/plutus-pab-client/webpack.config.js#L33-L41). The second instance runs on port 9086 so the linked section in the config file would have to be
