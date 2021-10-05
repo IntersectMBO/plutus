@@ -165,15 +165,40 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-quickcheck -any
       , mtl -any
 
-
-executable list-sort
+executable list-sort-exe
   import: lang
   main-is: Main.hs
   hs-source-dirs:
       list-sort/exe
+      list-sort/src
+  other-modules:
+      InsertionSort
+      MergeSort
+      QuickSort
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
     , transformers -any
+
+benchmark list-sort
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Bench.hs
+  hs-source-dirs:
+      list-sort/bench
+      list-sort/src
+  other-modules:
+      Paths_plutus_benchmark
+      InsertionSort
+      MergeSort
+      QuickSort
+  build-depends:
+      base >=4.7 && <5
+    , criterion >= 1.5.9.0
+    , filepath -any
+    , mtl -any
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , plutus-core -any
