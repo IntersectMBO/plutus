@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-| Handlers for the 'ChainIndexQueryEffect' and the 'ChainIndexControlEffect' -}
 module Plutus.ChainIndex.Handlers
     ( handleQuery
@@ -18,7 +19,6 @@ module Plutus.ChainIndex.Handlers
     ) where
 
 import qualified Cardano.Api                       as C
-import           Codec.Serialise                   (Serialise, deserialiseOrFail, serialise)
 import           Control.Applicative               (Const (..))
 import           Control.Lens                      (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer               (Eff, Member, type (~>))
@@ -28,9 +28,7 @@ import           Control.Monad.Freer.Extras.Beam   (BeamEffect (..), BeamableSql
 import           Control.Monad.Freer.Extras.Log    (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State         (State, get, gets, put)
 import           Data.ByteString                   (ByteString)
-import qualified Data.ByteString.Lazy              as BSL
 import           Data.Default                      (def)
-import           Data.Either                       (fromRight)
 import qualified Data.FingerTree                   as FT
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (catMaybes, fromMaybe, mapMaybe)
@@ -38,27 +36,25 @@ import           Data.Monoid                       (Ap (..))
 import           Data.Proxy                        (Proxy (..))
 import qualified Data.Set                          as Set
 import           Data.Word                         (Word64)
-import           Database.Beam                     (Identity, SqlSelect, TableEntity, aggregate_, all_, countAll_,
-                                                    delete, filter_, limit_, nub_, select, val_)
-import           Database.Beam.Query               (asc_, desc_, exists_, orderBy_, update, (&&.), (<-.), (<.), (==.),
-                                                    (>.))
+import           Database.Beam                     (Columnar, Identity, SqlSelect, TableEntity, aggregate_, all_,
+                                                    countAll_, delete, filter_, limit_, nub_, select, val_)
+import           Database.Beam.Backend.SQL         (BeamSqlBackendCanSerialize)
+import           Database.Beam.Query               (HasSqlEqualityCheck, asc_, desc_, exists_, orderBy_, update, (&&.),
+                                                    (<-.), (<.), (==.), (>.))
 import           Database.Beam.Schema.Tables       (zipTables)
 import           Database.Beam.Sqlite              (Sqlite)
-import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
-                                                    MintingPolicyHash (..), RedeemerHash (..), StakeValidatorHash (..),
-                                                    TxId (..), TxOut (..), TxOutRef (..), ValidatorHash (..))
+import           Ledger                            (Address (..), ChainIndexTxOut (..), Datum, DatumHash, TxId (..),
+                                                    TxOut (..), TxOutRef (..))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbSchema
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
-import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
-                                                    Point (..), Tip (..), pageOf, tipAsPoint)
+import           Plutus.ChainIndex.Types           (Diagnostics (..), Point (..), Tip (..), pageOf, tipAsPoint)
 import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
                                                     UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
 import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential, ScriptCredential))
-import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
 
@@ -91,13 +87,13 @@ restoreStateFromDb point = do
     where
         outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
         outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
-            = (slot, UtxoState.TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
+            = (slot, UtxoState.TxUtxoBalance (Set.singleton (fromDbValue outRef)) mempty)
         inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
         inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
-            = (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
+            = (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
         toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
-        toUtxoState balances (TipRow slot bi bn)
-            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
+        toUtxoState balances tip@(TipRow slot _ _)
+            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (fromDbValue (Just tip))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
@@ -107,13 +103,13 @@ handleQuery ::
     ) => ChainIndexQueryEffect
     ~> Eff effs
 handleQuery = \case
-    DatumFromHash dh                                 -> getDatumFromHash dh
-    ValidatorFromHash (ValidatorHash hash)           -> queryOneScript hash
-    MintingPolicyFromHash (MintingPolicyHash hash)   -> queryOneScript hash
-    RedeemerFromHash (RedeemerHash hash)             -> queryOneScript hash
-    StakeValidatorFromHash (StakeValidatorHash hash) -> queryOneScript hash
-    TxFromTxId txId                                  -> getTxFromTxId txId
-    TxOutFromRef tor                                 -> getTxOutFromRef tor
+    DatumFromHash dh            -> getDatumFromHash dh
+    ValidatorFromHash hash      -> getScriptFromHash hash
+    MintingPolicyFromHash hash  -> getScriptFromHash hash
+    RedeemerFromHash hash       -> getScriptFromHash hash
+    StakeValidatorFromHash hash -> getScriptFromHash hash
+    TxFromTxId txId             -> getTxFromTxId txId
+    TxOutFromRef tor            -> getTxOutFromRef tor
     UtxoSetMembership r -> do
         utxoState <- gets @ChainIndexState UtxoState.utxoState
         case UtxoState.tip utxoState of
@@ -121,7 +117,7 @@ handleQuery = \case
             tp           -> pure (tp, UtxoState.isUnspentOutput r utxoState)
     UtxoSetAtAddress cred -> do
         utxoState <- gets @ChainIndexState UtxoState.utxoState
-        outRefs <- queryList . select $ _addressRowOutRef <$> filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred)) (all_ (addressRows db))
+        outRefs <- queryList $ queryKeyValue addressRows _addressRowCred _addressRowOutRef cred
         let page = pageOf def $ Set.fromList $ filter (\r -> UtxoState.isUnspentOutput r utxoState) outRefs
         case UtxoState.tip utxoState of
             TipAtGenesis -> do
@@ -131,19 +127,49 @@ handleQuery = \case
     GetTip -> getTip
 
 getTip :: Member BeamEffect effs => Eff effs Tip
-getTip = do
-    row <- selectOne . select $ limit_ 1 (orderBy_ (desc_ . _tipRowSlot) (all_ (tipRows db)))
-    pure $ case row of
-        Nothing                  -> TipAtGenesis
-        Just (TipRow slot bi bn) -> Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn)
+getTip = fmap fromDbValue . selectOne . select $ limit_ 1 (orderBy_ (desc_ . _tipRowSlot) (all_ (tipRows db)))
 
 getDatumFromHash :: Member BeamEffect effs => DatumHash -> Eff effs (Maybe Datum)
-getDatumFromHash (DatumHash (BuiltinByteString dh)) =
-    queryOne . select $ _datumRowDatum <$> filter_ (\row -> _datumRowHash row ==. val_ dh) (all_ (datumRows db))
+getDatumFromHash = queryOne . queryKeyValue datumRows _datumRowHash _datumRowDatum
 
 getTxFromTxId :: Member BeamEffect effs => TxId -> Eff effs (Maybe ChainIndexTx)
-getTxFromTxId (TxId (BuiltinByteString txId)) =
-    queryOne . select $ _txRowTx <$> filter_ (\row -> _txRowTxId row ==. val_ txId) (all_ (txRows db))
+getTxFromTxId = queryOne . queryKeyValue txRows _txRowTxId _txRowTx
+
+getScriptFromHash ::
+    ( Member BeamEffect effs
+    , HasDbType i
+    , DbType i ~ ByteString
+    , HasDbType o
+    , DbType o ~ ByteString
+    ) => i
+    -> Eff effs (Maybe o)
+getScriptFromHash = queryOne . queryKeyValue scriptRows _scriptRowHash _scriptRowScript
+
+queryKeyValue ::
+    ( HasDbType key
+    , HasSqlEqualityCheck Sqlite (DbType key)
+    , BeamSqlBackendCanSerialize Sqlite (DbType key)
+    ) => (forall f. Db f -> f (TableEntity table))
+    -> (forall f. table f -> Columnar f (DbType key))
+    -> (forall f. table f -> Columnar f value)
+    -> key
+    -> SqlSelect Sqlite value
+queryKeyValue table getKey getValue (toDbValue -> key) =
+    select $ getValue <$> filter_ (\row -> getKey row ==. val_ key) (all_ (table db))
+
+queryOne ::
+    ( Member BeamEffect effs
+    , HasDbType o
+    ) => SqlSelect Sqlite (DbType o)
+    -> Eff effs (Maybe o)
+queryOne = fmap (fmap fromDbValue) . selectOne
+
+queryList ::
+    ( Member BeamEffect effs
+    , HasDbType o
+    ) => SqlSelect Sqlite (DbType o)
+    -> Eff effs [o]
+queryList = fmap (fmap fromDbValue) . selectList
 
 -- | Get the 'ChainIndexTxOut' for a 'TxOutRef'.
 getTxOutFromRef ::
@@ -164,47 +190,16 @@ getTxOutFromRef ref@TxOutRef{txOutRefId, txOutRefIdx} = do
       case addressCredential $ txOutAddress txout of
         PubKeyCredential _ ->
           pure $ Just $ PublicKeyChainIndexTxOut (txOutAddress txout) (txOutValue txout)
-        ScriptCredential (ValidatorHash vh) -> do
+        ScriptCredential vh -> do
           case txOutDatumHash txout of
             Nothing -> do
               -- If the txout comes from a script address, the Datum should not be Nothing
               logWarn $ NoDatumScriptAddr txout
               pure Nothing
             Just dh -> do
-                v <- maybe (Left (ValidatorHash vh)) Right <$> queryOneScript vh
+                v <- maybe (Left vh) Right <$> getScriptFromHash vh
                 d <- maybe (Left dh) Right <$> getDatumFromHash dh
                 pure $ Just $ ScriptChainIndexTxOut (txOutAddress txout) v d (txOutValue txout)
-
-queryOneScript ::
-    ( Member BeamEffect effs
-    , Serialise a
-    ) => BuiltinByteString
-    -> Eff effs (Maybe a)
-queryOneScript (BuiltinByteString hash) =
-    queryOne . select $ _scriptRowScript <$> filter_ (\row -> _scriptRowHash row ==. val_ hash) (all_ (scriptRows db))
-
-queryOne ::
-    ( Member BeamEffect effs
-    , Serialise a
-    ) => SqlSelect Sqlite ByteString
-    -> Eff effs (Maybe a)
-queryOne = fmap (fmap fromByteString) . selectOne
-
-queryList ::
-    ( Member BeamEffect effs
-    , Serialise a
-    ) => SqlSelect Sqlite ByteString
-    -> Eff effs [a]
-queryList = fmap (fmap fromByteString) . selectList
-
-fromByteString :: Serialise a => ByteString -> a
-fromByteString
-    = fromRight (error "Deserialisation failed. Delete you chain index database and resync.")
-    . deserialiseOrFail
-    . BSL.fromStrict
-
-toByteString :: Serialise a => a -> ByteString
-toByteString = BSL.toStrict . serialise
 
 handleControl ::
     forall effs.
@@ -276,18 +271,18 @@ insertUtxoDb ::
     => UtxoState.UtxoState UtxoState.TxUtxoBalance
     -> Eff effs ()
 insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
-insertUtxoDb (UtxoState.UtxoState (UtxoState.TxUtxoBalance outputs inputs) (Tip sl (BlockId bi) (BlockNumber bn)))
+insertUtxoDb (UtxoState.UtxoState (UtxoState.TxUtxoBalance outputs inputs) tip)
     = insert $ mempty
-        { tipRows = InsertRows [TipRow (fromIntegral sl) bi bn]
-        , unspentOutputRows = InsertRows $ UnspentOutputRow tipRowId . toByteString <$> Set.toList outputs
-        , unmatchedInputRows = InsertRows $ UnmatchedInputRow tipRowId . toByteString <$> Set.toList inputs
+        { tipRows = InsertRows $ catMaybes [toDbValue tip]
+        , unspentOutputRows = InsertRows $ UnspentOutputRow tipRowId . toDbValue <$> Set.toList outputs
+        , unmatchedInputRows = InsertRows $ UnmatchedInputRow tipRowId . toDbValue <$> Set.toList inputs
         }
         where
-            tipRowId = TipRowId (fromIntegral sl)
+            tipRowId = TipRowId (toDbValue (tipSlot tip))
 
 reduceOldUtxoDb :: Member BeamEffect effs => Tip -> Eff effs ()
 reduceOldUtxoDb TipAtGenesis = pure ()
-reduceOldUtxoDb (Tip slotNo _ _) = do
+reduceOldUtxoDb (Tip (toDbValue -> slot) _ _) = do
     -- Delete all the tips before 'slot'
     deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row <. val_ slot)
     -- Assign all the older utxo changes to 'slot'
@@ -309,16 +304,13 @@ reduceOldUtxoDb (Tip slotNo _ _) = do
                     (unTipRowId (_unmatchedInputRowTip input) ==. val_ slot) &&.
                     (_unspentOutputRowOutRef output ==. _unmatchedInputRowOutRef input))
                 (all_ (unmatchedInputRows db))))
-    where
-        slot :: Word64
-        slot = fromIntegral slotNo
 
 rollbackUtxoDb :: Member BeamEffect effs => Point -> Eff effs ()
 rollbackUtxoDb PointAtGenesis = deleteRows $ delete (tipRows db) (const (val_ True))
-rollbackUtxoDb (Point slot _) = do
-    deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row >. val_ (fromIntegral slot))
-    deleteRows $ delete (unspentOutputRows db) (\row -> unTipRowId (_unspentOutputRowTip row) >. val_ (fromIntegral slot))
-    deleteRows $ delete (unmatchedInputRows db) (\row -> unTipRowId (_unmatchedInputRowTip row) >. val_ (fromIntegral slot))
+rollbackUtxoDb (Point (toDbValue -> slot) _) = do
+    deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row >. val_ slot)
+    deleteRows $ delete (unspentOutputRows db) (\row -> unTipRowId (_unspentOutputRowTip row) >. val_ slot)
+    deleteRows $ delete (unmatchedInputRows db) (\row -> unTipRowId (_unmatchedInputRowTip row) >. val_ slot)
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)
@@ -343,10 +335,10 @@ fromTx tx = mempty
     }
     where
         credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
-        fromMap :: (BeamableSqlite t, Serialise k, Serialise v) => Lens' ChainIndexTx (Map.Map k v) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
+        fromMap :: (BeamableSqlite t, HasDbType k, HasDbType v) => Lens' ChainIndexTx (Map.Map k v) -> (DbType k -> DbType v -> t Identity) -> InsertRows (TableEntity t)
         fromMap l = fromPairs (Map.toList . view l)
-        fromPairs :: (BeamableSqlite t, Serialise k, Serialise v) => (ChainIndexTx -> [(k, v)]) -> (ByteString -> ByteString -> t Identity) -> InsertRows (TableEntity t)
-        fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toByteString k) (toByteString v)) . l $ tx
+        fromPairs :: (BeamableSqlite t, HasDbType k, HasDbType v) => (ChainIndexTx -> [(k, v)]) -> (DbType k -> DbType v -> t Identity) -> InsertRows (TableEntity t)
+        fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toDbValue k) (toDbValue v)) . l $ tx
 
 
 diagnostics ::
@@ -355,7 +347,7 @@ diagnostics ::
     ) => Eff effs Diagnostics
 diagnostics = do
     numTransactions <- selectOne . select $ aggregate_ (const countAll_) (all_ (txRows db))
-    txIds <- selectList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
+    txIds <- queryList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
     UtxoState.TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
@@ -366,5 +358,5 @@ diagnostics = do
         , numAddresses       = fromMaybe (-1) numAddresses
         , numUnspentOutputs  = length outputs
         , numUnmatchedInputs = length inputs
-        , someTransactions   = fmap (TxId . BuiltinByteString) txIds
+        , someTransactions   = txIds
         }
