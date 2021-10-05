@@ -325,20 +325,17 @@ insert = getAp . getConst . zipTables Proxy (\tbl (InsertRows rows) -> Const $ A
 
 fromTx :: ChainIndexTx -> Db InsertRows
 fromTx tx = mempty
-    { datumRows = fromMap citxData DatumRow
-    , scriptRows = mconcat
-        [ fromMap citxScripts ScriptRow
-        , fromMap citxRedeemers ScriptRow
-        ]
-    , txRows = fromPairs (const [(_citxTxId tx, tx)]) TxRow
-    , addressRows = fromPairs (fmap credential . txOutsWithRef) AddressRow
+    { datumRows = fromMap citxData
+    , scriptRows = fromMap citxScripts <> fromMap citxRedeemers
+    , txRows = InsertRows [toDbValue (_citxTxId tx, tx)]
+    , addressRows = fromPairs (fmap credential . txOutsWithRef)
     }
     where
         credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
-        fromMap :: (BeamableSqlite t, HasDbType k, HasDbType v) => Lens' ChainIndexTx (Map.Map k v) -> (DbType k -> DbType v -> t Identity) -> InsertRows (TableEntity t)
+        fromMap :: (BeamableSqlite t, HasDbType (k, v), DbType (k, v) ~ t Identity) => Lens' ChainIndexTx (Map.Map k v) -> InsertRows (TableEntity t)
         fromMap l = fromPairs (Map.toList . view l)
-        fromPairs :: (BeamableSqlite t, HasDbType k, HasDbType v) => (ChainIndexTx -> [(k, v)]) -> (DbType k -> DbType v -> t Identity) -> InsertRows (TableEntity t)
-        fromPairs l mkRow = InsertRows . fmap (\(k, v) -> mkRow (toDbValue k) (toDbValue v)) . l $ tx
+        fromPairs :: (BeamableSqlite t, HasDbType (k, v), DbType (k, v) ~ t Identity) => (ChainIndexTx -> [(k, v)]) -> InsertRows (TableEntity t)
+        fromPairs l = InsertRows . fmap toDbValue . l $ tx
 
 
 diagnostics ::

@@ -233,3 +233,28 @@ instance HasDbType Tip where
     toDbValue (Tip sl bi bn) = Just (TipRow (toDbValue sl) (toDbValue bi) (toDbValue bn))
     fromDbValue Nothing                  = TipAtGenesis
     fromDbValue (Just (TipRow sl bi bn)) = Tip (fromDbValue sl) (fromDbValue bi) (fromDbValue bn)
+
+instance HasDbType (DatumHash, Datum) where
+    type DbType (DatumHash, Datum) = DatumRow
+    toDbValue (hash, datum) = DatumRow (toDbValue hash) (toDbValue datum)
+    fromDbValue (DatumRow hash datum) = (fromDbValue hash, fromDbValue datum)
+
+instance HasDbType (ScriptHash, Script) where
+    type DbType (ScriptHash, Script) = ScriptRow
+    toDbValue (hash, script) = ScriptRow (toDbValue hash) (toDbValue script)
+    fromDbValue (ScriptRow hash script) = (fromDbValue hash, fromDbValue script)
+
+instance HasDbType (RedeemerHash, Redeemer) where
+    type DbType (RedeemerHash, Redeemer) = ScriptRow
+    toDbValue (hash, script) = ScriptRow (toDbValue hash) (toDbValue script)
+    fromDbValue (ScriptRow hash script) = (fromDbValue hash, fromDbValue script)
+
+instance HasDbType (TxId, ChainIndexTx) where
+    type DbType (TxId, ChainIndexTx) = TxRow
+    toDbValue (txId, tx) = TxRow (toDbValue txId) (toDbValue tx)
+    fromDbValue (TxRow txId tx) = (fromDbValue txId, fromDbValue tx)
+
+instance HasDbType (Credential, TxOutRef) where
+    type DbType (Credential, TxOutRef) = AddressRow
+    toDbValue (cred, outRef) = AddressRow (toDbValue cred) (toDbValue outRef)
+    fromDbValue (AddressRow cred outRef) = (fromDbValue cred, fromDbValue outRef)
