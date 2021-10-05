@@ -11,11 +11,9 @@
 module Main where
 
 import           Control.Exception
-import           Control.Monad                            (replicateM)
 import           Control.Monad.Trans.Except
 import           Prelude                                  (div)
 import           System.IO
-import           System.Random
 import           Text.Printf                              (printf)
 
 import           PlutusCore                               (Name (..))
@@ -31,39 +29,68 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 -- Insertion sort
 
-{-# INLINABLE isort #-}
-isort :: [Integer] -> [Integer]
-isort l0 = sort l0 []
+{-# INLINABLE insertionSort #-}
+insertionSort :: [Integer] -> [Integer]
+insertionSort l0 = sort l0 []
     where sort [] r     = r
           sort (n:ns) r = sort ns (insert n r)
-          insert n l =
-              case l of
+          insert n acc =
+              case acc of
                 [] -> [n]
                 m:ms -> if n <= m
-                        then n:l
+                        then n:acc
                         else m:(insert n ms)
 
-isortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
-isortPlc = $$(Tx.compile [|| isort ||])
+{- The worst case should be when the list is already sorted, since then whenever
+   we insert a new element in the accumulator it'll have to go at the very end. -}
+insertionSortWorstCase :: Integer -> [Integer]
+insertionSortWorstCase n = [1..n]
+
+insertionSortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
+insertionSortPlc = $$(Tx.compile [|| insertionSort ||])
+
+mkInsertionSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkInsertionSortTerm n =
+  let (UPLC.Program _ _ code) = Tx.getPlc $
+                                $$(Tx.compile [|| insertionSort ||])
+                                `Tx.applyCode` Tx.liftCode (insertionSortWorstCase n)
+  in code
 
 -- Quicksort
 
-{-# INLINABLE qsort #-}
-qsort :: [Integer] -> [Integer]
-qsort []     = []
-qsort (n:ns) = (qsort $ lt n ns []) ++ [n] ++ (qsort $ ge n ns [])
-    where  lt _ [] r = r  -- Elements < x
-           lt x (y:ys) r = if y < x
-                         then lt x ys (y:r)
-                         else lt x ys r
-           ge _ [] r = r
-           ge x (y:ys) r = if y >= x  -- Elements >= x
-                         then ge x ys (y:r)
-                         else ge x ys r
+{-# INLINABLE quickSort #-}
+quickSort :: [Integer] -> [Integer]
+quickSort []     = []
+quickSort (n:ns) = (quickSort $ before n ns []) ++ (n:(quickSort $ after n ns []))
+    where  before _ [] r = r  -- Elements < x
+           before x (y:ys) r = if y < x
+                           then before x ys (y:r)
+                           else before x ys r
+           after _ [] r = r
+           after x (y:ys) r = if y >= x  -- Elements >= x
+                           then after x ys (y:r)
+                           else after x ys r
 
-qsortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
-qsortPlc = $$(Tx.compile [|| qsort ||])
+{- The worst case is when the list is already sorted (or reverse sorted) because
+   then if the list has n elements you have to recurse n times, scanning a list
+   of length n-1, n-2, n-3, ... in the left or right branches.  If the list is
+   more balanced you recurse log n times, scanning two lists of length (n-1)/2,
+   then four of length (n-3)/4, and so on.  For this version a reverse-sorted
+   input seems to be marginally slower than a properly-sorted input. -}
+quickSortWorstCase :: Integer -> [Integer]
+quickSortWorstCase n = reverse [1..n]
 
+quickSortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
+quickSortPlc = $$(Tx.compile [|| quickSort ||])
+
+mkQuickSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkQuickSortTerm n =
+    let (UPLC.Program _ _ code) = Tx.getPlc $
+                                  $$(Tx.compile [|| quickSort ||])
+                                  `Tx.applyCode` Tx.liftCode (quickSortWorstCase n)
+    in code
+
+-- Mergesort
 
 {-# INLINABLE drop #-}
 drop :: Integer -> [a] -> [a]
@@ -72,29 +99,53 @@ drop n l@(_:xs) =
     if n <= 0 then l
     else drop (n-1) xs
 
-{-# INLINABLE mergeList #-}
-mergeList :: [Integer] -> [Integer] -> [Integer]
-mergeList [] ys = ys
-mergeList xs [] = xs
-mergeList xs1@(x:xs) ys1@(y:ys) =
+{-# INLINABLE merge #-}
+merge :: [Integer] -> [Integer] -> [Integer]
+merge [] ys = ys
+merge xs [] = xs
+merge xs1@(x:xs) ys1@(y:ys) =
     if x <= y
-    then x:(mergeList xs ys1)
-    else y:(mergeList xs1 ys)
+    then x:(merge xs ys1)
+    else y:(merge xs1 ys)
 
 {-# INLINABLE mergeSort #-}
 mergeSort :: [Integer] -> [Integer]
 mergeSort xs =
     if n <= 1 then xs
-    else
-        mergeList
-        (mergeSort (take (n `divide` 2) xs))
-        (mergeSort (drop (n `divide` 2) xs))
+    else merge (mergeSort (take n2 xs)) (mergeSort (drop n2 xs))
         where
           n = length xs
+          n2 = n `divide` 2
+
+{- I think this is approximately the worst case.  A lot of the work happens in
+   merge and this should make sure that the maximal amount of interleaving is
+   required there.  If we merge [1,2,3,4] and [5,6,7,8] then we get to the case
+   merge [] [5,6,7,8] which can return immediately; this function at n=8 gives us
+   [1,5,3,7,2,6,4,8], which leads to merge [1,3,5,7] [2,4,6,8], and we have to go
+   all the way to 1:2:3:4:5:6:7:(merge [] [8]) to merge those. -}
+msortWorstCase :: Integer -> [Integer]
+msortWorstCase n = f [1..n]
+    where f ls =
+              let (left, right) = unzip2 ls [] []
+              in case (left, right) of
+                   ([],_) -> right
+                   (_,[]) -> left
+                   _      -> f left ++ f right
+          unzip2 l lacc racc =
+              case l of
+                []         -> (reverse lacc, reverse racc)
+                [a]        -> (reverse(a:lacc), reverse racc)
+                (a:b:rest) -> unzip2 rest (a:lacc) (b:racc)
 
 msortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
 msortPlc = $$(Tx.compile [|| mergeSort ||])
 
+mkMsortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkMsortTerm n =
+  let (UPLC.Program _ _ code) = Tx.getPlc $
+                                $$(Tx.compile [|| mergeSort ||])
+                                `Tx.applyCode` Tx.liftCode (msortWorstCase n)
+  in code
 
 getUnDBrTerm
     :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
@@ -111,37 +162,27 @@ evaluateWithCek
        , Cek.CountingSt)
 evaluateWithCek = Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting
 
-runSort :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer]) -> [Integer] -> IO ()
-runSort sort l =
-    let UPLC.Program _ _ code  = Tx.getPlc $ sort `Tx.applyCode` Tx.liftCode l
-    in case evaluateWithCek $ getUnDBrTerm code of
-         (Left _, _)  -> putStrLn "Error"
-         (Right _, Cek.CountingSt c) ->
-             let ExCPU cpu = exBudgetCPU c
-             in putStr $ printf "%-4d %s\n" (length l) (PLC.show $ cpu`div` 1000000)
-
-
-
+runSort :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+runSort n term =
+    case evaluateWithCek $ getUnDBrTerm term  of
+      (Left _, _)  -> putStrLn "Error"
+      (Right _, Cek.CountingSt c) ->
+          let ExCPU cpu = exBudgetCPU c
+          in putStr $ printf "%-4d %s\n" n (PLC.show $ cpu`div` 1000000)
 
 main :: IO ()
 main = do
-  let r = getStdRandom (randomR (1,10000000))
-  l0 <- replicateM 1000 (r :: IO Integer)
-  let l1 = [1000,999..1] :: [Integer]
-      l2 = [1..1000] :: [Integer]  --- Worst case for insertion sort
-      l3 = [1..] :: [Integer]
-      l4 = [2,4..1000] ++ [1,3..999] :: [Integer] -- Supposed to be worst case for mergeSort, but the random one is worse.
-      l = l1
-      doSort sort = mapM_ (\n -> runSort sort (take n l)) [100,200..1000]
+  let inputLengths = [100,200..1000]
   putStrLn "Mergesort"
   putStrLn "---------"
-  doSort msortPlc
+  mapM_ (\n -> runSort n $ mkMsortTerm n) inputLengths
   putStrLn "\n"
   putStrLn "Insertion sort"
   putStrLn "--------------"
-  doSort isortPlc
+  mapM_ (\n -> runSort n (mkInsertionSortTerm n)) inputLengths
   putStrLn "\n"
   putStrLn "Quicksort"
   putStrLn "---------"
-  doSort qsortPlc
+  mapM_ (\n -> runSort n (mkQuickSortTerm n)) inputLengths
+
 
