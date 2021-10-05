@@ -99,8 +99,11 @@ module.exports = {
         "auto-1fr": "auto minmax(0, 1fr)",
         "1fr-auto": "minmax(0, 1fr) auto",
         "auto-auto-1fr": "auto auto minmax(0, 1fr)",
+        "auto-auto-1fr-auto": "auto auto minmax(0, 1fr) auto",
         "auto-1fr-auto": "auto minmax(0, 1fr) auto",
+        "auto-1fr-auto-auto": "auto minmax(0, 1fr) auto auto",
         "1fr-auto-1fr": "minmax(0, 1fr) auto minmax(0, 1fr)",
+        "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
         "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
@@ -176,8 +179,8 @@ module.exports = {
   corePlugins: {
     container: false,
     space: true,
-    divideWidth: false,
-    divideColor: false,
+    divideWidth: true,
+    divideColor: true,
     divideStyle: false,
     divideOpacity: false,
     dropShadow: true,

@@ -25,6 +25,7 @@ module.exports = {
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
+      blue: "#69a7ff",
       darkblue: "#161F2F",
       red: "#e04b4c",
       // NOTE: These colors correspond to the mac button colors

@@ -67,3 +67,10 @@ nix-shell shell.nix --run fix-purty
 ## VSCode notes
 
 In order to have the PureScript IDE working properly with this project you need to open this folder as the root folder.
+
+### Custom Prelude
+
+A custom prelude module called `Prologue` is available in web-common. It
+exports everything from purescript-prelude, plus type and data constructors for
+`Maybe`, `Either`, and `Tuple`, in addition to the `fst` and `snd` functions.
+You can import this module instead of Prelude in your source files.

@@ -6,25 +6,26 @@ module Template.State
   , templateSetupIsValid
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens', assign, set, use, view)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Map.Ordered.OMap as OMap
+import Data.Maybe (isNothing)
 import Data.Set (toUnfoldable) as Set
-import Data.Traversable (for)
-import Data.Tuple (Tuple(..))
+import Data.Traversable (for, traverse)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 import Env (Env)
 import Examples.PureScript.ContractForDifferences (defaultSlotContent) as ContractForDifferences
 import Examples.PureScript.Escrow (contractTemplate, defaultSlotContent) as Escrow
 import Examples.PureScript.EscrowWithCollateral (defaultSlotContent) as EscrowWithCollateral
 import Examples.PureScript.Swap (defaultSlotContent) as Swap
 import Examples.PureScript.ZeroCouponBond (defaultSlotContent) as ZeroCouponBond
-import Halogen (HalogenM, modify_)
+import Halogen (HalogenM, RefLabel(..), getHTMLElementRef, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import InputField.Lenses (_value)
 import InputField.State (dummyState, handleAction, mkInitialState) as InputField
@@ -35,14 +36,14 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (Contract) as Extended
 import Marlowe.Extended (ContractType(..), resolveRelativeTimes, toCore)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _extendedContract, _metaData, _valueParameterFormat, _valueParameterInfo)
-import Data.Map.Ordered.OMap as OMap
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot, TokenName)
 import Marlowe.Template (TemplateContent(..), _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInput, _roleWalletInputs, _slotContentInput, _slotContentInputs, _valueContentInput, _valueContentInputs)
 import Template.Types (Action(..), ContractNicknameError(..), ContractSetupStage(..), Input, RoleError(..), SlotError(..), State, ValueError(..))
-import WalletData.Types (WalletLibrary)
+import Contacts.Types (WalletLibrary)
+import Web.HTML.HTMLElement (focus)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -68,7 +69,11 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction _ (SetContractSetupStage contractSetupStage) = assign _contractSetupStage contractSetupStage
+handleAction _ (SetContractSetupStage contractSetupStage) = do
+  assign _contractSetupStage contractSetupStage
+  when (contractSetupStage == Setup) do
+    element <- getHTMLElementRef $ RefLabel "contractNickname"
+    liftEffect $ void $ traverse focus element
 
 handleAction input@{ currentSlot } (SetTemplate contractTemplate) = do
   let

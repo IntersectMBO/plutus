@@ -4,7 +4,7 @@ module Marlowe.PAB
   , PlutusAppId(..)
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype)
@@ -17,10 +17,8 @@ import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 transactionFee :: BigInteger
 transactionFee = fromInt 10
 
--- FIXME: it appears that creating a contract currently requires three transactions, but I believe it
--- should be possible with one; check this with Alex
 contractCreationFee :: BigInteger
-contractCreationFee = transactionFee * (fromInt 3)
+contractCreationFee = transactionFee
 
 {-
 A `PlutusAppId` is used to identify an instance of a Plutus "contract" in the PAB. In the PAB code it is

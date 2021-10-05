@@ -1,4 +1,4 @@
-module WalletData.State
+module Contacts.State
   ( mkInitialState
   , defaultWalletDetails
   , handleAction
@@ -9,7 +9,7 @@ module WalletData.State
   , parsePlutusAppId
   ) where
 
-import Prelude
+import Prologue
 import Capability.MainFrameLoop (callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, lookupWalletDetails, lookupWalletInfo)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoWalletLibrary)
@@ -21,20 +21,19 @@ import Dashboard.Types (Action(..)) as Dashboard
 import Data.Array (any)
 import Data.BigInteger (BigInteger)
 import Data.Char.Unicode (isAlphaNum)
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, set, use)
 import Data.Map (isEmpty, filter, insert, lookup, member)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Newtype (unwrap)
 import Data.String.CodeUnits (toCharArray)
 import Data.UUID (emptyUUID, parseUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
-import Halogen (HalogenM)
+import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Query.HalogenM (mapAction)
-import InputField.Lenses (_value)
+import InputField.Lenses (_pristine, _value)
 import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
@@ -44,8 +43,8 @@ import Marlowe.Semantics (Assets, Token(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (errorToast, successToast)
 import Types (WebData)
-import WalletData.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
-import WalletData.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
+import Contacts.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
+import Contacts.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
 
 mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
@@ -83,7 +82,7 @@ handleAction ::
   Toast m =>
   MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction CloseWalletDataCard = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
+handleAction CloseContactsCard = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
 
 handleAction (SetCardSection cardSection) = do
   case cardSection of
@@ -120,8 +119,18 @@ handleAction (SaveWallet mTokenName) = do
       modifying _walletLibrary (insert walletNickname walletDetails)
       insertIntoWalletLibrary walletDetails
       newWalletLibrary <- use _walletLibrary
-      -- if a tokenName was also passed, we need to update the contract setup data
-      for_ mTokenName \tokenName -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SetContactForRole tokenName walletNickname
+      addToast $ successToast "Contact added"
+      case mTokenName of
+        -- if a tokenName was also passed, we are inside a template contract and we need to update role
+        Just tokenName -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SetContactForRole tokenName walletNickname
+        -- If we don't have a tokenName, then we added the contact from the contact dialog and we should close the panel
+        Nothing -> callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
+      -- We reset the form after adding the contact
+      modify_
+        $ set (_walletNicknameInput <<< _value) ""
+        <<< set (_walletNicknameInput <<< _pristine) true
+        <<< set (_walletIdInput <<< _value) ""
+        <<< set (_walletIdInput <<< _pristine) true
     -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
     -- the button to save a new wallet should be disabled in this case)
     _, _ -> pure unit
@@ -150,7 +159,7 @@ handleAction (SetRemoteWalletInfo remoteWalletInfo) = do
   walletLibrary <- use _walletLibrary
   handleAction $ WalletIdInputAction $ InputField.SetValidator $ walletIdError remoteWalletInfo walletLibrary
 
-handleAction (UseWallet walletNickname companionAppId) = do
+handleAction (ConnectWallet walletNickname companionAppId) = do
   ajaxWalletDetails <- lookupWalletDetails companionAppId
   case ajaxWalletDetails of
     Right walletDetails -> do

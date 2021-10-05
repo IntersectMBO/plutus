@@ -1,8 +1,7 @@
 module MainFrame.View where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Dashboard.View (dashboardCard, dashboardScreen)
-import Data.Either (Either(..))
 import Data.Lens (view, (^.))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)

@@ -1,94 +1,26 @@
+{% macro youtubeVideo(youtubeId) %}
+  <div class="video-container relative w-100 pb-16/9 bg-black ">
+    <iframe class="absolute top-0 left-0 right-0 border-0 h-full w-full hidden" data-src="https://www.youtube.com/embed/{{youtubeId}}?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe>
+    <p class="absolute inset-0 flex flex-col justify-center text-white">We've embedded content from YouTube. As YouTube may collect personal data and track your viewing behaviour, we'll only load the video after you consent to their use of cookies and similar technologies as described in their
+      <a class="text-blue" href="https://www.youtube.com/t/privacy">privacy policy.</a>
+    </p>
+  </div>
+{% endmacro %}
+
 <!DOCTYPE html>
 <html lang="en">
-
   <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id={{ googleAnalyticsId }}"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "{{ googleAnalyticsId }}", {
-        "anonymize_ip": true,
-        "custom_map": {
-          "dimension1": "product"
-        },
-        "product": "Marlowe website"
-      });
+      window.segmentAnalyticsId = "{{ segmentAnalyticsId }}"
+      window.googleAnalyticsId = "{{googleAnalyticsId}}"
     </script>
-    <!-- Segment Analytics -->
-    <script>
-      !function () {
-        var analytics = window.analytics = window.analytics || [];
-        if (!analytics.initialize)
-          if (analytics.invoked)
-            window.console && console.error && console.error("Segment snippet included twice.");
-          else {
-            analytics.invoked = !0;
-            analytics.methods = [
-              "trackSubmit",
-              "trackClick",
-              "trackLink",
-              "trackForm",
-              "pageview",
-              "identify",
-              "reset",
-              "group",
-              "track",
-              "ready",
-              "alias",
-              "debug",
-              "page",
-              "once",
-              "off",
-              "on",
-              "addSourceMiddleware",
-              "addIntegrationMiddleware",
-              "setAnonymousId",
-              "addDestinationMiddleware"
-            ];
-            analytics.factory = function (e) {
-              return function () {
-                var t = Array
-                  .prototype
-                  .slice
-                  .call(arguments);
-                t.unshift(e);
-                analytics.push(t);
-                return analytics
-              }
-            };
-            for (var e = 0; e < analytics.methods.length; e++) {
-              var key = analytics.methods[e];
-              analytics[key] = analytics.factory(key)
-            }
-            analytics.load = function (key, e) {
-              var t = document.createElement("script");
-              t.type = "text/javascript";
-              t.async = !0;
-              t.src = "https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";
-              var n = document.getElementsByTagName("script")[0];
-              n
-                .parentNode
-                .insertBefore(t, n);
-              analytics._loadOptions = e
-            };
-            analytics.SNIPPET_VERSION = "4.13.1";
-            analytics.load("{{ segmentAnalyticsId }}");
-            analytics.page();
-          }
-        }();
-    </script>
-    <title>Marlowe: Financial test contracts made easy</title>
-    <meta name="description" content="Marlowe reimagines how to create, test and run financial agreements. Peer-to-peer, secure and scalable. Marlowe makes finance accessible to all.">
-    <meta property="og:title" content="Marlowe: Financial Smart Contracts">
-    <meta property="og:description" content="Democratizing Finance on Cardano">
-    {# FIXME add a social image #}
-    {# <meta property="og:image" content="http://something.jpg"> #}
+    <title>Marlowe: Financial smart contracts on Cardano blockchain</title>
+    <meta name="description" content="Marlowe: create, test and run financial agreements. Peer-to-peer, secure and scalable DeFi solution. Marlowe makes finance accessible to all.">
+    <meta property="og:title" content="Marlowe: Financial smart contracts on Cardano blockchain">
+    <meta property="og:description" content="Marlowe: create, test and run financial agreements. Peer-to-peer, secure and scalable DeFi solution. Marlowe makes finance accessible to all.">
+    <meta property="og:image" content="{% static './static/img/social.png' %}">
     <meta property="og:url" content="https://marlowe-finance.io">
     <meta name="twitter:card" content="summary_large_image">
   </head>
@@ -119,11 +51,10 @@
               <a href="#faq">FAQs</a>
             </li>
             <li class="inline mr-7 menu-item">
-              <a href="#pioneers">Pioneers</a>
+              <a href="#feedback">Feedback</a>
             </li>
             <li class="relative inline mr-7 menu-item new-tab">
-              {# FIXME: add link #}
-              <a href="#">Docs</a>
+              <a href="https://docs.cardano.org/marlowe/learn-about-marlowe">Docs</a>
             </li>
           </ul>
         </div>
@@ -146,21 +77,18 @@
                 <a href="#faq">FAQs</a>
               </li>
               <li class="my-7">
-                <a href="#pioneers">Pioneers</a>
+                <a href="#feedback">Feedback</a>
               </li>
               <li class="my-7">
-                {# FIXME: add link #}
-                <a href="#">Docs</a>
+                <a href="https://docs.cardano.org/marlowe/learn-about-marlowe">Docs</a>
               </li>
             </ul>
             <ul class="text-base font-bold">
               <li class=" my-7">
-                {# FIXME: Add link#}
-                <a href="">Privacy</a>
+                <a href="https://static.iohk.io/gdpr/IOHK-Data-Protection-GDPR-Policy.pdf">Privacy</a>
               </li>
               <li class="my-7">
-                {# FIXME: Add link#}
-                <a href="">Terms</a>
+                <a href="https://plutus-static.s3.eu-central-1.amazonaws.com/IOHK+Website+Terms+%26+Conditions+(Final).pdf">Terms</a>
               </li>
               <li class="my-7">
                 <a href="https://iohk.io/">iohk.io</a>
@@ -178,7 +106,7 @@
       <div class="mx-3 md:mx-5vw flex justify-center">
         <div class="w-full max-w-screen-widest">
           <img loading="lazy" class="mx-auto lg:pb-0 md:pb-8 pb-8 lg:h-logo-wider h-logo" src="{% static './static/img/marlowe-logo-dark.svg' %}" alt="Marlowe logo">
-          <h1 class="md:font-comfortaa-bolder text-2xl md:text-4xl xl:text-5xl flex flex-col font-comfortaa-bold leading-tight lg:pt-8 pb-4">Peer to peer financial agreements are here</h1>
+          <h1 class="md:font-comfortaa-bolder text-2xl md:text-4xl xl:text-5xl flex flex-col font-comfortaa-bold leading-tight lg:pt-8 pb-4">Peer to peer financial agreements</h1>
           <h2 class="text-lg md:text-2xl xl:text-3xl pb-8">Try our demo products built around Marlowe, the language made for finance.</h2>
         </div>
       </div>
@@ -217,7 +145,7 @@
             <img loading="lazy" class="mx-auto lg:pb-0 md:pb-8 pb-8 h-logo lg:h-logo-wider" src="{% static './static/img/marlowe-run-demo-logo-light.svg' %}" alt="Marlowe Run Demo Logo">
             <h2 class="md:text-3xl lg:text-4xl flex flex-col md:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Financial smart contracts made easy</h2>
             <h3 class="text-xl lg:text-2xl xl:text-27px pb-8">Interact with running smart contracts on the web.</h3>
-            <h4 class="text-lg lg:text-xl xl:text-2xl pb-8">Try the first of many smart contract templates</h4>
+            <h4 class="text-lg lg:text-xl xl:text-2xl pb-8">Try our first smart contract templates now (many more to come!).</h4>
           </div>
         </div>
       </div>
@@ -240,23 +168,18 @@
             </div>
             <div class="hidden">
               <img loading="lazy" class="" src="{% static './static/img/purchase-image.png' %}" alt="Purchase contract screenshot">
-              {# FIXME: check copy #}
               <h4 class="text-lg font-medium">Safe purchases with the help of a mediator.</h4>
             </div>
             <div class="hidden">
               <img loading="lazy" class="" src="{% static './static/img/cfd-image.png' %}" alt="Contract for differences screenshot">
-              {# FIXME: check copy #}
               <h4 class="text-lg font-medium">Bet on value price.</h4>
             </div>
           </div>
         </div>
-        <div class=" flex flex-col items-center justify-center">
+        <div class="flex flex-col items-center justify-center">
           <div class="mx-3 md:mx-5vw max-w-2xl w-full">
             <h3 class="pt-16 text-xl font-semibold pb-4">See how it works</h3>
-            <div class="relative w-100 pb-16/9 ">
-              {# FIXME: change video link #}
-              <iframe class="absolute top-0 left-0 right-0 border-0 h-full w-full" src="https://www.youtube.com/embed/WB-bYHleFYY?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe>
-            </div>
+            {{ youtubeVideo("PJLtKJJMH0U") }}
           </div>
         </div>
         <div class="mt-16 mx-3 md:mx-5vw flex justify-center">
@@ -299,35 +222,23 @@
               <h4 class="font-comfortaa-bold md:text-3xl text-27px mb-4">Write smart contracts in the visual builder</h4>
               <p class="md:text-xl text-lg md:mb-0 mb-12">With the Blockly visual builder you can develop financial smart contracts whithout writing a single line of code, right in the browser.</p>
               <div class="md:mt-14 mt-8 w-full flex">
-                <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg text-center flex-grow md:flex-grow-0" data-marlowe-component="run">Try it</a>
+                <a href="https://play.marlowe-finance.io" target="_blank" class="primary-button text-lg text-center flex-grow md:flex-grow-0" data-marlowe-component="play">Try it</a>
                 <img loading="lazy" class="w-32 relative bottom-6 ml-4 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try it button">
               </div>
             </div>
-
             <div class="lg:row-start-auto row-start-1 w-11/12 mx-auto mt-4 mb-8 md:py-16 py-10 px-5 bg-white shadow-lg h-auto rounded-lg">
               <img loading="lazy" class="lg:w-11/12 md:w-3/4 w-11/12 lg:h-80 md:h-80 h-60 object-cover mx-auto" src="{% static './static/img/blockly.gif' %}" alt="Animated gif of blockly blocks being put together.">
             </div>
-
           </div>
-
         </div>
 
-        <div class="mx-3 md:mx-5vw flex justify-center">
-
-          <div class="relative w-full max-w-screen-widest text-center md:pb-10 pb-0 z-10">
-
-            <div>
-
-              <h3 class="pt-16 lg:text-xl text-lg font-semibold pb-4 md:block text-green">See how it works</h3>
-              <div class="relative w-100 pb-16/9 ">
-                {# FIXME: change video link #}
-                <iframe class="absolute top-0 left-0 right-0 border-0 h-full w-full" src="https://www.youtube.com/embed/WB-bYHleFYY?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe>
-              </div>
-
+        <div class="flex flex-col items-center justify-center">
+          <div class="mx-3 md:mx-5vw max-w-2xl w-full">
+            <div class="relative w-full max-w-screen-widest text-center md:pb-10 pb-0 z-10">
+              <h3 class="pt-16 text-xl font-semibold pb-4 text-green">See how it works</h3>
+              {{ youtubeVideo("w6kQD9Tgt8I") }}
             </div>
-
           </div>
-
         </div>
 
         <div class="mx-3 md:mx-5vw flex justify-center">
@@ -391,7 +302,7 @@
           </div>
 
         </div>
-        <span id="pioneers"></span>
+        <span id="feedback"></span>
       </section>
 
       <section class="relative block bg-grayblue h-auto w-full lg:py-48 md:pt-34 md:pb-30 pt-20 pb-24 text-center">
@@ -401,16 +312,15 @@
           <div class="relative w-full max-w-screen-widest">
 
             <div>
-              <h2 class="md:text-3xl lg:text-4xl flex flex-col md:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Marlowe Pioneers</h2>
-              <h2 class="text-xl lg:text-2xl xl:text-27px pb-0">Be the first to test and feedback on this groundbreaking new DeFi technology.</h2>
+              <h2 class="md:text-3xl lg:text-4xl flex flex-col md:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Share your feedback</h2>
+              <h2 class="text-xl lg:text-2xl xl:text-27px pb-0">Have you tested Marlowe Run or Marlowe Playground prototype? We'd love to hear your thoughts on the experience.</h2>
               <div class="relative mx-3 md:mx-5vw flex justify-center md:mt-18 md:mb-5 mt-12">
 
                 <div class="w-full mx-auto">
-                  {# FIXME: Add link#}
-                  <a href="" target="_blank" class="relative primary-button text-lg">
+                  <button data-tf-popup="ThOPaznC" class="relative primary-button text-lg">
                     <img loading="lazy" class="w-32 absolute -right-36 bottom-6 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the register now button">
-                    Register now
-                  </a>
+                    Share your feedback
+                  </button>
                 </div>
               </div>
             </div>
@@ -427,13 +337,10 @@
           <div class="m-5 w-full max-w-screen-widest">
             <ul class="inline w-full">
               <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 block md:inline">
-                {# FIXME: Add link#}
-                <a href="">Privacy</a>
+                <a href="https://static.iohk.io/gdpr/IOHK-Data-Protection-GDPR-Policy.pdf">Privacy</a>
               </li>
               <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 block md:inline">
-                {# FIXME: Add link#}
-
-                <a href="">Terms</a>
+                <a href="https://plutus-static.s3.eu-central-1.amazonaws.com/IOHK+Website+Terms+%26+Conditions+(Final).pdf">Terms</a>
               </li>
               <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 new-tab block md:inline">
                 <a href="https://iohk.io/">iohk.io</a>
@@ -445,5 +352,16 @@
           </div>
         </div>
       </footer>
+      <div id="gdpr-banner" class="fixed hidden z-10 bottom-0 left-0 right-0 bg-white shadow-lg py-4 px-3 md:pl-5vw md:pr-10vw ">
+        <div class="flex flex-col md:flex-row items-center">
+          <p class="flex-grow text-lg pr-4">
+            We use cookies to improve the user expierence and analyze website traffic. These are needed for our site to work properly.
+          </p>
+          <div class="flex-shrink-0 flex flex-col space-y-4">
+            <button class="agreeGDPR primary-button">Agree</button>
+            <button class="cancelGDPR secondary-button">Reject</button>
+          </div>
+        </div>
+      </div>
     </body>
   </html>

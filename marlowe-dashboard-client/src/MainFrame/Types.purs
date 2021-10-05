@@ -7,14 +7,12 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (State) as Contract
 import Dashboard.Types (Action, State) as Dashboard
-import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import Halogen as H
 import Halogen.Extra (LifecycleEvent)
@@ -25,7 +23,7 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
 import Tooltip.Types (ReferenceId)
 import Types (CombinedWSStreamToServer)
-import WalletData.Types (WalletDetails, WalletLibrary)
+import Contacts.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 import Welcome.Types (Action, State) as Welcome

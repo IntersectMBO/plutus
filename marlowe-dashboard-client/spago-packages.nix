@@ -305,6 +305,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "filterable" = pkgs.stdenv.mkDerivation {
+        name = "filterable";
+        version = "v3.0.2";
+        src = pkgs.fetchgit {
+          url = "https://github.com/LiamGoodacre/purescript-filterable.git";
+          rev = "b7bff31576261bc66bf29bfeca7679c2b107d68e";
+          sha256 = "0pn66mrgrpnlpd1lmywj5f0hbm9mnyjahqj276vz5v2xzlr0q63g";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "fixed-points" = pkgs.stdenv.mkDerivation {
         name = "fixed-points";
         version = "v5.1.0";
