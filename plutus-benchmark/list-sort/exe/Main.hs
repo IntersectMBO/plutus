@@ -1,6 +1,4 @@
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Main where
@@ -20,7 +18,6 @@ import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
 import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..))
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-
 
 getUnDBrTerm
     :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
