@@ -118,8 +118,8 @@ instance currencySymbolBridge :: Bridge Back.CurrencySymbol String where
   toBack unCurrencySymbol = Back.CurrencySymbol { unCurrencySymbol }
 
 instance walletInfoBridge :: Bridge Back.WalletInfo Front.WalletInfo where
-  toFront (Back.WalletInfo { wiWallet, wiPubKey, wiPubKeyHash }) = Front.WalletInfo { wallet: toFront wiWallet, pubKey: toFront wiPubKey, pubKeyHash: toFront wiPubKeyHash }
-  toBack (Front.WalletInfo { wallet, pubKey, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKey: toBack pubKey, wiPubKeyHash: toBack pubKeyHash }
+  toFront (Back.WalletInfo { wiWallet, wiPubKeyHash }) = Front.WalletInfo { wallet: toFront wiWallet, pubKeyHash: toFront wiPubKeyHash }
+  toBack (Front.WalletInfo { wallet, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKeyHash: toBack pubKeyHash }
 
 instance walletBridge :: Bridge Back.Wallet Front.Wallet where
   toFront (Back.Wallet { getWalletId }) = Front.Wallet getWalletId

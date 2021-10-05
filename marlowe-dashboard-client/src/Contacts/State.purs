@@ -69,7 +69,6 @@ defaultWalletInfo :: WalletInfo
 defaultWalletInfo =
   WalletInfo
     { wallet: Wallet ""
-    , pubKey: Just ""
     , pubKeyHash: ""
     }
 

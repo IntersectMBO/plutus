@@ -57,7 +57,6 @@ type WalletDetails
 newtype WalletInfo
   = WalletInfo
   { wallet :: Wallet
-  , pubKey :: Maybe PubKey
   , pubKeyHash :: PubKeyHash
   }
 

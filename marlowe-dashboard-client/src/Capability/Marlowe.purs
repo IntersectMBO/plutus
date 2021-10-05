@@ -60,7 +60,7 @@ import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Types (AjaxResponse, CombinedWSStreamToServer(..), DecodedAjaxResponse)
-import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKey, _pubKeyHash, _wallet, _walletInfo)
+import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKeyHash, _wallet, _walletInfo)
 import Contacts.Types (Wallet(..), WalletDetails, WalletInfo(..))
 import WebSocket.Support as WS
 
@@ -128,7 +128,6 @@ instance manageMarloweAppM :: ManageMarlowe AppM where
           walletInfo =
             WalletInfo
               { wallet: Wallet uuidString
-              , pubKey: Just uuidString
               , pubKeyHash: uuidString
               }
 

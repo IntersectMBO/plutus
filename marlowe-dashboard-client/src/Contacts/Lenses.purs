@@ -11,7 +11,6 @@ module Contacts.Lenses
   , _assets
   , _previousCompanionAppState
   , _wallet
-  , _pubKey
   , _pubKeyHash
   ) where
 
@@ -64,9 +63,6 @@ _previousCompanionAppState = prop (SProxy :: SProxy "previousCompanionAppState")
 ------------------------------------------------------------
 _wallet :: Lens' WalletInfo Wallet
 _wallet = _Newtype <<< prop (SProxy :: SProxy "wallet")
-
-_pubKey :: Lens' WalletInfo (Maybe PubKey)
-_pubKey = _Newtype <<< prop (SProxy :: SProxy "pubKey")
 
 _pubKeyHash :: Lens' WalletInfo PubKeyHash
 _pubKeyHash = _Newtype <<< prop (SProxy :: SProxy "pubKeyHash")
