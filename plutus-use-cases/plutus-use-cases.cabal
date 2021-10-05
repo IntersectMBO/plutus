@@ -25,38 +25,38 @@ flag defer-plugin-errors
 
 library
     exposed-modules:
-        -- Plutus.Contracts
-        -- Plutus.Contracts.Auction
-        -- Plutus.Contracts.SealedBidAuction
-        -- Plutus.Contracts.TokenAccount
+        Plutus.Contracts
+        Plutus.Contracts.Auction
+        Plutus.Contracts.SealedBidAuction
+        Plutus.Contracts.TokenAccount
         Plutus.Contracts.CompileCurrency
-        -- Plutus.Contracts.Crowdfunding
+        Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
-        -- Plutus.Contracts.ErrorHandling
-        -- Plutus.Contracts.Escrow
-        -- Plutus.Contracts.SimpleEscrow
-        -- Plutus.Contracts.Future
-        -- Plutus.Contracts.GameStateMachine
-        -- Plutus.Contracts.Governance
-        -- Plutus.Contracts.MultiSig
-        -- Plutus.Contracts.MultiSigStateMachine
-        -- Plutus.Contracts.PingPong
-        -- Plutus.Contracts.Prism
-        -- Plutus.Contracts.Prism.Credential
-        -- Plutus.Contracts.Prism.STO
-        -- Plutus.Contracts.Prism.Mirror
-        -- Plutus.Contracts.Prism.StateMachine
-        -- Plutus.Contracts.Prism.Unlock
-        -- Plutus.Contracts.PubKey
-        -- Plutus.Contracts.Stablecoin
-        -- Plutus.Contracts.Swap
-        -- Plutus.Contracts.Uniswap
-        -- Plutus.Contracts.Uniswap.OnChain
-        -- Plutus.Contracts.Uniswap.OffChain
-        -- Plutus.Contracts.Uniswap.Pool
-        -- Plutus.Contracts.Uniswap.Trace
-        -- Plutus.Contracts.Uniswap.Types
-        -- Plutus.Contracts.Vesting
+        Plutus.Contracts.ErrorHandling
+        Plutus.Contracts.Escrow
+        Plutus.Contracts.SimpleEscrow
+        Plutus.Contracts.Future
+        Plutus.Contracts.GameStateMachine
+        Plutus.Contracts.Governance
+        Plutus.Contracts.MultiSig
+        Plutus.Contracts.MultiSigStateMachine
+        Plutus.Contracts.PingPong
+        Plutus.Contracts.Prism
+        Plutus.Contracts.Prism.Credential
+        Plutus.Contracts.Prism.STO
+        Plutus.Contracts.Prism.Mirror
+        Plutus.Contracts.Prism.StateMachine
+        Plutus.Contracts.Prism.Unlock
+        Plutus.Contracts.PubKey
+        Plutus.Contracts.Stablecoin
+        Plutus.Contracts.Swap
+        Plutus.Contracts.Uniswap
+        Plutus.Contracts.Uniswap.OnChain
+        Plutus.Contracts.Uniswap.OffChain
+        Plutus.Contracts.Uniswap.Pool
+        Plutus.Contracts.Uniswap.Trace
+        Plutus.Contracts.Uniswap.Types
+        Plutus.Contracts.Vesting
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
