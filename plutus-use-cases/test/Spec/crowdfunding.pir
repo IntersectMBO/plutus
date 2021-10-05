@@ -328,11 +328,6 @@
         )
         (termbind
           (strict)
-          (vardecl fail (fun (all a (type) a) Ordering))
-          (lam ds (all a (type) a) { (abs e (type) (error e)) Ordering })
-        )
-        (termbind
-          (strict)
           (vardecl
             compare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
           )
