@@ -14,9 +14,9 @@ walletServerConfig:
 
 nodeServerConfig:
   mscBaseUrl: http://localhost:9082
-  mscSocketPath: ./node-server.sock
+  mscSocketPath: /tmp/node-server.sock
   mscKeptBlocks: 100000
-  mscNetworkId: "1"
+  mscNetworkId: "1097911063"
   mscSlotConfig:
     scSlotZeroTime: 1591566291000 # Wednesday, July 29, 2020 21:44:51 - shelley launch time in milliseconds
     scSlotLength: 1000 # In milliseconds
@@ -35,7 +35,7 @@ nodeServerConfig:
     - getWallet: 8
     - getWallet: 9
     - getWallet: 10
-  mscNodeMode: MockNode
+  mscNodeMode: AlonzoNode
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:9083

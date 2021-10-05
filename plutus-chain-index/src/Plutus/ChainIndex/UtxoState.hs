@@ -185,7 +185,7 @@ rollbackWith
     -> Point
     -> UtxoIndex a
     -> Either RollbackFailed (RollbackResult a)
-rollbackWith _ PointAtGenesis (viewTip -> TipAtGenesis) = Right (RollbackResult TipAtGenesis mempty)
+rollbackWith _ PointAtGenesis _ = Right (RollbackResult TipAtGenesis mempty)
 rollbackWith _ _ (viewTip -> TipAtGenesis) = Left RollbackNoTip
 rollbackWith f targetPoint idx@(viewTip -> currentTip)
     -- Already at the target point
