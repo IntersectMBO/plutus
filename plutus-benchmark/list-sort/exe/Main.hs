@@ -40,18 +40,18 @@ runSort n term =
       (Left _, _)  -> putStrLn "Error"
       (Right _, Cek.CountingSt c) ->
           let ExCPU cpu = exBudgetCPU c
-          in putStr $ printf "%-4d %s\n" n (PLC.show $ cpu`div` 1000000)
+          in putStr $ printf "%-4d  %5s ms   %20s\n" n (PLC.show $ cpu`div` 1000000000) ("(" ++ PLC.show cpu ++ ")")
 
 main :: IO ()
 main = do
   let inputLengths = [100,200..1000]
-  putStrLn "Mergesort"
-  putStrLn "---------"
-  mapM_ (\n -> runSort n $ mkMergeSortTerm n) inputLengths
-  putStrLn "\n"
   putStrLn "Insertion sort"
   putStrLn "--------------"
   mapM_ (\n -> runSort n (mkInsertionSortTerm n)) inputLengths
+  putStrLn "\n"
+  putStrLn "Merge sort"
+  putStrLn "----------"
+  mapM_ (\n -> runSort n $ mkMergeSortTerm n) inputLengths
   putStrLn "\n"
   putStrLn "Quicksort"
   putStrLn "---------"
