@@ -32,6 +32,7 @@ module PlcTestUtils (
     BrokenRenameT(..),
     runBrokenRenameT,
     runUPlcProfile,
+    runUPlcProfileExec,
     brokenRename,
     prop_scopingFor,
     test_scopingGood,
@@ -42,27 +43,26 @@ import           PlutusPrelude
 
 import           Common
 
-import qualified PlutusCore                                           as TPLC
+import qualified PlutusCore                               as TPLC
 import           PlutusCore.Check.Scoping
 import           PlutusCore.DeBruijn
 import           PlutusCore.Default.Universe
-import qualified PlutusCore.Evaluation.Machine.Ck                     as TPLC
+import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
 import           PlutusCore.Generators
 import           PlutusCore.Generators.AST
 import           PlutusCore.Pretty
-import qualified PlutusCore.Rename.Monad                              as TPLC
+import qualified PlutusCore.Rename.Monad                  as TPLC
 
-import qualified UntypedPlutusCore                                    as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek             as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logEmitter)
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Exception
-import           Control.Lens.Combinators                             (_2)
+import           Control.Lens.Combinators                 (_2)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           Data.Text                                            (Text)
-import qualified Data.Text.Prettyprint.Doc                            as PP
+import           Data.Text                                (Text)
+import qualified Data.Text.Prettyprint.Doc                as PP
 import           Hedgehog
 import           System.IO.Unsafe
 import           Test.Tasty
@@ -151,7 +151,21 @@ runUPlcProfile :: ToUPlc a DefaultUni UPLC.DefaultFun =>
 runUPlcProfile values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-        (result, logOut) = UPLC.evaluateCek logEmitter TPLC.defaultCekParameters t
+        (result, logOut) = UPLC.evaluateCek UPLC.logEmitter TPLC.defaultCekParameters t
+    res <- either (throwError . SomeException) pure result
+    pure (res, logOut)
+
+-- For the profiling executable.
+runUPlcProfileExec :: ToUPlc a DefaultUni UPLC.DefaultFun =>
+    [a]
+    -> ExceptT
+     SomeException
+     IO
+     (UPLC.Term UPLC.Name DefaultUni UPLC.DefaultFun (), [Text])
+runUPlcProfileExec values = do
+    ps <- traverse toUPlc values
+    let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
+        (result, logOut) = UPLC.evaluateCek UPLC.logWithTimeEmitter TPLC.defaultCekParameters t
     res <- either (throwError . SomeException) pure result
     pure (res, logOut)
 
