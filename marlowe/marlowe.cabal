@@ -169,8 +169,8 @@ test-suite marlowe-test
         http-client -any,
         websockets -any,
         network -any,
-        openapi3
-	uuid -any
+        openapi3,
+        uuid -any
 
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab
