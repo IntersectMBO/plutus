@@ -28,23 +28,18 @@ import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error, throwError)
 import           Data.Aeson                  (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Bitraversable          (bitraverse)
-import           Data.ByteArray.Encoding     (Base (Base16), convertToBase)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
-import           Data.Maybe                  (mapMaybe)
 import           Data.Proxy                  (Proxy (..))
 import qualified Data.Set                    as Set
-import           Data.Text                   (Text)
-import qualified Data.Text.Encoding          as Text
 import           Data.Typeable               (Typeable)
 import           Data.Void                   (Void)
 import           GHC.Generics                (Generic)
 import qualified Ledger                      as Plutus
 import qualified Ledger.Ada                  as Ada
-import           Ledger.Bytes                (LedgerBytes (..))
 import           Ledger.Constraints          (mustPayToPubKey)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
-import           Ledger.Crypto               (PubKey (..), pubKeyHash)
+import           Ledger.Crypto               (pubKeyHash)
 import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
