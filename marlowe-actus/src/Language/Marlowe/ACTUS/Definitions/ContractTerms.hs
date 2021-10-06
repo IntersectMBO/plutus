@@ -40,7 +40,7 @@ data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
          | DCC_E30_360ISDA -- ^ 30E/360 ISDA
          | DCC_E30_360     -- ^ 30E/360
          | DCC_B_252       -- ^ Business / 252
-         deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- |EndOfMonthConvention
 data EOMC = EOMC_EOM -- ^ End of month
@@ -61,7 +61,7 @@ data BDC = BDC_NULL -- ^ No shift
 
 data Calendar = CLDR_MF -- ^ Monday to Friday
               | CLDR_NC -- ^ No calendar
-              deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
+              deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
   { calendar :: Maybe Calendar

@@ -79,9 +79,10 @@ datecycle :: Gen Cycle
 datecycle = Cycle <$> sized (\n -> choose (1, max 1 (maxDate `div` (toInteger n+1 * secondsPerYear)))) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub] <*> elements [True, False]
 
 contractTermsGen :: Gen ContractTerms
-contractTermsGen = do
-  ct <- elements [PAM, LAM, NAM, ANN]
+contractTermsGen = elements [PAM, LAM, NAM, ANN] >>= contractTermsGen'
 
+contractTermsGen' :: CT -> Gen ContractTerms
+contractTermsGen' ct = do
   -- initial exchange date is fixed
   let ied = epochToLocalTime anchor
 
@@ -100,8 +101,8 @@ contractTermsGen = do
 
   eomc <- elements [EOMC_EOM, EOMC_SD]
   bdc <- elements [BDC_NULL, BDC_SCF, BDC_SCMF, BDC_CSF, BDC_CSMF, BDC_SCP, BDC_SCMP, BDC_CSP, BDC_CSMP]
-  calendar <- elements [CLDR_MF, CLDR_NC]
-  dcc <- elements [DCC_A_AISDA, DCC_A_360, DCC_A_365, DCC_E30_360ISDA, DCC_E30_360] -- DCC_B_252 is not implemented
+  calendar <- elements [CLDR_NC] -- TODO: add CLDR_MF
+  dcc <- elements [DCC_A_AISDA, DCC_A_360, DCC_A_365, DCC_E30_360ISDA, DCC_E30_360] -- TODO: DCC_B_252 is not implemented
   ppef <- elements [PPEF_N, PPEF_A, PPEF_M]
   cntrl <- elements [CR_BUY, CR_SEL]
 
@@ -125,9 +126,11 @@ contractTermsGen = do
     _   -> return Nothing
   terminationDate <- mightbe date
 
-  let upperBound = minimum $ catMaybes [ Just maturityDate, amortizationDate, terminationDate ]
+  let upperBound = minimum $ catMaybes [Just maturityDate, amortizationDate, terminationDate]
 
-  nextPrincipalRedemption <- largeamount
+  nextPrincipalRedemption <- case ct of
+    PAM -> oneof [return Nothing]
+    _   -> Just <$> largeamount
   purchaseDate <- mightbe $ dateBefore upperBound
   priceAtTerminationDate <- smallamount
   priceAtPurchaseDate <- smallamount
@@ -143,8 +146,10 @@ contractTermsGen = do
   nextRateReset <- percentage
 
   interestCapitalisationDate <- mightbe $ dateBefore upperBound
-  interestPaymentCycle <- mightbe datecycle
-  interestPaymentAnchor <- mightbe $ dateBefore upperBound
+  interestPaymentCycle <- datecycle
+  interestPaymentAnchor <- case ct of
+    PAM -> Just <$> dateBefore upperBound
+    _   -> mightbe $ dateBefore upperBound
   accruedInterest <- mightbe smallamount
 
   principalRedemptionCycle <- datecycle
@@ -168,9 +173,7 @@ contractTermsGen = do
         ct_MD = Just maturityDate,
         ct_AD = amortizationDate,
         ct_TD = terminationDate,
-        ct_PRNXT = case ct of
-                     PAM -> Nothing
-                     _   -> Just nextPrincipalRedemption,
+        ct_PRNXT = nextPrincipalRedemption,
         ct_PRD = purchaseDate,
         ct_CNTRL = cntrl,
         ct_PDIED = Just pdied,
@@ -212,18 +215,18 @@ contractTermsGen = do
         ct_RRLF = Just rrlf,
         -- Interest
         ct_IPCED = interestCapitalisationDate,
-        ct_IPCL = interestPaymentCycle,
+        ct_IPCL = Just interestPaymentCycle,
         ct_IPANX = interestPaymentAnchor,
         ct_IPNR = Just interest,
         ct_IPAC = accruedInterest,
         ct_PRCL = case ct of
-                    PAM -> Nothing
-                    _   -> Just principalRedemptionCycle,
+          PAM -> Nothing
+          _   -> Just principalRedemptionCycle,
         ct_PRANX = principalRedemptionAnchor,
         ct_IPCB = interestPaymentCalculationBase,
         ct_IPCBA = case interestPaymentCalculationBase of
-                     Just IPCB_NTIED -> Just interestPaymentCalculationBaseAmount
-                     _               -> Nothing,
+          Just IPCB_NTIED -> Just interestPaymentCalculationBaseAmount
+          _               -> Nothing,
         ct_IPCBCL = interestPaymentCalculationBaseCycle,
         ct_IPCBANX = interestPaymentCalculationBaseAnchor,
         -- Fee
