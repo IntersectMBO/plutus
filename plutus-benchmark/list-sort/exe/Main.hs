@@ -62,7 +62,7 @@ getInfo term =
       _                -> Nothing
 
 -- Create a term sorting a list of length n and execute it in counting mode then
--- tallying mode and print out the cost and number of CEK compute steps.
+-- tallying mode and print out the cost and the number of CEK compute steps.
 printSortStatistics :: (Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) -> Integer -> IO ()
 printSortStatistics termMaker n =
     let term = getUnDBrTerm (termMaker n)
