@@ -17,6 +17,7 @@ import qualified Data.OpenApi                   as OpenApi
 import qualified Data.Text                      as Text
 import           Data.Typeable
 import           GHC.Exts                       (IsList (..))
+import           Plutus.V1.Ledger.Ada
 import           Plutus.V1.Ledger.Api
 import           Plutus.V1.Ledger.Bytes         (bytes)
 import           Plutus.V1.Ledger.Crypto        (PrivateKey (PrivateKey, getPrivateKey), PubKey (..), Signature (..))
@@ -72,6 +73,7 @@ instance OpenApi.ToSchema Data where
           , ("B", bytestringSchema)
           ]
 deriving instance OpenApi.ToSchema ann => OpenApi.ToSchema (Kind ann)
+deriving newtype instance OpenApi.ToSchema Ada
 deriving instance OpenApi.ToSchema Tx
 deriving instance OpenApi.ToSchema ScriptTag
 deriving instance OpenApi.ToSchema RedeemerPtr
