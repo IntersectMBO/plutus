@@ -146,6 +146,7 @@ import           Plutus.Trace.Emulator                 as Trace (ContractHandle 
                                                                  EmulatorTrace, activateContract,
                                                                  freezeContractInstance, walletInstanceTag)
 import           Plutus.V1.Ledger.Scripts
+import qualified PlutusCore                            as PLC
 import qualified PlutusTx.Builtins                     as Builtins
 import           PlutusTx.ErrorCodes
 import           PlutusTx.Monoid                       (inv)
@@ -1188,7 +1189,8 @@ whitelistOk wl = noPreludePartials
       -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
       -- validator that returns a boolean fails correctly.
       Just wle -> all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wle) (Map.keys allErrorCodes \\ [checkHasFailedError])
-               && Prelude.not (Nothing `isAcceptedBy` wle) -- Covers the case for divide by zero with an empty log
+               -- Check that no builtin function evaluation failure is accepted by the whitelist
+               && all (\b -> Prelude.not $ (Just $ Text.pack $ "[BuiltinEvaluationFailure] of " ++ show b) `isAcceptedBy` wle) [minBound .. maxBound :: PLC.DefaultFun]
       Nothing  -> True
 
 defaultWhitelist :: Whitelist

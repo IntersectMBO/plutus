@@ -17,6 +17,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
 module Plutus.V1.Ledger.Scripts(
@@ -73,6 +74,7 @@ import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Hashable                            (Hashable)
 import           Data.String
 import           Data.Text                                (Text)
+import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import qualified Flat
@@ -200,10 +202,33 @@ evaluateScript s = do
     let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
     case result of
         Right _ -> Haskell.pure ()
-        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
-            InternalEvaluationError internalEvalError    -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
-            UserEvaluationError evalError -> EvaluationError logOut (PLC.show evalError)  -- TODO fix this error channel fuckery
+        Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
+            InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
+            UserEvaluationError evalError -> EvaluationError (logOut ++ mkLogFromErrorCauseBuiltin cause) (PLC.show evalError)  -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
+
+-- | If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
+-- generate an error message to add to the log
+mkLogFromErrorCauseBuiltin :: Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> [Text]
+mkLogFromErrorCauseBuiltin Nothing  = []
+mkLogFromErrorCauseBuiltin (Just t) =
+  case findBuiltin t of
+    Just b  -> [Text.pack $ "[BuiltinEvaluationFailure] of " ++ Haskell.show b]
+    Nothing -> []
+  where
+    findBuiltin :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
+    findBuiltin t = case t of
+       UPLC.Apply _ t _   -> findBuiltin t
+       UPLC.Builtin _ fun -> Just fun
+       -- These two *really shouldn't* appear but
+       -- we are future proofing for a day when they do
+       UPLC.Force _ t     -> findBuiltin t
+       UPLC.Delay _ t     -> findBuiltin t
+       -- Future proofing for eta-expanded builtins
+       UPLC.LamAbs _ _ t  -> findBuiltin t
+       UPLC.Var _ _       -> Nothing
+       UPLC.Constant _ _  -> Nothing
+       UPLC.Error _       -> Nothing
 
 {- Note [JSON instances for Script]
 The JSON instances for Script are partially hand-written rather than going via the Serialise
