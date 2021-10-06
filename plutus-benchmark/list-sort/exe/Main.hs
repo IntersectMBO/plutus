@@ -61,12 +61,12 @@ getInfo term =
       (Just c, Just n) -> Just (c,n)
       _                -> Nothing
 
-
-
-runSort :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-runSort n term =
-    let term' = getUnDBrTerm term
-    in case getInfo term' of
+-- Create a term sorting a list of length n and execute it in counting mode then
+-- tallying mode and print out the cost and number of CEK compute steps.
+printSortStatistics :: (Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) -> Integer -> IO ()
+printSortStatistics termMaker n =
+    let term = getUnDBrTerm (termMaker n)
+    in case getInfo term of
          Nothing -> putStrLn "Error during execution"
          Just (cpu, steps) ->
            putStr $ printf "%-4d  %5s ms %16s %14s\n"
@@ -74,7 +74,6 @@ runSort n term =
                   (PLC.show $ cpu`div` 1000000000)
                   ("(" ++ PLC.show cpu ++ ")")
                   (PLC.show steps)
-
 
 main :: IO ()
 main = do
@@ -84,15 +83,15 @@ main = do
   putStrLn "Insertion sort"
   putStrLn ""
   putStrLn header
-  mapM_ (\n -> runSort n (mkInsertionSortTerm n)) inputLengths
+  mapM_ (printSortStatistics mkInsertionSortTerm) inputLengths
   putStrLn "\n"
   putStrLn "Merge sort"
   putStrLn ""
   putStrLn header
-  mapM_ (\n -> runSort n $ mkMergeSortTerm n) inputLengths
+  mapM_ (printSortStatistics mkMergeSortTerm) inputLengths
   putStrLn "\n"
   putStrLn "Quicksort"
   putStrLn ""
   putStrLn header
-  mapM_ (\n -> runSort n (mkQuickSortTerm n)) inputLengths
+  mapM_ (printSortStatistics mkQuickSortTerm) inputLengths
 

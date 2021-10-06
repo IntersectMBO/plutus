@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 
-{- | Plutus benchmarks based on some nofib examples. -}
+{- | Plutus benchmarks for some simple list-sorting algortihms. -}
 module Main where
 
 import           Control.Exception
@@ -20,7 +20,7 @@ import           PlutusCore.Default
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
-
+-- Criterion configuration
 getConfig :: Double -> IO Config
 getConfig limit = do
   templateDir <- getDataFileName "templates"

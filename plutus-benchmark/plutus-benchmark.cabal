@@ -177,6 +177,7 @@ executable list-sort-exe
       QuickSort
   build-depends:
       base >=4.7 && <5
+    , monoidal-containers -any
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
