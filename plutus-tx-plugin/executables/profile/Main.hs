@@ -1,4 +1,5 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns   #-}
+{-# LANGUAGE TypeApplications #-}
 
 {- | Executable for profiling. See note [Profiling instructions]-}
 
@@ -23,20 +24,26 @@ $ firefox fib4.svg
 
 module Main where
 
-import           Data.Fixed         (Pico)
-import           Data.List          (intercalate)
-import qualified Data.Text          as T
-import           Data.Time.Clock    (NominalDiffTime, UTCTime, diffUTCTime, nominalDiffTimeToSeconds)
-import           System.Environment (getArgs)
+import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Lazy  as BSL
+import qualified Data.Csv              as CSV
+import           Data.Fixed            (Fixed (MkFixed), Pico)
+import           Data.Foldable         (toList)
+import           Data.List             (intercalate)
+import qualified Data.Text             as T
+import           Data.Time.Clock
+import           Data.Time.Clock.POSIX
+import           System.Environment    (getArgs)
+import           Text.Read             (readMaybe)
 
 data StackFrame
   = MkStackFrame
   { -- | The variable name.
     varName           :: T.Text,
     -- | The time when it starts to be evaluated.
-    startTime         :: UTCTime,
+    startVal          :: Integer,
     -- | The time spent on evaluating the functions it called.
-    timeSpentCalledFn :: NominalDiffTime
+    valSpentCalledFun :: Integer
   }
   deriving (Show)
 
@@ -53,7 +60,7 @@ logToStacks (hd:tl) = do
 logToStacks [] = pure ()
 
 data ProfileEvent =
-  MkProfileEvent UTCTime Transition T.Text
+  MkProfileEvent Integer Transition T.Text
 
 data Transition =
   Enter
@@ -61,7 +68,7 @@ data Transition =
 
 -- | Represent one of the "folded" flamegraph lines, which include fns it's in and time spent.
 data StackTime =
-  MkStackTime [T.Text] Pico
+  MkStackTime [T.Text] Integer
 
 instance Show StackTime where
   show (MkStackTime fns duration) =
@@ -71,21 +78,23 @@ instance Show StackTime where
       (reverse (map T.unpack fns))
       <>" "
       -- turn duration in seconds to micro-seconds for readability
-      <>show (1000000*duration)
+      <>show duration
 
 processLog :: FilePath -> IO [StackTime]
 processLog file = do
-  content <- readFile file
-  let lEvents = lines content -- turn to a list of events
-  pure $ getStacks (map parseProfileEvent lEvents)
+  content <- BSL.readFile file
+  lEvents <- case CSV.decode CSV.NoHeader content of
+      Left e   -> fail e
+      Right es -> pure es
+  pure $ getStacks (map parseProfileEvent $ toList lEvents)
 
-parseProfileEvent :: String -> ProfileEvent
-parseProfileEvent str =
+parseProfileEvent :: (String, Integer) -> ProfileEvent
+parseProfileEvent (str, val) =
   case words str of
-    [t1,t2,t3,transition,var] ->
+    [transition,var] ->
       case transition of
-        "entering" -> MkProfileEvent (read (unwords [t1,t2,t3])::UTCTime) Enter (T.pack var)
-        "exiting" -> MkProfileEvent (read (unwords [t1,t2,t3])::UTCTime) Exit (T.pack var)
+        "entering" -> MkProfileEvent val Enter (T.pack var)
+        "exiting" -> MkProfileEvent val Exit (T.pack var)
         badLog -> error $
           "parseProfileEvent: expecting \"entering\" or \"exiting\" but got "
           <> show badLog
@@ -100,24 +109,24 @@ getStacks = go []
       [StackFrame] ->
       [ProfileEvent] ->
       [StackTime]
-    go curStack ((MkProfileEvent startTime Enter varName):tl) =
+    go curStack ((MkProfileEvent startVal Enter varName):tl) =
           go
-            (MkStackFrame{varName, startTime, timeSpentCalledFn = 0}:curStack)
+            (MkStackFrame{varName, startVal, valSpentCalledFun = 0}:curStack)
             tl
-    go (MkStackFrame {varName=curTopVar, startTime, timeSpentCalledFn}:poppedStack) ((MkProfileEvent exitTime Exit var):tl)
+    go (MkStackFrame {varName=curTopVar, startVal, valSpentCalledFun}:poppedStack) ((MkProfileEvent exitVal Exit var):tl)
       | curTopVar == var =
-        let duration = diffUTCTime exitTime startTime
-            updateTimeSpent (hd@MkStackFrame{timeSpentCalledFn}:tl) =
-              hd {timeSpentCalledFn = timeSpentCalledFn + duration}:tl
-            updateTimeSpent [] = []
-            updatedStack = updateTimeSpent poppedStack
+        let diffVal = exitVal - startVal
+            updateValSpent (hd@MkStackFrame{valSpentCalledFun}:tl) =
+              hd {valSpentCalledFun = valSpentCalledFun + diffVal}:tl
+            updateValSpent [] = []
+            updatedStack = updateValSpent poppedStack
             -- this is quadratic but it's fine because we have to do quadratic
             -- work anyway for fg and the input sizes are small.
             fnsEntered = map varName updatedStack
         in
           -- time spent on this function is the total time spent
           -- minus the time spent on the function(s) it called.
-          MkStackTime (var:fnsEntered) (nominalDiffTimeToSeconds (duration - timeSpentCalledFn)):go updatedStack tl
+          MkStackTime (var:fnsEntered) (diffVal - valSpentCalledFun):go updatedStack tl
     go _ ((MkProfileEvent _ Exit _):tl) =
       error "go: tried to exit but couldn't."
     go [] [] = []
