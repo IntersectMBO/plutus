@@ -11,6 +11,8 @@ module Capability.PlutusApps.MarloweApp.Types
 
 import Prologue
 import Data.Generic.Rep (class Generic)
+import Data.UUID (UUID)
+import Data.Tuple.Nested (type (/\))
 import Effect.AVar (AVar)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
@@ -27,8 +29,8 @@ type EndpointName
 -- Right now we are only allowing one endpoint to be called at a time, but we could later extend this
 -- to use a RequestId to map between the request and the response.
 data LastResult
-  = OK EndpointName
-  | SomeError EndpointName MarloweError
+  = OK UUID EndpointName
+  | SomeError UUID EndpointName MarloweError
   | Unknown
 
 derive instance genericLastResult :: Generic LastResult _
@@ -79,11 +81,17 @@ type MarloweAppState
   = LastResult
 
 -- The plutus contracts can have their endpoints active or inactive. We use
--- this AVar object to allow the API users to wait for an endpoint to be available.
+-- this object with Mutex to avoid calling an inactive endpoint and to keep
+-- track of the different requests.
 type EndpointMutex
   = { create :: AVar Unit
     , applyInputs :: AVar Unit
     , redeem :: AVar Unit
+    -- For each request we fire, we store in a queue the tuple of the
+    -- request id and a mutex to wait for the response. We use an array
+    -- instead of a Map because we only want to keep a limited number of
+    -- requests.
+    , requests :: AVar (Array (UUID /\ AVar LastResult))
     }
 
 type MarloweAppEndpointMutexEnv env

@@ -35,6 +35,7 @@ import           Data.Monoid                  (First (..))
 import           Data.Semigroup.Generic       (GenericSemigroupMonoid (..))
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as T
+import           Data.UUID                    (UUID)
 import           Data.Void                    (absurd)
 import           GHC.Generics                 (Generic)
 import           Language.Marlowe.Scripts
@@ -63,11 +64,11 @@ import qualified PlutusTx
 import qualified PlutusTx.AssocMap            as AssocMap
 
 type MarloweSchema =
-        Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
-        .\/ Endpoint "apply-inputs" (MarloweParams, Maybe SlotInterval, [Input])
-        .\/ Endpoint "auto" (MarloweParams, Party, Slot)
-        .\/ Endpoint "redeem" (MarloweParams, TokenName, PubKeyHash)
-        .\/ Endpoint "close" ()
+        Endpoint "create" (UUID, AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
+        .\/ Endpoint "apply-inputs" (UUID, MarloweParams, Maybe SlotInterval, [Input])
+        .\/ Endpoint "auto" (UUID, MarloweParams, Party, Slot)
+        .\/ Endpoint "redeem" (UUID, MarloweParams, TokenName, PubKeyHash)
+        .\/ Endpoint "close" UUID
 
 
 type MarloweCompanionSchema = EmptySchema
@@ -133,10 +134,9 @@ instance Semigroup ContractProgress where
 instance Monoid ContractProgress where
     mempty = InProgress
 
--- TODO: We should change this for a Tuple of endpoint name and request id.
 type EndpointName = String
 
-data LastResult = OK EndpointName | SomeError EndpointName MarloweError | Unknown
+data LastResult = OK UUID EndpointName | SomeError UUID EndpointName MarloweError | Unknown
   deriving (Show,Eq,Generic)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -230,12 +230,12 @@ marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
 marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweError ()
 marlowePlutusContract = selectList [create, apply, auto, redeem, close]
   where
-    catchError endpointName handler = catching _MarloweError
+    catchError reqId endpointName handler = catching _MarloweError
         (void $ mapError (review _MarloweError) handler)
         (\er -> do
-            tell $ SomeError endpointName er
+            tell $ SomeError reqId endpointName er
             marlowePlutusContract)
-    create = endpoint @"create" $ \(owners, contract) -> catchError "create" $ do
+    create = endpoint @"create" $ \(reqId, owners, contract) -> catchError reqId "create" $ do
         -- Create a transaction with the role tokens and pay them to the contract creator
         -- See Note [The contract is not ready]
         (params, distributeRoleTokens, lkps) <- setupMarloweParams owners contract
@@ -251,13 +251,13 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         -- Create the Marlowe contract and pay the role tokens to the owners
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
-        tell $ OK "create"
+        tell $ OK reqId "create"
         marlowePlutusContract
-    apply = endpoint @"apply-inputs" $ \(params, slotInterval, inputs) -> catchError "apply-inputs" $ do
+    apply = endpoint @"apply-inputs" $ \(reqId, params, slotInterval, inputs) -> catchError reqId "apply-inputs" $ do
         _ <- applyInputs params slotInterval inputs
-        tell $ OK "apply-inputs"
+        tell $ OK reqId "apply-inputs"
         marlowePlutusContract
-    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> catchError "redeem" $ do
+    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(reqId, MarloweParams{rolesCurrency}, role, pkh) -> catchError reqId "redeem" $ do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxosAt address
         let spendPayoutConstraints tx ref txout = let
@@ -275,7 +275,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
         let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
         if spendPayouts == mempty
         then do
-            tell $ OK "redeem"
+            tell $ OK reqId "redeem"
         else do
             let
               constraints = spendPayouts
@@ -288,17 +288,17 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
                   <> Constraints.ownPubKeyHash pkh
             tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
             _ <- submitUnbalancedTx tx
-            tell $ OK "redeem"
+            tell $ OK reqId "redeem"
 
         marlowePlutusContract
-    auto = endpoint @"auto" $ \(params, party, untilSlot) -> catchError "auto" $ do
+    auto = endpoint @"auto" $ \(reqId, params, party, untilSlot) -> catchError reqId "auto" $ do
         let theClient = mkMarloweClient params
         let continueWith :: MarloweData -> Contract MarloweContractState MarloweSchema MarloweError ()
             continueWith md@MarloweData{marloweContract} =
                 if canAutoExecuteContractForParty party marloweContract
-                then autoExecuteContract theClient party md
+                then autoExecuteContract reqId theClient party md
                 else do
-                    tell $ OK "auto"
+                    tell $ OK reqId "auto"
                     marlowePlutusContract
 
         maybeState <- SM.getOnChainState theClient
@@ -308,11 +308,11 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
                 case wr of
                     ContractEnded{} -> do
                         logInfo @String $ "Contract Ended for party " <> show party
-                        tell $ OK "auto"
+                        tell $ OK reqId "auto"
                         marlowePlutusContract
                     Timeout{} -> do
                         logInfo @String $ "Contract Timeout for party " <> show party
-                        tell $ OK "auto"
+                        tell $ OK reqId "auto"
                         marlowePlutusContract
                     Transition _ _ marloweData -> continueWith marloweData
                     InitialState _ marloweData -> continueWith marloweData
@@ -321,14 +321,15 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
                 continueWith marloweData
     -- The MarloweApp contract is closed implicitly by not returning
     -- itself (marlowePlutusContract) as a continuation
-    close = endpoint @"close" $ \_ -> tell $ OK "close"
+    close = endpoint @"close" $ \reqId -> tell $ OK reqId "close"
 
 
-    autoExecuteContract :: StateMachineClient MarloweData MarloweInput
+    autoExecuteContract :: UUID
+                      -> StateMachineClient MarloweData MarloweInput
                       -> Party
                       -> MarloweData
                       -> Contract MarloweContractState MarloweSchema MarloweError ()
-    autoExecuteContract theClient party marloweData = do
+    autoExecuteContract reqId theClient party marloweData = do
         slot <- currentSlot
         let slotRange = (slot, slot + defaultTxValidationRange)
         let action = getAction slotRange party marloweData
@@ -356,7 +357,7 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
                 case wr of
                     ContractEnded{} -> do
                         logInfo @String $ "Contract Ended"
-                        tell $ OK "auto"
+                        tell $ OK reqId "auto"
                         marlowePlutusContract
                     Timeout{} -> do
                         logInfo @String $ "Contract Timeout"
@@ -366,16 +367,16 @@ marlowePlutusContract = selectList [create, apply, auto, redeem, close]
 
             CloseContract -> do
                 logInfo @String $ "CloseContract"
-                tell $ OK "auto"
+                tell $ OK reqId "auto"
                 marlowePlutusContract
 
             NotSure -> do
                 logInfo @String $ "NotSure"
-                tell $ OK "auto"
+                tell $ OK reqId "auto"
                 marlowePlutusContract
 
           where
-            continueWith = autoExecuteContract theClient party
+            continueWith = autoExecuteContract reqId theClient party
 
 
 setupMarloweParams
