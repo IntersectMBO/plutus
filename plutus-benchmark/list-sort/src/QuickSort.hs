@@ -40,9 +40,10 @@ quickSortWorstCase n = reverse [1..n]
 quickSortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
 quickSortPlc = $$(Tx.compile [|| quickSort ||])
 
-mkQuickSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-mkQuickSortTerm n =
-    let (UPLC.Program _ _ code) = Tx.getPlc $
-                                  $$(Tx.compile [|| quickSort ||])
-                                  `Tx.applyCode` Tx.liftCode (quickSortWorstCase n)
+mkQuickSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkQuickSortTerm l =
+    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| quickSort ||]) `Tx.applyCode` Tx.liftCode l
     in code
+
+mkWorstCaseQuickSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseQuickSortTerm = mkQuickSortTerm . quickSortWorstCase

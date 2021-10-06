@@ -59,10 +59,10 @@ msortWorstCase n = f [1..n]
                 [a]        -> (reverse(a:lacc), reverse racc)
                 (a:b:rest) -> unzip2 rest (a:lacc) (b:racc)
 
-mkMergeSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-mkMergeSortTerm n =
-    let (UPLC.Program _ _ code) = Tx.getPlc $
-                                  $$(Tx.compile [|| mergeSort ||])
-                                  `Tx.applyCode` Tx.liftCode (msortWorstCase n)
+mkMergeSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkMergeSortTerm l =
+    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| mergeSort ||]) `Tx.applyCode` Tx.liftCode l
     in code
 
+mkWorstCaseMergeSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseMergeSortTerm = mkMergeSortTerm . msortWorstCase

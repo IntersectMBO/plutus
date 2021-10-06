@@ -15,7 +15,6 @@ import           InsertionSort
 import           MergeSort
 import           QuickSort
 
-import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
@@ -23,25 +22,22 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-getUnDBrTerm
-    :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-    -> UPLC.Term Name DefaultUni DefaultFun ()
+type NamedDeBruijnTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+type NamedTerm = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+
+getUnDBrTerm :: NamedDeBruijnTerm -> NamedTerm
 getUnDBrTerm term =
     case runExcept @UPLC.FreeVariableError . PLC.runQuoteT . UPLC.unDeBruijnTerm $ term of
       Left e  -> throw e
       Right t -> t
 
-getBudgetUsage
-    :: UPLC.Term Name DefaultUni DefaultFun ()
-    -> Maybe Integer
+getBudgetUsage :: NamedTerm -> Maybe Integer
 getBudgetUsage term =
     case Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting term of
       (Left _, _)                 -> Nothing
       (Right _, Cek.CountingSt c) -> let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral cpu
 
-getCekSteps
-    :: UPLC.Term Name DefaultUni DefaultFun ()
-    -> Maybe Integer
+getCekSteps :: NamedTerm -> Maybe Integer
 getCekSteps term =
     case Cek.runCekNoEmit PLC.unitCekParameters Cek.tallying term of
       (Left _, _)                   -> Nothing
@@ -54,8 +50,7 @@ getCekSteps term =
               totalComputeSteps = sum $ map getCount allNodeTags
           in Just totalComputeSteps
 
-getInfo :: UPLC.Term Name DefaultUni DefaultFun ()
-    -> Maybe (Integer, Integer)
+getInfo :: NamedTerm -> Maybe (Integer, Integer)
 getInfo term =
     case (getBudgetUsage term, getCekSteps term) of
       (Just c, Just n) -> Just (c,n)
@@ -63,7 +58,7 @@ getInfo term =
 
 -- Create a term sorting a list of length n and execute it in counting mode then
 -- tallying mode and print out the cost and the number of CEK compute steps.
-printSortStatistics :: (Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) -> Integer -> IO ()
+printSortStatistics :: (Integer -> NamedDeBruijnTerm) -> Integer -> IO ()
 printSortStatistics termMaker n =
     let term = getUnDBrTerm (termMaker n)
     in case getInfo term of
@@ -83,15 +78,15 @@ main = do
   putStrLn "Insertion sort"
   putStrLn ""
   putStrLn header
-  mapM_ (printSortStatistics mkInsertionSortTerm) inputLengths
+  mapM_ (printSortStatistics mkWorstCaseInsertionSortTerm) inputLengths
   putStrLn "\n"
   putStrLn "Merge sort"
   putStrLn ""
   putStrLn header
-  mapM_ (printSortStatistics mkMergeSortTerm) inputLengths
+  mapM_ (printSortStatistics mkWorstCaseMergeSortTerm) inputLengths
   putStrLn "\n"
   putStrLn "Quicksort"
   putStrLn ""
   putStrLn header
-  mapM_ (printSortStatistics mkQuickSortTerm) inputLengths
+  mapM_ (printSortStatistics mkWorstCaseQuickSortTerm) inputLengths
 

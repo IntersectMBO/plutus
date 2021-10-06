@@ -34,10 +34,10 @@ insertionSort l0 = sort l0 []
 insertionSortWorstCase :: Integer -> [Integer]
 insertionSortWorstCase n = [1..n]
 
-mkInsertionSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-mkInsertionSortTerm n =
-    let (UPLC.Program _ _ code) = Tx.getPlc $
-                                  $$(Tx.compile [|| insertionSort ||])
-                                  `Tx.applyCode` Tx.liftCode (insertionSortWorstCase n)
+mkInsertionSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkInsertionSortTerm l =
+    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| insertionSort ||]) `Tx.applyCode` Tx.liftCode l
     in code
 
+mkWorstCaseInsertionSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseInsertionSortTerm = mkInsertionSortTerm . insertionSortWorstCase
