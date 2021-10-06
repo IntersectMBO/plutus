@@ -52,7 +52,7 @@ benchmarks =
     , bgroup "mergeSort"     $ map (\n -> bench (show n) $ benchMergeSort n)     sizes
     , bgroup "quickSort"     $ map (\n -> bench (show n) $ benchQuickSort n)     sizes
     ]
-    where sizes = [100,200..1000]
+    where sizes = [10,20..500]
 
 main :: IO ()
 main = do

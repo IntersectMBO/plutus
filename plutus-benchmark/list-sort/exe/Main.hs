@@ -78,7 +78,7 @@ runSort n term =
 
 main :: IO ()
 main = do
-  let inputLengths = [10,20..400]
+  let inputLengths = [10,20..500]
       header = "Length  Cost (ms)   Cost (ps)         CEK steps\n"
             ++ "------------------------------------------------"
   putStrLn "Insertion sort"
