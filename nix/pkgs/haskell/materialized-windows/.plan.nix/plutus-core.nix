@@ -31,6 +31,7 @@
         "cost-model/data/cekMachineCosts.json"
         "cost-model/data/benching.csv"
         "cost-model/data/*.R"
+        "plutus-core/test/CostModelInterface/defaultCostModelParams.json"
         ];
       extraTmpFiles = [];
       extraDocFiles = [ "README.md" ];
@@ -447,6 +448,10 @@
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
+            (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
             ];
           buildable = true;
           modules = [

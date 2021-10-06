@@ -19,6 +19,7 @@ extra-source-files:
     cost-model/data/cekMachineCosts.json
     cost-model/data/benching.csv
     cost-model/data/*.R
+    plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
     type: git
@@ -366,7 +367,11 @@ test-suite plutus-core-test
         tasty-hedgehog -any,
         tasty-hunit -any,
         text -any,
-        transformers -any
+        transformers -any,
+        aeson -any,
+        template-haskell -any,
+        th-lift-instances -any,
+        th-utilities -any,
 
 test-suite plutus-ir-test
     import: lang
