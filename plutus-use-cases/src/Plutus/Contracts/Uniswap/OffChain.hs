@@ -27,6 +27,7 @@ module Plutus.Contracts.Uniswap.OffChain
     , UniswapOwnerSchema
     , start, create, add, remove, close, swap, pools
     , ownerEndpoint, userEndpoints
+    , uniswapScript, uniswap
     ) where
 
 import           Control.Lens                     (view)
