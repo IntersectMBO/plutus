@@ -175,9 +175,6 @@ v_failHeadNil = Scripts.mkTypedValidator @Validators
     where
         wrap = Scripts.wrapValidator
 
--- TODO: The codebase isn't working properly for
--- division by zero errors right now, c.f. note
--- [Divide by zero]
 -- | Always fail with a division by zero error
 {-# INLINEABLE divZero #-}
 divZero :: () -> Integer -> ScriptContext -> Bool

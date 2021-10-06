@@ -115,7 +115,7 @@ module Plutus.Contract.Test.ContractModel
     , NoLockedFundsProof(..)
     , checkNoLockedFundsProof
     -- $checkNoPartiality
-    , WhitelistEntry(..)
+    , Whitelist(..)
     , whitelistOk
     , defaultWhitelist
     , checkErrorWhitelist
@@ -1153,14 +1153,12 @@ checkNoLockedFundsProof options spec NoLockedFundsProof{nlfpMainStrategy   = mai
 
 -- | A whitelist entry tells you what final log entry prefixes
 -- are acceptable for a given error
-data WhitelistEntry = WhitelistEntry { acceptEmptyLog :: Bool, errorPrefixes :: [Text.Text] }
--- | A whitelist associates errors with a whitelist entry
-type Whitelist = Map String WhitelistEntry
+data Whitelist = Whitelist { errorPrefixes :: [Text.Text] }
 
 -- | Check that the last entry in a log is accepted by a whitelist entry
-isAcceptedBy :: Maybe Text.Text -> WhitelistEntry -> Bool
-isAcceptedBy Nothing wle          = acceptEmptyLog wle
-isAcceptedBy (Just lastEntry) wle = any (`Text.isPrefixOf` lastEntry) (errorPrefixes wle)
+isAcceptedBy :: Maybe Text.Text -> Whitelist -> Bool
+isAcceptedBy Nothing _           = False
+isAcceptedBy (Just lastEntry) wl = any (`Text.isPrefixOf` lastEntry) (errorPrefixes wl)
 
 {- Note [Maintaining `whitelistOk` and `checkErrorWhitelist`]
    The intended use case of `checkErrorWhitelist` is to be able to assert that failures of
@@ -1172,29 +1170,19 @@ isAcceptedBy (Just lastEntry) wle = any (`Text.isPrefixOf` lastEntry) (errorPref
    in the plutus system.
 -}
 
-{- Note [Divide by zero]
-   Errors that arise from a division by zero fail silently with a `CekEvaluationFailure`. This
-   means that we can not be sure to catch this failure using our approach if the programmer
-   has whitelisted some log message that happens to be the last message in the log. This is
-   a big problem that I (Max) don't know how to get around at the time of writing. The best
-   fix would be to fix the CEK machine implementaiton to throw a different type of error when
-   division by zero fails.
--}
-
 -- | Check that a whitelist does not accept any partial functions
 whitelistOk :: Whitelist -> Bool
 whitelistOk wl = noPreludePartials
   where
-    noPreludePartials = case Map.lookup "CekEvaluationFailure" wl of
+    noPreludePartials =
       -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
       -- validator that returns a boolean fails correctly.
-      Just wle -> all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wle) (Map.keys allErrorCodes \\ [checkHasFailedError])
-               -- Check that no builtin function evaluation failure is accepted by the whitelist
-               && all (\b -> Prelude.not $ (Just $ Text.pack $ "[BuiltinEvaluationFailure] of " ++ show b) `isAcceptedBy` wle) [minBound .. maxBound :: PLC.DefaultFun]
-      Nothing  -> True
+      all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wl) (Map.keys allErrorCodes \\ [checkHasFailedError])
+      -- Check that no builtin function evaluation failure is accepted by the whitelist
+      && all (\b -> Prelude.not $ (Just $ Text.pack $ "[BuiltinEvaluationFailure] of " ++ show b) `isAcceptedBy` wl) [minBound .. maxBound :: PLC.DefaultFun]
 
 defaultWhitelist :: Whitelist
-defaultWhitelist = Map.singleton "CekEvaluationFailure" (WhitelistEntry False [Builtins.fromBuiltin checkHasFailedError])
+defaultWhitelist = Whitelist [Builtins.fromBuiltin checkHasFailedError]
 
 -- | Check that running a contract model does not result in validation
 -- failures that are not accepted by the whitelist.
@@ -1225,10 +1213,8 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
     checkOffchain = assertFailedTransaction (\ _ _ -> all (either checkEvent (const True) . sveResult))
 
     checkEvent :: ScriptError -> Bool
-    checkEvent (EvaluationError log e) = case Map.lookup e whitelist of
-        Just wl -> listToMaybe (reverse log) `isAcceptedBy` wl
-        Nothing -> False
-    checkEvent _                       = True
+    checkEvent (EvaluationError log "CekEvaluationFailure") = listToMaybe (reverse log) `isAcceptedBy` whitelist
+    checkEvent _                                            = True
 
     checkEvents :: [ChainEvent] -> Bool
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
