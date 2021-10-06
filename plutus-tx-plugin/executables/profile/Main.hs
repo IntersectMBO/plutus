@@ -4,23 +4,20 @@
 {- | Executable for profiling. See note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
-Work flow for profiling evaluation time:
-1. Compile your program with the GHC plugin option profile-all and dump-plc
-2. Run the dumped program with uplc --trace-mode LogsWithTimestamps --log-output logs
-3. Run logToStacks filePaths and input it to flamegraph.pl
+Workflow for profiling evaluation time:
+1. Compile your program with the Plutus Tx plugin option profile-all
+2. Get the program you want to run, either by extracting it from the emulator logs,
+or by using the Plutus Tx plugin option 'dump-plc' if you have a self-contained program.
+3. Run the dumped program with 'uplc --trace-mode LogsWithTimestamps -o logs'
+4. Run 'cat logs | logToStacks | flamegraph.pl > out.svg'
+5. Open out.svg in your viewer of choiece e.g. firefox.
 
-Running @logToStacks@ gives you the program's .stacks file.
-@logToStacks@ takes file paths (of the dumped programs) as input.
-
-To get a flamegraph, you need to have flamegraph.pl from
-https://github.com/brendangregg/FlameGraph/.
-Input your program's .stacks file to flamegraph.pl to get a flamegraph. E.g.
-$ ~/FlameGraph/flamegraph.pl < plutus-tx-plugin/executables/profile/fib4.stacks > fib4.svg
-
-4. Run firefox yourFile.svg
-flamegraph.pl turns the stacks into a .svg file. You can view the file with a browser. E.g.
-$ firefox fib4.svg
- -}
+You can also profile the abstract memory and budget units.
+To do so, run 'uplc' with '--trace-mode LogsWithBudgets'.
+This will give you CSV output with two numeric columns. By default 'logToStacks'
+will use the first numeric column (CPU), so will give you a CPU flamegraph, but you can
+control this with the '--column' argument.
+-}
 
 module Main where
 
@@ -33,6 +30,8 @@ import           Data.List             (intercalate)
 import qualified Data.Text             as T
 import           Data.Time.Clock
 import           Data.Time.Clock.POSIX
+import qualified Data.Vector           as V
+import           Options.Applicative
 import           System.Environment    (getArgs)
 import           Text.Read             (readMaybe)
 
@@ -46,18 +45,6 @@ data StackFrame
     valSpentCalledFun :: Integer
   }
   deriving (Show)
-
--- | Turn timed log to stacks in a format flamegraph.pl accepts.
-logToStacks ::
-  -- | The list of files of logs to be turned in stacks format.
-  [FilePath] ->
-  IO ()
-logToStacks (hd:tl) = do
-  processed <- processLog hd
-  writeFile (hd<>".stacks") (intercalate "\n" (map show processed))
-  logToStacks tl
-  pure ()
-logToStacks [] = pure ()
 
 data ProfileEvent =
   MkProfileEvent Integer Transition T.Text
@@ -80,17 +67,23 @@ instance Show StackTime where
       -- turn duration in seconds to micro-seconds for readability
       <>show duration
 
-processLog :: FilePath -> IO [StackTime]
-processLog file = do
-  content <- BSL.readFile file
-  lEvents <- case CSV.decode CSV.NoHeader content of
-      Left e   -> fail e
-      Right es -> pure es
-  pure $ getStacks (map parseProfileEvent $ toList lEvents)
+data LogRow = LogRow String [Integer]
 
-parseProfileEvent :: (String, Integer) -> ProfileEvent
-parseProfileEvent (str, val) =
-  case words str of
+instance CSV.FromRecord LogRow where
+    parseRecord v | V.length v == 0 = fail "empty"
+    parseRecord v = LogRow <$> CSV.parseField (V.unsafeHead v) <*> traverse CSV.parseField (V.toList $ V.unsafeTail v)
+
+processLog :: Int -> BSL.ByteString -> [StackTime]
+processLog valIx content =
+  let lEvents = case CSV.decode CSV.NoHeader content of
+        Left e   -> error e
+        Right es -> es
+  in getStacks (map (parseProfileEvent valIx) $ toList lEvents)
+
+parseProfileEvent :: Int -> LogRow -> ProfileEvent
+parseProfileEvent valIx (LogRow str vals) =
+  let val = vals !! (valIx-1)
+  in case words str of
     [transition,var] ->
       case transition of
         "entering" -> MkProfileEvent val Enter (T.pack var)
@@ -133,9 +126,40 @@ getStacks = go []
     go stacks [] = error $
       "go: stack " <> show stacks <> " isn't empty but the log is."
 
+column :: Parser Int
+column = option auto
+  (  long "column"
+  <> short 'c'
+  <> metavar "COL"
+  <> value 1
+  <> showDefault
+  <> help "Column to take profiling values from.")
+
+data Input
+  = FileInput FilePath
+  | StdInput
+
+fileInput :: Parser Input
+fileInput = FileInput <$> strOption
+  (  long "file"
+  <> short 'f'
+  <> metavar "FILENAME"
+  <> help "Input file" )
+
+input :: Parser Input
+input = fileInput <|> pure StdInput
+
+data Opts = Opts Input Int
+
+opts :: ParserInfo Opts
+opts = info ((Opts <$> input <*> column) <**> helper)
+  (fullDesc <> progDesc "Turn PLC log output into flamegraph stacks output")
+
 main :: IO ()
 main = do
-  lFilePath <- getArgs
-  logToStacks lFilePath
-
-
+  Opts inp valIx <- execParser opts
+  input <- case inp of
+      FileInput fp -> BSL.readFile fp
+      StdInput     -> BSL.getContents
+  let processed = processLog valIx input
+  putStrLn (intercalate "\n" (map show processed))
