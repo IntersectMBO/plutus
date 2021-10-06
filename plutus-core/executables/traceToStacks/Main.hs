@@ -9,12 +9,12 @@ Workflow for profiling evaluation time:
 2. Get the program you want to run, either by extracting it from the emulator logs,
 or by using the Plutus Tx plugin option 'dump-plc' if you have a self-contained program.
 3. Run the dumped program with 'uplc --trace-mode LogsWithTimestamps -o logs'
-4. Run 'cat logs | logToStacks | flamegraph.pl > out.svg'
+4. Run 'cat logs | traceToStacks | flamegraph.pl > out.svg'
 5. Open out.svg in your viewer of choiece e.g. firefox.
 
 You can also profile the abstract memory and budget units.
 To do so, run 'uplc' with '--trace-mode LogsWithBudgets'.
-This will give you CSV output with two numeric columns. By default 'logToStacks'
+This will give you CSV output with two numeric columns. By default 'traceToStacks'
 will use the first numeric column (CPU), so will give you a CPU flamegraph, but you can
 control this with the '--column' argument.
 -}
