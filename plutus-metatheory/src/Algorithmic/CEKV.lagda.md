@@ -1058,6 +1058,19 @@ thm65a ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckSt
 thm65a (□ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (◆ A) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 
+
+postulate clos-lem : ∀{A}(M : ∅ ⊢ A) → M ≡ cek2ckClos M []
+
+lem□ : ∀{A}(W V : Value A) → □ W -→s □ V → W ≡ V
+lem□ W .W base = refl
+lem□ W V (step* refl p) = lem□ W V p
+
+postulate discharge-lem' : ∀{A}{M : ∅ ⊢ A}(V : Red.Value M) → M ≡ discharge (ck2cekVal V)
+
+postulate inv-lem : ∀{A}{M : ∅ ⊢ A}(x₁ : Red.Value M)
+                  → (p : M ≡ discharge (ck2cekVal x₁))
+                  → substEq Red.Value p x₁ ≡ cek2ckVal (ck2cekVal x₁)
+
 {-
 thm65b : ∀{A}(s s' : CK.State A) → s CK.-→s s' → ck2cekState s -→s ck2cekState s'
 thm65b s .s CK.base = base
@@ -1094,4 +1107,40 @@ thm65b (CK.◆ A) s' (CK.step* refl p) =
   step* refl (thm65b _ s' p)
 -}
 
+{-
+thm65b : ∀{M₁ k₁ M₁' ρ k₁'} → M₁ ≡ U (M'₁, ρ) → k₁ ≡ T k₁'
+       → (M₁ , k₁) |->>CK (V , ε) → ∃ λ c → ((M₁' , ρ) k₁') |->>CEK (c, ε)
+-}
 
+-- this is intended to be a catchall for recursive calls
+thm64state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
+  → ∃ λ V' → ck2cekState s -→s □ V' × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V 
+
+thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
+  {M'}{ρ : Env Γ}{s'}
+  → M ≡ cek2ckClos M' ρ
+  → (s CK.▻ M) CK.-→s CK.□ V
+  → ∃ λ V' → ((s' ; ρ ▻ M') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
+thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = x₁ CK.▻ x₂} x q) = {!!}
+thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = x₁ CK.◅ x₂} x q) = {!!}
+thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = CK.□ x₁} x q) = {!!}
+thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = CK.◆ A} x q) = {!!}
+
+thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
+  {W : Red.Value M}{W'}{s'}
+  → (p : M ≡ discharge W')
+  → substEq Red.Value p W ≡ cek2ckVal W'
+  → (s CK.◅ W) CK.-→s CK.□ V
+  → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
+thm65bV {M = M}{s = s}{s' = s'} p q (CK.step* x r) = {!q!}
+
+-- this a catch all for making recursive calls
+-- this version of thm64 splits the proof into separate parts
+-- the textbook version has only when representation for states
+-- and therefore thm64 is done all in one go
+thm64state {s = x CK.▻ x₁} p = thm65b (clos-lem x₁) p
+thm64state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) p
+thm64state {s = CK.□ x} p with CK.lem□ _ _ p
+... | refl ,, refl = _ ,, base ,, discharge-lem' x ,, sym (inv-lem x (discharge-lem' x))
+thm64state {s = CK.◆ A} p with CK.lem◆' _ p
+... | ()
