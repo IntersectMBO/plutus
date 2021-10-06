@@ -23,7 +23,7 @@ module Wallet.Emulator.Wallet where
 
 import qualified Cardano.Crypto.Wallet          as Crypto
 import           Control.Lens                   hiding (from, to)
-import           Control.Monad                  (foldM)
+import           Control.Monad                  (foldM, (<=<))
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo, logWarn)
@@ -113,6 +113,12 @@ instance Ord Crypto.XPrv where
 instance Hashable Crypto.XPrv where
     hashWithSalt i = hashWithSalt i . Crypto.unXPrv
 deriving anyclass instance OpenApi.ToSchema WalletId
+
+instance ToJSON Crypto.XPrv where
+    toJSON = Aeson.String . encodeByteString . Crypto.unXPrv
+
+instance FromJSON Crypto.XPrv where
+    parseJSON = Aeson.withText "XPrv" (either fail pure . (Crypto.xprv <=< tryDecode))
 
 toBase16 :: WalletId -> T.Text
 toBase16 (MockWallet xprv) = encodeByteString $ Crypto.unXPrv xprv
