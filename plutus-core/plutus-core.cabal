@@ -297,7 +297,7 @@ library
         primitive -any,
         recursion-schemes -any,
         semigroupoids -any,
-        semigroups -any,
+        semigroups >=0.19.1,
         serialise -any,
         size-based -any,
         some < 1.0.3,
