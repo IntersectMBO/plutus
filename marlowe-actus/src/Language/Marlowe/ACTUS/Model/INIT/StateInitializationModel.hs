@@ -35,13 +35,13 @@ initializeState = reader initializeState'
     initializeState' :: CtxSTF Double LocalTime -> ContractState
     initializeState' CtxSTF {..} =
       ContractStatePoly
-        { prnxt = nextPrincipalRedemptionPayment contractTerms {ct_MD = maturity},
-          ipcb = interestPaymentCalculationBase contractTerms {ct_MD = maturity},
+        { prnxt = nextPrincipalRedemptionPayment contractTerms,
+          ipcb = interestPaymentCalculationBase contractTerms,
           tmd = contractMaturity maturity,
           nt = notionalPrincipal contractTerms,
           ipnr = nominalInterestRate contractTerms,
           ipac = interestAccrued contractTerms,
-          feac = feeAccrued contractTerms {ct_MD = maturity},
+          feac = feeAccrued contractTerms,
           nsc = notionalScaling contractTerms,
           isc = interestScaling contractTerms,
           prf = contractPerformance contractTerms,
@@ -50,30 +50,30 @@ initializeState = reader initializeState'
       where
         t0 = ct_SD contractTerms
 
-        tfp_minus = fromMaybe t0 (sup' fpSchedule t0)
-        tfp_plus = fromMaybe t0 (inf' fpSchedule t0)
-        tminus = fromMaybe t0 (sup' ipSchedule t0)
+        tMinusFP = fromMaybe t0 (sup' fpSchedule t0)
+        tPlusFP = fromMaybe t0 (inf' fpSchedule t0)
+        tMinusIP = fromMaybe t0 (sup' ipSchedule t0)
 
-        scef_xNx :: SCEF -> Bool
-        scef_xNx SE_0N0 = True
-        scef_xNx SE_0NM = True
-        scef_xNx SE_IN0 = True
-        scef_xNx SE_INM = True
-        scef_xNx _      = False
+        scalingEffect_xNx :: SCEF -> Bool
+        scalingEffect_xNx SE_0N0 = True
+        scalingEffect_xNx SE_0NM = True
+        scalingEffect_xNx SE_IN0 = True
+        scalingEffect_xNx SE_INM = True
+        scalingEffect_xNx _      = False
 
-        scef_Ixx :: SCEF -> Bool
-        scef_Ixx SE_IN0 = True
-        scef_Ixx SE_INM = True
-        scef_Ixx SE_I00 = True
-        scef_Ixx SE_I0M = True
-        scef_Ixx _      = False
+        scalingEffect_Ixx :: SCEF -> Bool
+        scalingEffect_Ixx SE_IN0 = True
+        scalingEffect_Ixx SE_INM = True
+        scalingEffect_Ixx SE_I00 = True
+        scalingEffect_Ixx SE_I0M = True
+        scalingEffect_Ixx _      = False
 
         interestScaling :: ContractTerms -> Double
         interestScaling
           ContractTermsPoly
             { ct_SCEF = Just scef,
               ct_SCIP = Just scip
-            } | scef_Ixx scef = scip
+            } | scalingEffect_Ixx scef = scip
         interestScaling _ = 1.0
 
         notionalScaling :: ContractTerms -> Double
@@ -81,14 +81,14 @@ initializeState = reader initializeState'
           ContractTermsPoly
             { ct_SCEF = Just scef,
               ct_SCNT = Just scnt
-            } | scef_xNx scef = scnt
+            } | scalingEffect_xNx scef = scnt
         notionalScaling _ = 1.0
 
         notionalPrincipal :: ContractTerms -> Double
         notionalPrincipal
           ContractTermsPoly
-            { ct_IED = Just initialExchangeDate
-            } | initialExchangeDate > t0 = 0.0
+            { ct_IED = Just ied
+            } | ied > t0 = 0.0
         notionalPrincipal
           ContractTermsPoly
             { ct_CNTRL = cntrl,
@@ -99,8 +99,8 @@ initializeState = reader initializeState'
         nominalInterestRate :: ContractTerms -> Double
         nominalInterestRate
           ContractTermsPoly
-            { ct_IED = Just initialExchangeDate
-            } | initialExchangeDate > t0 = 0.0
+            { ct_IED = Just ied
+            } | ied > t0 = 0.0
         nominalInterestRate
           ContractTermsPoly
             { ct_IPNR = Just ipnr
@@ -123,7 +123,7 @@ initializeState = reader initializeState'
             } =
             let nt = notionalPrincipal contractTerms
                 ipnr = nominalInterestRate contractTerms
-             in _y dcc tminus t0 maturity * nt * ipnr
+             in _y dcc tMinusIP t0 maturity * nt * ipnr
         interestAccrued _ = 0.0
 
         nextPrincipalRedemptionPayment :: ContractTerms -> Double
@@ -133,12 +133,12 @@ initializeState = reader initializeState'
           ContractTermsPoly
             { contractType = LAM,
               ct_PRNXT = Nothing,
-              ct_MD = Just maturityDate,
+              ct_MD = Just md,
               ct_NT = Just nt,
-              ct_PRCL = Just principalRedemptionCycle,
-              ct_PRANX = Just principalRedemptionAnchor,
-              scfg = scheduleConfig
-            } = nt / fromIntegral (length $ generateRecurrentScheduleWithCorrections principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
+              ct_PRCL = Just prcl,
+              ct_PRANX = Just pranx,
+              scfg = scfg
+            } = nt / fromIntegral (length $ generateRecurrentScheduleWithCorrections pranx (prcl {includeEndDay = True}) md scfg)
         nextPrincipalRedemptionPayment
           ContractTermsPoly
             { contractType = ANN,
@@ -147,22 +147,22 @@ initializeState = reader initializeState'
               ct_MD = md,
               ct_NT = Just nt,
               ct_IPNR = Just ipnr,
-              ct_DCC = Just dayCountConvention
+              ct_DCC = Just dcc
             } =
             let scale = nt + ipac
                 frac = annuity ipnr ti
              in frac * scale
             where
               prDates = prSchedule ++ [contractMaturity maturity]
-              ti = zipWith (\tn tm -> _y dayCountConvention tn tm md) prDates (tail prDates)
+              ti = zipWith (\tn tm -> _y dcc tn tm md) prDates (tail prDates)
         nextPrincipalRedemptionPayment _ = 0.0
 
         interestPaymentCalculationBase :: ContractTerms -> Double
         interestPaymentCalculationBase
           ContractTermsPoly
             { contractType = LAM,
-              ct_IED = Just initialExchangeDate
-            } | t0 < initialExchangeDate = 0.0
+              ct_IED = Just ied
+            } | t0 < ied = 0.0
         interestPaymentCalculationBase
           ContractTermsPoly
             { ct_NT = Just nt,
@@ -188,17 +188,17 @@ initializeState = reader initializeState'
         feeAccrued
           ContractTermsPoly
             { ct_FEB = Just FEB_N,
-              ct_DCC = Just dayCountConvention,
+              ct_DCC = Just dcc,
               ct_FER = Just fer,
               ct_NT = Just nt,
               ct_MD = md
-            } = _y dayCountConvention tfp_minus t0 md * nt * fer
+            } = _y dcc tMinusFP t0 md * nt * fer
         feeAccrued
           ContractTermsPoly
-            { ct_DCC = Just dayCountConvention,
+            { ct_DCC = Just dcc,
               ct_FER = Just fer,
               ct_MD = md
-            } = _y dayCountConvention tfp_minus t0 md / _y dayCountConvention tfp_minus tfp_plus md * fer
+            } = _y dcc tMinusFP t0 md / _y dcc tMinusFP tPlusFP md * fer
         feeAccrued _ = 0.0
 
         contractPerformance :: ContractTerms -> PRF
