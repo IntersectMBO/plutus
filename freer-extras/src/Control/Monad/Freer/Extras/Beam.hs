@@ -51,7 +51,7 @@ data BeamError =
 
 instance Pretty BeamError where
   pretty = \case
-    SqlError s -> "Beam error" <> colon <+> pretty s
+    SqlError s -> "SqlError (via Beam)" <> colon <+> pretty s
 
 data BeamLog =
   SqlLog String
