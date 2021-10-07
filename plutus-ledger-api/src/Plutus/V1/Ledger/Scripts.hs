@@ -230,8 +230,6 @@ mkError evalError (Just t) =
        UPLC.Constant _ _  -> Nothing
        UPLC.Error _       -> Nothing
 
-
-
 {- Note [JSON instances for Script]
 The JSON instances for Script are partially hand-written rather than going via the Serialise
 instance directly. The reason for this is to *avoid* the size checks that are in place in the

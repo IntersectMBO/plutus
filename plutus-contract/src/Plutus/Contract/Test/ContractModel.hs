@@ -1213,7 +1213,7 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
     checkEvent :: ScriptError -> Bool
     checkEvent (EvaluationError log "CekEvaluationFailure") = listToMaybe (reverse log) `isAcceptedBy` whitelist
     checkEvent (EvaluationError log msg) | "BuiltinEvaluationFailure" `isPrefixOf` msg = False
-    checkEvent _                                            = True
+    checkEvent _                                            = False
 
     checkEvents :: [ChainEvent] -> Bool
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
