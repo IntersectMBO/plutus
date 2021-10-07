@@ -15,6 +15,9 @@ data CT = PAM -- ^ Principal at maturity
         | LAM -- ^ Linear amortizer
         | NAM -- ^ Negative amortizer
         | ANN -- ^ Annuity
+        | STK -- ^ Stock
+        | OPTNS -- ^ Option
+        | FUTUR -- ^ Future
         deriving stock (Show, Read, Eq, Generic)
         deriving anyclass (FromJSON, ToJSON)
 
@@ -267,6 +270,11 @@ data ContractTermsPoly a b = ContractTermsPoly
   , ct_RRLC          :: Maybe a         -- ^ Life Cap
   , ct_RRLF          :: Maybe a         -- ^ Life Floor
   , ct_RRMO          :: Maybe String    -- ^ Market Object Code Of Rate Reset
+
+  -- Dividend
+  , ct_DVCL          :: Maybe Cycle     -- ^ Cycle Of Dividend
+  , ct_DVANX         :: Maybe b         -- ^ Cycle Anchor Date Of Dividend
+  , ct_DVNP          :: Maybe a         -- ^ Next Dividend Payment Amount
 
   -- enable settlement currency
   , enableSettlement :: Bool

@@ -15,6 +15,7 @@ import           Control.Applicative                               ((<|>))
 import           Control.Monad                                     (mzero)
 import           Data.Aeson
 import           Data.ByteString.Lazy.UTF8                         as BLU (fromString)
+import           Data.Char                                         (toUpper)
 import           Data.HashMap.Strict                               as HashMap ((!))
 import           Data.List                                         as L (find)
 import           Data.List.Extra                                   (replace)
@@ -30,6 +31,7 @@ import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  hiding (Assertion)
 import           Language.Marlowe.ACTUS.Definitions.Schedule
+import           Language.Marlowe.ACTUS.Model.Utility.DateShift    (getFollowingBusinessDay)
 import           Test.Tasty
 import           Test.Tasty.HUnit                                  (Assertion, assertBool, assertFailure, testCase)
 
@@ -53,16 +55,19 @@ runTest tc@TestCase {..} =
 
             observedKey RR = ct_RRMO contract
             observedKey SC = ct_SCMO contract
+            observedKey DV = Just (fmap toUpper identifier ++ "_DV")
             observedKey _  = ct_CURS contract
 
             value = fromMaybe 1.0 $ do
               k <- observedKey ev
               ValuesObserved {values = values} <- Map.lookup k observed
-              ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} -> timestamp == date) values
+              ValueObserved {value = valueObserved} <- L.find (\ValueObserved {timestamp = timestamp} ->
+                getFollowingBusinessDay timestamp (fromJust $ calendar $ scfg contract) == date) values
               return valueObserved
          in case ev of
               RR -> riskFactors {o_rf_RRMO = value}
               SC -> riskFactors {o_rf_SCMO = value}
+              DV -> riskFactors {pp_payoff = value}
               _  -> riskFactors {o_rf_CURS = value}
 
       cashFlows = genProjectedCashflows getRiskFactors contract
@@ -248,6 +253,9 @@ testToContractTerms TestCase{terms = t} =
      , ct_RRLC          = readMaybe $ Map.lookup "lifeCap" terms' :: Maybe Double
      , ct_RRLF          = readMaybe $ Map.lookup "lifeFloor" terms' :: Maybe Double
      , ct_RRMO          = Map.lookup "marketObjectCodeOfRateReset" terms'
+     , ct_DVANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfDividendPayment" terms'
+     , ct_DVCL          = parseMaybeCycle $ Map.lookup "cycleOfDividendPayment" terms'
+     , ct_DVNP          = readMaybe $ Map.lookup "nextDividendPaymentAmount" terms' :: Maybe Double
      , enableSettlement = False
      , constraints      = Nothing
      , collateralAmount = 0

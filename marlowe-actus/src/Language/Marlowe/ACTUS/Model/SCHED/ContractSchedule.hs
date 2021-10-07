@@ -93,6 +93,10 @@ schedule ev c = schedule' ev c { ct_MD = maturity c }
     schedule' SC   ct@ContractTermsPoly{ contractType = ANN } = _SCHED_SC_PAM ct
     schedule' PRF  ct@ContractTermsPoly{ contractType = ANN } = _SCHED_PRF_ANN ct
 
+    schedule' PRD  ct@ContractTermsPoly{ contractType = STK } = _SCHED_PRD_PAM ct
+    schedule' TD   ct@ContractTermsPoly{ contractType = STK } = _SCHED_TD_PAM ct
+    schedule' DV   ct@ContractTermsPoly{ contractType = STK } = _SCHED_DV_STK ct
+
     schedule' _ _                                             = []
 
 maturity :: ContractTerms -> Maybe LocalTime

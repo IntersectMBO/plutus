@@ -6,7 +6,8 @@ import           Control.Monad                                          (liftM4)
 import           Data.Functor                                           ((<&>))
 import           Data.List                                              as L (find, nub)
 import           Data.Maybe                                             (fromMaybe, isJust, isNothing, maybeToList)
-import           Data.Time.LocalTime                                    (addLocalTime)
+import           Data.Time.Calendar                                     (addDays)
+import           Data.Time.LocalTime                                    (LocalTime (..), addLocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms, ContractTermsPoly (..),
                                                                          Cycle (..), IPCB (IPCB_NTL), PPEF (..),
                                                                          PYTP (..), SCEF (..))
@@ -14,6 +15,7 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule            (Shifted
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          remove, (<+>), (<->))
+
 -- Principal at Maturity (PAM)
 
 _SCHED_IED_PAM :: ContractTerms -> [ShiftedDay]
@@ -347,3 +349,24 @@ _SCHED_PRF_ANN
         rrf = _SCHED_RRF_PAM ct
      in prf ++ rr ++ rrf
 _SCHED_PRF_ANN _ = []
+
+-- Stock (STK)
+
+_SCHED_DV_STK :: ContractTerms -> [ShiftedDay]
+_SCHED_DV_STK
+  ContractTermsPoly
+    { ct_DVANX = Just cycleAnchorDateOfDividend,
+      ct_DVCL = Just cycleOfDividend,
+      ct_DVNP = Nothing,
+      scfg = scheduleConfig
+    } = let tMax = LocalTime (addDays (10*365) $ localDay cycleAnchorDateOfDividend) (localTimeOfDay cycleAnchorDateOfDividend)
+         in generateRecurrentScheduleWithCorrections cycleAnchorDateOfDividend cycleOfDividend tMax scheduleConfig
+_SCHED_DV_STK
+  ContractTermsPoly
+    { ct_DVANX = Just cycleAnchorDateOfDividend,
+      ct_DVCL = Just cycleOfDividend,
+      scfg = scheduleConfig
+    } = let tMax = LocalTime (addDays (10*365) $ localDay cycleAnchorDateOfDividend) (localTimeOfDay cycleAnchorDateOfDividend)
+          in generateRecurrentScheduleWithCorrections (cycleAnchorDateOfDividend <+> cycleOfDividend) cycleOfDividend tMax scheduleConfig
+_SCHED_DV_STK _ = []
+
