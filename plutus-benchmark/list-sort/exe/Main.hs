@@ -73,9 +73,14 @@ printSortStatistics termMaker n =
 
 main :: IO ()
 main = do
-  let inputLengths = [10,20..500]
+  let inputLengths = [100,200..1000]
       header = "Length  Cost (ms)   Cost (ps)         CEK steps\n"
             ++ "------------------------------------------------"
+  putStrLn "Merge sort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseMergeSortTerm) inputLengths
+  putStrLn "\n"
   putStrLn "GHC sort"
   putStrLn ""
   putStrLn header
@@ -95,4 +100,3 @@ main = do
   putStrLn ""
   putStrLn header
   mapM_ (printSortStatistics mkWorstCaseQuickSortTerm) inputLengths
-
