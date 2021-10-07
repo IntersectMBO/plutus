@@ -1118,7 +1118,7 @@ thm65b : ∀{M₁ k₁ M₁' ρ k₁'} → M₁ ≡ U (M'₁, ρ) → k₁ ≡ T
 postulate cek2ckClos-·lem : ∀{A B}{L : ∅ ⊢ A ⇒ B}{M : ∅ ⊢ A}{Γ}{ρ : Env Γ}{N : Γ ⊢ B} → L · M ≡ cek2ckClos N ρ → ∃ λ L' → ∃ λ M' → N ≡ L' · M' × L ≡ cek2ckClos L' ρ × M ≡ cek2ckClos M' ρ
 
 -- as ƛ is a value, it can be the result of a variable lookup
-postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ A ⇒ B} → ƛ L ≡ cek2ckClos N ρ → (∃ λ L' → N ≡ ƛ L' × L ≡ dischargeBody L' ρ) ⊎ ∃ λ x → N ≡ ` x × ƛ L ≡ discharge (lookup x ρ)
+postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ A ⇒ B} → (p : ƛ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ ƛ L' × L ≡ dischargeBody L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : ƛ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-ƛ L) ≡ cek2ckVal (lookup x ρ)
 
 
 -- this is intended to be a catchall for recursive calls
@@ -1132,6 +1132,11 @@ thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
   → (s CK.◅ W) CK.-→s CK.□ V
   → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
 
+
+substLem : {A : Set}(P : A → Set){a a' : A}(p q : a ≡ a')(x : P a) →
+  substEq P p x ≡ substEq P q x
+substLem P refl refl x = refl
+
 thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   {M'}{ρ : Env Γ}{s'}
   → M ≡ cek2ckClos M' ρ
@@ -1142,7 +1147,8 @@ thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} p q (CK.step* refl r)
   with cek2ckClos-ƛlem {ρ = ρ}{N = N} p
 thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
-thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} p q (CK.step* refl r) | inj₂ (x  ,, y) = {!!}
+thm65b {Γ = _} {ƛ M} {s = s} {M' = .(` x)} {ρ} {s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') r
+... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
 thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
   with cek2ckClos-·lem {ρ = ρ}{N = N} p
 ... | L' ,, M' ,, refl ,, Lp ,, refl
