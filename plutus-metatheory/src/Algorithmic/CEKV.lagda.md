@@ -1120,6 +1120,9 @@ postulate cek2ckClos-·lem : ∀{A B}{L : ∅ ⊢ A ⇒ B}{M : ∅ ⊢ A}{Γ}{ρ
 -- as ƛ is a value, it can be the result of a variable lookup
 postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ A ⇒ B} → (p : ƛ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ ƛ L' × L ≡ dischargeBody L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : ƛ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-ƛ L) ≡ cek2ckVal (lookup x ρ)
 
+postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{Γ}{ρ : Env Γ}{N : Γ ⊢ B [ A ]Nf} → L ·⋆ A ≡ cek2ckClos N ρ → ∃ λ L' → N ≡ L' ·⋆ A × L ≡ cek2ckClos L' ρ
+
+
 
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
@@ -1155,7 +1158,11 @@ thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
   with thm65b Lp (cong (CK._, (Red.-· M)) q) r
 ... | x ,, y ,, z  ,, z' = x ,, step* refl y ,, z ,, z'
 thm65b {M = Λ M} {s = s} {s' = s'} p q r = {!!}
-thm65b {M = M ·⋆ A} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = M ·⋆ A} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
+  with cek2ckClos-·⋆lem {ρ = ρ}{N = N} p
+... | L' ,, refl ,, y'
+  with thm65b y' (cong (CK._, (Red.-·⋆ A)) q) r
+... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
 thm65b {M = wrap A B M} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = unwrap M} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
