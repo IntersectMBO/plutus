@@ -167,7 +167,7 @@ instance MeetSemiLattice TxValidity where
 
 
 -- | How many blocks deep the tx is on the chain
-newtype Depth = Depth Int
+newtype Depth = Depth { unDepth :: Int }
     deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
 
@@ -204,7 +204,7 @@ instance MeetSemiLattice TxStatus where
   Committed v1 /\ TentativelyConfirmed _ v2                = Committed (v1 /\ v2)
   Committed v1 /\ Committed v2                             = Committed (v1 /\ v2)
 
-newtype BlockNumber = BlockNumber Word64
+newtype BlockNumber = BlockNumber { unBlockNumber :: Word64 }
     deriving stock (Eq, Ord, Show, Generic)
     deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
 
