@@ -23,7 +23,6 @@ import Marlowe.Semantics (Slot)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
 import Tooltip.Types (ReferenceId)
-import Types (CombinedWSStreamToServer)
 import Contacts.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -66,8 +65,7 @@ data Query a
   | MainFrameActionQuery Action a
 
 data Msg
-  = SendWebSocketMessage CombinedWSStreamToServer
-  | MainFrameActionMsg Action
+  = MainFrameActionMsg Action
 
 ------------------------------------------------------------
 data Action

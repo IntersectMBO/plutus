@@ -28,16 +28,15 @@ import Capability.MarloweStorage (class ManageMarloweStorage, addAssets, getCont
 import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.Wallet (class ManageWallet)
 import Capability.Wallet (createWallet, getWalletInfo, getWalletTotalFunds) as Wallet
-import Capability.Websocket (class ManageWebsocket)
-import Capability.Websocket (subscribeToContract, subscribeToWallet, unsubscribeFromContract, unsubscribeFromWallet) as Websocket
+import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKey, _pubKeyHash, _wallet, _walletInfo)
+import Contacts.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
 import Control.Monad.Except (ExceptT(..), except, lift, mapExceptT, runExcept, runExceptT, withExceptT)
-import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.Reader (asks)
 import Control.Monad.Reader.Class (ask)
 import Data.Array (filter) as Array
 import Data.Array (find)
 import Data.Bifunctor (lmap)
 import Data.BigInteger (fromInt)
-import Data.Int (floor)
 import Data.Lens (view)
 import Data.Map (Map, findMin, fromFoldable, lookup, mapMaybeWithKey, singleton, toUnfoldable, values)
 import Data.Map (filter) as Map
@@ -48,30 +47,28 @@ import Data.Traversable (for, traverse)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (genUUID, parseUUID, toString)
 import Effect.Aff (delay)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Random (random)
-import Env (DataProvider(..), Env)
+import Env (DataProvider(..))
 import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM, liftAff)
-import MainFrame.Types (Msg)
 import Marlowe.Client (ContractHistory(..))
 import Marlowe.PAB (PlutusAppId(..))
 import Marlowe.Semantics (Assets(..), Contract, MarloweData(..), MarloweParams(..), TokenName, TransactionInput, _rolePayoutValidatorHash, asset, emptyState)
 import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Types (AjaxResponse, DecodedAjaxResponse)
-import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKey, _pubKeyHash, _wallet, _walletInfo)
-import Contacts.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
+import Types (AjaxResponse, CombinedWSStreamToServer(..), DecodedAjaxResponse)
+import WebSocket.Support as WS
 
--- The `ManageMarlowe` class provides a window on the `ManageContract`, `ManageWallet`, and
--- `ManageWebsocket` capabilities with functions specific to Marlowe. Or rather, it does when the
+-- The `ManageMarlowe` class provides a window on the `ManageContract` and `ManageWallet`
+-- capabilities with functions specific to Marlowe. Or rather, it does when the
 -- `dataProvider` env variable is set to `PAB`. When it is set to `LocalStorage`, these functions
 -- instead provide what is needed to mimic real PAB behaviour in the frontend.
 -- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class
-  (ManageContract m, ManageMarloweStorage m, ManageWallet m, ManageWebsocket m) <= ManageMarlowe m where
+  (ManageContract m, ManageMarloweStorage m, ManageWallet m) <= ManageMarlowe m where
   createWallet :: m (AjaxResponse WalletDetails)
   followContract :: WalletDetails -> MarloweParams -> m (DecodedAjaxResponse (Tuple PlutusAppId ContractHistory))
   createPendingFollowerApp :: WalletDetails -> m (AjaxResponse PlutusAppId)
@@ -403,12 +400,21 @@ instance manageMarloweAppM :: ManageMarlowe AppM where
                     Just $ plutusAppId /\ contractHistory
                 _, _ -> Nothing
         pure $ Right $ fromFoldable $ values $ mapMaybeWithKey roleContractsToHistory roleContracts
-  subscribeToPlutusApp plutusAppId = Websocket.subscribeToContract $ toBack plutusAppId
-  subscribeToWallet wallet = Websocket.subscribeToWallet $ toBack wallet
-  unsubscribeFromPlutusApp plutusAppId = Websocket.unsubscribeFromContract $ toBack plutusAppId
-  unsubscribeFromWallet wallet = Websocket.unsubscribeFromWallet $ toBack wallet
+  subscribeToPlutusApp = toBack >>> Left >>> Subscribe >>> sendWsMessage
+  subscribeToWallet = toBack >>> Right >>> Subscribe >>> sendWsMessage
+  unsubscribeFromPlutusApp = toBack >>> Left >>> Unsubscribe >>> sendWsMessage
+  unsubscribeFromWallet = toBack >>> Right >>> Unsubscribe >>> sendWsMessage
 
-instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m, MonadAsk Env m) => ManageMarlowe (HalogenM state action slots Msg m) where
+sendWsMessage :: CombinedWSStreamToServer -> AppM Unit
+sendWsMessage msg = do
+  wsManager <- asks _.wsManager
+  dataProvider <- asks _.dataProvider
+  when (dataProvider == MarlowePAB)
+    $ liftAff
+    $ WS.managerWriteOutbound wsManager
+    $ WS.SendMessage msg
+
+instance monadMarloweHalogenM :: (ManageMarlowe m) => ManageMarlowe (HalogenM state action slots msg m) where
   createWallet = lift createWallet
   followContract walletDetails marloweParams = lift $ followContract walletDetails marloweParams
   createPendingFollowerApp = lift <<< createPendingFollowerApp
@@ -420,15 +426,7 @@ instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m, MonadAsk E
   lookupWalletDetails = lift <<< lookupWalletDetails
   getRoleContracts = lift <<< getRoleContracts
   getFollowerApps = lift <<< getFollowerApps
-  subscribeToPlutusApp plutusAppId = do
-    { dataProvider } <- ask
-    when (dataProvider /= LocalStorage) $ Websocket.subscribeToContract $ toBack plutusAppId
-  subscribeToWallet wallet = do
-    { dataProvider } <- ask
-    when (dataProvider /= LocalStorage) $ Websocket.subscribeToWallet $ toBack wallet
-  unsubscribeFromPlutusApp plutusAppId = do
-    { dataProvider } <- ask
-    when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromContract $ toBack plutusAppId
-  unsubscribeFromWallet wallet = do
-    { dataProvider } <- ask
-    when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromWallet $ toBack wallet
+  subscribeToPlutusApp = lift <<< subscribeToPlutusApp
+  subscribeToWallet = lift <<< subscribeToWallet
+  unsubscribeFromPlutusApp = lift <<< unsubscribeFromPlutusApp
+  unsubscribeFromWallet = lift <<< unsubscribeFromWallet
