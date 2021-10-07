@@ -40,7 +40,7 @@ initializeState = reader initializeState'
           tmd = contractMaturity maturity,
           nt = notionalPrincipal contractTerms,
           ipnr = nominalInterestRate contractTerms,
-          ipac = accruedInterest contractTerms,
+          ipac = interestAccrued contractTerms,
           feac = feeAccrued contractTerms {ct_MD = maturity},
           nsc = notionalScaling contractTerms,
           isc = interestScaling contractTerms,
@@ -108,23 +108,23 @@ initializeState = reader initializeState'
             ipnr
         nominalInterestRate _ = 0.0
 
-        accruedInterest :: ContractTerms -> Double
-        accruedInterest
+        interestAccrued :: ContractTerms -> Double
+        interestAccrued
           ContractTermsPoly
             { ct_IPNR = Nothing
             } = 0.0
-        accruedInterest
+        interestAccrued
           ContractTermsPoly
             { ct_IPAC = Just ipac
             } = ipac
-        accruedInterest
+        interestAccrued
           ContractTermsPoly
             { ct_DCC = Just dcc
             } =
             let nt = notionalPrincipal contractTerms
                 ipnr = nominalInterestRate contractTerms
              in _y dcc tminus t0 maturity * nt * ipnr
-        accruedInterest _ = 0.0
+        interestAccrued _ = 0.0
 
         nextPrincipalRedemptionPayment :: ContractTerms -> Double
         nextPrincipalRedemptionPayment ContractTermsPoly {contractType = PAM} = 0.0
@@ -143,13 +143,13 @@ initializeState = reader initializeState'
           ContractTermsPoly
             { contractType = ANN,
               ct_PRNXT = Nothing,
-              ct_IPAC = Just interestAccrued,
+              ct_IPAC = Just ipac,
               ct_MD = md,
-              ct_NT = Just nominalPrincipal,
+              ct_NT = Just nt,
               ct_IPNR = Just ipnr,
               ct_DCC = Just dayCountConvention
             } =
-            let scale = nominalPrincipal + interestAccrued
+            let scale = nt + ipac
                 frac = annuity ipnr ti
              in frac * scale
             where
