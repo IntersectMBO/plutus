@@ -1178,8 +1178,6 @@ whitelistOk wl = noPreludePartials
       -- We specifically ignore `checkHasFailed` here because it is the failure you get when a
       -- validator that returns a boolean fails correctly.
       all (\ec -> Prelude.not $ (Just $ Builtins.fromBuiltin ec) `isAcceptedBy` wl) (Map.keys allErrorCodes \\ [checkHasFailedError])
-      -- Check that no builtin function evaluation failure is accepted by the whitelist
-      && all (\b -> Prelude.not $ (Just $ Text.pack $ "[BuiltinEvaluationFailure] of " ++ show b) `isAcceptedBy` wl) [minBound .. maxBound :: PLC.DefaultFun]
 
 defaultWhitelist :: Whitelist
 defaultWhitelist = Whitelist [Builtins.fromBuiltin checkHasFailedError]
@@ -1214,6 +1212,7 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
 
     checkEvent :: ScriptError -> Bool
     checkEvent (EvaluationError log "CekEvaluationFailure") = listToMaybe (reverse log) `isAcceptedBy` whitelist
+    checkEvent (EvaluationError log msg) | "BuiltinEvaluationFailure" `isPrefixOf` msg = False
     checkEvent _                                            = True
 
     checkEvents :: [ChainEvent] -> Bool

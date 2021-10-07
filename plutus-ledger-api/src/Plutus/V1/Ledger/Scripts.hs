@@ -74,7 +74,6 @@ import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Hashable                            (Hashable)
 import           Data.String
 import           Data.Text                                (Text)
-import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import qualified Flat
@@ -204,17 +203,18 @@ evaluateScript s = do
         Right _ -> Haskell.pure ()
         Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
             InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
-            UserEvaluationError evalError -> EvaluationError (logOut ++ mkLogFromErrorCauseBuiltin cause) (PLC.show evalError)  -- TODO fix this error channel fuckery
+            UserEvaluationError evalError -> EvaluationError logOut (mkError evalError cause) -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
 
--- | If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
--- generate an error message to add to the log
-mkLogFromErrorCauseBuiltin :: Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> [Text]
-mkLogFromErrorCauseBuiltin Nothing  = []
-mkLogFromErrorCauseBuiltin (Just t) =
+-- | Create an error message from the contents of an ErrorWithCause.
+-- If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
+-- the error will be a "BuiltinEvaluationFailure" otherwise it will be `PLC.show evalError`
+mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> String
+mkError evalError Nothing = PLC.show evalError
+mkError evalError (Just t) =
   case findBuiltin t of
-    Just b  -> [Text.pack $ "[BuiltinEvaluationFailure] of " ++ Haskell.show b]
-    Nothing -> []
+    Just b  -> "BuiltinEvaluationFailure of " ++ Haskell.show b
+    Nothing -> PLC.show evalError
   where
     findBuiltin :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
     findBuiltin t = case t of
@@ -229,6 +229,8 @@ mkLogFromErrorCauseBuiltin (Just t) =
        UPLC.Var _ _       -> Nothing
        UPLC.Constant _ _  -> Nothing
        UPLC.Error _       -> Nothing
+
+
 
 {- Note [JSON instances for Script]
 The JSON instances for Script are partially hand-written rather than going via the Serialise
