@@ -2,10 +2,15 @@
   Most of the literate Haskell stuff has been removed and everything's
   been put into one file for simplicity. %-}
 
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+
 {-# OPTIONS_GHC -fno-warn-identities              #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns     #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
@@ -13,18 +18,17 @@
 
 module Plutus.Benchmark.Prime where
 
-import           Control.DeepSeq    (NFData)
-import           Data.Char          (isSpace)
+import           Control.DeepSeq   (NFData)
+import           Data.Char         (isSpace)
 import           GHC.Generics
 
-import qualified Prelude            as Haskell
+import qualified Prelude           as Haskell
 
-import           PlutusCore.Default (DefaultFun, DefaultUni)
-import qualified PlutusCore.Pretty  as PLC
-import qualified PlutusTx           as Tx
-import           PlutusTx.Builtins  (divideInteger, modInteger)
-import           PlutusTx.Prelude   as Tx hiding (divMod, even)
-import           PlutusTx.Ratio     (divMod)
+import qualified PlutusCore.Pretty as PLC
+import qualified PlutusTx          as Tx
+import           PlutusTx.Builtins (divideInteger, modInteger)
+import           PlutusTx.Prelude  as Tx hiding (divMod, even)
+import           PlutusTx.Ratio    (divMod)
 import           UntypedPlutusCore
 
 ---------------- Extras ----------------

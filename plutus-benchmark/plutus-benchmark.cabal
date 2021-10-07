@@ -34,9 +34,12 @@ common lang
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances
 
-library
+executable nofib-exe
   import: lang
-  exposed-modules:
+  main-is: Main.hs
+  hs-source-dirs:
+      nofib/exe nofib/src
+  other-modules:
       Plutus.Benchmark.Clausify
       Plutus.Benchmark.Queens
       Plutus.Benchmark.Knights
@@ -47,40 +50,16 @@ library
       Plutus.Benchmark.Knights.Utils
       Plutus.Benchmark.LastPiece
       Plutus.Benchmark.Prime
-  hs-source-dirs:
-      nofib/src
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
-    , plutus-tx-plugin -any
-    , plutus-core -any
-    , deepseq -any
-  default-extensions:
-    DataKinds
-    NamedFieldPuns
-    OverloadedStrings
-    TemplateHaskell
-    TypeApplications
-    MultiParamTypeClasses
-    ScopedTypeVariables
-
-executable nofib-exe
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs:
-      nofib/exe
-  build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark
-    , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , ansi-wl-pprint -any
     , bytestring -any
     , containers -any
+    , deepseq -any
     , flat -any
     , optparse-applicative -any
-    , serialise -any
     , transformers -any
 
 benchmark nofib
@@ -88,18 +67,27 @@ benchmark nofib
   type: exitcode-stdio-1.0
   main-is: BenchPlc.hs
   hs-source-dirs:
-    nofib/bench
+    nofib/bench nofib/src
   other-modules:
     Common
     Paths_plutus_benchmark
+    Plutus.Benchmark.Clausify
+    Plutus.Benchmark.Queens
+    Plutus.Benchmark.Knights
+    Plutus.Benchmark.Knights.ChessSetList
+    Plutus.Benchmark.Knights.KnightHeuristic
+    Plutus.Benchmark.Knights.Queue
+    Plutus.Benchmark.Knights.Sort
+    Plutus.Benchmark.Knights.Utils
+    Plutus.Benchmark.LastPiece
+    Plutus.Benchmark.Prime
   build-depends:
       base >=4.7 && <5
-    , plutus-benchmark
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
     , criterion >= 1.5.9.0
+    , deepseq -any
     , filepath -any
     , mtl -any
 
@@ -108,34 +96,56 @@ benchmark nofib-hs
   type: exitcode-stdio-1.0
   main-is: BenchHaskell.hs
   hs-source-dirs:
-    nofib/bench
+    nofib/bench nofib/src
   other-modules:
     Common
     Paths_plutus_benchmark
+    Plutus.Benchmark.Clausify
+    Plutus.Benchmark.Queens
+    Plutus.Benchmark.Knights
+    Plutus.Benchmark.Knights.ChessSetList
+    Plutus.Benchmark.Knights.KnightHeuristic
+    Plutus.Benchmark.Knights.Queue
+    Plutus.Benchmark.Knights.Sort
+    Plutus.Benchmark.Knights.Utils
+    Plutus.Benchmark.LastPiece
+    Plutus.Benchmark.Prime
   build-depends:
       base >=4.7 && <5
-    , plutus-benchmark
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
     , criterion -any
+    , deepseq -any
     , filepath -any
 
 test-suite plutus-benchmark-nofib-tests
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: nofib/test
+    hs-source-dirs: nofib/test nofib/src
+    other-modules:
+        Paths_plutus_benchmark
+        Plutus.Benchmark.Clausify
+        Plutus.Benchmark.Queens
+        Plutus.Benchmark.Knights
+        Plutus.Benchmark.Knights.ChessSetList
+        Plutus.Benchmark.Knights.KnightHeuristic
+        Plutus.Benchmark.Knights.Queue
+        Plutus.Benchmark.Knights.Sort
+        Plutus.Benchmark.Knights.Utils
+        Plutus.Benchmark.LastPiece
+        Plutus.Benchmark.Prime
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     default-language: Haskell2010
     build-depends:
         base >=4.7 && <5
-      , plutus-benchmark -any
       , plutus-tx -any
       , plutus-tx-plugin -any
       , plutus-core -any
       , containers -any
+      , deepseq -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
