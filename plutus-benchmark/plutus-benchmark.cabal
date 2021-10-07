@@ -52,8 +52,9 @@ executable nofib-exe
       Plutus.Benchmark.Prime
   build-depends:
       base >=4.7 && <5
-    , plutus-tx -any
     , plutus-core -any
+    , plutus-tx -any
+    , plutus-tx-plugin -any
     , ansi-wl-pprint -any
     , bytestring -any
     , containers -any
@@ -84,6 +85,7 @@ benchmark nofib
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
+    , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
     , criterion >= 1.5.9.0
