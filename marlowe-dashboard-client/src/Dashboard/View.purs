@@ -5,12 +5,18 @@ module Dashboard.View
 
 import Prologue hiding (Either(..), div)
 import Clipboard (Action(..)) as Clipboard
-import Contract.Lenses (_Started, _stateNickname)
+import Component.ConfirmInput.View as ConfirmInput
+import Component.WalletId.View as WalletId
+import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletDetails)
+import Contacts.View (contactsCard)
+import Contract.Lenses (_stateNickname)
 import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
-import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
+import Contract.View (contractPreviewCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _contactsState)
+import Dashboard.Lenses (_card, _cardOpen, _contactsState, _contractFilter, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, State, WalletCompanionStatus(..))
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
@@ -39,11 +45,6 @@ import Prim.TypeError (class Warn, Text)
 import Template.View (contractTemplateCard)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import Contacts.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
-import Contacts.State (adaToken, getAda)
-import Contacts.Types (WalletDetails)
-import Contacts.View (contactsCard)
-import Component.WalletId as WalletId
 
 dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 dashboardScreen { currentSlot, tzOffset } state =
@@ -120,7 +121,10 @@ dashboardCard currentSlot state = case view _card state of
                   CurrentWalletCard -> currentWalletCard currentWallet
                   ContactsCard -> renderSubmodule _contactsState ContactsAction (contactsCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
-                  ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId <<< _Started) (ContractAction followerAppId) (actionConfirmationCard assets action) state
+                  ContractActionConfirmationCard contractId input ->
+                    mapComponentAction
+                      (ContractAction contractId)
+                      (ConfirmInput.render input)
               ]
         ]
   Nothing -> div_ []

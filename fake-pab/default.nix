@@ -25,7 +25,7 @@ let
     '';
     name = "marlowe-dashboard-client-fake-pab";
     extraSrcs = {
-      web-common = webCommon;
+      web-common = webCommon.cleanSrc;
       web-common-marlowe = webCommonMarlowe;
       generated = marlowe-dashboard.generated-purescript;
       fake-pab-generated = fake-pab-generated-purescript;

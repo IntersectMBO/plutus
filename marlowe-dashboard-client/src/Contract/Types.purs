@@ -8,14 +8,12 @@ module Contract.Types
   , PreviousStepState(..)
   , Tab(..)
   , Input
-  , Movement(..)
   , Action(..)
   , scrollContainerRef
   ) where
 
 import Prologue
 import Analytics (class IsEvent, defaultEvent)
-import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
@@ -24,7 +22,7 @@ import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token, TransactionInput)
+import Marlowe.Semantics (Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, TransactionInput)
 import Contacts.Types (WalletDetails, WalletNickname)
 
 data State
@@ -95,11 +93,6 @@ type Input
     , walletDetails :: WalletDetails
     , followerAppId :: PlutusAppId
     }
-
-data Movement
-  = PayIn Party AccountId Token BigInteger -- a.k.a deposit
-  | Transfer Party Party Token BigInteger
-  | PayOut AccountId Party Token BigInteger
 
 data Action
   = SelectSelf

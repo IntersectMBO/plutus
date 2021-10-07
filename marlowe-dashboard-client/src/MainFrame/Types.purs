@@ -9,6 +9,7 @@ module MainFrame.Types
 
 import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Component.Expand as Expand
 import Contract.Types (State) as Contract
 import Dashboard.Types (Action, State) as Dashboard
 import Data.Generic.Rep (class Generic)
@@ -56,6 +57,7 @@ type ChildSlots
     , hintSlot :: forall query. H.Slot query Void String
     , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
     , lifeCycleSlot :: forall query. H.Slot query LifecycleEvent String
+    , expandSlot :: Expand.Slot Void String
     )
 
 ------------------------------------------------------------

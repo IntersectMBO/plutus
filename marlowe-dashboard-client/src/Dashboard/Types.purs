@@ -10,17 +10,17 @@ module Dashboard.Types
 import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
+import Component.ConfirmInput.Types as ConfirmInput
+import Contacts.Types (Action, State) as Contacts
+import Contacts.Types (WalletDetails, WalletNickname)
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
 import Marlowe.Client (ContractHistory)
-import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (MarloweData, MarloweParams, Slot)
 import Template.Types (Action, State) as Template
-import Contacts.Types (Action, State) as Contacts
-import Contacts.Types (WalletDetails, WalletNickname)
 
 type State
   = { contactsState :: Contacts.State
@@ -47,9 +47,7 @@ data Card
   | CurrentWalletCard
   | ContactsCard
   | ContractTemplateCard
-  | ContractActionConfirmationCard PlutusAppId NamedAction
-
-derive instance eqCard :: Eq Card
+  | ContractActionConfirmationCard PlutusAppId ConfirmInput.Input
 
 data ContractFilter
   = Running

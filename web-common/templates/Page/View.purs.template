@@ -1,0 +1,10 @@
+module Page.$name.View
+  ( render
+  ) where
+
+import Page.$name.Types.Internal (ComponentHTML, State)
+import Halogen.HTML (text)
+
+render :: forall m. State -> ComponentHTML m
+render state =
+  text "hello, world"

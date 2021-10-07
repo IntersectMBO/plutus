@@ -33,9 +33,8 @@ mkInitialState currentSlot contract =
   , mNextTimeout: nextTimeout contract
   }
 
--- FIXME: Change the order of the arguments to::  TransactionInput -> State  -> State
-nextState :: State -> TransactionInput -> State
-nextState { semanticState, contract, history } txInput =
+nextState :: TransactionInput -> State -> State
+nextState txInput { semanticState, contract, history } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
