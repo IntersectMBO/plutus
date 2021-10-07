@@ -51,6 +51,7 @@ import qualified Cardano.Ledger.Alonzo.TxWitness as C
 import qualified Cardano.Ledger.Core             as Ledger
 import           Codec.Serialise                 (deserialiseOrFail)
 import qualified Codec.Serialise                 as Codec
+import           Control.Monad                   (when)
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Bifunctor                  (first)
 import           Data.ByteString                 as BS
@@ -363,7 +364,9 @@ fromCardanoTxOutValue (C.TxOutAdaOnly _ lovelace) = fromCardanoLovelace lovelace
 fromCardanoTxOutValue (C.TxOutValue _ value)      = fromCardanoValue value
 
 toCardanoTxOutValue :: P.Value -> Either ToCardanoError (C.TxOutValue C.AlonzoEra)
-toCardanoTxOutValue value = C.TxOutValue C.MultiAssetInAlonzoEra <$> toCardanoValue value
+toCardanoTxOutValue value = do
+    when (Ada.fromValue value == mempty) (Left OutputHasZeroAda)
+    C.TxOutValue C.MultiAssetInAlonzoEra <$> toCardanoValue value
 
 fromCardanoTxOutDatumHash :: C.TxOutDatumHash era -> Maybe P.DatumHash
 fromCardanoTxOutDatumHash C.TxOutDatumHashNone   = Nothing
@@ -508,6 +511,7 @@ data ToCardanoError
     | DeserialisationError
     | InvalidValidityRange
     | ValueNotPureAda
+    | OutputHasZeroAda
     | StakingPointersNotSupported
     | SimpleScriptsNotSupportedToCardano
     | MissingTxInType
@@ -519,6 +523,7 @@ instance Pretty ToCardanoError where
     pretty DeserialisationError               = "ByteString deserialisation failed"
     pretty InvalidValidityRange               = "Invalid validity range"
     pretty ValueNotPureAda                    = "Fee values should only contain Ada"
+    pretty OutputHasZeroAda                   = "Transaction outputs should not contain zero Ada"
     pretty StakingPointersNotSupported        = "Staking pointers are not supported"
     pretty SimpleScriptsNotSupportedToCardano = "Simple scripts are not supported"
     pretty MissingTxInType                    = "Missing TxInType"
