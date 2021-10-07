@@ -73,7 +73,7 @@ printSortStatistics termMaker n =
 
 main :: IO ()
 main = do
-  let inputLengths = [100, 200..1000]
+  let inputLengths = [10,20..500]
       header = "Length  Cost (ms)   Cost (ps)         CEK steps\n"
             ++ "------------------------------------------------"
   putStrLn "GHC sort"
