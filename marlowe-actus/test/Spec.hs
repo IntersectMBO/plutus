@@ -14,8 +14,6 @@ main = do
 
   pamTests <- testCasesFromFile [] $ p ++ "actus-tests-pam.json"
   lamTests <- testCasesFromFile [] $ p ++ "actus-tests-lam.json"
-  -- NAM, ANN temporarily commented - waiting for
-  -- https://github.com/actusfrf/actus-tests/pull/1
   namTests <- testCasesFromFile [] $ p ++ "actus-tests-nam.json"
   annTests <-
     testCasesFromFile

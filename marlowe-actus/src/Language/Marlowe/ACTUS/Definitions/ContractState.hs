@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingStrategies #-}
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
 import           Data.Time                                        (LocalTime)
@@ -20,7 +21,8 @@ data ContractStatePoly a b = ContractStatePoly
   , sd    :: b    -- ^ Status Date (MD): The timestamp as per which the state is captured at any point in time
   , prnxt :: a    -- ^ Next Principal Redemption Payment (PRNXT): The value at which principal is being repaid
   , ipcb  :: a    -- ^ Interest Calculation Base (IPCB)
-  } deriving (Show)
+  }
+  deriving stock (Show, Eq)
 
 type ContractState = ContractStatePoly Double LocalTime
 type ContractStateMarlowe = ContractStatePoly (Value Observation) (Value Observation)
