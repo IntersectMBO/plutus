@@ -36,14 +36,17 @@ benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnT
     Left e   -> throw e
     Right t' -> nf (unsafeEvaluateCek noEmitter PLC.defaultCekParameters) t'
 
+benchGhcSort :: Integer -> Benchmarkable
+benchGhcSort n = benchCek $ mkWorstCaseGhcSortTerm n
+
 benchInsertionSort :: Integer -> Benchmarkable
-benchInsertionSort n = benchCek $ mkInsertionSortTerm n
+benchInsertionSort n = benchCek $ mkWorsCaseInsertionSortTerm n
 
 benchMergeSort :: Integer -> Benchmarkable
-benchMergeSort n = benchCek $ mkMergeSortTerm n
+benchMergeSort n = benchCek $ mkWorstCaseMergeSortTerm n
 
 benchQuickSort :: Integer -> Benchmarkable
-benchQuickSort n = benchCek $ mkQuickSortTerm n
+benchQuickSort n = benchCek $ mkWorstCaseQuickSortTerm n
 
 benchmarks :: [Benchmark]
 benchmarks =

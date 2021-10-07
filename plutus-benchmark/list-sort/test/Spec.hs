@@ -14,6 +14,7 @@ import           Control.Monad.Except
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 
+import           GhcSort
 import           InsertionSort
 import           MergeSort
 import           QuickSort
@@ -59,9 +60,11 @@ prop_PlutusOK sort termMaker l = (runCek $ termMaker l) === (runCek $ termOfHask
 allTests :: TestTree
 allTests =
   testGroup "plutus list-sort tests"
-    [ testProperty "insertion sort (Haskell)" $ prop_HaskellOK insertionSort
+    [ testProperty "GHC sort (Haskell)"       $ prop_HaskellOK ghcSort
+    , testProperty "GHC sort (Plutus)"        $ prop_PlutusOK  ghcSort mkGhcSortTerm
+    , testProperty "insertion sort (Haskell)" $ prop_HaskellOK insertionSort
     , testProperty "insertion sort (Plutus)"  $ prop_PlutusOK  insertionSort mkInsertionSortTerm
-    , testProperty "mergesort (Haskell)"      $ prop_HaskellOK mergeSort
+    , testProperty "merge sort (Haskell)"     $ prop_HaskellOK mergeSort
     , testProperty "merge sort (Plutus)"      $ prop_PlutusOK  mergeSort mkMergeSortTerm
     , testProperty "quicksort (Haskell)"      $ prop_HaskellOK quickSort
     , testProperty "quicksort (Plutus)"       $ prop_PlutusOK  quickSort mkQuickSortTerm

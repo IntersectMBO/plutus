@@ -11,6 +11,7 @@ import           Control.Monad.Trans.Except
 import qualified Data.HashMap.Monoidal                    as H
 import           Text.Printf                              (printf)
 
+import           GhcSort
 import           InsertionSort
 import           MergeSort
 import           QuickSort
@@ -72,9 +73,14 @@ printSortStatistics termMaker n =
 
 main :: IO ()
 main = do
-  let inputLengths = [10,20..500]
+  let inputLengths = [100, 200..1000]
       header = "Length  Cost (ms)   Cost (ps)         CEK steps\n"
             ++ "------------------------------------------------"
+  putStrLn "GHC sort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseGhcSortTerm) inputLengths
+  putStrLn "\n"
   putStrLn "Insertion sort"
   putStrLn ""
   putStrLn header
