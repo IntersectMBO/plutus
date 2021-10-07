@@ -84,7 +84,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "InsertionSort" "MergeSort" "QuickSort" ];
+          modules = [ "GhcSort" "InsertionSort" "MergeSort" "QuickSort" ];
           hsSourceDirs = [ "list-sort/exe" "list-sort/src" ];
           mainPath = [ "Main.hs" ];
           };
@@ -105,6 +105,22 @@
             ];
           buildable = true;
           hsSourceDirs = [ "nofib/test" ];
+          mainPath = [ "Spec.hs" ];
+          };
+        "plutus-benchmark-list-sort-tests" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            ];
+          buildable = true;
+          modules = [ "GhcSort" "InsertionSort" "MergeSort" "QuickSort" ];
+          hsSourceDirs = [ "list-sort/test" "list-sort/src" ];
           mainPath = [ "Spec.hs" ];
           };
         };
@@ -140,6 +156,26 @@
           modules = [ "Common" "Paths_plutus_benchmark" ];
           hsSourceDirs = [ "nofib/bench" ];
           };
+        "list-sort" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            ];
+          buildable = true;
+          modules = [
+            "Paths_plutus_benchmark"
+            "GhcSort"
+            "InsertionSort"
+            "MergeSort"
+            "QuickSort"
+            ];
+          hsSourceDirs = [ "list-sort/bench" "list-sort/src" ];
+          };
         "validation" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -158,25 +194,6 @@
           buildable = true;
           modules = [ "NaturalSort" "Paths_plutus_benchmark" ];
           hsSourceDirs = [ "validation" ];
-          };
-        "list-sort" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
-            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            ];
-          buildable = true;
-          modules = [
-            "Paths_plutus_benchmark"
-            "InsertionSort"
-            "MergeSort"
-            "QuickSort"
-            ];
-          hsSourceDirs = [ "list-sort/bench" "list-sort/src" ];
           };
         };
       };

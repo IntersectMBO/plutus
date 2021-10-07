@@ -122,30 +122,6 @@ benchmark nofib-hs
     , criterion -any
     , filepath -any
 
-
-benchmark validation
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  hs-source-dirs:
-      validation
-  other-modules:
-      NaturalSort
-      Paths_plutus_benchmark
-  build-depends:
-      base >=4.7 && <5
-    , plutus-core -any
-    , bytestring -any
-    , containers -any
-    , criterion >= 1.5.9.0
-    , deepseq -any
-    , directory -any
-    , filepath -any
-    , flat -any
-    , optparse-applicative -any
-    , text -any
-    , transformers -any
-
 test-suite plutus-benchmark-nofib-tests
     import: lang
     type: exitcode-stdio-1.0
@@ -172,6 +148,7 @@ executable list-sort-exe
       list-sort/exe
       list-sort/src
   other-modules:
+      GhcSort
       InsertionSort
       MergeSort
       QuickSort
@@ -192,6 +169,7 @@ benchmark list-sort
       list-sort/src
   other-modules:
       Paths_plutus_benchmark
+      GhcSort
       InsertionSort
       MergeSort
       QuickSort
@@ -203,3 +181,50 @@ benchmark list-sort
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+
+test-suite plutus-benchmark-list-sort-tests
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: list-sort/test list-sort/src
+    other-modules:
+      GhcSort
+      InsertionSort
+      MergeSort
+      QuickSort
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    default-language: Haskell2010
+    build-depends:
+        base >=4.7 && <5
+      , plutus-tx -any
+      , plutus-tx-plugin -any
+      , plutus-core -any
+      , containers -any
+      , tasty -any
+      , tasty-quickcheck -any
+      , mtl -any
+
+benchmark validation
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      NaturalSort
+      Paths_plutus_benchmark
+  build-depends:
+      base >=4.7 && <5
+    , plutus-core -any
+    , bytestring -any
+    , containers -any
+    , criterion >= 1.5.9.0
+    , deepseq -any
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
+    , text -any
+    , transformers -any
+
+    
