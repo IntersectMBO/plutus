@@ -1112,19 +1112,32 @@ thm65b : ∀{M₁ k₁ M₁' ρ k₁'} → M₁ ≡ U (M'₁, ρ) → k₁ ≡ T
        → (M₁ , k₁) |->>CK (V , ε) → ∃ λ c → ((M₁' , ρ) k₁') |->>CEK (c, ε)
 -}
 
+
+postulate cek2ckClos-·lem : ∀{A B}{L : ∅ ⊢ A ⇒ B}{M : ∅ ⊢ A}{Γ}{ρ : Env Γ}{N : Γ ⊢ B} → L · M ≡ cek2ckClos N ρ → ∃ λ L' → ∃ λ M' → N ≡ L' · M' × L ≡ cek2ckClos L' ρ × M ≡ cek2ckClos M' ρ
+
 -- this is intended to be a catchall for recursive calls
-thm64state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
+thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
   → ∃ λ V' → ck2cekState s -→s □ V' × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V 
 
 thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   {M'}{ρ : Env Γ}{s'}
   → M ≡ cek2ckClos M' ρ
+  → s ≡ cek2ckStack s'
   → (s CK.▻ M) CK.-→s CK.□ V
   → ∃ λ V' → ((s' ; ρ ▻ M') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
-thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = x₁ CK.▻ x₂} x q) = {!!}
-thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = x₁ CK.◅ x₂} x q) = {!!}
-thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = CK.□ x₁} x q) = {!!}
-thm65b {M = M} {s = s} {s' = s'} p (CK.step* {s' = CK.◆ A} x q) = {!!}
+thm65b {M = ƛ M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
+  with cek2ckClos-·lem {ρ = ρ}{N = N} p
+... | L' ,, M' ,, refl ,, Lp ,, refl
+  with thm65b Lp (cong (CK._, (Red.-· M)) q) r
+... | x ,, y ,, z  ,, z' = x ,, step* refl y ,, z ,, z'
+thm65b {M = Λ M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = M ·⋆ A} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = wrap A B M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = unwrap M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = ibuiltin b} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = error _} {s = s} {s' = s'} p q r = {!!}
 
 thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
   {W : Red.Value M}{W'}{s'}
@@ -1138,9 +1151,9 @@ thm65bV {M = M}{s = s}{s' = s'} p q (CK.step* x r) = {!q!}
 -- this version of thm64 splits the proof into separate parts
 -- the textbook version has only when representation for states
 -- and therefore thm64 is done all in one go
-thm64state {s = x CK.▻ x₁} p = thm65b (clos-lem x₁) p
-thm64state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) p
-thm64state {s = CK.□ x} p with CK.lem□ _ _ p
+thm65state {s = x CK.▻ x₁} p = thm65b (clos-lem x₁) {!!} p
+thm65state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) p
+thm65state {s = CK.□ x} p with CK.lem□ _ _ p
 ... | refl ,, refl = _ ,, base ,, discharge-lem' x ,, sym (inv-lem x (discharge-lem' x))
-thm64state {s = CK.◆ A} p with CK.lem◆' _ p
+thm65state {s = CK.◆ A} p with CK.lem◆' _ p
 ... | ()
