@@ -423,7 +423,6 @@ contractGrid currentSlot contractFilter contracts =
 
   dashboardContractCard (followerAppId /\ contractState) = mapComponentAction (ContractAction followerAppId) $ contractPreviewCard currentSlot contractState
 
--- TODO: waiting new design for this from Russ
 currentWalletCard :: forall p. WalletDetails -> HTML p Action
 currentWalletCard walletDetails =
   let
