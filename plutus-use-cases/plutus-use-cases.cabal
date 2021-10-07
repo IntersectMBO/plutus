@@ -51,6 +51,7 @@ library
         Plutus.Contracts.PubKey
         Plutus.Contracts.Stablecoin
         Plutus.Contracts.Swap
+        Plutus.Contracts.UniPools
         Plutus.Contracts.Uniswap
         Plutus.Contracts.Uniswap.OnChain
         Plutus.Contracts.Uniswap.OffChain

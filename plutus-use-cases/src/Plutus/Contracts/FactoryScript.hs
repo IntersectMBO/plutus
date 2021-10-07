@@ -22,5 +22,4 @@ main cs = do
   writeFile "factory.datumHash" $ show factoryInit
   print result
   print factoryInit -- needed with the result to run the following script
-  -- TODO: Get token pair
-  -- TODO: Lookup if pair exists
+

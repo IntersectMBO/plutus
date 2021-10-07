@@ -3,24 +3,23 @@
 module Plutus.Contracts.CompileCurrency where
 
 import           Cardano.Api
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.ByteString.Lazy.UTF8  as BLU
+import qualified Data.String               as DS
 import           Ledger
 import           Plutus.Contracts.Currency
-import qualified PlutusTx.Builtins.Internal as Builtins
 import           Safe
-import           System.Environment
 
-main :: String -> String -> IO ()
-main hash idx = do
+main :: String -> String -> [(TokenName, Integer)] -> IO ()
+main hash idx tokenList = do
   let mTxIndex :: Maybe Integer = readMay idx
   case mTxIndex of
     Nothing -> print ("The second argument, tx index must be an integer" :: String)
     Just txIndex -> do
       -- create a unique uniswap token
-      let txHash = Ledger.TxId $ Builtins.BuiltinByteString $ BSL.toStrict $ BLU.fromString hash
+      let txHash :: Ledger.TxId
+          txHash = DS.fromString hash
           txOutRef = TxOutRef txHash txIndex
-          c = mkCurrency txOutRef [("Uniswap", 1)]
+          -- TODO: Add way to pass coin names and amount to this
+          c = mkCurrency txOutRef tokenList -- [("PikaCoin", 500000)]
           cSym = currencySymbol c
           pol = curPolicy c
       print c
