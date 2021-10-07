@@ -48,11 +48,14 @@ module Plutus.Contract.Request(
     , utxoIsSpent
     , awaitUtxoProduced
     , utxoIsProduced
-    -- ** Tx confirmation
-    , TxStatus(..)
+    -- ** Tx and tx output confirmation
+    , RollbackState(..)
+    , TxStatus
     , awaitTxStatusChange
     , awaitTxConfirmed
     , isTxConfirmed
+    , TxOutStatus
+    , awaitTxOutStatusChange
     -- ** Contract instances
     , ownInstanceId
     -- ** Exposing endpoints
@@ -118,7 +121,7 @@ import           Plutus.Contract.Schema      (Input, Output)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription (..), EndpointValue (..))
 
 import           Plutus.ChainIndex           (ChainIndexTx, Page (pageItems), txOutRefs)
-import           Plutus.ChainIndex.Types     (Tip, TxStatus (..))
+import           Plutus.ChainIndex.Types     (RollbackState (..), Tip, TxOutStatus, TxStatus)
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Types
 
@@ -552,6 +555,10 @@ awaitTxConfirmed i = go where
 -- | Wait until a transaction is confirmed (added to the ledger).
 isTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Promise w s e ()
 isTxConfirmed = Promise . awaitTxConfirmed
+
+-- | Wait for the status of a transaction output to change.
+awaitTxOutStatusChange :: forall w s e. AsContractError e => TxOutRef -> Contract w s e TxOutStatus
+awaitTxOutStatusChange ref = snd <$> pabReq (AwaitTxOutStatusChangeReq ref) E._AwaitTxOutStatusChangeResp
 
 -- | Get the 'ContractInstanceId' of this instance.
 ownInstanceId :: forall w s e. (AsContractError e) => Contract w s e ContractInstanceId

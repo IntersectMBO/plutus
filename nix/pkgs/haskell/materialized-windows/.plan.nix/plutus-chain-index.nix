@@ -104,6 +104,8 @@
           "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"
           "Plutus/ChainIndex/TxIdState"
+          "Plutus/ChainIndex/TxOutBalance"
+          "Plutus/ChainIndex/TxUtxoBalance"
           "Plutus/ChainIndex/Types"
           "Plutus/ChainIndex/UtxoState"
           "Plutus/Monitoring/Util"

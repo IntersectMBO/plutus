@@ -50,10 +50,10 @@ import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.DbStore
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
+import qualified Plutus.ChainIndex.TxUtxoBalance   as TxUtxoBalance
 import           Plutus.ChainIndex.Types           (BlockId (BlockId), BlockNumber (BlockNumber), Diagnostics (..),
-                                                    Point (..), Tip (..), pageOf, tipAsPoint)
-import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
-                                                    UtxoIndex)
+                                                    Point (..), Tip (..), TxUtxoBalance (..), pageOf, tipAsPoint)
+import           Plutus.ChainIndex.UtxoState       (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState       as UtxoState
 import           Plutus.V1.Ledger.Api              (Credential (PubKeyCredential, ScriptCredential))
 import           PlutusTx.Builtins.Internal        (BuiltinByteString (..))
@@ -89,10 +89,10 @@ restoreStateFromDb point = do
     where
         outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
         outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
-            = (slot, UtxoState.TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
+            = (slot, TxUtxoBalance (Set.singleton (fromByteString outRef)) mempty)
         inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
         inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
-            = (slot, UtxoState.TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
+            = (slot, TxUtxoBalance mempty (Set.singleton (fromByteString outRef)))
         toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
         toUtxoState balances (TipRow slot bi bn)
             = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (Tip (fromIntegral slot) (BlockId bi) (BlockNumber bn))
@@ -116,11 +116,11 @@ handleQuery = \case
         utxoState <- gets @ChainIndexState UtxoState.utxoState
         case UtxoState.tip utxoState of
             TipAtGenesis -> throwError QueryFailedNoTip
-            tp           -> pure (tp, UtxoState.isUnspentOutput r utxoState)
+            tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxoState)
     UtxoSetAtAddress cred -> do
         utxoState <- gets @ChainIndexState UtxoState.utxoState
         outRefs <- queryList . select $ _addressRowOutRef <$> filter_ (\row -> _addressRowCred row ==. val_ (toByteString cred)) (all_ (addressRows db))
-        let page = pageOf def $ Set.fromList $ filter (\r -> UtxoState.isUnspentOutput r utxoState) outRefs
+        let page = pageOf def $ Set.fromList $ filter (\r -> TxUtxoBalance.isUnspentOutput r utxoState) outRefs
         case UtxoState.tip utxoState of
             TipAtGenesis -> do
                 logWarn TipIsGenesis
@@ -216,7 +216,7 @@ handleControl ::
 handleControl = \case
     AppendBlock tip_ transactions -> do
         oldIndex <- get @ChainIndexState
-        let newUtxoState = UtxoState.fromBlock tip_ transactions
+        let newUtxoState = TxUtxoBalance.fromBlock tip_ transactions
         case UtxoState.insert newUtxoState oldIndex of
             Left err -> do
                 let reason = InsertionFailed err
@@ -233,7 +233,7 @@ handleControl = \case
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
         oldIndex <- get @ChainIndexState
-        case UtxoState.rollback tip_ oldIndex of
+        case TxUtxoBalance.rollback tip_ oldIndex of
             Left err -> do
                 let reason = RollbackFailed err
                 logError $ Err reason
@@ -248,7 +248,7 @@ handleControl = \case
         utxos <- gets $
             Set.toList
             . Set.map txOutRefId
-            . UtxoState.unspentOutputs
+            . TxUtxoBalance.unspentOutputs
             . UtxoState.utxoState
         insertRows <- foldMap fromTx . catMaybes <$> mapM getTxFromTxId utxos
         combined $
@@ -266,10 +266,10 @@ insertUtxoDb ::
     ( Member DbStoreEffect effs
     , Member (Error ChainIndexError) effs
     )
-    => UtxoState.UtxoState UtxoState.TxUtxoBalance
+    => UtxoState.UtxoState TxUtxoBalance
     -> Eff effs ()
 insertUtxoDb (UtxoState.UtxoState _ TipAtGenesis) = throwError $ InsertionFailed UtxoState.InsertUtxoNoTip
-insertUtxoDb (UtxoState.UtxoState (UtxoState.TxUtxoBalance outputs inputs) (Tip sl (BlockId bi) (BlockNumber bn)))
+insertUtxoDb (UtxoState.UtxoState (TxUtxoBalance outputs inputs) (Tip sl (BlockId bi) (BlockNumber bn)))
     = insert $ mempty
         { tipRows = InsertRows [TipRow (fromIntegral sl) bi bn]
         , unspentOutputRows = InsertRows $ UnspentOutputRow tipRowId . toByteString <$> Set.toList outputs
@@ -351,7 +351,7 @@ diagnostics = do
     txIds <- selectList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
-    UtxoState.TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
+    TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
 
     pure $ Diagnostics
         { numTransactions    = fromMaybe (-1) numTransactions

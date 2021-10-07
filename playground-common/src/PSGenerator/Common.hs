@@ -38,8 +38,8 @@ import           Playground.Types                          (ContractCall, Functi
 import           Plutus.ChainIndex.ChainIndexError         (ChainIndexError)
 import           Plutus.ChainIndex.ChainIndexLog           (ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, Tip, TxStatus,
-                                                            TxValidity)
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, RollbackState,
+                                                            Tip, TxOutState, TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
@@ -410,7 +410,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxValidity)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxStatus)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutState)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(RollbackState A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @BlockNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Depth)
     ]

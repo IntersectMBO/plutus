@@ -44,9 +44,10 @@ import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (
 import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
-import           Plutus.ChainIndex.Types              (Diagnostics (..), Tip (..), pageOf)
-import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
-                                                       UtxoIndex, isUnspentOutput, tip, utxoState)
+import qualified Plutus.ChainIndex.TxUtxoBalance      as TxUtxoBalance
+import           Plutus.ChainIndex.Types              (Diagnostics (..), Tip (..), TxUtxoBalance (..), pageOf)
+import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex, tip,
+                                                       utxoState)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
 import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
 
@@ -125,12 +126,12 @@ handleQuery = \case
         utxo <- gets (utxoState . view utxoIndex)
         case tip utxo of
             TipAtGenesis -> throwError QueryFailedNoTip
-            tp           -> pure (tp, isUnspentOutput r utxo)
+            tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxo)
     UtxoSetAtAddress cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
             utxo = view (utxoIndex . to utxoState) state
-            page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxo) (fromMaybe mempty outRefs)
+            page = pageOf def $ Set.filter (\r -> TxUtxoBalance.isUnspentOutput r utxo) (fromMaybe mempty outRefs)
         case tip utxo of
             TipAtGenesis -> do
                 logWarn TipIsGenesis
@@ -150,7 +151,7 @@ handleControl ::
 handleControl = \case
     AppendBlock tip_ transactions -> do
         oldState <- get @ChainIndexEmulatorState
-        case UtxoState.insert (UtxoState.fromBlock tip_ transactions) (view utxoIndex oldState) of
+        case UtxoState.insert (TxUtxoBalance.fromBlock tip_ transactions) (view utxoIndex oldState) of
             Left err -> do
                 let reason = InsertionFailed err
                 logError $ Err reason
@@ -162,7 +163,7 @@ handleControl = \case
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
         oldState <- get @ChainIndexEmulatorState
-        case UtxoState.rollback tip_ (view utxoIndex oldState) of
+        case TxUtxoBalance.rollback tip_ (view utxoIndex oldState) of
             Left err -> do
                 let reason = RollbackFailed err
                 logError $ Err reason
@@ -176,7 +177,7 @@ handleControl = \case
         utxos <- gets $
             Set.toList
             . Set.map txOutRefId
-            . UtxoState.unspentOutputs
+            . TxUtxoBalance.unspentOutputs
             . UtxoState.utxoState
             . view utxoIndex
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
@@ -185,7 +186,7 @@ handleControl = \case
 
 diagnostics :: ChainIndexEmulatorState -> Diagnostics
 diagnostics (ChainIndexEmulatorState ds ui) =
-    let UtxoState.TxUtxoBalance outputs inputs = UtxoState._usTxUtxoData $ UtxoState.utxoState ui
+    let TxUtxoBalance outputs inputs = UtxoState._usTxUtxoData $ UtxoState.utxoState ui
     in (DiskState.diagnostics ds)
         { numUnspentOutputs  = length outputs
         , numUnmatchedInputs = length inputs

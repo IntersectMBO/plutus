@@ -48,6 +48,7 @@ module Plutus.PAB.Simulator(
     , activeEndpoints
     , waitForEndpoint
     , waitForTxStatusChange
+    , waitForTxOutStatusChange
     , currentSlot
     , waitUntilSlot
     , waitNSlots
@@ -100,17 +101,17 @@ import           Data.Text.Prettyprint.Doc                      (Pretty (pretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
-                                                                 eitherTx, txFee, txId)
+                                                                 TxOutRef, eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
 import           Ledger.Crypto                                  (PubKey)
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
-import           Ledger.TimeSlot                                (SlotConfig)
+import           Ledger.TimeSlot                                (SlotConfig (..))
 import           Ledger.Value                                   (Value, flattenValue)
 import           Plutus.ChainIndex.Emulator                     (ChainIndexControlEffect, ChainIndexEmulatorState,
                                                                  ChainIndexError, ChainIndexLog,
                                                                  ChainIndexQueryEffect (DatumFromHash, GetTip, MintingPolicyFromHash, RedeemerFromHash, StakeValidatorFromHash, TxFromTxId, TxOutFromRef, UtxoSetAtAddress, UtxoSetMembership, ValidatorFromHash),
-                                                                 TxStatus, getTip)
+                                                                 TxOutStatus, TxStatus, getTip)
 import qualified Plutus.ChainIndex.Emulator                     as ChainIndex
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
@@ -351,7 +352,7 @@ makeBlock ::
     )
     => SlotConfig
     -> Eff effs ()
-makeBlock slotCfg = do
+makeBlock slotCfg@SlotConfig { scSlotLength } = do
     let makeTimedChainEvent =
             interpret (logIntoTQueue @_ @(SimulatorState t) (view logMessages))
             . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
@@ -362,7 +363,7 @@ makeBlock slotCfg = do
             . reinterpret (mapLog @_ @(PABMultiAgentMsg t) EmulatorMsg)
             . reinterpret (Core.timed @EmulatorEvent')
             . reinterpret (mapLog (ChainIndexEvent (knownWallet 1)))
-    delayThread (1000 :: Millisecond)
+    delayThread (fromIntegral scSlotLength :: Millisecond)
     void
         $ makeTimedChainEvent
         $ makeTimedChainIndexEvent
@@ -397,6 +398,10 @@ waitUntilFinished = Core.waitUntilFinished
 -- | Wait until the status of the transaction changes
 waitForTxStatusChange :: forall t. TxId -> Simulation t TxStatus
 waitForTxStatusChange = Core.waitForTxStatusChange
+
+-- | Wait until the status of the transaction changes
+waitForTxOutStatusChange :: forall t. TxOutRef -> Simulation t TxOutStatus
+waitForTxOutStatusChange = Core.waitForTxOutStatusChange
 
 -- | Wait until the endpoint becomes active.
 waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()

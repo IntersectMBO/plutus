@@ -195,6 +195,7 @@ test-suite plutus-contract-test
         lens -any,
         transformers -any,
         extensible-effects -any,
+        plutus-chain-index -any,
         plutus-contract -any,
         plutus-ledger -any,
         plutus-tx -any,
