@@ -9,6 +9,7 @@ import           Criterion.Main
 import           Criterion.Types                          (Config (..))
 import           System.FilePath
 
+import           GhcSort
 import           InsertionSort
 import           MergeSort
 import           QuickSort
@@ -40,7 +41,7 @@ benchGhcSort :: Integer -> Benchmarkable
 benchGhcSort n = benchCek $ mkWorstCaseGhcSortTerm n
 
 benchInsertionSort :: Integer -> Benchmarkable
-benchInsertionSort n = benchCek $ mkWorsCaseInsertionSortTerm n
+benchInsertionSort n = benchCek $ mkWorstCaseInsertionSortTerm n
 
 benchMergeSort :: Integer -> Benchmarkable
 benchMergeSort n = benchCek $ mkWorstCaseMergeSortTerm n
@@ -51,7 +52,8 @@ benchQuickSort n = benchCek $ mkWorstCaseQuickSortTerm n
 benchmarks :: [Benchmark]
 benchmarks =
     [
-      bgroup "insertionSort" $ map (\n -> bench (show n) $ benchInsertionSort n) sizes
+      bgroup "ghcSort"       $ map (\n -> bench (show n) $ benchGhcSort n)       sizes
+    , bgroup "insertionSort" $ map (\n -> bench (show n) $ benchInsertionSort n) sizes
     , bgroup "mergeSort"     $ map (\n -> bench (show n) $ benchMergeSort n)     sizes
     , bgroup "quickSort"     $ map (\n -> bench (show n) $ benchQuickSort n)     sizes
     ]
