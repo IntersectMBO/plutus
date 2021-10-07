@@ -1112,12 +1112,25 @@ thm65b : ∀{M₁ k₁ M₁' ρ k₁'} → M₁ ≡ U (M'₁, ρ) → k₁ ≡ T
        → (M₁ , k₁) |->>CK (V , ε) → ∃ λ c → ((M₁' , ρ) k₁') |->>CEK (c, ε)
 -}
 
-
+-- note N cannot be a variable because if it was then the result of
+-- the lookup in ρ would be a value that is then discharged which
+-- couldn't be an application as applications are not values
 postulate cek2ckClos-·lem : ∀{A B}{L : ∅ ⊢ A ⇒ B}{M : ∅ ⊢ A}{Γ}{ρ : Env Γ}{N : Γ ⊢ B} → L · M ≡ cek2ckClos N ρ → ∃ λ L' → ∃ λ M' → N ≡ L' · M' × L ≡ cek2ckClos L' ρ × M ≡ cek2ckClos M' ρ
+
+-- as ƛ is a value, it can be the result of a variable lookup
+postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ A ⇒ B} → ƛ L ≡ cek2ckClos N ρ → (∃ λ L' → N ≡ ƛ L' × L ≡ dischargeBody L' ρ) ⊎ ∃ λ x → N ≡ ` x × ƛ L ≡ discharge (lookup x ρ)
+
 
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
   → ∃ λ V' → ck2cekState s -→s □ V' × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V 
+
+thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
+  {W : Red.Value M}{W'}{s'}
+  → (p : M ≡ discharge W')
+  → substEq Red.Value p W ≡ cek2ckVal W'
+  → (s CK.◅ W) CK.-→s CK.□ V
+  → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
 
 thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   {M'}{ρ : Env Γ}{s'}
@@ -1125,7 +1138,11 @@ thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   → s ≡ cek2ckStack s'
   → (s CK.▻ M) CK.-→s CK.□ V
   → ∃ λ V' → ((s' ; ρ ▻ M') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
-thm65b {M = ƛ M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} p q (CK.step* refl r)
+  with cek2ckClos-ƛlem {ρ = ρ}{N = N} p
+thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl r
+... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
+thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} p q (CK.step* refl r) | inj₂ (x  ,, y) = {!!}
 thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
   with cek2ckClos-·lem {ρ = ρ}{N = N} p
 ... | L' ,, M' ,, refl ,, Lp ,, refl
@@ -1139,12 +1156,6 @@ thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = ibuiltin b} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = error _} {s = s} {s' = s'} p q r = {!!}
 
-thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
-  {W : Red.Value M}{W'}{s'}
-  → (p : M ≡ discharge W')
-  → substEq Red.Value p W ≡ cek2ckVal W'
-  → (s CK.◅ W) CK.-→s CK.□ V
-  → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
 thm65bV {M = M}{s = s}{s' = s'} p q (CK.step* x r) = {!q!}
 
 -- this a catch all for making recursive calls
