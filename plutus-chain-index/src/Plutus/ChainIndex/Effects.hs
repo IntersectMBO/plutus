@@ -20,6 +20,7 @@ module Plutus.ChainIndex.Effects(
     , ChainIndexControlEffect(..)
     , appendBlock
     , rollback
+    , resumeSync
     , collectGarbage
     , getDiagnostics
     ) where
@@ -75,6 +76,9 @@ data ChainIndexControlEffect r where
 
     -- | Roll back to a previous state (previous tip)
     Rollback    :: Point -> ChainIndexControlEffect ()
+
+    -- | Resume syncing from a certain point
+    ResumeSync  :: Point -> ChainIndexControlEffect ()
 
     -- | Delete all data that is not covered by current UTxOs.
     CollectGarbage :: ChainIndexControlEffect ()

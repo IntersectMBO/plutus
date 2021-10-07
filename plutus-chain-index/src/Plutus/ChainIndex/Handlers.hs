@@ -23,11 +23,11 @@ import           Control.Applicative                   (Const (..))
 import           Control.Lens                          (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer                   (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error             (Error, throwError)
-import           Control.Monad.Freer.Extras            (selectPage)
 import           Control.Monad.Freer.Extras.Beam       (BeamEffect (..), BeamableSqlite, addRowsInBatches, combined,
-                                                        deleteRows, selectList, selectOne, updateRows)
+                                                        deleteRows, selectList, selectOne, selectPage, updateRows)
 import           Control.Monad.Freer.Extras.Log        (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.Extras.Pagination (Page (Page), PageQuery (..))
+import           Control.Monad.Freer.Reader            (Reader, ask)
 import           Control.Monad.Freer.State             (State, get, gets, put)
 import           Data.ByteString                       (ByteString)
 import qualified Data.FingerTree                       as FT
@@ -53,8 +53,8 @@ import           Plutus.ChainIndex.DbSchema
 import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
 import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
-import           Plutus.ChainIndex.Types               (Diagnostics (..), Point (..), Tip (..), TxUtxoBalance (..),
-                                                        tipAsPoint)
+import           Plutus.ChainIndex.Types               (Depth (..), Diagnostics (..), Point (..), Tip (..),
+                                                        TxUtxoBalance (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState           as UtxoState
 import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
@@ -65,32 +65,6 @@ getResumePoints :: Member BeamEffect effs => Eff effs [C.ChainPoint]
 getResumePoints
     = fmap (mapMaybe (toCardanoPoint . tipAsPoint . fromDbValue . Just))
     . selectList . select . orderBy_ (desc_ . _tipRowSlot) . all_ $ tipRows db
-
-restoreStateFromDb ::
-    ( Member (State ChainIndexState) effs
-    , Member BeamEffect effs
-    )
-    => Point
-    -> Eff effs ()
-restoreStateFromDb point = do
-    rollbackUtxoDb point
-    uo <- selectList . select $ all_ (unspentOutputRows db)
-    ui <- selectList . select $ all_ (unmatchedInputRows db)
-    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
-    tips <- selectList . select
-        . orderBy_ (asc_ . _tipRowSlot)
-        $ all_ (tipRows db)
-    put $ FT.fromList . fmap (toUtxoState balances) $ tips
-    where
-        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
-        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
-            = (slot, TxUtxoBalance (Set.singleton (fromDbValue outRef)) mempty)
-        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
-        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
-            = (slot, TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
-        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
-        toUtxoState balances tip
-            = UtxoState.UtxoState (Map.findWithDefault mempty (_tipRowSlot tip) balances) (fromDbValue (Just tip))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
@@ -224,6 +198,7 @@ getUtxoSetAtAddress pageQuery (toDbValue -> cred) = do
 handleControl ::
     forall effs.
     ( Member (State ChainIndexState) effs
+    , Member (Reader Depth) effs
     , Member BeamEffect effs
     , Member (Error ChainIndexError) effs
     , Member (LogMsg ChainIndexLog) effs
@@ -240,7 +215,8 @@ handleControl = \case
                 logError $ Err reason
                 throwError reason
             Right InsertUtxoSuccess{newIndex, insertPosition} -> do
-                case UtxoState.reduceBlockCount 2160 newIndex of -- TODO: use chainConstant
+                depth <- ask @Depth
+                case UtxoState.reduceBlockCount depth newIndex of
                   UtxoState.BlockCountNotReduced -> put newIndex
                   lbcResult -> do
                     put $ UtxoState.reducedIndex lbcResult
@@ -259,6 +235,7 @@ handleControl = \case
                 put rolledBackIndex
                 rollbackUtxoDb $ tipAsPoint newTip
                 logDebug $ RollbackSuccess newTip
+    ResumeSync tip_ -> restoreStateFromDb tip_
     CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
         -- least one output in the UTXO set
@@ -331,6 +308,32 @@ rollbackUtxoDb (Point (toDbValue -> slot) _) = do
     deleteRows $ delete (tipRows db) (\row -> _tipRowSlot row >. val_ slot)
     deleteRows $ delete (unspentOutputRows db) (\row -> unTipRowId (_unspentOutputRowTip row) >. val_ slot)
     deleteRows $ delete (unmatchedInputRows db) (\row -> unTipRowId (_unmatchedInputRowTip row) >. val_ slot)
+
+restoreStateFromDb ::
+    ( Member (State ChainIndexState) effs
+    , Member BeamEffect effs
+    )
+    => Point
+    -> Eff effs ()
+restoreStateFromDb point = do
+    rollbackUtxoDb point
+    uo <- selectList . select $ all_ (unspentOutputRows db)
+    ui <- selectList . select $ all_ (unmatchedInputRows db)
+    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
+    tips <- selectList . select
+        . orderBy_ (asc_ . _tipRowSlot)
+        $ all_ (tipRows db)
+    put $ FT.fromList . fmap (toUtxoState balances) $ tips
+    where
+        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
+        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
+            = (slot, TxUtxoBalance (Set.singleton (fromDbValue outRef)) mempty)
+        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
+        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
+            = (slot, TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
+        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
+        toUtxoState balances tip@(TipRow slot _ _)
+            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (fromDbValue (Just tip))
 
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)

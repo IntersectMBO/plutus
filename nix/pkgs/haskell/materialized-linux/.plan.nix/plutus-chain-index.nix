@@ -169,6 +169,7 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             ];
