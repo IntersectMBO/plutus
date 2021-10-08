@@ -44,7 +44,11 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "Paths_plutus_benchmark" "PlutusBenchmark/Common" ];
+          modules = [
+            "Paths_plutus_benchmark"
+            "PlutusBenchmark/Common"
+            "PlutusBenchmark/NaturalSort"
+            ];
           hsSourceDirs = [ "common" ];
           };
         "nofib-internal" = {
@@ -196,7 +200,6 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "NaturalSort" ];
           hsSourceDirs = [ "validation" ];
           };
         };

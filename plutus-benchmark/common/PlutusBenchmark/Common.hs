@@ -35,12 +35,10 @@ import           Criterion.Types                          (Config (..))
 import           Flat
 import           System.FilePath
 
-
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report
    to be generated.  If run via stack/cabal this will be written to the
    `plutus-benchmark` directory by default.  The -o option can be used to change
-   this, but an absolute path will probably be required (eg,
-   "-o=$PWD/report.html") . -}
+   this, but an absolute path will probably be required (eg, "-o=$PWD/report.html") . -}
 getConfig :: Double -> IO Config
 getConfig limit = do
   templateDir <- getDataFileName ("common" </> "templates")
@@ -96,7 +94,7 @@ type Result = EvaluationResult NamedTerm
 
 {- | Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled
-   from).  We evaluate the lifted Haskll value as well, because lifting may
+   from).  We evaluate the lifted Haskell value as well, because lifting may
    produce reducible terms. The function is polymorphic in the comparison
    operator so that we can use it with both HUnit Assertions and QuickCheck
    Properties.  -}
