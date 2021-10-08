@@ -146,7 +146,6 @@ import           Plutus.Trace.Emulator                 as Trace (ContractHandle 
                                                                  EmulatorTrace, activateContract,
                                                                  freezeContractInstance, walletInstanceTag)
 import           Plutus.V1.Ledger.Scripts
-import qualified PlutusCore                            as PLC
 import qualified PlutusTx.Builtins                     as Builtins
 import           PlutusTx.ErrorCodes
 import           PlutusTx.Monoid                       (inv)
@@ -1212,7 +1211,7 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
 
     checkEvent :: ScriptError -> Bool
     checkEvent (EvaluationError log "CekEvaluationFailure") = listToMaybe (reverse log) `isAcceptedBy` whitelist
-    checkEvent (EvaluationError log msg) | "BuiltinEvaluationFailure" `isPrefixOf` msg = False
+    checkEvent (EvaluationError _ msg) | "BuiltinEvaluationFailure" `isPrefixOf` msg = False
     checkEvent _                                            = False
 
     checkEvents :: [ChainEvent] -> Bool
