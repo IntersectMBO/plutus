@@ -89,8 +89,8 @@ restoreStateFromDb point = do
         inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
             = (slot, TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
         toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
-        toUtxoState balances tip@(TipRow slot _ _)
-            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (fromDbValue (Just tip))
+        toUtxoState balances tip
+            = UtxoState.UtxoState (Map.findWithDefault mempty (_tipRowSlot tip) balances) (fromDbValue (Just tip))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs

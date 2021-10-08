@@ -12,8 +12,6 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
-
-
 {-# options_ghc -Wno-missing-signatures #-}
 {-
 
@@ -178,6 +176,8 @@ checkedSqliteDb = defaultMigratableDbSettings
     , unmatchedInputRows = renameCheckedEntity (const "unmatched_inputs")
     }
 
+-- | Instances of @HasDbType@ can be converted to types that can be stored in the database.
+-- `toDbValue` and `fromDbValue` must be inverses of each other.
 class FromBackendRow Sqlite (DbType a) => HasDbType a where
     type DbType a
     toDbValue :: a -> DbType a
@@ -202,7 +202,7 @@ instance Serialise a => HasDbType (Serialisable a) where
     type DbType (Serialisable a) = ByteString
     fromDbValue
         = Serialisable
-        . fromRight (error "Deserialisation failed. Delete you chain index database and resync.")
+        . fromRight (error "Deserialisation failed. Delete your chain index database and resync.")
         . deserialiseOrFail
         . BSL.fromStrict
     toDbValue = BSL.toStrict . serialise . getSerialisable
