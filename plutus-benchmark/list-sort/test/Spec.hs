@@ -8,12 +8,12 @@ module Main where
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common        (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
+import           PlutusBenchmark.Common                 (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
 
-import           PlutusBenchmark.GhcSort
-import           PlutusBenchmark.InsertionSort
-import           PlutusBenchmark.MergeSort
-import           PlutusBenchmark.QuickSort
+import           PlutusBenchmark.ListSort.GhcSort
+import           PlutusBenchmark.ListSort.InsertionSort
+import           PlutusBenchmark.ListSort.MergeSort
+import           PlutusBenchmark.ListSort.QuickSort
 
 isSorted :: Ord a => [a] -> Bool
 isSorted []       = True

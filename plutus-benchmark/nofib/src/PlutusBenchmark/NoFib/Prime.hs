@@ -16,7 +16,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
-module PlutusBenchmark.Prime where
+module PlutusBenchmark.NoFib.Prime where
 
 import           Control.DeepSeq        (NFData)
 import           Data.Char              (isSpace)

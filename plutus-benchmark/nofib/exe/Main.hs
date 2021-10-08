@@ -16,11 +16,11 @@ import           Text.PrettyPrint.ANSI.Leijen             (Doc, indent, line, st
 
 import           PlutusBenchmark.Common                   (unDeBruijn)
 
-import qualified PlutusBenchmark.Clausify                 as Clausify
-import qualified PlutusBenchmark.Knights                  as Knights
-import qualified PlutusBenchmark.LastPiece                as LastPiece
-import qualified PlutusBenchmark.Prime                    as Prime
-import qualified PlutusBenchmark.Queens                   as Queens
+import qualified PlutusBenchmark.NoFib.Clausify           as Clausify
+import qualified PlutusBenchmark.NoFib.Knights            as Knights
+import qualified PlutusBenchmark.NoFib.LastPiece          as LastPiece
+import qualified PlutusBenchmark.NoFib.Prime              as Prime
+import qualified PlutusBenchmark.NoFib.Queens             as Queens
 
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC

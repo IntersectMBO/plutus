@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
-module PlutusBenchmark.Clausify where
+module PlutusBenchmark.NoFib.Clausify where
 
 import           PlutusBenchmark.Common (compiledCodeToTerm)
 

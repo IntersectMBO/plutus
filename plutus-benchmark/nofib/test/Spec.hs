@@ -11,16 +11,16 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common   (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
+import           PlutusBenchmark.Common         (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
 
-import qualified PlutusBenchmark.Clausify as Clausify
-import qualified PlutusBenchmark.Knights  as Knights
-import           PlutusBenchmark.Prime    (Result (Composite, Prime))
-import qualified PlutusBenchmark.Prime    as Prime
-import qualified PlutusBenchmark.Queens   as Queens
+import qualified PlutusBenchmark.NoFib.Clausify as Clausify
+import qualified PlutusBenchmark.NoFib.Knights  as Knights
+import           PlutusBenchmark.NoFib.Prime    (Result (Composite, Prime))
+import qualified PlutusBenchmark.NoFib.Prime    as Prime
+import qualified PlutusBenchmark.NoFib.Queens   as Queens
 
 import           PlutusCore.Default
-import qualified PlutusTx                 as Tx
+import qualified PlutusTx                       as Tx
 
 
 -- Unit tests comparing PLC and Haskell computations on given inputs

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module PlutusBenchmark.Knights.Utils where
+module PlutusBenchmark.NoFib.Knights.Utils where
 
 import           PlutusTx.Prelude
 

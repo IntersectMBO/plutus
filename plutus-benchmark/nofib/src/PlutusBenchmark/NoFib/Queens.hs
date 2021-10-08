@@ -14,7 +14,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans             #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches      #-}
 
-module PlutusBenchmark.Queens where
+module PlutusBenchmark.NoFib.Queens where
 
 {- Andrew Tolmach and Thomas Nordin's contraint solver
 

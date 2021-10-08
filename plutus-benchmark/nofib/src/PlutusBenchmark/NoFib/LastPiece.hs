@@ -17,7 +17,7 @@
   took forever).
 %-}
 
-module PlutusBenchmark.LastPiece where
+module PlutusBenchmark.NoFib.LastPiece where
 
 import           PlutusBenchmark.Common (compiledCodeToTerm)
 

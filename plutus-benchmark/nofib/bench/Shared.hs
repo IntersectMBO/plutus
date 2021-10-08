@@ -4,9 +4,9 @@ where
 
 import           Criterion.Main
 
-import qualified PlutusBenchmark.Clausify as Clausify
-import qualified PlutusBenchmark.Prime    as Prime
-import qualified PlutusBenchmark.Queens   as Queens
+import qualified PlutusBenchmark.NoFib.Clausify as Clausify
+import qualified PlutusBenchmark.NoFib.Prime    as Prime
+import qualified PlutusBenchmark.NoFib.Queens   as Queens
 
 {- | Package together functions to create benchmarks for each program given suitable inputs. -}
 type BenchmarkRunners =

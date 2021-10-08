@@ -3,12 +3,12 @@ module Main where
 
 import           Criterion.Main
 
-import           PlutusBenchmark.GhcSort
-import           PlutusBenchmark.InsertionSort
-import           PlutusBenchmark.MergeSort
-import           PlutusBenchmark.QuickSort
+import           PlutusBenchmark.ListSort.GhcSort
+import           PlutusBenchmark.ListSort.InsertionSort
+import           PlutusBenchmark.ListSort.MergeSort
+import           PlutusBenchmark.ListSort.QuickSort
 
-import           PlutusBenchmark.Common        (benchTermCek, getConfig)
+import           PlutusBenchmark.Common                 (benchTermCek, getConfig)
 
 benchGhcSort :: Integer -> Benchmarkable
 benchGhcSort n = benchTermCek $ mkWorstCaseGhcSortTerm n

@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple merge sort implementation -}
-module PlutusBenchmark.MergeSort where
+module PlutusBenchmark.ListSort.MergeSort where
 
 import           PlutusBenchmark.Common (compiledCodeToTerm)
 

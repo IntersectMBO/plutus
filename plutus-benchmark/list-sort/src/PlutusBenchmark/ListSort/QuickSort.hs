@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple quicksort implementation. -}
-module PlutusBenchmark.QuickSort where
+module PlutusBenchmark.ListSort.QuickSort where
 
 import           PlutusBenchmark.Common (compiledCodeToTerm)
 

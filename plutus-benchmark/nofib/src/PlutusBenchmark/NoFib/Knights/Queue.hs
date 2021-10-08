@@ -1,4 +1,4 @@
-module PlutusBenchmark.Knights.Queue
+module PlutusBenchmark.NoFib.Knights.Queue
   ( Queue, createQueue, addFront, addBack,
     addAllFront, addAllBack, inquireFront,
     inquireBack, removeFront, removeBack,

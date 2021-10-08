@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple insertion sort implementation -}
-module PlutusBenchmark.InsertionSort where
+module PlutusBenchmark.ListSort.InsertionSort where
 
 import           PlutusBenchmark.Common (compiledCodeToTerm)
 

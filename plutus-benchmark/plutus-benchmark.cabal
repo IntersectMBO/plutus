@@ -63,16 +63,16 @@ library nofib-internal
   hs-source-dirs:
       nofib/src
   exposed-modules:
-      PlutusBenchmark.Clausify
-      PlutusBenchmark.Queens
-      PlutusBenchmark.Knights
-      PlutusBenchmark.Knights.ChessSetList
-      PlutusBenchmark.Knights.KnightHeuristic
-      PlutusBenchmark.Knights.Queue
-      PlutusBenchmark.Knights.Sort
-      PlutusBenchmark.Knights.Utils
-      PlutusBenchmark.LastPiece
-      PlutusBenchmark.Prime
+      PlutusBenchmark.NoFib.Clausify
+      PlutusBenchmark.NoFib.Queens
+      PlutusBenchmark.NoFib.Knights
+      PlutusBenchmark.NoFib.Knights.ChessSetList
+      PlutusBenchmark.NoFib.Knights.KnightHeuristic
+      PlutusBenchmark.NoFib.Knights.Queue
+      PlutusBenchmark.NoFib.Knights.Sort
+      PlutusBenchmark.NoFib.Knights.Utils
+      PlutusBenchmark.NoFib.LastPiece
+      PlutusBenchmark.NoFib.Prime
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
@@ -148,10 +148,10 @@ library list-sort-internal
   hs-source-dirs:
       list-sort/src
   exposed-modules:
-      PlutusBenchmark.GhcSort
-      PlutusBenchmark.InsertionSort
-      PlutusBenchmark.MergeSort
-      PlutusBenchmark.QuickSort
+      PlutusBenchmark.ListSort.GhcSort
+      PlutusBenchmark.ListSort.InsertionSort
+      PlutusBenchmark.ListSort.MergeSort
+      PlutusBenchmark.ListSort.QuickSort
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common

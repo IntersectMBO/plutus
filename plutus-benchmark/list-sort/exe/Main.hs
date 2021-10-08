@@ -10,10 +10,10 @@ import           Text.Printf                              (printf)
 
 import           PlutusBenchmark.Common                   (unDeBruijn)
 
-import           PlutusBenchmark.GhcSort
-import           PlutusBenchmark.InsertionSort
-import           PlutusBenchmark.MergeSort
-import           PlutusBenchmark.QuickSort
+import           PlutusBenchmark.ListSort.GhcSort
+import           PlutusBenchmark.ListSort.InsertionSort
+import           PlutusBenchmark.ListSort.MergeSort
+import           PlutusBenchmark.ListSort.QuickSort
 
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Default

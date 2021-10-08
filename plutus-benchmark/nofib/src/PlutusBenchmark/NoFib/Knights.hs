@@ -6,20 +6,20 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusBenchmark.Knights where
+module PlutusBenchmark.NoFib.Knights where
 
-import           PlutusBenchmark.Common                  (compiledCodeToTerm)
+import           PlutusBenchmark.Common                        (compiledCodeToTerm)
 
 import           Data.Char
-import           PlutusBenchmark.Knights.ChessSetList
-import           PlutusBenchmark.Knights.KnightHeuristic
-import           PlutusBenchmark.Knights.Queue
+import           PlutusBenchmark.NoFib.Knights.ChessSetList
+import           PlutusBenchmark.NoFib.Knights.KnightHeuristic
+import           PlutusBenchmark.NoFib.Knights.Queue
 
 import           PlutusCore.Default
-import qualified PlutusCore.Pretty                       as PLC
-import qualified PlutusTx                                as Tx
-import           PlutusTx.Prelude                        as Tx
-import qualified Prelude                                 as Haskell
+import qualified PlutusCore.Pretty                             as PLC
+import qualified PlutusTx                                      as Tx
+import           PlutusTx.Prelude                              as Tx
+import qualified Prelude                                       as Haskell
 import           UntypedPlutusCore
 
 
