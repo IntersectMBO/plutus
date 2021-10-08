@@ -20,36 +20,36 @@ module Plutus.ChainIndex.Emulator.Handlers(
     , utxoIndex
     ) where
 
-import           Control.Lens                         (at, ix, makeLenses, over, preview, set, to, view, (&))
-import           Control.Monad.Freer                  (Eff, Member, type (~>))
-import           Control.Monad.Freer.Error            (Error, throwError)
-import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError, logWarn)
-import           Control.Monad.Freer.State            (State, get, gets, modify, put)
-import           Data.Default                         (Default (..))
-import           Data.Maybe                           (catMaybes, fromMaybe)
-import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
-import qualified Data.Set                             as Set
-import           GHC.Generics                         (Generic)
-import           Ledger                               (Address (addressCredential), ChainIndexTxOut (..),
-                                                       MintingPolicy (MintingPolicy),
-                                                       MintingPolicyHash (MintingPolicyHash),
-                                                       StakeValidator (StakeValidator),
-                                                       StakeValidatorHash (StakeValidatorHash), TxId,
-                                                       TxOut (txOutAddress), TxOutRef (..), Validator (Validator),
-                                                       ValidatorHash (ValidatorHash), txOutDatumHash, txOutValue)
-import           Ledger.Scripts                       (ScriptHash (ScriptHash))
-import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
-import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
-import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
-import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
-import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
-import qualified Plutus.ChainIndex.TxUtxoBalance      as TxUtxoBalance
-import           Plutus.ChainIndex.Types              (Diagnostics (..), Tip (..), TxUtxoBalance (..), pageOf)
-import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex, tip,
-                                                       utxoState)
-import qualified Plutus.ChainIndex.UtxoState          as UtxoState
-import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
+import           Control.Lens                          (at, ix, makeLenses, over, preview, set, to, view, (&))
+import           Control.Monad.Freer                   (Eff, Member, type (~>))
+import           Control.Monad.Freer.Error             (Error, throwError)
+import           Control.Monad.Freer.Extras.Log        (LogMsg, logDebug, logError, logWarn)
+import           Control.Monad.Freer.Extras.Pagination (pageOf)
+import           Control.Monad.Freer.State             (State, get, gets, modify, put)
+import           Data.Maybe                            (catMaybes, fromMaybe)
+import           Data.Semigroup.Generic                (GenericSemigroupMonoid (..))
+import qualified Data.Set                              as Set
+import           GHC.Generics                          (Generic)
+import           Ledger                                (Address (addressCredential), ChainIndexTxOut (..),
+                                                        MintingPolicy (MintingPolicy),
+                                                        MintingPolicyHash (MintingPolicyHash),
+                                                        StakeValidator (StakeValidator),
+                                                        StakeValidatorHash (StakeValidatorHash), TxId,
+                                                        TxOut (txOutAddress), TxOutRef (..), Validator (Validator),
+                                                        ValidatorHash (ValidatorHash), txOutDatumHash, txOutValue)
+import           Ledger.Scripts                        (ScriptHash (ScriptHash))
+import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
+import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
+import           Plutus.ChainIndex.Emulator.DiskState  (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
+import qualified Plutus.ChainIndex.Emulator.DiskState  as DiskState
+import           Plutus.ChainIndex.Tx                  (ChainIndexTx, _ValidTx, citxOutputs)
+import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
+import           Plutus.ChainIndex.Types               (Diagnostics (..), Tip (..), TxUtxoBalance (..))
+import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex, tip,
+                                                        utxoState)
+import qualified Plutus.ChainIndex.UtxoState           as UtxoState
+import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
 
 data ChainIndexEmulatorState =
     ChainIndexEmulatorState
@@ -127,15 +127,17 @@ handleQuery = \case
         case tip utxo of
             TipAtGenesis -> throwError QueryFailedNoTip
             tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxo)
-    UtxoSetAtAddress cred -> do
+    UtxoSetAtAddress pageQuery cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
             utxo = view (utxoIndex . to utxoState) state
-            page = pageOf def $ Set.filter (\r -> TxUtxoBalance.isUnspentOutput r utxo) (fromMaybe mempty outRefs)
+            page = pageOf pageQuery
+                 $ Set.filter (flip TxUtxoBalance.isUnspentOutput utxo)
+                              (fromMaybe mempty outRefs)
         case tip utxo of
             TipAtGenesis -> do
                 logWarn TipIsGenesis
-                pure (TipAtGenesis, pageOf def Set.empty)
+                pure (TipAtGenesis, pageOf pageQuery Set.empty)
             tp           -> pure (tp, page)
     GetTip ->
         gets (tip . utxoState . view utxoIndex)

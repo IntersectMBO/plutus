@@ -89,8 +89,9 @@ import           Ledger.Slot                 (Slot (..), SlotRange)
 import           Ledger.Time                 (POSIXTime (..), POSIXTimeRange)
 import           Ledger.TimeSlot             (SlotConversionError)
 import           Ledger.Tx                   (ChainIndexTxOut)
+import           Plutus.ChainIndex           (Page (pageItems), PageQuery)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (_citxTxId))
-import           Plutus.ChainIndex.Types     (Page (pageItems), Tip (..), TxOutStatus, TxStatus)
+import           Plutus.ChainIndex.Types     (Tip (..), TxOutStatus, TxStatus)
 import           Wallet.API                  (WalletAPIError)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue)
 
@@ -216,7 +217,7 @@ data ChainIndexQuery =
   | TxOutFromRef TxOutRef
   | TxFromTxId TxId
   | UtxoSetMembership TxOutRef
-  | UtxoSetAtAddress Credential
+  | UtxoSetAtAddress (PageQuery TxOutRef) Credential
   | GetTip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
@@ -231,7 +232,7 @@ instance Pretty ChainIndexQuery where
         TxOutFromRef r             -> "requesting utxo from utxo reference" <+> pretty r
         TxFromTxId i               -> "requesting chain index tx from id" <+> pretty i
         UtxoSetMembership txOutRef -> "whether tx output is part of the utxo set" <+> pretty txOutRef
-        UtxoSetAtAddress c         -> "requesting utxos located at addresses with the credential" <+> pretty c
+        UtxoSetAtAddress _ c       -> "requesting utxos located at addresses with the credential" <+> pretty c
         GetTip                     -> "requesting the tip of the chain index"
 
 -- | Represents all possible responses to chain index queries. Each constructor
