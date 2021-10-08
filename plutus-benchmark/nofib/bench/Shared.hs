@@ -1,30 +1,12 @@
 {- | Shared code for benchmarking Plutus and Haskell versions of the Plutus nofib examples -}
-module Common (getConfig, mkBenchMarks, BenchmarkRunners)
+module Shared (mkBenchMarks, BenchmarkRunners)
 where
 
 import           Criterion.Main
-import           Criterion.Types           (Config (..))
-import           System.FilePath
 
-import           Paths_plutus_benchmark    (getDataFileName)
-import qualified Plutus.Benchmark.Clausify as Clausify
-import qualified Plutus.Benchmark.Prime    as Prime
-import qualified Plutus.Benchmark.Queens   as Queens
-
-{- | The Criterion configuration returned by `getConfig` will cause an HTML report
-   to be generated.  If run via stack/cabal this will be written to the
-   `plutus-benchmark` directory by default.  The -o option can be used to change
-   this, but an absolute path will probably be required (eg,
-   "-o=$PWD/report.html") . -}
-getConfig :: Double -> IO Config
-getConfig limit = do
-  templateDir <- getDataFileName "templates"
-  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
-  pure $ defaultConfig {
-                template = templateFile,
-                reportFile = Just "report.html",
-                timeLimit = limit
-              }
+import qualified PlutusBenchmark.NoFib.Clausify as Clausify
+import qualified PlutusBenchmark.NoFib.Prime    as Prime
+import qualified PlutusBenchmark.NoFib.Queens   as Queens
 
 {- | Package together functions to create benchmarks for each program given suitable inputs. -}
 type BenchmarkRunners =

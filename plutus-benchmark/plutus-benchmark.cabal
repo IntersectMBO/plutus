@@ -14,7 +14,7 @@ description:
 build-type: Simple
 
 data-files:
-        templates/*.tpl
+        common/templates/*.tpl
         validation/data/*.flat
 
 source-repository head
@@ -34,35 +34,53 @@ common lang
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances
 
-library
+
+---------------- Common code for benchmarking ----------------     
+
+library plutus-benchmark-common
   import: lang
-  exposed-modules:
-      Plutus.Benchmark.Clausify
-      Plutus.Benchmark.Queens
-      Plutus.Benchmark.Knights
-      Plutus.Benchmark.Knights.ChessSetList
-      Plutus.Benchmark.Knights.KnightHeuristic
-      Plutus.Benchmark.Knights.Queue
-      Plutus.Benchmark.Knights.Sort
-      Plutus.Benchmark.Knights.Utils
-      Plutus.Benchmark.LastPiece
-      Plutus.Benchmark.Prime
   hs-source-dirs:
-      nofib/src
+      common
+  exposed-modules:
+      PlutusBenchmark.Common
+      PlutusBenchmark.NaturalSort
+  other-modules:
+      Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
+    , plutus-core -any
+    , plutus-tx -any
+    , criterion -any
+    , deepseq -any
+    , filepath -any
+    , flat -any
+    , transformers -any
+
+
+---------------- nofib ----------------
+     
+library nofib-internal
+  import: lang
+  hs-source-dirs:
+      nofib/src
+  exposed-modules:
+      PlutusBenchmark.NoFib.Clausify
+      PlutusBenchmark.NoFib.Queens
+      PlutusBenchmark.NoFib.Knights
+      PlutusBenchmark.NoFib.Knights.ChessSetList
+      PlutusBenchmark.NoFib.Knights.KnightHeuristic
+      PlutusBenchmark.NoFib.Knights.Queue
+      PlutusBenchmark.NoFib.Knights.Sort
+      PlutusBenchmark.NoFib.Knights.Utils
+      PlutusBenchmark.NoFib.LastPiece
+      PlutusBenchmark.NoFib.Prime
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
-    , plutus-core -any
     , deepseq -any
-  default-extensions:
-    DataKinds
-    NamedFieldPuns
-    OverloadedStrings
-    TemplateHaskell
-    TypeApplications
-    MultiParamTypeClasses
-    ScopedTypeVariables
 
 executable nofib-exe
   import: lang
@@ -71,17 +89,14 @@ executable nofib-exe
       nofib/exe
   build-depends:
       base >=4.7 && <5
-    , plutus-benchmark
-    , plutus-tx -any
-    , plutus-tx-plugin -any
+    , plutus-benchmark-common
+    , nofib-internal
     , plutus-core -any
+    , plutus-tx -any
     , ansi-wl-pprint -any
     , bytestring -any
-    , containers -any
     , flat -any
     , optparse-applicative -any
-    , serialise -any
-    , transformers -any
 
 benchmark nofib
   import: lang
@@ -90,18 +105,12 @@ benchmark nofib
   hs-source-dirs:
     nofib/bench
   other-modules:
-    Common
-    Paths_plutus_benchmark
+    Shared
   build-depends:
       base >=4.7 && <5
-    , plutus-benchmark
-    , plutus-tx -any
-    , plutus-tx-plugin -any
-    , plutus-core -any
-    , containers -any
+    , plutus-benchmark-common
+    , nofib-internal
     , criterion >= 1.5.9.0
-    , filepath -any
-    , mtl -any
 
 benchmark nofib-hs
   import: lang
@@ -110,57 +119,103 @@ benchmark nofib-hs
   hs-source-dirs:
     nofib/bench
   other-modules:
-    Common
-    Paths_plutus_benchmark
+    Shared
   build-depends:
       base >=4.7 && <5
-    , plutus-benchmark
-    , plutus-tx -any
-    , plutus-tx-plugin -any
-    , plutus-core -any
-    , containers -any
+    , plutus-benchmark-common
+    , nofib-internal
     , criterion -any
-    , filepath -any
-
-
-benchmark validation
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  hs-source-dirs:
-      validation
-  other-modules:
-      NaturalSort
-      Paths_plutus_benchmark
-  build-depends:
-      base >=4.7 && <5
-    , plutus-core -any
-    , bytestring -any
-    , containers -any
-    , criterion >= 1.5.9.0
-    , deepseq -any
-    , directory -any
-    , filepath -any
-    , flat -any
-    , optparse-applicative -any
-    , text -any
-    , transformers -any
 
 test-suite plutus-benchmark-nofib-tests
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: nofib/test
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
-    default-language: Haskell2010
     build-depends:
         base >=4.7 && <5
-      , plutus-benchmark -any
-      , plutus-tx -any
-      , plutus-tx-plugin -any
+      , plutus-benchmark-common
+      , nofib-internal
       , plutus-core -any
-      , containers -any
+      , plutus-tx -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
-      , mtl -any
+
+
+---------------- list-sort ----------------
+
+library list-sort-internal
+  import: lang
+  hs-source-dirs:
+      list-sort/src
+  exposed-modules:
+      PlutusBenchmark.ListSort.GhcSort
+      PlutusBenchmark.ListSort.InsertionSort
+      PlutusBenchmark.ListSort.MergeSort
+      PlutusBenchmark.ListSort.QuickSort
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+
+executable list-sort-exe
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs:
+      list-sort/exe
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , list-sort-internal
+    , monoidal-containers -any
+    , plutus-core -any
+
+benchmark list-sort
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Bench.hs
+  hs-source-dirs:
+      list-sort/bench
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , list-sort-internal
+    , criterion >= 1.5.9.0
+
+test-suite plutus-benchmark-list-sort-tests
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: list-sort/test
+    build-depends:
+        base >=4.7 && <5
+      , plutus-benchmark-common
+      , list-sort-internal
+      , tasty -any
+      , tasty-quickcheck -any
+
+
+---------------- validation ----------------
+
+benchmark validation
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Bench.hs
+  hs-source-dirs:
+      validation
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , bytestring -any
+    , criterion >= 1.5.9.0
+    , deepseq -any
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
+    , transformers -any
+
+    

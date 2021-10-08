@@ -1,15 +1,21 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
-{-# OPTIONS_GHC -fno-warn-identities          #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
-module Plutus.Benchmark.Clausify where
+module PlutusBenchmark.NoFib.Clausify where
+
+import           PlutusBenchmark.Common (compiledCodeToTerm)
 
 import           PlutusCore.Default
-import qualified PlutusTx           as Tx
-import           PlutusTx.Prelude   as Plutus
-import qualified Prelude            as Haskell
+import qualified PlutusTx               as Tx
+import           PlutusTx.Prelude       as Plutus
+import qualified Prelude                as Haskell
 import           UntypedPlutusCore
 
 type Var = Integer
@@ -183,8 +189,5 @@ runClausify = clauses . getFormula
 
 {-# INLINABLE mkClausifyTerm #-}
 mkClausifyTerm :: StaticFormula -> Term NamedDeBruijn DefaultUni DefaultFun ()
-mkClausifyTerm formula =
- let (Program _ _ code) = Tx.getPlc $
-                             $$(Tx.compile [|| runClausify ||])
-                             `Tx.applyCode` Tx.liftCode formula
- in code
+mkClausifyTerm formula = compiledCodeToTerm $
+                         $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula

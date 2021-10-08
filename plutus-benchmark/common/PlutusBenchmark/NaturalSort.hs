@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module NaturalSort (naturalSort)
+module PlutusBenchmark.NaturalSort (naturalSort)
 where
 
 import           Data.Char (isDigit)

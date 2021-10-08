@@ -1,31 +1,39 @@
 {-% nofib/spectral/constraints converted to Plutus.
     Renamed to avoid conflict with existing package. %-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
 {-# OPTIONS_GHC -fno-warn-orphans             #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches      #-}
 
-module Plutus.Benchmark.Queens where
+module PlutusBenchmark.NoFib.Queens where
 
 {- Andrew Tolmach and Thomas Nordin's contraint solver
 
 	See Proceedings of WAAAPL '99
 -}
 
-import           Control.DeepSeq    (NFData)
-import           Control.Monad      (forM_)
-import           Data.Char          (isSpace)
+import           Control.DeepSeq        (NFData)
+import           Control.Monad          (forM_)
+import           Data.Char              (isSpace)
 import           GHC.Generics
-import qualified Prelude            as Haskell
+import qualified Prelude                as Haskell
 import           System.Environment
 
+import           PlutusBenchmark.Common (compiledCodeToTerm)
+
 import           PlutusCore.Default
-import qualified PlutusCore.Pretty  as PLC
-import qualified PlutusTx           as Tx
-import           PlutusTx.Prelude   as TxPrelude
+import qualified PlutusCore.Pretty      as PLC
+import qualified PlutusTx               as Tx
+import           PlutusTx.Prelude       as TxPrelude
 import           UntypedPlutusCore
 
 
@@ -92,13 +100,10 @@ runQueens n alg = nqueens n (lookupAlgorithm alg)
 -- % Compile a Plutus Core term which runs nqueens on given arguments
 mkQueensTerm :: Integer -> Algorithm -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkQueensTerm sz alg =
-  let (Program _ _ code) =
-        Tx.getPlc $
+  compiledCodeToTerm $
               $$(Tx.compile [|| runQueens ||])
               `Tx.applyCode` Tx.liftCode sz
               `Tx.applyCode` Tx.liftCode alg
-  in code
-
 
 main2 :: Haskell.IO ()  -- Haskell version
 main2 = do
