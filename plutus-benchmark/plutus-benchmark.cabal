@@ -43,6 +43,7 @@ library plutus-benchmark-common
       common
   exposed-modules:
       PlutusBenchmark.Common
+      PlutusBenchmark.NaturalSort
   other-modules:
       Paths_plutus_benchmark
   build-depends:
@@ -204,8 +205,6 @@ benchmark validation
   main-is: Main.hs
   hs-source-dirs:
       validation
-  other-modules:
-      NaturalSort
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common

@@ -4,13 +4,12 @@
 module Main where
 
 import           PlutusBenchmark.Common
+import           PlutusBenchmark.NaturalSort
 
 import qualified PlutusCore                               as PLC
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
-
-import           NaturalSort
 
 import           Criterion.Main
 import           Criterion.Main.Options                   (Mode, parseWith)
