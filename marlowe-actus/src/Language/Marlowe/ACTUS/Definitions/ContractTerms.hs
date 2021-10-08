@@ -8,13 +8,15 @@ import           Data.Aeson.Types (FromJSON, ToJSON)
 import           Data.Maybe       (fromMaybe)
 import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
+import           Language.Marlowe (Observation, Value)
 
 -- |ContractType
 data CT = PAM -- ^ Principal at maturity
         | LAM -- ^ Linear amortizer
         | NAM -- ^ Negative amortizer
         | ANN -- ^ Annuity
-        deriving stock (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+        deriving stock (Show, Read, Eq, Generic)
+        deriving anyclass (FromJSON, ToJSON)
 
 -- |ContractRole
 data CR = CR_RPA -- ^ Real position asset
@@ -30,7 +32,8 @@ data CR = CR_RPA -- ^ Real position asset
         | CR_PFL -- ^ Pay first leg
         | CR_RF  -- ^ Receive fix leg
         | CR_PF  -- ^ Pay fix leg
-        deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+        deriving stock (Show, Read, Eq, Generic)
+        deriving anyclass (FromJSON, ToJSON)
 
 -- |DayCountConvention
 data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
@@ -39,12 +42,14 @@ data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
          | DCC_E30_360ISDA -- ^ 30E/360 ISDA
          | DCC_E30_360     -- ^ 30E/360
          | DCC_B_252       -- ^ Business / 252
-         deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving stock (Show, Read, Eq, Generic)
+         deriving anyclass (FromJSON, ToJSON)
 
 -- |EndOfMonthConvention
 data EOMC = EOMC_EOM -- ^ End of month
           | EOMC_SD  -- ^ Same day
-          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving stock (Show, Read, Eq, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 -- |BusinessDayConvention
 data BDC = BDC_NULL -- ^ No shift
@@ -56,11 +61,13 @@ data BDC = BDC_NULL -- ^ No shift
          | BDC_SCMP -- ^ Shift/calculate modified preceding
          | BDC_CSP  -- ^ Calculate/shift preceding
          | BDC_CSMP -- ^ Calculate/shift modified preceding
-         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving stock (Show, Read, Eq, Generic)
+         deriving anyclass (FromJSON, ToJSON)
 
 data Calendar = CLDR_MF -- ^ Monday to Friday
               | CLDR_NC -- ^ No calendar
-              deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
+              deriving stock (Show, Read, Eq, Generic)
+              deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
   { calendar :: Maybe Calendar
@@ -75,18 +82,21 @@ data PRF = PRF_PF -- ^ Performant
          | PRF_DL -- ^ Delayed
          | PRF_DQ -- ^ Delinquent
          | PRF_DF -- ^ Default
-         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving stock (Show, Read, Eq, Generic)
+         deriving anyclass (FromJSON, ToJSON)
 
 -- |FeeBasis
 data FEB = FEB_A -- ^ Absolute value
          | FEB_N -- ^ Notional of underlying
-         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving stock (Show, Read, Eq, Generic)
+         deriving anyclass (FromJSON, ToJSON)
 
 -- |InterestCalculationBase
 data IPCB = IPCB_NT    -- ^ Calculation base always equals to NT
           | IPCB_NTIED -- ^ Notional remains constant amount as per IED
           | IPCB_NTL   -- ^ Calculation base is notional base laged
-          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving stock (Show, Read, Eq, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 -- |ScalingEffect
 data SCEF = SE_000 -- ^ No scaling
@@ -97,26 +107,29 @@ data SCEF = SE_000 -- ^ No scaling
           | SE_0NM -- ^ Nominal and maximum deferred amount scaled
           | SE_I0M -- ^ Interest and maximum deferred amount scaled
           | SE_INM -- ^ Interest, nominal and maximum deferred amount scaled
-          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving stock (Show, Read, Eq, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 -- |PenaltyType
 data PYTP = PYTP_A -- ^ Absolute
           | PYTP_N -- ^ Nominal rate
           | PYTP_I -- ^ Current interest rate differential
           | PYTP_O -- ^ No penalty
-          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving stock (Show, Read, Eq, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 -- |PrepaymentEffect
 data PPEF = PPEF_N -- ^ No prepayment
           | PPEF_A -- ^ Prepayment allowed, prepayment results in reduction of PRNXT while MD remains
           | PPEF_M -- ^ Prepayment allowed, prepayment results in reduction of MD while PRNXT remains
-          deriving (Show, Read, Eq, Ord, Generic)
+          deriving stock (Show, Read, Eq, Ord, Generic)
           deriving anyclass (FromJSON, ToJSON)
 
 data CalendarType = NoCalendar
                   | MondayToFriday
                   | CustomCalendar {holidays :: [Day]}
-                  deriving (Show, Generic) deriving anyclass (FromJSON, ToJSON)
+                  deriving stock (Show, Generic)
+                  deriving anyclass (FromJSON, ToJSON)
 
 -- |CyclePeriod
 data Period = P_D -- ^ Day
@@ -125,13 +138,14 @@ data Period = P_D -- ^ Day
             | P_Q -- ^ Quarter
             | P_H -- ^ Half year
             | P_Y -- ^ Year
-            deriving (Show, Read, Eq, Ord, Generic)
+            deriving stock (Show, Read, Eq, Ord, Generic)
             deriving anyclass (FromJSON, ToJSON)
 
 -- |CycleStub
 data Stub = ShortStub -- ^ Short last stub
           | LongStub  -- ^ Long last stub
-          deriving (Show, Eq, Ord, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving stock (Show, Eq, Ord, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 -- |Cycle
 data Cycle = Cycle
@@ -140,14 +154,14 @@ data Cycle = Cycle
   , stub          :: Stub
   , includeEndDay :: Bool
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
 -- For applicability failures
 data TermValidationError =
     Required String
     | NotApplicable String
-    deriving (Eq)
+    deriving stock (Eq)
 instance Show TermValidationError where
     show (Required s)      = "Missing required term: " ++ s
     show (NotApplicable s) = "Term not applicable to contract: " ++ s
@@ -263,6 +277,7 @@ data ContractTermsPoly a b = ContractTermsPoly
   deriving anyclass (FromJSON, ToJSON)
 
 type ContractTerms = ContractTermsPoly Double LocalTime
+type ContractTermsMarlowe = ContractTermsPoly (Value Observation) (Value Observation)
 
 setDefaultContractTermValues :: ContractTerms -> ContractTerms
 setDefaultContractTermValues ct@ContractTermsPoly{..} =

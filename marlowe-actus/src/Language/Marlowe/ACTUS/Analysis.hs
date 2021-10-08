@@ -9,7 +9,9 @@ The cash flows can be used to generate the payments in a Marlowe contract.
 -}
 
 module Language.Marlowe.ACTUS.Analysis
-  ( genProjectedCashflows )
+  ( genProjectedCashflows
+  , genProjectedPayoffs
+  )
 where
 
 import           Control.Applicative                                        ((<|>))
@@ -25,10 +27,10 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT 
                                                                              ContractTermsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
                                                                              calculationDay, paymentDay)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initialize)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (initializeState)
 import           Language.Marlowe.ACTUS.Model.POF.Payoff                    (payoff)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        as S (maturity, schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransition
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition           (CtxSTF (..), stateTransition)
 
 -- |'genProjectedCashflows' generates a list of projected cashflows for
 -- given contract terms and provided risk factors. The function returns
@@ -38,64 +40,64 @@ genProjectedCashflows ::
   (EventType -> LocalTime -> RiskFactors) -- ^ Risk factors as a function of event type and time
   -> ContractTerms                        -- ^ ACTUS contract terms
   -> [CashFlow]                           -- ^ List of projected cash flows
-genProjectedCashflows getRiskFactors ct@ContractTermsPoly {..} =
-  maybe
-    []
-    ( \st0 ->
-        let -- schedules
+genProjectedCashflows getRiskFactors =
+  let genCashflow ((_, ev, t), am) =
+        CashFlow
+          { tick = 0,
+            cashContractId = "0",
+            cashParty = "party",
+            cashCounterParty = "counterparty",
+            cashPaymentDay = paymentDay t,
+            cashCalculationDay = calculationDay t,
+            cashEvent = ev,
+            amount = am,
+            currency = "ada"
+          }
+   in sortOn cashPaymentDay . fmap genCashflow . genProjectedPayoffs getRiskFactors
 
-            schedules =
-              filter filtersSchedules . postProcessSchedule . sortOn (paymentDay . snd) $
-                concatMap scheduleEvent eventTypes
-              where
-                eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
-                scheduleEvent ev = (ev,) <$> schedule ev ct
+genProjectedPayoffs ::
+  (EventType -> LocalTime -> RiskFactors)               -- ^ Risk factors as a function of event type and time
+  -> ContractTerms                                      -- ^ ACTUS contract terms
+  -> [((ContractState, EventType, ShiftedDay), Double)] -- ^ List of projected payoffs
+genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
+  let -- schedules
 
-            -- states
+      schedules =
+        filter filtersSchedules . postProcessSchedule . sortOn (paymentDay . snd) $
+          concatMap scheduleEvent eventTypes
+        where
+          eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
+          scheduleEvent ev = (ev,) <$> schedule ev ct
 
-            states =
-              filter filtersStates . tail $
-                runReader (sequence . scanl applyStateTransition initialState $ schedules) context
-              where
-                initialState = return (st0, AD, ShiftedDay ct_SD ct_SD)
+      -- states
 
-                applyStateTransition x (ev', t') = do
-                  (st, ev, d) <- x
-                  let t = calculationDay d
-                  let rf = getRiskFactors ev t
-                  stateTransition ev rf t st <&> (,ev',t')
+      states =
+        filter filtersStates . tail $
+          runReader (sequence $ scanl applyStateTransition initialState schedules) context
+        where
+          initialState = initializeState <&> (,AD,ShiftedDay ct_SD ct_SD)
 
-                context = CtxSTF ct fpSchedule prSchedule mat
+          applyStateTransition x (ev', t') = do
+            (st, ev, d) <- x
+            let t = calculationDay d
+            let rf = getRiskFactors ev t
+            stateTransition ev rf t st <&> (,ev',t')
 
-                fpSchedule = calculationDay <$> schedule FP ct -- stf rely on the fee payment schedule
-                prSchedule = calculationDay <$> schedule PR ct -- stf rely on the principal redemption schedule
+          context = CtxSTF ct fpSchedule prSchedule ipSchedule mat
 
-            -- payoffs
+          fpSchedule = calculationDay <$> schedule FP ct -- init & stf rely on the fee payment schedule
+          prSchedule = calculationDay <$> schedule PR ct -- init & stf rely on the principal redemption schedule
+          ipSchedule = calculationDay <$> schedule IP ct -- init & stf rely on the interest payment schedule
 
-            payoffs = calculatePayoff <$> states
-              where
-                calculatePayoff (st, ev, d) =
-                  let t = calculationDay d
-                      rf = getRiskFactors ev t
-                   in payoff ev rf ct st t
+      -- payoffs
 
-            -- cash flows
-
-            genCashflow ((_, ev, t), am) =
-              CashFlow
-                { tick = 0,
-                  cashContractId = "0",
-                  cashParty = "party",
-                  cashCounterParty = "counterparty",
-                  cashPaymentDay = paymentDay t,
-                  cashCalculationDay = calculationDay t,
-                  cashEvent = ev,
-                  amount = am,
-                  currency = "ada"
-                }
-         in sortOn cashPaymentDay $ genCashflow <$> zip states payoffs
-    )
-    (initialize ct)
+      payoffs = calculatePayoff <$> states
+        where
+          calculatePayoff (st, ev, d) =
+            let t = calculationDay d
+                rf = getRiskFactors ev t
+             in payoff ev rf ct st t
+   in zip states payoffs
   where
     mat = S.maturity ct
 
