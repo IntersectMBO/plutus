@@ -94,7 +94,7 @@
           "Plutus/ChainIndex/ChainIndexError"
           "Plutus/ChainIndex/ChainIndexLog"
           "Plutus/ChainIndex/Client"
-          "Plutus/ChainIndex/DbStore"
+          "Plutus/ChainIndex/DbSchema"
           "Plutus/ChainIndex/Effects"
           "Plutus/ChainIndex/Emulator"
           "Plutus/ChainIndex/Emulator/DiskState"

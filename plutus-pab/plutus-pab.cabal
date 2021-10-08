@@ -87,11 +87,11 @@ library
         Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
         Plutus.PAB.Db.Beam
+        Plutus.PAB.Db.Schema
         Plutus.PAB.Db.Beam.ContractStore
         Plutus.PAB.Db.Memory.ContractStore
         Plutus.PAB.Effects.Contract
         Plutus.PAB.Effects.Contract.Builtin
-        Plutus.PAB.Effects.DbStore
         Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Events

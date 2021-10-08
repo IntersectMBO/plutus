@@ -84,6 +84,7 @@ library
         unordered-containers -any,
         wai -any,
         freer-simple -any,
+        freer-extras,
         uuid -any,
         streaming -any,
         foldl -any,

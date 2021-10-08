@@ -47,7 +47,7 @@ import           GHC.Generics                      (Generic)
 import           Plutus.ChainIndex.ChainIndexError (InsertUtxoFailed (..), RollbackFailed (..))
 import           Plutus.ChainIndex.ChainIndexLog   (InsertUtxoPosition (..))
 import           Plutus.ChainIndex.Tx              (ChainIndexTx (..), citxInputs, txOutsWithRef)
-import           Plutus.ChainIndex.Types           (BlockNumber (..), Point (..), Tip (..), pointsToTip)
+import           Plutus.ChainIndex.Types           (Point (..), Tip (..), pointsToTip)
 import           Prettyprinter                     (Pretty (..))
 
 -- | UTXO / ledger state, kept in memory. We are only interested in the UTXO set, everything else is stored
