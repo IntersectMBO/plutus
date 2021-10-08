@@ -2,11 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-{-# OPTIONS_GHC -fno-warn-identities              #-}
-{-# OPTIONS_GHC -fno-warn-unused-local-binds      #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns     #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-
+{- | Simple quicksort implementation. -}
 module QuickSort where
 
 import           PlutusCore.Default

@@ -11,10 +11,10 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-{-# OPTIONS_GHC -fno-warn-identities              #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns     #-}
+{-# OPTIONS_GHC -fno-warn-identities #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing          #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 module Plutus.Benchmark.Prime where
 

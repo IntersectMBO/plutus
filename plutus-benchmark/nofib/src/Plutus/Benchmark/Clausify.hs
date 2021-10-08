@@ -5,8 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-{-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
-{-# OPTIONS_GHC -fno-warn-identities          #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Plutus.Benchmark.Clausify where

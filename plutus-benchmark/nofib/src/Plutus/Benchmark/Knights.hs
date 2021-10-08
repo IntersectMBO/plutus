@@ -4,8 +4,6 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Plutus.Benchmark.Knights where
 
 import           Data.Char

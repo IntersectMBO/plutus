@@ -2,20 +2,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-{-# OPTIONS_GHC -fno-warn-identities              #-}
-{-# OPTIONS_GHC -fno-warn-unused-local-binds      #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns     #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-
+{- | Simple insertion sort implementation -}
 module InsertionSort where
 
 import           PlutusCore.Default
 import qualified PlutusTx           as Tx
 import           PlutusTx.Prelude   as Tx
 import qualified UntypedPlutusCore  as UPLC
-
-
--- Insertion sort
 
 {-# INLINABLE insertionSort #-}
 insertionSort :: [Integer] -> [Integer]

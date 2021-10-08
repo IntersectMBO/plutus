@@ -3,7 +3,6 @@
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
-
 import           Common
 
 import           Control.Exception
