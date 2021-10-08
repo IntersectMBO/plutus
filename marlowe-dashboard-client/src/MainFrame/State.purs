@@ -8,6 +8,7 @@ import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.PlutusApps.MarloweApp.Types (LastResult(..))
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
+import Contacts.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -38,7 +39,6 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusT
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
-import Contacts.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
@@ -180,12 +180,21 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                 -- if this is the wallet's MarloweApp...
                 if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                  Right lastResult -> case lastResult of
-                    OK "create" -> addToast $ successToast "Contract initialised."
-                    OK "apply-inputs" -> addToast $ successToast "Contract update applied."
-                    SomeError "create" marloweError -> addToast $ errorToast "Failed to initialise contract." Nothing
-                    SomeError "apply-inputs" marloweError -> addToast $ errorToast "Failed to update contract." Nothing
-                    _ -> pure unit
+                  Right lastResult -> do
+                    -- The MarloweApp capability keeps track of the requests it makes to see if this
+                    -- new observable state is a WS response for an action that we made. If we refresh
+                    -- we get the last observable state, and if we have two tabs open we can get
+                    -- a result of an action that the other tab made.
+                    -- TODO: With a "significant refactor" (and the use of `MarloweApp.waitForResponse`)
+                    --       we could rework the different workflows for creating a contract and apply
+                    --       inputs so these toast are closer to the code that initiates the actions.
+                    mLastResult <- MarloweApp.onNewObservableState lastResult
+                    case mLastResult of
+                      Just (OK _ "create") -> addToast $ successToast "Contract initialised."
+                      Just (OK _ "apply-inputs") -> addToast $ successToast "Contract update applied."
+                      Just (SomeError _ "create" marloweError) -> addToast $ errorToast "Failed to initialise contract." Nothing
+                      Just (SomeError _ "apply-inputs" marloweError) -> addToast $ errorToast "Failed to update contract." Nothing
+                      _ -> pure unit
                 -- otherwise this should be one of the wallet's `MarloweFollower` apps
                 else case runExcept $ decodeJSON $ unwrap rawJson of
                   Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
