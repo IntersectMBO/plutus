@@ -1,53 +1,26 @@
-{-# LANGUAGE TypeApplications #-}
-
 {- | Plutus benchmarks for some simple list-sorting algortihms. -}
 module Main where
 
-import           Control.Exception
-import           Control.Monad.Except
 import           Criterion.Main
-import           Criterion.Types                          (Config (..))
-import           System.FilePath
 
-import           GhcSort
-import           InsertionSort
-import           MergeSort
-import           QuickSort
+import           PlutusBenchmark.GhcSort
+import           PlutusBenchmark.InsertionSort
+import           PlutusBenchmark.MergeSort
+import           PlutusBenchmark.QuickSort
 
-import           Paths_plutus_benchmark                   (getDataFileName)
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-
-import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek
-
--- Criterion configuration
-getConfig :: Double -> IO Config
-getConfig limit = do
-  templateDir <- getDataFileName "templates"
-  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
-  pure $ defaultConfig {
-                template = templateFile,
-                reportFile = Just "report.html",
-                timeLimit = limit
-              }
-
-benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
-benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek noEmitter PLC.defaultCekParameters) t'
+import           PlutusBenchmark.Common        (benchTermCek, getConfig)
 
 benchGhcSort :: Integer -> Benchmarkable
-benchGhcSort n = benchCek $ mkWorstCaseGhcSortTerm n
+benchGhcSort n = benchTermCek $ mkWorstCaseGhcSortTerm n
 
 benchInsertionSort :: Integer -> Benchmarkable
-benchInsertionSort n = benchCek $ mkWorstCaseInsertionSortTerm n
+benchInsertionSort n = benchTermCek $ mkWorstCaseInsertionSortTerm n
 
 benchMergeSort :: Integer -> Benchmarkable
-benchMergeSort n = benchCek $ mkWorstCaseMergeSortTerm n
+benchMergeSort n = benchTermCek $ mkWorstCaseMergeSortTerm n
 
 benchQuickSort :: Integer -> Benchmarkable
-benchQuickSort n = benchCek $ mkWorstCaseQuickSortTerm n
+benchQuickSort n = benchTermCek $ mkWorstCaseQuickSortTerm n
 
 benchmarks :: [Benchmark]
 benchmarks =

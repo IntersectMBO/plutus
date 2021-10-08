@@ -3,12 +3,14 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple insertion sort implementation -}
-module InsertionSort where
+module PlutusBenchmark.InsertionSort where
+
+import           PlutusBenchmark.Common (compiledCodeToTerm)
 
 import           PlutusCore.Default
-import qualified PlutusTx           as Tx
-import           PlutusTx.Prelude   as Tx
-import qualified UntypedPlutusCore  as UPLC
+import qualified PlutusTx               as Tx
+import           PlutusTx.Prelude       as Tx
+import qualified UntypedPlutusCore      as UPLC
 
 {-# INLINABLE insertionSort #-}
 insertionSort :: [Integer] -> [Integer]
@@ -29,8 +31,7 @@ insertionSortWorstCase n = [1..n]
 
 mkInsertionSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkInsertionSortTerm l =
-    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| insertionSort ||]) `Tx.applyCode` Tx.liftCode l
-    in code
+    compiledCodeToTerm $ $$(Tx.compile [|| insertionSort ||]) `Tx.applyCode` Tx.liftCode l
 
 mkWorstCaseInsertionSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkWorstCaseInsertionSortTerm = mkInsertionSortTerm . insertionSortWorstCase

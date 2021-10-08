@@ -4,18 +4,22 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Plutus.Benchmark.Knights where
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
+module PlutusBenchmark.Knights where
+
+import           PlutusBenchmark.Common                  (compiledCodeToTerm)
 
 import           Data.Char
-import           Plutus.Benchmark.Knights.ChessSetList
-import           Plutus.Benchmark.Knights.KnightHeuristic
-import           Plutus.Benchmark.Knights.Queue
+import           PlutusBenchmark.Knights.ChessSetList
+import           PlutusBenchmark.Knights.KnightHeuristic
+import           PlutusBenchmark.Knights.Queue
 
 import           PlutusCore.Default
-import qualified PlutusCore.Pretty                        as PLC
-import qualified PlutusTx                                 as Tx
-import           PlutusTx.Prelude                         as Tx
-import qualified Prelude                                  as Haskell
+import qualified PlutusCore.Pretty                       as PLC
+import qualified PlutusTx                                as Tx
+import           PlutusTx.Prelude                        as Tx
+import qualified Prelude                                 as Haskell
 import           UntypedPlutusCore
 
 
@@ -96,10 +100,9 @@ runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 {-# INLINABLE mkKnightsTerm #-}
 mkKnightsTerm :: Integer -> Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkKnightsTerm depth boardSize =
-  let (Program _ _ code) = Tx.getPlc $
-                             $$(Tx.compile [|| runKnights ||])
-                             `Tx.applyCode` Tx.liftCode depth
-                             `Tx.applyCode` Tx.liftCode boardSize
-  in code
+  compiledCodeToTerm $
+       $$(Tx.compile [|| runKnights ||])
+             `Tx.applyCode` Tx.liftCode depth
+                  `Tx.applyCode` Tx.liftCode boardSize
 
 Tx.makeLift ''ChessSet

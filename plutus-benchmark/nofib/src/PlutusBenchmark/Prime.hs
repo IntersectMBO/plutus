@@ -16,19 +16,21 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
-module Plutus.Benchmark.Prime where
+module PlutusBenchmark.Prime where
 
-import           Control.DeepSeq   (NFData)
-import           Data.Char         (isSpace)
+import           Control.DeepSeq        (NFData)
+import           Data.Char              (isSpace)
 import           GHC.Generics
 
-import qualified Prelude           as Haskell
+import           PlutusBenchmark.Common (compiledCodeToTerm)
 
-import qualified PlutusCore.Pretty as PLC
-import qualified PlutusTx          as Tx
-import           PlutusTx.Builtins (divideInteger, modInteger)
-import           PlutusTx.Prelude  as Tx hiding (divMod, even)
-import           PlutusTx.Ratio    (divMod)
+import qualified Prelude                as Haskell
+
+import qualified PlutusCore.Pretty      as PLC
+import qualified PlutusTx               as Tx
+import           PlutusTx.Builtins      (divideInteger, modInteger)
+import           PlutusTx.Prelude       as Tx hiding (divMod, even)
+import           PlutusTx.Ratio         (divMod)
 import           UntypedPlutusCore
 
 ---------------- Extras ----------------
@@ -296,11 +298,9 @@ runPrimalityTest n = testInteger n initState
 -- % Run the program on an arbitrary integer, for testing
 mkPrimalityTestTerm :: Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkPrimalityTestTerm n =
-  let (Program _ _ code) = Tx.getPlc $
-                           $$(Tx.compile [|| runPrimalityTest ||])
-                           `Tx.applyCode` Tx.liftCode n
-  in code
-
+  compiledCodeToTerm  $
+     $$(Tx.compile [|| runPrimalityTest ||])
+           `Tx.applyCode` Tx.liftCode n
 
 -- Run the program on one of the fixed primes listed above
 runFixedPrimalityTest :: PrimeID -> Result
@@ -310,10 +310,9 @@ runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 -- (primes take a long time, composite numbers generally don't).
 mkPrimalityBenchTerm :: PrimeID -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkPrimalityBenchTerm pid =
-  let (Program _ _ code) = Tx.getPlc $
+    compiledCodeToTerm $
         $$(Tx.compile [|| runFixedPrimalityTest ||])
         `Tx.applyCode` Tx.liftCode pid
-  in code
 
 Tx.makeLift ''PrimeID
 Tx.makeLift ''Result

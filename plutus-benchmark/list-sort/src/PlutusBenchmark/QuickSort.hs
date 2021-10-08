@@ -3,12 +3,14 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple quicksort implementation. -}
-module QuickSort where
+module PlutusBenchmark.QuickSort where
+
+import           PlutusBenchmark.Common (compiledCodeToTerm)
 
 import           PlutusCore.Default
-import qualified PlutusTx           as Tx
-import           PlutusTx.Prelude   as Tx
-import qualified UntypedPlutusCore  as UPLC
+import qualified PlutusTx               as Tx
+import           PlutusTx.Prelude       as Tx
+import qualified UntypedPlutusCore      as UPLC
 
 
 {-# INLINABLE quickSort #-}
@@ -38,8 +40,7 @@ quickSortPlc = $$(Tx.compile [|| quickSort ||])
 
 mkQuickSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkQuickSortTerm l =
-    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| quickSort ||]) `Tx.applyCode` Tx.liftCode l
-    in code
+    compiledCodeToTerm $ $$(Tx.compile [|| quickSort ||]) `Tx.applyCode` Tx.liftCode l
 
 mkWorstCaseQuickSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkWorstCaseQuickSortTerm = mkQuickSortTerm . quickSortWorstCase

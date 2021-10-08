@@ -17,15 +17,17 @@
   took forever).
 %-}
 
-module Plutus.Benchmark.LastPiece where
+module PlutusBenchmark.LastPiece where
 
-import           Data.Char          (isSpace)
+import           PlutusBenchmark.Common (compiledCodeToTerm)
+
+import           Data.Char              (isSpace)
 import           PlutusCore.Default
-import qualified PlutusCore.Pretty  as PLC
-import           PlutusTx           as PlutusTx
-import           PlutusTx.Builtins  as Tx
-import           PlutusTx.Prelude   as PLC hiding (Semigroup (..), check, foldMap)
-import qualified Prelude            as Haskell
+import qualified PlutusCore.Pretty      as PLC
+import           PlutusTx               as PlutusTx
+import           PlutusTx.Builtins      as Tx
+import           PlutusTx.Prelude       as PLC hiding (Semigroup (..), check, foldMap)
+import qualified Prelude                as Haskell
 import           UntypedPlutusCore
 
 -------------------------------------
@@ -303,8 +305,7 @@ runLastPiece = search (1,2) Female initialBoard initialPieces
 
 mkLastPieceTerm :: Term NamedDeBruijn DefaultUni DefaultFun ()
 mkLastPieceTerm =
-  let (Program _ _ code) = getPlc $$(compile [|| runLastPiece ||])
-  in code
+    compiledCodeToTerm $ $$(compile [|| runLastPiece ||])
 
 -- -- Number of correct solutions: 3
 -- -- Number including failures: 59491

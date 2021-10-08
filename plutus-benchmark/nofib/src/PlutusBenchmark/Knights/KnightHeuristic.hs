@@ -1,16 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Plutus.Benchmark.Knights.KnightHeuristic
+module PlutusBenchmark.Knights.KnightHeuristic
    ( ChessSet,
      startTour,
      descendents,
      tourFinished
    ) where
 
-import           Plutus.Benchmark.Knights.ChessSetList
-import           Plutus.Benchmark.Knights.Sort         (quickSort)
+import           PlutusBenchmark.Knights.ChessSetList
+import           PlutusBenchmark.Knights.Sort         (quickSort)
 
-import           PlutusTx.Prelude                      as Tx
+import           PlutusTx.Prelude                     as Tx
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD
 

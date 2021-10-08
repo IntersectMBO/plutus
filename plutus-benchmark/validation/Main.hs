@@ -3,7 +3,7 @@
 
 module Main where
 
-import           Paths_plutus_benchmark                   (getDataDir, getDataFileName)
+import           PlutusBenchmark.Common
 
 import qualified PlutusCore                               as PLC
 
@@ -79,12 +79,12 @@ type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
 type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
 type DbProgram     = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
 
-fromDeBruijn :: DbProgram -> IO Program
-fromDeBruijn prog = do
+fromDeBruijn :: DbProgram -> Program
+fromDeBruijn prog =
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
+    in case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> errorWithoutStackTrace $ show e
-      Right p -> return p
+      Right p -> p
 
 loadFlat :: FilePath -> IO Term
 loadFlat file = do
@@ -92,7 +92,7 @@ loadFlat file = do
   case unflat contents of
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right r -> do
-        p <- fromDeBruijn r
+        let p = fromDeBruijn r
         return $! force $ UPLC.toTerm p
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
@@ -109,21 +109,6 @@ mkBMs dir files = map (mkScriptBM dir) files
 
 
 ----------------------- Main -----------------------
-
-{- | The Criterion configuration returned by `getConfig` will cause an HTML report
-   to be generated.  If run via stack/cabal this will be written to the
-   `plutus-benchmark` directory by default.  The -o option can be used to change
-   this, but an absolute path will probably be required (eg,
-   "-o=$PWD/report.html") . -}
-getConfig :: Double -> IO Config
-getConfig limit = do
-  templateDir <- getDataFileName "templates"
-  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
-  pure $ defaultConfig {
-                template = templateFile,
-                reportFile = Just "report.html",
-                timeLimit = limit
-              }
 
 -- Extend the options to include `--quick`: see eg https://github.com/haskell/criterion/pull/206
 data BenchOptions = BenchOptions

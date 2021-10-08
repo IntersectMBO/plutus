@@ -14,7 +14,7 @@ description:
 build-type: Simple
 
 data-files:
-        templates/*.tpl
+        common/templates/*.tpl
         validation/data/*.flat
 
 source-repository head
@@ -35,6 +35,27 @@ common lang
      -Wnoncanonical-monoid-instances
 
 
+---------------- Common code for benchmarking ----------------     
+
+library plutus-benchmark-common
+  import: lang
+  hs-source-dirs:
+      common
+  exposed-modules:
+      PlutusBenchmark.Common
+  other-modules:
+      Paths_plutus_benchmark
+  build-depends:
+      base >=4.7 && <5
+    , plutus-core -any
+    , plutus-tx -any
+    , criterion -any
+    , deepseq -any
+    , filepath -any
+    , flat -any
+    , transformers -any
+
+
 ---------------- nofib ----------------
      
 library nofib-internal
@@ -42,18 +63,19 @@ library nofib-internal
   hs-source-dirs:
       nofib/src
   exposed-modules:
-      Plutus.Benchmark.Clausify
-      Plutus.Benchmark.Queens
-      Plutus.Benchmark.Knights
-      Plutus.Benchmark.Knights.ChessSetList
-      Plutus.Benchmark.Knights.KnightHeuristic
-      Plutus.Benchmark.Knights.Queue
-      Plutus.Benchmark.Knights.Sort
-      Plutus.Benchmark.Knights.Utils
-      Plutus.Benchmark.LastPiece
-      Plutus.Benchmark.Prime
+      PlutusBenchmark.Clausify
+      PlutusBenchmark.Queens
+      PlutusBenchmark.Knights
+      PlutusBenchmark.Knights.ChessSetList
+      PlutusBenchmark.Knights.KnightHeuristic
+      PlutusBenchmark.Knights.Queue
+      PlutusBenchmark.Knights.Sort
+      PlutusBenchmark.Knights.Utils
+      PlutusBenchmark.LastPiece
+      PlutusBenchmark.Prime
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
@@ -66,6 +88,7 @@ executable nofib-exe
       nofib/exe
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , nofib-internal
     , plutus-core -any
     , plutus-tx -any
@@ -73,7 +96,6 @@ executable nofib-exe
     , bytestring -any
     , flat -any
     , optparse-applicative -any
-    , transformers -any
 
 benchmark nofib
   import: lang
@@ -82,15 +104,12 @@ benchmark nofib
   hs-source-dirs:
     nofib/bench
   other-modules:
-    Common
-    Paths_plutus_benchmark
+    Shared
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , nofib-internal
-    , plutus-core -any
     , criterion >= 1.5.9.0
-    , filepath -any
-    , mtl -any
 
 benchmark nofib-hs
   import: lang
@@ -99,30 +118,27 @@ benchmark nofib-hs
   hs-source-dirs:
     nofib/bench
   other-modules:
-    Common
-    Paths_plutus_benchmark
+    Shared
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , nofib-internal
     , criterion -any
-    , filepath -any
 
 test-suite plutus-benchmark-nofib-tests
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: nofib/test
-    other-modules:
-        Paths_plutus_benchmark
     build-depends:
         base >=4.7 && <5
+      , plutus-benchmark-common
       , nofib-internal
       , plutus-core -any
       , plutus-tx -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
-      , mtl -any
 
 
 ---------------- list-sort ----------------
@@ -132,12 +148,13 @@ library list-sort-internal
   hs-source-dirs:
       list-sort/src
   exposed-modules:
-      GhcSort
-      InsertionSort
-      MergeSort
-      QuickSort
+      PlutusBenchmark.GhcSort
+      PlutusBenchmark.InsertionSort
+      PlutusBenchmark.MergeSort
+      PlutusBenchmark.QuickSort
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
@@ -149,10 +166,10 @@ executable list-sort-exe
       list-sort/exe
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , list-sort-internal
     , monoidal-containers -any
     , plutus-core -any
-    , transformers -any
 
 benchmark list-sort
   import: lang
@@ -160,15 +177,11 @@ benchmark list-sort
   main-is: Bench.hs
   hs-source-dirs:
       list-sort/bench
-  other-modules:
-      Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , list-sort-internal
-    , plutus-core -any
     , criterion >= 1.5.9.0
-    , filepath -any
-    , mtl -any
 
 test-suite plutus-benchmark-list-sort-tests
     import: lang
@@ -177,12 +190,10 @@ test-suite plutus-benchmark-list-sort-tests
     hs-source-dirs: list-sort/test
     build-depends:
         base >=4.7 && <5
+      , plutus-benchmark-common
       , list-sort-internal
-      , plutus-core -any
-      , plutus-tx -any
       , tasty -any
       , tasty-quickcheck -any
-      , mtl -any
 
 
 ---------------- validation ----------------
@@ -195,19 +206,17 @@ benchmark validation
       validation
   other-modules:
       NaturalSort
-      Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
+    , plutus-benchmark-common
     , plutus-core -any
     , bytestring -any
-    , containers -any
     , criterion >= 1.5.9.0
     , deepseq -any
     , directory -any
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , text -any
     , transformers -any
 
     

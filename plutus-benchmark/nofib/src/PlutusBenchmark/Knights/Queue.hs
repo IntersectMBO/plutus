@@ -1,4 +1,4 @@
-module Plutus.Benchmark.Knights.Queue
+module PlutusBenchmark.Knights.Queue
   ( Queue, createQueue, addFront, addBack,
     addAllFront, addAllBack, inquireFront,
     inquireBack, removeFront, removeBack,

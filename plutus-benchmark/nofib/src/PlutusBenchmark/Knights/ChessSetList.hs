@@ -4,7 +4,7 @@
 -- Turning this off makes things fail, should investigate why
 {-# OPTIONS_GHC -fno-strictness #-}
 
-module Plutus.Benchmark.Knights.ChessSetList
+module PlutusBenchmark.Knights.ChessSetList
     ( Tile,
       ChessSet (..),
       createBoard,
@@ -19,15 +19,15 @@ module Plutus.Benchmark.Knights.ChessSetList
       isSquareFree
     ) where
 
-import           Control.DeepSeq                (NFData)
+import           Control.DeepSeq               (NFData)
 import           GHC.Generics
 
-import           Plutus.Benchmark.Knights.Sort
-import           Plutus.Benchmark.Knights.Utils
+import           PlutusBenchmark.Knights.Sort
+import           PlutusBenchmark.Knights.Utils
 
-import           PlutusTx.Prelude               as Tx
+import           PlutusTx.Prelude              as Tx
 
-import qualified Prelude                        as Haskell
+import qualified Prelude                       as Haskell
 
 
 type Tile     = (Integer,Integer)

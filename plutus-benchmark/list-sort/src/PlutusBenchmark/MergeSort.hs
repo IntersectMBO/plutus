@@ -3,12 +3,14 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 {- | Simple merge sort implementation -}
-module MergeSort where
+module PlutusBenchmark.MergeSort where
+
+import           PlutusBenchmark.Common (compiledCodeToTerm)
 
 import           PlutusCore.Default
-import qualified PlutusTx           as Tx
-import           PlutusTx.Prelude   as Tx
-import qualified UntypedPlutusCore  as UPLC
+import qualified PlutusTx               as Tx
+import           PlutusTx.Prelude       as Tx
+import qualified UntypedPlutusCore      as UPLC
 
 {-# INLINABLE drop #-}
 drop :: Integer -> [a] -> [a]
@@ -57,8 +59,7 @@ mergeSortWorstCase n = f [1..n]
 
 mkMergeSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkMergeSortTerm l =
-    let (UPLC.Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| mergeSort ||]) `Tx.applyCode` Tx.liftCode l
-    in code
+    compiledCodeToTerm $ $$(Tx.compile [|| mergeSort ||]) `Tx.applyCode` Tx.liftCode l
 
 mkWorstCaseMergeSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkWorstCaseMergeSortTerm = mkMergeSortTerm . mergeSortWorstCase

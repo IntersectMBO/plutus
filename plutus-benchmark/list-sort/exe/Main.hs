@@ -1,20 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 {- | This compiles several list-sorting algorithms to Plutus Core and runs them on
    worst-case inputs, reporting the CPU cost in ExUnits. -}
 
 module Main where
 
-import           Control.Exception
-import           Control.Monad.Trans.Except
 import qualified Data.HashMap.Monoidal                    as H
 import           Text.Printf                              (printf)
 
-import           GhcSort
-import           InsertionSort
-import           MergeSort
-import           QuickSort
+import           PlutusBenchmark.Common                   (unDeBruijn)
+
+import           PlutusBenchmark.GhcSort
+import           PlutusBenchmark.InsertionSort
+import           PlutusBenchmark.MergeSort
+import           PlutusBenchmark.QuickSort
 
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Default
@@ -25,12 +24,6 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 type NamedDeBruijnTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 type NamedTerm = UPLC.Term PLC.Name DefaultUni DefaultFun ()
-
-getUnDBrTerm :: NamedDeBruijnTerm -> NamedTerm
-getUnDBrTerm term =
-    case runExcept @UPLC.FreeVariableError . PLC.runQuoteT . UPLC.unDeBruijnTerm $ term of
-      Left e  -> throw e
-      Right t -> t
 
 getBudgetUsage :: NamedTerm -> Maybe Integer
 getBudgetUsage term =
@@ -61,7 +54,7 @@ getInfo term =
 -- tallying mode and print out the cost and the number of CEK compute steps.
 printSortStatistics :: (Integer -> NamedDeBruijnTerm) -> Integer -> IO ()
 printSortStatistics termMaker n =
-    let term = getUnDBrTerm (termMaker n)
+    let term = unDeBruijn (termMaker n)
     in case getInfo term of
          Nothing -> putStrLn "Error during execution"
          Just (cpu, steps) ->
