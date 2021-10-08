@@ -14,7 +14,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -Wno-orphans  #-}
@@ -34,9 +33,10 @@ import qualified Data.Aeson                     as Aeson
 import           Data.Aeson.Extras
 import           Data.Bifunctor
 import qualified Data.ByteString                as BS
+import           Data.Default                   (Default (def))
 import           Data.Foldable
 import           Data.Hashable                  (Hashable (..))
-import           Data.List                      (findIndex)
+import           Data.List                      (elemIndex)
 import qualified Data.Map                       as Map
 import           Data.Maybe
 import qualified Data.OpenApi.Schema            as OpenApi
@@ -57,8 +57,9 @@ import           Ledger.Fee                     (FeeConfig (..), calcFees)
 import           Ledger.TimeSlot                (posixTimeRangeToContainedSlotRange)
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Value                   as Value
+import           Plutus.ChainIndex              (PageQuery)
+import qualified Plutus.ChainIndex              as ChainIndex
 import           Plutus.ChainIndex.Emulator     (ChainIndexEmulatorState, ChainIndexQueryEffect)
-import qualified Plutus.ChainIndex.Emulator     as ChainIndex
 import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
 import qualified PlutusTx.Prelude               as PlutusTx
 import           Prelude                        as P
@@ -158,7 +159,10 @@ fromWalletNumber :: WalletNumber -> Wallet
 fromWalletNumber (WalletNumber i) = knownWallet i
 
 toWalletNumber :: Wallet -> WalletNumber
-toWalletNumber w = maybe (error "toWalletNumber: not a known wallet") (WalletNumber . toInteger . succ) $ findIndex (== w) knownWallets
+toWalletNumber w =
+  maybe (error "toWalletNumber: not a known wallet")
+        (WalletNumber . toInteger . succ)
+        $ elemIndex w knownWallets
 
 data WalletEvent =
     GenericLog T.Text
@@ -250,10 +254,20 @@ ownOutputs :: forall effs.
     => WalletState
     -> Eff effs (Map.Map TxOutRef ChainIndexTxOut)
 ownOutputs WalletState{_ownPrivateKey} = do
-    let cred = addressCredential $ pubKeyAddress $ toPublicKey _ownPrivateKey
-    refs <- ChainIndex.pageItems . snd <$> ChainIndex.utxoSetAtAddress cred
+    refs <- allUtxoSet (Just def)
     Map.fromList . catMaybes <$> traverse txOutRefTxOutFromRef refs
   where
+    cred :: Credential
+    cred = addressCredential $ pubKeyAddress $ toPublicKey _ownPrivateKey
+
+    -- Accumulate all unspent 'TxOutRef's from the resulting pages.
+    allUtxoSet :: Maybe (PageQuery TxOutRef) -> Eff effs [TxOutRef]
+    allUtxoSet Nothing = pure []
+    allUtxoSet (Just pq) = do
+      refPage <- snd <$> ChainIndex.utxoSetAtAddress pq cred
+      nextItems <- allUtxoSet (ChainIndex.nextPageQuery refPage)
+      pure $ ChainIndex.pageItems refPage ++ nextItems
+
     txOutRefTxOutFromRef :: TxOutRef -> Eff effs (Maybe (TxOutRef, ChainIndexTxOut))
     txOutRefTxOutFromRef ref = fmap (ref,) <$> ChainIndex.txOutFromRef ref
 

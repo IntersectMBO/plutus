@@ -22,12 +22,14 @@ import           Control.Monad.Freer.Reader        (runReader)
 import           Control.Monad.Freer.State         (evalState)
 import           Control.Monad.IO.Class            (MonadIO (liftIO))
 import qualified Data.ByteString.Lazy              as BSL
+import           Data.Default                      (Default (def))
+import           Data.Maybe                        (fromMaybe)
 import           Data.Proxy                        (Proxy (..))
 import qualified Data.Text                         as Text
 import qualified Data.Text.Encoding                as Text
 import qualified Database.SQLite.Simple            as Sqlite
 import qualified Network.Wai.Handler.Warp          as Warp
-import           Plutus.ChainIndex.Api             (API, FromHashAPI)
+import           Plutus.ChainIndex.Api             (API, FromHashAPI, UtxoAtAddressRequest (UtxoAtAddressRequest))
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect, ChainIndexQueryEffect)
@@ -83,10 +85,10 @@ serveChainIndex ::
 serveChainIndex =
     pure NoContent
     :<|> serveFromHashApi
-    :<|> (E.txOutFromRef >=> fromMaybe)
-    :<|> (E.txFromTxId >=> fromMaybe)
+    :<|> (E.txOutFromRef >=> handleMaybe)
+    :<|> (E.txFromTxId >=> handleMaybe)
     :<|> E.utxoSetMembership
-    :<|> E.utxoSetAtAddress
+    :<|> (\(UtxoAtAddressRequest pq c) -> E.utxoSetAtAddress (fromMaybe def pq) c)
     :<|> E.getTip
     :<|> E.collectGarbage *> pure NoContent
     :<|> E.getDiagnostics
@@ -98,12 +100,12 @@ serveFromHashApi ::
     )
     => ServerT FromHashAPI (Eff effs)
 serveFromHashApi =
-    (E.datumFromHash >=> fromMaybe)
-    :<|> (E.validatorFromHash >=> fromMaybe)
-    :<|> (E.mintingPolicyFromHash >=> fromMaybe)
-    :<|> (E.stakeValidatorFromHash >=> fromMaybe)
-    :<|> (E.redeemerFromHash >=> fromMaybe)
+    (E.datumFromHash >=> handleMaybe)
+    :<|> (E.validatorFromHash >=> handleMaybe)
+    :<|> (E.mintingPolicyFromHash >=> handleMaybe)
+    :<|> (E.stakeValidatorFromHash >=> handleMaybe)
+    :<|> (E.redeemerFromHash >=> handleMaybe)
 
 -- | Return the value of throw a 404 error
-fromMaybe :: forall effs. Member (Error ServerError) effs => Maybe ~> Eff effs
-fromMaybe = maybe (throwError err404) pure
+handleMaybe :: forall effs. Member (Error ServerError) effs => Maybe ~> Eff effs
+handleMaybe = maybe (throwError err404) pure

@@ -46,7 +46,6 @@ import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
 import           GHC.Generics                      (Generic)
 import           Plutus.ChainIndex.ChainIndexError (InsertUtxoFailed (..), RollbackFailed (..))
 import           Plutus.ChainIndex.ChainIndexLog   (InsertUtxoPosition (..))
-import           Plutus.ChainIndex.Tx              (ChainIndexTx (..), citxInputs, txOutsWithRef)
 import           Plutus.ChainIndex.Types           (Point (..), Tip (..), pointsToTip)
 import           Prettyprinter                     (Pretty (..))
 
