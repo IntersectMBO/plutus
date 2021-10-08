@@ -1181,6 +1181,7 @@
           "ghc-boot".components.library.planned = lib.mkOverride 900 true;
           "serialise".components.library.planned = lib.mkOverride 900 true;
           "fake-pab".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.sublibs."list-sort-internal".planned = lib.mkOverride 900 true;
           "deriving-aeson".components.library.planned = lib.mkOverride 900 true;
           "fake-pab".components.tests."fake-pab-test".planned = lib.mkOverride 900 true;
           "marlowe-playground-server".components.tests."marlowe-playground-server-test".planned = lib.mkOverride 900 true;
@@ -1426,6 +1427,7 @@
           "wai-app-static".components.library.planned = lib.mkOverride 900 true;
           "signal".components.library.planned = lib.mkOverride 900 true;
           "HUnit".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.sublibs."nofib-internal".planned = lib.mkOverride 900 true;
           "tree-diff".components.library.planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.library.planned = lib.mkOverride 900 true;
           "fast-logger".components.library.planned = lib.mkOverride 900 true;
@@ -1437,6 +1439,7 @@
           "plutus-pab".components.tests."plutus-pab-test-full".planned = lib.mkOverride 900 true;
           "path-pieces".components.library.planned = lib.mkOverride 900 true;
           "mono-traversable".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.sublibs."plutus-benchmark-common".planned = lib.mkOverride 900 true;
           "integer-gmp".components.library.planned = lib.mkOverride 900 true;
           "http-media".components.library.planned = lib.mkOverride 900 true;
           "size-based".components.library.planned = lib.mkOverride 900 true;

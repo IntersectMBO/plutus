@@ -43,7 +43,7 @@ import           System.FilePath
    "-o=$PWD/report.html") . -}
 getConfig :: Double -> IO Config
 getConfig limit = do
-  templateDir <- getDataFileName "templates"
+  templateDir <- getDataFileName ("common" </> "templates")
   let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
   pure $ defaultConfig {
                 template = templateFile,
