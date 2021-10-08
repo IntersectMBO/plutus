@@ -202,7 +202,7 @@ test-suite plutus-benchmark-list-sort-tests
 benchmark validation
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Main.hs
+  main-is: Bench.hs
   hs-source-dirs:
       validation
   build-depends:
