@@ -129,7 +129,7 @@ contractTermsGen' ct = do
   let upperBound = minimum $ catMaybes [Just maturityDate, amortizationDate, terminationDate]
 
   nextPrincipalRedemption <- case ct of
-    PAM -> oneof [return Nothing]
+    PAM -> return Nothing
     _   -> Just <$> largeamount
   purchaseDate <- mightbe $ dateBefore upperBound
   priceAtTerminationDate <- smallamount
