@@ -1122,6 +1122,8 @@ postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ
 
 postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{Γ}{ρ : Env Γ}{N : Γ ⊢ B [ A ]Nf} → L ·⋆ A ≡ cek2ckClos N ρ → ∃ λ L' → N ≡ L' ·⋆ A × L ≡ cek2ckClos L' ρ
 
+postulate cek2ckClos-Λlem : ∀{K B}{L : ∅ ,⋆ K ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ Π B} → (p : Λ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ Λ L' × L ≡ dischargeBody⋆ L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : Λ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-Λ L) ≡ cek2ckVal (lookup x ρ)
+
 
 
 -- this is intended to be a catchall for recursive calls
@@ -1157,7 +1159,12 @@ thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
 ... | L' ,, M' ,, refl ,, Lp ,, refl
   with thm65b Lp (cong (CK._, (Red.-· M)) q) r
 ... | x ,, y ,, z  ,, z' = x ,, step* refl y ,, z ,, z'
-thm65b {M = Λ M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r)
+  with cek2ckClos-Λlem {ρ = ρ}{N = N} p
+thm65b {M' = .(Λ L')} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl r
+... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
+thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') r
+... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
 thm65b {M = M ·⋆ A} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-·⋆lem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, y'
