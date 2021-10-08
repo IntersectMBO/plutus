@@ -55,7 +55,7 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
+import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _lastSuccessfulCompilationResult, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
 import MainFrame.MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, postGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData)
 import MainFrame.View (render)
@@ -104,6 +104,7 @@ mkInitialState editorState = do
         , contractDemos
         , currentDemoName: Nothing
         , compilationResult: NotAsked
+        , lastSuccessfulCompilationResult: NotAsked
         , simulations: Cursor.empty
         , actionDrag: Nothing
         , evaluationResult: NotAsked
@@ -256,6 +257,7 @@ handleAction (LoadScript key) = do
       assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
       assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
+      assign _lastSuccessfulCompilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
       assign _createGistResult NotAsked
 
@@ -332,6 +334,7 @@ handleAction CompileProgram = do
     Nothing -> pure unit
     Just contents -> do
       oldCompilationResult <- use _compilationResult
+      oldSuccessfulCompilationResult <- use _lastSuccessfulCompilationResult
       assign _compilationResult Loading
       newCompilationResult <- postContract contents
       assign _compilationResult newCompilationResult
@@ -342,6 +345,7 @@ handleAction CompileProgram = do
           when (isSuccess newCompilationResult) do
             assign (_editorState <<< _lastCompiledCode) (Just contents)
             assign (_editorState <<< _currentCodeIsCompiled) true
+            assign _lastSuccessfulCompilationResult newCompilationResult
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
@@ -353,14 +357,15 @@ handleAction CompileProgram = do
       -- Same thing for currencies.
       -- Potentially we could be smarter about this. But for now,
       -- let's at least be correct.
+      newSuccessfulCompilationResult <- use _lastSuccessfulCompilationResult
       let
-        oldSignatures = preview (_details <<< _functionSchema) oldCompilationResult
+        oldSignatures = preview (_details <<< _functionSchema) oldSuccessfulCompilationResult
 
-        newSignatures = preview (_details <<< _functionSchema) newCompilationResult
+        newSignatures = preview (_details <<< _functionSchema) newSuccessfulCompilationResult
 
-        oldCurrencies = preview (_details <<< _knownCurrencies) oldCompilationResult
+        oldCurrencies = preview (_details <<< _knownCurrencies) oldSuccessfulCompilationResult
 
-        newCurrencies = preview (_details <<< _knownCurrencies) newCompilationResult
+        newCurrencies = preview (_details <<< _knownCurrencies) newSuccessfulCompilationResult
       unless
         ( oldSignatures == newSignatures
             && oldCurrencies

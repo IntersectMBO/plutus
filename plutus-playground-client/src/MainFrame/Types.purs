@@ -52,6 +52,7 @@ newtype State
   , currentDemoName :: Maybe String
   , editorState :: Editor.State
   , compilationResult :: WebCompilationResult
+  , lastSuccessfulCompilationResult :: WebCompilationResult
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
   , evaluationResult :: WebEvaluationResult

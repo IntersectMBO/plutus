@@ -12,6 +12,7 @@ module MainFrame.Lenses
   , _lastEvaluatedSimulation
   , _compilationResult
   , _successfulCompilationResult
+  , _lastSuccessfulCompilationResult
   , _authStatus
   , _createGistResult
   , _gistUrl
@@ -94,6 +95,9 @@ _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _successfulCompilationResult :: Traversal' State CompilationResult
 _successfulCompilationResult = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result
+
+_lastSuccessfulCompilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+_lastSuccessfulCompilationResult = _Newtype <<< prop (SProxy :: SProxy "lastSuccessfulCompilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
