@@ -189,11 +189,13 @@ infixl 7 %
 (%) :: Integer -> Integer -> Ratio Integer
 x % y = reduce (x P.* signum y) (abs y)
 
+{-# INLINABLE recip #-}
 -- | Reciprocal fraction
 recip :: Ratio Integer -> Ratio Integer
 recip (x :% y) = reduce n d
     where (n :% d) = ((y P.* signum x) :% abs x)
 
+{-# INLINABLE fromInteger #-}
 -- | Convert an 'Interger' to a 'Rational'
 fromInteger :: Integer -> Ratio Integer
 fromInteger n = n :% 1

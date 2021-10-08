@@ -12,7 +12,7 @@ module Humanize
   , contractIcon
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger, toNumber)
 import Data.DateTime (DateTime, adjust)
 import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime
@@ -20,11 +20,10 @@ import Data.Formatter.Number (Formatter(..), format) as Number
 import Data.Int (floor, round)
 import Data.Int (toNumber) as Int
 import Data.List as List
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Newtype (unwrap, wrap)
 import Data.Ord (abs)
 import Data.Time.Duration (Minutes(..), Seconds(..))
-import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Now as Now

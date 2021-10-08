@@ -7,7 +7,7 @@ module Types
   , CombinedWSStreamToServer(..)
   ) where
 
-import Data.Either (Either)
+import Prologue
 import Data.Generic.Rep (class Generic)
 import Foreign (MultipleErrors)
 import Foreign.Class (class Encode, class Decode)

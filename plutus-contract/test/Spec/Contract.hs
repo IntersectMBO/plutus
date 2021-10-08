@@ -23,7 +23,7 @@ import           Data.Functor.Apply                   ((.>))
 import qualified Data.Map                             as Map
 import           Test.Tasty
 
-import           Ledger                               (Address, PubKey, Slot)
+import           Ledger                               (Address, PubKey, Slot, TxId (TxId))
 import qualified Ledger
 import qualified Ledger.Ada                           as Ada
 import qualified Ledger.Constraints                   as Constraints
@@ -45,6 +45,10 @@ import qualified Prelude                              as P
 import qualified Wallet.Emulator                      as EM
 import           Wallet.Emulator.Wallet               (walletAddress)
 
+import           Data.Monoid                          (Last (Last))
+import           Data.Void
+import           Plutus.ChainIndex                    (RollbackState (..), TxOutState (..), TxOutStatus, TxStatus,
+                                                       TxValidity (TxValid))
 import           Plutus.Contract.Effects              (ActiveEndpoint (..))
 import qualified Plutus.Contract.Request              as Endpoint
 import           Plutus.Contract.Resumable            (IterationID, Response (..))
@@ -188,6 +192,48 @@ tests =
             (assertDone theContract tag (const True) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
 
+        , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+              theContract :: Contract () Schema ContractError TxStatus =
+                submitTx payment >>= awaitTxStatusChange . Ledger.txId
+          in run "await change in tx status"
+            (assertDone theContract tag ((==) (Committed TxValid ())) "should be done")
+            (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
+
+        , let c :: Contract [TxOutStatus] Schema ContractError () = do
+                -- Submit a payment tx of 10 lovelace to W2.
+                let w2PubKeyHash = Crypto.pubKeyHash $ walletPubKey w2
+                let payment = Constraints.mustPayToPubKey w2PubKeyHash
+                                                          (Ada.lovelaceValueOf 10)
+                tx <- submitTx payment
+                -- There should be 2 utxos. We suppose the first belongs to the
+                -- wallet calling the contract and the second one to W2.
+                let utxo = head $ fmap snd $ Ledger.txOutRefs tx
+                -- We wait for W1's utxo to change status. It should be of
+                -- status confirmed unspent.
+                s <- awaitTxOutStatusChange utxo
+                tell [s]
+
+                -- We submit another tx which spends the utxo belonging to the
+                -- contract's caller. It's status should be changed eventually
+                -- to confirmed spent.
+                pubKeyHash <- Crypto.pubKeyHash <$> ownPubKey
+                ciTxOutM <- txOutFromRef utxo
+                let lookups = Constraints.unspentOutputs (maybe mempty (Map.singleton utxo) ciTxOutM)
+                submitTxConstraintsWith @Void lookups $ Constraints.mustSpendPubKeyOutput utxo
+                                                     <> Constraints.mustBeSignedBy pubKeyHash
+                s <- awaitTxOutStatusChange utxo
+                tell [s]
+
+              expectedAccumState =
+                [ Committed TxValid Unspent
+                , Committed TxValid (Spent "39ad6c37cddb19023a90f124bad28ee40253932a3f5e03b838f728d472d33865")
+                ]
+          in run "await change in tx out status"
+            ( assertAccumState c tag ((==) expectedAccumState) "should be done"
+            ) $ do
+              hdl <- activateContract w1 c tag
+              void (Trace.waitNSlots 2)
+
         , run "checkpoints"
             (not (endpointAvailable @"2" checkpointContract tag) .&&. endpointAvailable @"1" checkpointContract tag)
             (void $ activateContract w1 checkpointContract tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 1)
@@ -265,6 +311,7 @@ type Schema =
         .\/ Endpoint "4" Int
         .\/ Endpoint "ep" ()
         .\/ Endpoint "5" [ActiveEndpoint]
+        .\/ Endpoint "6" Ledger.Tx
 
 initial :: _
 initial = State.initialiseContract loopCheckpointContract

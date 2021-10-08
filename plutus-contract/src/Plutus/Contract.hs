@@ -84,6 +84,8 @@ module Plutus.Contract(
     , Request.awaitTxConfirmed
     , Request.awaitTxStatusChange
     , Request.isTxConfirmed
+    -- ** Tx output confirmation
+    , Request.awaitTxOutStatusChange
     -- * Checkpoints
     , checkpoint
     , checkpointLoop

@@ -2,6 +2,6 @@
 
 writeShellScriptBin "purty" ''
   for f in "$@"; do
-    ${purty}/bin/purty validate $f
+    ${purty}/bin/purty format $f --write
   done
 ''

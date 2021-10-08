@@ -3,9 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ViewPatterns          #-}
 
 module Plutus.ChainIndex.TxIdState(
     increaseDepth
@@ -15,38 +13,50 @@ module Plutus.ChainIndex.TxIdState(
     , fromBlock
     , rollback
     , chainConstant
+    , dropOlder
     ) where
 
 import           Control.Lens                ((^.))
-import           Data.FingerTree             (Measured (..), (|>))
+import           Data.FingerTree             ((|>))
 import qualified Data.FingerTree             as FT
 import qualified Data.Map                    as Map
 import           Data.Monoid                 (Last (..), Sum (..))
 import           Ledger                      (OnChainTx, TxId, eitherTx)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..), ChainIndexTxOutputs (..), citxOutputs, citxTxId)
-import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), Tip (..), TxConfirmedState (..),
-                                              TxIdState (..), TxStatus (..), TxStatusFailure (..), TxValidity (..),
-                                              pointsToTip)
-import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..), tip,
-                                              viewTip)
+import           Plutus.ChainIndex.Types     (BlockNumber (..), Depth (..), Point (..), RollbackState (..), Tip (..),
+                                              TxConfirmedState (..), TxIdState (..), TxStatus, TxStatusFailure (..),
+                                              TxValidity (..))
+import           Plutus.ChainIndex.UtxoState (RollbackFailed (..), RollbackResult (..), UtxoIndex, UtxoState (..),
+                                              rollbackWith, tip, utxoState, viewTip)
 
 
 -- | The 'TxStatus' of a transaction right after it was added to the chain
 initialStatus :: OnChainTx -> TxStatus
-initialStatus =
-  TentativelyConfirmed 0 . eitherTx (const TxInvalid) (const TxValid)
+initialStatus tx =
+  TentativelyConfirmed 0 (eitherTx (const TxInvalid) (const TxValid) tx) ()
 
 -- | Increase the depth of a tentatively confirmed transaction
 increaseDepth :: TxStatus -> TxStatus
-increaseDepth (TentativelyConfirmed d s)
-  | d < succ chainConstant = TentativelyConfirmed (d + 1) s
-  | otherwise              = Committed s
+increaseDepth (TentativelyConfirmed d s ())
+  | d < succ chainConstant = TentativelyConfirmed (d + 1) s ()
+  | otherwise              = Committed s ()
 increaseDepth e            = e
 
 -- TODO: Configurable!
 -- | The depth (in blocks) after which a transaction cannot be rolled back anymore
 chainConstant :: Depth
 chainConstant = Depth 8
+
+-- | Drop everything older than 'BlockNumber' in the index.
+dropOlder :: (Monoid a)
+          => BlockNumber
+          -> UtxoIndex a
+          -> UtxoIndex a
+dropOlder targetBlock idx = FT.dropUntil (blockEqTip targetBlock . tip . snd) idx
+
+blockEqTip :: BlockNumber -> Tip -> Bool
+blockEqTip blockTarget (Tip _ _ blockAtTip) = blockTarget == blockAtTip
+blockEqTip _                  TipAtGenesis  = False
 
 -- | Given the current block, compute the status for the given transaction by
 -- checking to see if it has been deleted.
@@ -57,13 +67,13 @@ transactionStatus currentBlock txIdState txId
 
        (Just TxConfirmedState{blockAdded=Last (Just block'), validity=Last (Just validity')}, Nothing) ->
          if isCommitted block'
-            then Right $ Committed validity'
-            else Right $ newStatus block' validity'
+            then Right $ Committed validity' ()
+            else Right $ newStatus block' validity' ()
 
        (Just TxConfirmedState{timesConfirmed=confirms, blockAdded=Last (Just block'), validity=Last (Just validity')}, Just deletes) ->
          if confirms > deletes
             -- It's fine, it's confirmed
-            then Right $ newStatus block' validity'
+            then Right $ newStatus block' validity' ()
             -- Otherwise, throw an error if it looks deleted but we're too far
             -- into the future.
             else if isCommitted block'
@@ -100,13 +110,13 @@ validityFromChainIndex tx =
     ValidTx _ -> TxValid
 
 fromTx :: BlockNumber -> ChainIndexTx -> TxIdState
-fromTx blockAdded tx =
+fromTx blockNumber tx =
   TxIdState
     { txnsConfirmed =
         Map.singleton
           (tx ^. citxTxId)
           (TxConfirmedState { timesConfirmed = Sum 1
-                            , blockAdded = Last . Just $ blockAdded
+                            , blockAdded = Last . Just $ blockNumber
                             , validity = Last . Just $ validityFromChainIndex tx })
     , txnsDeleted = mempty
     }
@@ -114,29 +124,15 @@ fromTx blockAdded tx =
 rollback :: Point
          -> UtxoIndex TxIdState
          -> Either RollbackFailed (RollbackResult TxIdState)
-rollback _             (viewTip -> TipAtGenesis) = Left RollbackNoTip
-rollback targetPoint idx@(viewTip -> currentTip)
-    -- The rollback happened sometime after the current tip.
-    | not (targetPoint `pointLessThanTip` currentTip) =
-        Left TipMismatch{foundTip=currentTip, targetPoint}
-    | otherwise = do
-        let (before, deleted) = FT.split (pointLessThanTip targetPoint . tip) idx
-
-        case tip (measure before) of
-            TipAtGenesis -> Left $ OldPointNotFound targetPoint
-            oldTip | targetPoint `pointsToTip` oldTip ->
-                      let oldTxIdState = _usTxUtxoData (measure deleted)
-                          newTxIdState = TxIdState
-                                            { txnsConfirmed = mempty
-                                            -- All the transactions that were confirmed in the deleted
-                                            -- section are now deleted.
-                                            , txnsDeleted = const 1 <$> txnsConfirmed oldTxIdState
-                                            }
-                          newUtxoState = UtxoState (oldTxIdState <> newTxIdState) oldTip
-                       in Right RollbackResult{newTip=oldTip, rolledBackIndex=before |> newUtxoState }
-                   | otherwise -> Left  TipMismatch{foundTip=oldTip, targetPoint}
-    where
-      pointLessThanTip :: Point -> Tip -> Bool
-      pointLessThanTip PointAtGenesis  _               = True
-      pointLessThanTip (Point pSlot _) (Tip tSlot _ _) = pSlot < tSlot
-      pointLessThanTip _               TipAtGenesis    = False
+rollback = rollbackWith markDeleted
+  where
+    markDeleted before deleted =
+      let oldTxIdState = _usTxUtxoData (utxoState deleted)
+          newTxIdState = TxIdState
+                            { txnsConfirmed = mempty
+                            -- All the transactions that were confirmed in the deleted
+                            -- section are now deleted.
+                            , txnsDeleted = 1 <$ txnsConfirmed oldTxIdState
+                            }
+          newUtxoState = UtxoState (oldTxIdState <> newTxIdState) (viewTip before)
+      in before |> newUtxoState

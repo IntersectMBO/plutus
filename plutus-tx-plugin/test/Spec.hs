@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified Budget.Spec as Budget
 import qualified IsData.Spec as IsData
 import qualified Lift.Spec   as Lift
 import qualified Plugin.Spec as Plugin
@@ -20,4 +21,5 @@ tests = testGroup "tests" <$> sequence [
   , Lift.tests
   , TH.tests
   , Lib.tests
+  , Budget.tests
   ]

@@ -1,6 +1,6 @@
 module AppM where
 
-import Prelude
+import Prologue
 import Clipboard (class MonadClipboard, copy)
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
 import Effect.Aff (Aff)

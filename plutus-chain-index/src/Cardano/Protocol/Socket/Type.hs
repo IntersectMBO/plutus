@@ -131,9 +131,9 @@ type Offset = Integer
 -- | Boilerplate codecs used for protocol serialisation.
 
 -- | The number of epochSlots is specific to each blockchain instance. This value
--- is what the cardano main and testnet uses.
+-- is what the cardano main and testnet uses. Only applies to the Byron era.
 epochSlots :: EpochSlots
-epochSlots = EpochSlots 432000
+epochSlots = EpochSlots 21600
 
 codecVersion :: BlockNodeToClientVersion (CardanoBlock StandardCrypto)
 codecVersion = versionMap ! nodeToClientVersion

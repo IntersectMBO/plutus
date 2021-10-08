@@ -16,8 +16,10 @@ import qualified Data.List.NonEmpty      as NE
 import qualified Data.Map                as M
 import qualified Data.Map.Monoidal       as MM
 import           Data.Semigroup.Foldable
+import           Data.Semigroup.Generic
 import qualified Data.Set                as S
 import           Data.Set.Lens           (setOf)
+import           GHC.Generics
 import qualified PlutusCore              as PLC
 import qualified PlutusCore.Constant     as PLC
 import qualified PlutusCore.Name         as PLC
@@ -86,15 +88,16 @@ both on entering any of its rhs'es *and* inside its inTerm.
 newtype Depth = Depth Int
     deriving newtype (Eq, Ord, Show, Num)
 
--- | Position of an anchor (lam,Lam,unfloatable-let or Top).
--- The original paper's algorithm relies just on using the depth as the anchor's position;
---for us this is no enough, because we act mark/remove/float globally and the depth is not globally-unique.
--- To fix this, we use an extra "representative" identifier (PLC.Unique) of the anchor.
--- Since (unfloatable) lets can also be anchors, we also use an extra 'PosType' to differentiate
--- between two cases of a let-anchor, see 'PosType'.
+{-| Position of an anchor (lam,Lam,unfloatable-let or Top).
+The original paper's algorithm relies just on using the depth as the anchor's position;
+for us this is no enough, because we act mark/remove/float globally and the depth is not globally-unique.
+To fix this, we use an extra "representative" identifier (PLC.Unique) of the anchor.
+Since (unfloatable) lets can also be anchors, we also use an extra 'PosType' to differentiate
+between two cases of a let-anchor, see 'PosType'.
+-}
 data Pos = Pos
     { _posDepth  :: Depth
-    , _posUnique :: PLC.Unique -- The lam name or Lam tyname or Let's representative unique
+    , _posUnique :: PLC.Unique -- ^ The lam name or Lam tyname or Let's representative unique
     , _posType   :: PosType
     }
     deriving stock (Eq, Ord, Show)
@@ -115,7 +118,7 @@ data PosType = LamBody -- ^ lam, Lam, let body, or Top
 topPos :: Pos
 topPos = Pos topDepth topUnique topType
 
--- | for simplicity, the top position is also linked to a unique number
+-- | For simplicity, the top position is also linked to a unique number
 -- chosen to not clash with any actual uniques of names/tynames of the program
 topUnique :: PLC.Unique
 topUnique = coerce (-1 :: Int)
@@ -128,19 +131,19 @@ topDepth = -1
 topType :: PosType
 topType = LamBody
 
--- Arbitrary: return a single unique among all the introduced uniques of the given letgroup.
+-- | Arbitrary: return a single unique among all the introduced uniques of the given letgroup.
 representativeBindingUnique
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => NE.NonEmpty (Binding tyname name uni fun a) -> PLC.Unique
 representativeBindingUnique =
     -- Arbitrary: select the first unique from the representative binding
-    head . toListOf bindingIds . representativeBinding
+    first1Of bindingIds . representativeBinding
   where
     --  Arbitrary: a binding to be used as representative binding in MARKING the group of bindings.
     representativeBinding :: NE.NonEmpty (Binding tyname name uni fun a) -> Binding tyname name uni fun a
     representativeBinding = NE.head
 
--- Every term and type variable in current scope
+-- | Every term and type variable in current scope
 -- is paired with its own computed marker (maximum dependent position)
 -- OPTIMIZE: use UniqueMap instead
 type Scope = M.Map PLC.Unique Pos
@@ -149,23 +152,38 @@ type Scope = M.Map PLC.Unique Pos
 data MarkCtx = MarkCtx { _markCtxDepth :: Depth, _markCtxScope :: Scope }
 makeLenses ''MarkCtx
 
--- The result of the first pass is a subset(union of all computed scopes).
+-- | The result of the first pass is a subset(union of all computed scopes).
 -- This subset contains only the marks of the floatable lets.
 type Marks = Scope
 
--- | A "naked" let, without its inTerm.
--- We use this structure
--- 1) to determine if a let is floatable/unfloatable. See 'floatable'.
--- 2) to calculate freevars/tyvars of a let.
--- 2) to store it in the 'FloatTable'.
+{-|
+A 'BindingGrp' is a group of bindings and a *minimum* recursivity for the group.
+We use this intermediate structure when tracking groups of bindings to be floated or re-inserted.
+
+It's convenient when doing this work to be able to combine binding groups (with the 'Semigroup') instance.
+However, appending 'BindingGrp's does not account for the possibility that binding groups may *share*
+variables. This means that the combination of multiple non-recursive binding groups may be recursive.
+As such, if you have reason to believe that the variables used by the combined binding groups may not be disjoint,
+you should manually require the term to be recursive when you convert back to a let term with 'bindingGrpToLet'.
+-}
 data BindingGrp tyname name uni fun a = BindingGrp {
     _bgAnn      :: a,
     _bgRec      :: Recursivity,
     _bgBindings :: NE.NonEmpty (Binding tyname name uni fun a)
     }
+    deriving stock Generic
+    deriving Semigroup via (GenericSemigroupMonoid (BindingGrp tyname name uni fun a))
+-- Note on Semigroup: appending bindingGroups will not try to fix the well-scopedness by
+-- rearranging any bindings or promoting to a Rec if bindings in case some bindinings refer to each other.
 makeLenses ''BindingGrp
 
--- a store of lets to be floated at their new position
+-- | Turn a 'BindingGrp' into a let, when given a minimum recursivity and let body.
+bindingGrpToLet :: Recursivity
+        -> BindingGrp tyname name uni fun a
+        -> (Term tyname name uni fun a -> Term tyname name uni fun a)
+bindingGrpToLet r (BindingGrp a r' bs) = Let a (r<>r') bs
+
+-- | A store of lets to be floated at their new position
 type FloatTable tyname name uni fun a = MM.MonoidalMap Pos (NE.NonEmpty (BindingGrp tyname name uni fun a))
 
 -- | The 1st pass of marking floatable lets
@@ -295,9 +313,9 @@ floatBackLets :: forall tyname name uni fun a term m.
                 ( term~Term tyname name uni fun a
                 , m~Reader Depth
                 , PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a)
-              => term -- the cleanedup, reducted term
-              -> FloatTable tyname name uni fun a -- the lets to be floated
-              -> term -- the final, floated, and correctly-scoped term
+              => term -- ^ the cleanedup, reducted term
+              -> FloatTable tyname name uni fun a -- ^ the lets to be floated
+              -> term -- ^ the final, floated, and correctly-scoped term
 floatBackLets term fTable =
     -- our reader context is only the depth this time.
     flip runReader topDepth $ goTop term
@@ -310,42 +328,50 @@ floatBackLets term fTable =
     goTop = floatLam topUnique <=< go
 
     go = \case
-        -- lam/Lam anchor, increase depth
+        -- lam anchor, increase depth & try to float inside the lam's body
         LamAbs a n ty tBody -> local (+1) $
             LamAbs a n ty <$> (floatLam (n^.PLC.theUnique) =<< go tBody)
-        -- lam/Lam anchor, increase depth
+        -- Lam anchor, increase depth & try to float inside the Lam's body
         TyAbs a n k tBody -> local (+1) $
             TyAbs a n k <$> (floatLam (n^.PLC.theUnique) =<< go tBody)
         -- Unfloatable-let anchor, increase depth
-        Let a r bs@(representativeBindingUnique -> letU) tIn -> local (+1) $
-            -- note that we do not touch the recursivity of an unfloatable-let
-            Let a r
-                <$> (floatRhs letU =<< traverseOf (traversed.bindingSubterms) go bs)
-                -- act the same as lam/Lam: float right inside
-                <*> (floatLam letU =<< go tIn)
+        Let a r bs@(representativeBindingUnique -> letU) tIn -> local (+1) $ do
+            -- note that we do not touch the original recursivity of the unfloatable-let
+            unfloatableGrp <- BindingGrp a r <$> traverseOf (traversed.bindingSubterms) go bs
+            -- rebuild the let-group (we take the minimum bound, i.e. NonRec)
+            bindingGrpToLet NonRec
+              <$> -- float inside the rhs of the unfloatable group, and merge the bindings
+                  floatRhs letU unfloatableGrp
+                  -- float right inside the inTerm (similar to lam/Lam)
+              <*> (floatLam letU =<< go tIn)
 
         -- descend
         t                  -> t & termSubterms go
 
+    -- Make a brand new let-group comprised of all the floatable lets just inside the lam-body/Lam-body/let-InTerm
     floatLam :: PLC.Unique -> term -> m term
     floatLam lamU t = do
         herePos <- asks $ \d -> Pos d lamU LamBody
-        -- make a brand new let-group comprised of all the floatable lets just inside the lam/Lam/letInTerm
-        floatAt herePos makeNewLet t
+        -- We need to force to Rec because we might merge lets which depend on each other,
+        -- but we can't tell because we don't do dependency resolution at this pass.
+        -- So we have to be conservative. See Note [LetRec splitting pass]
+        floatAt herePos (bindingGrpToLet Rec) t
 
-    floatRhs :: (binds~ NE.NonEmpty (Binding tyname name uni fun a))
-             => PLC.Unique -> binds -> m binds
+    floatRhs :: (grp ~ BindingGrp tyname name uni fun a)
+             => PLC.Unique
+             -> grp -- ^ the unfloatable group
+             -> m grp -- ^ the result group extended with the floatable rhs'es (size(result_group) >= size(unfloatable_group))
     floatRhs letU bs = do
         herePos <- asks $ \d -> Pos d letU LetRhs
         -- we don't know from which rhs the floatable-let(s) came from originally,
-        -- so we instead are going to "squeeze" *AT THE SAME LEVEL* the floatable-let bindings together with the unfloatable let-group's bindings
-        floatAt herePos squeezeBindings bs
+        -- so we instead are going to semigroup-append the floatable-let bindings together with the unfloatable let-group's bindings
+        floatAt herePos (<>) bs
 
     floatAt :: Pos -- ^ floating position
-            -> (NE.NonEmpty (BindingGrp tyname name uni fun a) -> c -> c) -- ^ floating strategy
-            -> c -- ^ term or bindings to float around
-            -> m c -- ^ the combined result
-    floatAt herePos floatFunc termOrBindings = do
+            -> (BindingGrp tyname name uni fun a -> c -> c) -- ^ how to place the unfloatable-group into the PIR result
+            -> c -- ^ term or bindings to float AROUND
+            -> m c -- ^ the combined PIR result (terms or bindings)
+    floatAt herePos placeIntoFn termOrBindings = do
         -- is there something to be floated here?
         case MM.lookup herePos fTable of
             -- nothing to float, just descend
@@ -356,31 +382,8 @@ floatBackLets term fTable =
                 -- NOTE: we do not directly run `go(bgGroup)` because that would increase the depth,
                 -- and the floated lets are not anchors themselves; instead we run go on the floated-let bindings' subterms.
                 floatableGrps' <- floatableGrps & (traversed.bgBindings.traversed.bindingSubterms) go
-                -- apply the merging with the visit result. This is what floats them back to the pir.
-                pure $ floatFunc floatableGrps' termOrBindings
-
--- | Squeezes floatable lets' (naked lets) bindings next to the bindings of the "parent" unfloatable let, that floatable lets depends upon.
--- See [Floating rhs-nested lets]
-squeezeBindings :: NE.NonEmpty (BindingGrp tyname name uni fun a) -- ^ the floatable lets
-                -> NE.NonEmpty (Binding tyname name uni fun a) -- ^ the bindings of the unfloatable let-group we want to squeeze into
-                -> NE.NonEmpty (Binding tyname name uni fun a) -- ^ the result "larger" bindings
-squeezeBindings floatableGrps unfloatableBindings =
-    -- TODO: we lose the annotations of the naked lets, fix with semigroup.
-    concatBindingGrps floatableGrps <> unfloatableBindings
-
--- | Create a brand-new letrec to group the floated lets.
-makeNewLet :: Semigroup a
-           => NE.NonEmpty (BindingGrp tyname name uni fun a) -> Term tyname name uni fun a -> Term tyname name uni fun a
-makeNewLet floatableGrps =
-    -- fold the annotations together under semigroup
-    Let (foldMap1 (^.bgAnn) floatableGrps)
-        Rec -- needs to be rec because we don't do dependency resolution at this pass, See Note [LetRec splitting pass]
-        $ concatBindingGrps floatableGrps
-
--- bring the bindings of all the binding groups together
-concatBindingGrps :: NE.NonEmpty (BindingGrp tyname name uni fun a)
-                  -> NE.NonEmpty (Binding tyname name uni fun a)
-concatBindingGrps = foldMap1 (^.bgBindings)
+                -- fold the floatable groups into a *single* floatablegroup and combine that with some pir (term or bindings).
+                pure $ fold1 floatableGrps' `placeIntoFn` termOrBindings
 
 -- | The compiler pass of the algorithm (comprised of 3 connected passes).
 floatTerm :: (PLC.ToBuiltinMeaning uni fun,
@@ -427,10 +430,11 @@ ifRec r f a = case r of
 floatable :: PLC.ToBuiltinMeaning uni fun => BindingGrp tyname name uni fun a -> Bool
 floatable (BindingGrp _ _ bs) = all hasNoEffects bs
 
--- | Returns if a binding has absolutely no effects  (see Value.hs)
--- See Note [Purity, strictness, and variables]
--- An extreme alternative implementation is to treat *all strict* bindings as unfloatable, e.g.:
--- `hasNoEffects = \case {TermBind _ Strict _  _ -> False; _ -> True}`
+{-| Returns if a binding has absolutely no effects  (see Value.hs)
+See Note [Purity, strictness, and variables]
+An extreme alternative implementation is to treat *all strict* bindings as unfloatable, e.g.:
+`hasNoEffects = \case {TermBind _ Strict _  _ -> False; _ -> True}`
+-}
 hasNoEffects :: PLC.ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Bool
 hasNoEffects = \case
     TypeBind{}               -> True

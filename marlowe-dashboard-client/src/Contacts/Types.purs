@@ -1,4 +1,4 @@
-module WalletData.Types
+module Contacts.Types
   ( State
   , WalletLibrary
   , WalletNickname
@@ -12,13 +12,12 @@ module WalletData.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
@@ -142,23 +141,23 @@ instance inputeFieldErrorWalletIdError :: InputFieldError WalletIdError where
   inputErrorToString NonexistentWalletId = "Wallet not found"
 
 data Action
-  = CloseWalletDataCard
+  = CloseContactsCard
   | SetCardSection CardSection
   | SaveWallet (Maybe String)
   | CancelNewContactForRole
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
   | SetRemoteWalletInfo (WebData WalletInfo)
-  | UseWallet WalletNickname PlutusAppId
+  | ConnectWallet WalletNickname PlutusAppId
   | ClipboardAction Clipboard.Action
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent CloseWalletDataCard = Just $ defaultEvent "CloseWalletDataCard"
+  toEvent CloseContactsCard = Just $ defaultEvent "CloseContactsCard"
   toEvent (SetCardSection _) = Just $ defaultEvent "SetCardSection"
   toEvent (SaveWallet _) = Just $ defaultEvent "SaveWallet"
   toEvent CancelNewContactForRole = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (SetRemoteWalletInfo _) = Nothing
-  toEvent (UseWallet _ _) = Just $ defaultEvent "UseWallet"
+  toEvent (ConnectWallet _ _) = Just $ defaultEvent "ConnectWallet"
   toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

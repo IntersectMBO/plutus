@@ -86,6 +86,14 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show txStatus
       ]
+  pretty (AwaitTxOutStatusChangeResp txOutRef txOutStatus) =
+    span_
+      [ text "AwaitTxOutStatusChangeResponse:"
+      , nbsp
+      , text $ show txOutRef
+      , nbsp
+      , text $ show txOutStatus
+      ]
   pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
       [ text "UserEndpointResponse:"
@@ -171,6 +179,12 @@ instance prettyContractPABRequest :: Pretty PABReq where
       [ text "AwaitTxStatusChangeReq:"
       , nbsp
       , text $ view _txId txId
+      ]
+  pretty (AwaitTxOutStatusChangeReq txOutRef) =
+    span_
+      [ text "AwaitTxOutStatusChangeReq:"
+      , nbsp
+      , text $ show txOutRef
       ]
   pretty (ExposeEndpointReq activeEndpoint) =
     span_

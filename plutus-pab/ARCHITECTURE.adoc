@@ -18,7 +18,7 @@ Additional configurations can be created in Haskell using the `plutus-pab` libra
 
 ==== The PAB HTTP API
 
-The HTTP interface is defined in the Haskell module `Plutus.PAB.Webserver.API`. Below is a list of the routes that are available. Note that the exact form of the JSON arguments depends on the particular configuration of the PAB that is running.
+The HTTP interface is defined in the Haskell module link:src/Plutus/PAB/Webserver/API.hs[Plutus.PAB.Webserver.API]. Below is a list of the routes that are available. Note that the exact form of the JSON arguments depends on the particular configuration of the PAB that is running.
 
 In the examples below we assume the PAB has been started in the simulator configuration, with the `plutus-pab simulator` command,
 
@@ -54,7 +54,7 @@ Starts a new instance of the contract. Expects a `ContractActivationArgs` object
 { "caID": "Currency"
 , "caWallet": { "getWallet": 1 }
 }
-----  
+----
 
 The `caID` field describes the contract that is to be started. In our case (simulator PAB configuration) the string `"Currency"` is enough to identify the currency contract.
 

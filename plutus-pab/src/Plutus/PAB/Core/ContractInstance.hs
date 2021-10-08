@@ -62,7 +62,7 @@ import           Wallet.Effects                                   (NodeClientEff
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 import qualified Wallet.Emulator.Wallet                           as Wallet
 
-import           Plutus.ChainIndex                                (ChainIndexQueryEffect, TxStatus (Unknown))
+import           Plutus.ChainIndex                                (ChainIndexQueryEffect, RollbackState (Unknown))
 import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)
@@ -185,6 +185,19 @@ processTxStatusChangeRequestsSTM =
             env <- ask
             pure (AwaitTxStatusChangeResp txId <$> InstanceState.waitForTxStatusChange Unknown txId env)
 
+processTxOutStatusChangeRequestsSTM ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    )
+    => RequestHandler effs PABReq (STM PABResp)
+processTxOutStatusChangeRequestsSTM =
+    maybeToHandler (extract Contract.Effects._AwaitTxOutStatusChangeReq)
+    >>> RequestHandler handler
+    where
+        handler txOutRef = do
+            env <- ask
+            pure (AwaitTxOutStatusChangeResp txOutRef <$> InstanceState.waitForTxOutStatusChange Unknown txOutRef env)
+
 processUtxoSpentRequestsSTM ::
     forall effs.
     ( Member (Reader InstanceState) effs
@@ -256,6 +269,7 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
     blockingRequests =
         wrapHandler (processAwaitSlotRequestsSTM @effs)
         <> wrapHandler (processTxStatusChangeRequestsSTM @effs)
+        <> wrapHandler (processTxOutStatusChangeRequestsSTM @effs)
         <> processEndpointRequestsSTM @effs
         <> wrapHandler (processAwaitTimeRequestsSTM @effs)
         <> processUtxoSpentRequestsSTM @effs

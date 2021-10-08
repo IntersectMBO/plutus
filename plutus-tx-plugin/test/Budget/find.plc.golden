@@ -1,0 +1,479 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Monoid (fun (type) (type)))
+        (tyvardecl a (type))
+        Monoid_match
+        (vardecl
+          CConsMonoid
+          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        p1Monoid
+        (all a (type) (fun [ Monoid a ] [ (lam a (type) (fun a (fun a a))) a ]))
+      )
+      (abs
+        a
+        (type)
+        (lam
+          v
+          [ Monoid a ]
+          [
+            { [ { Monoid_match a } v ] [ (lam a (type) (fun a (fun a a))) a ] }
+            (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
+          ]
+        )
+      )
+    )
+    (let
+      (rec)
+      (datatypebind
+        (datatype
+          (tyvardecl List (fun (type) (type)))
+          (tyvardecl a (type))
+          Nil_match
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
+        )
+      )
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl mempty (all a (type) (fun [ Monoid a ] a)))
+          (abs
+            a
+            (type)
+            (lam
+              v
+              [ Monoid a ]
+              [
+                { [ { Monoid_match a } v ] a }
+                (lam v [ (lam a (type) (fun a (fun a a))) a ] (lam v a v))
+              ]
+            )
+          )
+        )
+        (let
+          (rec)
+          (termbind
+            (strict)
+            (vardecl
+              fFoldableNil_cfoldMap
+              (all
+                m
+                (type)
+                (all
+                  a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                )
+              )
+            )
+            (abs
+              m
+              (type)
+              (abs
+                a
+                (type)
+                (lam
+                  dMonoid
+                  [ Monoid m ]
+                  (let
+                    (nonrec)
+                    (termbind
+                      (nonstrict)
+                      (vardecl
+                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
+                      )
+                      [ { p1Monoid m } dMonoid ]
+                    )
+                    (lam
+                      ds
+                      (fun a m)
+                      (lam
+                        ds
+                        [ List a ]
+                        {
+                          [
+                            [
+                              { [ { Nil_match a } ds ] (all dead (type) m) }
+                              (abs dead (type) [ { mempty m } dMonoid ])
+                            ]
+                            (lam
+                              x
+                              a
+                              (lam
+                                xs
+                                [ List a ]
+                                (abs
+                                  dead
+                                  (type)
+                                  [
+                                    [ dSemigroup [ ds x ] ]
+                                    [
+                                      [
+                                        [
+                                          { { fFoldableNil_cfoldMap m } a }
+                                          dMonoid
+                                        ]
+                                        ds
+                                      ]
+                                      xs
+                                    ]
+                                  ]
+                                )
+                              )
+                            )
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+          (let
+            (nonrec)
+            (termbind
+              (nonstrict)
+              (vardecl
+                fFoldableNil
+                [
+                  (lam
+                    t
+                    (fun (type) (type))
+                    (all
+                      m
+                      (type)
+                      (all
+                        a
+                        (type)
+                        (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                      )
+                    )
+                  )
+                  List
+                ]
+              )
+              fFoldableNil_cfoldMap
+            )
+            (termbind
+              (strict)
+              (vardecl
+                build
+                (all
+                  a
+                  (type)
+                  (fun
+                    (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ]
+                  )
+                )
+              )
+              (abs
+                a
+                (type)
+                (lam
+                  g
+                  (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                  [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+                )
+              )
+            )
+            (datatypebind
+              (datatype
+                (tyvardecl Maybe (fun (type) (type)))
+                (tyvardecl a (type))
+                Maybe_match
+                (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                fSemigroupFirst_c
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ (lam a (type) [ Maybe a ]) a ]
+                    (fun
+                      [ (lam a (type) [ Maybe a ]) a ]
+                      [ (lam a (type) [ Maybe a ]) a ]
+                    )
+                  )
+                )
+              )
+              (abs
+                a
+                (type)
+                (lam
+                  ds
+                  [ (lam a (type) [ Maybe a ]) a ]
+                  (lam
+                    b
+                    [ (lam a (type) [ Maybe a ]) a ]
+                    {
+                      [
+                        [
+                          {
+                            [ { Maybe_match a } ds ]
+                            (all dead (type) [ (lam a (type) [ Maybe a ]) a ])
+                          }
+                          (lam ipv a (abs dead (type) ds))
+                        ]
+                        (abs dead (type) b)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                fMonoidFirst
+                (all a (type) [ Monoid [ (lam a (type) [ Maybe a ]) a ] ])
+              )
+              (abs
+                a
+                (type)
+                [
+                  [
+                    { CConsMonoid [ (lam a (type) [ Maybe a ]) a ] }
+                    { fSemigroupFirst_c a }
+                  ]
+                  { Nothing a }
+                ]
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                fGeneric1TYPEFirst
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ (lam a (type) [ Maybe a ]) a ]
+                    [ (lam a (type) [ Maybe a ]) a ]
+                  )
+                )
+              )
+              (abs a (type) (lam x [ (lam a (type) [ Maybe a ]) a ] x))
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                getFirst
+                (all
+                  a (type) (fun [ (lam a (type) [ Maybe a ]) a ] [ Maybe a ])
+                )
+              )
+              fGeneric1TYPEFirst
+            )
+            (datatypebind
+              (datatype
+                (tyvardecl Bool (type))
+
+                Bool_match
+                (vardecl True Bool) (vardecl False Bool)
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                find
+                (all
+                  t
+                  (fun (type) (type))
+                  (all
+                    a
+                    (type)
+                    (fun
+                      [
+                        (lam
+                          t
+                          (fun (type) (type))
+                          (all
+                            m
+                            (type)
+                            (all
+                              a
+                              (type)
+                              (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                            )
+                          )
+                        )
+                        t
+                      ]
+                      (fun (fun a Bool) (fun [ t a ] [ Maybe a ]))
+                    )
+                  )
+                )
+              )
+              (abs
+                t
+                (fun (type) (type))
+                (abs
+                  a
+                  (type)
+                  (lam
+                    dFoldable
+                    [
+                      (lam
+                        t
+                        (fun (type) (type))
+                        (all
+                          m
+                          (type)
+                          (all
+                            a
+                            (type)
+                            (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                          )
+                        )
+                      )
+                      t
+                    ]
+                    (lam
+                      p
+                      (fun a Bool)
+                      (let
+                        (nonrec)
+                        (termbind
+                          (nonstrict)
+                          (vardecl
+                            g (fun [ t a ] [ (lam a (type) [ Maybe a ]) a ])
+                          )
+                          [
+                            [
+                              {
+                                { dFoldable [ (lam a (type) [ Maybe a ]) a ] } a
+                              }
+                              { fMonoidFirst a }
+                            ]
+                            (lam
+                              x
+                              a
+                              {
+                                [
+                                  [
+                                    {
+                                      [ Bool_match [ p x ] ]
+                                      (all dead (type) [ Maybe a ])
+                                    }
+                                    (abs dead (type) [ { Just a } x ])
+                                  ]
+                                  (abs dead (type) { Nothing a })
+                                ]
+                                (all dead (type) dead)
+                              }
+                            )
+                          ]
+                        )
+                        (lam x [ t a ] [ { getFirst a } [ g x ] ])
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            (termbind
+              (strict)
+              (vardecl
+                ifThenElse (all a (type) (fun (con bool) (fun a (fun a a))))
+              )
+              (builtin ifThenElse)
+            )
+            (termbind
+              (strict)
+              (vardecl
+                lessThanEqualsInteger
+                (fun (con integer) (fun (con integer) (con bool)))
+              )
+              (builtin lessThanEqualsInteger)
+            )
+            (termbind
+              (strict)
+              (vardecl
+                greaterThanInteger (fun (con integer) (fun (con integer) Bool))
+              )
+              (lam
+                x
+                (con integer)
+                (lam
+                  y
+                  (con integer)
+                  [
+                    [
+                      [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ]
+                      False
+                    ]
+                    True
+                  ]
+                )
+              )
+            )
+            [
+              [
+                [ { { find List } (con integer) } fFoldableNil ]
+                [ greaterThanInteger (con integer 10) ]
+              ]
+              [
+                { build (con integer) }
+                (abs
+                  a
+                  (type)
+                  (lam
+                    c
+                    (fun (con integer) (fun a a))
+                    (lam
+                      n
+                      a
+                      [
+                        [ c (con integer 1) ]
+                        [
+                          [ c (con integer 2) ]
+                          [
+                            [ c (con integer 3) ]
+                            [
+                              [ c (con integer 4) ]
+                              [
+                                [ c (con integer 5) ]
+                                [
+                                  [ c (con integer 6) ]
+                                  [
+                                    [ c (con integer 7) ]
+                                    [
+                                      [ c (con integer 8) ]
+                                      [
+                                        [ c (con integer 9) ]
+                                        [ [ c (con integer 10) ] n ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    )
+                  )
+                )
+              ]
+            ]
+          )
+        )
+      )
+    )
+  )
+)

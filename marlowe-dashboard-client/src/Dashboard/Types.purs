@@ -1,28 +1,31 @@
 module Dashboard.Types
   ( State
+  , WalletCompanionStatus(..)
   , Card(..)
   , ContractFilter(..)
   , Input
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Clipboard (Action) as Clipboard
+import Component.ConfirmInput.Types as ConfirmInput
+import Contacts.Types (Action, State) as Contacts
+import Contacts.Types (WalletDetails, WalletNickname)
 import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
+import Data.Set (Set)
 import Data.Time.Duration (Minutes)
 import Marlowe.Client (ContractHistory)
-import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (MarloweData, MarloweParams, Slot)
 import Template.Types (Action, State) as Template
-import WalletData.Types (Action, State) as WalletData
-import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { walletDataState :: WalletData.State
+  = { contactsState :: Contacts.State
     , walletDetails :: WalletDetails
+    , walletCompanionStatus :: WalletCompanionStatus
     , menuOpen :: Boolean
     , card :: Maybe Card
     , cardOpen :: Boolean -- see note [CardOpen] in Welcome.State (the same applies here)
@@ -32,14 +35,19 @@ type State
     , templateState :: Template.State
     }
 
+data WalletCompanionStatus
+  = FirstUpdatePending
+  | LoadingNewContracts (Set MarloweParams)
+  | FirstUpdateComplete
+
+derive instance eqWalletCompanionStatus :: Eq WalletCompanionStatus
+
 data Card
   = TutorialsCard
   | CurrentWalletCard
-  | WalletDataCard
+  | ContactsCard
   | ContractTemplateCard
-  | ContractActionConfirmationCard PlutusAppId NamedAction
-
-derive instance eqCard :: Eq Card
+  | ContractActionConfirmationCard PlutusAppId ConfirmInput.Input
 
 data ContractFilter
   = Running
@@ -53,8 +61,8 @@ type Input
     }
 
 data Action
-  = PutdownWallet
-  | WalletDataAction WalletData.Action
+  = DisconnectWallet
+  | ContactsAction Contacts.Action
   | ToggleMenu
   | OpenCard Card
   | CloseCard
@@ -68,13 +76,15 @@ data Action
   | TemplateAction Template.Action
   | ContractAction PlutusAppId Contract.Action
   | SetContactForRole String WalletNickname
+  | ClipboardAction Clipboard.Action
 
 -- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
-  toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
-  toEvent (WalletDataAction walletDataAction) = toEvent walletDataAction
+  toEvent DisconnectWallet = Just $ defaultEvent "DisconnectWallet"
+  toEvent (ContactsAction contactsAction) = toEvent contactsAction
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing
+  toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"
   toEvent CloseCard = Nothing
   toEvent (SetContractFilter _) = Just $ defaultEvent "FilterContracts"
   toEvent (SelectContract _) = Just $ defaultEvent "OpenContract"

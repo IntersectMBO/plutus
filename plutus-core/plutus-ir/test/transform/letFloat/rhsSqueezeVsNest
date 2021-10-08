@@ -10,7 +10,7 @@
          )
    -- unfloatable
    (termbind (strict) (vardecl y (con integer))
-     (lam k (con integer)
+     [(lam k (con integer)
       (let
          (rec)
          -- floatable, max free var is k
@@ -20,7 +20,7 @@
                        [(builtin addInteger) k y]
                    )
          y')
-      )
+      ) y]
    )
    x
 )

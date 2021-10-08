@@ -84,6 +84,8 @@ test-suite plutus-tx-tests
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
+        Budget.Lib
+        Budget.Spec
         IsData.Spec
         Lift.Spec
         Plugin.Spec
@@ -106,6 +108,7 @@ test-suite plutus-tx-tests
         base >=4.9 && <5,
         flat -any,
         deepseq -any,
+        filepath -any,
         integer-gmp -any,
         plutus-core -any,
         plutus-tx -any,
@@ -126,7 +129,7 @@ test-suite plutus-tx-tests
     -- NOTE: we disable the simplifier as it simplifies away some tests
     ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
 
-executable profile
+executable logToStacks
     main-is: Main.hs
     hs-source-dirs: executables/profile, test
     other-modules:
@@ -153,4 +156,5 @@ executable profile
         serialise -any,
         template-haskell -any,
         text -any,
+        time -any,
         lens -any,

@@ -35,6 +35,7 @@ import           Data.Aeson                          (FromJSON, ToJSON, toJSON)
 import           Data.Coerce                         (coerce)
 import           Data.Default                        (def)
 import           Data.Either                         (isLeft)
+import           Data.List                           (delete)
 import qualified Data.OpenApi.Schema                 as OpenApi
 import           Data.Proxy                          (Proxy (Proxy))
 import qualified Data.Text                           as Text
@@ -132,8 +133,8 @@ bumpConfig x dbName conf@Config{ pabWebserverConfig   = p@PAB.Types.WebserverCon
              , dbConfig             = db { PAB.Types.dbConfigFile    = "file::" <> dbName <> "?mode=memory&cache=shared" }
              }
 
-startPab :: Config -> IO ()
-startPab pabConfig = do
+startPab :: ConfigCommand -> Config -> IO ()
+startPab services pabConfig = do
   let handler = Builtin.handleBuiltin @TestingContracts
       opts = AppOpts
               { minLogLevel = Nothing
@@ -141,7 +142,7 @@ startPab pabConfig = do
               , configPath = Nothing
               , runEkgServer = False
               , storageBackend = BeamSqliteBackend
-              , cmd = allServices
+              , cmd = services
               }
 
   let mc = Just pabConfig
@@ -152,6 +153,22 @@ startPab pabConfig = do
   -- Then, spin up the services.
   void . async $ runWithOpts handler mc opts
   sleep 5
+
+
+-- | Make a config from the 'bumped' one that re-uses some of the services
+-- from the primary one (the ones we're not starting).
+secondaryConfig :: Config -> Config -> Config
+secondaryConfig primary other =
+  other { chainIndexConfig = chainIndexConfig primary
+        }
+
+startPrimaryPab :: Config -> IO ()
+startPrimaryPab = startPab allServices
+
+startSecondaryPab :: Config -> IO ()
+startSecondaryPab = startPab $ ForkCommands (delete ChainIndex services)
+  where
+    ForkCommands services = allServices
 
 sleep :: Int -> IO ()
 sleep n = threadDelay $ n * 1_000_000
@@ -223,7 +240,7 @@ restoreContractStateTests =
         -- provides evidence that if the subsequent tests _fail_, then that is
         -- an genuine error.
         let pabConfig = defaultPabConfig
-        startPab pabConfig
+        startPrimaryPab pabConfig
         ci <- startPingPongContract pabConfig
 
         runPabInstanceEndpoints pabConfig ci (map Succeed ["initialise", "pong", "ping"])
@@ -231,7 +248,7 @@ restoreContractStateTests =
     , testCase "PingPong contract state is maintained across PAB instances" $ do
         -- We'll check the following: Init, Pong, <STOP>, <RESTART>, Ping works.
         let pabConfig = bumpConfig 50 "db1" defaultPabConfig
-        startPab pabConfig
+        startPrimaryPab pabConfig
         ci <- startPingPongContract pabConfig
 
         -- Run init, pong on one pab
@@ -240,7 +257,7 @@ restoreContractStateTests =
         -- Then, check 'ping' works on a different PAB instance (that will
         -- have restored from the same DB.)
         let newConfig = bumpConfig 50 "db1" pabConfig
-        startPab newConfig
+        startSecondaryPab (secondaryConfig pabConfig newConfig)
 
         runPabInstanceEndpoints newConfig ci [Succeed "ping"]
 
@@ -249,7 +266,7 @@ restoreContractStateTests =
         -- This should mean that no matter the order of these tests, there
         -- will be no clashes.
         let pabConfig = bumpConfig 100 "db2" defaultPabConfig
-        startPab pabConfig
+        startPrimaryPab pabConfig
         ci <- startPingPongContract pabConfig
 
         -- Run init, pong on one pab
@@ -258,7 +275,7 @@ restoreContractStateTests =
         -- This time, "ping" should fail because we're using a different
         -- in-memory db.
         let newConfig = bumpConfig 10 "db3" pabConfig
-        startPab newConfig
+        startSecondaryPab (secondaryConfig pabConfig newConfig)
 
         runPabInstanceEndpoints newConfig ci [Fail "ping"]
     ]

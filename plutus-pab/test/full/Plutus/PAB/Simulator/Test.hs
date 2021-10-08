@@ -9,6 +9,7 @@ module Plutus.PAB.Simulator.Test(runSimulation) where
 
 import           Control.Monad.Freer                      (interpret)
 import           Data.Default                             (Default (def))
+import           Ledger.TimeSlot                          (SlotConfig (..))
 import           Plutus.PAB.Core                          (EffectHandlers)
 import           Plutus.PAB.Effects.Contract.Builtin      (Builtin, BuiltinHandler (contractHandler), handleBuiltin)
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
@@ -23,6 +24,6 @@ runSimulation = runSimulationWith simulatorHandlers
 -- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
 --   out-of-process services such as wallet backend, node, etc.)
 simulatorHandlers :: EffectHandlers (Builtin TestContracts) (SimulatorState (Builtin TestContracts))
-simulatorHandlers = mkSimulatorHandlers def def handler where
+simulatorHandlers = mkSimulatorHandlers def def { scSlotLength = 1 } handler where
     handler :: SimulatorContractHandler (Builtin TestContracts)
     handler = interpret (contractHandler handleBuiltin)

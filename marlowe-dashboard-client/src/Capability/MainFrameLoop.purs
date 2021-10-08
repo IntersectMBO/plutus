@@ -1,6 +1,6 @@
 module Capability.MainFrameLoop where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Halogen (HalogenM, raise)
 import MainFrame.Types (Msg(..), Action)

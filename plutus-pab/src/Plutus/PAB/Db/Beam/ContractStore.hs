@@ -45,7 +45,7 @@ import           Plutus.PAB.Types                    (PABError (..))
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet              (Wallet (..))
 import qualified Wallet.Emulator.Wallet              as Wallet
-import           Wallet.Types                        (ContractInstanceId (..))
+import           Wallet.Types                        (ContractActivityStatus (..), ContractInstanceId (..))
 
 -- | Convert from the internal representation of a contract into the database
 -- representation.
@@ -153,11 +153,13 @@ handleContractStore = \case
           (\ci -> ci ^. contractInstanceActive <-. val_ False)
           (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
 
-  GetActiveContracts ->
+  GetContracts mStatus ->
     fmap mkContracts
       $ selectList
       $ select
       $ do
           ci <- all_ (_contractInstances db)
-          guard_ ( ci ^. contractInstanceActive )
+          case mStatus of
+            Just s -> guard_ ( ci ^. contractInstanceActive ==. val_ (s == Active) )
+            _      -> pure ()
           pure ci

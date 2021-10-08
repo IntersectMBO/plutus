@@ -31,7 +31,6 @@ import           Ledger.Index                              (ExCPU, ExMemory, Scr
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
-import           Ledger.Time                               (POSIXTime)
 import           Ledger.TimeSlot                           (SlotConfig, SlotConversionError)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
@@ -39,8 +38,8 @@ import           Playground.Types                          (ContractCall, Functi
 import           Plutus.ChainIndex.ChainIndexError         (ChainIndexError)
 import           Plutus.ChainIndex.ChainIndexLog           (ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, Tip, TxStatus,
-                                                            TxValidity)
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, RollbackState,
+                                                            Tip, TxOutState, TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
@@ -57,9 +56,9 @@ import           Wallet.API                                (WalletAPIError)
 import qualified Wallet.Emulator.Types                     as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
-import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
-                                                            EndpointDescription, EndpointValue, MatchingError,
-                                                            Notification, NotificationError)
+import           Wallet.Types                              (AssertionError, ContractActivityStatus, ContractError,
+                                                            ContractInstanceId, EndpointDescription, EndpointValue,
+                                                            MatchingError, Notification, NotificationError)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -136,6 +135,12 @@ integerBridge = do
     typeName ^== "Integer"
     pure psBigInteger
 
+word64Bridge :: BridgePart
+word64Bridge = do
+    typeName ^== "Word64"
+    typeModule ^== "GHC.Word"
+    pure psBigInteger
+
 digestBridge :: BridgePart
 digestBridge = do
     typeName ^== "Digest"
@@ -187,7 +192,7 @@ someCardanoApiTxBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> word64Bridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 
@@ -311,7 +316,6 @@ servantBridge = headersBridge <|> headerBridge
 ledgerTypes :: [SumType 'Haskell]
 ledgerTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConfig)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConversionError)
@@ -363,6 +367,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractActivityStatus)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UserThreadMsg)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SchedulerLog)
@@ -405,7 +410,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxValidity)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxStatus)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutState)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(RollbackState A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @BlockNumber)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Depth)
     ]

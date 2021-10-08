@@ -29,7 +29,7 @@ module Css
   , funds
   ) where
 
-import Prelude
+import Prologue
 import Halogen.Css (applyWhen)
 import Material.Icons (Icon, iconClass)
 
@@ -226,7 +226,7 @@ sidebarCard visible =
     <> applyWhen (not visible) [ "lg:translate-y-0", "lg:translate-x-80" ]
 
 cardHeader :: Array String
-cardHeader = [ "text-lg", "font-semibold", "leading-none", "px-4", "py-4.5", "border-gray", "border-b" ]
+cardHeader = [ "text-lg", "font-semibold", "leading-none", "px-4", "py-4.5" ]
 
 -- embedded videos
 embeddedVideoContainer :: Array String

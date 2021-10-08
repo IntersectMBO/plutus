@@ -12,11 +12,11 @@ module Capability.Contract
   , getContractDefinitions
   ) where
 
-import Prelude
+import Prologue
+import API.Contract as API
 import API.Lenses (_cicCurrentState, _hooks, _observableState)
 import AppM (AppM)
 import Bridge (toBack, toFront)
-import API.Contract as API
 import Control.Monad.Except (lift, runExceptT)
 import Data.Lens (view)
 import Data.Maybe
@@ -30,7 +30,7 @@ import Plutus.Contract.Resumable (Request)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..), ContractInstanceClientState, ContractSignatureResponse)
 import Types (AjaxResponse)
-import WalletData.Types (Wallet)
+import Contacts.Types (Wallet)
 
 -- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class

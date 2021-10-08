@@ -71,7 +71,7 @@
         hsSourceDirs = [ "src" ];
         };
       exes = {
-        "profile" = {
+        "logToStacks" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
@@ -86,6 +86,7 @@
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             ];
           buildable = true;
@@ -109,6 +110,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
@@ -128,6 +130,8 @@
             ];
           buildable = if flags.use-ghc-stub then false else true;
           modules = [
+            "Budget/Lib"
+            "Budget/Spec"
             "IsData/Spec"
             "Lift/Spec"
             "Plugin/Spec"

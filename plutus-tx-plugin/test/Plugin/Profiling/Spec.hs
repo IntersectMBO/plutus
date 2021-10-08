@@ -27,10 +27,9 @@ import           PlutusTx.Plugin           (plc)
 
 import           Control.Lens.Combinators  (_2)
 import           Control.Lens.Getter       (view)
-import           Data.Proxy
+import           Data.Proxy                (Proxy (Proxy))
 import           Data.Text                 (Text)
 import qualified PlutusCore.Default        as Builtins
-import qualified PlutusTx.Builtins         as Builtins
 import           Prelude
 import           Prettyprinter.Internal    (pretty)
 import           Prettyprinter.Render.Text (hPutDoc)

@@ -51,11 +51,11 @@ import qualified Cardano.Ledger.Alonzo.TxWitness as C
 import qualified Cardano.Ledger.Core             as Ledger
 import           Codec.Serialise                 (deserialiseOrFail)
 import qualified Codec.Serialise                 as Codec
+import           Control.Monad                   (when)
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Bifunctor                  (first)
 import           Data.ByteString                 as BS
 import qualified Data.ByteString.Lazy            as BSL
-import           Data.ByteString.Short           as BSS
 import qualified Data.ByteString.Short           as SBS
 import           Data.Map                        (Map)
 import qualified Data.Map                        as Map
@@ -72,7 +72,6 @@ import           Plutus.Contract.CardanoAPITemp  (makeTransactionBody')
 import qualified Plutus.V1.Ledger.Api            as Api
 import qualified Plutus.V1.Ledger.Credential     as Credential
 import qualified Plutus.V1.Ledger.Value          as Value
-import qualified PlutusCore.Data                 as Data
 import qualified PlutusTx.Prelude                as PlutusTx
 
 fromCardanoBlock :: C.BlockInMode C.CardanoMode -> Either FromCardanoError [ChainIndexTx]
@@ -269,7 +268,7 @@ toCardanoTxInWitness
         <$> toCardanoPlutusScript validator
         <*> pure (C.ScriptDatumForTxIn $ toCardanoScriptData datum)
         <*> pure (toCardanoScriptData redeemer)
-        <*> toCardanoExecutionUnits validator [Api.builtinDataToData datum, Api.builtinDataToData redeemer] -- TODO: is [datum, redeemer] correct?
+        <*> pure zeroExecutionUnits
         )
 
 toCardanoMintWitness :: P.MintingPolicy -> Either ToCardanoError (C.ScriptWitness C.WitCtxMint C.AlonzoEra)
@@ -277,7 +276,7 @@ toCardanoMintWitness (P.MintingPolicy script) = C.PlutusScriptWitness C.PlutusSc
     <$> toCardanoPlutusScript script
     <*> pure C.NoScriptDatumForMint
     <*> pure (C.ScriptDataNumber 0) -- TODO: redeemers not modelled yet in Plutus MP scripts, value is ignored
-    <*> toCardanoExecutionUnits script [] -- TODO: is [] correct?
+    <*> pure zeroExecutionUnits
 
 fromCardanoTxOut :: C.TxOut era -> Either FromCardanoError P.TxOut
 fromCardanoTxOut (C.TxOut addr value datumHash) =
@@ -365,7 +364,9 @@ fromCardanoTxOutValue (C.TxOutAdaOnly _ lovelace) = fromCardanoLovelace lovelace
 fromCardanoTxOutValue (C.TxOutValue _ value)      = fromCardanoValue value
 
 toCardanoTxOutValue :: P.Value -> Either ToCardanoError (C.TxOutValue C.AlonzoEra)
-toCardanoTxOutValue value = C.TxOutValue C.MultiAssetInAlonzoEra <$> toCardanoValue value
+toCardanoTxOutValue value = do
+    when (Ada.fromValue value == mempty) (Left OutputHasZeroAda)
+    C.TxOutValue C.MultiAssetInAlonzoEra <$> toCardanoValue value
 
 fromCardanoTxOutDatumHash :: C.TxOutDatumHash era -> Maybe P.DatumHash
 fromCardanoTxOutDatumHash C.TxOutDatumHashNone   = Nothing
@@ -489,15 +490,6 @@ toCardanoPlutusScript =
     tag "toCardanoPlutusScript"
     . deserialiseFromRawBytes (C.AsPlutusScript C.AsPlutusScriptV1) . BSL.toStrict . Codec.serialise
 
-toCardanoExecutionUnits :: P.Script -> [Data.Data] -> Either ToCardanoError C.ExecutionUnits
-toCardanoExecutionUnits script datum = do
-    cmp <- maybe (Left NoDefaultCostModelParams) Right Api.defaultCostModelParams -- TODO: Configurable cost model params
-    let apiScript = BSS.toShort . BSL.toStrict $ Codec.serialise script
-    case Api.evaluateScriptCounting Api.Quiet cmp apiScript datum of
-        (_, Left err) -> Left $ EvaluationError err
-        (_, Right (Api.ExBudget (Api.ExCPU cpu) (Api.ExMemory memory))) ->
-            pure $ C.ExecutionUnits (fromIntegral cpu) (fromIntegral memory)
-
 deserialiseFromRawBytes :: C.SerialiseAsRawBytes t => C.AsType t -> ByteString -> Either ToCardanoError t
 deserialiseFromRawBytes asType = maybe (Left DeserialisationError) Right . C.deserialiseFromRawBytes asType
 
@@ -519,7 +511,7 @@ data ToCardanoError
     | DeserialisationError
     | InvalidValidityRange
     | ValueNotPureAda
-    | NoDefaultCostModelParams
+    | OutputHasZeroAda
     | StakingPointersNotSupported
     | SimpleScriptsNotSupportedToCardano
     | MissingTxInType
@@ -531,8 +523,11 @@ instance Pretty ToCardanoError where
     pretty DeserialisationError               = "ByteString deserialisation failed"
     pretty InvalidValidityRange               = "Invalid validity range"
     pretty ValueNotPureAda                    = "Fee values should only contain Ada"
-    pretty NoDefaultCostModelParams           = "Extracting default cost model failed"
+    pretty OutputHasZeroAda                   = "Transaction outputs should not contain zero Ada"
     pretty StakingPointersNotSupported        = "Staking pointers are not supported"
     pretty SimpleScriptsNotSupportedToCardano = "Simple scripts are not supported"
     pretty MissingTxInType                    = "Missing TxInType"
     pretty (Tag t err)                        = pretty t <> colon <+> pretty err
+
+zeroExecutionUnits :: C.ExecutionUnits
+zeroExecutionUnits = C.ExecutionUnits 0 0
