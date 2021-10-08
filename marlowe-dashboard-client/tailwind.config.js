@@ -8,7 +8,18 @@ module.exports = {
   ],
   darkMode: false, // or 'media' or 'class'
   theme: {
+    // TODO make a proper color scheme with shades and hues (like I've done for
+    // gray here).
     colors: {
+      "gray-100": "#f2f2f2",
+      "gray-200": "#eeeeee",
+      "gray-300": "#dfdfdf",
+      "gray-400": "#d2d2d2",
+      "gray-500": "#c4c4c4",
+      "gray-600": "#b7b7b7",
+      "gray-700": "#adadad",
+      "gray-800": "#a4a4a4",
+      "gray-900": "#9a9a9a",
       transparent: "transparent",
       current: "currentColor",
       black: "#283346",
@@ -99,8 +110,11 @@ module.exports = {
         "auto-1fr": "auto minmax(0, 1fr)",
         "1fr-auto": "minmax(0, 1fr) auto",
         "auto-auto-1fr": "auto auto minmax(0, 1fr)",
+        "auto-auto-1fr-auto": "auto auto minmax(0, 1fr) auto",
         "auto-1fr-auto": "auto minmax(0, 1fr) auto",
+        "auto-1fr-auto-auto": "auto minmax(0, 1fr) auto auto",
         "1fr-auto-1fr": "minmax(0, 1fr) auto minmax(0, 1fr)",
+        "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
         "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
@@ -176,8 +190,8 @@ module.exports = {
   corePlugins: {
     container: false,
     space: true,
-    divideWidth: false,
-    divideColor: false,
+    divideWidth: true,
+    divideColor: true,
     divideStyle: false,
     divideOpacity: false,
     dropShadow: true,
@@ -252,7 +266,7 @@ module.exports = {
     strokeWidth: false,
     tableLayout: false,
     textAlign: true,
-    textOpacity: false,
+    textOpacity: true,
     textOverflow: true,
     fontStyle: false,
     textTransform: true,

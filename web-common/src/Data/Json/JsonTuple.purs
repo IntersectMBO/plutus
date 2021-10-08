@@ -1,3 +1,4 @@
+-- TODO: We should replace JsonTuple for JsonNTuple from all repositories and from the generated code
 module Data.Json.JsonTuple where
 
 import Prelude

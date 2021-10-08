@@ -3,7 +3,7 @@ module Capability.Toast
   , addToast
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Halogen (HalogenM)

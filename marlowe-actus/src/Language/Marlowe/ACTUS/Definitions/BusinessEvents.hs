@@ -4,7 +4,7 @@
 
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
 
-import           Data.Aeson.Types (ToJSON)
+import           Data.Aeson.Types (FromJSON, ToJSON)
 import           GHC.Generics     (Generic)
 import           Language.Marlowe (Observation, Value)
 
@@ -35,7 +35,8 @@ data EventType =
     | STD  -- ^ Settlement
     | PI   -- ^ Principal Increase
     | AD   -- ^ Monitoring
-    deriving (Eq, Show, Read, Ord, Enum)
+    deriving stock (Eq, Show, Read, Ord, Enum, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 {-| Risk factor observer
 -}
@@ -45,8 +46,8 @@ data RiskFactorsPoly a = RiskFactorsPoly
     , o_rf_SCMO :: a
     , pp_payoff :: a
     }
-    deriving stock (Generic)
-    deriving (Show, ToJSON)
+    deriving stock (Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 type RiskFactors = RiskFactorsPoly Double
 type RiskFactorsMarlowe = RiskFactorsPoly (Value Observation)

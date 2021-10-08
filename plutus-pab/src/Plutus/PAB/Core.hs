@@ -57,6 +57,7 @@ module Plutus.PAB.Core
     , observableState
     , waitForState
     , waitForTxStatusChange
+    , waitForTxOutStatusChange
     , activeEndpoints
     , waitForEndpoint
     , currentSlot
@@ -101,10 +102,12 @@ import qualified Data.Map                                as Map
 import           Data.Proxy                              (Proxy (..))
 import           Data.Set                                (Set)
 import           Data.Text                               (Text)
+import           Ledger                                  (TxOutRef)
 import           Ledger.Tx                               (Address, Tx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
-import           Plutus.ChainIndex                       (ChainIndexQueryEffect, TxStatus (Unknown))
+import           Plutus.ChainIndex                       (ChainIndexQueryEffect, RollbackState (..), TxOutStatus,
+                                                          TxStatus)
 import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, ContractInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
@@ -506,6 +509,12 @@ waitForTxStatusChange :: forall t env. TxId -> PABAction t env TxStatus
 waitForTxStatusChange t = do
     env <- asks @(PABEnvironment t env) blockchainEnv
     liftIO $ STM.atomically $ Instances.waitForTxStatusChange Unknown t env
+
+-- | Wait for the transaction output to be confirmed on the blockchain.
+waitForTxOutStatusChange :: forall t env. TxOutRef -> PABAction t env TxOutStatus
+waitForTxOutStatusChange t = do
+    env <- asks @(PABEnvironment t env) blockchainEnv
+    liftIO $ STM.atomically $ Instances.waitForTxOutStatusChange Unknown t env
 
 -- | The list of endpoints that are currently open
 activeEndpoints :: forall t env. ContractInstanceId -> PABAction t env (STM [OpenEndpoint])

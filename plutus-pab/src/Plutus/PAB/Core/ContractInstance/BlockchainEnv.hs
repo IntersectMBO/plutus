@@ -2,13 +2,12 @@
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeApplications #-}
 -- |
 module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   startNodeClient
   , processMockBlock
   , processChainSyncEvent
-  , fromCardanoTxId
+  , garbageCollect
   ) where
 
 import           Cardano.Api                            (BlockInMode (..), ChainPoint (..), NetworkId)
@@ -27,7 +26,6 @@ import           Plutus.PAB.Core.ContractInstance.STM   (BlockchainEnv (..), Ins
                                                          emptyBlockchainEnv)
 import qualified Plutus.PAB.Core.ContractInstance.STM   as S
 import           Plutus.Trace.Emulator.ContractInstance (IndexedBlock (..), indexBlock)
-import           Plutus.V1.Ledger.Api                   (toBuiltin)
 
 import           Control.Concurrent.STM                 (STM)
 import qualified Control.Concurrent.STM                 as STM
@@ -35,15 +33,19 @@ import           Control.Lens
 import           Control.Monad                          (forM_, void, when)
 import           Control.Tracer                         (nullTracer)
 import           Data.Foldable                          (foldl')
+import           Data.Maybe                             (catMaybes)
 import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.ChainIndex                      (BlockNumber (..), ChainIndexTx (..), ChainIndexTxOutputs (..),
-                                                         InsertUtxoFailed (..), InsertUtxoSuccess (..),
+                                                         Depth (..), InsertUtxoFailed (..), InsertUtxoSuccess (..),
                                                          RollbackFailed (..), RollbackResult (..), Tip (..),
-                                                         TxConfirmedState (..), TxIdState (..), TxValidity (..),
-                                                         UtxoState (..), blockId, citxTxId, fromOnChainTx, insert,
-                                                         utxoState)
+                                                         TxConfirmedState (..), TxIdState (..), TxOutBalance,
+                                                         TxValidity (..), UtxoState (..), blockId, citxTxId, dropOlder,
+                                                         fromOnChainTx, insert, utxoState)
 import           Plutus.ChainIndex.Compatibility        (fromCardanoBlockHeader, fromCardanoPoint)
-import           Plutus.ChainIndex.TxIdState            (rollback)
+import           Plutus.ChainIndex.TxIdState            (chainConstant)
+import qualified Plutus.ChainIndex.TxIdState            as TxIdState
+import qualified Plutus.ChainIndex.TxOutBalance         as TxOutBalance
+import           Plutus.Contract.CardanoAPI             (fromCardanoTx)
 
 -- | Connect to the node and write node updates to the blockchain
 --   env.
@@ -82,9 +84,18 @@ updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUt
 processChainSyncEvent :: BlockchainEnv -> ChainSyncEvent -> Slot -> STM (Either SyncActionFailure ())
 processChainSyncEvent blockchainEnv event _slot = do
   case event of
-      Resume _                                                       -> pure $ Right () -- TODO: Handle resume
-      RollForward  (BlockInMode (C.Block header transactions) era) _ -> processBlock header blockchainEnv transactions era
-      RollBackward chainPoint _                                      -> runRollback blockchainEnv chainPoint
+      Resume _ -> pure $ Right () -- TODO: Handle resume
+      RollForward  (BlockInMode (C.Block header transactions) era) _ ->
+        case era of
+          -- Unfortunately, we need to pattern match again all eras because
+          -- 'processBlock' has the constraints 'C.IsCardanoEra era', but not
+          -- 'C.BlockInMode'.
+          C.ByronEraInCardanoMode   -> processBlock header blockchainEnv transactions era
+          C.ShelleyEraInCardanoMode -> processBlock header blockchainEnv transactions era
+          C.AllegraEraInCardanoMode -> processBlock header blockchainEnv transactions era
+          C.MaryEraInCardanoMode    -> processBlock header blockchainEnv transactions era
+          C.AlonzoEraInCardanoMode  -> processBlock header blockchainEnv transactions era
+      RollBackward chainPoint _ -> runRollback blockchainEnv chainPoint
 
 data SyncActionFailure
   = RollbackFailure RollbackFailed
@@ -93,35 +104,48 @@ data SyncActionFailure
 
 -- | Roll back the chain to the given ChainPoint and slot.
 runRollback :: BlockchainEnv -> ChainPoint -> STM (Either SyncActionFailure ())
-runRollback BlockchainEnv{beTxChanges} chainPoint = do
+runRollback BlockchainEnv{beTxChanges, beTxOutChanges} chainPoint = do
   txIdStateIndex <- STM.readTVar beTxChanges
+  txOutBalanceStateIndex <- STM.readTVar beTxOutChanges
 
   let point = fromCardanoPoint chainPoint
-      rs    = rollback point txIdStateIndex
+      rs    = TxIdState.rollback point txIdStateIndex
+      rs'   = TxOutBalance.rollback point txOutBalanceStateIndex
 
   case rs of
     Left e                                -> pure $ Left (RollbackFailure e)
-    Right RollbackResult{rolledBackIndex} -> Right <$> STM.writeTVar beTxChanges rolledBackIndex
+    Right RollbackResult{rolledBackIndex=rolledBackTxIdStateIndex} ->
+      case rs' of
+        Left e' -> pure $ Left (RollbackFailure e')
+        Right RollbackResult{rolledBackIndex=rolledBackTxOutBalanceStateIndex} -> do
+          STM.writeTVar beTxChanges rolledBackTxIdStateIndex
+          STM.writeTVar beTxOutChanges rolledBackTxOutBalanceStateIndex
+          pure $ Right ()
 
--- | Get transaction ID and validity from a cardano transaction in any era
-txEvent :: forall era. C.Tx era -> C.EraInMode era C.CardanoMode -> (TxId, TxValidity)
-txEvent (C.Tx body _) _ =
-  let txi = fromCardanoTxId (C.getTxId @era body)
-  in (txi, TxValid)  -- TODO: Validity for Alonzo transactions (not available in cardano-api yet (?))
-
-fromCardanoTxId :: C.TxId -> TxId
-fromCardanoTxId = TxId . toBuiltin . C.serialiseToRawBytes
-
--- | Get transaction ID and validity from an emulator transaction
-txMockEvent :: ChainIndexTx -> (TxId, TxValidity)
-txMockEvent tx =
+-- | Get transaction ID and validity from a transaction.
+txEvent :: ChainIndexTx -> (TxId, TxOutBalance, TxValidity)
+txEvent tx =
   let validity = case tx of ChainIndexTx { _citxOutputs = ValidTx _ } -> TxValid
                             ChainIndexTx { _citxOutputs = InvalidTx } -> TxInvalid
-   in (view citxTxId tx, validity)
+   in (view citxTxId tx, TxOutBalance.fromTx tx, validity)
+
+-- | Drop all entries in the beTxChanges field that are older than
+-- 'chainConstant'.
+garbageCollect :: BlockchainEnv -> STM ()
+garbageCollect BlockchainEnv{beTxChanges, beTxOutChanges, beCurrentBlock} = do
+  txIdStateIndex <- STM.readTVar beTxChanges
+  txOutBalanceStateIndex <- STM.readTVar beTxOutChanges
+  currentBlock   <- STM.readTVar beCurrentBlock
+
+  let targetBlock = BlockNumber $ unBlockNumber currentBlock - fromIntegral (unDepth chainConstant)
+
+  STM.writeTVar beTxChanges $ dropOlder targetBlock txIdStateIndex
+  STM.writeTVar beTxOutChanges $ dropOlder targetBlock txOutBalanceStateIndex
 
 -- | Update the blockchain env. with changes from a new block of cardano
 --   transactions in any era
-processBlock :: forall era. C.BlockHeader
+processBlock :: forall era. C.IsCardanoEra era
+             => C.BlockHeader
              -> BlockchainEnv
              -> [C.Tx era]
              -> C.EraInMode era C.CardanoMode
@@ -131,31 +155,41 @@ processBlock header env transactions era =
      then pure $ Right ()
      else do
         let tip = fromCardanoBlockHeader header
-        updateTransactionState tip env (flip txEvent era <$> transactions)
+            -- We ignore cardano transactions that we couldn't convert to
+            -- our 'ChainIndexTx'.
+            ciTxs = catMaybes (either (const Nothing) Just . fromCardanoTx era <$> transactions)
+        updateTransactionState tip env (txEvent <$> ciTxs)
 
--- | For the given transactions, perform the updates in the TxIdState, and
+-- | For the given transactions, perform the updates in the 'TxIdState', and
 -- also record that a new block has been processed.
 updateTransactionState
   :: Foldable t
   => Tip
   -> BlockchainEnv
-  -> t (TxId, TxValidity)
+  -> t (TxId, TxOutBalance, TxValidity)
   -> STM (Either SyncActionFailure ())
-updateTransactionState tip BlockchainEnv{beTxChanges, beCurrentBlock} xs = do
+updateTransactionState tip BlockchainEnv{beTxChanges, beTxOutChanges, beCurrentBlock} xs = do
     txIdStateIndex <- STM.readTVar beTxChanges
     let txIdState = _usTxUtxoData $ utxoState $ txIdStateIndex
+    txUtxoBalanceIndex <- STM.readTVar beTxOutChanges
+    let txUtxoBalance = _usTxUtxoData $ utxoState txUtxoBalanceIndex
     blockNumber <- STM.readTVar beCurrentBlock
     let txIdState' = foldl' (insertNewTx blockNumber) txIdState xs
-        is  = insert (UtxoState txIdState' tip) txIdStateIndex
-    case is of
-      Right InsertUtxoSuccess{newIndex=newTxIdState} -> do
+        txIdStateInsert  = insert (UtxoState txIdState' tip) txIdStateIndex
+        txUtxoBalance' = txUtxoBalance <> foldMap (\(_, b, _) -> b) xs
+        txUtxoBalanceInsert = insert (UtxoState txUtxoBalance' tip) txUtxoBalanceIndex
+
+    case (txIdStateInsert, txUtxoBalanceInsert) of
+      (Right InsertUtxoSuccess{newIndex=newTxIdState}, Right InsertUtxoSuccess{newIndex=newTxOutBalance}) -> do
         STM.writeTVar beTxChanges newTxIdState
+        STM.writeTVar beTxOutChanges newTxOutBalance
         STM.writeTVar beCurrentBlock (succ blockNumber)
         pure $ Right ()
-      Left e -> pure $ Left $ InsertUtxoStateFailure e
+      (Left e, _) -> pure $ Left $ InsertUtxoStateFailure e
+      (_, Left e) -> pure $ Left $ InsertUtxoStateFailure e
 
-insertNewTx :: BlockNumber -> TxIdState -> (TxId, TxValidity) -> TxIdState
-insertNewTx blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, txValidity) =
+insertNewTx :: BlockNumber -> TxIdState -> (TxId, TxOutBalance, TxValidity) -> TxIdState
+insertNewTx blockNumber TxIdState{txnsConfirmed, txnsDeleted} (txi, _, txValidity) =
   let newConfirmed = txnsConfirmed & at txi ?~ newV
    in TxIdState (txnsConfirmed <> newConfirmed) txnsDeleted
     where
@@ -186,13 +220,12 @@ processMockBlock instancesState env@BlockchainEnv{beAddressMap, beCurrentSlot, b
       instEnv <- S.instancesClientEnv instancesState
       updateInstances (indexBlock $ fmap fromOnChainTx transactions) instEnv
 
-
       let tip = Tip { tipSlot = slot
                     , tipBlockId = blockId transactions
                     , tipBlockNo = blockNumber
                     }
 
-      updateTransactionState tip env (txMockEvent <$> fmap fromOnChainTx transactions)
+      updateTransactionState tip env (txEvent <$> fmap fromOnChainTx transactions)
 
 processTx :: Slot -> AddressMap -> OnChainTx -> AddressMap
 processTx _ addressMap tx = addressMap' where

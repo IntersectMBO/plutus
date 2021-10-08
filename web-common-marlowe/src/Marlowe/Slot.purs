@@ -6,7 +6,6 @@ module Marlowe.Slot
   , slotToDateTime
   , dateTimeToSlot
   , dateTimeStringToSlot
-  , currentSlot
   , secondsDiff
   ) where
 
@@ -34,7 +33,7 @@ import Partial.Unsafe (unsafePartial)
 -- that moment. In the meantime, these are our best guesses based on some
 -- quick Googling.  :)
 shelleyInitialSlot :: Slot
-shelleyInitialSlot = Slot $ fromInt 4492800
+shelleyInitialSlot = Slot $ fromInt 0
 
 -- Note [Datetime to slot]: The `plutus-pab.yaml` config file can specify
 -- the datetime of slot zero. To synchronise with the frontend, this should
@@ -88,6 +87,3 @@ dateTimeStringToSlot dateTimeString =
     case FDT.unformat dateTimeFormat dateTimeString of
       Right dateTime -> Just $ dateTimeToSlot dateTime
       Left _ -> Nothing
-
-currentSlot :: Effect Slot
-currentSlot = dateTimeToSlot <<< toDateTime <$> now

@@ -7,14 +7,13 @@ module MainFrame.Types
   , Action(..)
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Component.Expand as Expand
 import Contract.Types (State) as Contract
 import Dashboard.Types (Action, State) as Dashboard
-import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import Halogen as H
 import Halogen.Extra (LifecycleEvent)
@@ -24,8 +23,7 @@ import Marlowe.Semantics (Slot)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
 import Tooltip.Types (ReferenceId)
-import Types (CombinedWSStreamToServer)
-import WalletData.Types (WalletDetails, WalletLibrary)
+import Contacts.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 import Welcome.Types (Action, State) as Welcome
@@ -58,6 +56,7 @@ type ChildSlots
     , hintSlot :: forall query. H.Slot query Void String
     , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
     , lifeCycleSlot :: forall query. H.Slot query LifecycleEvent String
+    , expandSlot :: Expand.Slot Void String
     )
 
 ------------------------------------------------------------
@@ -66,8 +65,7 @@ data Query a
   | MainFrameActionQuery Action a
 
 data Msg
-  = SendWebSocketMessage CombinedWSStreamToServer
-  | MainFrameActionMsg Action
+  = MainFrameActionMsg Action
 
 ------------------------------------------------------------
 data Action

@@ -8,8 +8,9 @@ module Halogen.Monaco
   ) where
 
 import Prelude hiding (div)
-import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Trans.Class (lift)
+import Data.Array (catMaybes)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Generic.Rep (class Generic)
@@ -17,11 +18,11 @@ import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
-import Data.Lens (Lens', use, view)
+import Data.Lens (Lens', set, use, view)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Data.Traversable (for_, traverse)
+import Data.Traversable (for, for_, sequence, traverse)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -31,7 +32,7 @@ import Halogen.ElementResize (elementResize)
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, IRange, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IModelDeltaDecoration)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IDisposable, IMarker, IMarkerData, IModelDeltaDecoration, IPosition, IRange, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, dispose)
 import Monaco as Monaco
 import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
 import Web.HTML.HTMLElement as HTMLElement
@@ -82,10 +83,20 @@ type State
   = { editor :: Maybe Editor
     , deactivateBindings :: CancelBindings
     , objects :: Objects
+    , disposables :: Array IDisposable
     }
 
 _editor :: Lens' State (Maybe Editor)
 _editor = prop (SProxy :: SProxy "editor")
+
+_mCodeActionProvider :: Lens' State (Maybe CodeActionProvider)
+_mCodeActionProvider = prop (SProxy :: SProxy "objects") <<< prop (SProxy :: SProxy "codeActionProvider")
+
+_mCompletionItemProvider :: Lens' State (Maybe CompletionItemProvider)
+_mCompletionItemProvider = prop (SProxy :: SProxy "objects") <<< prop (SProxy :: SProxy "completionItemProvider")
+
+_disposables :: Lens' State (Array IDisposable)
+_disposables = prop (SProxy :: SProxy "disposables")
 
 data Query a
   = SetText String a
@@ -106,6 +117,7 @@ data Query a
 
 data Action
   = Init
+  | Finalize
   | HandleChange String
   | ResizeWorkspace
 
@@ -116,18 +128,18 @@ data Message
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
     , theme :: Maybe Theme
-    , monarchTokensProvider :: Maybe MonarchLanguage
-    , tokensProvider :: Maybe TokensProvider
-    , hoverProvider :: Maybe HoverProvider
-    , completionItemProvider :: Maybe CompletionItemProvider
-    , codeActionProvider :: Maybe CodeActionProvider
-    , documentFormattingEditProvider :: Maybe DocumentFormattingEditProvider
+    , monarchTokensProvider :: m (Maybe MonarchLanguage)
+    , tokensProvider :: m (Maybe TokensProvider)
+    , hoverProvider :: m (Maybe HoverProvider)
+    , completionItemProvider :: m (Maybe CompletionItemProvider)
+    , codeActionProvider :: m (Maybe CodeActionProvider)
+    , documentFormattingEditProvider :: m (Maybe DocumentFormattingEditProvider)
     , refLabel :: RefLabel
     , owner :: String
     , setup :: Editor -> m Unit
     }
 
-monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Component HTML Query Unit Message m
+monacoComponent :: forall m. MonadAff m => Settings m -> H.Component HTML Query Unit Message m
 monacoComponent settings =
   H.mkComponent
     { initialState:
@@ -135,30 +147,31 @@ monacoComponent settings =
           { editor: Nothing
           , deactivateBindings: defaultCancelBindings
           , objects:
-              { codeActionProvider: settings.codeActionProvider
-              , completionItemProvider: settings.completionItemProvider
+              { codeActionProvider: Nothing
+              , completionItemProvider: Nothing
               }
+          , disposables: []
           }
-    , render: render settings
+    , render: render settings.refLabel
     , eval:
         H.mkEval
           { handleAction: handleAction settings
           , handleQuery
           , initialize: Just Init
           , receive: const Nothing
-          , finalize: Nothing
+          , finalize: Just Finalize
           }
     }
 
-render :: forall m p i. Settings m -> State -> HTML p i
-render settings state =
+render :: forall p i. RefLabel -> State -> HTML p i
+render label state =
   div
-    [ ref settings.refLabel
+    [ ref label
     , class_ $ H.ClassName "monaco-editor-container"
     ]
     []
 
-handleAction :: forall slots m. MonadAff m => MonadEffect m => Settings m -> Action -> HalogenM State Action slots Message m Unit
+handleAction :: forall slots m. MonadAff m => Settings m -> Action -> HalogenM State Action slots Message m Unit
 handleAction settings Init = do
   monaco <- liftEffect Monaco.getMonaco
   maybeElement <- H.getHTMLElementRef settings.refLabel
@@ -166,20 +179,43 @@ handleAction settings Init = do
     Just element -> do
       let
         languageId = view Monaco._id settings.languageExtensionPoint
+      -- The monaco component receives in its settings multiple optional providers. The
+      -- settings are created inside a view, but to create the provider we need access to Effect so
+      -- we can call the FFI.
+      -- To solve this in the least disrupting way I modified the existing `Settings m` so that we
+      -- can pass an effectful computation that may return a provider (m (Maybe XProvider)).
+      -- And the following code invokes the FFI function returning a Maybe XProvider.
+      -- TODO: We should re-arrange the `Settings m` and move the logic from the view to the handleAction
+      --       changing the `Settings m` to be just `Settings` and the `setup` logic not to be included in there.
+      mMonarchTokensProvider <- H.lift $ settings.monarchTokensProvider
+      mTokensProvider <- H.lift $ settings.tokensProvider
+      mHoverProvider <- H.lift $ settings.hoverProvider
+      mCodeActionProvider <- H.lift $ settings.codeActionProvider
+      mCompletionItemProvider <- H.lift $ settings.completionItemProvider
+      mDocumentFormattingEditProvider <- H.lift $ settings.documentFormattingEditProvider
       liftEffect do
         when (languageId == "typescript") do
           Monaco.addExtraTypeScriptLibsJS monaco
           Monaco.setStrictNullChecks monaco true
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         for_ settings.theme $ Monaco.defineTheme monaco
-        for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
-        for_ settings.tokensProvider $ Monaco.setTokensProvider monaco languageId
-        for_ settings.hoverProvider $ Monaco.registerHoverProvider monaco languageId
-        for_ settings.completionItemProvider $ Monaco.registerCompletionItemProvider monaco languageId
-        for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
-        for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
+      -- We set the defined providers and receive an array of the cleanup functions
+      disposables :: Array IDisposable <-
+        liftEffect $ catMaybes
+          <$> sequence
+              [ for mMonarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
+              , for mTokensProvider $ Monaco.setTokensProvider monaco languageId
+              , for mHoverProvider $ Monaco.registerHoverProvider monaco languageId
+              , for mCompletionItemProvider $ Monaco.registerCompletionItemProvider monaco languageId
+              , for mCodeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
+              , for mDocumentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
+              ]
       editor <- liftEffect $ Monaco.create monaco element languageId
-      void $ H.modify (_ { editor = Just editor })
+      void $ H.modify
+        $ set _editor (Just editor)
+        <<< set _mCodeActionProvider mCodeActionProvider
+        <<< set _mCompletionItemProvider mCompletionItemProvider
+        <<< set _disposables disposables
       H.lift $ settings.setup editor
       model <- liftEffect $ Monaco.getModel editor
       void $ H.subscribe $ elementResize ContentBox (const ResizeWorkspace) (HTMLElement.toElement element)
@@ -187,6 +223,10 @@ handleAction settings Init = do
       H.raise $ TextChanged (Monaco.getValue model)
       void $ H.subscribe $ effectEventSource (changeContentHandler editor)
     Nothing -> pure unit
+
+handleAction _ Finalize = do
+  disposables <- use _disposables
+  for_ disposables $ liftEffect <<< dispose
 
 handleAction _ (HandleChange contents) = H.raise $ TextChanged contents
 

@@ -23,7 +23,7 @@ import           Flat            hiding (to)
 newtype Size = Size
     { unSize :: Integer
     } deriving stock (Show)
-      deriving newtype (Pretty)
+      deriving newtype (Pretty, Eq, Ord, Num)
       deriving (Semigroup, Monoid) via Sum Integer
 
 -- | Count the number of AST nodes in a kind.

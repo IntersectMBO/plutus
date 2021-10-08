@@ -38,6 +38,8 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
+import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
+                                                        typedValidator)
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
@@ -105,8 +107,8 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
     T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf 150)
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) OK) "should be OK"
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) OK) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) (OK "close")) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) (OK "close")) "should be OK"
     ) $ do
     -- Init a contract
     let alicePk = PK (pubKeyHash $ walletPubKey alice)
@@ -141,8 +143,8 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
 errorHandlingTest :: TestTree
 errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
-    (\case (SomeError (TransitionError _)) -> True
-           _                               -> False
+    (\case SomeError "apply-inputs" (TransitionError _) -> True
+           _                                            -> False
     ) "should be fail with SomeError"
     ) $ do
     -- Init a contract
@@ -236,7 +238,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
                         (Slot 40) Close)
                     ] (Slot 30) Close)
             ] (Slot 20) Close
-        (params, _ :: TxConstraints MarloweInput MarloweData) =
+        (params, _ :: TxConstraints MarloweInput MarloweData, _) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
                         (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
                         contract

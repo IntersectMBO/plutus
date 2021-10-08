@@ -1,6 +1,7 @@
 module Dashboard.Lenses
-  ( _walletDataState
+  ( _contactsState
   , _walletDetails
+  , _walletCompanionStatus
   , _menuOpen
   , _card
   , _cardOpen
@@ -12,26 +13,28 @@ module Dashboard.Lenses
   , _templateState
   ) where
 
-import Prelude
+import Prologue
 import Contract.Types (State) as Contract
-import Dashboard.Types (Card, ContractFilter, State)
+import Dashboard.Types (Card, ContractFilter, State, WalletCompanionStatus)
 import Data.Lens (Lens', Traversal', set, wander)
 import Data.Lens.At (at)
 import Data.Lens.Prism.Maybe (_Just)
 import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Marlowe.PAB (PlutusAppId)
 import Template.Types (State) as Template
-import WalletData.Types (State) as WalletData
-import WalletData.Types (WalletDetails)
+import Contacts.Types (State) as Contacts
+import Contacts.Types (WalletDetails)
 
-_walletDataState :: Lens' State WalletData.State
-_walletDataState = prop (SProxy :: SProxy "walletDataState")
+_contactsState :: Lens' State Contacts.State
+_contactsState = prop (SProxy :: SProxy "contactsState")
 
 _walletDetails :: Lens' State WalletDetails
 _walletDetails = prop (SProxy :: SProxy "walletDetails")
+
+_walletCompanionStatus :: Lens' State WalletCompanionStatus
+_walletCompanionStatus = prop (SProxy :: SProxy "walletCompanionStatus")
 
 _menuOpen :: Lens' State Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")

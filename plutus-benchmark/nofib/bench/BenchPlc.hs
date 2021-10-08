@@ -1,43 +1,28 @@
-{-# LANGUAGE TypeApplications #-}
-
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
+import           Shared                         (mkBenchMarks)
 
-import           Common
-
-import           Control.Exception
-import           Control.Monad.Except
 import           Criterion.Main
 
-import qualified Plutus.Benchmark.Clausify                as Clausify
-import qualified Plutus.Benchmark.Knights                 as Knights
-import qualified Plutus.Benchmark.Prime                   as Prime
-import qualified Plutus.Benchmark.Queens                  as Queens
+import           PlutusBenchmark.Common         (benchTermCek, getConfig)
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-
-import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek
-
-
-benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
-benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek noEmitter PLC.defaultCekParameters) t'
+import qualified PlutusBenchmark.NoFib.Clausify as Clausify
+import qualified PlutusBenchmark.NoFib.Knights  as Knights
+import qualified PlutusBenchmark.NoFib.Prime    as Prime
+import qualified PlutusBenchmark.NoFib.Queens   as Queens
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
-benchClausify f = benchCek $ Clausify.mkClausifyTerm f
+benchClausify f = benchTermCek $ Clausify.mkClausifyTerm f
 
 benchPrime :: Prime.PrimeID -> Benchmarkable
-benchPrime pid = benchCek $ Prime.mkPrimalityBenchTerm pid
+benchPrime pid = benchTermCek $ Prime.mkPrimalityBenchTerm pid
 
 benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
-benchQueens sz alg = benchCek $ Queens.mkQueensTerm sz alg
+benchQueens sz alg = benchTermCek $ Queens.mkQueensTerm sz alg
 
 benchKnights :: Integer -> Integer -> Benchmarkable
-benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
+benchKnights depth sz = benchTermCek $ Knights.mkKnightsTerm depth sz
 
 {- This runs all of the benchmarks, which will take a long time.
    To run an individual benmark, try, for example,
@@ -67,5 +52,5 @@ benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
-  defaultMainWith config $ Common.mkBenchMarks runners
+  config <- getConfig 60.0  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
+  defaultMainWith config $ mkBenchMarks runners

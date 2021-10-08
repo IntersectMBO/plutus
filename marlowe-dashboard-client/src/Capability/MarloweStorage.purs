@@ -13,7 +13,7 @@ module Capability.MarloweStorage
   , insertWalletRoleContracts
   ) where
 
-import Prelude
+import Prologue
 import AppM (AppM)
 import Control.Monad.Except (lift, runExcept)
 import Data.Array (find)
@@ -22,15 +22,14 @@ import Data.Foldable (for_)
 import Data.Lens (set, view)
 import Data.Map (Map, insert, lookup)
 import Data.Maybe (fromMaybe)
-import Data.Tuple (Tuple)
 import Effect.Class (liftEffect)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (HalogenM)
 import LocalStorage (Key(..), getItem, removeItem, setItem)
 import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (Assets, MarloweData, MarloweParams, TransactionInput)
-import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo, _walletNickname)
-import WalletData.Types (PubKeyHash, WalletDetails, WalletLibrary)
+import Contacts.Lenses (_assets, _pubKeyHash, _walletInfo, _walletNickname)
+import Contacts.Types (PubKeyHash, WalletDetails, WalletLibrary)
 
 walletLibraryLocalStorageKey :: Key
 walletLibraryLocalStorageKey = Key "walletLibrary"

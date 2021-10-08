@@ -151,6 +151,10 @@
   content: "south";
 }
 
+.with-icon-sync::after {
+  content: "sync";
+}
+
 .with-icon-task-alt::after {
   content: "task_alt";
 }

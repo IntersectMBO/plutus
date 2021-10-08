@@ -11,13 +11,13 @@ module Marlowe.Execution.State
   , getAllPayments
   ) where
 
-import Prelude
+import Prologue
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Lens (view, (^.))
 import Data.List (List(..), concat, fromFoldable)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
+import Data.Maybe (fromMaybe, fromMaybe')
 import Data.Tuple.Nested ((/\))
 import Marlowe.Execution.Lenses (_resultingPayments)
 import Marlowe.Execution.Types (NamedAction(..), PastAction(..), PendingTimeouts, State, TimeoutInfo)
@@ -33,9 +33,8 @@ mkInitialState currentSlot contract =
   , mNextTimeout: nextTimeout contract
   }
 
--- FIXME: Change the order of the arguments to::  TransactionInput -> State  -> State
-nextState :: State -> TransactionInput -> State
-nextState { semanticState, contract, history } txInput =
+nextState :: TransactionInput -> State -> State
+nextState txInput { semanticState, contract, history } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
@@ -207,10 +206,9 @@ mkInterval :: Slot -> Contract -> SlotInterval
 mkInterval currentSlot contract = case nextTimeout contract of
   Nothing -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 10))
   Just minTime
-    -- FIXME: I think this will fail in the PAB... we may need to return a Maybe SlotInterval and
-    -- show an error. But also, if you delay confirming the action it could also cause the same type
-    -- of failure, so maybe there is no need. Check after initial PAB integration.
-    | minTime < currentSlot -> SlotInterval currentSlot currentSlot
+    -- FIXME: We should change this for a Maybe SlotInterval and return Nothing in this case.
+    --        86400 is one day in seconds
+    | minTime < currentSlot -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 86400))
     | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
 
 getAllPayments :: State -> List Payment
