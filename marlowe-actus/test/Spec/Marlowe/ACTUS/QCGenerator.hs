@@ -21,16 +21,16 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
 
 largeamount :: Gen Double
-largeamount = choose (-1.0, 10000000.0)
+largeamount = choose (0.0, 10000000.0)
 
 smallamount :: Gen Double
-smallamount = choose (-1.0, 1000.0)
+smallamount = choose (0.0, 1000.0)
 
 percentage :: Gen Double
-percentage = choose (-1.0, 100.0)
+percentage = choose (0.0, 100.0)
 
 scalingFactor :: Gen Double
-scalingFactor = choose (-1.0, 100.0)
+scalingFactor = choose (0.0, 100.0)
 
 mightbe :: Gen a -> Gen (Maybe a)
 mightbe original = oneof [ Just <$> original, return Nothing ]
