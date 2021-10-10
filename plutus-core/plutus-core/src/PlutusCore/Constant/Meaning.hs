@@ -21,23 +21,18 @@ module PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude
 
-import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Function
 import           PlutusCore.Constant.Typed
 import           PlutusCore.Core
-import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 
 import           Control.Lens                            (ix, (^?))
 import           Control.Monad.Except
 import           Data.Array
-import qualified Data.ByteString                         as BS
 import qualified Data.Kind                               as GHC
 import           Data.Proxy
 import           Data.Some.GADT
-import           Data.Text                               (Text)
 import           Data.Type.Bool
 import           Data.Type.Equality
 import           GHC.TypeLits
@@ -67,9 +62,8 @@ data BuiltinMeaning term cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
--- TODO: we used to have arities and it was justified to precache them before executing an
--- evaluator, but now we need to reconsider that. Maybe instantiating 'BuiltinMeaning' on the fly
--- is in fact faster.
+-- We tried instantiating 'BuiltinMeaning' on the fly and that was sloer than precaching
+-- 'BuiltinRuntime's.
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
 -- builtin with no arguments) by instantiating (via 'toBuiltinRuntime') a 'BuiltinMeaning'.
@@ -195,52 +189,6 @@ instance (KnownType term arg, KnownMonotype term args res a) =>
             KnownMonotype term (arg ': args) res (arg -> a) where
     knownMonotype = Proxy `TypeSchemeArrow` knownMonotype
 
--- | Delete all @x@s from a list.
-type family Delete x xs :: [a] where
-    Delete _ '[]       = '[]
-    Delete x (x ': xs) = Delete x xs
-    Delete x (y ': xs) = y ': Delete x xs
-
--- | Delete all elements appearing in the first list from the second one and concatenate the lists.
-type family Merge xs ys :: [a] where
-    Merge '[]       ys = ys
-    Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
-
--- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
--- in an @x@.
-type family ToBinds (x :: a) :: [Some TyNameRep]
-
-type instance ToBinds '[]       = '[]
-type instance ToBinds (x ': xs) = Merge (ToBinds x) (ToBinds xs)
-
-type instance ToBinds Integer       = '[]
-type instance ToBinds BS.ByteString = '[]
-type instance ToBinds Text          = '[]
-type instance ToBinds ()            = '[]
-type instance ToBinds Bool          = '[]
-type instance ToBinds Int           = '[]
-type instance ToBinds Data          = '[]
-type instance ToBinds []            = '[]
-type instance ToBinds (,)           = '[]
-type instance ToBinds [a]           = '[]  -- One can't directly put a PLC type variable into lists
-type instance ToBinds (a, b)        = '[]  -- or tuples ('SomeConstantOf' has to be used for that),
-                                           -- hence we say that polymorphic built-in types can't
-                                           -- directly contain any PLC type variables in them.
-
-type instance ToBinds (EvaluationResult a)      = ToBinds a
-type instance ToBinds (Emitter a)               = ToBinds a
-type instance ToBinds (Opaque _ rep)            = ToBinds rep
-type instance ToBinds (SomeConstant _ rep)      = ToBinds rep
-type instance ToBinds (SomeConstantOf _ _ reps) = ToBinds reps
-
-type instance ToBinds (TyVarRep var) = '[ 'Some var ]
-type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
-type instance ToBinds (TyForallRep var a) = Delete ('Some var) (ToBinds a)
-
-type instance ToBinds (TypeScheme term '[]           res) = ToBinds res
-type instance ToBinds (TypeScheme term (arg ': args) res) =
-    Merge (ToBinds arg) (ToBinds (TypeScheme term args res))
-
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
     knownPolytype :: Proxy binds -> TypeScheme term args res
@@ -352,7 +300,7 @@ instance {-# OVERLAPPING #-}
 -- 2. an uninstantiated costing function
 makeBuiltinMeaning
     :: forall a term cost binds args res j.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
+       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
        , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost

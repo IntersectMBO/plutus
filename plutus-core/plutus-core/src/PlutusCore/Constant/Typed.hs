@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase               #-}
 -- | This module assigns types to built-ins.
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
@@ -8,6 +7,7 @@
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
@@ -35,6 +35,8 @@ module PlutusCore.Constant.Typed
     , HasConstant
     , HasConstantIn
     , KnownTypeAst (..)
+    , Merge
+    , ListToBinds
     , KnownType (..)
     , readKnownSelf
     , makeKnownOrFail
@@ -61,6 +63,7 @@ import           Data.Functor.Const
 import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.SOP.Constraint
+import qualified Data.Some.GADT                          as GADT
 import           Data.String
 import qualified Data.Text                               as Text
 import           GHC.TypeLits
@@ -444,6 +447,14 @@ type HasConstant term = (AsConstant term, FromConstant term)
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 class KnownTypeAst uni (a :: k) where
+    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantOf' has to be
+    -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
+    -- type variables in them just like monomorphic ones.
+    -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+    -- in an @a@.
+    type ToBinds (a :: k) :: [GADT.Some TyNameRep]
+    type ToBinds _ = '[]
+
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
     default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
@@ -455,12 +466,30 @@ type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
-{- Note [KnownType's defaults]
-We use @default@ for providing instances for built-in types instead of @DerivingVia@, because the
-latter breaks on @m a@
--}
+-- | Delete all @x@s from a list.
+type family Delete x xs :: [a] where
+    Delete _ '[]       = '[]
+    Delete x (x ': xs) = Delete x xs
+    Delete x (y ': xs) = y ': Delete x xs
 
--- See Note [KnownType's defaults].
+-- | Delete all elements appearing in the first list from the second one and concatenate the lists.
+type family Merge xs ys :: [a] where
+    Merge '[]       ys = ys
+    Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
+
+-- There's no sensible way to provide a 'KnownTypeAst' instance for a type-level list, so we
+-- create a separate type family. We could have a single type family on the top level for both
+-- 'ToBinds' and 'ListToBinds', but then we'd lose a very convenient default of each type from the
+-- universe returning an empty list from 'ToBinds' and the user would need to do provide a
+-- @type instance@ themselves (which is no big deal, but it's nicer not to ask the user to do that).
+-- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+-- in a list.
+type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
+type instance ListToBinds '[]       = '[]
+type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
+
+-- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
+-- the latter breaks on @m a@
 -- | Haskell types known to exist on the PLC side.
 -- Both the methods take a @Maybe cause@ argument to report the cause of a potential failure.
 -- @cause@ is different to @term@ to support evaluators that distinguish between terms and values
@@ -535,6 +564,8 @@ makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err)
 makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
+    type ToBinds (EvaluationResult a) = ToBinds a
+
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
@@ -552,6 +583,8 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
         throwingWithCause _UnliftingError "Error catching is not supported" mayCause
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
+    type ToBinds (Emitter a) = ToBinds a
+
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownType term a => KnownType term (Emitter a) where
@@ -569,6 +602,8 @@ newtype SomeConstant uni rep = SomeConstant
     }
 
 instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant uni' rep) where
+    type ToBinds (SomeConstant _ rep) = ToBinds rep
+
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
@@ -620,6 +655,8 @@ runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
 
 instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
             KnownTypeAst uni (SomeConstantOf uni' f reps) where
+    type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
+
     toTypeAst _ =
         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
         mkIterTyApp () (mkTyBuiltin @_ @f ()) $
@@ -674,15 +711,23 @@ toTyNameAst _ =
         (Text.pack $ symbolVal @text Proxy)
         (Unique . fromIntegral $ natVal @uniq Proxy)
 
-instance (KnownSymbol text, KnownNat uniq) =>
-            KnownTypeAst uni (TyVarRep ('TyNameRep text uniq)) where
+instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst uni (TyVarRep var) where
+    type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
+
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
+    type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
+
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
 
-instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
-            KnownTypeAst uni (TyForallRep ('TyNameRep @kind text uniq) a) where
+instance
+        ( var ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
+        , KnownKind kind, KnownTypeAst uni a
+        ) => KnownTypeAst uni (TyForallRep var a) where
+    type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
+
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
@@ -690,6 +735,8 @@ instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =
             (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
+    type ToBinds (Opaque _ rep) = ToBinds rep
+
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
