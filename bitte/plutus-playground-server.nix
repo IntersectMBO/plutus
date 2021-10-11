@@ -1,7 +1,7 @@
-{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, cacert }:
+{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, cacert, z3 }:
 
 let
-  deps = [ pkg ];
+  deps = [ pkg z3 ];
   entrypoint = writeShellScriptBin "entrypoint" ''
     export PATH=${lib.makeBinPath deps}
     export SYSTEM_CERTIFICATE_PATH=${cacert}/etc/ssl/certs/ca-bundle.crt
