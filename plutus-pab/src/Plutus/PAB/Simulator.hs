@@ -128,6 +128,7 @@ import           Plutus.PAB.Types                               (PABError (Contr
 import           Plutus.PAB.Webserver.Types                     (ContractActivationArgs (..))
 import           Plutus.Trace.Emulator.System                   (appendNewTipBlock)
 import           Plutus.V1.Ledger.Slot                          (Slot)
+import           Plutus.V1.Ledger.Tx                            (TxOutRef)
 import qualified Wallet.API                                     as WAPI
 import           Wallet.Effects                                 (NodeClientEffect (..), WalletEffect)
 import qualified Wallet.Emulator                                as Emulator
