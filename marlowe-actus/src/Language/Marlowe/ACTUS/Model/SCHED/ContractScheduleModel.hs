@@ -370,3 +370,43 @@ _SCHED_DV_STK
           in generateRecurrentScheduleWithCorrections (cycleAnchorDateOfDividend <+> cycleOfDividend) cycleOfDividend tMax scheduleConfig
 _SCHED_DV_STK _ = []
 
+-- Options (OPTNS)
+
+_SCHED_XD_OPTNS :: ContractTerms -> [ShiftedDay]
+_SCHED_XD_OPTNS
+  ContractTermsPoly
+    { ct_XD = Just exerciseDate,
+      scfg = scheduleConfig
+    } = [applyBDCWithCfg scheduleConfig exerciseDate]
+_SCHED_XD_OPTNS
+  ContractTermsPoly
+    { ct_MD = Just maturityDate,
+      scfg = scheduleConfig
+    } = [applyBDCWithCfg scheduleConfig maturityDate]
+_SCHED_XD_OPTNS _ = []
+
+_SCHED_STD_OPTNS :: ContractTerms -> [ShiftedDay]
+_SCHED_STD_OPTNS
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_MD = Just maturityDate,
+      ct_STP = Just settlementPeriod
+    } = [applyBDCWithCfg scheduleConfig (maturityDate <+> settlementPeriod)]
+_SCHED_STD_OPTNS
+  ContractTermsPoly
+    { scfg = scheduleConfig
+    , ct_MD = Just maturityDate
+    } = [applyBDCWithCfg scheduleConfig maturityDate]
+_SCHED_STD_OPTNS
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_XD = Just exerciseDate,
+      ct_STP = Just settlementPeriod
+    } = [applyBDCWithCfg scheduleConfig (exerciseDate <+> settlementPeriod)]
+_SCHED_STD_OPTNS
+  ContractTermsPoly
+    { scfg = scheduleConfig,
+      ct_XD = Just exerciseDate
+    } = [applyBDCWithCfg scheduleConfig exerciseDate]
+_SCHED_STD_OPTNS _ = []
+

@@ -35,7 +35,8 @@ initializeState = reader initializeState'
     initializeState' :: CtxSTF Double LocalTime -> ContractState
     initializeState' CtxSTF {..} =
       ContractStatePoly
-        { prnxt = nextPrincipalRedemptionPayment contractTerms,
+        { sd = t0,
+          prnxt = nextPrincipalRedemptionPayment contractTerms,
           ipcb = interestPaymentCalculationBase contractTerms,
           tmd = contractMaturity maturity,
           nt = notionalPrincipal contractTerms,
@@ -45,7 +46,8 @@ initializeState = reader initializeState'
           nsc = notionalScaling contractTerms,
           isc = interestScaling contractTerms,
           prf = contractPerformance contractTerms,
-          sd = t0
+          xd = ct_XD contractTerms,
+          xa = ct_XA contractTerms
         }
       where
         t0 = ct_SD contractTerms

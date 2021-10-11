@@ -83,6 +83,7 @@ stateTransition ev rf t st@ContractStatePoly{..} = reader stateTransition'
           stf SC ContractTermsPoly {contractType = LAM, ct_DCC = Just dcc, ct_MD = md} = _STF_SC_LAM contractTerms st rf t (_y dcc sd t md) (_y dcc tfp_minus t md) (_y dcc tfp_minus tfp_plus md)
           stf SC ContractTermsPoly {contractType = NAM, ct_DCC = Just dcc, ct_MD = md} = _STF_SC_LAM contractTerms st rf t (_y dcc sd t md) (_y dcc tfp_minus t md) (_y dcc tfp_minus tfp_plus md)
           stf SC ContractTermsPoly {contractType = ANN, ct_DCC = Just dcc, ct_MD = md} = _STF_SC_LAM contractTerms st rf t (_y dcc sd t md) (_y dcc tfp_minus t md) (_y dcc tfp_minus tfp_plus md)
+          stf XD ContractTermsPoly {contractType = OPTNS} = _STF_XD_OPTNS contractTerms st rf t
           stf CE ContractTermsPoly {ct_DCC = Just dcc, ct_MD = md} = _STF_CE_PAM st t (_y dcc sd t md)
           stf _ _ = st
 
