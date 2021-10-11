@@ -48,8 +48,14 @@ monoidalBudgeting
     :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
 monoidalBudgeting toCost = ExBudgetMode $ do
     costRef <- newSTRef mempty
-    let spend key budgetToSpend = CekM $ modifySTRef' costRef (<> toCost key budgetToSpend)
-    pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
+    budgetRef <- newSTRef mempty
+    let spend key budgetToSpend = CekM $ do
+            modifySTRef' costRef (<> toCost key budgetToSpend)
+            modifySTRef' budgetRef (<> budgetToSpend)
+        spender = CekBudgetSpender spend
+        cumulative = readSTRef budgetRef
+        final = readSTRef costRef
+    pure $ ExBudgetInfo spender final cumulative
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
@@ -106,7 +112,7 @@ instance Pretty RestrictingSt where
 
 -- | For execution, to avoid overruns.
 restricting :: forall uni fun . (PrettyUni uni fun) => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
-restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
+restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMode $ do
     -- We keep the counters in a PrimArray. This is better than an STRef since it stores its contents unboxed.
     --
     -- If we don't specify the element type then GHC has difficulty inferring it, but it's
@@ -115,9 +121,9 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
     let
         cpuIx = 0
         memIx = 1
-        readCpu = coerce <$> readPrimArray ref cpuIx
+        readCpu = coerce @_ @ExCPU <$> readPrimArray ref cpuIx
         writeCpu cpu = writePrimArray ref cpuIx $ coerce cpu
-        readMem = coerce <$> readPrimArray ref memIx
+        readMem = coerce @_ @ExMemory <$> readPrimArray ref memIx
         writeMem mem = writePrimArray ref memIx $ coerce mem
 
     writeCpu cpuInit
@@ -133,13 +139,17 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
             CekM $ writeCpu cpuLeft'
             CekM $ writeMem memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $ do
-                let budgetLeft' = ExBudget cpuLeft' memLeft'
+                let budgetLeft = ExBudget cpuLeft' memLeft'
                 throwingWithCause _EvaluationError
-                    (UserEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft')
+                    (UserEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
                     Nothing
-    pure . ExBudgetInfo (CekBudgetSpender spend) $ do
-        finalExBudget <- ExBudget <$> readCpu <*> readMem
-        pure . RestrictingSt $ ExRestrictingBudget finalExBudget
+        spender = CekBudgetSpender spend
+        remaining = ExBudget <$> readCpu <*> readMem
+        cumulative = do
+            r <- remaining
+            pure $ initB `minusExBudget` r
+        final = RestrictingSt . ExRestrictingBudget <$> remaining
+    pure $ ExBudgetInfo spender final cumulative
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: (PrettyUni uni fun) => ExBudgetMode RestrictingSt uni fun
