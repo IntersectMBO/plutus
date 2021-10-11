@@ -544,10 +544,29 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "CriterionExtensions" "Nops" ];
+          modules = [
+            "Common"
+            "CriterionExtensions"
+            "Generators"
+            "Benchmarks/Bool"
+            "Benchmarks/ByteStrings"
+            "Benchmarks/CryptoAndHashes"
+            "Benchmarks/Data"
+            "Benchmarks/Integers"
+            "Benchmarks/Lists"
+            "Benchmarks/Misc"
+            "Benchmarks/Nops"
+            "Benchmarks/Pairs"
+            "Benchmarks/Strings"
+            "Benchmarks/Tracing"
+            "Benchmarks/Unit"
+            ];
           hsSourceDirs = [ "cost-model/budgeting-bench" ];
           };
         "update-cost-model" = {
