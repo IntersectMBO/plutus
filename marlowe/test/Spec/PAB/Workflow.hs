@@ -118,7 +118,7 @@ marloweCompanionFollowerContractExample = do
       -- This depends on the PabClient `instanceClient` route.
       callEndpointOnInstance :: Aeson.ToJSON a => ContractInstanceId -> String -> a -> ClientM ()
       callEndpointOnInstance cid ep args =
-        let call = callInstanceEndpoint . instanceClient . contractInstanceToString $ cid
+        let call = callInstanceEndpoint . instanceClient $ cid
          in call ep $ Aeson.toJSON args
 
       run :: ClientEnv -> ClientM a -> IO a

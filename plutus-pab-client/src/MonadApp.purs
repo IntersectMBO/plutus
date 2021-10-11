@@ -83,7 +83,7 @@ instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) 
   getContractInstanceStatus contractInstanceId =
     runAjax
       $ getApiContractInstanceByContractinstanceidStatus
-          (view _contractInstanceIdString contractInstanceId)
+          contractInstanceId
   getContractInstances s = runAjax (getApiContractInstances $ Just s)
   getContractDefinitions = runAjax getApiContractDefinitions
   invokeEndpoint payload contractInstanceId endpointDescription =
