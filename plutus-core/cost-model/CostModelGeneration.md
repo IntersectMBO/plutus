@@ -64,7 +64,7 @@ Generating a cost model for CPU time involves a number of steps.
    built-in function (as given by the function's cost model applied to the
    argument sizes).  This can be done automatically with `uplc evaluate --counting`
    (see [plutus-core/executables](../../plutus-core/executables)).
-   (see [plutus-core/execuables](../../plutus-core/exectables)).
+
 
 ### Note
 
