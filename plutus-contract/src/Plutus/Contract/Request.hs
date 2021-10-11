@@ -666,6 +666,7 @@ endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription
 endpointDescription = EndpointDescription . symbolVal
 
 -- | Get a public key belonging to the wallet that runs this contract.
+--
 --   * Any funds paid to this public key will be treated as the wallet's own
 --     funds
 --   * The wallet is able to sign transactions with the private key of this
