@@ -1124,7 +1124,11 @@ postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{�
 
 postulate cek2ckClos-Λlem : ∀{K B}{L : ∅ ,⋆ K ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ Π B} → (p : Λ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ Λ L' × L ≡ dischargeBody⋆ L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : Λ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-Λ L) ≡ cek2ckVal (lookup x ρ)
 
+postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}{N : Γ ⊢ μ A B} → (p : wrap A B L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ wrap A B L' × L ≡ cek2ckClos L' ρ) ⊎ ∃ λ x → N ≡ ` x × wrap A B L ≡ discharge (lookup x ρ)
 
+cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
+cek2ckStack-εlem ε       p = refl
+cek2ckStack-εlem (s , f) ()
 
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
@@ -1134,6 +1138,8 @@ thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
   {W : Red.Value M}{W'}{s'}
   → (p : M ≡ discharge W')
   → substEq Red.Value p W ≡ cek2ckVal W'
+  → s ≡ cek2ckStack s'
+
   → (s CK.◅ W) CK.-→s CK.□ V
   → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
 
@@ -1150,9 +1156,9 @@ thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   → ∃ λ V' → ((s' ; ρ ▻ M') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
 thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} p q (CK.step* refl r)
   with cek2ckClos-ƛlem {ρ = ρ}{N = N} p
-thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl r
+thm65b {M = ƛ M} {s = s} {M' = N} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl q r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
-thm65b {Γ = _} {ƛ M} {s = s} {M' = .(` x)} {ρ} {s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') r
+thm65b {Γ = _} {ƛ M} {s = s} {M' = .(` x)} {ρ} {s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') q r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
 thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
   with cek2ckClos-·lem {ρ = ρ}{N = N} p
@@ -1161,29 +1167,39 @@ thm65b {M = L · M} {s = s} {M' = N}{ρ}{s'} p q (CK.step* refl r)
 ... | x ,, y ,, z  ,, z' = x ,, step* refl y ,, z ,, z'
 thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r)
   with cek2ckClos-Λlem {ρ = ρ}{N = N} p
-thm65b {M' = .(Λ L')} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl r
+thm65b {M' = .(Λ L')} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,, z) with thm65bV refl refl q r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
-thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') r
+thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') q r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
 thm65b {M = M ·⋆ A} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-·⋆lem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, y'
   with thm65b y' (cong (CK._, (Red.-·⋆ A)) q) r
 ... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
-thm65b {M = wrap A B M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
+  with cek2ckClos-wraplem {ρ = ρ}{N = N} p
+thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p refl r | inj₂ (x ,, refl ,, y') with thm65b refl refl r
+... | V ,, r' ,, z ,, z' = V ,, step* refl {!!} ,, z ,, z'
+thm65b {Γ = _} {wrap _ _ .(cek2ckClos V ρ)} {s = s} {M' = .(wrap _ _ V)} {ρ} {s' = s'} refl refl (CK.step* refl r) | inj₁ (V ,, refl ,, y) with thm65b refl refl r
+... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
+
 thm65b {M = unwrap M} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = ibuiltin b} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = error _} {s = s} {s' = s'} p q r = {!!}
 
-thm65bV {M = M}{s = s}{s' = s'} p q (CK.step* x r) = {!q!}
+thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
+  rewrite cek2ckStack-εlem s' r
+  with CK.lem□ _ _ x
+... | refl ,, refl = _ ,, step* refl base ,, refl ,, refl
+thm65bV {s = s CK., f} {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
 
 -- this a catch all for making recursive calls
 -- this version of thm64 splits the proof into separate parts
 -- the textbook version has only when representation for states
 -- and therefore thm64 is done all in one go
 thm65state {s = x CK.▻ x₁} p = thm65b (clos-lem x₁) {!!} p
-thm65state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) p
+thm65state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) {!!} p
 thm65state {s = CK.□ x} p with CK.lem□ _ _ p
 ... | refl ,, refl = _ ,, base ,, discharge-lem' x ,, sym (inv-lem x (discharge-lem' x))
 thm65state {s = CK.◆ A} p with CK.lem◆' _ p
