@@ -5,14 +5,13 @@ module API.Request
   , doGetRequest
   ) where
 
-import Prelude
+import Prologue
 import Affjax (Request, Response, defaultRequest)
 import Affjax.RequestBody (string)
 import Control.Monad.Error.Class (class MonadError)
 import Data.HTTP.Method (fromString)
 import Data.Lens (Lens', view)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)

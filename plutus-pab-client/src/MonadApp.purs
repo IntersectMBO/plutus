@@ -36,7 +36,7 @@ class
   Monad m <= MonadApp m where
   getFullReport :: m (WebData (FullReport ExampleContracts))
   getContractInstanceStatus :: ContractInstanceId -> m (WebData (ContractInstanceClientState ExampleContracts))
-  getContractInstances :: m (WebData (Array (ContractInstanceClientState ExampleContracts)))
+  getContractInstances :: Maybe String -> m (WebData (Array (ContractInstanceClientState ExampleContracts)))
   getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ExampleContracts)))
   invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData Unit)
   activateContract :: ContractActivationArgs ExampleContracts -> m (WebData ContractInstanceId)
@@ -83,8 +83,8 @@ instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) 
   getContractInstanceStatus contractInstanceId =
     runAjax
       $ getApiContractInstanceByContractinstanceidStatus
-          (view _contractInstanceIdString contractInstanceId)
-  getContractInstances = runAjax getApiContractInstances
+          contractInstanceId
+  getContractInstances s = runAjax (getApiContractInstances $ Just s)
   getContractDefinitions = runAjax getApiContractDefinitions
   invokeEndpoint payload contractInstanceId endpointDescription =
     runAjax

@@ -28,23 +28,18 @@ import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error, throwError)
 import           Data.Aeson                  (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Bitraversable          (bitraverse)
-import           Data.ByteArray.Encoding     (Base (Base16), convertToBase)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
-import           Data.Maybe                  (mapMaybe)
 import           Data.Proxy                  (Proxy (..))
 import qualified Data.Set                    as Set
-import           Data.Text                   (Text)
-import qualified Data.Text.Encoding          as Text
 import           Data.Typeable               (Typeable)
 import           Data.Void                   (Void)
 import           GHC.Generics                (Generic)
 import qualified Ledger                      as Plutus
 import qualified Ledger.Ada                  as Ada
-import           Ledger.Bytes                (LedgerBytes (..))
 import           Ledger.Constraints          (mustPayToPubKey)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
-import           Ledger.Crypto               (PubKey (..), pubKeyHash)
+import           Ledger.Crypto               (pubKeyHash)
 import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
@@ -85,8 +80,7 @@ be submitted to the network, the contract backend needs to
 
 * Sign it.
   The signing process needs to provide signatures for all public key
-  inputs in the balanced transaction, and for all public keys in the
-  'unBalancedTxRequiredSignatories' field.
+  inputs in the balanced transaction.
 
 -}
 
@@ -113,9 +107,8 @@ getUnspentOutput = do
 -- | Partial transaction that can be balanced by the wallet backend.
 data ExportTx =
         ExportTx
-            { partialTx   :: C.Tx C.AlonzoEra -- ^ The transaction itself
-            , lookups     :: [ExportTxInput] -- ^ The tx outputs for all inputs spent by the partial tx
-            , signatories :: [Text] -- ^ Key(s) that we expect to be used for balancing & signing. (Advisory) See note [Keys in ExportT]
+            { partialTx :: C.Tx C.AlonzoEra -- ^ The transaction itself
+            , lookups   :: [ExportTxInput] -- ^ The tx outputs for all inputs spent by the partial tx
             }
     deriving stock (Generic, Typeable)
 
@@ -124,11 +117,10 @@ data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.AlonzoEra}
     deriving anyclass (ToJSON)
 
 instance ToJSON ExportTx where
-    toJSON ExportTx{partialTx, lookups, signatories} =
+    toJSON ExportTx{partialTx, lookups} =
         object
             [ "transaction" .= toJSON (C.serialiseToTextEnvelope Nothing partialTx)
             , "inputs"      .= toJSON lookups
-            , "signatories" .= toJSON signatories
             ]
 
 instance FromJSON ExportTx where
@@ -136,33 +128,16 @@ instance FromJSON ExportTx where
         ExportTx
             <$> ((v .: "transaction") >>= either (fail . show) pure . C.deserialiseFromTextEnvelope (C.proxyToAsType Proxy))
             <*> pure mempty -- FIXME: How to deserialise Utxo / [(TxIn, TxOut)] ) see https://github.com/input-output-hk/cardano-node/issues/3051
-            <*> v .: "signatories"
     parseJSON _ = fail "Expexted Object"
 
 export :: C.ProtocolParameters -> C.NetworkId -> UnbalancedTx -> Either CardanoAPI.ToCardanoError ExportTx
-export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex, unBalancedTxRequiredSignatories} =
+export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} =
     ExportTx
         <$> mkPartialTx params networkId unBalancedTxTx
         <*> mkLookups networkId unBalancedTxUtxoIndex
-        <*> mkSignatories unBalancedTxRequiredSignatories
 
 mkPartialTx :: C.ProtocolParameters -> C.NetworkId -> Plutus.Tx -> Either CardanoAPI.ToCardanoError (C.Tx C.AlonzoEra)
 mkPartialTx params networkId = fmap (C.makeSignedTransaction []) . CardanoAPI.toCardanoTxBody (Just params) networkId
 
 mkLookups :: C.NetworkId -> Map Plutus.TxOutRef Plutus.TxOut -> Either CardanoAPI.ToCardanoError [ExportTxInput]
 mkLookups networkId = fmap (fmap $ uncurry ExportTxInput) . traverse (bitraverse CardanoAPI.toCardanoTxIn (CardanoAPI.toCardanoTxOut networkId)) . Map.toList
-
-mkSignatories :: Map Plutus.PubKeyHash (Maybe Plutus.PubKey) -> Either CardanoAPI.ToCardanoError [Text]
-mkSignatories =
-    -- see note [Keys in ExportTx]
-    Right . fmap (\(PubKey (LedgerBytes k)) -> Text.decodeUtf8 $ convertToBase Base16 (k <> k)) . mapMaybe snd . Map.toList
-
-{- Note [Keys in ExportTx]
-
-The wallet backend (receiver of 'ExportTx' values) expectes the public keys in the
-'signatories' field to be 'Cardano.Crypto.Wallet.XPub' keys - extended public keys
-of 64 bytes. In the emulator we only deal with ED25519 keys of 32 bytes. Until that
-is changed (https://jira.iohk.io/browse/SCP-2644) we simply append each of our keys
-to itself in order to get a key of the correct length.
-
--}

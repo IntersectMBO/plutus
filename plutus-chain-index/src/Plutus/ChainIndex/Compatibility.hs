@@ -43,8 +43,7 @@ fromCardanoBlockHeader (BlockHeader slotNo hash blockNo) =
         }
 
 fromCardanoBlockNo :: BlockNo -> BlockNumber
-fromCardanoBlockNo (BlockNo blockNo) =
-    fromIntegral $ toInteger blockNo
+fromCardanoBlockNo (BlockNo blockNo) = BlockNumber blockNo
 
 fromCardanoBlock
     :: BlockInMode CardanoMode

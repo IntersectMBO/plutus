@@ -8,176 +8,203 @@ Note: initial states rely also on some schedules (and vice versa)
 -}
 
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-  ( initialize )
+  ( initializeState
+  )
 where
 
-import           Data.Maybe                                             (isJust, isNothing, maybeToList)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Control.Monad.Reader                                   (Reader, reader)
+import           Data.Maybe                                             (fromMaybe)
+import           Data.Time.LocalTime                                    (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..),
-                                                                         Cycle (..), FEB (..), IPCB (..), SCEF (..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (..))
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (maturity, schedule)
+                                                                         Cycle (..), FEB (..), IPCB (..), PRF,
+                                                                         SCEF (..))
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition       (CtxSTF (..))
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity       (annuity)
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
-                                                                         sup)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf',
+                                                                         sup')
 import           Language.Marlowe.ACTUS.Ops                             (RoleSignOps (_r), YearFractionOps (_y))
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
--- |init initializes the state variables at t0
-initialize :: ContractTerms -> Maybe ContractState
-initialize ct@ContractTermsPoly {..} =
-  let mat = maturity ct
-   in do
-        tmd <- mat
-
-        nt <-
-          let nt
-                | ct_IED > Just t0 = Just 0.0
-                | otherwise = (\x -> _r ct_CNTRL * x) <$> ct_NT
-           in nt
-
-        ipnr <-
-          let ipnr
-                | ct_IED > Just t0 = Just 0.0
-                | otherwise = ct_IPNR
-           in ipnr
-
-        ipac <-
-          let ipac
-                | isNothing ct_IPNR = Just 0.0
-                | isJust ct_IPAC = ct_IPAC
-                | otherwise = (\d -> _y d tminus t0 ct_MD * nt * ipnr) <$> ct_DCC
-           in ipac
-
-        feac <- feeAccrued ct { ct_MD = mat }
-
-        nsc <-
-          let nsc
-                | maybe False scef_xNx ct_SCEF = ct_SCNT
-                | otherwise = Just 1.0
-           in nsc
-
-        isc <-
-          let isc
-                | maybe False scef_Ixx ct_SCEF = ct_SCIP
-                | otherwise = Just 1.0
-           in isc
-
-        prf <- ct_PRF
-
-        let sd = ct_SD
-
-        prnxt <- nextPrincipalRedemptionPayment ct { ct_MD = mat }
-        ipcb <- interestPaymentCalculationBase ct { ct_MD = mat }
-
-        return
-          ContractStatePoly
-            { prnxt = prnxt,
-              ipcb = ipcb,
-              tmd = tmd,
-              nt = nt,
-              ipnr = ipnr,
-              ipac = ipac,
-              feac = feac,
-              nsc = nsc,
-              isc = isc,
-              prf = prf,
-              sd = sd
-            }
+-- |'initializeState' initializes the state variables at t0 based on the
+-- provided context
+initializeState :: Reader (CtxSTF Double LocalTime) ContractState
+initializeState = reader initializeState'
   where
-    fpSchedule = schedule FP ct
-    ipSchedule = schedule IP ct
-    prSchedule = schedule PR ct
+    initializeState' :: CtxSTF Double LocalTime -> ContractState
+    initializeState' CtxSTF {..} =
+      ContractStatePoly
+        { prnxt = nextPrincipalRedemptionPayment contractTerms,
+          ipcb = interestPaymentCalculationBase contractTerms,
+          tmd = contractMaturity maturity,
+          nt = notionalPrincipal contractTerms,
+          ipnr = nominalInterestRate contractTerms,
+          ipac = interestAccrued contractTerms,
+          feac = feeAccrued contractTerms,
+          nsc = notionalScaling contractTerms,
+          isc = interestScaling contractTerms,
+          prf = contractPerformance contractTerms,
+          sd = t0
+        }
+      where
+        t0 = ct_SD contractTerms
 
-    t0 = ct_SD
-    tfp_minus = maybe t0 calculationDay (sup fpSchedule t0)
-    tfp_plus = maybe t0 calculationDay (inf fpSchedule t0)
-    tminus = maybe t0 calculationDay (sup ipSchedule t0)
+        tMinusFP = fromMaybe t0 (sup' fpSchedule t0)
+        tPlusFP = fromMaybe t0 (inf' fpSchedule t0)
+        tMinusIP = fromMaybe t0 (sup' ipSchedule t0)
 
-    scef_xNx :: SCEF -> Bool
-    scef_xNx SE_0N0 = True
-    scef_xNx SE_0NM = True
-    scef_xNx SE_IN0 = True
-    scef_xNx SE_INM = True
-    scef_xNx _      = False
+        scalingEffect_xNx :: SCEF -> Bool
+        scalingEffect_xNx SE_0N0 = True
+        scalingEffect_xNx SE_0NM = True
+        scalingEffect_xNx SE_IN0 = True
+        scalingEffect_xNx SE_INM = True
+        scalingEffect_xNx _      = False
 
-    scef_Ixx :: SCEF -> Bool
-    scef_Ixx SE_IN0 = True
-    scef_Ixx SE_INM = True
-    scef_Ixx SE_I00 = True
-    scef_Ixx SE_I0M = True
-    scef_Ixx _      = False
+        scalingEffect_Ixx :: SCEF -> Bool
+        scalingEffect_Ixx SE_IN0 = True
+        scalingEffect_Ixx SE_INM = True
+        scalingEffect_Ixx SE_I00 = True
+        scalingEffect_Ixx SE_I0M = True
+        scalingEffect_Ixx _      = False
 
-    nextPrincipalRedemptionPayment :: ContractTerms -> Maybe Double
-    nextPrincipalRedemptionPayment ContractTermsPoly {contractType = PAM} = Just 0.0
-    nextPrincipalRedemptionPayment ContractTermsPoly {ct_PRNXT = prnxt@(Just _)} = prnxt
-    nextPrincipalRedemptionPayment
-      ContractTermsPoly
-        { contractType = LAM,
-          ct_PRNXT = Nothing,
-          ct_MD = Just maturityDate,
-          ct_NT = Just notionalPrincipal,
-          ct_PRCL = Just principalRedemptionCycle,
-          ct_PRANX = Just principalRedemptionAnchor,
-          scfg = scheduleConfig
-        } = Just $ notionalPrincipal / fromIntegral (length $
-              generateRecurrentScheduleWithCorrections principalRedemptionAnchor (principalRedemptionCycle {includeEndDay = True}) maturityDate scheduleConfig)
-    nextPrincipalRedemptionPayment
-      ContractTermsPoly
-        { contractType = ANN,
-          ct_PRNXT = Nothing,
-          ct_IPAC = Just interestAccrued,
-          ct_MD = md,
-          ct_NT = Just nominalPrincipal,
-          ct_IPNR = Just nominalInterestRate,
-          ct_DCC = Just dayCountConvention
-        } =
-        let scale = nominalPrincipal + interestAccrued
-            frac = annuity nominalInterestRate ti
-         in Just $ frac * scale
-        where
-          prDates = map calculationDay prSchedule ++ maybeToList (maturity ct)
-          ti = zipWith (\tn tm -> _y dayCountConvention tn tm md) prDates (tail prDates)
-    nextPrincipalRedemptionPayment _ = Nothing
+        interestScaling :: ContractTerms -> Double
+        interestScaling
+          ContractTermsPoly
+            { ct_SCEF = Just scef,
+              ct_SCIP = Just scip
+            } | scalingEffect_Ixx scef = scip
+        interestScaling _ = 1.0
 
-    interestPaymentCalculationBase :: ContractTerms -> Maybe Double
-    interestPaymentCalculationBase
-        ContractTermsPoly
+        notionalScaling :: ContractTerms -> Double
+        notionalScaling
+          ContractTermsPoly
+            { ct_SCEF = Just scef,
+              ct_SCNT = Just scnt
+            } | scalingEffect_xNx scef = scnt
+        notionalScaling _ = 1.0
+
+        notionalPrincipal :: ContractTerms -> Double
+        notionalPrincipal
+          ContractTermsPoly
+            { ct_IED = Just ied
+            } | ied > t0 = 0.0
+        notionalPrincipal
+          ContractTermsPoly
+            { ct_CNTRL = cntrl,
+              ct_NT = Just nt
+            } = _r cntrl * nt
+        notionalPrincipal _ = 0.0
+
+        nominalInterestRate :: ContractTerms -> Double
+        nominalInterestRate
+          ContractTermsPoly
+            { ct_IED = Just ied
+            } | ied > t0 = 0.0
+        nominalInterestRate
+          ContractTermsPoly
+            { ct_IPNR = Just ipnr
+            } =
+            ipnr
+        nominalInterestRate _ = 0.0
+
+        interestAccrued :: ContractTerms -> Double
+        interestAccrued
+          ContractTermsPoly
+            { ct_IPNR = Nothing
+            } = 0.0
+        interestAccrued
+          ContractTermsPoly
+            { ct_IPAC = Just ipac
+            } = ipac
+        interestAccrued
+          ContractTermsPoly
+            { ct_DCC = Just dcc
+            } =
+            let nt = notionalPrincipal contractTerms
+                ipnr = nominalInterestRate contractTerms
+             in _y dcc tMinusIP t0 maturity * nt * ipnr
+        interestAccrued _ = 0.0
+
+        nextPrincipalRedemptionPayment :: ContractTerms -> Double
+        nextPrincipalRedemptionPayment ContractTermsPoly {contractType = PAM} = 0.0
+        nextPrincipalRedemptionPayment ContractTermsPoly {ct_PRNXT = Just prnxt} = prnxt
+        nextPrincipalRedemptionPayment
+          ContractTermsPoly
             { contractType = LAM,
-              ct_IED = Just initialExchangeDate
-            } | t0 < initialExchangeDate = Just 0.0
-    interestPaymentCalculationBase
-        ContractTermsPoly
-            { ct_NT = Just notionalPrincipal,
-              ct_IPCB = Just ipcb
-            } | ipcb == IPCB_NT = Just $ _r ct_CNTRL * notionalPrincipal
-    interestPaymentCalculationBase
-        ContractTermsPoly
-            { ct_IPCBA = Just ipcba
-            } = Just $ _r ct_CNTRL * ipcba
-    interestPaymentCalculationBase _ = Nothing
+              ct_PRNXT = Nothing,
+              ct_MD = Just md,
+              ct_NT = Just nt,
+              ct_PRCL = Just prcl,
+              ct_PRANX = Just pranx,
+              scfg = scfg
+            } = nt / fromIntegral (length $ generateRecurrentScheduleWithCorrections pranx (prcl {includeEndDay = True}) md scfg)
+        nextPrincipalRedemptionPayment
+          ContractTermsPoly
+            { contractType = ANN,
+              ct_PRNXT = Nothing,
+              ct_IPAC = Just ipac,
+              ct_MD = md,
+              ct_NT = Just nt,
+              ct_IPNR = Just ipnr,
+              ct_DCC = Just dcc
+            } =
+            let scale = nt + ipac
+                frac = annuity ipnr ti
+             in frac * scale
+            where
+              prDates = prSchedule ++ [contractMaturity maturity]
+              ti = zipWith (\tn tm -> _y dcc tn tm md) prDates (tail prDates)
+        nextPrincipalRedemptionPayment _ = 0.0
 
-    feeAccrued :: ContractTerms -> Maybe Double
-    feeAccrued
-        ContractTermsPoly
+        interestPaymentCalculationBase :: ContractTerms -> Double
+        interestPaymentCalculationBase
+          ContractTermsPoly
+            { contractType = LAM,
+              ct_IED = Just ied
+            } | t0 < ied = 0.0
+        interestPaymentCalculationBase
+          ContractTermsPoly
+            { ct_NT = Just nt,
+              ct_IPCB = Just ipcb,
+              ct_CNTRL = cntrl
+            } | ipcb == IPCB_NT = _r cntrl * nt
+        interestPaymentCalculationBase
+          ContractTermsPoly
+            { ct_IPCBA = Just ipcba,
+              ct_CNTRL = cntrl
+            } = _r cntrl * ipcba
+        interestPaymentCalculationBase _ = 0.0
+
+        feeAccrued :: ContractTerms -> Double
+        feeAccrued
+          ContractTermsPoly
             { ct_FER = Nothing
-            } = Just 0.0
-    feeAccrued
-        ContractTermsPoly
-            { ct_FEAC = feac@(Just _)
+            } = 0.0
+        feeAccrued
+          ContractTermsPoly
+            { ct_FEAC = Just feac
             } = feac
-    feeAccrued
-        ContractTermsPoly
+        feeAccrued
+          ContractTermsPoly
             { ct_FEB = Just FEB_N,
-              ct_DCC = Just dayCountConvention,
+              ct_DCC = Just dcc,
               ct_FER = Just fer,
-              ct_NT = Just notionalPrincipal
-            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD * notionalPrincipal * fer
-    feeAccrued
-        ContractTermsPoly
-            { ct_DCC = Just dayCountConvention,
-              ct_FER = Just fer
-            } = Just $ _y dayCountConvention tfp_minus t0 ct_MD / _y dayCountConvention tfp_minus tfp_plus ct_MD * fer
-    feeAccrued _ = Nothing
+              ct_NT = Just nt,
+              ct_MD = md
+            } = _y dcc tMinusFP t0 md * nt * fer
+        feeAccrued
+          ContractTermsPoly
+            { ct_DCC = Just dcc,
+              ct_FER = Just fer,
+              ct_MD = md
+            } = _y dcc tMinusFP t0 md / _y dcc tMinusFP tPlusFP md * fer
+        feeAccrued _ = 0.0
+
+        contractPerformance :: ContractTerms -> PRF
+        contractPerformance ContractTermsPoly {ct_PRF = Just prf} = prf
+        contractPerformance _                                     = error "PRF is not set in ContractTerms"
+
+        contractMaturity :: Maybe LocalTime -> LocalTime
+        contractMaturity (Just mat) = mat
+        contractMaturity _          = error "Maturity is not specified"

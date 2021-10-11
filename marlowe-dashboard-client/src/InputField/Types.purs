@@ -6,8 +6,9 @@ module InputField.Types
   , InputDisplayOptions
   ) where
 
+import Prologue
 import Analytics (class IsEvent)
-import Data.Maybe (Maybe(..))
+import Halogen.HTML (HTML)
 import Marlowe.Extended.Metadata (NumberFormat)
 
 type State error
@@ -30,8 +31,10 @@ class InputFieldError e where
   inputErrorToString :: e -> String
 
 -- TODO: should the validator be in the InputDisplayOptions instead of the State?
-type InputDisplayOptions
+type InputDisplayOptions w i
   = { additionalCss :: Array String
+    , after :: Maybe (HTML w i)
+    , before :: Maybe (HTML w i)
     , id_ :: String
     , placeholder :: String
     , readOnly :: Boolean

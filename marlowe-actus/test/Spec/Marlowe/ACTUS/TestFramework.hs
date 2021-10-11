@@ -11,8 +11,9 @@
 module Spec.Marlowe.ACTUS.TestFramework
   where
 
-import           Data.Aeson                                        as Aeson (decode)
-import           Data.Aeson.Types                                  (FromJSON, Value (Array, Number, Object, String))
+import           Control.Applicative                               ((<|>))
+import           Control.Monad                                     (mzero)
+import           Data.Aeson
 import           Data.ByteString.Lazy.UTF8                         as BLU (fromString)
 import           Data.HashMap.Strict                               as HashMap ((!))
 import           Data.List                                         as L (find)
@@ -90,26 +91,39 @@ data ValueObserved = ValueObserved
   }
   deriving (Show)
 
-data TestResult = TestResult{
-    eventDate           :: String
-  , eventType           :: String
-  , payoff              :: Double
-  , currency            :: String
-  , notionalPrincipal   :: Double
-  , nominalInterestRate :: Double
-  , accruedInterest     :: Double
-}
+data TestResult = TestResult
+  { eventDate           :: String,
+    eventType           :: String,
+    payoff              :: Double,
+    currency            :: String,
+    notionalPrincipal   :: Double,
+    nominalInterestRate :: Double,
+    accruedInterest     :: Double
+  }
   deriving stock (Show, Generic)
-  deriving anyclass (FromJSON)
 
-data TestCase = TestCase{
-    identifier     :: String
-  , terms          :: Map String Value
-  , to             :: String
-  , dataObserved   :: Map String Value
-  , eventsObserved :: Value
-  , results        :: [TestResult]
-}
+-- types are inconsistent in json files for NAM and ANN
+-- test cases in https://github.com/actusfrf/actus-tests/tree/master/tests
+instance FromJSON TestResult where
+  parseJSON (Object v) =
+    TestResult
+      <$> v .: "eventDate"
+      <*> v .: "eventType"
+      <*> (v .: "payoff" <|> (read <$> v .: "payoff"))
+      <*> v .: "currency"
+      <*> (v .: "notionalPrincipal" <|> (read <$> v.: "notionalPrincipal"))
+      <*> (v .: "nominalInterestRate" <|> (read <$> v.: "nominalInterestRate"))
+      <*> (v .: "accruedInterest" <|> (read <$> v.: "accruedInterest"))
+  parseJSON _ = mzero
+
+data TestCase = TestCase
+  { identifier     :: String,
+    terms          :: Map String Value,
+    to             :: String,
+    dataObserved   :: Map String Value,
+    eventsObserved :: Value,
+    results        :: [TestResult]
+  }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
 

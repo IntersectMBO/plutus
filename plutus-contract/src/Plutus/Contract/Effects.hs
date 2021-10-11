@@ -15,6 +15,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _CurrentSlotReq,
     _CurrentTimeReq,
     _AwaitTxStatusChangeReq,
+    _AwaitTxOutStatusChangeReq,
     _OwnContractInstanceIdReq,
     _OwnPublicKeyReq,
     _ChainIndexQueryReq,
@@ -42,6 +43,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _CurrentTimeResp,
     _AwaitTxStatusChangeResp,
     _AwaitTxStatusChangeResp',
+    _AwaitTxOutStatusChangeResp,
     _OwnContractInstanceIdResp,
     _OwnPublicKeyResp,
     _ChainIndexQueryResp,
@@ -87,8 +89,9 @@ import           Ledger.Slot                 (Slot (..), SlotRange)
 import           Ledger.Time                 (POSIXTime (..), POSIXTimeRange)
 import           Ledger.TimeSlot             (SlotConversionError)
 import           Ledger.Tx                   (ChainIndexTxOut)
+import           Plutus.ChainIndex           (Page (pageItems), PageQuery)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (_citxTxId))
-import           Plutus.ChainIndex.Types     (Page (pageItems), Tip (..), TxStatus (..))
+import           Plutus.ChainIndex.Types     (Tip (..), TxOutStatus, TxStatus)
 import           Wallet.API                  (WalletAPIError)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription, EndpointValue)
 
@@ -99,6 +102,7 @@ data PABReq =
     | AwaitUtxoSpentReq TxOutRef
     | AwaitUtxoProducedReq Address
     | AwaitTxStatusChangeReq TxId
+    | AwaitTxOutStatusChangeReq TxOutRef
     | CurrentSlotReq
     | CurrentTimeReq
     | OwnContractInstanceIdReq
@@ -120,6 +124,7 @@ instance Pretty PABReq where
     CurrentSlotReq                          -> "Current slot"
     CurrentTimeReq                          -> "Current time"
     AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
+    AwaitTxOutStatusChangeReq ref           -> "Await txout status change:" <+> pretty ref
     OwnContractInstanceIdReq                -> "Own contract instance ID"
     OwnPublicKeyReq                         -> "Own public key"
     ChainIndexQueryReq q                    -> "Chain index query:" <+> pretty q
@@ -135,6 +140,7 @@ data PABResp =
     | AwaitUtxoSpentResp ChainIndexTx
     | AwaitUtxoProducedResp (NonEmpty ChainIndexTx)
     | AwaitTxStatusChangeResp TxId TxStatus
+    | AwaitTxOutStatusChangeResp TxOutRef TxOutStatus
     | CurrentSlotResp Slot
     | CurrentTimeResp POSIXTime
     | OwnContractInstanceIdResp ContractInstanceId
@@ -156,6 +162,7 @@ instance Pretty PABResp where
     CurrentSlotResp s                        -> "Current slot:" <+> pretty s
     CurrentTimeResp s                        -> "Current time:" <+> pretty s
     AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
+    AwaitTxOutStatusChangeResp ref status    -> "Status of" <+> pretty ref <+> "changed to" <+> pretty status
     OwnContractInstanceIdResp i              -> "Own contract instance ID:" <+> pretty i
     OwnPublicKeyResp k                       -> "Own public key:" <+> pretty k
     ChainIndexQueryResp rsp                  -> pretty rsp
@@ -173,6 +180,7 @@ matches a b = case (a, b) of
   (CurrentSlotReq, CurrentSlotResp{})                      -> True
   (CurrentTimeReq, CurrentTimeResp{})                      -> True
   (AwaitTxStatusChangeReq i, AwaitTxStatusChangeResp i' _) -> i == i'
+  (AwaitTxOutStatusChangeReq i, AwaitTxOutStatusChangeResp i' _) -> i == i'
   (OwnContractInstanceIdReq, OwnContractInstanceIdResp{})  -> True
   (OwnPublicKeyReq, OwnPublicKeyResp{})                    -> True
   (ChainIndexQueryReq r, ChainIndexQueryResp r')           -> chainIndexMatches r r'
@@ -209,7 +217,7 @@ data ChainIndexQuery =
   | TxOutFromRef TxOutRef
   | TxFromTxId TxId
   | UtxoSetMembership TxOutRef
-  | UtxoSetAtAddress Credential
+  | UtxoSetAtAddress (PageQuery TxOutRef) Credential
   | GetTip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
@@ -224,7 +232,7 @@ instance Pretty ChainIndexQuery where
         TxOutFromRef r             -> "requesting utxo from utxo reference" <+> pretty r
         TxFromTxId i               -> "requesting chain index tx from id" <+> pretty i
         UtxoSetMembership txOutRef -> "whether tx output is part of the utxo set" <+> pretty txOutRef
-        UtxoSetAtAddress c         -> "requesting utxos located at addresses with the credential" <+> pretty c
+        UtxoSetAtAddress _ c       -> "requesting utxos located at addresses with the credential" <+> pretty c
         GetTip                     -> "requesting the tip of the chain index"
 
 -- | Represents all possible responses to chain index queries. Each constructor

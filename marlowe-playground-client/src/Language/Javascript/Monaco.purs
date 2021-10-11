@@ -12,16 +12,16 @@ languageExtensionPoint = LanguageExtensionPoint { id: "typescript" }
 refLabel :: RefLabel
 refLabel = RefLabel "jsEditor"
 
-settings :: forall m. (Editor -> m Unit) -> Settings m
+settings :: forall m. Applicative m => (Editor -> m Unit) -> Settings m
 settings setup =
   { languageExtensionPoint
   , theme: Nothing
-  , monarchTokensProvider: Nothing
-  , tokensProvider: Nothing
-  , hoverProvider: Nothing
-  , completionItemProvider: Nothing
-  , codeActionProvider: Nothing
-  , documentFormattingEditProvider: Nothing
+  , monarchTokensProvider: pure Nothing
+  , tokensProvider: pure Nothing
+  , hoverProvider: pure Nothing
+  , completionItemProvider: pure Nothing
+  , codeActionProvider: pure Nothing
+  , documentFormattingEditProvider: pure Nothing
   , refLabel
   , owner: "jsEditor"
   , setup

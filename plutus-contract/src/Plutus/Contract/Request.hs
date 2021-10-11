@@ -48,11 +48,14 @@ module Plutus.Contract.Request(
     , utxoIsSpent
     , awaitUtxoProduced
     , utxoIsProduced
-    -- ** Tx confirmation
-    , TxStatus(..)
+    -- ** Tx and tx output confirmation
+    , RollbackState(..)
+    , TxStatus
     , awaitTxStatusChange
     , awaitTxConfirmed
     , isTxConfirmed
+    , TxOutStatus
+    , awaitTxOutStatusChange
     -- ** Contract instances
     , ownInstanceId
     -- ** Exposing endpoints
@@ -87,6 +90,7 @@ import qualified Control.Monad.Freer.Error   as E
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Types            as JSON
+import           Data.Default                (Default (def))
 import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
@@ -117,8 +121,8 @@ import qualified Plutus.Contract.Effects     as E
 import           Plutus.Contract.Schema      (Input, Output)
 import           Wallet.Types                (ContractInstanceId, EndpointDescription (..), EndpointValue (..))
 
-import           Plutus.ChainIndex           (ChainIndexTx, Page (pageItems), txOutRefs)
-import           Plutus.ChainIndex.Types     (Tip, TxStatus (..))
+import           Plutus.ChainIndex           (ChainIndexTx, Page (nextPageQuery, pageItems), PageQuery, txOutRefs)
+import           Plutus.ChainIndex.Types     (RollbackState (..), Tip, TxOutStatus, TxStatus)
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Types
 
@@ -340,14 +344,33 @@ utxoRefsAt ::
     forall w s e.
     ( AsContractError e
     )
-    => Address
+    => PageQuery TxOutRef
+    -> Address
     -> Contract w s e (Tip, Page TxOutRef)
-utxoRefsAt addr = do
-  cir <- pabReq (ChainIndexQueryReq $ E.UtxoSetAtAddress $ addressCredential addr) E._ChainIndexQueryResp
+utxoRefsAt pq addr = do
+  cir <- pabReq (ChainIndexQueryReq $ E.UtxoSetAtAddress pq $ addressCredential addr) E._ChainIndexQueryResp
   case cir of
     E.UtxoSetAtResponse r -> pure r
     _ -> throwError $ review _OtherError
                     $ Text.pack "Could not request UtxoSetAtAddress from the chain index"
+
+-- | Fold through each 'Page's of unspent 'TxOutRef's at a given 'Address', and
+-- accumulate the result.
+foldUtxoRefsAt ::
+    forall w s e a.
+    ( AsContractError e
+    )
+    => (a -> Page TxOutRef -> Contract w s e a) -- ^ Accumulator function
+    -> a -- ^ Initial value
+    -> Address -- ^ Address which contain the UTXOs
+    -> Contract w s e a
+foldUtxoRefsAt f ini addr = go ini (Just def)
+  where
+    go acc Nothing = pure acc
+    go acc (Just pq) = do
+      page <- snd <$> utxoRefsAt pq addr
+      newAcc <- f acc page
+      go newAcc (nextPageQuery page)
 
 -- | Get the unspent transaction outputs at an address.
 utxosAt ::
@@ -357,11 +380,15 @@ utxosAt ::
     => Address
     -> Contract w s e (Map TxOutRef ChainIndexTxOut)
 utxosAt addr = do
-  utxoRefs <- fmap (pageItems . snd) $ utxoRefsAt addr
-  txOuts <- traverse txOutFromRef utxoRefs
-  pure $ Map.fromList
-       $ mapMaybe (\(ref, txOut) -> fmap (ref,) txOut)
-       $ zip utxoRefs txOuts
+  foldUtxoRefsAt f Map.empty addr
+  where
+    f acc page = do
+      let utxoRefs = pageItems page
+      txOuts <- traverse txOutFromRef utxoRefs
+      let utxos = Map.fromList
+                $ mapMaybe (\(ref, txOut) -> fmap (ref,) txOut)
+                $ zip utxoRefs txOuts
+      pure $ acc <> utxos
 
 -- | Get unspent transaction outputs with transaction from address.
 utxosTxOutTxAt ::
@@ -371,15 +398,13 @@ utxosTxOutTxAt ::
     => Address
     -> Contract w s e (Map TxOutRef (ChainIndexTxOut, ChainIndexTx))
 utxosTxOutTxAt addr = do
-  utxoRefs <- fmap (pageItems . snd) $ utxoRefsAt addr
-  go mempty mempty utxoRefs
+  snd <$> foldUtxoRefsAt (\acc page -> go acc (pageItems page)) (mempty, mempty) addr
   where
-    go :: Map TxId ChainIndexTx
-       -> Map TxOutRef (ChainIndexTxOut, ChainIndexTx)
+    go :: (Map TxId ChainIndexTx, Map TxOutRef (ChainIndexTxOut, ChainIndexTx))
        -> [TxOutRef]
-       -> Contract w s e (Map TxOutRef (ChainIndexTxOut, ChainIndexTx))
-    go _ oldResult [] = pure oldResult
-    go lookupTx oldResult (ref:refs) = do
+       -> Contract w s e (Map TxId ChainIndexTx, Map TxOutRef (ChainIndexTxOut, ChainIndexTx))
+    go acc [] = pure acc
+    go (lookupTx, oldResult) (ref:refs) = do
       outM <- txOutFromRef ref
       case outM of
         Just out -> do
@@ -390,7 +415,7 @@ utxosTxOutTxAt addr = do
           case Map.lookup txid lookupTx of
             Just tx -> do
               let result = oldResult <> Map.singleton ref (out, tx)
-              go lookupTx result refs
+              go (lookupTx, result) refs
             Nothing -> do
               -- We query the chain index for the tx and store it in the lookup
               -- table if it is found.
@@ -399,10 +424,10 @@ utxosTxOutTxAt addr = do
                 Just tx -> do
                   let newLookupTx = lookupTx <> Map.singleton txid tx
                   let result = oldResult <> Map.singleton ref (out, tx)
-                  go newLookupTx result refs
+                  go (newLookupTx, result) refs
                 Nothing ->
-                  go lookupTx oldResult refs
-        Nothing -> go lookupTx oldResult refs
+                  go (lookupTx, oldResult) refs
+        Nothing -> go (lookupTx, oldResult) refs
 
 -- | Get the unspent transaction outputs from a 'ChainIndexTx'.
 utxosTxOutTxFromTx ::
@@ -552,6 +577,10 @@ awaitTxConfirmed i = go where
 -- | Wait until a transaction is confirmed (added to the ledger).
 isTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Promise w s e ()
 isTxConfirmed = Promise . awaitTxConfirmed
+
+-- | Wait for the status of a transaction output to change.
+awaitTxOutStatusChange :: forall w s e. AsContractError e => TxOutRef -> Contract w s e TxOutStatus
+awaitTxOutStatusChange ref = snd <$> pabReq (AwaitTxOutStatusChangeReq ref) E._AwaitTxOutStatusChangeResp
 
 -- | Get the 'ContractInstanceId' of this instance.
 ownInstanceId :: forall w s e. (AsContractError e) => Contract w s e ContractInstanceId

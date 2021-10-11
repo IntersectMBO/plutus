@@ -1,6 +1,6 @@
 module LoadingSubmitButton.Types where
 
-import Data.Either (Either)
+import Prologue
 import Data.Symbol (SProxy(..))
 import Data.Time.Duration (Milliseconds)
 import Halogen (RefLabel(..))

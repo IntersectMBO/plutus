@@ -6,16 +6,13 @@ module API.Wallet
   , signTransaction
   ) where
 
-import Prelude
+import Prologue
 import API.Request (doGetRequest, doEmptyPostRequest, doPostRequest)
 import API.Url (toUrlPiece)
 import Cardano.Wallet.Mock.Types (WalletInfo)
 import Control.Monad.Error.Class (class MonadError)
-import Data.Json.JsonTuple (JsonTuple)
-import Data.Map (Map)
 import Effect.Aff.Class (class MonadAff)
-import Plutus.V1.Ledger.Slot (Slot)
-import Plutus.V1.Ledger.Tx (Tx, TxOutRef, TxOutTx)
+import Plutus.V1.Ledger.Tx (Tx)
 import Plutus.V1.Ledger.Value (Value)
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet)

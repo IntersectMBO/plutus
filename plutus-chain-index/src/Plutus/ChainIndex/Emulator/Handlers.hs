@@ -20,37 +20,36 @@ module Plutus.ChainIndex.Emulator.Handlers(
     , utxoIndex
     ) where
 
-import           Control.Lens                         (at, ix, makeLenses, over, preview, set, to, view, (&))
-import           Control.Monad.Freer                  (Eff, Member, type (~>))
-import           Control.Monad.Freer.Error            (Error, throwError)
-import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError, logWarn)
-import           Control.Monad.Freer.State            (State, get, gets, modify, put)
-import           Data.Default                         (Default (..))
-import           Data.FingerTree                      (Measured (..))
-import           Data.Maybe                           (catMaybes, fromMaybe)
-import           Data.Semigroup.Generic               (GenericSemigroupMonoid (..))
-import qualified Data.Set                             as Set
-import           GHC.Generics                         (Generic)
-import           Ledger                               (Address (addressCredential), ChainIndexTxOut (..),
-                                                       MintingPolicy (MintingPolicy),
-                                                       MintingPolicyHash (MintingPolicyHash),
-                                                       StakeValidator (StakeValidator),
-                                                       StakeValidatorHash (StakeValidatorHash), TxId,
-                                                       TxOut (txOutAddress), TxOutRef (..), Validator (Validator),
-                                                       ValidatorHash (ValidatorHash), txOutDatumHash, txOutValue)
-import           Ledger.Scripts                       (ScriptHash (ScriptHash))
-import           Plutus.ChainIndex.ChainIndexError    (ChainIndexError (..))
-import           Plutus.ChainIndex.ChainIndexLog      (ChainIndexLog (..))
-import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, diagnostics, redeemerMap,
-                                                       scriptMap, txMap)
-import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
-import           Plutus.ChainIndex.Tx                 (ChainIndexTx, _ValidTx, citxOutputs)
-import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
-import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance,
-                                                       UtxoIndex, isUnspentOutput, tip)
-import qualified Plutus.ChainIndex.UtxoState          as UtxoState
-import           Plutus.V1.Ledger.Api                 (Credential (PubKeyCredential, ScriptCredential))
+import           Control.Lens                          (at, ix, makeLenses, over, preview, set, to, view, (&))
+import           Control.Monad.Freer                   (Eff, Member, type (~>))
+import           Control.Monad.Freer.Error             (Error, throwError)
+import           Control.Monad.Freer.Extras.Log        (LogMsg, logDebug, logError, logWarn)
+import           Control.Monad.Freer.Extras.Pagination (pageOf)
+import           Control.Monad.Freer.State             (State, get, gets, modify, put)
+import           Data.Maybe                            (catMaybes, fromMaybe)
+import           Data.Semigroup.Generic                (GenericSemigroupMonoid (..))
+import qualified Data.Set                              as Set
+import           GHC.Generics                          (Generic)
+import           Ledger                                (Address (addressCredential), ChainIndexTxOut (..),
+                                                        MintingPolicy (MintingPolicy),
+                                                        MintingPolicyHash (MintingPolicyHash),
+                                                        StakeValidator (StakeValidator),
+                                                        StakeValidatorHash (StakeValidatorHash), TxId,
+                                                        TxOut (txOutAddress), TxOutRef (..), Validator (Validator),
+                                                        ValidatorHash (ValidatorHash), txOutDatumHash, txOutValue)
+import           Ledger.Scripts                        (ScriptHash (ScriptHash))
+import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
+import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
+import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
+import           Plutus.ChainIndex.Emulator.DiskState  (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
+import qualified Plutus.ChainIndex.Emulator.DiskState  as DiskState
+import           Plutus.ChainIndex.Tx                  (ChainIndexTx, _ValidTx, citxOutputs)
+import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
+import           Plutus.ChainIndex.Types               (Diagnostics (..), Tip (..), TxUtxoBalance (..))
+import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex, tip,
+                                                        utxoState)
+import qualified Plutus.ChainIndex.UtxoState           as UtxoState
+import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
 
 data ChainIndexEmulatorState =
     ChainIndexEmulatorState
@@ -124,22 +123,24 @@ handleQuery = \case
     RedeemerFromHash h -> gets (view $ diskState . redeemerMap . at h)
     TxFromTxId i -> getTxFromTxId i
     UtxoSetMembership r -> do
-        utxoState <- gets (measure . view utxoIndex)
-        case tip utxoState of
+        utxo <- gets (utxoState . view utxoIndex)
+        case tip utxo of
             TipAtGenesis -> throwError QueryFailedNoTip
-            tp           -> pure (tp, isUnspentOutput r utxoState)
-    UtxoSetAtAddress cred -> do
+            tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxo)
+    UtxoSetAtAddress pageQuery cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
-            utxoState = view (utxoIndex . to measure) state
-            page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxoState) (fromMaybe mempty outRefs)
-        case tip utxoState of
+            utxo = view (utxoIndex . to utxoState) state
+            page = pageOf pageQuery
+                 $ Set.filter (flip TxUtxoBalance.isUnspentOutput utxo)
+                              (fromMaybe mempty outRefs)
+        case tip utxo of
             TipAtGenesis -> do
                 logWarn TipIsGenesis
-                pure (TipAtGenesis, pageOf def Set.empty)
+                pure (TipAtGenesis, pageOf pageQuery Set.empty)
             tp           -> pure (tp, page)
     GetTip ->
-        gets (tip . measure . view utxoIndex)
+        gets (tip . utxoState . view utxoIndex)
 
 handleControl ::
     forall effs.
@@ -152,7 +153,7 @@ handleControl ::
 handleControl = \case
     AppendBlock tip_ transactions -> do
         oldState <- get @ChainIndexEmulatorState
-        case UtxoState.insert (UtxoState.fromBlock tip_ transactions) (view utxoIndex oldState) of
+        case UtxoState.insert (TxUtxoBalance.fromBlock tip_ transactions) (view utxoIndex oldState) of
             Left err -> do
                 let reason = InsertionFailed err
                 logError $ Err reason
@@ -164,7 +165,7 @@ handleControl = \case
                 logDebug $ InsertionSuccess tip_ insertPosition
     Rollback tip_ -> do
         oldState <- get @ChainIndexEmulatorState
-        case UtxoState.rollback tip_ (view utxoIndex oldState) of
+        case TxUtxoBalance.rollback tip_ (view utxoIndex oldState) of
             Left err -> do
                 let reason = RollbackFailed err
                 logError $ Err reason
@@ -178,9 +179,17 @@ handleControl = \case
         utxos <- gets $
             Set.toList
             . Set.map txOutRefId
-            . UtxoState.unspentOutputs
+            . TxUtxoBalance.unspentOutputs
             . UtxoState.utxoState
             . view utxoIndex
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
         modify $ set diskState newDiskState
-    GetDiagnostics -> diagnostics . _diskState <$> get @ChainIndexEmulatorState
+    GetDiagnostics -> diagnostics <$> get @ChainIndexEmulatorState
+
+diagnostics :: ChainIndexEmulatorState -> Diagnostics
+diagnostics (ChainIndexEmulatorState ds ui) =
+    let TxUtxoBalance outputs inputs = UtxoState._usTxUtxoData $ UtxoState.utxoState ui
+    in (DiskState.diagnostics ds)
+        { numUnspentOutputs  = length outputs
+        , numUnmatchedInputs = length inputs
+        }

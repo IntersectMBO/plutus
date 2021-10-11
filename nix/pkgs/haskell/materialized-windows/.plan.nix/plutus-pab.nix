@@ -161,11 +161,11 @@
           "Plutus/PAB/Core/ContractInstance/RequestHandlers"
           "Plutus/PAB/Core/ContractInstance/STM"
           "Plutus/PAB/Db/Beam"
+          "Plutus/PAB/Db/Schema"
           "Plutus/PAB/Db/Beam/ContractStore"
           "Plutus/PAB/Db/Memory/ContractStore"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/Builtin"
-          "Plutus/PAB/Effects/DbStore"
           "Plutus/PAB/Effects/TimeEffect"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Events"
@@ -439,6 +439,7 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
@@ -448,6 +449,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."smallcheck" or (errorHandler.buildDepError "smallcheck"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
             (hsPkgs."tasty-smallcheck" or (errorHandler.buildDepError "tasty-smallcheck"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))

@@ -57,6 +57,7 @@ module Plutus.PAB.Core
     , observableState
     , waitForState
     , waitForTxStatusChange
+    , waitForTxOutStatusChange
     , activeEndpoints
     , waitForEndpoint
     , currentSlot
@@ -71,7 +72,7 @@ module Plutus.PAB.Core
     , askUserEnv
     , askBlockchainEnv
     , askInstancesState
-    , runningInstances
+    , instancesWithStatuses
     -- * Run PAB effects in separate threads
     , PABRunner(..)
     , pabRunner
@@ -96,14 +97,17 @@ import           Control.Monad.Freer.Reader              (Reader (..), ask, asks
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
 import           Data.Foldable                           (traverse_)
+import           Data.Map                                (Map)
 import qualified Data.Map                                as Map
 import           Data.Proxy                              (Proxy (..))
 import           Data.Set                                (Set)
 import           Data.Text                               (Text)
+import           Ledger                                  (TxOutRef)
 import           Ledger.Tx                               (Address, Tx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
-import           Plutus.ChainIndex                       (ChainIndexQueryEffect, TxStatus (Unknown))
+import           Plutus.ChainIndex                       (ChainIndexQueryEffect, RollbackState (..), TxOutStatus,
+                                                          TxStatus)
 import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, ContractInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
@@ -127,8 +131,8 @@ import           Wallet.Effects                          (NodeClientEffect, Wall
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), EmulatorTimeEvent (..))
 import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
-import           Wallet.Types                            (ContractInstanceId, EndpointDescription (..),
-                                                          NotificationError)
+import           Wallet.Types                            (ContractActivityStatus, ContractInstanceId,
+                                                          EndpointDescription (..), NotificationError)
 
 -- | Effects that are available in 'PABAction's.
 type PABEffects t env =
@@ -506,6 +510,12 @@ waitForTxStatusChange t = do
     env <- asks @(PABEnvironment t env) blockchainEnv
     liftIO $ STM.atomically $ Instances.waitForTxStatusChange Unknown t env
 
+-- | Wait for the transaction output to be confirmed on the blockchain.
+waitForTxOutStatusChange :: forall t env. TxOutRef -> PABAction t env TxOutStatus
+waitForTxOutStatusChange t = do
+    env <- asks @(PABEnvironment t env) blockchainEnv
+    liftIO $ STM.atomically $ Instances.waitForTxOutStatusChange Unknown t env
+
 -- | The list of endpoints that are currently open
 activeEndpoints :: forall t env. ContractInstanceId -> PABAction t env (STM [OpenEndpoint])
 activeEndpoints instanceId = do
@@ -567,8 +577,8 @@ valueAt address = valueAtSTM address >>= liftIO . STM.atomically
 waitUntilFinished :: forall t env. ContractInstanceId -> PABAction t env (Maybe JSON.Value)
 waitUntilFinished i = finalResult i >>= liftIO . STM.atomically
 
-runningInstances :: forall t env. PABAction t env (Set ContractInstanceId)
-runningInstances = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.runningInstances
+instancesWithStatuses :: forall t env. PABAction t env (Map ContractInstanceId ContractActivityStatus)
+instancesWithStatuses = askInstancesState @t @env >>= liftIO . STM.atomically . Instances.instancesWithStatuses
 
 -- | Read the 'env' from the environment
 askUserEnv :: forall t env effs. Member (Reader (PABEnvironment t env)) effs => Eff effs env

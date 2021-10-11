@@ -26,7 +26,9 @@ exports.documentFormattingEditProvider_ = function (format) {
     return new monaco.MarloweDocumentFormattingEditProvider(format);
 }
 
-exports.tokensProvider = new monaco.MarloweTokensProvider();
+exports.tokensProvider_ = function () {
+  return new monaco.MarloweTokensProvider();
+}
 
 const purple = "#832DC4";
 const orange = "#EB4A22";

@@ -297,7 +297,7 @@ library
         primitive -any,
         recursion-schemes -any,
         semigroupoids -any,
-        semigroups -any,
+        semigroups >=0.19.1,
         serialise -any,
         size-based -any,
         some < 1.0.3,
@@ -467,14 +467,25 @@ executable pir
     import: lang
     main-is: pir/Main.hs
     hs-source-dirs: executables
+    other-modules:
+        Common
+        Parsers
     build-depends:
         plutus-core -any,
         base <5,
         bytestring -any,
         flat -any,
         lens -any,
+        deepseq -any,
+        monoidal-containers -any,
         optparse-applicative -any,
-        transformers -any
+        mtl -any,
+        transformers -any,
+        bytestring -any,
+        containers -any,
+        prettyprinter -any,
+        cassava -any,
+        text -any
 
 -- This runs the microbenchmarks used to generate the cost models for built-in functions,
 -- saving the results in cost-model/data/benching.csv.  It will take several hours.

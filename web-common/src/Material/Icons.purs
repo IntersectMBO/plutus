@@ -54,6 +54,8 @@ data Icon
   | Roles
   | Running
   | South
+  | Sync
+  | Task
   | TaskAlt
   | Terms
   | Timer
@@ -127,6 +129,10 @@ content Roles = "person_pin_circle"
 content Running = "directions_run"
 
 content South = "south"
+
+content Sync = "sync"
+
+content Task = "task"
 
 content TaskAlt = "task_alt"
 
@@ -207,6 +213,10 @@ iconClass Roles = "roles"
 iconClass Running = "running"
 
 iconClass South = "south"
+
+iconClass Sync = "sync"
+
+iconClass Task = "task"
 
 iconClass TaskAlt = "task-alt"
 

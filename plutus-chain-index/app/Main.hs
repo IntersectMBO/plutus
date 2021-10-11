@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -13,9 +14,10 @@ import qualified Control.Concurrent.STM            as STM
 import           Control.Exception                 (throwIO)
 import           Control.Lens                      (unto)
 import           Control.Monad.Freer               (Eff, interpret, reinterpret, runM, send)
-import           Control.Monad.Freer.Error         (Error, runError)
+import           Control.Monad.Freer.Error         (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extras        (LogMsg (..))
 import           Control.Monad.Freer.Extras.Log    (LogLevel (..), LogMessage (..), handleLogWriter)
+import           Control.Monad.Freer.Reader        (Reader, runReader)
 import           Control.Monad.Freer.State         (State, runState)
 import           Control.Monad.Freer.Writer        (runWriter)
 import           Control.Tracer                    (nullTracer)
@@ -37,24 +39,31 @@ import qualified Cardano.BM.Configuration.Model    as CM
 import           Cardano.BM.Setup                  (setupTrace_)
 import           Cardano.BM.Trace                  (Trace, logDebug, logError)
 
+import           Cardano.Api                       (ChainPoint)
 import           Cardano.Protocol.Socket.Client    (ChainSyncEvent (..), runChainSync)
 import           CommandLine                       (AppConfig (..), Command (..), applyOverrides, cmdWithHelpParser)
 import qualified Config
+import           Control.Monad.Freer.Extras.Beam   (BeamEffect, BeamError (..), BeamLog (..), handleBeam)
 import           Ledger                            (Slot (..))
 import qualified Logging
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog   (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility   (fromCardanoBlock, fromCardanoPoint, tipFromCardanoBlock)
-import           Plutus.ChainIndex.DbStore         (DbStoreEffect, checkedSqliteDb, handleDbStore)
+import           Plutus.ChainIndex.DbSchema        (checkedSqliteDb)
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect (..), ChainIndexQueryEffect (..),
                                                     appendBlock, rollback)
-import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
-import           Plutus.Monitoring.Util            (runLogEffects)
+import           Plutus.ChainIndex.Handlers        (ChainIndexState, getResumePoints, handleControl, handleQuery,
+                                                    restoreStateFromDb)
+import           Plutus.ChainIndex.Types           (pointSlot)
+import           Plutus.Monitoring.Util            (convertLog, runLogEffects)
+
 
 type ChainIndexEffects
   = '[ ChainIndexControlEffect
      , ChainIndexQueryEffect
-     , DbStoreEffect
+     , BeamEffect
+     , Reader Sqlite.Connection
+     , Error BeamError
      , State ChainIndexState
      , Error ChainIndexError
      , LogMsg ChainIndexLog
@@ -66,16 +75,18 @@ runChainIndex
   -> STM.TVar ChainIndexState
   -> Sqlite.Connection
   -> Eff ChainIndexEffects a
-  -> IO ()
-runChainIndex trace emulatorState conn effect = do
+  -> IO (Maybe a)
+runChainIndex trace mState conn effect = do
   -- First run the STM block capturing all log messages emited on a
   -- successful STM transaction.
-  oldEmulatorState <- STM.atomically $ STM.readTVar emulatorState
-  (result, logMessages') <-
+  oldEmulatorState <- STM.atomically $ STM.readTVar mState
+  (errOrResult, logMessages') <-
     effect
     & interpret handleControl
     & interpret handleQuery
-    & interpret (handleDbStore trace conn)
+    & interpret (handleBeam (convertLog BeamLogItem trace))
+    & runReader conn
+    & flip handleError (throwError . BeamEffectError)
     & runState oldEmulatorState
     & runError
     & reinterpret
@@ -83,15 +94,16 @@ runChainIndex trace emulatorState conn effect = do
                           @(Seq (LogMessage ChainIndexLog)) $ unto pure)
     & runWriter @(Seq (LogMessage ChainIndexLog))
     & runM
-  logMessages <- case result of
+  (result, logMessages) <- case errOrResult of
       Left err ->
-        pure $ LogMessage Error (Err err) <| logMessages'
-      Right (_, newState) -> do
-        STM.atomically $ STM.writeTVar emulatorState newState
-        pure logMessages'
+        pure (Nothing, LogMessage Error (Err err) <| logMessages')
+      Right (result, newState) -> do
+        STM.atomically $ STM.writeTVar mState newState
+        pure (Just result, logMessages')
   -- Log all previously captured messages
   traverse_ (send . LMessage) logMessages
     & runLogEffects trace
+  pure result
 
 chainSyncHandler
   :: Trace IO ChainIndexLog
@@ -107,15 +119,28 @@ chainSyncHandler trace mState conn
       Left err    ->
         logError trace (ConversionFailed err)
       Right txs ->
-        runChainIndex trace mState conn $ appendBlock (tipFromCardanoBlock block) txs
+        void $ runChainIndex trace mState conn $ appendBlock (tipFromCardanoBlock block) txs
 chainSyncHandler trace mState conn
   (RollBackward point _) _ = do
+    putStr "Rolling back to "
+    print point
     -- Do we really want to pass the tip of the new blockchain to the
     -- rollback function (rather than the point where the chains diverge)?
-    runChainIndex trace mState conn $ rollback (fromCardanoPoint point)
--- On resume we do nothing, for now.
-chainSyncHandler _ _ _ (Resume _) _ = do
-  pure ()
+    void $ runChainIndex trace mState conn $ rollback (fromCardanoPoint point)
+chainSyncHandler trace mState conn
+  (Resume point) _ = do
+    putStr "Resuming from "
+    print point
+    void $ runChainIndex trace mState conn $ restoreStateFromDb $ fromCardanoPoint point
+
+showResumePoints :: [ChainPoint] -> String
+showResumePoints = \case
+  []  -> "none"
+  [x] -> showPoint x
+  xs  -> showPoint (head xs) ++ ", " ++ showPoint (xs !! 1) ++ " .. " ++ showPoint (last xs)
+  where
+    showPoint = show . toInteger . pointSlot . fromCardanoPoint
+
 
 main :: IO ()
 main = do
@@ -150,19 +175,36 @@ main = do
       putStrLn "\nChain Index config:"
       print (pretty config)
 
-      appState <- STM.newTVarIO mempty
-
       Sqlite.withConnection (Config.cicDbPath config) $ \conn -> do
 
-        Sqlite.runBeamSqliteDebug (logDebug trace . SqlLog) conn $ do
+        -- Optimize Sqlite for write performance, halves the sync time.
+        -- https://sqlite.org/wal.html
+        Sqlite.execute_ conn "PRAGMA journal_mode=WAL"
+        Sqlite.runBeamSqliteDebug (logDebug trace . (BeamLogItem . SqlLog)) conn $ do
           autoMigrate Sqlite.migrationBackend checkedSqliteDb
+
+        -- Automatically delete the input when an output from a matching input/output pair is deleted.
+        -- See reduceOldUtxoDb in Plutus.ChainIndex.Handlers
+        Sqlite.execute_ conn "DROP TRIGGER IF EXISTS delete_matching_input"
+        Sqlite.execute_ conn $
+          "CREATE TRIGGER delete_matching_input AFTER DELETE ON unspent_outputs \
+          \BEGIN \
+          \  DELETE FROM unmatched_inputs WHERE input_row_tip__row_slot = old.output_row_tip__row_slot \
+          \                                 AND input_row_out_ref = old.output_row_out_ref; \
+          \END"
+
+        appState <- STM.newTVarIO mempty
+        Just resumePoints <- runChainIndex trace appState conn getResumePoints
+
+        putStr "\nPossible resume slots: "
+        putStrLn $ showResumePoints resumePoints
 
         putStrLn $ "Connecting to the node using socket: " <> Config.cicSocketPath config
         void $ runChainSync (Config.cicSocketPath config)
                             nullTracer
                             (Config.cicSlotConfig config)
                             (Config.cicNetworkId  config)
-                            []
+                            resumePoints
                             (chainSyncHandler trace appState conn)
 
         putStrLn $ "Starting webserver on port " <> show (Config.cicPort config)

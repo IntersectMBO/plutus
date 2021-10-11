@@ -1,33 +1,41 @@
 module Contract.Types
-  ( State
+  ( State(..)
+  , StartedState
+  , StartingState
   , StepBalance
   , TimeoutInfo
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
   , Input
-  , Movement(..)
   , Action(..)
   , scrollContainerRef
   ) where
 
-import Prelude
+import Prologue
 import Analytics (class IsEvent, defaultEvent)
-import Data.BigInteger (BigInteger)
 import Data.Map (Map)
-import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
-import Data.Tuple (Tuple)
 import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (AccountId, Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, Token(..), TransactionInput, Value)
-import WalletData.Types (WalletDetails, WalletNickname)
+import Marlowe.Semantics (Accounts, ChoiceId, ChosenNum, MarloweParams, Party, Payment, Slot, TransactionInput)
+import Contacts.Types (WalletDetails, WalletNickname)
 
-type State
+data State
+  = Starting StartingState
+  | Started StartedState
+
+type StartingState
+  = { nickname :: String
+    , metadata :: MetaData
+    , participants :: Map Party (Maybe WalletNickname)
+    }
+
+type StartedState
   = { nickname :: String
     , tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: Execution.State
@@ -35,10 +43,7 @@ type State
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
     , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
-    -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
-    -- contracts when a user creates a contract, to show on the page until the blockchain settles and
-    -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
-    , mMarloweParams :: Maybe MarloweParams
+    , marloweParams :: MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -88,11 +93,6 @@ type Input
     , walletDetails :: WalletDetails
     , followerAppId :: PlutusAppId
     }
-
-data Movement
-  = PayIn Party AccountId Token BigInteger -- a.k.a deposit
-  | Transfer Party Party Token BigInteger
-  | PayOut AccountId Party Token BigInteger
 
 data Action
   = SelectSelf

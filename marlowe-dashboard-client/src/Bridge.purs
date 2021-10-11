@@ -5,17 +5,15 @@ module Bridge
   , toBack
   ) where
 
-import Prelude
+import Prologue
 import Cardano.Wallet.Mock.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
-import Data.Either (Either)
-import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
-import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
+import Data.Json.JsonNTuple (JsonNTuple(..))
 import Marlowe.PAB (PlutusAppId(..)) as Front
 import Marlowe.Semantics (Assets(..), Slot(..)) as Front
 import Network.RemoteData (RemoteData)
@@ -26,7 +24,7 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
+import Contacts.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
 {-
 Note [JSON communication]: To ensure the client and the PAB server understand each other, they have
@@ -69,9 +67,9 @@ instance tupleBridge :: (Bridge a c, Bridge b d) => Bridge (Tuple a b) (Tuple c 
   toFront (a /\ b) = toFront a /\ toFront b
   toBack (c /\ d) = toBack c /\ toBack d
 
-instance jsonTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonTuple a b) (JsonTuple c d) where
-  toFront (JsonTuple tuple) = JsonTuple $ toFront tuple
-  toBack (JsonTuple tuple) = JsonTuple $ toBack tuple
+instance jsonNTupleBridge :: (Bridge a c, Bridge b d) => Bridge (JsonNTuple a b) (JsonNTuple c d) where
+  toFront (JsonNTuple a b) = JsonNTuple (toFront a) (toFront b)
+  toBack (JsonNTuple a b) = JsonNTuple (toBack a) (toBack b)
 
 instance arrayBridge :: Bridge a b => Bridge (Array a) (Array b) where
   toFront = map toFront

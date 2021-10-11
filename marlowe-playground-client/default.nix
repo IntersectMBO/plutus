@@ -51,7 +51,7 @@ let
     '';
     name = "marlowe-playground-client";
     extraSrcs = {
-      web-common = webCommon;
+      web-common = webCommon.cleanSrc;
       web-common-marlowe = webCommonMarlowe;
       web-common-playground = webCommonPlayground;
       generated = generated-purescript;

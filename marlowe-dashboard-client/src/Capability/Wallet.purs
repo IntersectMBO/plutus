@@ -7,7 +7,7 @@ module Capability.Wallet
   , signTransaction
   ) where
 
-import Prelude
+import Prologue
 import API.Wallet as API
 import AppM (AppM)
 import Bridge (toBack, toFront)
@@ -16,7 +16,7 @@ import Halogen (HalogenM)
 import Marlowe.Semantics (Assets)
 import Plutus.V1.Ledger.Tx (Tx)
 import Types (AjaxResponse)
-import WalletData.Types (Wallet, WalletInfo)
+import Contacts.Types (Wallet, WalletInfo)
 
 -- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class

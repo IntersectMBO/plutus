@@ -33,11 +33,15 @@ import           Data.String
 import qualified Data.Text                             as T
 import qualified Data.Text.IO                          as T
 import           Data.Text.Lazy                        (toStrict)
+import           Data.UUID                             (UUID)
+import qualified Data.UUID                             as UUID
 import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
+import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
+                                                        typedValidator)
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
@@ -96,6 +100,9 @@ alice, bob :: Wallet
 alice = w1
 bob = w2
 
+reqId :: UUID
+reqId = UUID.nil
+
 
 zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond Contract"
@@ -105,8 +112,8 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
     T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf 150)
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) OK) "should be OK"
-    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) OK) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) (OK reqId "close")) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) (OK reqId "close")) "should be OK"
     ) $ do
     -- Init a contract
     let alicePk = PK (pubKeyHash $ walletPubKey alice)
@@ -124,25 +131,25 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint @"create" aliceHdl (reqId, AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 850])
+    Trace.callEndpoint @"apply-inputs" aliceHdl (reqId, params, Nothing, [IDeposit alicePk alicePk ada 850])
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, Nothing, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint @"apply-inputs" bobHdl (reqId, params, Nothing, [IDeposit alicePk bobPk ada 1000])
     void $ Trace.waitNSlots 2
 
-    Trace.callEndpoint @"close" aliceHdl ()
-    Trace.callEndpoint @"close" bobHdl ()
+    Trace.callEndpoint @"close" aliceHdl reqId
+    Trace.callEndpoint @"close" bobHdl reqId
     void $ Trace.waitNSlots 2
 
 
 errorHandlingTest :: TestTree
 errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
-    (\case (SomeError (TransitionError _)) -> True
-           _                               -> False
+    (\case SomeError _ "apply-inputs" (TransitionError _) -> True
+           _                                              -> False
     ) "should be fail with SomeError"
     ) $ do
     -- Init a contract
@@ -161,10 +168,10 @@ errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
 
-    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.callEndpoint @"create" aliceHdl (reqId, AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 1000])
+    Trace.callEndpoint @"apply-inputs" aliceHdl (reqId, params, Nothing, [IDeposit alicePk alicePk ada 1000])
     Trace.waitNSlots 2
     pure ()
 
@@ -198,7 +205,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
     bobFollowHdl <- Trace.activateContract bob marloweFollowContract "bob follow"
 
     Trace.callEndpoint @"create" aliceHdl
-        (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
+        (reqId, AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
         contract)
     Trace.waitNSlots 5
     CompanionState r <- _observableState . instContractState <$> Trace.getContractState bobCompanionHdl
@@ -206,7 +213,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
         [] -> pure ()
         (pms, _) : _ -> do
 
-            Trace.callEndpoint @"apply-inputs" aliceHdl (pms, Nothing,
+            Trace.callEndpoint @"apply-inputs" aliceHdl (reqId, pms, Nothing,
                 [ IChoice chId 256
                 , IDeposit "alice" "alice" ada 256
                 ])
@@ -216,10 +223,10 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
             Trace.callEndpoint @"follow" bobFollowHdl pms
             Trace.waitNSlots 2
 
-            Trace.callEndpoint @"apply-inputs" bobHdl (pms, Nothing, [INotify])
+            Trace.callEndpoint @"apply-inputs" bobHdl (reqId, pms, Nothing, [INotify])
 
             Trace.waitNSlots 2
-            Trace.callEndpoint @"redeem" bobHdl (pms, "bob", bobPkh)
+            Trace.callEndpoint @"redeem" bobHdl (reqId, pms, "bob", bobPkh)
             void $ Trace.waitNSlots 2
     where
         alicePk = PK $ pubKeyHash $ walletPubKey alice
@@ -236,7 +243,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
                         (Slot 40) Close)
                     ] (Slot 30) Close)
             ] (Slot 20) Close
-        (params, _ :: TxConstraints MarloweInput MarloweData) =
+        (params, _ :: TxConstraints MarloweInput MarloweData, _) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
                         (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
                         contract

@@ -71,7 +71,7 @@ let
       node -e 'require("./output/Test.Main").main()'
     '';
     extraSrcs = {
-      web-common = webCommon;
+      web-common = webCommon.cleanSrc;
       web-common-plutus = webCommonPlutus;
       web-common-playground = webCommonPlayground;
       generated = generated-purescript;

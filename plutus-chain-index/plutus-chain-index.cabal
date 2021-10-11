@@ -35,7 +35,7 @@ library
         Plutus.ChainIndex.ChainIndexError
         Plutus.ChainIndex.ChainIndexLog
         Plutus.ChainIndex.Client
-        Plutus.ChainIndex.DbStore
+        Plutus.ChainIndex.DbSchema
         Plutus.ChainIndex.Effects
         Plutus.ChainIndex.Emulator
         Plutus.ChainIndex.Emulator.DiskState
@@ -45,6 +45,8 @@ library
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
         Plutus.ChainIndex.TxIdState
+        Plutus.ChainIndex.TxOutBalance
+        Plutus.ChainIndex.TxUtxoBalance
         Plutus.ChainIndex.Types
         Plutus.ChainIndex.UtxoState
         Plutus.Monitoring.Util
@@ -89,6 +91,7 @@ library
         lens -any,
         memory -any,
         nothunks -any,
+        openapi3 -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,
         ouroboros-consensus -any,
@@ -100,7 +103,6 @@ library
         semigroups -any,
         serialise -any,
         sqlite-simple -any,
-        time-units -any,
         typed-protocols-examples -any,
         unordered-containers -any,
         bytestring -any,
@@ -122,6 +124,9 @@ test-suite plutus-chain-index-test
     hs-source-dirs: test
     other-modules:
         Generators
+        Plutus.ChainIndex.Emulator.DiskStateSpec
+        Plutus.ChainIndex.Emulator.HandlersSpec
+        Plutus.ChainIndex.HandlersSpec
     build-depends:
         plutus-ledger -any,
         plutus-ledger-api -any,
@@ -129,15 +134,20 @@ test-suite plutus-chain-index-test
         plutus-chain-index -any
     build-depends:
         base >=4.9 && <5,
+        beam-migrate -any,
+        beam-sqlite -any,
+        bytestring -any,
+        containers -any,
+        contra-tracer -any,
+        fingertree -any,
+        freer-extras -any,
+        freer-simple -any,
         hedgehog -any,
+        lens -any,
+        serialise -any,
+        sqlite-simple -any,
         tasty -any,
         tasty-hedgehog -any,
-        containers -any,
-        serialise -any,
-        bytestring -any,
-        fingertree -any,
-        freer-simple -any,
-        lens -any
 
 executable plutus-chain-index
   main-is: Main.hs

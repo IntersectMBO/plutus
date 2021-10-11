@@ -12,8 +12,9 @@ module Plutus.PAB.Db.Beam
 import           Cardano.BM.Trace                    (Trace)
 import           Control.Monad.Freer                 (Eff, interpret, reinterpret, runM, subsume)
 import           Control.Monad.Freer.Delay           (DelayEffect, handleDelayEffect)
-import           Control.Monad.Freer.Error           (runError)
+import           Control.Monad.Freer.Error           (handleError, runError, throwError)
 import           Control.Monad.Freer.Extras          (LogMsg, mapLog)
+import           Control.Monad.Freer.Extras.Beam     (handleBeam)
 import qualified Control.Monad.Freer.Extras.Modify   as Modify
 import           Control.Monad.Freer.Reader          (runReader)
 import           Data.Aeson                          (FromJSON, ToJSON)
@@ -22,10 +23,9 @@ import           Database.SQLite.Simple              (Connection)
 import           Plutus.PAB.Db.Beam.ContractStore    (handleContractStore)
 import           Plutus.PAB.Effects.Contract         (ContractStore)
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, HasDefinitions)
-import           Plutus.PAB.Effects.DbStore
-import           Plutus.PAB.Monitoring.Monitoring    (handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.Monitoring    (convertLog, handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg     (PABLogMsg (..), PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                    (PABError)
+import           Plutus.PAB.Types                    (PABError (..))
 
 
 -- | Run the ContractStore and ContractDefinitionStore effects on the
@@ -45,7 +45,8 @@ runBeamStoreAction connection trace =
     runM
     . runError
     . runReader connection
-    . interpret (handleDbStore trace)
+    . flip handleError (throwError . BeamEffectError)
+    . interpret (handleBeam (convertLog (SMultiAgent . BeamLogItem) trace))
     . subsume @IO
     . handleDelayEffect
     . interpret (handleLogMsgTrace trace)

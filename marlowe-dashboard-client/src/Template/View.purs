@@ -1,13 +1,17 @@
 module Template.View (contractTemplateCard) where
 
-import Prelude hiding (div)
+import Prologue hiding (Either(..), div)
+import Component.Label.View as Label
+import Contacts.Lenses (_walletNickname)
+import Contacts.State (adaToken, getAda)
+import Contacts.Types (WalletLibrary)
 import Css as Css
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple)
+import Data.Map.Ordered.OMap as OMap
+import Data.Maybe (fromMaybe)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen.Css (classNames)
@@ -17,11 +21,13 @@ import Halogen.HTML.Properties (enabled, for, id_)
 import Hint.State (hint)
 import Humanize (contractIcon, humanizeValue)
 import InputField.Lenses (_value)
+import InputField.Types (InputDisplayOptions)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
+import LoadingSubmitButton.State (loadingSubmitButton)
+import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
-import Data.Map.Ordered.OMap as OMap
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
@@ -35,9 +41,6 @@ import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError,
 import Text.Markdown.TrimmedInline (markdownToHTML)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.Lenses (_walletNickname)
-import WalletData.State (adaToken, getAda)
-import WalletData.Types (WalletLibrary)
 
 contractTemplateCard :: forall m. MonadAff m => WalletLibrary -> Assets -> State -> ComponentHTML Action ChildSlots m
 contractTemplateCard walletLibrary assets state =
@@ -47,7 +50,7 @@ contractTemplateCard walletLibrary assets state =
     contractTemplate = view _contractTemplate state
   in
     div
-      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr" ] ]
+      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr", "divide-y", "divide-gray" ] ]
       [ h2
           [ classNames Css.cardHeader ]
           [ text "Contract templates" ]
@@ -184,6 +187,12 @@ contractSetup walletLibrary state =
       , readOnly: false
       , numberFormat: Nothing
       , valueOptions: mempty
+      , after: Nothing
+      , before:
+          Just
+            $ Label.render
+                Label.defaultInput
+                  { for = "contractNickname", text = contractName <> " title" }
       }
   in
     div
@@ -193,13 +202,7 @@ contractSetup walletLibrary state =
           [ h2
               [ classNames [ "text-lg", "font-semibold", "mb-2" ] ]
               [ text $ contractName <> " setup" ]
-          , div
-              [ classNames Css.hasNestedLabel ]
-              [ label
-                  [ classNames Css.nestedLabel ]
-                  [ text $ contractName <> " title" ]
-              , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
-              ]
+          , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
           , roleInputs walletLibrary metaData roleWalletInputs
           , parameterInputs metaData slotContentInputs valueContentInputs
           ]
@@ -266,11 +269,16 @@ contractReview assets state =
                       , onClick_ $ SetContractSetupStage Setup
                       ]
                       [ text "Back" ]
-                  , button
-                      [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                      , onClick_ StartContract
-                      ]
-                      [ text "Pay and start" ]
+                  , loadingSubmitButton
+                      { ref: "action-pay-and-start"
+                      , caption: "Pay and start"
+                      , styles: [ "flex-1" ]
+                      , enabled: true
+                      , handler:
+                          \msg -> case msg of
+                            OnSubmit -> Just $ StartContract
+                            _ -> Nothing
+                      }
                   ]
               , div
                   [ classNames [ "mt-4", "text-sm", "text-red" ] ]
@@ -365,6 +373,8 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , readOnly: false
     , numberFormat: Nothing
     , valueOptions: List.toUnfoldable $ Map.values $ view _walletNickname <$> walletLibrary
+    , after: Nothing
+    , before: Nothing
     }
 
 parameterInputs :: forall m. MonadAff m => MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
@@ -403,6 +413,7 @@ parameterInputs metaData slotContentInputs valueContentInputs =
       templateInputItem key description
         [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]
 
+  inputFieldOptions :: forall w i. String -> Boolean -> NumberFormat -> InputDisplayOptions w i
   inputFieldOptions key readOnly numberFormat =
     { additionalCss: mempty
     , id_: key
@@ -410,6 +421,8 @@ parameterInputs metaData slotContentInputs valueContentInputs =
     , readOnly
     , numberFormat: Just numberFormat
     , valueOptions: mempty
+    , after: Nothing
+    , before: Nothing
     }
 
 templateInputsSection :: forall p. Icon -> String -> Array (HTML p Action) -> HTML p Action

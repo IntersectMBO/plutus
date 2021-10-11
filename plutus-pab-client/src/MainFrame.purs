@@ -176,7 +176,7 @@ handleAction LoadFullReport = do
   assignFullReportData Loading
   contractdefs <- getContractDefinitions
   assign _contractSignatures (map (\a -> ContractSignatures { unContractSignatures: a }) $ fromWebData contractdefs)
-  contractInstances <- view (RemoteData._Success) <$> getContractInstances
+  contractInstances <- view (RemoteData._Success) <$> getContractInstances (Just "active")
   traverse_ updateFormsForContractInstance contractInstances
   fullReportResult <- getFullReport
   assignFullReportData fullReportResult

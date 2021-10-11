@@ -8,9 +8,8 @@ module MainFrame.Lenses
   , _dashboardState
   ) where
 
-import Prelude
+import Prologue
 import Dashboard.Types (State) as Dashboard
-import Data.Either (Either)
 import Data.Lens (Lens', Traversal')
 import Data.Lens.Prism.Either (_Left, _Right)
 import Data.Lens.Record (prop)

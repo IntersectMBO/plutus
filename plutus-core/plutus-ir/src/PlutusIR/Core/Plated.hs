@@ -33,7 +33,8 @@ import qualified PlutusCore.Name        as PLC
 
 import           PlutusIR.Core.Type
 
-import           Control.Lens           hiding (Strict)
+import           Control.Lens           hiding (Strict, (<.>))
+import           Data.Functor.Apply
 
 infixr 6 <^>
 
@@ -81,16 +82,28 @@ bindingSubkinds f = \case
 -- | All the identifiers/names introduced by this binding
 -- In case of a datatype-binding it has multiple identifiers: the type, constructors, match function
 bindingIds :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-            => Traversal' (Binding tyname name uni fun a) PLC.Unique
+            => Traversal1' (Binding tyname name uni fun a) PLC.Unique
 bindingIds f = \case
-   TermBind x s d t -> TermBind x s <$> (PLC.varDeclName . PLC.theUnique) f d <*> pure t
-   TypeBind a d ty -> TypeBind a <$> (PLC.tyVarDeclName . PLC.theUnique) f d <*> pure ty
+   TermBind x s d t -> flip (TermBind x s) t <$> (PLC.varDeclName . PLC.theUnique) f d
+   TypeBind a d ty -> flip (TypeBind a) ty <$> (PLC.tyVarDeclName . PLC.theUnique) f d
    DatatypeBind a1 (Datatype a2 tvdecl tvdecls n vdecls) ->
      DatatypeBind a1 <$>
        (Datatype a2 <$> (PLC.tyVarDeclName . PLC.theUnique) f tvdecl
-                    <*> traverse ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
-                    <*> PLC.theUnique f n
-                    <*> traverse ((PLC.varDeclName . PLC.theUnique) f) vdecls)
+                    <.*> traverse1Maybe ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
+                    <.> PLC.theUnique f n
+                    <.*> traverse1Maybe ((PLC.varDeclName . PLC.theUnique) f) vdecls)
+  where
+    -- | Traverse using 'Apply', but getting back the result in 'MaybeApply f' instead of in 'f'.
+    traverse1Maybe :: (Apply f, Traversable t) => (a -> f b) -> t a -> MaybeApply f (t b)
+    traverse1Maybe f' = traverse (MaybeApply . Left . f')
+
+    -- | Apply a non-empty container of functions to a possibly-empty-with-unit container of values.
+    -- Taken from: <https://github.com/ekmett/semigroupoids/issues/66#issue-271899630>
+    (<.*>) :: (Apply f) => f (a -> b) -> MaybeApply f a -> f b
+    ff <.*> MaybeApply (Left fa) = ff <.> fa
+    ff <.*> MaybeApply (Right a) = ($ a) <$> ff
+    infixl 4 <.*>
+
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -161,7 +174,7 @@ termUniques
     :: PLC.HasUniques (Term tyname name uni fun ann)
     => Traversal' (Term tyname name uni fun ann) PLC.Unique
 termUniques f = \case
-    Let ann r bs t    -> Let ann r <$> (traverse . bindingIds) f bs <*> pure t
+    Let ann r bs t    -> Let ann r <$> cloneTraversal (traversed.bindingIds) f bs <*> pure t
     Var ann n         -> PLC.theUnique f n  <&> Var ann
     TyAbs ann tn k t  -> PLC.theUnique f tn <&> \tn' -> TyAbs ann tn' k t
     LamAbs ann n ty t -> PLC.theUnique f n  <&> \n'  -> LamAbs ann n' ty t

@@ -27,6 +27,6 @@ logWithTimeEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
     let emitter str = CekM $ do
             time <- unsafeIOToST getCurrentTime
-            let withTime = "[" <> pack (show time) <> "]" <> " " <> str
+            let withTime = pack (show time) <> " " <> str
             modifySTRef logsRef (`DList.snoc` withTime)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)

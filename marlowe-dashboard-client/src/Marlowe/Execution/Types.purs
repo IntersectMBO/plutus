@@ -8,11 +8,10 @@ module Marlowe.Execution.Types
   , NamedAction(..)
   ) where
 
-import Prelude
+import Prologue
 import Data.BigInteger (BigInteger)
 import Data.List (List)
 import Data.Map (Map)
-import Data.Maybe (Maybe)
 import Marlowe.Semantics (AccountId, Bound, ChoiceId, ChosenNum, Contract, Observation, Party, Payment, Slot, Token, TransactionInput, ValueId, Accounts)
 import Marlowe.Semantics (State) as Semantic
 

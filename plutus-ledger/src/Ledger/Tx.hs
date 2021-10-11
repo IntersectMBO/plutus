@@ -107,54 +107,6 @@ instance Pretty ChainIndexTxOut where
     pretty ScriptChainIndexTxOut {_ciTxOutAddress, _ciTxOutValue} =
                 hang 2 $ vsep ["-" <+> pretty _ciTxOutValue <+> "addressed to", pretty _ciTxOutAddress]
 
--- TODO Move to cardano-api
-deriving instance Eq (C.EraInMode era mode)
-
--- TODO Move to cardano-api
-instance FromJSON (C.EraInMode C.ByronEra C.CardanoMode) where
-  parseJSON "ByronEraInCardanoMode" = pure C.ByronEraInCardanoMode
-  parseJSON invalid =
-      prependFailure "parsing 'EraInMode ByronEra CardanoMode' failed, "
-                     (typeMismatch "ByronEraInCardanoMode" invalid)
-
--- TODO Move to cardano-api
-instance FromJSON (C.EraInMode C.ShelleyEra C.CardanoMode) where
-  parseJSON "ShelleyEraInCardanoMode" = pure C.ShelleyEraInCardanoMode
-  parseJSON invalid =
-      prependFailure "parsing 'EraInMode ShelleyEra CardanoMode' failed, "
-                     (typeMismatch "ShelleyEraInCardanoMode" invalid)
-
--- TODO Move to cardano-api
-instance FromJSON (C.EraInMode C.AllegraEra C.CardanoMode) where
-  parseJSON "AllegraEraInCardanoMode" = pure C.AllegraEraInCardanoMode
-  parseJSON invalid =
-      prependFailure "parsing 'EraInMode AllegraEra CardanoMode' failed, "
-                     (typeMismatch "AllegraEraInCardanoMode" invalid)
-
--- TODO Move to cardano-api
-instance FromJSON (C.EraInMode C.MaryEra C.CardanoMode) where
-  parseJSON "MaryEraInCardanoMode" = pure C.MaryEraInCardanoMode
-  parseJSON invalid =
-      prependFailure "parsing 'EraInMode MaryEra CardanoMode' failed, "
-                     (typeMismatch "MaryEraInCardanoMode" invalid)
-
--- TODO Move to cardano-api
-instance FromJSON (C.EraInMode C.AlonzoEra C.CardanoMode) where
-  parseJSON "AlonzoEraInCardanoMode" = pure C.AlonzoEraInCardanoMode
-  parseJSON invalid =
-      prependFailure "parsing 'EraInMode AlonzoEra CardanoMode' failed, "
-                     (typeMismatch "AlonzoEraInCardanoMode" invalid)
-
--- TODO Move to cardano-api
-instance ToJSON (C.EraInMode era mode) where
-  toJSON C.ByronEraInByronMode     = "ByronEraInByronMode"
-  toJSON C.ShelleyEraInShelleyMode = "ShelleyEraInShelleyMode"
-  toJSON C.ByronEraInCardanoMode   = "ByronEraInCardanoMode"
-  toJSON C.ShelleyEraInCardanoMode = "ShelleyEraInCardanoMode"
-  toJSON C.AllegraEraInCardanoMode = "AllegraEraInCardanoMode"
-  toJSON C.MaryEraInCardanoMode    = "MaryEraInCardanoMode"
-  toJSON C.AlonzoEraInCardanoMode  = "AlonzoEraInCardanoMode"
-
 data SomeCardanoApiTx where
   SomeTx :: C.IsCardanoEra era => C.Tx era -> C.EraInMode era C.CardanoMode -> SomeCardanoApiTx
 
@@ -215,27 +167,27 @@ instance FromJSON SomeCardanoApiTx where
 parseByronInCardanoModeTx :: Aeson.Value -> Parser SomeCardanoApiTx
 parseByronInCardanoModeTx =
   parseSomeCardanoTx "Failed to parse ByronEra 'tx' field from SomeCardanoApiTx"
-                     C.AsByronTx
+                     (C.AsTx C.AsByronEra)
 
 parseShelleyEraInCardanoModeTx :: Aeson.Value -> Parser SomeCardanoApiTx
 parseShelleyEraInCardanoModeTx =
   parseSomeCardanoTx "Failed to parse ShelleyEra 'tx' field from SomeCardanoApiTx"
-                     C.AsShelleyTx
+                     (C.AsTx C.AsShelleyEra)
 
 parseMaryEraInCardanoModeTx :: Aeson.Value -> Parser SomeCardanoApiTx
 parseMaryEraInCardanoModeTx =
   parseSomeCardanoTx "Failed to parse MaryEra 'tx' field from SomeCardanoApiTx"
-                     maryEraTxAsType
+                     (C.AsTx C.AsMaryEra)
 
 parseAllegraEraInCardanoModeTx :: Aeson.Value -> Parser SomeCardanoApiTx
 parseAllegraEraInCardanoModeTx =
   parseSomeCardanoTx "Failed to parse AllegraEra 'tx' field from SomeCardanoApiTx"
-                     allegraEraTxAsType
+                     (C.AsTx C.AsAllegraEra)
 
 parseAlonzoEraInCardanoModeTx :: Aeson.Value -> Parser SomeCardanoApiTx
 parseAlonzoEraInCardanoModeTx =
   parseSomeCardanoTx "Failed to parse AlonzoEra 'tx' field from SomeCardanoApiTx"
-                     alonzoEraTxAsType
+                     (C.AsTx C.AsAlonzoEra)
 
 parseEraInCardanoModeFail :: Aeson.Value -> Parser SomeCardanoApiTx
 parseEraInCardanoModeFail _ = fail "Unable to parse 'eraInMode'"
@@ -257,17 +209,6 @@ parseSomeCardanoTx errorMsg txAsType (Aeson.Object v) =
 parseSomeCardanoTx _ _ invalid =
     prependFailure "parsing SomeCardanoApiTx failed, "
       (typeMismatch "Object" invalid)
-
--- TODO Add the following 3 functions in 'Cardano.Api.Tx'.
-
-maryEraTxAsType :: C.AsType (C.Tx C.MaryEra)
-maryEraTxAsType = C.proxyToAsType $ Proxy @(C.Tx C.MaryEra)
-
-allegraEraTxAsType :: C.AsType (C.Tx C.AllegraEra)
-allegraEraTxAsType = C.proxyToAsType $ Proxy @(C.Tx C.AllegraEra)
-
-alonzoEraTxAsType :: C.AsType (C.Tx C.AlonzoEra)
-alonzoEraTxAsType = C.proxyToAsType $ Proxy @(C.Tx C.AlonzoEra)
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txCollateral, txOutputs, txMint, txFee, txValidRange, txSignatures, txMintScripts, txData} =

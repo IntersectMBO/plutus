@@ -83,13 +83,13 @@ source-repository-package
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
   type: git
-  location: https://github.com/shmish111/purescript-bridge.git
+  location: https://github.com/input-output-hk/purescript-bridge.git
   tag: 6a92d7853ea514be8b70bab5e72077bf5a510596
 
 source-repository-package
   type: git
-  location: https://github.com/shmish111/servant-purescript.git
-  tag: a76104490499aa72d40c2790d10e9383e0dbde63
+  location: https://github.com/input-output-hk/servant-purescript.git
+  tag: a0c7c7e37c95564061247461aef4be505a853538
 
 source-repository-package
   type: git
@@ -209,7 +209,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: 191b91eec3c7d845a55347781329d50bf36871d7
+  tag: ed7fdbf65f40f8e194850b87dd8c631fe26154e6
   subdir:
     cardano-api
     cardano-node
