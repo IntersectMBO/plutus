@@ -8,15 +8,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-} -- that's what this module is all about
 module Plutus.PAB.Instances() where
 
-import           Cardano.BM.Data.Tracer        (ToObject (..), TracingVerbosity (..))
-import           Data.Aeson                    (FromJSON (..), ToJSON (..))
-import           Servant.Client                (ClientError)
+import           Cardano.BM.Data.Tracer            (ToObject (..), TracingVerbosity (..))
+import           Data.Aeson                        (FromJSON (..), ToJSON (..))
+import           Servant.Client                    (ClientError)
 
-import           Cardano.BM.Data.Tracer.Extras (StructuredLog, Tagged (..), mkObjectStr)
-import           Control.Monad.Logger          (Loc, LogSource)
-import           Servant.API                   (FromHttpApiData)
-import           Wallet.Emulator.Wallet        (WalletEvent (..))
-import           Wallet.Types                  (ContractInstanceId (..))
+import           Cardano.BM.Data.Tracer.Extras     (StructuredLog, Tagged (..), mkObjectStr)
+import           Control.Monad.Logger              (Loc, LogSource)
+import qualified Data.OpenApi.Internal.ParamSchema as OpenApi
+import           Servant.API                       (FromHttpApiData, ToHttpApiData)
+import           Wallet.Emulator.Wallet            (WalletEvent (..))
+import           Wallet.Types                      (ContractInstanceId (..))
 
 deriving via (Tagged "location" Loc) instance StructuredLog Loc
 deriving via (Tagged "source" LogSource) instance StructuredLog LogSource
@@ -51,4 +52,7 @@ instance FromJSON ClientError where
 instance ToJSON ClientError where
     toJSON = toJSON . show
 
+deriving newtype instance ToHttpApiData ContractInstanceId
 deriving newtype instance FromHttpApiData ContractInstanceId
+
+deriving newtype instance OpenApi.ToParamSchema ContractInstanceId

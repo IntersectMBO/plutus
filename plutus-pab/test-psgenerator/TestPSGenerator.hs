@@ -80,7 +80,7 @@ writeTestData outputDir = do
             void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
             void $ Simulator.waitUntilFinished currencyInstance1
             report :: FullReport TestContracts <- Webserver.getFullReport
-            schema :: ContractSignatureResponse TestContracts <- Webserver.contractSchema (Text.pack $ show $ unContractInstanceId currencyInstance1)
+            schema :: ContractSignatureResponse TestContracts <- Webserver.contractSchema currencyInstance1
             pure (report, schema)
     BSL.writeFile
         (outputDir </> "full_report_response.json")
