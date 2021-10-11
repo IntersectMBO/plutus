@@ -36,6 +36,23 @@ import           Universe
 
 #include "MachDeps.h"
 
+
+{-
+ ************************************************************************************
+ *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
+ *                                                                                  *
+ *  The instances defined in this file will be used to calculate script validation  *
+ *  costs, and if an instance is changed then any scripts which were deployed when  *
+ *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
+ *  It is unsafe to increase the memory usage of a type because that may increase   *
+ *  the resource usage of existing scripts beyond the limits set (and paid for)     *
+ *  when they were uploaded to the chain, but because our costing functions are all *
+ *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  possible values of the type.                                                    *
+ ************************************************************************************
+-}
+
+
 {- Note [Memory Usage for Plutus]
 
 The base unit is 'ExMemory', which corresponds to machine words. For primitives,
@@ -161,8 +178,9 @@ instance ExMemoryUsage BS.ByteString where
 
 {- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
    codepoint) for everything in the Basic Multilingual Plane but four bytes for
-   the other planes.  We use lengthWord16 because (a) it tells us the actual number
-   of 2-byte words used, and (2) it's O(1), but T.length is O(n). -}
+   the other planes.  We use lengthWord16 because (a) it tells us the actual
+   number of 2-byte words used, and (2) it's O(1), but T.length is O(n).  An
+   object with memory usage n contains between 2n and 4n characters. -}
 instance ExMemoryUsage T.Text where
   memoryUsage s = ExMemory $ ((n-1) `div` 4) + 1
       where n = fromIntegral $ T.lengthWord16 s :: SatInt
