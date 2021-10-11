@@ -48,7 +48,7 @@ Generating a cost model for CPU time involves a number of steps.
   remaining time by the number of basic machine steps executed to arrive at an
   average time for each machine step (see the earlier discussion).  This is then
   stored in another JSON file
-  [plutus-core/cost-model/data/cekMachineCosts.json](./data/cekMachineCosts.json).
+  [`plutus-core/cost-model/data/cekMachineCosts.json`](./data/cekMachineCosts.json).
   This cost is currently the same for each step, but more careful testing may
   enable us to produce more precise costs per step at some future date.  The
   JSON file also contains a constant cost for machine startup (perhaps a
@@ -60,9 +60,10 @@ Generating a cost model for CPU time involves a number of steps.
   appears to be relatively small.
 
 *  We can now assign a cost to an arbitrary Plutus Core program by running it
-  and adding up the costs for each machine step and for each evaluation of a
-  built-in function (as given by the function's cost model applied to the
-  argument sizes).
+   and adding up the costs for each machine step and for each evaluation of a
+   built-in function (as given by the function's cost model applied to the
+   argument sizes).  This can be done automatically with `uplc evaluate --counting`
+   (see [plutus-core/execuables](../../plutus-core/exectables)).
 
 ### Note
 
