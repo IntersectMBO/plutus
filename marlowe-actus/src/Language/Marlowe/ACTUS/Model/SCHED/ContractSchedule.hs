@@ -104,9 +104,9 @@ schedule ev c = schedule' ev c { ct_MD = maturity c }
     schedule' STD  ct@ContractTermsPoly{ contractType = OPTNS } = _SCHED_STD_OPTNS c { ct_MD = ct_MD c <|> ct_MD ct }
 
     schedule' PRD  ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_PRD_PAM ct
-    schedule' MD   ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_MD_PAM c { ct_MD = ct_MD c <|> ct_MD ct } -- TODO
     schedule' TD   ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_TD_PAM ct
-    schedule' XD   ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_XD_OPTNS ct
+    schedule' MD   ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_MD_PAM c { ct_MD = ct_MD c <|> ct_MD ct } -- TODO
+    schedule' XD   ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_XD_OPTNS ct { ct_MD = ct_MD c <|> ct_MD ct }
     schedule' STD  ct@ContractTermsPoly{ contractType = FUTUR } = _SCHED_STD_OPTNS c { ct_MD = ct_MD c <|> ct_MD ct }
 
     schedule' _ _                                               = []

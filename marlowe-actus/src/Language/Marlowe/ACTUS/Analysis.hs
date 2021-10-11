@@ -103,6 +103,7 @@ genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
 
     filtersSchedules :: (EventType, ShiftedDay) -> Bool
     filtersSchedules (_, ShiftedDay {..}) | contractType == OPTNS = calculationDay > ct_SD
+    filtersSchedules (_, ShiftedDay {..}) | contractType == FUTUR = calculationDay > ct_SD
     filtersSchedules (_, ShiftedDay {..}) = isNothing ct_TD || Just calculationDay <= ct_TD
 
     filtersStates :: (ContractState, EventType, ShiftedDay) -> Bool

@@ -10,7 +10,7 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms (PRF)
 -}
 data ContractStatePoly a b = ContractStatePoly
   {
-    tmd   :: b       -- ^ Maturity Date (MD): The timestamp as per which the contract matures according to the initial terms or as per unscheduled events
+    tmd   :: Maybe b -- ^ Maturity Date (MD): The timestamp as per which the contract matures according to the initial terms or as per unscheduled events
   , nt    :: a       -- ^ Notional Principal (NT): The outstanding nominal value
   , ipnr  :: a       -- ^ Nominal Interest Rate (IPNR) : The applicable nominal rate
   , ipac  :: a       -- ^ Accrued Interest (IPAC): The current value of accrued interest

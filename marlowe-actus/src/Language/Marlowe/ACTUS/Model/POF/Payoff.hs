@@ -154,6 +154,16 @@ payoff
   _ = _POF_PRD_STK cntrl pprd
 payoff
   PRD
+  _
+  ContractTermsPoly
+    { contractType = FUTUR,
+      ct_CNTRL = cntrl,
+      ct_PPRD = Just pprd
+    }
+  _
+  _ = _POF_PRD_STK cntrl pprd
+payoff
+  PRD
   RiskFactorsPoly {..}
   ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
@@ -243,6 +253,16 @@ payoff
   RiskFactorsPoly {..}
   ContractTermsPoly
     { contractType = OPTNS,
+      ct_CNTRL = cntrl
+    }
+  ContractStatePoly
+    { xa = Just exerciseAmount}
+  _ = _POF_STD_OPTNS cntrl o_rf_CURS exerciseAmount
+payoff
+  STD
+  RiskFactorsPoly {..}
+  ContractTermsPoly
+    { contractType = FUTUR,
       ct_CNTRL = cntrl
     }
   ContractStatePoly

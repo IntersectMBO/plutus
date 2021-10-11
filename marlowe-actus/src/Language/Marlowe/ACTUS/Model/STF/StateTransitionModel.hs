@@ -675,3 +675,17 @@ _STF_XD_OPTNS _ st _ t =
   st
     { sd = t
     }
+
+_STF_XD_FUTUR :: ActusNum a => ContractTermsPoly a b -> ContractStatePoly a b -> RiskFactorsPoly a -> b -> ContractStatePoly a b
+_STF_XD_FUTUR
+  ContractTermsPoly
+    { ct_PFUT = Just futuresPrice
+    }
+  st
+  RiskFactorsPoly {..}
+  t = st
+    { xa = Just $ pp_payoff - futuresPrice,
+      sd = t
+    }
+_STF_XD_FUTUR _ _ _ _ = undefined
+

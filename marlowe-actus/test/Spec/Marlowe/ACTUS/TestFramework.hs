@@ -75,8 +75,9 @@ runTest tc@TestCase {..} =
               _  -> riskFactors {o_rf_CURS = value}
 
       cashFlows = genProjectedCashflows getRiskFactors contract
+      po = genProjectedPayoffs getRiskFactors contract
       cashFlowsTo = maybe cashFlows (\d -> filter (\cf -> cashCalculationDay cf <= d) cashFlows) (parseDate to)
-   -- in pTraceShow (contract, cashFlowsTo) $ assertTestResults cashFlowsTo results identifier
+   -- in pTraceShow (contract, po, cashFlowsTo) $ assertTestResults cashFlowsTo results identifier
    in assertTestResults cashFlowsTo results identifier
 
 testCasesFromFile :: [String] -> FilePath -> IO [TestCase]
@@ -293,6 +294,7 @@ testToContractTerms tc@TestCase{terms = t} =
      , ct_XA             = readMaybe $ Map.lookup "exerciseAmount" terms' :: Maybe Double
      , ct_DS             = readMaybe (maybeConcatPrefix "DS_" (Map.lookup "deliverySettlement" terms')) :: Maybe DS
      , ct_XD             = parseMaybeDate $ Map.lookup "exerciseDate" terms'
+     , ct_PFUT           = readMaybe $ Map.lookup "futuresPrice" terms' :: Maybe Double
      , enableSettlement  = False
      , constraints       = Nothing
      , collateralAmount  = 0

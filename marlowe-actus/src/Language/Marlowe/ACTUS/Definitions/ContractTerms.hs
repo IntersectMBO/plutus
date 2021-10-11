@@ -319,6 +319,7 @@ data ContractTermsPoly a b = ContractTermsPoly
   , ct_STP            :: Maybe Cycle     -- ^ Settlement Period
   , ct_DS             :: Maybe DS        -- ^ Delivery Settlement
   , ct_XA             :: Maybe a         -- ^ Exercise Amount
+  , ct_PFUT           :: Maybe a         -- ^ Futures Price
 
   -- Penalty
   , ct_PYRT           :: Maybe a         -- ^ Penalty Rate
