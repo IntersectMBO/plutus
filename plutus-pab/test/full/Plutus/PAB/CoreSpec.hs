@@ -43,8 +43,8 @@ import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
-import           Ledger                                   (pubKeyAddress, pubKeyHash, toPubKeyHash, txId, txOutAddress,
-                                                           txOutRefId, txOutRefs, txOutputs)
+import           Ledger                                   (pubKeyAddress, pubKeyHash, pubKeyHashAddress, toPubKeyHash,
+                                                           txId, txOutAddress, txOutRefId, txOutRefs, txOutputs)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import qualified Ledger.Ada                               as Ada
 import qualified Ledger.AddressMap                        as AM
@@ -177,7 +177,7 @@ waitForTxStatusChangeTest = runScenario $ do
   -- for a status change.
   (w1, pk1) <- Simulator.addWallet
   Simulator.waitNSlots 1
-  tx <- Simulator.payToPublicKey w1 pk1 (lovelaceValueOf 100_000_000)
+  tx <- Simulator.payToPublicKeyHash w1 pk1 (lovelaceValueOf 100_000_000)
   txStatus <- Simulator.waitForTxStatusChange (txId tx)
   assertEqual "tx should be tentatively confirmed of depth 1"
               (TentativelyConfirmed 1 TxValid ())
@@ -185,7 +185,7 @@ waitForTxStatusChangeTest = runScenario $ do
 
   -- We create a new transaction to trigger a block creation in order to
   -- increment the block number.
-  void $ Simulator.payToPublicKey w1 pk1 (lovelaceValueOf 1_000_000)
+  void $ Simulator.payToPublicKeyHash w1 pk1 (lovelaceValueOf 1_000_000)
   Simulator.waitNSlots 1
   txStatus' <- Simulator.waitForTxStatusChange (txId tx)
   assertEqual "tx should be tentatively confirmed of depth 2"
@@ -195,7 +195,7 @@ waitForTxStatusChangeTest = runScenario $ do
   -- We create `n` more blocks to test whether the tx status is committed.
   let (Depth n) = chainConstant
   replicateM_ (n - 1) $ do
-    void $ Simulator.payToPublicKey w1 pk1 (lovelaceValueOf 1_000_000)
+    void $ Simulator.payToPublicKeyHash w1 pk1 (lovelaceValueOf 1_000_000)
     Simulator.waitNSlots 1
 
   txStatus'' <- Simulator.waitForTxStatusChange (txId tx)
@@ -213,12 +213,12 @@ waitForTxOutStatusChangeTest = runScenario $ do
   Simulator.waitNSlots 1
   (w2, pk2) <- Simulator.addWallet
   Simulator.waitNSlots 1
-  tx <- Simulator.payToPublicKey w1 pk2 (lovelaceValueOf 100_000_000)
+  tx <- Simulator.payToPublicKeyHash w1 pk2 (lovelaceValueOf 100_000_000)
   -- We should have 2 UTxOs present.
   -- We find the 'TxOutRef' from wallet 1
-  let txOutRef1 = head $ fmap snd $ filter (\(txOut, txOutref) -> toPubKeyHash (txOutAddress txOut) == Just (pubKeyHash pk1)) $ txOutRefs tx
+  let txOutRef1 = head $ fmap snd $ filter (\(txOut, txOutref) -> toPubKeyHash (txOutAddress txOut) == Just pk1) $ txOutRefs tx
   -- We find the 'TxOutRef' from wallet 2
-  let txOutRef2 = head $ fmap snd $ filter (\(txOut, txOutref) -> toPubKeyHash (txOutAddress txOut) == Just (pubKeyHash pk2)) $ txOutRefs tx
+  let txOutRef2 = head $ fmap snd $ filter (\(txOut, txOutref) -> toPubKeyHash (txOutAddress txOut) == Just pk2) $ txOutRefs tx
   txOutStatus1 <- Simulator.waitForTxOutStatusChange txOutRef1
   assertEqual "tx output 1 should be tentatively confirmed of depth 1"
               (TentativelyConfirmed 1 TxValid Unspent)
@@ -230,7 +230,7 @@ waitForTxOutStatusChangeTest = runScenario $ do
 
   -- We create a new transaction to trigger a block creation in order to
   -- increment the block number.
-  tx2 <- Simulator.payToPublicKey w1 pk1 (lovelaceValueOf 1_000_000)
+  tx2 <- Simulator.payToPublicKeyHash w1 pk1 (lovelaceValueOf 1_000_000)
   Simulator.waitNSlots 1
   txOutStatus1' <- Simulator.waitForTxOutStatusChange txOutRef1
   assertEqual "tx output 1 should be tentatively confirmed of depth 1"
@@ -244,7 +244,7 @@ waitForTxOutStatusChangeTest = runScenario $ do
   -- We create `n` more blocks to test whether the tx status is committed.
   let (Depth n) = chainConstant
   replicateM_ n $ do
-    void $ Simulator.payToPublicKey w1 pk1 (lovelaceValueOf 1_000_000)
+    void $ Simulator.payToPublicKeyHash w1 pk1 (lovelaceValueOf 1_000_000)
     Simulator.waitNSlots 1
 
   txOutStatus1'' <- Simulator.waitForTxOutStatusChange txOutRef1
