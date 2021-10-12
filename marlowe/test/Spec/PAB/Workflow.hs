@@ -45,6 +45,8 @@ import           Data.Aeson                          (decode)
 import           Data.ByteString.Builder             (toLazyByteString)
 import           Data.Default                        (def)
 import           Data.Text.Encoding                  (encodeUtf8Builder)
+import           Data.UUID                           (UUID)
+import qualified Data.UUID                           as UUID
 import           Plutus.Contract.Effects             (aeDescription)
 import           Plutus.PAB.App                      (StorageBackend (..))
 import           Plutus.PAB.Run                      (runWithOpts)
@@ -166,8 +168,8 @@ marloweCompanionFollowerContractExample = do
 
   pure ()
 
-createArgs :: PubKeyHash -> PubKeyHash -> (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
-createArgs investor issuer = (tokenNames, zcb) where
+createArgs :: PubKeyHash -> PubKeyHash -> (UUID, AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
+createArgs investor issuer = (UUID.nil, tokenNames, zcb) where
     tokenNames = AssocMap.fromList [("Lender", investor), ("Borrower", issuer)]
     issuerAcc = Role "Borrower"
     investorAcc = Role "Lender"
