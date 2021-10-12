@@ -34,7 +34,7 @@ data ChainIndexConfig = ChainIndexConfig
   , cicDbPath        :: String
   , cicPort          :: Int
   , cicNetworkId     :: NetworkId
-  , cicSecurityParam :: Int
+  , cicSecurityParam :: Int -- ^ The number of blocks after which a transaction cannot be rolled back anymore
   , cicSlotConfig    :: SlotConfig
   }
   deriving stock (Show, Eq, Generic)
