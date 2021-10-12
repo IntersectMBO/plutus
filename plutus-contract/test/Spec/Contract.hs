@@ -22,6 +22,7 @@ import           Control.Monad.Freer.Extras.Log (LogLevel (..))
 import qualified Control.Monad.Freer.Extras.Log as Log
 import           Data.Functor.Apply             ((.>))
 import qualified Data.Map                       as Map
+import           Data.Void
 import           Test.Tasty
 
 import           Ledger                         (Address, PubKey)
@@ -44,6 +45,7 @@ import           Prelude                        hiding (not)
 import qualified Wallet.Emulator                as EM
 import           Wallet.Emulator.Wallet         (walletAddress)
 
+import           Plutus.ChainIndex.Types
 import           Plutus.Contract.Effects        (ActiveEndpoint (..))
 
 tests :: TestTree
@@ -223,7 +225,7 @@ tests =
           in run "await change in tx out status"
             ( assertAccumState c tag ((==) expectedAccumState) "should be done"
             ) $ do
-              hdl <- activateContract w1 c tag
+              _ <- activateContract w1 c tag
               void (Trace.waitNSlots 2)
 
         , run "checkpoints"
