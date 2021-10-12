@@ -39,7 +39,6 @@ import qualified Ledger                      as Plutus
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Constraints          (mustPayToPubKey)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
-import           Ledger.Crypto               (PubKey (..))
 import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
