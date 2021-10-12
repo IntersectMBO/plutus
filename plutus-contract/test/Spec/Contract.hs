@@ -220,7 +220,7 @@ tests =
 
               expectedAccumState =
                 [ Committed TxValid Unspent
-                , Committed TxValid (Spent "39ad6c37cddb19023a90f124bad28ee40253932a3f5e03b838f728d472d33865")
+                , Committed TxValid (Spent "1c439c63459861e6698707f26a752b7222b3bc8af94c77146a07b571e49e141b")
                 ]
           in run "await change in tx out status"
             ( assertAccumState c tag ((==) expectedAccumState) "should be done"
