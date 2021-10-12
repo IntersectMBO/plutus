@@ -1144,9 +1144,7 @@ cek2ckFrame-·-lem : ∀{A B} f {M : ∅ ⊢ A ⇒ B}(W : Red.Value M)
   ∃ λ W' → f ≡ (W' ·-) × ∃ λ (p : M ≡ discharge W') → substEq Red.Value p W ≡ cek2ckVal W'
 cek2ckFrame-·-lem (x ·-) .(cek2ckVal x) refl = _ ,, refl ,, refl ,, refl
 
-cek2ckFrame--·lem : ∀{A B} f {M : ∅ ⊢ A ⇒ B}
-  → Red.-· M ≡ cek2ckFrame f → f ≡ (-· M [])
-cek2ckFrame--·lem (x ·-) refl = _ ,, refl
+postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} → (Red.-· M) ≡ cek2ckFrame f → ∃ λ Γ → ∃ λ (M' : Γ ⊢ A) → ∃ λ (ρ : Env Γ) → f ≡ (-· M' ρ) × M ≡ cek2ckClos M' ρ
 
 
 -- this is intended to be a catchall for recursive calls
@@ -1211,10 +1209,13 @@ thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
   rewrite cek2ckStack-εlem s' r
   with CK.lem□ _ _ x
 ... | refl ,, refl = _ ,, step* refl base ,, refl ,, refl
-thm65bV {s = s CK., (Red.-· x₁)} {W = W} {s' = s'} p q r (CK.step* refl x)
+thm65bV {s = s CK., (Red.-· x₁)} {W = W} {s' = s'} refl refl r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
 ... | _ ,, _ ,, refl ,, refl ,, z1
-  = _ ,, {!!} ,, {!!} ,, {!!}
+  with cek2ckFrame--·lem _ z1
+... | Γ ,, M' ,, ρ ,, refl ,, z2
+  with thm65b z2 refl x
+... | _ ,, x' ,, refl ,, refl = _ ,, step* refl x' ,, refl ,, refl
 thm65bV {s = s CK., (x₁ Red.·-)} {W = W} {s' = s'} p q r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
 ... | _ ,, _ ,, refl ,, refl ,, z1
