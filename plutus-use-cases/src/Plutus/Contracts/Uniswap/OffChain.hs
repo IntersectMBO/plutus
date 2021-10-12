@@ -28,7 +28,7 @@ module Plutus.Contracts.Uniswap.OffChain
     , start, create, add, remove, close, swap, pools
     , ownerEndpoint, userEndpoints
     , uniswapScript, uniswap, uniswapInstance
-    , poolStateCoin, liquidityCurrency
+    , poolStateCoin, liquidityCurrency, liquidityPolicy
     ) where
 
 import           Control.Lens                     (view)
@@ -86,7 +86,7 @@ data UserContractState =
 
 uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
-poolStateTokenName = "Pool State"
+poolStateTokenName = "PoolState"
 
 uniswapInstance :: Uniswap -> Scripts.TypedValidator Uniswapping
 uniswapInstance us = Scripts.mkTypedValidator @Uniswapping

@@ -93,7 +93,10 @@ checkSwap oldA' oldB' newA' newB' =
 -- tokens it exchanges. This should be such that looking for a pool exchanging
 -- any two tokens always yields a unique name.
 lpTicker :: LiquidityPool -> TokenName
-lpTicker LiquidityPool{..}  = TokenName hash
+lpTicker LiquidityPool{..}  =
+  -- TODO: Ensure this is unique according to their currency symbols
+  TokenName $ unTokenName y1 <> unTokenName y2 <> unTokenName y1 <> unTokenName y2
+
     where
       cA@(csA, tokA) = unAssetClass (unCoin lpCoinA)
       cB@(csB, tokB) = unAssetClass (unCoin lpCoinB)
@@ -101,8 +104,8 @@ lpTicker LiquidityPool{..}  = TokenName hash
         | cA < cB   = ((csA, tokA), (csB, tokB))
         | otherwise = ((csB, tokB), (csA, tokA))
 
-      h1   = sha2_256 $ unTokenName y1
-      h2   = sha2_256 $ unTokenName y2
-      h3   = sha2_256 $ unCurrencySymbol x1
-      h4   = sha2_256 $ unCurrencySymbol x2
-      hash = sha2_256 $ h1 <> h2 <> h3 <> h4
+--       h1   = sha2_256 $ unTokenName y1
+--       h2   = sha2_256 $ unTokenName y2
+--       h3   = sha2_256 $ unCurrencySymbol x1
+--       h4   = sha2_256 $ unCurrencySymbol x2
+--       hash = sha2_256 $ h1 <> h2 <> h3 <> h4
