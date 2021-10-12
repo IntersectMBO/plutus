@@ -38,11 +38,11 @@ import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
 import Data.Either (Either)
 import Data.Json.JsonTuple (JsonTuple)
-import Data.Lens (Lens', Traversal', _Right)
+import Data.Lens (Lens', Traversal', _Right, lens, preview)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Symbol (SProxy(..))
 import Editor.Types (State) as Editor
 import Gist (Gist)
@@ -91,12 +91,18 @@ _lastEvaluatedSimulation :: Lens' State (Maybe Simulation)
 _lastEvaluatedSimulation = _Newtype <<< prop (SProxy :: SProxy "lastEvaluatedSimulation")
 
 _compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
-_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
+_compilationResult = _Newtype <<< lens g s
+  where
+  g r = r.compilationResult
+
+  s r c = case preview (_Success <<< _Right <<< _InterpreterResult <<< _result) c of
+    Just cr -> r { compilationResult = c, lastSuccessfulCompilationResult = Just cr }
+    Nothing -> r { compilationResult = c }
 
 _successfulCompilationResult :: Traversal' State CompilationResult
 _successfulCompilationResult = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result
 
-_lastSuccessfulCompilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+_lastSuccessfulCompilationResult :: Lens' State (Maybe CompilationResult)
 _lastSuccessfulCompilationResult = _Newtype <<< prop (SProxy :: SProxy "lastSuccessfulCompilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)

@@ -30,7 +30,7 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
-import Data.Lens (Traversal', _Right, assign, modifying, over, to, traversed, use, view)
+import Data.Lens (_Just, assign, modifying, over, to, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, lastOf, preview)
 import Data.Lens.Index (ix)
@@ -54,10 +54,10 @@ import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _lastSuccessfulCompilationResult, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), SourceCode(..))
+import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _knownCurrencies, _lastEvaluatedSimulation, _lastSuccessfulCompilationResult, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
 import MainFrame.MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, postGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
-import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData)
+import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..))
 import MainFrame.View (render)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
@@ -104,7 +104,7 @@ mkInitialState editorState = do
         , contractDemos
         , currentDemoName: Nothing
         , compilationResult: NotAsked
-        , lastSuccessfulCompilationResult: NotAsked
+        , lastSuccessfulCompilationResult: Nothing
         , simulations: Cursor.empty
         , actionDrag: Nothing
         , evaluationResult: NotAsked
@@ -257,7 +257,6 @@ handleAction (LoadScript key) = do
       assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
       assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
-      assign _lastSuccessfulCompilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
       assign _createGistResult NotAsked
 
@@ -345,7 +344,6 @@ handleAction CompileProgram = do
           when (isSuccess newCompilationResult) do
             assign (_editorState <<< _lastCompiledCode) (Just contents)
             assign (_editorState <<< _currentCodeIsCompiled) true
-            assign _lastSuccessfulCompilationResult newCompilationResult
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
@@ -359,13 +357,13 @@ handleAction CompileProgram = do
       -- let's at least be correct.
       newSuccessfulCompilationResult <- use _lastSuccessfulCompilationResult
       let
-        oldSignatures = preview (_details <<< _functionSchema) oldSuccessfulCompilationResult
+        oldSignatures = preview (_Just <<< _functionSchema) oldSuccessfulCompilationResult
 
-        newSignatures = preview (_details <<< _functionSchema) newSuccessfulCompilationResult
+        newSignatures = preview (_Just <<< _functionSchema) newSuccessfulCompilationResult
 
-        oldCurrencies = preview (_details <<< _knownCurrencies) oldSuccessfulCompilationResult
+        oldCurrencies = preview (_Just <<< _knownCurrencies) oldSuccessfulCompilationResult
 
-        newCurrencies = preview (_details <<< _knownCurrencies) newSuccessfulCompilationResult
+        newCurrencies = preview (_Just <<< _knownCurrencies) newSuccessfulCompilationResult
       unless
         ( oldSignatures == newSignatures
             && oldCurrencies
@@ -394,9 +392,6 @@ handleSimulationAction initialValue (PopulateAction n event) = do
         <<< _argument
     )
     $ handleFormEvent initialValue event
-
-_details :: forall a. Traversal' (WebData (Either InterpreterError (InterpreterResult a))) a
-_details = _Success <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
 handleGistAction PublishOrUpdateGist = do
