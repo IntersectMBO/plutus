@@ -96,7 +96,7 @@ loadFlat file = do
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
 mkCekBM :: Term -> Benchmarkable
-mkCekBM program = nf (UPLC.unsafeEvaluateCek UPLC.noEmitter PLC.defaultCekParameters) program
+mkCekBM program = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) program
 
 mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =

@@ -41,6 +41,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , noEmitter
     , logEmitter
     , logWithTimeEmitter
+    , logWithBudgetEmitter
     -- * Misc
     , CekValue(..)
     , readKnownCek

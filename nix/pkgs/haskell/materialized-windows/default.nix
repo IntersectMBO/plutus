@@ -1309,6 +1309,7 @@
           "syb".components.library.planned = lib.mkOverride 900 true;
           "transformers".components.library.planned = lib.mkOverride 900 true;
           "monad-logger".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."traceToStacks".planned = lib.mkOverride 900 true;
           "partial-order".components.library.planned = lib.mkOverride 900 true;
           "readable".components.library.planned = lib.mkOverride 900 true;
           "digest".components.library.planned = lib.mkOverride 900 true;
@@ -1678,10 +1679,10 @@
           "servant-subscriber".components.exes."subscriber-psGenerator".planned = lib.mkOverride 900 true;
           "persistent-sqlite".components.library.planned = lib.mkOverride 900 true;
           "ordered-containers".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.benchmarks."cek-calibration".planned = lib.mkOverride 900 true;
           "finite-typelits".components.library.planned = lib.mkOverride 900 true;
           "quickcheck-arbitrary-adt".components.library.planned = lib.mkOverride 900 true;
           "connection".components.library.planned = lib.mkOverride 900 true;
-          "plutus-tx-plugin".components.exes."logToStacks".planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
           "generic-lens-core".components.library.planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.tests."test2".planned = lib.mkOverride 900 true;
