@@ -1013,6 +1013,8 @@ postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (
 
 postulate dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _) ρ V → (s CK.▻ (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ])) ≡ (s CK.▻ cek2ckClos M (ρ ∷ V))
 
+postulate dischargeBody-lem' : ∀{B}{Γ}{C}(M : Γ , C ⊢ B) ρ V → (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ]) ≡ cek2ckClos M (ρ ∷ V)
+
 postulate discharge-lem : ∀{A}(V : Value A) → Red.deval (cek2ckVal V) ≡ discharge V
 
 postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
@@ -1130,6 +1132,23 @@ cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ 
 cek2ckStack-εlem ε       p = refl
 cek2ckStack-εlem (s , f) ()
 
+cek2ckStack-,lem : ∀{A B C}(s : CK.Stack A B)(s' : Stack A C)(f : Red.Frame B C)
+  → s CK., f ≡ cek2ckStack s' →
+  ∃ λ (s'' : Stack A B) → ∃ λ (f' : Frame B C) → s' ≡ (s'' Stack., f')
+  × s ≡ cek2ckStack s'' × f ≡ cek2ckFrame f'
+cek2ckStack-,lem _ (s' , f) _ refl =
+  _ ,, _ ,, refl ,, refl ,, refl
+
+cek2ckFrame-·-lem : ∀{A B} f {M : ∅ ⊢ A ⇒ B}(W : Red.Value M)
+  → W Red.·- ≡ cek2ckFrame f →
+  ∃ λ W' → f ≡ (W' ·-) × ∃ λ (p : M ≡ discharge W') → substEq Red.Value p W ≡ cek2ckVal W'
+cek2ckFrame-·-lem (x ·-) .(cek2ckVal x) refl = _ ,, refl ,, refl ,, refl
+
+cek2ckFrame--·lem : ∀{A B} f {M : ∅ ⊢ A ⇒ B}
+  → Red.-· M ≡ cek2ckFrame f → f ≡ (-· M [])
+cek2ckFrame--·lem (x ·-) refl = _ ,, refl
+
+
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
   → ∃ λ V' → ck2cekState s -→s □ V' × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V 
@@ -1192,7 +1211,21 @@ thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
   rewrite cek2ckStack-εlem s' r
   with CK.lem□ _ _ x
 ... | refl ,, refl = _ ,, step* refl base ,, refl ,, refl
-thm65bV {s = s CK., f} {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
+thm65bV {s = s CK., (Red.-· x₁)} {W = W} {s' = s'} p q r (CK.step* refl x)
+  with cek2ckStack-,lem _ _ _ r
+... | _ ,, _ ,, refl ,, refl ,, z1
+  = _ ,, {!!} ,, {!!} ,, {!!}
+thm65bV {s = s CK., (x₁ Red.·-)} {W = W} {s' = s'} p q r (CK.step* refl x)
+  with cek2ckStack-,lem _ _ _ r
+... | _ ,, _ ,, refl ,, refl ,, z1
+  with cek2ckFrame-·-lem _ _ z1
+thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-ƛ M x₁)) Red.·-)} {W = W} {_} {.(fst , (V-ƛ M x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-ƛ M x₁ ·-) ,, refl ,, refl ,, z1 | V-ƛ M x₁ ,, refl ,, refl ,, refl
+  with thm65b (dischargeBody-lem' M x₁ _) refl x
+... | V'' ,, x' ,, refl ,, refl = _ ,, step* refl x' ,, refl ,, refl
+thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b p₁ x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b p₁ x₁ ·-))} p q r (CK.step* refl x) | fst ,, .(V-I⇒ b p₁ x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b p₁ x₁ ,, refl ,, refl ,, refl = _ ,, {!!} ,, {!!} ,, {!!}
+thm65bV {s = s CK., Red.-·⋆ A} {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
+thm65bV {s = s CK., Red.wrap- } {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
+thm65bV {s = s CK., Red.unwrap- } {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
 
 -- this a catch all for making recursive calls
 -- this version of thm64 splits the proof into separate parts
