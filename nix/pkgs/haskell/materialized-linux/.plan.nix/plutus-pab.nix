@@ -144,6 +144,7 @@
           "Cardano/Node/Types"
           "Cardano/Protocol/Socket/Mock/Client"
           "Cardano/Protocol/Socket/Mock/Server"
+          "Cardano/Wallet/Client"
           "Cardano/Wallet/Mock/API"
           "Cardano/Wallet/Mock/Client"
           "Cardano/Wallet/Mock/Handlers"
