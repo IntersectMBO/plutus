@@ -1,18 +1,15 @@
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE ImpredicativeTypes   #-}
 {-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 {-# options_ghc -Wno-missing-signatures #-}
@@ -30,15 +27,27 @@ database schema for the data which we wish to store:
 
 module Plutus.ChainIndex.DbSchema where
 
-import           Data.ByteString        (ByteString)
-import           Data.Kind              (Constraint)
-import           Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import           Data.Word              (Word64)
-import           Database.Beam          (Beamable, Columnar, Database, DatabaseSettings, Generic, Identity, Table (..),
-                                         TableEntity, dbModification, withDbModification)
-import           Database.Beam.Migrate  (CheckedDatabaseSettings, defaultMigratableDbSettings, renameCheckedEntity,
-                                         unCheckDatabase)
-import           Database.Beam.Sqlite   (Sqlite)
+import           Codec.Serialise            (Serialise, deserialiseOrFail, serialise)
+import           Data.ByteString            (ByteString)
+import qualified Data.ByteString.Lazy       as BSL
+import           Data.Coerce                (coerce)
+import           Data.Either                (fromRight)
+import           Data.Kind                  (Constraint)
+import           Data.Semigroup.Generic     (GenericSemigroupMonoid (..))
+import           Data.Word                  (Word64)
+import           Database.Beam              (Beamable, Columnar, Database, DatabaseSettings, FromBackendRow, Generic,
+                                             Identity, Table (..), TableEntity, dbModification, withDbModification)
+import           Database.Beam.Migrate      (CheckedDatabaseSettings, defaultMigratableDbSettings, renameCheckedEntity,
+                                             unCheckDatabase)
+import           Database.Beam.Sqlite       (Sqlite)
+import           Ledger                     (BlockId (..), Datum, DatumHash (..), MintingPolicy, MintingPolicyHash (..),
+                                             Redeemer, RedeemerHash (..), Script, ScriptHash (..), Slot, StakeValidator,
+                                             StakeValidatorHash (..), TxId (..), TxOutRef (..), Validator,
+                                             ValidatorHash (..))
+import           Plutus.ChainIndex.Tx       (ChainIndexTx)
+import           Plutus.ChainIndex.Types    (BlockNumber (..), Tip (..))
+import           Plutus.V1.Ledger.Api       (Credential)
+import           PlutusTx.Builtins.Internal (BuiltinByteString (..))
 
 data DatumRowT f = DatumRow
     { _datumRowHash  :: Columnar f ByteString
@@ -87,7 +96,7 @@ instance Table AddressRowT where
     primaryKey (AddressRow c o) = AddressRowId c o
 
 data TipRowT f = TipRow
-    { _tipRowSlot        :: Columnar f Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
+    { _tipRowSlot        :: Columnar f Word64
     , _tipRowBlockId     :: Columnar f ByteString
     , _tipRowBlockNumber :: Columnar f Word64
     } deriving (Generic, Beamable)
@@ -166,3 +175,86 @@ checkedSqliteDb = defaultMigratableDbSettings
     , unspentOutputRows  = renameCheckedEntity (const "unspent_outputs")
     , unmatchedInputRows = renameCheckedEntity (const "unmatched_inputs")
     }
+
+-- | Instances of @HasDbType@ can be converted to types that can be stored in the database.
+-- `toDbValue` and `fromDbValue` must be inverses of each other.
+class FromBackendRow Sqlite (DbType a) => HasDbType a where
+    type DbType a
+    toDbValue :: a -> DbType a
+    fromDbValue :: DbType a -> a
+
+instance HasDbType ByteString where
+    type DbType ByteString = ByteString
+    toDbValue = id
+    fromDbValue = id
+
+deriving via ByteString instance HasDbType DatumHash
+deriving via ByteString instance HasDbType ValidatorHash
+deriving via ByteString instance HasDbType MintingPolicyHash
+deriving via ByteString instance HasDbType RedeemerHash
+deriving via ByteString instance HasDbType StakeValidatorHash
+deriving via ByteString instance HasDbType TxId
+deriving via ByteString instance HasDbType BlockId
+deriving via ByteString instance HasDbType ScriptHash
+
+newtype Serialisable a = Serialisable { getSerialisable :: a }
+instance Serialise a => HasDbType (Serialisable a) where
+    type DbType (Serialisable a) = ByteString
+    fromDbValue
+        = Serialisable
+        . fromRight (error "Deserialisation failed. Delete your chain index database and resync.")
+        . deserialiseOrFail
+        . BSL.fromStrict
+    toDbValue = BSL.toStrict . serialise . getSerialisable
+
+deriving via Serialisable Datum instance HasDbType Datum
+deriving via Serialisable MintingPolicy instance HasDbType MintingPolicy
+deriving via Serialisable Redeemer instance HasDbType Redeemer
+deriving via Serialisable StakeValidator instance HasDbType StakeValidator
+deriving via Serialisable Validator instance HasDbType Validator
+deriving via Serialisable ChainIndexTx instance HasDbType ChainIndexTx
+deriving via Serialisable TxOutRef instance HasDbType TxOutRef
+deriving via Serialisable Credential instance HasDbType Credential
+deriving via Serialisable Script instance HasDbType Script
+
+instance HasDbType Slot where
+    type DbType Slot = Word64 -- In Plutus Slot is Integer, but in the Cardano API it is Word64, so this is safe
+    toDbValue = fromIntegral
+    fromDbValue = fromIntegral
+
+instance HasDbType BlockNumber where
+    type DbType BlockNumber = Word64
+    toDbValue = coerce
+    fromDbValue = coerce
+
+instance HasDbType Tip where
+    type DbType Tip = Maybe TipRow
+    toDbValue TipAtGenesis   = Nothing
+    toDbValue (Tip sl bi bn) = Just (TipRow (toDbValue sl) (toDbValue bi) (toDbValue bn))
+    fromDbValue Nothing                  = TipAtGenesis
+    fromDbValue (Just (TipRow sl bi bn)) = Tip (fromDbValue sl) (fromDbValue bi) (fromDbValue bn)
+
+instance HasDbType (DatumHash, Datum) where
+    type DbType (DatumHash, Datum) = DatumRow
+    toDbValue (hash, datum) = DatumRow (toDbValue hash) (toDbValue datum)
+    fromDbValue (DatumRow hash datum) = (fromDbValue hash, fromDbValue datum)
+
+instance HasDbType (ScriptHash, Script) where
+    type DbType (ScriptHash, Script) = ScriptRow
+    toDbValue (hash, script) = ScriptRow (toDbValue hash) (toDbValue script)
+    fromDbValue (ScriptRow hash script) = (fromDbValue hash, fromDbValue script)
+
+instance HasDbType (RedeemerHash, Redeemer) where
+    type DbType (RedeemerHash, Redeemer) = ScriptRow
+    toDbValue (hash, script) = ScriptRow (toDbValue hash) (toDbValue script)
+    fromDbValue (ScriptRow hash script) = (fromDbValue hash, fromDbValue script)
+
+instance HasDbType (TxId, ChainIndexTx) where
+    type DbType (TxId, ChainIndexTx) = TxRow
+    toDbValue (txId, tx) = TxRow (toDbValue txId) (toDbValue tx)
+    fromDbValue (TxRow txId tx) = (fromDbValue txId, fromDbValue tx)
+
+instance HasDbType (Credential, TxOutRef) where
+    type DbType (Credential, TxOutRef) = AddressRow
+    toDbValue (cred, outRef) = AddressRow (toDbValue cred) (toDbValue outRef)
+    fromDbValue (AddressRow cred outRef) = (fromDbValue cred, fromDbValue outRef)

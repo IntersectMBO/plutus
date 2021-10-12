@@ -19,24 +19,24 @@ module Plutus.ChainIndex.Client(
     , collectGarbage
     ) where
 
-import           Control.Monad.Freer          (Eff, LastMember, Member, sendM, type (~>))
-import           Control.Monad.Freer.Error    (Error, throwError)
-import           Control.Monad.Freer.Reader   (Reader, ask)
-import           Control.Monad.IO.Class       (MonadIO (..))
-import           Data.Proxy                   (Proxy (..))
-import           Ledger                       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer,
-                                               RedeemerHash, StakeValidator, StakeValidatorHash, TxId, Validator,
-                                               ValidatorHash)
-import           Ledger.Credential            (Credential)
-import           Ledger.Tx                    (ChainIndexTxOut, TxOutRef)
-import           Network.HTTP.Types.Status    (Status (..))
-import           Plutus.ChainIndex.Api        (API)
-import           Plutus.ChainIndex.Effects    (ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Tx         (ChainIndexTx)
-import           Plutus.ChainIndex.Types      (Page, Tip)
-import           Servant                      (NoContent, (:<|>) (..))
-import           Servant.Client               (ClientEnv, ClientError (..), ClientM, client, runClientM)
-import           Servant.Client.Core.Response (ResponseF (..))
+import           Control.Monad.Freer                   (Eff, LastMember, Member, sendM, type (~>))
+import           Control.Monad.Freer.Error             (Error, throwError)
+import           Control.Monad.Freer.Extras.Pagination (Page)
+import           Control.Monad.Freer.Reader            (Reader, ask)
+import           Control.Monad.IO.Class                (MonadIO (..))
+import           Data.Proxy                            (Proxy (..))
+import           Ledger                                (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer,
+                                                        RedeemerHash, StakeValidator, StakeValidatorHash, TxId,
+                                                        Validator, ValidatorHash)
+import           Ledger.Tx                             (ChainIndexTxOut, TxOutRef)
+import           Network.HTTP.Types.Status             (Status (..))
+import           Plutus.ChainIndex.Api                 (API, UtxoAtAddressRequest (UtxoAtAddressRequest))
+import           Plutus.ChainIndex.Effects             (ChainIndexQueryEffect (..))
+import           Plutus.ChainIndex.Tx                  (ChainIndexTx)
+import           Plutus.ChainIndex.Types               (Tip)
+import           Servant                               (NoContent, (:<|>) (..))
+import           Servant.Client                        (ClientEnv, ClientError (..), ClientM, client, runClientM)
+import           Servant.Client.Core.Response          (ResponseF (..))
 
 healthCheck :: ClientM NoContent
 collectGarbage :: ClientM NoContent
@@ -51,7 +51,7 @@ getRedeemer :: RedeemerHash -> ClientM Redeemer
 getTxOut :: TxOutRef -> ClientM ChainIndexTxOut
 getTx :: TxId -> ClientM ChainIndexTx
 getIsUtxo :: TxOutRef -> ClientM (Tip, Bool)
-getUtxoAtAddress :: Credential -> ClientM (Tip, Page TxOutRef)
+getUtxoAtAddress :: UtxoAtAddressRequest -> ClientM (Tip, Page TxOutRef)
 getTip :: ClientM Tip
 
 (healthCheck, (getDatum, getValidator, getMintingPolicy, getStakeValidator, getRedeemer), getTxOut, getTx, getIsUtxo, getUtxoAtAddress, getTip, collectGarbage) =
@@ -100,5 +100,5 @@ handleChainIndexClient event = do
         TxOutFromRef r           -> runClientMaybe (getTxOut r)
         TxFromTxId t             -> runClientMaybe (getTx t)
         UtxoSetMembership r      -> runClient (getIsUtxo r)
-        UtxoSetAtAddress a       -> runClient (getUtxoAtAddress a)
+        UtxoSetAtAddress pq a    -> runClient (getUtxoAtAddress $ UtxoAtAddressRequest (Just pq) a)
         GetTip                   -> runClient getTip

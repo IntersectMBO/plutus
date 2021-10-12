@@ -578,7 +578,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     TxOutFromRef ref         -> ChainIndex.txOutFromRef ref
     TxFromTxId txid          -> ChainIndex.txFromTxId txid
     UtxoSetMembership ref    -> ChainIndex.utxoSetMembership ref
-    UtxoSetAtAddress addr    -> ChainIndex.utxoSetAtAddress addr
+    UtxoSetAtAddress pq addr -> ChainIndex.utxoSetAtAddress pq addr
     GetTip                   -> ChainIndex.getTip
 
 -- | Start a thread that prints log messages to the terminal when they come in.

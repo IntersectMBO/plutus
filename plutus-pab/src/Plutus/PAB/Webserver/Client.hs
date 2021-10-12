@@ -13,6 +13,7 @@ import qualified Data.Aeson                 as JSON
 import           Data.Proxy
 import           Data.Text                  (Text)
 import           Plutus.PAB.Events.Contract
+import           Plutus.PAB.Instances       ()
 import           Plutus.PAB.Webserver.API
 import           Plutus.PAB.Webserver.Types
 import           Servant.API
@@ -26,7 +27,7 @@ data PabClient t walletId = PabClient
       -- ^ call fullreport method
   , activateContract :: ContractActivationArgs t -> ClientM ContractInstanceId
       -- ^ call activate contract method
-  , instanceClient   :: Text -> InstanceClient t
+  , instanceClient   :: ContractInstanceId -> InstanceClient t
       -- ^ call methods for instance client. We should turn @ContractInstanceId@ to @Text@ for the first argument.
   , getWallet        :: walletId -> Maybe Text -> ClientM [ContractInstanceClientState t]
       -- ^ get wallet instances

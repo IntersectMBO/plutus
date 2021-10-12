@@ -51,7 +51,6 @@
           (hsPkgs."http-conduit" or (errorHandler.buildDepError "http-conduit"))
           (hsPkgs."jwt" or (errorHandler.buildDepError "jwt"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))

@@ -26,7 +26,7 @@ module Plutus.PAB.Webserver.Handler
 import qualified Cardano.Wallet.Mock.Client              as Wallet.Client
 import           Cardano.Wallet.Mock.Types               (WalletInfo (..))
 import           Control.Lens                            (preview)
-import           Control.Monad                           (join, (>=>))
+import           Control.Monad                           (join)
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
@@ -37,7 +37,6 @@ import           Data.Maybe                              (fromMaybe, mapMaybe)
 import           Data.OpenApi.Schema                     (ToSchema)
 import           Data.Proxy                              (Proxy (..))
 import           Data.Text                               (Text)
-import qualified Data.UUID                               as UUID
 import           Ledger                                  (Value, pubKeyHash)
 import           Ledger.Constraints.OffChain             (UnbalancedTx)
 import           Ledger.Tx                               (Tx)
@@ -79,18 +78,12 @@ getFullReport = do
     contractReport <- getContractReport @t
     pure FullReport {contractReport, chainReport = emptyChainReport}
 
-contractSchema :: forall t env. Contract.PABContract t => Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
-contractSchema = parseContractId @t @env >=> \contractId -> do
+contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+contractSchema contractId = do
     def <- Contract.getDefinition @t contractId
     case def of
         Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID
         Nothing                           -> throwError (ContractInstanceNotFound contractId)
-
-parseContractId :: Text -> PABAction t env ContractInstanceId
-parseContractId t =
-    case UUID.fromText t of
-        Just uuid -> pure $ ContractInstanceId uuid
-        Nothing   -> throwError $ InvalidUUIDError t
 
 -- | Handler for the API
 apiHandler ::
@@ -99,7 +92,7 @@ apiHandler ::
        PABAction t env ()
        :<|> PABAction t env (FullReport (Contract.ContractDef t))
        :<|> (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
-              :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
+              :<|> (ContractInstanceId -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
                                           :<|> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
                                           :<|> (String -> JSON.Value -> PABAction t env ())
                                           :<|> PABAction t env ()
@@ -112,7 +105,7 @@ apiHandler =
         healthcheck
         :<|> getFullReport
         :<|> activateContract
-              :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> contractSchema x :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
+              :<|> (\cid -> (contractInstanceState cid) :<|> contractSchema cid :<|> (\y z -> callEndpoint cid y z) :<|> (shutdown cid))
               :<|> instancesForWallets
               :<|> allInstanceStates
               :<|> availableContracts

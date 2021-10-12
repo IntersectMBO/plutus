@@ -54,6 +54,7 @@
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+          (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
@@ -85,6 +86,7 @@
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
+            (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [ "MarloweContract" ];
@@ -167,6 +169,7 @@
             (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
             (hsPkgs."network" or (errorHandler.buildDepError "network"))
             (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
+            (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
             ];
           buildable = true;
           modules = [

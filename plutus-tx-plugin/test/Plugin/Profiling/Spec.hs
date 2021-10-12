@@ -37,10 +37,10 @@ import           System.IO                 (IOMode (WriteMode), withFile)
 
 profiling :: TestNested
 profiling = testNested "Profiling" [
-  goldenUEvalProfile "fib" [toUPlc fibTest]
+  goldenPir "fib" fibTest
   , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalProfile "addInt" [toUPlc addIntTest]
+  , goldenPir "addInt" addIntTest
   , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]

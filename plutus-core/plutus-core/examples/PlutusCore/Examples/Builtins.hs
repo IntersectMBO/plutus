@@ -130,8 +130,9 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
+    type ToBinds (PlcListRep a) = ToBinds a
+
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (PlcListRep a) = ToBinds a
 
 instance KnownTypeAst uni Void where
     toTypeAst _ = runQuote $ do
@@ -140,7 +141,6 @@ instance KnownTypeAst uni Void where
 instance KnownType term Void where
     makeKnown _ = absurd
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
-type instance ToBinds Void = '[]
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
