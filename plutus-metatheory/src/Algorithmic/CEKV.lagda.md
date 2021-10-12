@@ -1087,7 +1087,7 @@ postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{�
 
 postulate cek2ckClos-Λlem : ∀{K B}{L : ∅ ,⋆ K ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ Π B} → (p : Λ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ Λ L' × L ≡ dischargeBody⋆ L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : Λ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-Λ L) ≡ cek2ckVal (lookup x ρ)
 
-postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}{N : Γ ⊢ μ A B} → (p : wrap A B L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ wrap A B L' × L ≡ cek2ckClos L' ρ) ⊎ ∃ λ x → N ≡ ` x × wrap A B L ≡ discharge (lookup x ρ)
+postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}{N : Γ ⊢ μ A B} → (p : wrap A B L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ wrap A B L' × L ≡ cek2ckClos L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ V → ∃ λ (q : V-wrap V ≡ lookup x ρ) → discharge V ≡ L × substEq Red.Value (cong discharge q) (Red.V-wrap (cek2ckVal V)) ≡ cek2ckVal (lookup x ρ)
 
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
@@ -1129,6 +1129,14 @@ substLem : {A : Set}(P : A → Set){a a' : A}(p q : a ≡ a')(x : P a) →
   substEq P p x ≡ substEq P q x
 substLem P refl refl x = refl
 
+postulate fast-forward : ∀{A B}(s : CK.Stack A B)(s' : CK.State A)(M : ∅ ⊢ B)
+                 → (V : Red.Value M)
+                 → (s CK.▻ M) CK.-→s s' → (s CK.◅ V) CK.-→s s'
+
+{-# TERMINATING #-}
+-- this is needed as in the wrap case we fast-forward the CK machine state
+-- and recurse on something which is quite a bit shorter
+
 thm65b : ∀{A B}{L : ∅ ⊢ A}{Γ M}{s : CK.Stack A B}{V : Red.Value L}
   {M'}{ρ : Env Γ}{s'}
   → M ≡ cek2ckClos M' ρ
@@ -1159,8 +1167,8 @@ thm65b {M = M ·⋆ A} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
 ... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
 thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-wraplem {ρ = ρ}{N = N} p
-thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p refl r | inj₂ (x ,, refl ,, y') with thm65b refl refl r
-... | V ,, r' ,, z ,, z' = V ,, step* refl {!A!} ,, z ,, z'
+thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p refl r | inj₂ (x ,, refl ,, W ,, y1 ,, refl ,, y3) with thm65bV (cong discharge y1) y3 refl (fast-forward _ _ _ (cek2ckVal (V-wrap W)) r)
+... | V ,, r' ,, z ,, z' = V ,, step* refl r' ,, z ,, z'
 thm65b {Γ = _} {wrap _ _ .(cek2ckClos V ρ)} {s = s} {M' = .(wrap _ _ V)} {ρ} {s' = s'} refl refl (CK.step* refl r) | inj₁ (V ,, refl ,, y) with thm65b refl refl r
 ... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
 
