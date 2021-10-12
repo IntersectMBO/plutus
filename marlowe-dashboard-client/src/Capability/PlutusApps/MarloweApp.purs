@@ -20,7 +20,6 @@ import Capability.Contract (class ManageContract)
 import Capability.Contract (invokeEndpoint) as Contract
 import Capability.PlutusApps.MarloweApp.Lenses (_applyInputs, _create, _marloweAppEndpointMutex, _redeem, _requests)
 import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, LastResult(..), MarloweAppEndpointMutexEnv)
-import Contacts.Types (PubKeyHash)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (findMap, take, (:))
 import Data.Foldable (elem)
