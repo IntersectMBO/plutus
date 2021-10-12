@@ -8,7 +8,8 @@
 
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
-import           Data.Aeson.Types (FromJSON, ToJSON)
+import           Control.Monad    (mzero)
+import           Data.Aeson.Types (FromJSON, ToJSON, Value (Object, String), object, parseJSON, toJSON, (.:), (.=))
 import           Data.Maybe       (fromMaybe)
 import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
@@ -50,7 +51,23 @@ data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
          | DCC_E30_360     -- ^ 30E/360
          | DCC_B_252       -- ^ Business / 252
          deriving stock (Show, Read, Eq, Generic)
-         deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON DCC where
+  toJSON DCC_A_AISDA     = String "AA"
+  toJSON DCC_A_360       = String "A360"
+  toJSON DCC_A_365       = String "A365"
+  toJSON DCC_E30_360ISDA = String "30E360ISDA"
+  toJSON DCC_E30_360     = String "30E360"
+  toJSON DCC_B_252       = String "B252"
+
+instance FromJSON DCC where
+  parseJSON (String "AA")         = return DCC_A_AISDA
+  parseJSON (String "A360")       = return DCC_A_360
+  parseJSON (String "A365")       = return DCC_A_365
+  parseJSON (String "30E360ISDA") = return DCC_E30_360ISDA
+  parseJSON (String "30E360")     = return DCC_E30_360
+  parseJSON (String "B252")       = return DCC_B_252
+  parseJSON _                     = mzero
 
 -- |EndOfMonthConvention
 data EOMC = EOMC_EOM -- ^ End of month
@@ -166,13 +183,37 @@ data Period = P_D -- ^ Day
             | P_H -- ^ Half year
             | P_Y -- ^ Year
             deriving stock (Show, Read, Eq, Ord, Generic)
-            deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON Period where
+  toJSON P_D = String "D"
+  toJSON P_W = String "W"
+  toJSON P_M = String "M"
+  toJSON P_Q = String "Q"
+  toJSON P_H = String "H"
+  toJSON P_Y = String "Y"
+
+instance FromJSON Period where
+  parseJSON (String "D") = return P_D
+  parseJSON (String "W") = return P_W
+  parseJSON (String "M") = return P_M
+  parseJSON (String "Q") = return P_Q
+  parseJSON (String "H") = return P_H
+  parseJSON (String "Y") = return P_Y
+  parseJSON _            = mzero
 
 -- |CycleStub
 data Stub = ShortStub -- ^ Short last stub
           | LongStub  -- ^ Long last stub
           deriving stock (Show, Eq, Ord, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON Stub where
+  toJSON ShortStub = String "0"
+  toJSON LongStub  = String "1"
+
+instance FromJSON Stub where
+  parseJSON (String "0") = return ShortStub
+  parseJSON (String "1") = return LongStub
+  parseJSON _            = mzero
 
 -- |Cycle
 data Cycle = Cycle
@@ -224,7 +265,11 @@ data ReferenceType = CNT
   deriving anyclass (FromJSON, ToJSON)
 
 -- |Reference role
-data ReferenceRole = UDL
+data ReferenceRole = UDL  -- ^ Underlying
+                   | FIL  -- ^ First Leg
+                   | SEL  -- ^ Second Leg
+                   | COVE -- ^ Convered Contract
+                   | COVI -- ^ Covering Contract
   deriving stock (Eq, Read, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -239,7 +284,25 @@ data ContractStructure = ContractStructure
   , referenceRole    :: ReferenceRole
   }
   deriving stock (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON ContractStructure where
+  toJSON (ContractStructure m t r) =
+    object
+      [ "object" .= object [ "marketObjectCode" .= toJSON m]
+      , "referenceType" .= toJSON t
+      , "referenceRole" .= toJSON r
+      ]
+
+instance FromJSON ContractStructure where
+  parseJSON (Object v) =
+    ContractStructure
+      <$> (v .: "object" >>= obj)
+      <*> v .: "referenceType"
+      <*> v .: "referenceRole"
+   where
+     obj (Object o) = o .: "marketObjectCode"
+     obj _          = fail "Error parsing ContractStructure"
+  parseJSON _ = mzero
 
 {-| ACTUS contract terms and attributes are defined in
     https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-terms.json
@@ -350,21 +413,6 @@ data ContractTermsPoly a b = ContractTermsPoly
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
-
-  {- TODO: SCP-2881
-
-instance FromJSON ContractTerms where
-  parseJSON (Object v) =
-    ContractTermsPoly
-      <$> v .:  "contractId"
-      <*> v .:  "contractType"
-      <*> v .:? "contractStructure"
-      <*> v .:  "contractRole"
-      <*> v .:? "settlementCurrency"
-      <*> v .:? "initialExchangeDate"
-      <*> v .:? "dayCountConvention"
-      ...
- -}
 
 type ContractTerms = ContractTermsPoly Double LocalTime
 type ContractTermsMarlowe = ContractTermsPoly (Marlowe.Value Marlowe.Observation) (Marlowe.Value Marlowe.Observation)
