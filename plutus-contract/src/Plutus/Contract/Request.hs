@@ -34,6 +34,8 @@ module Plutus.Contract.Request(
     , txOutFromRef
     , txFromTxId
     , utxoRefMembership
+    , utxoRefsAt
+    , utxoRefsWithCurrency
     , utxosAt
     , utxosTxOutTxAt
     , utxosTxOutTxFromTx
@@ -102,7 +104,7 @@ import           Data.Text.Extras            (tshow)
 import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
-import           Ledger                      (Address, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
+import           Ledger                      (Address, AssetClass, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
                                               MintingPolicyHash, POSIXTime, PubKey, Redeemer, RedeemerHash, Slot,
                                               StakeValidator, StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId),
                                               Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds,
@@ -353,6 +355,21 @@ utxoRefsAt pq addr = do
     E.UtxoSetAtResponse r -> pure r
     _ -> throwError $ review _OtherError
                     $ Text.pack "Could not request UtxoSetAtAddress from the chain index"
+
+-- | Get the unspent transaction output references with a specific currrency ('AssetClass').
+utxoRefsWithCurrency ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => PageQuery TxOutRef
+    -> AssetClass
+    -> Contract w s e (Tip, Page TxOutRef)
+utxoRefsWithCurrency pq assetClass = do
+  cir <- pabReq (ChainIndexQueryReq $ E.UtxoSetWithCurrency pq assetClass) E._ChainIndexQueryResp
+  case cir of
+    E.UtxoSetWithCurrencyResponse r -> pure r
+    _ -> throwError $ review _OtherError
+                    $ Text.pack "Could not request UtxoSetWithCurrency from the chain index"
 
 -- | Fold through each 'Page's of unspent 'TxOutRef's at a given 'Address', and
 -- accumulate the result.
