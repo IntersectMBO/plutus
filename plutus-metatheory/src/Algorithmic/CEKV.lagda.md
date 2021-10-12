@@ -1217,10 +1217,10 @@ thm65bV {s = s CK., Red.wrap- } {W = W} {s' = s'} p q r (CK.step* refl x)
 ... | s' ,, f' ,, refl ,, x2 ,, x3 = {!x3!}
 thm65bV {s = s CK., Red.unwrap- } {W = W} {s' = s'} p q r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
-thm65bV {M = _} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W} {W'} {.(s' , f')} p q r (CK.step* refl x) | s' ,, f' ,, refl ,, refl ,, x1
-  with thm65bV refl refl refl (fast-forward _ _ _ _ x)
+thm65bV {M = wrap _ _ M} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W} {W' = V-wrap W'} refl refl r (CK.step* refl x) | s' ,, f' ,, refl ,, refl ,, x3
+  with thm65bV refl refl refl (fast-forward (cek2ckStack s') (CK.□ _) (Red.deval (cek2ckVal W')) (cek2ckVal W') x)
 ... | _ ,, x' ,, _ ,, y1
-  with cek2ckFrame-unwrap-lem _ x1
+  with cek2ckFrame-unwrap-lem _ x3
 thm65bV {L = _} {.(wrap _ _ _)} {.(cek2ckStack s') CK., Red.unwrap- } {_} {Red.V-wrap W} {V-wrap W'} {.(s' , unwrap-)} p q r (CK.step* refl x) | s' ,, .unwrap- ,, refl ,, refl ,, x1 | _ ,, x' ,, _ ,, y1 | refl = _ ,, step* refl x' ,, _ ,, y1
 
 -- this a catch all for making recursive calls
