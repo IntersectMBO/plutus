@@ -125,6 +125,7 @@ test-suite marlowe-test-long-running
         websockets -any,
         network -any,
         openapi3 -any,
+        uuid -any,
 
 test-suite marlowe-test
     import: lang
