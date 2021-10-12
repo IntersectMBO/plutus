@@ -1,31 +1,22 @@
-= https://github.com/input-output-hk/plutus[The Plutus Platform and Marlowe]
+= https://github.com/input-output-hk/plutus[Plutus Core]
 :email: plutus@iohk.io
 :author: Input Output HK Limited
 :toc: left
 :reproducible:
 
-The Plutus Platform is an application development platform for developing distributed applications using the Cardano blockchain; and Marlowe is a platform specifically for financial products, built on top of Plutus.
+Plutus Core is the scripting language embedded in the Cardano ledger and forms the basis of the Plutus Platform, an application development platform for developing distributed applications using the Cardano blockchain.
 For more information about the projects, see the <<user-documentation>>.
 
 This repository contains:
 
-* Plutus Platform
-** The implementation, specification, and mechanized metatheory of Plutus Core, the scripting language embedded in the Cardano ledger.
-** Plutus Tx, the compiler from Haskell to Plutus Core.
-** Libraries which implement the Plutus Application Framework, a framework for writing applications that work with Cardano.
-** A selection of end-to-end usecases written with the Plutus Application Framework
-** The Plutus Playground, a web-based playground for learning and writing basic Plutus Applications.
-* Marlowe
-** The implementation of the Marlowe domain-specific language.
-** Tools for working with Marlowe, including static analysis.
-** A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
-** The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
+* The implementation, specification, and mechanized metatheory of Plutus Core
+* Plutus Tx, the compiler from Haskell to Plutus Core.
 
 [IMPORTANT]
 ====
-The rest of this README is focussed on people who want to develop or contribute to the Platform.
+The rest of this README is focussed on people who want to develop or contribute to the project.
 
-For people who want to *use* the Platform, please consult the <<user-documentation>>.
+For people who want to *use* the project, please consult the <<user-documentation>>.
 ====
 
 [[cache-warning]]
@@ -95,7 +86,7 @@ For development work see <<how-to-develop>> for more information.
 [[prerequisites]]
 ==== Prerequisites
 
-The Haskell libraries in the Plutus Platform are built with `cabal` and Nix.
+The Haskell libraries in Plutus Core are built with `cabal` and Nix.
 The other artifacts (docs etc.) are also most easily built with Nix.
 
 ===== Nix
