@@ -1113,7 +1113,7 @@ postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} �
 
 postulate cek2ckFrame--·⋆lem : ∀{K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}(f : Frame (B [ A ]Nf) (Π B)) → Red.-·⋆ A ≡ cek2ckFrame f → f ≡ -·⋆ A
    
--- postulate cek2ckFrame-unwrap-lem : ∀{K} → unwrap- ≡ cek2ckFrame f → 
+postulate cek2ckFrame-unwrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame _ (μ A B)) → Red.unwrap- {A = A}{B = B} ≡ cek2ckFrame f → f ≡ unwrap-
 
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
@@ -1212,8 +1212,16 @@ thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-Λ M x₁))} {V-Λ M x₁}
   with cek2ckFrame--·⋆lem x2 z1
 ... | refl = _ ,, step* refl x' ,, refl ,, z2
 thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-IΠ b p x₁))} {V-IΠ b p x₁} {s' = s'} refl refl r (CK.step* refl x) = {!!}
-thm65bV {s = s CK., Red.wrap- } {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
-thm65bV {s = s CK., Red.unwrap- } {W = W} {s' = s'} p q r (CK.step* refl x) = {!!}
+thm65bV {s = s CK., Red.wrap- } {W = W} {s' = s'} p q r (CK.step* refl x)
+  with cek2ckStack-,lem _ _ _ r
+... | s' ,, f' ,, refl ,, x2 ,, x3 = {!x3!}
+thm65bV {s = s CK., Red.unwrap- } {W = W} {s' = s'} p q r (CK.step* refl x)
+  with cek2ckStack-,lem _ _ _ r
+thm65bV {M = _} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W} {W'} {.(s' , f')} p q r (CK.step* refl x) | s' ,, f' ,, refl ,, refl ,, x1
+  with thm65bV refl refl refl (fast-forward _ _ _ _ x)
+... | _ ,, x' ,, _ ,, y1
+  with cek2ckFrame-unwrap-lem _ x1
+thm65bV {L = _} {.(wrap _ _ _)} {.(cek2ckStack s') CK., Red.unwrap- } {_} {Red.V-wrap W} {V-wrap W'} {.(s' , unwrap-)} p q r (CK.step* refl x) | s' ,, .unwrap- ,, refl ,, refl ,, x1 | _ ,, x' ,, _ ,, y1 | refl = _ ,, step* refl x' ,, _ ,, y1
 
 -- this a catch all for making recursive calls
 -- this version of thm64 splits the proof into separate parts
