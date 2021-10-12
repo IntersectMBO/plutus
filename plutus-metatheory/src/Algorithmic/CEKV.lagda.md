@@ -1089,6 +1089,9 @@ postulate cek2ckClos-Λlem : ∀{K B}{L : ∅ ,⋆ K ⊢ B}{Γ}{ρ : Env Γ}{N :
 
 postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}{N : Γ ⊢ μ A B} → (p : wrap A B L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ wrap A B L' × L ≡ cek2ckClos L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ V → ∃ λ (q : V-wrap V ≡ lookup x ρ) → discharge V ≡ L × substEq Red.Value (cong discharge q) (Red.V-wrap (cek2ckVal V)) ≡ cek2ckVal (lookup x ρ)
 
+postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' × L ≡ cek2ckClos L' ρ)
+
+
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
 cek2ckStack-εlem (s , f) ()
@@ -1110,6 +1113,7 @@ postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} �
 
 postulate cek2ckFrame--·⋆lem : ∀{K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}(f : Frame (B [ A ]Nf) (Π B)) → Red.-·⋆ A ≡ cek2ckFrame f → f ≡ -·⋆ A
    
+-- postulate cek2ckFrame-unwrap-lem : ∀{K} → unwrap- ≡ cek2ckFrame f → 
 
 -- this is intended to be a catchall for recursive calls
 thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
@@ -1172,9 +1176,13 @@ thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p refl r | inj₂ (x ,, ref
 thm65b {Γ = _} {wrap _ _ .(cek2ckClos V ρ)} {s = s} {M' = .(wrap _ _ V)} {ρ} {s' = s'} refl refl (CK.step* refl r) | inj₁ (V ,, refl ,, y) with thm65b refl refl r
 ... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
 
-thm65b {M = unwrap M} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = unwrap M} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl r)
+  with cek2ckClos-unwraplem {ρ = ρ}{N = N} p
+... | L' ,, refl ,, x2 with thm65b x2 (cong (CK._, Red.unwrap-) q) r
+... | V' ,, r' ,, y1 ,, y2 = _ ,, step* refl r' ,, y1 ,, y2
 thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
-thm65b {M = ibuiltin b} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = ibuiltin b} {s = s} {s' = s'} p refl (CK.step* refl r) = {!!}
+
 thm65b {M = error _} {s = s} {s' = s'} p q r = {!!}
 
 thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
