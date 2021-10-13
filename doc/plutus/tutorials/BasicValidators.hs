@@ -17,11 +17,11 @@ import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
 
-import           Cardano.Api          (HasTextEnvelope, TextEnvelope, TextEnvelopeDescr, serialiseToTextEnvelope)
-
+import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 
 import           Codec.Serialise
+import qualified Flat                 as Flat
 
 import           Prelude              (IO, print, show)
 import qualified Prelude              as Haskell
@@ -111,28 +111,27 @@ dateValidatorHash = validatorHash dateInstance
 dateValidator :: Validator
 dateValidator = validatorScript dateInstance
 -- BLOCK8
+-- We can serialize a 'Validator's, 'Datum's, and 'Redeemer's directly to CBOR
 serializedDateValidator :: BSL.ByteString
 serializedDateValidator = serialise dateValidator
+serializedDate :: Date -> BSL.ByteString
+serializedDate d = serialise (Datum $ toBuiltinData d)
+serializedEndDate :: EndDate -> BSL.ByteString
+serializedEndDate d = serialise (Redeemer $ toBuiltinData d)
 
--- The module 'Ledger.Scripts' includes instances related to typeclass
--- 'Cardano.Api.HasTextEnvelope'
-
--- Envelope of the PLC 'Script'.
-envelopeDateValidator :: TextEnvelope
-envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValidator)
-
--- Envelope of the 'Datum' representing the 'Date' datatype.
-envelopeDate :: Date -> TextEnvelope
-envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toBuiltinData d)
-
--- Envelope of the 'Redeemer' representing the 'EndDate' datatype.
-envelopeEndDate :: EndDate -> TextEnvelope
-envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toBuiltinData d)
-
-main :: IO ()
-main = do
+-- The serialized forms can be written or read using normal Haskell IO functionality.
+showSerialised :: IO ()
+showSerialised = do
   print serializedDateValidator
-  print envelopeDateValidator
-  print $ envelopeDate (Date 0)
-  print $ envelopeEndDate Never
+  print $ serializedDate (Date 0)
+  print $ serializedEndDate Never
 -- BLOCK9
+-- We can serialize 'CompiledCode' also
+serializedCompiledCode :: BS.ByteString
+serializedCompiledCode = Flat.flat $ $$(compile [|| validateDateTyped ||])
+
+-- The 'loadFromFile' function is a drop-in replacement for 'compile', but
+-- takes the file path instead of the code to compile.
+validatorCodeFromFile :: CompiledCode (() -> () -> ScriptContext -> Bool)
+validatorCodeFromFile = $$(loadFromFile "plutus/howtos/myscript.uplc")
+-- BLOCK10
