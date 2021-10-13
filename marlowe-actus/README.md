@@ -192,8 +192,16 @@ ContractTerms
 ```
 
 #### Stock
+
+A stock is a contract that pay dividends based on a schedule.
+
 #### Option
+
+An option is the right to buy (or sell) a specific underlying at a defined date for a defined price.
+
 #### Future
+
+A future is the obligation to buy (or sell) a specific underlying at a defined date for a defined price.
 
 ## Test cases
 
