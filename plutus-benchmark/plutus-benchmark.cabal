@@ -181,8 +181,11 @@ benchmark list-sort
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
+    , plutus-core
+    , plutus-tx 
     , list-sort-internal
     , criterion >= 1.5.9.0
+    , text -any
 
 test-suite plutus-benchmark-list-sort-tests
     import: lang
