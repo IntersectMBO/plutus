@@ -33,7 +33,7 @@ import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTermsPoly(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), Calendar(..), ScheduleConfig(..), Stub(..), IPCB(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTermsPoly(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), Calendar(..), ScheduleConfig(..), Stub(..), IPCB(..), ContractStructure(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -641,6 +641,9 @@ parseActusContractType b = case getType b of
   "LinearAmortizer" -> LAM
   "NegativeAmortizer" -> NAM
   "Annuity" -> ANN
+  "Stock" -> STK
+  "Option" -> OPTNS
+  "Future" -> FUTUR
   _ -> PAM
 
 parseActusJsonCode :: String -> Either String ContractTerms
@@ -761,6 +764,9 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             -- Any collateral-related code is commented out, until implemented properly
             -- , collateral: parseFieldActusValueJson g block "collateral"
             }
+    STK -> Either.Left "Unsupported contract type"
+    OPTNS -> Either.Left "Unsupported contract type"
+    FUTUR -> Either.Left "Unsupported contract type"
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
   blockDefinition ActusDate g block = do
@@ -953,10 +959,12 @@ actusContractToTerms raw = do
     $ ContractTermsPoly
         { contractId: "0"
         , contractType: contractType
+        , contractStructure: []
         , ct_IED: Just initialExchangeDate
         , ct_SD: startDate
         , ct_MD: maturityDate
         , ct_AD: amortizationDate
+        , ct_XD: Nothing
         , ct_TD: terminationDate
         , ct_PRNXT: periodicPaymentAmount
         , ct_PRD: purchaseDate
@@ -978,6 +986,13 @@ actusContractToTerms raw = do
         , ct_PYTP: Just PYTP_A
         , ct_OPCL: Nothing
         , ct_OPANX: Nothing
+        , ct_OPTP: Nothing
+        , ct_OPS1: Nothing
+        , ct_OPXT: Nothing
+        , ct_STP: Nothing
+        , ct_DS: Nothing
+        , ct_XA: Nothing
+        , ct_PFUT: Nothing
         , ct_SCIED: Just 0.0
         , ct_SCEF: Just SE_000
         , ct_SCCL: Nothing
@@ -1013,6 +1028,9 @@ actusContractToTerms raw = do
         , ct_CURS: Nothing
         , ct_SCMO: Nothing
         , ct_RRMO: Nothing
+        , ct_DVCL: Nothing
+        , ct_DVANX: Nothing
+        , ct_DVNP: Nothing
         , enableSettlement: false
         , constraints: constraint <$> assertionCtx
         -- Any collateral-related code is commented out, until implemented properly

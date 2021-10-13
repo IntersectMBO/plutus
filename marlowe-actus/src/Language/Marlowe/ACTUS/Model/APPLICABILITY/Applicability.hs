@@ -133,3 +133,4 @@ validateTerms ct@ContractTermsPoly {contractType = ANN, ..} =
     <* _NN_I_1 [isJust ct_SCEF, isJust ct_SCIED, isJust ct_SCCDD] ct ["scaling effect", "scaling index at status date", "scaling index at contract deal date"]
     <* _X_I_1 [isJust ct_PYRT, isJust ct_PYTP] [isJust ct_PPEF] ct ["penalty rate", "penalty type"] ["prepayment effect"]
 
+validateTerms t = Success t -- TODO: Generate applicability rules from the JSON specification (SCP-2882)
