@@ -1097,6 +1097,7 @@ postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}
 
 postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' × L ≡ cek2ckClos L' ρ)
 
+postulate cek2ckClos-conlem : ∀{tc : TyCon ∅}(c : TermCon (con tc)){Γ}{M' : Γ ⊢ con tc}{ρ : Env Γ} → con c ≡ cek2ckClos M' ρ → M' ≡ con c ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
 
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
@@ -1185,7 +1186,13 @@ thm65b {M = unwrap M} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl r)
   with cek2ckClos-unwraplem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, x2 with thm65b x2 (cong (CK._, Red.unwrap-) q) r
 ... | V' ,, r' ,, y1 ,, y2 = _ ,, step* refl r' ,, y1 ,, y2
-thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = con c}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
+  with thm65bV refl refl q r
+... | W ,, r' ,, x1 ,, x2
+  with cek2ckClos-conlem c {M' = M'}{ρ = ρ} p
+... | inj₁ refl = _ ,, step* refl r' ,, x1 ,, x2
+... | inj₂ (var ,, refl ,, y2) = _ ,, step* (cong (s' ◅_) (sym y2)) r' ,, x1 ,, x2
+
 thm65b {M = ibuiltin b} {s = s} {s' = s'} p refl (CK.step* refl r) = {!!}
 
 thm65b {M = error _} {s = s} {s' = s'} p q (CK.step* refl r) = ⊥-elim (lem◆ r)
@@ -1208,7 +1215,7 @@ thm65bV {s = s CK., (x₁ Red.·-)} {W = W} {s' = s'} p q r (CK.step* refl x)
 thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-ƛ M x₁)) Red.·-)} {W = W} {_} {.(fst , (V-ƛ M x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-ƛ M x₁ ·-) ,, refl ,, refl ,, z1 | V-ƛ M x₁ ,, refl ,, refl ,, refl
   with thm65b (dischargeBody-lem' M x₁ _) refl x
 ... | V'' ,, x' ,, refl ,, refl = _ ,, step* refl x' ,, refl ,, refl
-thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b p₁ x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b p₁ x₁ ·-))} p q r (CK.step* refl x) | fst ,, .(V-I⇒ b p₁ x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b p₁ x₁ ,, refl ,, refl ,, refl = _ ,, {!!} ,, {!!} ,, {!!}
+thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b p₁ x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b p₁ x₁ ·-))} p q r (CK.step* refl x) | fst ,, .(V-I⇒ b p₁ x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b p₁ x₁ ,, refl ,, refl ,, refl = {!!}
 thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-Λ M x₁))} {V-Λ M x₁} {s' = s'} refl refl r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
 ... | x1 ,, x2 ,, refl ,, z0 ,, z1
