@@ -1,0 +1,90 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+{- | This compiles several list-sorting algorithms to Plutus Core and runs them on
+   worst-case inputs, reporting the CPU cost in ExUnits. -}
+
+module Main where
+
+import qualified Data.HashMap.Monoidal                    as H
+import           Text.Printf                              (printf)
+
+import           PlutusBenchmark.Common                   (unDeBruijn)
+
+import           PlutusBenchmark.ListSort.GhcSort
+import           PlutusBenchmark.ListSort.InsertionSort
+import           PlutusBenchmark.ListSort.MergeSort
+import           PlutusBenchmark.ListSort.QuickSort
+
+import qualified PlutusCore                               as PLC
+import           PlutusCore.Default
+import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
+import           PlutusCore.Evaluation.Machine.ExMemory
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+
+type NamedDeBruijnTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+type NamedTerm = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+
+getBudgetUsage :: NamedTerm -> Maybe Integer
+getBudgetUsage term =
+    case Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting term of
+      (Left _, _)                 -> Nothing
+      (Right _, Cek.CountingSt c) -> let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral cpu
+
+getCekSteps :: NamedTerm -> Maybe Integer
+getCekSteps term =
+    case Cek.runCekNoEmit PLC.unitCekParameters Cek.tallying term of
+      (Left _, _)                   -> Nothing
+      (Right _, Cek.TallyingSt (Cek.CekExTally counts) _) ->
+          let getCount k =
+                  case H.lookup k counts of
+                    Just v  -> let ExCPU n = exBudgetCPU v in fromIntegral n
+                    Nothing -> 0
+              allNodeTags = fmap Cek.BStep [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
+              totalComputeSteps = sum $ map getCount allNodeTags
+          in Just totalComputeSteps
+
+getInfo :: NamedTerm -> Maybe (Integer, Integer)
+getInfo term =
+    case (getBudgetUsage term, getCekSteps term) of
+      (Just c, Just n) -> Just (c,n)
+      _                -> Nothing
+
+-- Create a term sorting a list of length n and execute it in counting mode then
+-- tallying mode and print out the cost and the number of CEK compute steps.
+printSortStatistics :: (Integer -> NamedDeBruijnTerm) -> Integer -> IO ()
+printSortStatistics termMaker n =
+    let term = unDeBruijn (termMaker n)
+    in case getInfo term of
+         Nothing -> putStrLn "Error during execution"
+         Just (cpu, steps) ->
+           putStr $ printf "%-4d  %5s ms %16s %14s\n"
+                  n
+                  (PLC.show $ cpu`div` 1000000000)
+                  ("(" ++ PLC.show cpu ++ ")")
+                  (PLC.show steps)
+
+main :: IO ()
+main = do
+  let inputLengths = [10,20..500]
+      header = "Length  Cost (ms)   Cost (ps)         CEK steps\n"
+            ++ "------------------------------------------------"
+  putStrLn "GHC sort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseGhcSortTerm) inputLengths
+  putStrLn "\n"
+  putStrLn "Insertion sort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseInsertionSortTerm) inputLengths
+  putStrLn "\n"
+  putStrLn "Merge sort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseMergeSortTerm) inputLengths
+  putStrLn "\n"
+  putStrLn "Quicksort"
+  putStrLn ""
+  putStrLn header
+  mapM_ (printSortStatistics mkWorstCaseQuickSortTerm) inputLengths

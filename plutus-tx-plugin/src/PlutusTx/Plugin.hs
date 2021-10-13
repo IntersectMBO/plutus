@@ -385,7 +385,6 @@ runCompiler moduleName opts expr = do
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
     when (poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.

@@ -41,7 +41,6 @@
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
-          (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -52,7 +51,6 @@
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
-          (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
@@ -61,16 +59,12 @@
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-          (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."profunctors" or (errorHandler.buildDepError "profunctors"))
           (hsPkgs."quickcheck-dynamic" or (errorHandler.buildDepError "quickcheck-dynamic"))
-          (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
-          (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
@@ -175,13 +169,17 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
+            (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
             "Spec/Contract"
+            "Spec/ErrorChecking"
             "Spec/Emulator"
             "Spec/Rows"
             "Spec/State"

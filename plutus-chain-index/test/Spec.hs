@@ -7,36 +7,38 @@
 module Main(main) where
 
 import           Control.Lens
-import           Control.Monad                        (foldM, forM_, join, replicateM)
-import           Control.Monad.Freer                  (Eff, Member, runM, sendM)
-import           Control.Monad.Freer.Error            (Error, runError, throwError)
-import           Data.Bifunctor                       (Bifunctor (..))
-import           Data.Either                          (isRight)
-import qualified Data.FingerTree                      as FT
-import           Data.Foldable                        (fold, toList)
-import           Data.List                            (nub, sort)
-import qualified Data.Map                             as Map
-import qualified Data.Set                             as Set
-import qualified Generators                           as Gen
-import           Hedgehog                             (Property, annotateShow, assert, failure, forAll, property, (/==),
-                                                       (===))
-import qualified Hedgehog.Gen                         as Gen
-import qualified Hedgehog.Range                       as Range
-import           Ledger                               (TxOutRef (TxOutRef, txOutRefId))
-import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
-import           Plutus.ChainIndex.Tx                 (citxTxId, txOutsWithRef)
-import           Plutus.ChainIndex.TxIdState          (dropOlder, increaseDepth, transactionStatus)
-import qualified Plutus.ChainIndex.TxIdState          as TxIdState
-import qualified Plutus.ChainIndex.TxOutBalance       as TxOutBalance
-import qualified Plutus.ChainIndex.TxUtxoBalance      as TUB
-import           Plutus.ChainIndex.Types              (BlockNumber (..), Depth (..), RollbackState (..), Tip (..),
-                                                       TxConfirmedState (..), TxIdState (..), TxOutState (..),
-                                                       TxStatusFailure (..), TxUtxoBalance (..), TxValidity (..),
-                                                       liftTxOutStatus, tipAsPoint, txOutStatusTxOutState)
-import           Plutus.ChainIndex.UtxoState          (InsertUtxoSuccess (..), RollbackResult (..))
-import qualified Plutus.ChainIndex.UtxoState          as UtxoState
+import           Control.Monad                            (foldM, forM_, join, replicateM)
+import           Control.Monad.Freer                      (Eff, Member, runM, sendM)
+import           Control.Monad.Freer.Error                (Error, runError, throwError)
+import           Data.Bifunctor                           (Bifunctor (..))
+import           Data.Either                              (isRight)
+import qualified Data.FingerTree                          as FT
+import           Data.Foldable                            (fold, toList)
+import           Data.List                                (nub, sort)
+import qualified Data.Map                                 as Map
+import qualified Data.Set                                 as Set
+import qualified Generators                               as Gen
+import           Hedgehog                                 (Property, annotateShow, assert, failure, forAll, property,
+                                                           (/==), (===))
+import qualified Hedgehog.Gen                             as Gen
+import qualified Hedgehog.Range                           as Range
+import           Ledger                                   (TxOutRef (TxOutRef, txOutRefId))
+import qualified Plutus.ChainIndex.Emulator.DiskStateSpec as DiskStateSpec
+import qualified Plutus.ChainIndex.Emulator.HandlersSpec  as EmulatorHandlersSpec
+import qualified Plutus.ChainIndex.HandlersSpec           as HandlersSpec
+import           Plutus.ChainIndex.Tx                     (citxTxId)
+import           Plutus.ChainIndex.TxIdState              (dropOlder, increaseDepth, transactionStatus)
+import qualified Plutus.ChainIndex.TxIdState              as TxIdState
+import qualified Plutus.ChainIndex.TxOutBalance           as TxOutBalance
+import qualified Plutus.ChainIndex.TxUtxoBalance          as TUB
+import           Plutus.ChainIndex.Types                  (BlockNumber (..), Depth (..), RollbackState (..), Tip (..),
+                                                           TxConfirmedState (..), TxIdState (..), TxOutState (..),
+                                                           TxStatusFailure (..), TxUtxoBalance (..), TxValidity (..),
+                                                           liftTxOutStatus, tipAsPoint, txOutStatusTxOutState)
+import           Plutus.ChainIndex.UtxoState              (InsertUtxoSuccess (..), RollbackResult (..))
+import qualified Plutus.ChainIndex.UtxoState              as UtxoState
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                  (testProperty)
+import           Test.Tasty.Hedgehog                      (testProperty)
 
 main :: IO ()
 main = defaultMain tests
@@ -47,10 +49,11 @@ tests =
     [ testGroup "tx out balance" txOutBalanceTests
     , testGroup "utxo balance" utxoBalanceTests
     , testGroup "txidstate" txIdStateTests
-    , testProperty "same txOuts between AddressMap and ChainIndexTx"
-                   addressMapAndTxShouldShareTxOuts
     , testProperty "lift tx output status to tx status" txOutStatusTxStatusProp
     , testProperty "tx output status" txOutStatusSpentUnspentProp
+    , DiskStateSpec.tests
+    , EmulatorHandlersSpec.tests
+    , HandlersSpec.tests
     ]
 
 utxoBalanceTests :: [TestTree]
@@ -242,17 +245,6 @@ matchUnspentOutputs = property $ do
     -- (this is more of a test of the generator)
     _tubUnmatchedSpentInputs (fold items) === Set.empty
 
--- | DiskState._AddressMap and ChainIndexTx should share the exact same set of
--- transaction outputs.
-addressMapAndTxShouldShareTxOuts :: Property
-addressMapAndTxShouldShareTxOuts = property $ do
-    chainIndexTx <- forAll $ Gen.evalTxGenState Gen.genTx
-    let diskState = DiskState.fromTx chainIndexTx
-        chainIndexTxOutRefs = Set.fromList $ fmap snd $ txOutsWithRef chainIndexTx
-        addressMapTxOutRefs =
-          mconcat $ diskState ^.. DiskState.addressMap . DiskState.unCredentialMap . folded
-    chainIndexTxOutRefs === addressMapTxOutRefs
-
 generateBlockWithNonEmptyTxUtxoBalance :: Property
 generateBlockWithNonEmptyTxUtxoBalance = property $ do
     block <- forAll $ Gen.evalTxGenState Gen.genNonEmptyBlock
@@ -341,7 +333,7 @@ reduceBlockCount = property $ do
     blocks <- forAll $ Gen.evalTxGenState $ replicateM numBlocks Gen.genNonEmptyBlock
     let utxoIndex = foldMap (FT.singleton . uncurry TUB.fromBlock) blocks
     minCount <- forAll $ Gen.integral (Range.linear 0 numBlocks)
-    case UtxoState.reduceBlockCount minCount utxoIndex of
+    case UtxoState.reduceBlockCount (Depth minCount) utxoIndex of
         UtxoState.BlockCountNotReduced -> assert $ UtxoState.utxoBlockCount utxoIndex <= minCount * 2
         UtxoState.ReduceBlockCountResult limitedIndex (UtxoState.UtxoState _ tip) -> do
             UtxoState.utxoState limitedIndex === UtxoState.utxoState utxoIndex
@@ -427,3 +419,4 @@ txOutStatusSpentUnspentProp = property $ do
     case txOutStatus of
       Right (TentativelyConfirmed _ TxValid (Spent txId)) | txId == txOutSpentTxId -> Hedgehog.assert True
       _                                                                            -> Hedgehog.assert False
+

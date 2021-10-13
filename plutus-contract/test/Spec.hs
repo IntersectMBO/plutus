@@ -3,6 +3,7 @@ module Main(main) where
 
 import qualified Spec.Contract
 import qualified Spec.Emulator
+import qualified Spec.ErrorChecking
 import qualified Spec.Rows
 import qualified Spec.Secrets
 import qualified Spec.State
@@ -19,5 +20,6 @@ tests = testGroup "plutus-contract" [
     Spec.State.tests,
     Spec.Rows.tests,
     Spec.ThreadToken.tests,
-    Spec.Secrets.tests
+    Spec.Secrets.tests,
+    Spec.ErrorChecking.tests
     ]

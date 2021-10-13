@@ -10,7 +10,6 @@ module Spec.State where
 
 import           Control.Monad.Freer        (Eff, run)
 import           Control.Monad.Freer.Extras (raiseEnd)
-import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
 import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
@@ -31,10 +30,9 @@ runResumableTest ::
 runResumableTest events action =
     let r = run . evalState (mempty @(Responses i))
         initial = r $ S.suspendNonDet @i @o @a $ S.handleResumable $ raiseEnd action
-        mkResp (itId, rqId) evt = Response{rspRqID = rqId, rspItID = itId, rspResponse=evt}
         go :: Maybe (MultiRequestContStatus i o '[State (Responses i)] a) -> Response i -> Maybe (MultiRequestContStatus i o '[State (Responses i)] a)
-        go (Just (S.AContinuation S.MultiRequestContinuation{S.ndcRequests, S.ndcCont})) rsp = r (ndcCont rsp)
-        go _ _                                                                               = Nothing
+        go (Just (S.AContinuation S.MultiRequestContinuation{S.ndcCont})) rsp = r (ndcCont rsp)
+        go _ _                                                                = Nothing
         result = foldl' go initial (S.responses events)
     in case result of
         Nothing                                                          -> (Nothing, mempty)

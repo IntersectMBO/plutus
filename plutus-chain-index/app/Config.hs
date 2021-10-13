@@ -16,6 +16,7 @@ module Config(
   dbPath,
   port,
   networkId,
+  securityParam,
   slotConfig
   ) where
 
@@ -29,11 +30,12 @@ import           Ledger.TimeSlot           (SlotConfig (..))
 import           Ouroboros.Network.Magic   (NetworkMagic (..))
 
 data ChainIndexConfig = ChainIndexConfig
-  { cicSocketPath :: String
-  , cicDbPath     :: String
-  , cicPort       :: Int
-  , cicNetworkId  :: NetworkId
-  , cicSlotConfig :: SlotConfig
+  { cicSocketPath    :: String
+  , cicDbPath        :: String
+  , cicPort          :: Int
+  , cicNetworkId     :: NetworkId
+  , cicSecurityParam :: Int -- ^ The number of blocks after which a transaction cannot be rolled back anymore
+  , cicSlotConfig    :: SlotConfig
   }
   deriving stock (Show, Eq, Generic)
   deriving anyclass (FromJSON, ToJSON)
@@ -53,6 +55,7 @@ defaultConfig = ChainIndexConfig
   , cicDbPath     = "/tmp/chain-index.db"
   , cicPort       = 9083
   , cicNetworkId  = Testnet $ NetworkMagic 8
+  , cicSecurityParam = 2160
   , cicSlotConfig =
       SlotConfig
         { scSlotZeroTime = 1591566291000
@@ -61,11 +64,12 @@ defaultConfig = ChainIndexConfig
   }
 
 instance Pretty ChainIndexConfig where
-  pretty ChainIndexConfig{cicSocketPath, cicDbPath, cicPort, cicNetworkId} =
+  pretty ChainIndexConfig{cicSocketPath, cicDbPath, cicPort, cicNetworkId, cicSecurityParam} =
     vsep [ "Socket:" <+> pretty cicSocketPath
          , "Db:" <+> pretty cicDbPath
          , "Port:" <+> pretty cicPort
          , "Network Id:" <+> viaShow cicNetworkId
+         , "Security Param:" <+> pretty cicSecurityParam
          ]
 
 makeLensesFor [
@@ -73,6 +77,7 @@ makeLensesFor [
   ("cicDbPath", "dbPath"),
   ("cicPort", "port"),
   ("cicNetworkId", "networkId"),
+  ("cicSecurityParam", "securityParam"),
   ("cicSlotConfig", "slotConfig")
   ] 'ChainIndexConfig
 

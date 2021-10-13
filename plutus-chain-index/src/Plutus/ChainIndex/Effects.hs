@@ -15,22 +15,26 @@ module Plutus.ChainIndex.Effects(
     , txFromTxId
     , utxoSetMembership
     , utxoSetAtAddress
+    , utxoSetWithCurrency
     , getTip
     -- * Control effect
     , ChainIndexControlEffect(..)
     , appendBlock
     , rollback
+    , resumeSync
     , collectGarbage
     , getDiagnostics
     ) where
 
-import           Control.Monad.Freer.TH  (makeEffect)
-import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Redeemer, RedeemerHash,
-                                          StakeValidator, StakeValidatorHash, TxId, Validator, ValidatorHash)
-import           Ledger.Credential       (Credential)
-import           Ledger.Tx               (ChainIndexTxOut, TxOutRef)
-import           Plutus.ChainIndex.Tx    (ChainIndexTx)
-import           Plutus.ChainIndex.Types (Diagnostics, Page, Point, Tip)
+import           Control.Monad.Freer.Extras.Pagination (Page, PageQuery)
+import           Control.Monad.Freer.TH                (makeEffect)
+import           Ledger                                (AssetClass, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
+                                                        Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash,
+                                                        TxId, Validator, ValidatorHash)
+import           Ledger.Credential                     (Credential)
+import           Ledger.Tx                             (ChainIndexTxOut, TxOutRef)
+import           Plutus.ChainIndex.Tx                  (ChainIndexTx)
+import           Plutus.ChainIndex.Types               (Diagnostics, Point, Tip)
 
 data ChainIndexQueryEffect r where
 
@@ -59,11 +63,13 @@ data ChainIndexQueryEffect r where
     UtxoSetMembership :: TxOutRef -> ChainIndexQueryEffect (Tip, Bool)
 
     -- | Unspent outputs located at addresses with the given credential.
-    --   This returns at most 10 unspent outputs. There is currently no
-    --   way to ask for more pages and it is uncertain whether this query
-    --   will be part of the final API (because it is easy to clog up clients
-    --   by producing a large number of trash UTXOs at the address)
-    UtxoSetAtAddress :: Credential -> ChainIndexQueryEffect (Tip, Page TxOutRef)
+    UtxoSetAtAddress :: PageQuery TxOutRef -> Credential -> ChainIndexQueryEffect (Tip, Page TxOutRef)
+
+    -- | Unspent outputs containing a specific currency ('AssetClass').
+    --
+    -- Note that requesting unspent outputs containing Ada should not return
+    -- anything, as this request will always return all unspent outputs.
+    UtxoSetWithCurrency :: PageQuery TxOutRef -> AssetClass -> ChainIndexQueryEffect (Tip, Page TxOutRef)
 
     -- | Get the tip of the chain index
     GetTip :: ChainIndexQueryEffect Tip
@@ -77,6 +83,9 @@ data ChainIndexControlEffect r where
 
     -- | Roll back to a previous state (previous tip)
     Rollback    :: Point -> ChainIndexControlEffect ()
+
+    -- | Resume syncing from a certain point
+    ResumeSync  :: Point -> ChainIndexControlEffect ()
 
     -- | Delete all data that is not covered by current UTxOs.
     CollectGarbage :: ChainIndexControlEffect ()

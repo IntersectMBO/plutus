@@ -1,14 +1,11 @@
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Main where
 
 import           Prelude                                  ((<>))
 import qualified Prelude                                  as Haskell
 
-import           Control.Exception
 import           Control.Monad                            ()
-import           Control.Monad.Trans.Except
 import qualified Data.ByteString                          as BS
 import           Data.Char                                (isSpace)
 import qualified Flat
@@ -17,11 +14,13 @@ import           System.Exit                              (exitFailure)
 import           System.IO
 import           Text.PrettyPrint.ANSI.Leijen             (Doc, indent, line, string, text, vsep)
 
-import qualified Plutus.Benchmark.Clausify                as Clausify
-import qualified Plutus.Benchmark.Knights                 as Knights
-import qualified Plutus.Benchmark.LastPiece               as LastPiece
-import qualified Plutus.Benchmark.Prime                   as Prime
-import qualified Plutus.Benchmark.Queens                  as Queens
+import           PlutusBenchmark.Common                   (unDeBruijn)
+
+import qualified PlutusBenchmark.NoFib.Clausify           as Clausify
+import qualified PlutusBenchmark.NoFib.Knights            as Knights
+import qualified PlutusBenchmark.NoFib.LastPiece          as LastPiece
+import qualified PlutusBenchmark.NoFib.Prime              as Prime
+import qualified PlutusBenchmark.NoFib.Queens             as Queens
 
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
@@ -150,11 +149,11 @@ queensOptions =
 
 progAndArgs :: Parser ProgAndArgs
 progAndArgs = hsubparser
-  (  command "clausify"  (info clausifyOptions      (progDesc "Run the Clausify benchmark."))
-  <> command "queens"    (info queensOptions        (progDesc "Run the Queens benchmark."))
-  <> command "knights"   (info knightsOptions       (progDesc "Run the Knights benchmark"))
-  <> command "lastpiece" (info lastpieceOptions     (progDesc "Run the Lastpiece benchmark"))
-  <> command "prime"     (info primeOptions         (progDesc "Run the Prime benchmark on a known prime (see help)"))
+  (  command "clausify"  (info clausifyOptions  (progDesc "Run the Clausify benchmark."))
+  <> command "queens"    (info queensOptions    (progDesc "Run the Queens benchmark."))
+  <> command "knights"   (info knightsOptions   (progDesc "Run the Knights benchmark"))
+  <> command "lastpiece" (info lastpieceOptions (progDesc "Run the Lastpiece benchmark"))
+  <> command "prime"     (info primeOptions     (progDesc "Run the Prime benchmark on a known prime (see help)"))
   <> command "primetest" (info primetestOptions (progDesc "Run the Prime benchmark on a positive integer N")) )
 
 
@@ -188,13 +187,6 @@ options = hsubparser
 
 evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
 evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
-
-toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
-toDeBruijn prog = do
-  let r = runExcept @UPLC.FreeVariableError $ PLC.runQuoteT (UPLC.deBruijnProgram prog)
-  case r of
-    Left e  -> throw e
-    Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr $ Flat.flat prog
@@ -261,10 +253,7 @@ main = do
                                           else Prime.mkPrimalityTestTerm n
 
           getUnDBrTerm :: ProgAndArgs -> UPLC.Term Name DefaultUni DefaultFun ()
-          getUnDBrTerm pa =
-              case runExcept @UPLC.FreeVariableError . PLC.runQuoteT . UPLC.unDeBruijnTerm . getDBrTerm $ pa of
-                Left e  -> throw e
-                Right t -> t
+          getUnDBrTerm = unDeBruijn . getDBrTerm
 
           mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
           mkProg = UPLC.Program () (UPLC.Version () 1 0 0)

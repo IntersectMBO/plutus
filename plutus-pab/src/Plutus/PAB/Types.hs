@@ -11,28 +11,29 @@
 
 module Plutus.PAB.Types where
 
-import qualified Cardano.ChainIndex.Types  as ChainIndex
-import           Cardano.Node.Types        (MockServerConfig (..))
-import qualified Cardano.Wallet.Mock.Types as Wallet
-import           Control.Lens.TH           (makePrisms)
-import           Data.Aeson                (FromJSON, ToJSON (..))
-import           Data.Default              (Default, def)
-import           Data.Map.Strict           (Map)
-import qualified Data.Map.Strict           as Map
-import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc (Pretty, line, pretty, viaShow, (<+>))
-import           Data.Time.Units           (Second)
-import           Data.UUID                 (UUID)
-import qualified Data.UUID.Extras          as UUID
-import           GHC.Generics              (Generic)
-import           Ledger                    (Block, Blockchain, Tx, TxId, eitherTx, txId)
-import           Ledger.Index              as UtxoIndex
-import           Plutus.Contract.Types     (ContractError)
-import           Plutus.PAB.Instances      ()
-import           Servant.Client            (BaseUrl (..), ClientError, Scheme (Http))
-import           Wallet.API                (WalletAPIError)
-import           Wallet.Emulator.Wallet    (Wallet)
-import           Wallet.Types              (ContractInstanceId (..), NotificationError)
+import qualified Cardano.ChainIndex.Types        as ChainIndex
+import           Cardano.Node.Types              (MockServerConfig (..))
+import qualified Cardano.Wallet.Mock.Types       as Wallet
+import           Control.Lens.TH                 (makePrisms)
+import           Control.Monad.Freer.Extras.Beam (BeamError)
+import           Data.Aeson                      (FromJSON, ToJSON (..))
+import           Data.Default                    (Default, def)
+import           Data.Map.Strict                 (Map)
+import qualified Data.Map.Strict                 as Map
+import           Data.Text                       (Text)
+import           Data.Text.Prettyprint.Doc       (Pretty, line, pretty, viaShow, (<+>))
+import           Data.Time.Units                 (Second)
+import           Data.UUID                       (UUID)
+import qualified Data.UUID.Extras                as UUID
+import           GHC.Generics                    (Generic)
+import           Ledger                          (Block, Blockchain, Tx, TxId, eitherTx, txId)
+import           Ledger.Index                    as UtxoIndex
+import           Plutus.Contract.Types           (ContractError)
+import           Plutus.PAB.Instances            ()
+import           Servant.Client                  (BaseUrl (..), ClientError, Scheme (Http))
+import           Wallet.API                      (WalletAPIError)
+import           Wallet.Emulator.Wallet          (Wallet)
+import           Wallet.Types                    (ContractInstanceId (..), NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -41,6 +42,7 @@ data PABError
     | PABContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
+    | BeamEffectError BeamError
     | RandomTxClientError ClientError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
@@ -65,6 +67,7 @@ instance Pretty PABError where
         PABContractError e         -> "Contract error:" <+> pretty e
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
+        BeamEffectError e          -> "Beam effect error:" <+> viaShow e
         RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
         WalletError e              -> "Wallet error:" <+> pretty e

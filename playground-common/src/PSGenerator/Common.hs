@@ -8,6 +8,8 @@ module PSGenerator.Common where
 
 import           Auth                                      (AuthRole, AuthStatus)
 import           Control.Applicative                       (empty, (<|>))
+import           Control.Monad.Freer.Extras.Beam           (BeamError, BeamLog)
+import           Control.Monad.Freer.Extras.Pagination     (Page, PageQuery, PageSize)
 import           Control.Monad.Reader                      (MonadReader)
 import           Data.Proxy                                (Proxy (Proxy))
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
@@ -38,8 +40,8 @@ import           Playground.Types                          (ContractCall, Functi
 import           Plutus.ChainIndex.ChainIndexError         (ChainIndexError)
 import           Plutus.ChainIndex.ChainIndexLog           (ChainIndexLog)
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
-import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Page, PageSize, Point, RollbackState,
-                                                            Tip, TxOutState, TxValidity)
+import           Plutus.ChainIndex.Types                   (BlockNumber, Depth, Point, RollbackState, Tip, TxOutState,
+                                                            TxValidity)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
 import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
@@ -164,7 +166,6 @@ scientificBridge = do
     typeName ^== "Scientific"
     typeModule ^== "Data.Scientific"
     pure psNumber
-
 
 naturalBridge :: BridgePart
 naturalBridge = do
@@ -396,14 +397,17 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTxOut)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BeamError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BeamLog)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoPosition)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoFailed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @RollbackFailed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @FromCardanoError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Page A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PageQuery A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tip)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Point)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @BalanceTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteBalancedTxResponse)

@@ -68,7 +68,8 @@ library
     sbv >= 8.4,
     scientific -any,
     wl-pprint -any,
-    semigroups -any
+    semigroups -any,
+    uuid -any
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any
   exposed-modules:
@@ -124,6 +125,7 @@ test-suite marlowe-test-long-running
         websockets -any,
         network -any,
         openapi3 -any,
+        uuid -any,
 
 test-suite marlowe-test
     import: lang
@@ -168,7 +170,8 @@ test-suite marlowe-test
         http-client -any,
         websockets -any,
         network -any,
-        openapi3
+        openapi3,
+        uuid -any
 
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab
@@ -194,5 +197,6 @@ executable marlowe-pab
     purescript-bridge -any,
     marlowe -any,
     openapi3,
+    uuid -any
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any

@@ -3,14 +3,16 @@
 
 module Main (main) where
 
-import           Common
+import           Shared                         (mkBenchMarks)
 
 import           Criterion.Main
 
-import qualified Plutus.Benchmark.Clausify as Clausify
-import qualified Plutus.Benchmark.Knights  as Knights
-import qualified Plutus.Benchmark.Prime    as Prime
-import qualified Plutus.Benchmark.Queens   as Queens
+import           PlutusBenchmark.Common         (getConfig)
+
+import qualified PlutusBenchmark.NoFib.Clausify as Clausify
+import qualified PlutusBenchmark.NoFib.Knights  as Knights
+import qualified PlutusBenchmark.NoFib.Prime    as Prime
+import qualified PlutusBenchmark.NoFib.Queens   as Queens
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = nf Clausify.runClausify f
@@ -27,5 +29,5 @@ benchQueens sz alg = nf (Queens.runQueens sz) alg
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- Common.getConfig 5.0  -- Run each benchmark for at least five seconds
-  defaultMainWith config $ Common.mkBenchMarks runners
+  config <- getConfig 5.0  -- Run each benchmark for at least five seconds
+  defaultMainWith config $ mkBenchMarks runners

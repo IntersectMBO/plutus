@@ -47,11 +47,12 @@ formatHelp =
 formatReader :: String -> Maybe Format
 formatReader =
     \case
-         "textual"       -> Just Textual
-         "flat-named"    -> Just (Flat Named)
-         "flat"          -> Just (Flat DeBruijn)
-         "flat-deBruijn" -> Just (Flat DeBruijn)
-         _               -> Nothing
+         "textual"            -> Just Textual
+         "flat-named"         -> Just (Flat Named)
+         "flat"               -> Just (Flat DeBruijn)
+         "flat-deBruijn"      -> Just (Flat DeBruijn)
+         "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
+         _                    -> Nothing
 
 inputformat :: Parser Format
 inputformat = option (maybeReader formatReader)
@@ -90,6 +91,14 @@ timing2 = Timing <$> option auto
 -- See https://github.com/pcapriotti/optparse-applicative/issues/194#issuecomment-205103230
 timingmode :: Parser TimingMode
 timingmode = timing1 <|> timing2
+
+tracemode :: Parser TraceMode
+tracemode = option auto
+  (  long "trace-mode"
+  <> metavar "MODE"
+  <> value None
+  <> showDefault
+  <> help "Mode for trace ouptupt.")
 
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))

@@ -40,6 +40,7 @@ import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
+import           Control.Monad.Freer.Extras.Beam                (handleBeam)
 import           Control.Monad.Freer.Extras.Log                 (mapLog)
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import           Data.Aeson                                     (FromJSON, ToJSON)
@@ -62,11 +63,12 @@ import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import qualified Plutus.PAB.Db.Beam.ContractStore               as BeamEff
 import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
+import           Plutus.PAB.Db.Schema                           (checkedSqliteDb)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinition (..))
 import           Plutus.PAB.Effects.Contract.Builtin            (Builtin, BuiltinHandler (..), HasDefinitions (..))
-import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
-import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace)
-import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..), PABMultiAgentMsg (UserLog))
+import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..),
+                                                                 PABMultiAgentMsg (BeamLogItem, UserLog))
 import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
                                                                  WebserverConfig (..), chainIndexConfig, dbConfig,
@@ -131,16 +133,18 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
               . reinterpret (mapLog @_ @(PABLogMsg (Builtin a)) SMultiAgent)
               . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
               . interpret (Core.handleMappedReader @(AppEnv a) dbConnection)
-              . interpret (handleDbStore trace)
-              . reinterpretN @'[_, _, _, _] BeamEff.handleContractStore
+              . flip handleError (throwError . BeamEffectError)
+              . interpret (handleBeam (convertLog (SMultiAgent . BeamLogItem) trace))
+              . reinterpretN @'[_, _, _, _, _] BeamEff.handleContractStore
 
         , handleContractDefinitionEffect =
             interpret (handleLogMsgTrace trace)
             . reinterpret (mapLog @_ @(PABLogMsg (Builtin a)) SMultiAgent)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . interpret (Core.handleMappedReader @(AppEnv a) dbConnection)
-            . interpret (handleDbStore trace)
-            . reinterpretN @'[_, _, _, _] handleContractDefinition
+            . flip handleError (throwError . BeamEffectError)
+            . interpret (handleBeam (convertLog (SMultiAgent . BeamLogItem) trace))
+            . reinterpretN @'[_, _, _, _, _] handleContractDefinition
 
         , handleServicesEffects = \wallet ->
             -- handle 'NodeClientEffect'

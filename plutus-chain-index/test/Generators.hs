@@ -48,11 +48,13 @@ import qualified Hedgehog.Gen                    as Gen
 import qualified Hedgehog.Range                  as Range
 import qualified Ledger.Ada                      as Ada
 import           Ledger.Address                  (pubKeyAddress)
+import qualified Ledger.Generators               as Gen
 import qualified Ledger.Interval                 as Interval
 import           Ledger.Slot                     (Slot (..))
 import           Ledger.Tx                       (Address, TxIn (..), TxOut (..), TxOutRef (..))
 import           Ledger.TxId                     (TxId (..))
 import           Ledger.Value                    (Value)
+import qualified Ledger.Value                    as Value
 import           Plutus.ChainIndex.Tx            (ChainIndexTx (..), ChainIndexTxOutputs (..), txOutRefs)
 import qualified Plutus.ChainIndex.TxIdState     as TxIdState
 import qualified Plutus.ChainIndex.TxOutBalance  as TxOutBalance
@@ -79,7 +81,7 @@ genTxId = Gen.frequency [(8, genKnownTxId), (2, genRandomTxId)]
 
 -- | Generate a random 'TxOutRef'
 genTxOutRef :: MonadGen m => m TxOutRef
-genTxOutRef =  TxOutRef <$> genTxId <*> Gen.integral (Range.linear 0 50)
+genTxOutRef = TxOutRef <$> genTxId <*> Gen.integral (Range.linear 0 50)
 
 genBlockId :: MonadGen m => m BlockId
 genBlockId = BlockId <$> Gen.bytes (Range.singleton 32)
@@ -91,9 +93,14 @@ genSlot = Slot <$> Gen.integral (Range.linear 0 100000000)
 genAddress :: MonadGen m => m Address
 genAddress = Gen.element $ pubKeyAddress <$> ["000fff", "aabbcc", "123123"]
 
--- | Generate a positive Ada value
+-- | Generate random Value (possibly containing Ada) with a positive Ada value.
 genNonZeroAdaValue :: MonadGen m => m Value
-genNonZeroAdaValue = Ada.lovelaceValueOf <$> Gen.integral (Range.linear 1 100_000_000_000)
+genNonZeroAdaValue = do
+  value <- Value.singleton <$> (Value.currencySymbol <$> Gen.genSizedByteStringExact 32)
+                           <*> (Value.tokenName <$> Gen.genSizedByteString 32)
+                           <*> Gen.integral (Range.linear 1 100_000_000_000)
+  ada <- Ada.lovelaceValueOf <$> Gen.integral (Range.linear 1 100_000_000_000)
+  pure $ value <> ada
 
 data TxGenState =
         TxGenState
@@ -154,7 +161,7 @@ genTx ::
 genTx = do
     newOutputs <-
         let outputGen = (,) <$> genAddress <*> genNonZeroAdaValue in
-        sendM (Gen.list (Range.linear 1 50) outputGen)
+        sendM (Gen.list (Range.linear 1 5) outputGen)
     inputs <- availableInputs
 
     allInputs <-
@@ -250,7 +257,7 @@ genNonEmptyBlock ::
     )
     => Eff effs (Tip, [ChainIndexTx])
 genNonEmptyBlock = do
-    numTxns <- sendM $ Gen.integral (Range.linear 1 20)
+    numTxns <- sendM $ Gen.integral (Range.linear 1 10)
     theBlock <- replicateM numTxns genTx
     tp <- gets genStateTip
     pure (tp, theBlock)
