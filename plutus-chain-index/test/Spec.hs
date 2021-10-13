@@ -333,7 +333,7 @@ reduceBlockCount = property $ do
     blocks <- forAll $ Gen.evalTxGenState $ replicateM numBlocks Gen.genNonEmptyBlock
     let utxoIndex = foldMap (FT.singleton . uncurry TUB.fromBlock) blocks
     minCount <- forAll $ Gen.integral (Range.linear 0 numBlocks)
-    case UtxoState.reduceBlockCount minCount utxoIndex of
+    case UtxoState.reduceBlockCount (Depth minCount) utxoIndex of
         UtxoState.BlockCountNotReduced -> assert $ UtxoState.utxoBlockCount utxoIndex <= minCount * 2
         UtxoState.ReduceBlockCountResult limitedIndex (UtxoState.UtxoState _ tip) -> do
             UtxoState.utxoState limitedIndex === UtxoState.utxoState utxoIndex
