@@ -191,6 +191,10 @@ ContractTerms
   }
 ```
 
+#### Stock
+#### Option
+#### Future
+
 ## Test cases
 
 For the contract types mentioned above the implementation is tested with the test cases provided by ACTUS: https://github.com/actusfrf/actus-tests
