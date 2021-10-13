@@ -56,6 +56,8 @@ module Plutus.Contract(
     , Request.txOutFromRef
     , Request.txFromTxId
     , Request.utxoRefMembership
+    , Request.utxoRefsAt
+    , Request.utxoRefsWithCurrency
     , Request.utxosAt
     , Request.utxosTxOutTxAt
     , Request.utxosTxOutTxFromTx
