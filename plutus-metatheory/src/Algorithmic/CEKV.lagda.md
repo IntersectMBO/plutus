@@ -1075,6 +1075,12 @@ postulate inv-lem : ∀{A}{M : ∅ ⊢ A}(x₁ : Red.Value M)
                   → (p : M ≡ discharge (ck2cekVal x₁))
                   → substEq Red.Value p x₁ ≡ cek2ckVal (ck2cekVal x₁)
 
+-- the below lemmas/assumptions consider the case that where M is a
+--  variable in M' == clos M ρ, but I am not sure if these cases
+--  always occur when the CEK machine is in value mode. This may be
+--  overkill, in the textbook there is not such a clear distinction
+--  between term and value mode.
+
 -- note N cannot be a variable because if it was then the result of
 -- the lookup in ρ would be a value that is then discharged which
 -- couldn't be an application as applications are not values
