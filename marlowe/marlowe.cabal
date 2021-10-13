@@ -80,6 +80,7 @@ library
     Language.Marlowe.Client
     Language.Marlowe.Util
     Language.Marlowe.Scripts
+    Language.Marlowe.Serialisation
     Language.Marlowe.Pretty
     Language.Marlowe.Analysis.FSSemantics
   other-modules:
