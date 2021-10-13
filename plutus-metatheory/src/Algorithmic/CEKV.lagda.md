@@ -1116,6 +1116,9 @@ cek2ckFrame-·-lem (x ·-) .(cek2ckVal x) refl = _ ,, refl ,, refl ,, refl
 
 postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} → (Red.-· M) ≡ cek2ckFrame f → ∃ λ Γ → ∃ λ (M' : Γ ⊢ A) → ∃ λ (ρ : Env Γ) → f ≡ (-· M' ρ) × M ≡ cek2ckClos M' ρ
 
+open import Data.Empty
+lem◆ : ∀{A B}{M : ∅ ⊢ A}{V : Red.Value M} → CK.◆ B CK.-→s CK.□ V → ⊥
+lem◆ (CK.step* refl p) = lem◆ p
 
 postulate cek2ckFrame--·⋆lem : ∀{K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}(f : Frame (B [ A ]Nf) (Π B)) → Red.-·⋆ A ≡ cek2ckFrame f → f ≡ -·⋆ A
    
@@ -1128,10 +1131,8 @@ thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
   → (p : M ≡ discharge W')
   → substEq Red.Value p W ≡ cek2ckVal W'
   → s ≡ cek2ckStack s'
-
   → (s CK.◅ W) CK.-→s CK.□ V
   → ∃ λ V' → ((s' ◅ W') -→s □ V') × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V
-
 
 substLem : {A : Set}(P : A → Set){a a' : A}(p q : a ≡ a')(x : P a) →
   substEq P p x ≡ substEq P q x
@@ -1187,7 +1188,7 @@ thm65b {M = unwrap M} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl r)
 thm65b {M = con c} {s = s} {s' = s'} p q r = {!!}
 thm65b {M = ibuiltin b} {s = s} {s' = s'} p refl (CK.step* refl r) = {!!}
 
-thm65b {M = error _} {s = s} {s' = s'} p q r = {!!}
+thm65b {M = error _} {s = s} {s' = s'} p q (CK.step* refl r) = ⊥-elim (lem◆ r)
 
 thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
   rewrite cek2ckStack-εlem s' r
