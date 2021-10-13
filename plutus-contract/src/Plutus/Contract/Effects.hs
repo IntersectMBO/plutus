@@ -81,9 +81,9 @@ import           Data.List.NonEmpty          (NonEmpty)
 import qualified Data.OpenApi.Schema         as OpenApi
 import           Data.Text.Prettyprint.Doc   (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
-import           Ledger                      (Address, AssetClass, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKeyHash,
-                                              Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash, Tx, TxId,
-                                              TxOutRef, ValidatorHash, txId)
+import           Ledger                      (Address, AssetClass, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
+                                              PubKeyHash, Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash,
+                                              Tx, TxId, TxOutRef, ValidatorHash, txId)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Credential           (Credential)
 import           Ledger.Scripts              (Validator)

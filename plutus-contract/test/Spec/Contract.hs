@@ -25,7 +25,7 @@ import qualified Data.Map                       as Map
 import           Data.Void
 import           Test.Tasty
 
-import           Ledger                               (Address, PubKeyHash)
+import           Ledger                         (Address, PubKeyHash)
 import qualified Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Constraints             as Constraints
