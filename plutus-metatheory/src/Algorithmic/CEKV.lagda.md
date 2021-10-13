@@ -1123,10 +1123,6 @@ postulate cek2ckFrame-unwrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame _ (μ
 
 postulate cek2ckFrame-wrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame (μ A B) _) → Red.wrap- {A = A}{B = B} ≡ cek2ckFrame f → f ≡ wrap-
 
--- this is intended to be a catchall for recursive calls
-thm65state : ∀{A}{M : ∅ ⊢ A}{s}{V : Red.Value M} → s CK.-→s CK.□ V
-  → ∃ λ V' → ck2cekState s -→s □ V' × ∃ λ p → cek2ckVal V' ≡ substEq Red.Value p V 
-
 thm65bV : ∀{A B}{L : ∅ ⊢ A}{M}{s : CK.Stack A B}{V : Red.Value L}
   {W : Red.Value M}{W'}{s'}
   → (p : M ≡ discharge W')
@@ -1233,14 +1229,3 @@ thm65bV {M = wrap _ _ M} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W
 ... | _ ,, x' ,, _ ,, y1
   with cek2ckFrame-unwrap-lem _ x3
 thm65bV {L = _} {.(wrap _ _ _)} {.(cek2ckStack s') CK., Red.unwrap- } {_} {Red.V-wrap W} {V-wrap W'} {.(s' , unwrap-)} p q r (CK.step* refl x) | s' ,, .unwrap- ,, refl ,, refl ,, x1 | _ ,, x' ,, _ ,, y1 | refl = _ ,, step* refl x' ,, _ ,, y1
-
--- this a catch all for making recursive calls
--- this version of thm64 splits the proof into separate parts
--- the textbook version has only when representation for states
--- and therefore thm64 is done all in one go
-thm65state {s = x CK.▻ x₁} p = thm65b (clos-lem x₁) {!!} p
-thm65state {s = x CK.◅ x₁} p = thm65bV (discharge-lem' x₁) (inv-lem x₁ (discharge-lem' x₁)) {!!} p
-thm65state {s = CK.□ x} p with CK.lem□ _ _ p
-... | refl ,, refl = _ ,, base ,, discharge-lem' x ,, sym (inv-lem x (discharge-lem' x))
-thm65state {s = CK.◆ A} p with CK.lem◆' _ p
-... | ()
