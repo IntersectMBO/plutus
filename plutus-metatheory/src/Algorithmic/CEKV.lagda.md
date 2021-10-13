@@ -1076,10 +1076,10 @@ postulate inv-lem : ∀{A}{M : ∅ ⊢ A}(x₁ : Red.Value M)
                   → substEq Red.Value p x₁ ≡ cek2ckVal (ck2cekVal x₁)
 
 -- the below lemmas/assumptions consider the case that where M is a
---  variable in M' == clos M ρ, but I am not sure if these cases
---  always occur when the CEK machine is in value mode. This may be
---  overkill, in the textbook there is not such a clear distinction
---  between term and value mode.
+--  variable in M' == clos M ρ, but I am not sure if these cases ever
+--  occur when the CEK machine is in value mode. This may be overkill
+--  for our machine, in the textbook there is not such a clear
+--  distinction between term and value mode and this analysis is needed.
 
 -- note N cannot be a variable because if it was then the result of
 -- the lookup in ρ would be a value that is then discharged which
@@ -1098,6 +1098,9 @@ postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}
 postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' × L ≡ cek2ckClos L' ρ)
 
 postulate cek2ckClos-conlem : ∀{tc : TyCon ∅}(c : TermCon (con tc)){Γ}{M' : Γ ⊢ con tc}{ρ : Env Γ} → con c ≡ cek2ckClos M' ρ → M' ≡ con c ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
+
+postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ itype b}{ρ : Env Γ} → ibuiltin b ≡ cek2ckClos M' ρ → (M' ≡ ibuiltin b × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : ibuiltin b ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
+
 
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
@@ -1193,7 +1196,13 @@ thm65b {M = con c}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
 ... | inj₁ refl = _ ,, step* refl r' ,, x1 ,, x2
 ... | inj₂ (var ,, refl ,, y2) = _ ,, step* (cong (s' ◅_) (sym y2)) r' ,, x1 ,, x2
 
-thm65b {M = ibuiltin b} {s = s} {s' = s'} p refl (CK.step* refl r) = {!!}
+thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
+  with cek2ckClos-ibuiltinlem {M' = N}{ρ = ρ} p
+thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y2 ,, y3) with thm65bV y2 y3 q r
+... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
+thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₁ (refl ,, x1 ,, x2)
+  with thm65bV x1 x2 q r
+... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
 
 thm65b {M = error _} {s = s} {s' = s'} p q (CK.step* refl r) = ⊥-elim (lem◆ r)
 
