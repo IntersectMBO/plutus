@@ -12,6 +12,8 @@ import           Plutus.ChainIndex.Tx                 (txOutsWithRef)
 
 import qualified Generators                           as Gen
 import           Hedgehog                             (Property, forAll, property, (===))
+import           Ledger                               (TxOut (txOutValue))
+import qualified Ledger.Ada                           as Ada
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                  (testProperty)
 
@@ -20,6 +22,7 @@ tests = do
   testGroup "emulator"
     [ testGroup "disk state"
         [ testProperty "same txOuts between AddressMap and ChainIndexTx" addressMapAndTxShouldShareTxOuts
+        , testProperty "same txOuts between AssetClassMap and ChainIndexTx" assetClassMapAndTxShouldShareTxOuts
         ]
     ]
 
@@ -33,3 +36,15 @@ addressMapAndTxShouldShareTxOuts = property $ do
         addressMapTxOutRefs =
           mconcat $ diskState ^.. DiskState.addressMap . DiskState.unCredentialMap . folded
     ciTxOutRefs === addressMapTxOutRefs
+
+assetClassMapAndTxShouldShareTxOuts :: Property
+assetClassMapAndTxShouldShareTxOuts = property $ do
+    chainIndexTx <- forAll $ Gen.evalTxGenState Gen.genTx
+    let diskState = DiskState.fromTx chainIndexTx
+        ciTxOutRefs = Set.fromList
+                    $ fmap snd
+                    $ filter (\(out, _) -> txOutValue out /= Ada.toValue (Ada.fromValue (txOutValue out)))
+                    $ txOutsWithRef chainIndexTx
+        assetClassMapTxOutRefs =
+          mconcat $ diskState ^.. DiskState.assetClassMap . DiskState.unAssetClassMap . folded
+    ciTxOutRefs === assetClassMapTxOutRefs

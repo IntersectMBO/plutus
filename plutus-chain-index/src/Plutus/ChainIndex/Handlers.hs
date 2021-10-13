@@ -44,8 +44,9 @@ import           Database.Beam.Query                   (HasSqlEqualityCheck, asc
                                                         (&&.), (<-.), (<.), (==.), (>.))
 import           Database.Beam.Schema.Tables           (zipTables)
 import           Database.Beam.Sqlite                  (Sqlite)
-import           Ledger                                (Address (..), ChainIndexTxOut (..), Datum, DatumHash, TxId (..),
-                                                        TxOut (..), TxOutRef (..))
+import           Ledger                                (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
+                                                        TxId (..), TxOut (..), TxOutRef (..))
+import           Ledger.Value                          (AssetClass (AssetClass), flattenValue)
 import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility       (toCardanoPoint)
@@ -57,6 +58,7 @@ import           Plutus.ChainIndex.Types               (Depth (..), Diagnostics 
                                                         TxUtxoBalance (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState           as UtxoState
+import qualified Plutus.V1.Ledger.Ada                  as Ada
 import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
@@ -87,6 +89,8 @@ handleQuery = \case
             TipAtGenesis -> throwError QueryFailedNoTip
             tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxoState)
     UtxoSetAtAddress pageQuery cred -> getUtxoSetAtAddress pageQuery cred
+    UtxoSetWithCurrency pageQuery assetClass ->
+      getUtxoSetWithCurrency pageQuery assetClass
     GetTip -> getTip
 
 getTip :: Member BeamEffect effs => Eff effs Tip
@@ -195,6 +199,37 @@ getUtxoSetAtAddress pageQuery (toDbValue -> cred) = do
 
           pure (tp, page)
 
+getUtxoSetWithCurrency
+  :: forall effs.
+    ( Member (State ChainIndexState) effs
+    , Member BeamEffect effs
+    , Member (LogMsg ChainIndexLog) effs
+    )
+  => PageQuery TxOutRef
+  -> AssetClass
+  -> Eff effs (Tip, Page TxOutRef)
+getUtxoSetWithCurrency pageQuery (toDbValue -> assetClass) = do
+  utxoState <- gets @ChainIndexState UtxoState.utxoState
+
+  case UtxoState.tip utxoState of
+      TipAtGenesis -> do
+          logWarn TipIsGenesis
+          pure (TipAtGenesis, Page pageQuery Nothing [])
+      tp           -> do
+          let query =
+                fmap _assetClassRowOutRef
+                  $ filter_ (\row -> _assetClassRowAssetClass row ==. val_ assetClass)
+                  $ do
+                    utxo <- all_ (unspentOutputRows db)
+                    a <- all_ (assetClassRows db)
+                    guard_ (_assetClassRowOutRef a ==. _unspentOutputRowOutRef utxo)
+                    pure a
+
+          outRefs <- selectPage (fmap toDbValue pageQuery) query
+          let page = fmap fromDbValue outRefs
+
+          pure (tp, page)
+
 handleControl ::
     forall effs.
     ( Member (State ChainIndexState) effs
@@ -250,6 +285,7 @@ handleControl = \case
             , DeleteRows $ truncateTable (scriptRows db)
             , DeleteRows $ truncateTable (txRows db)
             , DeleteRows $ truncateTable (addressRows db)
+            , DeleteRows $ truncateTable (assetClassRows db)
             ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRowsInBatches batchSize tbl rows]) db insertRows)
         where
             truncateTable table = delete table (const (val_ True))
@@ -352,9 +388,18 @@ fromTx tx = mempty
     , scriptRows = fromMap citxScripts <> fromMap citxRedeemers
     , txRows = InsertRows [toDbValue (_citxTxId tx, tx)]
     , addressRows = fromPairs (fmap credential . txOutsWithRef)
+    , assetClassRows = fromPairs (concatMap assetClasses . txOutsWithRef)
     }
     where
-        credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
+        credential :: (TxOut, TxOutRef) -> (Credential, TxOutRef)
+        credential (TxOut{txOutAddress=Address{addressCredential}}, ref) =
+          (addressCredential, ref)
+        assetClasses :: (TxOut, TxOutRef) -> [(AssetClass, TxOutRef)]
+        assetClasses (TxOut{txOutValue}, ref) =
+          fmap (\(c, t, _) -> (AssetClass (c, t), ref))
+               -- We don't store the 'AssetClass' when it is the Ada currency.
+               $ filter (\(c, t, _) -> not $ Ada.adaSymbol == c && Ada.adaToken == t)
+               $ flattenValue txOutValue
         fromMap
             :: (BeamableSqlite t, HasDbType (k, v), DbType (k, v) ~ t Identity)
             => Lens' ChainIndexTx (Map.Map k v)
@@ -376,12 +421,14 @@ diagnostics = do
     txIds <- queryList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
+    numAssetClasses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _assetClassRowAssetClass <$> all_ (assetClassRows db)
     TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
 
     pure $ Diagnostics
         { numTransactions    = fromMaybe (-1) numTransactions
         , numScripts         = fromMaybe (-1) numScripts
         , numAddresses       = fromMaybe (-1) numAddresses
+        , numAssetClasses    = fromMaybe (-1) numAssetClasses
         , numUnspentOutputs  = length outputs
         , numUnmatchedInputs = length inputs
         , someTransactions   = txIds

@@ -41,7 +41,8 @@ import           Ledger.Scripts                        (ScriptHash (ScriptHash))
 import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
 import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState  (DiskState, addressMap, dataMap, redeemerMap, scriptMap, txMap)
+import           Plutus.ChainIndex.Emulator.DiskState  (DiskState, addressMap, assetClassMap, dataMap, redeemerMap,
+                                                        scriptMap, txMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState  as DiskState
 import           Plutus.ChainIndex.Tx                  (ChainIndexTx, _ValidTx, citxOutputs)
 import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
@@ -132,9 +133,20 @@ handleQuery = \case
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
             utxo = view (utxoIndex . to utxoState) state
-            page = pageOf pageQuery
-                 $ Set.filter (flip TxUtxoBalance.isUnspentOutput utxo)
-                              (fromMaybe mempty outRefs)
+            utxoRefs = Set.filter (flip TxUtxoBalance.isUnspentOutput utxo)
+                                  (fromMaybe mempty outRefs)
+            page = pageOf pageQuery utxoRefs
+        case tip utxo of
+            TipAtGenesis -> do
+                logWarn TipIsGenesis
+                pure (TipAtGenesis, pageOf pageQuery Set.empty)
+            tp           -> pure (tp, page)
+    UtxoSetWithCurrency pageQuery assetClass -> do
+        state <- get
+        let outRefs = view (diskState . assetClassMap . at assetClass) state
+            utxo = view (utxoIndex . to utxoState) state
+            utxoRefs = Set.filter (flip TxUtxoBalance.isUnspentOutput utxo) (fromMaybe mempty outRefs)
+            page = pageOf pageQuery utxoRefs
         case tip utxo of
             TipAtGenesis -> do
                 logWarn TipIsGenesis

@@ -1,17 +1,13 @@
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
 {-# options_ghc -Wno-missing-signatures #-}
 {-
 
@@ -40,10 +36,10 @@ import           Database.Beam              (Beamable, Columnar, Database, Datab
 import           Database.Beam.Migrate      (CheckedDatabaseSettings, defaultMigratableDbSettings, renameCheckedEntity,
                                              unCheckDatabase)
 import           Database.Beam.Sqlite       (Sqlite)
-import           Ledger                     (BlockId (..), Datum, DatumHash (..), MintingPolicy, MintingPolicyHash (..),
-                                             Redeemer, RedeemerHash (..), Script, ScriptHash (..), Slot, StakeValidator,
-                                             StakeValidatorHash (..), TxId (..), TxOutRef (..), Validator,
-                                             ValidatorHash (..))
+import           Ledger                     (AssetClass, BlockId (..), Datum, DatumHash (..), MintingPolicy,
+                                             MintingPolicyHash (..), Redeemer, RedeemerHash (..), Script,
+                                             ScriptHash (..), Slot, StakeValidator, StakeValidatorHash (..), TxId (..),
+                                             TxOutRef (..), Validator, ValidatorHash (..))
 import           Plutus.ChainIndex.Tx       (ChainIndexTx)
 import           Plutus.ChainIndex.Types    (BlockNumber (..), Tip (..))
 import           Plutus.V1.Ledger.Api       (Credential)
@@ -95,6 +91,21 @@ instance Table AddressRowT where
     data PrimaryKey AddressRowT f = AddressRowId (Columnar f ByteString) (Columnar f ByteString) deriving (Generic, Beamable)
     primaryKey (AddressRow c o) = AddressRowId c o
 
+data AssetClassRowT f = AssetClassRow
+    { _assetClassRowAssetClass :: Columnar f ByteString
+    , _assetClassRowOutRef     :: Columnar f ByteString
+    } deriving (Generic, Beamable)
+
+type AssetClassRow = AssetClassRowT Identity
+
+instance Table AssetClassRowT where
+    -- We also need an index on just the _assetClassRowAssetClass column, but the primary key index provides this
+    -- as long as _assetClassRowAssetClass is the first column in the primary key.
+    data PrimaryKey AssetClassRowT f = AssetClassRowId (Columnar f ByteString)
+                                                       (Columnar f ByteString)
+      deriving (Generic, Beamable)
+    primaryKey (AssetClassRow c o) = AssetClassRowId c o
+
 data TipRowT f = TipRow
     { _tipRowSlot        :: Columnar f Word64
     , _tipRowBlockId     :: Columnar f ByteString
@@ -144,6 +155,7 @@ data Db f = Db
     , scriptRows         :: f (TableEntity ScriptRowT)
     , txRows             :: f (TableEntity TxRowT)
     , addressRows        :: f (TableEntity AddressRowT)
+    , assetClassRows     :: f (TableEntity AssetClassRowT)
     , tipRows            :: f (TableEntity TipRowT)
     , unspentOutputRows  :: f (TableEntity UnspentOutputRowT)
     , unmatchedInputRows :: f (TableEntity UnmatchedInputRowT)
@@ -154,6 +166,7 @@ type AllTables (c :: * -> Constraint) f =
     , c (f (TableEntity ScriptRowT))
     , c (f (TableEntity TxRowT))
     , c (f (TableEntity AddressRowT))
+    , c (f (TableEntity AssetClassRowT))
     , c (f (TableEntity TipRowT))
     , c (f (TableEntity UnspentOutputRowT))
     , c (f (TableEntity UnmatchedInputRowT))
@@ -171,6 +184,7 @@ checkedSqliteDb = defaultMigratableDbSettings
     , scriptRows  = renameCheckedEntity (const "scripts")
     , txRows      = renameCheckedEntity (const "txs")
     , addressRows = renameCheckedEntity (const "addresses")
+    , assetClassRows = renameCheckedEntity (const "asset_classes")
     , tipRows     = renameCheckedEntity (const "tips")
     , unspentOutputRows  = renameCheckedEntity (const "unspent_outputs")
     , unmatchedInputRows = renameCheckedEntity (const "unmatched_inputs")
@@ -215,6 +229,7 @@ deriving via Serialisable Validator instance HasDbType Validator
 deriving via Serialisable ChainIndexTx instance HasDbType ChainIndexTx
 deriving via Serialisable TxOutRef instance HasDbType TxOutRef
 deriving via Serialisable Credential instance HasDbType Credential
+deriving via Serialisable AssetClass instance HasDbType AssetClass
 deriving via Serialisable Script instance HasDbType Script
 
 instance HasDbType Slot where
@@ -258,3 +273,8 @@ instance HasDbType (Credential, TxOutRef) where
     type DbType (Credential, TxOutRef) = AddressRow
     toDbValue (cred, outRef) = AddressRow (toDbValue cred) (toDbValue outRef)
     fromDbValue (AddressRow cred outRef) = (fromDbValue cred, fromDbValue outRef)
+
+instance HasDbType (AssetClass, TxOutRef) where
+    type DbType (AssetClass, TxOutRef) = AssetClassRow
+    toDbValue (ac, outRef) = AssetClassRow (toDbValue ac) (toDbValue outRef)
+    fromDbValue (AssetClassRow ac outRef) = (fromDbValue ac, fromDbValue outRef)
