@@ -1013,6 +1013,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "rationals" = pkgs.stdenv.mkDerivation {
+        name = "rationals";
+        version = "v5.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/anttih/purescript-rationals.git";
+          rev = "8c52d8cc891d1223150a31416220aa9b99404442";
+          sha256 = "1idvjvvx5kwmi8kj2ps95bcvlsgij1xgin4jfw3rmcqd930wqq6q";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "record" = pkgs.stdenv.mkDerivation {
         name = "record";
         version = "v2.0.2";
