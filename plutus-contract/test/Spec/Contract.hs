@@ -29,7 +29,6 @@ import           Ledger                         (Address, PubKeyHash)
 import qualified Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Constraints             as Constraints
-import qualified Ledger.Crypto                  as Crypto
 import           Plutus.Contract                as Con
 import qualified Plutus.Contract.State          as State
 import           Plutus.Contract.Test
