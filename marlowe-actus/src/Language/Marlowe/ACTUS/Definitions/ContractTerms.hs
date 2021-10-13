@@ -4,23 +4,28 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import           Control.Monad    (mzero)
-import           Data.Aeson.Types (FromJSON, ToJSON, Value (Object, String), object, parseJSON, toJSON, (.:), (.=))
+import           Data.Aeson.TH    (deriveJSON)
+import           Data.Aeson.Types (FromJSON, Options (..), ToJSON, Value (Null, Object, String), defaultOptions, object,
+                                   parseJSON, toJSON, (.:), (.=))
 import           Data.Maybe       (fromMaybe)
+import           Data.Text        as T hiding (reverse, takeWhile)
+import           Data.Text.Read   as T
 import           Data.Time        (Day, LocalTime)
 import           GHC.Generics     (Generic)
 import qualified Language.Marlowe as Marlowe (Observation, Value)
 
 -- |ContractType
-data CT = PAM -- ^ Principal at maturity
-        | LAM -- ^ Linear amortizer
-        | NAM -- ^ Negative amortizer
-        | ANN -- ^ Annuity
-        | STK -- ^ Stock
+data CT = PAM   -- ^ Principal at maturity
+        | LAM   -- ^ Linear amortizer
+        | NAM   -- ^ Negative amortizer
+        | ANN   -- ^ Annuity
+        | STK   -- ^ Stock
         | OPTNS -- ^ Option
         | FUTUR -- ^ Future
         deriving stock (Show, Read, Eq, Generic)
@@ -41,7 +46,8 @@ data CR = CR_RPA -- ^ Real position asset
         | CR_RF  -- ^ Receive fix leg
         | CR_PF  -- ^ Pay fix leg
         deriving stock (Show, Read, Eq, Generic)
-        deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''CR)
 
 -- |DayCountConvention
 data DCC = DCC_A_AISDA     -- ^ Actual/Actual ISDA
@@ -73,7 +79,8 @@ instance FromJSON DCC where
 data EOMC = EOMC_EOM -- ^ End of month
           | EOMC_SD  -- ^ Same day
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''EOMC)
 
 -- |BusinessDayConvention
 data BDC = BDC_NULL -- ^ No shift
@@ -86,12 +93,14 @@ data BDC = BDC_NULL -- ^ No shift
          | BDC_CSP  -- ^ Calculate/shift preceding
          | BDC_CSMP -- ^ Calculate/shift modified preceding
          deriving stock (Show, Read, Eq, Generic)
-         deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''BDC)
 
 data Calendar = CLDR_MF -- ^ Monday to Friday
               | CLDR_NC -- ^ No calendar
               deriving stock (Show, Read, Eq, Generic)
-              deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''Calendar)
 
 data ScheduleConfig = ScheduleConfig
   { calendar :: Maybe Calendar
@@ -107,20 +116,23 @@ data PRF = PRF_PF -- ^ Performant
          | PRF_DQ -- ^ Delinquent
          | PRF_DF -- ^ Default
          deriving stock (Show, Read, Eq, Generic)
-         deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''PRF)
 
 -- |FeeBasis
 data FEB = FEB_A -- ^ Absolute value
          | FEB_N -- ^ Notional of underlying
          deriving stock (Show, Read, Eq, Generic)
-         deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''FEB)
 
 -- |InterestCalculationBase
 data IPCB = IPCB_NT    -- ^ Calculation base always equals to NT
           | IPCB_NTIED -- ^ Notional remains constant amount as per IED
           | IPCB_NTL   -- ^ Calculation base is notional base laged
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''IPCB)
 
 -- |ScalingEffect
 data SCEF = SE_000 -- ^ No scaling
@@ -132,7 +144,8 @@ data SCEF = SE_000 -- ^ No scaling
           | SE_I0M -- ^ Interest and maximum deferred amount scaled
           | SE_INM -- ^ Interest, nominal and maximum deferred amount scaled
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''SCEF)
 
 -- |PenaltyType
 data PYTP = PYTP_A -- ^ Absolute
@@ -140,34 +153,39 @@ data PYTP = PYTP_A -- ^ Absolute
           | PYTP_I -- ^ Current interest rate differential
           | PYTP_O -- ^ No penalty
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''PYTP)
 
 -- |Option Type
 data OPTP = OPTP_C  -- ^ Call Option
           | OPTP_P  -- ^ Put Option
           | OPTP_CP -- ^ Call-Put Option
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''OPTP)
 
 -- |Option Exercise Type
 data OPXT = OPXT_E -- ^ European
           | OPXT_B -- ^ Bermudan
           | OPXT_A -- ^ American
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''OPXT)
 
 -- |Settlement
 data DS = DS_S -- ^ Cash Settlement
         | DS_D -- ^ Physical Settlement
           deriving stock (Show, Read, Eq, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''DS)
 
 -- |PrepaymentEffect
 data PPEF = PPEF_N -- ^ No prepayment
           | PPEF_A -- ^ Prepayment allowed, prepayment results in reduction of PRNXT while MD remains
           | PPEF_M -- ^ Prepayment allowed, prepayment results in reduction of MD while PRNXT remains
           deriving stock (Show, Read, Eq, Ord, Generic)
-          deriving anyclass (FromJSON, ToJSON)
+
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''PPEF)
 
 data CalendarType = NoCalendar
                   | MondayToFriday
@@ -184,22 +202,7 @@ data Period = P_D -- ^ Day
             | P_Y -- ^ Year
             deriving stock (Show, Read, Eq, Ord, Generic)
 
-instance ToJSON Period where
-  toJSON P_D = String "D"
-  toJSON P_W = String "W"
-  toJSON P_M = String "M"
-  toJSON P_Q = String "Q"
-  toJSON P_H = String "H"
-  toJSON P_Y = String "Y"
-
-instance FromJSON Period where
-  parseJSON (String "D") = return P_D
-  parseJSON (String "W") = return P_W
-  parseJSON (String "M") = return P_M
-  parseJSON (String "Q") = return P_Q
-  parseJSON (String "H") = return P_H
-  parseJSON (String "Y") = return P_Y
-  parseJSON _            = mzero
+$(deriveJSON defaultOptions { constructorTagModifier = reverse . takeWhile (/= '_') . reverse } ''Period)
 
 -- |CycleStub
 data Stub = ShortStub -- ^ Short last stub
@@ -207,12 +210,12 @@ data Stub = ShortStub -- ^ Short last stub
           deriving stock (Show, Eq, Ord, Generic)
 
 instance ToJSON Stub where
-  toJSON ShortStub = String "0"
-  toJSON LongStub  = String "1"
+  toJSON ShortStub = String "1"
+  toJSON LongStub  = String "0"
 
 instance FromJSON Stub where
-  parseJSON (String "0") = return ShortStub
-  parseJSON (String "1") = return LongStub
+  parseJSON (String "1") = return ShortStub
+  parseJSON (String "0") = return LongStub
   parseJSON _            = mzero
 
 -- |Cycle
@@ -223,7 +226,49 @@ data Cycle = Cycle
   , includeEndDay :: Bool
   }
   deriving stock (Show, Eq, Ord, Generic)
-  deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON Cycle where
+  toJSON (Cycle n p s _) =
+    case toJSON p of
+      String p' ->
+        case toJSON s of
+          String s' ->
+            String $
+              'P'
+                `cons` (pack $ show n)
+                `append` p'
+                `snoc` 'L'
+                `append` s'
+          _ -> Null
+      _ -> Null
+
+instance FromJSON Cycle where
+  parseJSON (String s) = parseCycle s
+    where
+      parseCycle c =
+        case uncons c of
+          Just ('P', r0) ->
+            case T.decimal r0 of
+              Right (n, r1) ->
+                case uncons r1 of
+                  Just (p, r2)
+                    | T.null r2 ->
+                      return (Cycle n)
+                        <*> parseJSON (String $ singleton p)
+                        <*> return LongStub
+                        <*> return False
+                  Just (p, r2) ->
+                    case uncons r2 of
+                      Just ('L', r3) ->
+                        return (Cycle n)
+                          <*> parseJSON (String $ singleton p)
+                          <*> parseJSON (String r3)
+                          <*> return False
+                      _ -> mzero
+                  _ -> mzero
+              _ -> mzero
+          _ -> mzero
+  parseJSON _ = mzero
 
 -- For applicability failures
 data TermValidationError =
@@ -349,7 +394,6 @@ data ContractTermsPoly a b = ContractTermsPoly
   , ct_MD             :: Maybe b         -- ^ Maturity Date
   , ct_AD             :: Maybe b         -- ^ Amortization Date
   , ct_XD             :: Maybe b         -- ^ Exercise Date
-  -- , ct_STD                   :: Maybe b         -- ^ Settlement Date
 
   -- Notional Principal
   , ct_NT             :: Maybe a         -- ^ Notional Principal
