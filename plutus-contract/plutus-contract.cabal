@@ -163,9 +163,15 @@ test-suite plutus-contract-test
     default-language: Haskell2010
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities -rtsopts
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     hs-source-dirs: test
     other-modules:
         Spec.Contract
+        Spec.ErrorChecking
         Spec.Emulator
         Spec.Rows
         Spec.State
@@ -193,9 +199,12 @@ test-suite plutus-contract-test
         plutus-contract -any,
         plutus-ledger -any,
         plutus-tx -any,
+        plutus-ledger-api -any,
         freer-simple -any,
         aeson -any,
-        semigroupoids -any
+        semigroupoids -any,
+        row-types -any,
+        QuickCheck -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

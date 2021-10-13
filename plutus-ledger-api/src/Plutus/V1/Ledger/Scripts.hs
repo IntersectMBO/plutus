@@ -17,6 +17,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
 module Plutus.V1.Ledger.Scripts(
@@ -200,10 +201,34 @@ evaluateScript s = do
     let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
     case result of
         Right _ -> Haskell.pure ()
-        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
-            InternalEvaluationError internalEvalError    -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
-            UserEvaluationError evalError -> EvaluationError logOut (PLC.show evalError)  -- TODO fix this error channel fuckery
+        Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
+            InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
+            UserEvaluationError evalError -> EvaluationError logOut (mkError evalError cause) -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
+
+-- | Create an error message from the contents of an ErrorWithCause.
+-- If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
+-- the error will be a "BuiltinEvaluationFailure" otherwise it will be `PLC.show evalError`
+mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> String
+mkError evalError Nothing = PLC.show evalError
+mkError evalError (Just t) =
+  case findBuiltin t of
+    Just b  -> "BuiltinEvaluationFailure of " ++ Haskell.show b
+    Nothing -> PLC.show evalError
+  where
+    findBuiltin :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
+    findBuiltin t = case t of
+       UPLC.Apply _ t _   -> findBuiltin t
+       UPLC.Builtin _ fun -> Just fun
+       -- These two *really shouldn't* appear but
+       -- we are future proofing for a day when they do
+       UPLC.Force _ t     -> findBuiltin t
+       UPLC.Delay _ t     -> findBuiltin t
+       -- Future proofing for eta-expanded builtins
+       UPLC.LamAbs _ _ t  -> findBuiltin t
+       UPLC.Var _ _       -> Nothing
+       UPLC.Constant _ _  -> Nothing
+       UPLC.Error _       -> Nothing
 
 {- Note [JSON instances for Script]
 The JSON instances for Script are partially hand-written rather than going via the Serialise
