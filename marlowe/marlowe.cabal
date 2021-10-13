@@ -74,6 +74,7 @@ library
     build-depends: plutus-tx-plugin -any
   exposed-modules:
     Language.Marlowe
+    Language.Marlowe.Deserialisation
     Language.Marlowe.Extended
     Language.Marlowe.Semantics
     Language.Marlowe.Client
