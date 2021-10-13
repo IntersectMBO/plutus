@@ -173,6 +173,14 @@ let additions =
           , version =
               "v0.4.0"
           }
+      , numerics =
+          { dependencies =
+              [ "prelude", "integers", "rationals", "uint", "bigints" ]
+          , repo =
+              "https://github.com/Proclivis/purescript-numerics"
+          , version =
+              "v0.1.2"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions

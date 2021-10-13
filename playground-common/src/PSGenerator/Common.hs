@@ -167,7 +167,6 @@ scientificBridge = do
     typeModule ^== "Data.Scientific"
     pure psNumber
 
-
 naturalBridge :: BridgePart
 naturalBridge = do
     typeName ^== "Natural"
