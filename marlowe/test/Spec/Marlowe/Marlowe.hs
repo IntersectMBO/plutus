@@ -40,9 +40,11 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
+import           Language.Marlowe.Deserialisation      (byteStringToInt, byteStringToList)
 import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
                                                         typedValidator)
 import           Language.Marlowe.Semantics
+import           Language.Marlowe.Serialisation        (intToByteString, listToByteString)
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
@@ -56,6 +58,7 @@ import           Plutus.Contract.Types                 (_observableState)
 import qualified Plutus.Trace.Emulator                 as Trace
 import           Plutus.Trace.Emulator.Types           (instContractState)
 import qualified PlutusTx.AssocMap                     as AssocMap
+import           PlutusTx.Builtins                     (emptyByteString)
 import           PlutusTx.Lattice
 import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
@@ -90,6 +93,10 @@ tests = testGroup "Marlowe"
     , testProperty "Multiply by zero" mulTest
     , testProperty "Divide zero and by zero" divZeroTest
     , testProperty "DivValue rounding" divisionRoundingTest
+    , testGroup "ByteString ad-hoc (de)serialisation"
+        [ testProperty "Integer (de)serialisation roundtrip" integerBSRoundtripTest
+        , testProperty "Integer list (de)serialisation roundtrip" integerListBSRoundtripTest
+        ]
     , zeroCouponBondTest
     , errorHandlingTest
     , trustFundTest
@@ -527,3 +534,10 @@ jsonLoops cont = decode (encode cont) === Just cont
 
 prop_jsonLoops :: Property
 prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
+
+integerBSRoundtripTest :: Property
+integerBSRoundtripTest = forAll (arbitrary :: Gen Integer) (\num -> byteStringToInt (intToByteString num) === Just (num, emptyByteString))
+
+integerListBSRoundtripTest :: Property
+integerListBSRoundtripTest = forAll (arbitrary :: Gen [Integer]) (\numList -> byteStringToList byteStringToInt (listToByteString intToByteString numList) === Just (numList, emptyByteString))
+
