@@ -10,13 +10,11 @@
 
 module PlutusBenchmark.NoFib.Clausify where
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import           PlutusCore.Default
 import qualified PlutusTx               as Tx
 import           PlutusTx.Prelude       as Plutus
 import qualified Prelude                as Haskell
-import           UntypedPlutusCore
 
 type Var = Integer
 
@@ -188,6 +186,6 @@ runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
 {-# INLINABLE mkClausifyTerm #-}
-mkClausifyTerm :: StaticFormula -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkClausifyTerm :: StaticFormula -> Term
 mkClausifyTerm formula = compiledCodeToTerm $
                          $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula

@@ -1,4 +1,7 @@
 {- | Plutus benchmarks for some simple list-sorting algortihms. -}
+
+{-# LANGUAGE TypeApplications #-}
+
 module Main where
 
 import           Criterion.Main
@@ -24,13 +27,15 @@ benchQuickSort n = benchTermCek $ mkWorstCaseQuickSortTerm n
 
 benchmarks :: [Benchmark]
 benchmarks =
-    [
-      bgroup "ghcSort"       $ map (\n -> bench (show n) $ benchGhcSort n)       sizes
-    , bgroup "insertionSort" $ map (\n -> bench (show n) $ benchInsertionSort n) sizes
-    , bgroup "mergeSort"     $ map (\n -> bench (show n) $ benchMergeSort n)     sizes
-    , bgroup "quickSort"     $ map (\n -> bench (show n) $ benchQuickSort n)     sizes
+    [ bgroup "sort" $
+      [ bgroup "ghcSort"       $ map (\n -> bench (show n) $ benchGhcSort n)       sizesForSort
+      , bgroup "insertionSort" $ map (\n -> bench (show n) $ benchInsertionSort n) sizesForSort
+      , bgroup "mergeSort"     $ map (\n -> bench (show n) $ benchMergeSort n)     sizesForSort
+      , bgroup "quickSort"     $ map (\n -> bench (show n) $ benchQuickSort n)     sizesForSort
+      ]
     ]
-    where sizes = [10,20..500]
+    where
+      sizesForSort = [10,20..500]
 
 main :: IO ()
 main = do

@@ -5,12 +5,10 @@
 {- | Simple merge sort implementation -}
 module PlutusBenchmark.ListSort.MergeSort where
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import           PlutusCore.Default
 import qualified PlutusTx               as Tx
 import           PlutusTx.Prelude       as Tx
-import qualified UntypedPlutusCore      as UPLC
 
 {-# INLINABLE drop #-}
 drop :: Integer -> [a] -> [a]
@@ -57,9 +55,9 @@ mergeSortWorstCase n = f [1..n]
                 [a]        -> (reverse(a:lacc), reverse racc)
                 (a:b:rest) -> unzip2 rest (a:lacc) (b:racc)
 
-mkMergeSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkMergeSortTerm :: [Integer] -> Term
 mkMergeSortTerm l =
     compiledCodeToTerm $ $$(Tx.compile [|| mergeSort ||]) `Tx.applyCode` Tx.liftCode l
 
-mkWorstCaseMergeSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseMergeSortTerm :: Integer -> Term
 mkWorstCaseMergeSortTerm = mkMergeSortTerm . mergeSortWorstCase
