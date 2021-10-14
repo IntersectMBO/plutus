@@ -79,13 +79,6 @@ rec {
     }) client fake-pab-exe fake-pab-generated-purescript;
   };
 
-  marlowe-marketplace = pkgs.recurseIntoAttrs rec {
-    inherit (pkgs.callPackage ./marlowe-marketplace-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit webCommon webCommonMarlowe;
-    }) client;
-  };
-
   marlowe-web = pkgs.callPackage ./marlowe-website { inherit (plutus.lib) npmlock2nix gitignore-nix; };
 
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
