@@ -31,7 +31,7 @@ This will always be a value of type ``Ledger.Validation.PolicyCtx`` encoded as `
 The minting context is very similar to the :term:`validation context`, and allows access to all the same features of the transaction.
 Minting policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
 
-It is also important for a minting policy to look at the tokens in the ``mint`` field that are part of its own asset group.
+It is also important for a minting policy to look at the tokens in the ``mint`` field that use its own currency symbol i.e. policy hash.
 This requires the policy to refer to its own hash -- fortunately this is provided for us in the minting context.
 
 Here is an example that puts this together to make a simple policy that allows anyone to mint the token so long as they do it one token at a time.
