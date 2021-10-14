@@ -24,7 +24,7 @@ handleWalletClient
 handleWalletClient _wallet event = do
     case event of
         SubmitTxn _t           -> throwError $ OtherError "Not implemented yet"
-        OwnPubKey              -> throwError $ OtherError "Not implemented yet"
+        OwnPubKeyHash          -> throwError $ OtherError "Not implemented yet"
         BalanceTx _utx         -> throwError $ OtherError "Not implemented yet"
         WalletAddSignature _tx -> throwError $ OtherError "Not implemented yet"
         TotalFunds             -> throwError $ OtherError "Not implemented yet"
