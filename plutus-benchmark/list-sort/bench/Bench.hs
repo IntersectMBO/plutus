@@ -71,6 +71,11 @@ benchScottSumL n = benchTermCek $ mkScottSumL n
 benchScottSumR :: Integer -> Benchmarkable
 benchScottSumR n = benchTermCek $ mkScottSumR n
 
+-- The built-in sum uses a PLC case discriminator. We also want a version using
+-- the builtin case, which will require a fold written in Haskell using the Tx-level
+-- case builtin.
+
+
 benchmarks :: [Benchmark]
 benchmarks =
     [ bgroup "sort" $
