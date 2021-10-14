@@ -494,6 +494,15 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
     let top = NE.head stack
     case e of
+        -- Lazy ||
+        -- See Note [Case expressions and laziness]
+        GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "||" ->
+            compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
+        -- Lazy &&
+        -- See Note [Case expressions and laziness]
+        GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "&&" ->
+            compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
         -- See Note [String literals]
         -- IsString has only one method, so it's enough to know that it's an IsString method to know we're looking at fromString
         -- We can safely commit to this match as soon as we've seen fromString - we won't accept any applications of fromString that aren't creating literals
