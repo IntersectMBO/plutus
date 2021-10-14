@@ -1,9 +1,10 @@
 module Home where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
+import Component.NewProject.Types as NewProject
+import Component.Projects.Types (Lang(..))
 import Data.Lens (has)
-import Data.Maybe (Maybe(..))
 import Halogen (ComponentHTML)
 import Halogen.Classes (arrowLeftDown, arrowLeftUp, arrowRightDown, arrowRightUp, marloweLogo, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, primaryButton, secondaryButton, simulationIconBlack)
 import Halogen.Css (classNames)
@@ -12,8 +13,6 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (href, src, target)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _authStatus)
 import Network.RemoteData (_Success)
-import NewProject.Types as NewProject
-import Projects.Types (Lang(..))
 
 render :: forall m. State -> ComponentHTML Action ChildSlots m
 render state =

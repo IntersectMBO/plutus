@@ -1,13 +1,10 @@
 module Text.Parsing.StringParser.Basic where
 
-import Prelude hiding (between)
-import Control.Alternative ((<|>))
+import Prologue hiding (between)
 import Data.Array (foldl, many, some, (:))
 import Data.Array as Array
 import Data.Bifunctor (bimap)
-import Data.Either (Either)
 import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (drop, fromCharArray, singleton, take)
 import Data.String.CodeUnits as String
 import Text.Parsing.StringParser (ParseError, Parser(..), Pos)

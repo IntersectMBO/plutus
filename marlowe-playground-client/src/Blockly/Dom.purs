@@ -65,7 +65,7 @@
 -- </xml>
 module Blockly.Dom where
 
-import Prelude
+import Prologue
 import Blockly.Internal (workspaceToDom)
 import Blockly.Types (BlocklyState)
 import Control.Monad.Error.Extra (toMonadThrow)
@@ -73,13 +73,11 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (class MonadThrow)
 import Data.Array (find, length, uncons)
 import Data.Compactable (separate)
-import Data.Either (Either(..), note')
+import Data.Either (note')
 import Data.Lens (Lens', _1, view)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Object (Object)

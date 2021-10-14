@@ -7,17 +7,16 @@ module Bridge
 
 import Prologue
 import Cardano.Wallet.Mock.Types (WalletInfo(..)) as Back
+import Component.Contacts.Types (Wallet(..), WalletInfo(..)) as Front
 import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
+import Data.Json.JsonNTuple (JsonNTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
-import Data.Maybe (Maybe)
-import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Data.Json.JsonNTuple (JsonNTuple(..))
 import Marlowe.PAB (PlutusAppId(..)) as Front
-import Marlowe.Semantics (Assets(..), Slot(..), PubKeyHash) as Front
+import Marlowe.Semantics (Assets(..), Slot(..)) as Front
 import Network.RemoteData (RemoteData)
 import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
@@ -26,7 +25,6 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import Contacts.Types (Wallet(..), WalletInfo(..)) as Front
 
 {-
 Note [JSON communication]: To ensure the client and the PAB server understand each other, they have

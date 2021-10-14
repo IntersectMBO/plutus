@@ -4,7 +4,6 @@ import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
-import Data.Maybe (Maybe)
 import Data.String (fromCodePointArray, toCodePointArray)
 import Halogen.Classes (blocklyIcon, readMoreIconWhite)
 import Halogen.Classes as Classes
@@ -12,7 +11,7 @@ import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p, p_, span, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
 import Marlowe.Holes as Holes
-import Prelude hiding (div)
+import Prologue hiding (div)
 
 data HelpContext
   = MarloweHelp

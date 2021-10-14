@@ -1,6 +1,6 @@
 module Test.Main where
 
-import Prelude
+import Prologue
 import BridgeTests as BridgeTests
 import Effect (Effect)
 import Marlowe.BlocklyTests as BlocklyTests

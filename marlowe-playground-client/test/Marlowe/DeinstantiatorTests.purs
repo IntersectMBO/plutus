@@ -1,13 +1,11 @@
 module Marlowe.DeinstantiatorTests where
 
-import Prelude
+import Prologue
 import Data.BigInteger (fromInt)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.Tuple.Nested ((/\))
 import Examples.PureScript.Escrow as Escrow
-import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
-import Examples.PureScript.CouponBondGuaranteed as CouponBondGuaranteed
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Extended (toCore)

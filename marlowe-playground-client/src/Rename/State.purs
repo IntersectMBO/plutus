@@ -1,8 +1,8 @@
 module Rename.State where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
+import Component.Modal.ViewHelpers (modalHeader)
 import Data.Lens (assign, (^.))
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (modalContent)
@@ -11,7 +11,6 @@ import Halogen.HTML (button, div, div_, input, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import MainFrame.Types (ChildSlots)
-import Modal.ViewHelpers (modalHeader)
 import Rename.Types (Action(..), State, _error, _projectName)
 
 handleAction ::

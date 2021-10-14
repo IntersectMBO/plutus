@@ -28,8 +28,8 @@ import Capability.MarloweStorage (class ManageMarloweStorage, addAssets, getCont
 import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.Wallet (class ManageWallet)
 import Capability.Wallet (createWallet, getWalletInfo, getWalletTotalFunds) as Wallet
-import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKeyHash, _wallet, _walletInfo)
-import Contacts.Types (Wallet(..), WalletDetails, WalletInfo(..))
+import Component.Contacts.Lenses (_companionAppId, _marloweAppId, _pubKeyHash, _wallet, _walletInfo)
+import Component.Contacts.Types (Wallet(..), WalletDetails, WalletInfo(..))
 import Control.Monad.Except (ExceptT(..), except, lift, mapExceptT, runExcept, runExceptT, withExceptT)
 import Control.Monad.Reader (asks)
 import Control.Monad.Reader.Class (ask)
@@ -47,7 +47,6 @@ import Data.Traversable (for, traverse)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (genUUID, parseUUID, toString)
 import Effect.Aff (delay)
-import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Env (DataProvider(..))
 import Foreign (MultipleErrors)
@@ -55,13 +54,11 @@ import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM, liftAff)
 import Marlowe.Client (ContractHistory(..))
 import Marlowe.PAB (PlutusAppId(..))
-import Marlowe.Semantics (Assets(..), Contract, MarloweData(..), MarloweParams(..), TokenName, TransactionInput, _rolePayoutValidatorHash, asset, emptyState, PubKeyHash(..))
+import Marlowe.Semantics (Assets(..), Contract, MarloweData(..), MarloweParams(..), PubKeyHash, TokenName, TransactionInput, _rolePayoutValidatorHash, asset, emptyState)
 import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Types (AjaxResponse, CombinedWSStreamToServer(..), DecodedAjaxResponse)
-import Contacts.Lenses (_companionAppId, _marloweAppId, _pubKeyHash, _wallet, _walletInfo)
-import Contacts.Types (Wallet(..), WalletDetails, WalletInfo(..))
 import WebSocket.Support as WS
 
 -- The `ManageMarlowe` class provides a window on the `ManageContract` and `ManageWallet`

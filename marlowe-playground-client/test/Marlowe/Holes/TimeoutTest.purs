@@ -1,7 +1,6 @@
 module Marlowe.Holes.TimeoutTest where
 
-import Prelude
-import Data.Maybe (Maybe(..))
+import Prologue
 import Marlowe.Gen (genContract, GenerationOptions(..))
 import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck)
 import Marlowe.Holes (fromTerm)

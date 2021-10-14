@@ -7,14 +7,13 @@ module StaticAnalysis.Reachability
   , stepPrefixMap
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.State as CMS
 import Data.Lens (assign, use)
 import Data.List (List(..), any, catMaybes, fromFoldable, null)
 import Data.List.NonEmpty (fromList, head, tail, toList)
 import Data.Map (fromFoldableWith, lookup, unionWith)
-import Data.Maybe (Maybe(..))
 import Data.Set (singleton, union)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)

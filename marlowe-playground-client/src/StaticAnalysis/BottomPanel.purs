@@ -4,14 +4,14 @@ module StaticAnalysis.BottomPanel
   , clearButton
   ) where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.BigInteger (BigInteger)
 import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Map.Ordered.OMap as OMap
 import Data.Newtype (unwrap)
 import Data.String (trim)
 import Data.Tuple.Nested ((/\))
@@ -23,15 +23,14 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..))
-import Data.Map.Ordered.OMap as OMap
 import Marlowe.Semantics (ChoiceId(..), Input(..), Slot(..), SlotInterval(..), TransactionInput(..))
 import Marlowe.Symbolic.Types.Response as R
 import Marlowe.Template (IntegerTemplateType(..))
 import Marlowe.ViewPartials (displayWarningList)
 import Network.RemoteData (RemoteData(..))
+import Page.Simulation.View (integerTemplateParameters)
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import SimulationPage.View (integerTemplateParameters)
 import StaticAnalysis.Types (AnalysisExecutionState(..), AnalysisState, MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
 import Types (WarningAnalysisError(..))
 

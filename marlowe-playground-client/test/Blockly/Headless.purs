@@ -1,6 +1,6 @@
 module Blockly.Headless where
 
-import Prelude
+import Prologue
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)

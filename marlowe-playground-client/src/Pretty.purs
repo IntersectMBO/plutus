@@ -1,6 +1,6 @@
 module Pretty where
 
-import Prelude
+import Prologue
 import Data.Array (concat, drop, dropWhile, length, replicate, take)
 import Data.BigInteger (BigInteger, format)
 import Data.Map as Map

@@ -27,9 +27,9 @@ import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (HalogenM)
 import LocalStorage (Key(..), getItem, removeItem, setItem)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Assets, MarloweData, MarloweParams, TransactionInput, PubKeyHash)
-import Contacts.Lenses (_assets, _pubKeyHash, _walletInfo, _walletNickname)
-import Contacts.Types (WalletDetails, WalletLibrary)
+import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKeyHash, TransactionInput)
+import Component.Contacts.Lenses (_assets, _pubKeyHash, _walletInfo, _walletNickname)
+import Component.Contacts.Types (WalletDetails, WalletLibrary)
 
 walletLibraryLocalStorageKey :: Key
 walletLibraryLocalStorageKey = Key "walletLibrary"
