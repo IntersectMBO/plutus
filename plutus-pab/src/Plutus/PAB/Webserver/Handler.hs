@@ -37,7 +37,7 @@ import           Data.Maybe                              (fromMaybe, mapMaybe)
 import           Data.OpenApi.Schema                     (ToSchema)
 import           Data.Proxy                              (Proxy (..))
 import           Data.Text                               (Text)
-import           Ledger                                  (Value, pubKeyHash)
+import           Ledger                                  (Value)
 import           Ledger.Constraints.OffChain             (UnbalancedTx)
 import           Ledger.Tx                               (Tx)
 import           Plutus.Contract.Effects                 (PABReq, _ExposeEndpointReq)
@@ -206,7 +206,7 @@ walletProxy ::
 walletProxy createNewWallet =
     createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
+    :<|> (\w -> (\pkh -> WalletInfo{wiWallet=Wallet w, wiPubKeyHash = pkh }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKeyHash)
     :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
     :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)

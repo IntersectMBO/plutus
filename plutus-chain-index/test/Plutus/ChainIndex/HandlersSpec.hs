@@ -7,18 +7,13 @@
 
 module Plutus.ChainIndex.HandlersSpec (tests) where
 
+import           Control.Concurrent.STM            (newTVarIO)
 import           Control.Lens
 import           Control.Monad                     (forM, forM_)
-import           Control.Monad.Freer               (Eff, interpret, reinterpret, runM)
-import           Control.Monad.Freer.Error         (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extras        (BeamEffect, BeamError, LogMessage, LogMsg (..), handleBeam,
-                                                    handleLogWriter)
-import           Control.Monad.Freer.Reader        (Reader, runReader)
-import           Control.Monad.Freer.State         (State, runState)
-import           Control.Monad.Freer.Writer        (runWriter)
+import           Control.Monad.Freer               (Eff)
+import           Control.Monad.Freer.Extras.Beam   (BeamEffect)
 import           Control.Monad.IO.Class            (liftIO)
 import           Control.Tracer                    (nullTracer)
-import           Data.Sequence                     (Seq)
 import           Data.Set                          (member)
 import           Database.Beam.Migrate.Simple      (autoMigrate)
 import qualified Database.Beam.Sqlite              as Sqlite
@@ -26,14 +21,17 @@ import qualified Database.Beam.Sqlite.Migrate      as Sqlite
 import qualified Database.SQLite.Simple            as Sqlite
 import qualified Generators                        as Gen
 import           Hedgehog                          (Property, assert, forAll, property, (===))
-import           Ledger                            (Address (Address, addressCredential), TxOut (TxOut, txOutAddress))
-import           Plutus.ChainIndex                 (ChainIndexLog, Page (pageItems), PageQuery (PageQuery), appendBlock,
-                                                    citxOutputs, txFromTxId, utxoSetAtAddress)
+import           Ledger                            (Address (Address, addressCredential), TxOut (TxOut, txOutAddress),
+                                                    outValue)
+import           Plutus.ChainIndex                 (Page (pageItems), PageQuery (PageQuery), RunRequirements (..),
+                                                    appendBlock, citxOutputs, runChainIndexEffects, txFromTxId,
+                                                    utxoSetAtAddress, utxoSetWithCurrency)
 import           Plutus.ChainIndex.ChainIndexError (ChainIndexError (..))
 import           Plutus.ChainIndex.DbSchema        (checkedSqliteDb)
 import           Plutus.ChainIndex.Effects         (ChainIndexControlEffect, ChainIndexQueryEffect)
-import           Plutus.ChainIndex.Handlers        (ChainIndexState, handleControl, handleQuery)
 import           Plutus.ChainIndex.Tx              (_ValidTx, citxTxId)
+import qualified Plutus.V1.Ledger.Ada              as Ada
+import           Plutus.V1.Ledger.Value            (AssetClass (AssetClass), flattenValue)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog               (testProperty)
 
@@ -44,7 +42,11 @@ tests = do
       [ testProperty "get tx from tx id" txFromTxIdSpec
       ]
     , testGroup "utxoSetAtAddress"
-      [ testProperty "each txOutRef should be unspent" eachTxOutRefShouldBeUnspentSpec
+      [ testProperty "each txOutRef should be unspent" eachTxOutRefAtAddressShouldBeUnspentSpec
+      ]
+    , testGroup "utxoSetWithCurrency"
+      [ testProperty "each txOutRef should be unspent" eachTxOutRefWithCurrencyShouldBeUnspentSpec
+      , testProperty "should restrict to non-ADA currencies" cantRequestForTxOutRefsWithAdaSpec
       ]
     ]
 
@@ -56,7 +58,7 @@ txFromTxIdSpec = property $ do
   unknownTxId <- forAll Gen.genRandomTxId
   txs <- liftIO $ Sqlite.withConnection ":memory:" $ \conn -> do
     Sqlite.runBeamSqlite conn $ autoMigrate Sqlite.migrationBackend checkedSqliteDb
-    liftIO $ runChainIndex mempty conn $ do
+    liftIO $ runChainIndex conn $ do
       appendBlock tip block
       tx <- txFromTxId (view citxTxId fstTx)
       tx' <- txFromTxId unknownTxId
@@ -69,8 +71,8 @@ txFromTxIdSpec = property $ do
 -- | After generating and appending a block in the chain index, verify that
 -- querying the chain index with each of the addresses in the block returns
 -- unspent 'TxOutRef's.
-eachTxOutRefShouldBeUnspentSpec :: Property
-eachTxOutRefShouldBeUnspentSpec = property $ do
+eachTxOutRefAtAddressShouldBeUnspentSpec :: Property
+eachTxOutRefAtAddressShouldBeUnspentSpec = property $ do
   ((tip, block), state) <- forAll $ Gen.runTxGenState Gen.genNonEmptyBlock
 
   let addresses =
@@ -79,7 +81,7 @@ eachTxOutRefShouldBeUnspentSpec = property $ do
 
   result <- liftIO $ Sqlite.withConnection ":memory:" $ \conn -> do
     Sqlite.runBeamSqlite conn $ autoMigrate Sqlite.migrationBackend checkedSqliteDb
-    liftIO $ runChainIndex mempty conn $ do
+    liftIO $ runChainIndex conn $ do
       -- Append the generated block in the chain index
       appendBlock tip block
 
@@ -88,6 +90,35 @@ eachTxOutRefShouldBeUnspentSpec = property $ do
         (_, utxoRefs) <- utxoSetAtAddress pq addr
         pure $ pageItems utxoRefs
 
+  case result of
+    Left _ -> Hedgehog.assert False
+    Right utxoRefsGroups -> do
+      forM_ (concat utxoRefsGroups) $ \utxoRef -> do
+        Hedgehog.assert $ utxoRef `member` view Gen.txgsUtxoSet state
+
+-- | After generating and appending a block in the chain index, verify that
+-- querying the chain index with each of the addresses in the block returns
+-- unspent 'TxOutRef's.
+eachTxOutRefWithCurrencyShouldBeUnspentSpec :: Property
+eachTxOutRefWithCurrencyShouldBeUnspentSpec = property $ do
+  ((tip, block), state) <- forAll $ Gen.runTxGenState Gen.genNonEmptyBlock
+
+  let assetClasses =
+        fmap (\(c, t, _) -> AssetClass (c, t))
+             $ filter (\(c, t, _) -> not $ Ada.adaSymbol == c && Ada.adaToken == t)
+             $ flattenValue
+             $ view (traverse . citxOutputs . _ValidTx . traverse . outValue) block
+
+  result <- liftIO $ Sqlite.withConnection ":memory:" $ \conn -> do
+    Sqlite.runBeamSqlite conn $ autoMigrate Sqlite.migrationBackend checkedSqliteDb
+    liftIO $ runChainIndex conn $ do
+      -- Append the generated block in the chain index
+      appendBlock tip block
+
+      forM assetClasses $ \ac -> do
+        let pq = PageQuery 200 Nothing
+        (_, utxoRefs) <- utxoSetWithCurrency pq ac
+        pure $ pageItems utxoRefs
 
   case result of
     Left _ -> Hedgehog.assert False
@@ -95,32 +126,35 @@ eachTxOutRefShouldBeUnspentSpec = property $ do
       forM_ (concat utxoRefsGroups) $ \utxoRef ->
         Hedgehog.assert $ utxoRef `member` view Gen.txgsUtxoSet state
 
+-- | Requesting UTXOs containing Ada should not return anything because every
+-- transaction output must have a minimum of 1 ADA. So asking for UTXOs with ADA
+-- will always return all UTXOs).
+cantRequestForTxOutRefsWithAdaSpec :: Property
+cantRequestForTxOutRefsWithAdaSpec = property $ do
+  (tip, block) <- forAll $ Gen.evalTxGenState Gen.genNonEmptyBlock
+
+  result <- liftIO $ Sqlite.withConnection ":memory:" $ \conn -> do
+    Sqlite.runBeamSqlite conn $ autoMigrate Sqlite.migrationBackend checkedSqliteDb
+    liftIO $ runChainIndex conn $ do
+      -- Append the generated block in the chain index
+      appendBlock tip block
+
+      let pq = PageQuery 200 Nothing
+      (_, utxoRefs) <- utxoSetWithCurrency pq (AssetClass (Ada.adaSymbol, Ada.adaToken))
+      pure $ pageItems utxoRefs
+
+  case result of
+    Left _         -> Hedgehog.assert False
+    Right utxoRefs -> Hedgehog.assert $ null utxoRefs
+
 runChainIndex
-  :: ChainIndexState
-  -> Sqlite.Connection
-  -> Eff '[ ChainIndexControlEffect
-          , ChainIndexQueryEffect
+  :: Sqlite.Connection
+  -> Eff '[ ChainIndexQueryEffect
+          , ChainIndexControlEffect
           , BeamEffect
-          , Reader Sqlite.Connection
-          , Error BeamError
-          , State ChainIndexState
-          , Error ChainIndexError
-          , LogMsg ChainIndexLog
-          , IO
           ] a
   -> IO (Either ChainIndexError a)
-runChainIndex appState conn effect = do
-  r <- effect
-    & interpret handleControl
-    & interpret handleQuery
-    & interpret (handleBeam nullTracer)
-    & runReader conn
-    & flip handleError (throwError . BeamEffectError)
-    & runState appState
-    & runError
-    & reinterpret
-         (handleLogWriter @ChainIndexLog
-                          @(Seq (LogMessage ChainIndexLog)) $ unto pure)
-    & runWriter @(Seq (LogMessage ChainIndexLog))
-    & runM
-  pure $ fmap fst $ fst r
+runChainIndex conn action = do
+  stateTVar <- newTVarIO mempty
+  (r, _) <- runChainIndexEffects (RunRequirements nullTracer stateTVar conn 10) action
+  pure r

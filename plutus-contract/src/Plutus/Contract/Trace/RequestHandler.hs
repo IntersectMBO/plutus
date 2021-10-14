@@ -17,7 +17,7 @@ module Plutus.Contract.Trace.RequestHandler(
     , maybeToHandler
     , generalise
     -- * handlers for common requests
-    , handleOwnPubKey
+    , handleOwnPubKeyHash
     , handleSlotNotifications
     , handleCurrentSlot
     , handleTimeNotifications
@@ -45,7 +45,7 @@ import           Data.Text                      (Text)
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (POSIXTime, POSIXTimeRange, PubKey, Slot, SlotRange, Tx)
+import           Ledger                         (POSIXTime, POSIXTimeRange, PubKeyHash, Slot, SlotRange, Tx)
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
 import           Plutus.ChainIndex              (ChainIndexQueryEffect)
@@ -109,15 +109,15 @@ maybeToHandler f = RequestHandler $ maybe empty pure . f
 
 -- handlers for common requests
 
-handleOwnPubKey ::
+handleOwnPubKeyHash ::
     forall a effs.
     ( Member WalletEffect effs
     , Member (LogObserve (LogMessage Text)) effs
     )
-    => RequestHandler effs a PubKey
-handleOwnPubKey =
+    => RequestHandler effs a PubKeyHash
+handleOwnPubKeyHash =
     RequestHandler $ \_ ->
-        surroundDebug @Text "handleOwnPubKey" Wallet.Effects.ownPubKey
+        surroundDebug @Text "handleOwnPubKeyHash" Wallet.Effects.ownPubKeyHash
 
 handleSlotNotifications ::
     forall effs.
@@ -229,6 +229,7 @@ handleChainIndexQueries = RequestHandler $ \chainIndexQuery ->
         TxFromTxId txid            -> TxIdResponse <$> ChainIndexEff.txFromTxId txid
         UtxoSetMembership txOutRef -> UtxoSetMembershipResponse <$> ChainIndexEff.utxoSetMembership txOutRef
         UtxoSetAtAddress pq c      -> UtxoSetAtResponse <$> ChainIndexEff.utxoSetAtAddress pq c
+        UtxoSetWithCurrency pq ac  -> UtxoSetWithCurrencyResponse <$> ChainIndexEff.utxoSetWithCurrency pq ac
         GetTip                     -> GetTipResponse <$> ChainIndexEff.getTip
 
 handleOwnInstanceIdQueries ::

@@ -23,11 +23,11 @@ import           Control.Applicative                   (Const (..))
 import           Control.Lens                          (Lens', _Just, ix, view, (^?))
 import           Control.Monad.Freer                   (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error             (Error, throwError)
-import           Control.Monad.Freer.Extras            (selectPage)
 import           Control.Monad.Freer.Extras.Beam       (BeamEffect (..), BeamableSqlite, addRowsInBatches, combined,
-                                                        deleteRows, selectList, selectOne, updateRows)
+                                                        deleteRows, selectList, selectOne, selectPage, updateRows)
 import           Control.Monad.Freer.Extras.Log        (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.Extras.Pagination (Page (Page), PageQuery (..))
+import           Control.Monad.Freer.Reader            (Reader, ask)
 import           Control.Monad.Freer.State             (State, get, gets, put)
 import           Data.ByteString                       (ByteString)
 import qualified Data.FingerTree                       as FT
@@ -44,8 +44,9 @@ import           Database.Beam.Query                   (HasSqlEqualityCheck, asc
                                                         (&&.), (<-.), (<.), (==.), (>.))
 import           Database.Beam.Schema.Tables           (zipTables)
 import           Database.Beam.Sqlite                  (Sqlite)
-import           Ledger                                (Address (..), ChainIndexTxOut (..), Datum, DatumHash, TxId (..),
-                                                        TxOut (..), TxOutRef (..))
+import           Ledger                                (Address (..), ChainIndexTxOut (..), Datum, DatumHash (..),
+                                                        TxId (..), TxOut (..), TxOutRef (..))
+import           Ledger.Value                          (AssetClass (AssetClass), flattenValue)
 import           Plutus.ChainIndex.ChainIndexError     (ChainIndexError (..))
 import           Plutus.ChainIndex.ChainIndexLog       (ChainIndexLog (..))
 import           Plutus.ChainIndex.Compatibility       (toCardanoPoint)
@@ -53,10 +54,11 @@ import           Plutus.ChainIndex.DbSchema
 import           Plutus.ChainIndex.Effects             (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
 import           Plutus.ChainIndex.Tx
 import qualified Plutus.ChainIndex.TxUtxoBalance       as TxUtxoBalance
-import           Plutus.ChainIndex.Types               (Diagnostics (..), Point (..), Tip (..), TxUtxoBalance (..),
-                                                        tipAsPoint)
+import           Plutus.ChainIndex.Types               (Depth (..), Diagnostics (..), Point (..), Tip (..),
+                                                        TxUtxoBalance (..), tipAsPoint)
 import           Plutus.ChainIndex.UtxoState           (InsertUtxoSuccess (..), RollbackResult (..), UtxoIndex)
 import qualified Plutus.ChainIndex.UtxoState           as UtxoState
+import qualified Plutus.V1.Ledger.Ada                  as Ada
 import           Plutus.V1.Ledger.Api                  (Credential (PubKeyCredential, ScriptCredential))
 
 type ChainIndexState = UtxoIndex TxUtxoBalance
@@ -65,32 +67,6 @@ getResumePoints :: Member BeamEffect effs => Eff effs [C.ChainPoint]
 getResumePoints
     = fmap (mapMaybe (toCardanoPoint . tipAsPoint . fromDbValue . Just))
     . selectList . select . orderBy_ (desc_ . _tipRowSlot) . all_ $ tipRows db
-
-restoreStateFromDb ::
-    ( Member (State ChainIndexState) effs
-    , Member BeamEffect effs
-    )
-    => Point
-    -> Eff effs ()
-restoreStateFromDb point = do
-    rollbackUtxoDb point
-    uo <- selectList . select $ all_ (unspentOutputRows db)
-    ui <- selectList . select $ all_ (unmatchedInputRows db)
-    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
-    tips <- selectList . select
-        . orderBy_ (asc_ . _tipRowSlot)
-        $ all_ (tipRows db)
-    put $ FT.fromList . fmap (toUtxoState balances) $ tips
-    where
-        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
-        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
-            = (slot, TxUtxoBalance (Set.singleton (fromDbValue outRef)) mempty)
-        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
-        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
-            = (slot, TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
-        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
-        toUtxoState balances tip
-            = UtxoState.UtxoState (Map.findWithDefault mempty (_tipRowSlot tip) balances) (fromDbValue (Just tip))
 
 handleQuery ::
     ( Member (State ChainIndexState) effs
@@ -113,6 +89,8 @@ handleQuery = \case
             TipAtGenesis -> throwError QueryFailedNoTip
             tp           -> pure (tp, TxUtxoBalance.isUnspentOutput r utxoState)
     UtxoSetAtAddress pageQuery cred -> getUtxoSetAtAddress pageQuery cred
+    UtxoSetWithCurrency pageQuery assetClass ->
+      getUtxoSetWithCurrency pageQuery assetClass
     GetTip -> getTip
 
 getTip :: Member BeamEffect effs => Eff effs Tip
@@ -221,9 +199,41 @@ getUtxoSetAtAddress pageQuery (toDbValue -> cred) = do
 
           pure (tp, page)
 
+getUtxoSetWithCurrency
+  :: forall effs.
+    ( Member (State ChainIndexState) effs
+    , Member BeamEffect effs
+    , Member (LogMsg ChainIndexLog) effs
+    )
+  => PageQuery TxOutRef
+  -> AssetClass
+  -> Eff effs (Tip, Page TxOutRef)
+getUtxoSetWithCurrency pageQuery (toDbValue -> assetClass) = do
+  utxoState <- gets @ChainIndexState UtxoState.utxoState
+
+  case UtxoState.tip utxoState of
+      TipAtGenesis -> do
+          logWarn TipIsGenesis
+          pure (TipAtGenesis, Page pageQuery Nothing [])
+      tp           -> do
+          let query =
+                fmap _assetClassRowOutRef
+                  $ filter_ (\row -> _assetClassRowAssetClass row ==. val_ assetClass)
+                  $ do
+                    utxo <- all_ (unspentOutputRows db)
+                    a <- all_ (assetClassRows db)
+                    guard_ (_assetClassRowOutRef a ==. _unspentOutputRowOutRef utxo)
+                    pure a
+
+          outRefs <- selectPage (fmap toDbValue pageQuery) query
+          let page = fmap fromDbValue outRefs
+
+          pure (tp, page)
+
 handleControl ::
     forall effs.
     ( Member (State ChainIndexState) effs
+    , Member (Reader Depth) effs
     , Member BeamEffect effs
     , Member (Error ChainIndexError) effs
     , Member (LogMsg ChainIndexLog) effs
@@ -240,7 +250,8 @@ handleControl = \case
                 logError $ Err reason
                 throwError reason
             Right InsertUtxoSuccess{newIndex, insertPosition} -> do
-                case UtxoState.reduceBlockCount 2160 newIndex of -- TODO: use chainConstant
+                depth <- ask @Depth
+                case UtxoState.reduceBlockCount depth newIndex of
                   UtxoState.BlockCountNotReduced -> put newIndex
                   lbcResult -> do
                     put $ UtxoState.reducedIndex lbcResult
@@ -259,6 +270,7 @@ handleControl = \case
                 put rolledBackIndex
                 rollbackUtxoDb $ tipAsPoint newTip
                 logDebug $ RollbackSuccess newTip
+    ResumeSync tip_ -> restoreStateFromDb tip_
     CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
         -- least one output in the UTXO set
@@ -273,6 +285,7 @@ handleControl = \case
             , DeleteRows $ truncateTable (scriptRows db)
             , DeleteRows $ truncateTable (txRows db)
             , DeleteRows $ truncateTable (addressRows db)
+            , DeleteRows $ truncateTable (assetClassRows db)
             ] ++ getConst (zipTables Proxy (\tbl (InsertRows rows) -> Const [AddRowsInBatches batchSize tbl rows]) db insertRows)
         where
             truncateTable table = delete table (const (val_ True))
@@ -332,6 +345,32 @@ rollbackUtxoDb (Point (toDbValue -> slot) _) = do
     deleteRows $ delete (unspentOutputRows db) (\row -> unTipRowId (_unspentOutputRowTip row) >. val_ slot)
     deleteRows $ delete (unmatchedInputRows db) (\row -> unTipRowId (_unmatchedInputRowTip row) >. val_ slot)
 
+restoreStateFromDb ::
+    ( Member (State ChainIndexState) effs
+    , Member BeamEffect effs
+    )
+    => Point
+    -> Eff effs ()
+restoreStateFromDb point = do
+    rollbackUtxoDb point
+    uo <- selectList . select $ all_ (unspentOutputRows db)
+    ui <- selectList . select $ all_ (unmatchedInputRows db)
+    let balances = Map.fromListWith (<>) $ fmap outputToTxUtxoBalance uo ++ fmap inputToTxUtxoBalance ui
+    tips <- selectList . select
+        . orderBy_ (asc_ . _tipRowSlot)
+        $ all_ (tipRows db)
+    put $ FT.fromList . fmap (toUtxoState balances) $ tips
+    where
+        outputToTxUtxoBalance :: UnspentOutputRow -> (Word64, TxUtxoBalance)
+        outputToTxUtxoBalance (UnspentOutputRow (TipRowId slot) outRef)
+            = (slot, TxUtxoBalance (Set.singleton (fromDbValue outRef)) mempty)
+        inputToTxUtxoBalance :: UnmatchedInputRow -> (Word64, TxUtxoBalance)
+        inputToTxUtxoBalance (UnmatchedInputRow (TipRowId slot) outRef)
+            = (slot, TxUtxoBalance mempty (Set.singleton (fromDbValue outRef)))
+        toUtxoState :: Map.Map Word64 TxUtxoBalance -> TipRow -> UtxoState.UtxoState TxUtxoBalance
+        toUtxoState balances tip@(TipRow slot _ _)
+            = UtxoState.UtxoState (Map.findWithDefault mempty slot balances) (fromDbValue (Just tip))
+
 data InsertRows te where
     InsertRows :: BeamableSqlite t => [t Identity] -> InsertRows (TableEntity t)
 
@@ -349,9 +388,18 @@ fromTx tx = mempty
     , scriptRows = fromMap citxScripts <> fromMap citxRedeemers
     , txRows = InsertRows [toDbValue (_citxTxId tx, tx)]
     , addressRows = fromPairs (fmap credential . txOutsWithRef)
+    , assetClassRows = fromPairs (concatMap assetClasses . txOutsWithRef)
     }
     where
-        credential (TxOut{txOutAddress=Address{addressCredential}}, ref) = (addressCredential, ref)
+        credential :: (TxOut, TxOutRef) -> (Credential, TxOutRef)
+        credential (TxOut{txOutAddress=Address{addressCredential}}, ref) =
+          (addressCredential, ref)
+        assetClasses :: (TxOut, TxOutRef) -> [(AssetClass, TxOutRef)]
+        assetClasses (TxOut{txOutValue}, ref) =
+          fmap (\(c, t, _) -> (AssetClass (c, t), ref))
+               -- We don't store the 'AssetClass' when it is the Ada currency.
+               $ filter (\(c, t, _) -> not $ Ada.adaSymbol == c && Ada.adaToken == t)
+               $ flattenValue txOutValue
         fromMap
             :: (BeamableSqlite t, HasDbType (k, v), DbType (k, v) ~ t Identity)
             => Lens' ChainIndexTx (Map.Map k v)
@@ -373,12 +421,14 @@ diagnostics = do
     txIds <- queryList . select $ _txRowTxId <$> limit_ 10 (all_ (txRows db))
     numScripts <- selectOne . select $ aggregate_ (const countAll_) (all_ (scriptRows db))
     numAddresses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _addressRowCred <$> all_ (addressRows db)
+    numAssetClasses <- selectOne . select $ aggregate_ (const countAll_) $ nub_ $ _assetClassRowAssetClass <$> all_ (assetClassRows db)
     TxUtxoBalance outputs inputs <- UtxoState._usTxUtxoData . UtxoState.utxoState <$> get @ChainIndexState
 
     pure $ Diagnostics
         { numTransactions    = fromMaybe (-1) numTransactions
         , numScripts         = fromMaybe (-1) numScripts
         , numAddresses       = fromMaybe (-1) numAddresses
+        , numAssetClasses    = fromMaybe (-1) numAssetClasses
         , numUnspentOutputs  = length outputs
         , numUnmatchedInputs = length inputs
         , someTransactions   = txIds

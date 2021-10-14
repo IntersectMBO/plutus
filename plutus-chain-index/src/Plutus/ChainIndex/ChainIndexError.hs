@@ -14,6 +14,7 @@ import           Prettyprinter                   (Pretty (..), colon, (<+>))
 data ChainIndexError =
     InsertionFailed InsertUtxoFailed
     | RollbackFailed RollbackFailed
+    | ResumeNotSupported
     | QueryFailedNoTip -- ^ Query failed because the chain index does not have a tip (not synchronised with node)
     | BeamEffectError BeamError
     deriving stock (Eq, Show, Generic)
@@ -23,6 +24,7 @@ instance Pretty ChainIndexError where
   pretty = \case
     InsertionFailed err -> "Insertion failed" <> colon <+> pretty err
     RollbackFailed err  -> "Rollback failed" <> colon <+> pretty err
+    ResumeNotSupported  -> "Resume is not supported"
     QueryFailedNoTip    -> "Query failed" <> colon <+> "No tip."
     BeamEffectError err -> "Error during Beam operation" <> colon <+> pretty err
 

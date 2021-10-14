@@ -54,7 +54,7 @@ import Plutus.V1.Ledger.Crypto (PubKeyHash)
 import Prelude ((<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (FormArgument)
-import Wallet.Emulator.Wallet (WalletNumber)
+import Ledger.CardanoWallet (WalletNumber)
 import Wallet.Rollup.Types (AnnotatedTx)
 
 _demoFilesMenuVisible :: Lens' State Boolean

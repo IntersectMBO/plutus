@@ -28,13 +28,11 @@ import           GHC.Generics
 import qualified Prelude                as Haskell
 import           System.Environment
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import           PlutusCore.Default
 import qualified PlutusCore.Pretty      as PLC
 import qualified PlutusTx               as Tx
 import           PlutusTx.Prelude       as TxPrelude
-import           UntypedPlutusCore
 
 
 -----------------------------
@@ -98,7 +96,7 @@ runQueens :: Integer -> Algorithm -> [State]
 runQueens n alg = nqueens n (lookupAlgorithm alg)
 
 -- % Compile a Plutus Core term which runs nqueens on given arguments
-mkQueensTerm :: Integer -> Algorithm -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkQueensTerm :: Integer -> Algorithm -> Term
 mkQueensTerm sz alg =
   compiledCodeToTerm $
               $$(Tx.compile [|| runQueens ||])

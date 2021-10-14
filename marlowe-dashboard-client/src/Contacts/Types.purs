@@ -5,7 +5,6 @@ module Contacts.Types
   , WalletDetails
   , WalletInfo(..)
   , Wallet(..)
-  , PubKeyHash(..)
   , CardSection(..)
   , WalletNicknameError(..)
   , WalletIdError(..)
@@ -24,7 +23,7 @@ import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import InputField.Types (Action, State) as InputField
 import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey)
+import Marlowe.Semantics (Assets, MarloweData, MarloweParams, PubKey, PubKeyHash)
 import Types (WebData)
 
 type State
@@ -58,7 +57,6 @@ type WalletDetails
 newtype WalletInfo
   = WalletInfo
   { wallet :: Wallet
-  , pubKey :: PubKey
   , pubKeyHash :: PubKeyHash
   }
 
@@ -87,22 +85,6 @@ instance encodeWallet :: Encode Wallet where
   encode value = genericEncode defaultOptions value
 
 instance decodeWallet :: Decode Wallet where
-  decode value = genericDecode defaultOptions value
-
--- TODO: move this into Marlowe.Semantics
-newtype PubKeyHash
-  = PubKeyHash String
-
-derive instance newtypePubKeyHash :: Newtype PubKeyHash _
-
-derive instance eqPubKeyHash :: Eq PubKeyHash
-
-derive instance genericPubKeyHash :: Generic PubKeyHash _
-
-instance encodePubKeyHash :: Encode PubKeyHash where
-  encode value = genericEncode defaultOptions value
-
-instance decodePubKeyHash :: Decode PubKeyHash where
   decode value = genericDecode defaultOptions value
 
 data CardSection

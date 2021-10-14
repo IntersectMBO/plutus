@@ -16,6 +16,7 @@ You can edit this file as you like.
   , "halogen"
   , "matryoshka"
   , "node-fs"
+  , "numerics"
   , "argonaut-codecs"
   , "foreign-generic"
   , "psci-support"

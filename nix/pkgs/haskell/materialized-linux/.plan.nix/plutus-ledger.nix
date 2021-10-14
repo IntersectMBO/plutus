@@ -67,6 +67,9 @@
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+          (hsPkgs."cardano-addresses" or (errorHandler.buildDepError "cardano-addresses"))
+          (hsPkgs."cardano-wallet-core" or (errorHandler.buildDepError "cardano-wallet-core"))
+          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
@@ -78,6 +81,7 @@
           "Ledger/Address"
           "Ledger/AddressMap"
           "Ledger/Blockchain"
+          "Ledger/CardanoWallet"
           "Ledger/Constraints"
           "Ledger/Constraints/OffChain"
           "Ledger/Constraints/OnChain"

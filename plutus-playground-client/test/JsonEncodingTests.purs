@@ -28,6 +28,7 @@ import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
 import TestUtils (arbitraryEither, arbitraryNonEmptyList, assertDecodesTo, assertEncodesTo)
 import Type.Proxy (Proxy(..))
+import PlutusTx.Ratio
 
 all :: TestSuite
 all =
@@ -107,8 +108,15 @@ jsonHandlingTests = do
       assertEncodesTo
         aValue
         "test/value_posixtime.json"
+    test "Encode Ratio" do
+      let
+        aValue = 1 % 2
+      assertEncodesTo
+        aValue
+        "test/value_ratio.json"
     suite "Roundtrips" do
       testRoundTrip "POSIXTime" arbitraryPOSIXTime
+      testRoundTrip "Ratio" arbitraryRatio
       testRoundTrip "BigInteger" arbitraryBigInteger
       testRoundTrip "CurrencySymbol" arbitraryCurrencySymbol
       testRoundTrip "TokenName" arbitraryTokenName
@@ -165,6 +173,12 @@ arbitraryBigInteger = do
     intSized :: Gen BigInteger
     intSized = BigInteger.fromInt <$> arbitrary
   product <$> vectorOf 5 intSized
+
+arbitraryRatio :: Gen (Ratio Int)
+arbitraryRatio = do
+  num <- chooseInt 0 5
+  den <- chooseInt 1 5
+  pure $ num % den
 
 arbitraryPOSIXTime :: Gen POSIXTime
 arbitraryPOSIXTime = do

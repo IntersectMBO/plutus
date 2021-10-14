@@ -339,6 +339,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           nullPlc :: SomeConstantOf uni [] '[a] -> Bool
           nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+
     -- Data
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning

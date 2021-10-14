@@ -73,7 +73,6 @@ import           Ledger.Constraints                           (ScriptLookups, Tx
 import           Ledger.Constraints.OffChain                  (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain                  as Constraints
 import           Ledger.Constraints.TxConstraints             (InputConstraint (..), OutputConstraint (..))
-import           Ledger.Crypto                                (pubKeyHash)
 import qualified Ledger.TimeSlot                              as TimeSlot
 import qualified Ledger.Tx                                    as Tx
 import qualified Ledger.Typed.Scripts                         as Scripts
@@ -416,8 +415,8 @@ runInitialiseWith ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialiseWith customLookups customConstraints StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    ownPK <- ownPubKey
-    utxo <- utxosAt (Ledger.pubKeyAddress ownPK)
+    ownPK <- ownPubKeyHash
+    utxo <- utxosAt (Ledger.pubKeyHashAddress ownPK)
     let StateMachineInstance{stateMachine, typedValidator} = scInstance
         constraints = mustPayToTheScript initialState (initialValue <> SM.threadTokenValueOrZero scInstance)
             <> foldMap ttConstraints (smThreadToken stateMachine)
@@ -472,8 +471,8 @@ runGuardedStepWith ::
     -> Contract w schema e (Either a (TransitionResult state input))
 runGuardedStepWith userLookups userConstraints smc input guard = mapError (review _SMContractError) $ mkStep smc input >>= \case
      Right StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups} -> do
-         pk <- ownPubKey
-         let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
+         pk <- ownPubKeyHash
+         let lookups = smtLookups { Constraints.slOwnPubkeyHash = Just pk }
          utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx (lookups <> userLookups) (smtConstraints <> userConstraints))
          case guard utx os ns of
              Nothing -> do

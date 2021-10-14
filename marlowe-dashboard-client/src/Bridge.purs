@@ -12,10 +12,12 @@ import Data.BigInteger (BigInteger)
 import Data.Json.JsonUUID (JsonUUID(..))
 import Data.Lens (Iso', iso)
 import Data.Map (Map, fromFoldable, toUnfoldable) as Front
+import Data.Maybe (Maybe)
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Data.Json.JsonNTuple (JsonNTuple(..))
 import Marlowe.PAB (PlutusAppId(..)) as Front
-import Marlowe.Semantics (Assets(..), Slot(..)) as Front
+import Marlowe.Semantics (Assets(..), Slot(..), PubKeyHash) as Front
 import Network.RemoteData (RemoteData)
 import Plutus.V1.Ledger.Crypto (PubKey(..), PubKeyHash(..)) as Back
 import Plutus.V1.Ledger.Slot (Slot(..)) as Back
@@ -24,7 +26,7 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import Contacts.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
+import Contacts.Types (Wallet(..), WalletInfo(..)) as Front
 
 {-
 Note [JSON communication]: To ensure the client and the PAB server understand each other, they have
@@ -79,6 +81,10 @@ instance eitherBridge :: (Bridge a c, Bridge b d) => Bridge (Either a b) (Either
   toFront = bimap toFront toFront
   toBack = bimap toBack toBack
 
+instance maybeBridge :: (Bridge a b) => Bridge (Maybe a) (Maybe b) where
+  toFront = map toFront
+  toBack = map toBack
+
 instance mapBridge :: (Ord a, Ord c, Bridge a c, Bridge b d) => Bridge (Back.Map a b) (Front.Map c d) where
   toFront map = Front.fromFoldable $ toFront <$> Back.toTuples map
   toBack map = Back.fromTuples $ toBack <$> Front.toUnfoldable map
@@ -112,16 +118,17 @@ instance currencySymbolBridge :: Bridge Back.CurrencySymbol String where
   toBack unCurrencySymbol = Back.CurrencySymbol { unCurrencySymbol }
 
 instance walletInfoBridge :: Bridge Back.WalletInfo Front.WalletInfo where
-  toFront (Back.WalletInfo { wiWallet, wiPubKey, wiPubKeyHash }) = Front.WalletInfo { wallet: toFront wiWallet, pubKey: toFront wiPubKey, pubKeyHash: toFront wiPubKeyHash }
-  toBack (Front.WalletInfo { wallet, pubKey, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKey: toBack pubKey, wiPubKeyHash: toBack pubKeyHash }
+  toFront (Back.WalletInfo { wiWallet, wiPubKeyHash }) = Front.WalletInfo { wallet: toFront wiWallet, pubKeyHash: toFront wiPubKeyHash }
+  toBack (Front.WalletInfo { wallet, pubKeyHash }) = Back.WalletInfo { wiWallet: toBack wallet, wiPubKeyHash: toBack pubKeyHash }
 
 instance walletBridge :: Bridge Back.Wallet Front.Wallet where
   toFront (Back.Wallet { getWalletId }) = Front.Wallet getWalletId
   toBack (Front.Wallet getWalletId) = Back.Wallet { getWalletId }
 
-instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
-  toFront (Back.PubKeyHash { getPubKeyHash }) = Front.PubKeyHash getPubKeyHash
-  toBack (Front.PubKeyHash getPubKeyHash) = Back.PubKeyHash { getPubKeyHash }
+-- TODO: Marlowe.Semantics.PubKeyHash is currently just an alias for String
+instance pubKeyHashBridge :: Bridge Back.PubKeyHash String where
+  toFront (Back.PubKeyHash { getPubKeyHash }) = getPubKeyHash
+  toBack getPubKeyHash = Back.PubKeyHash { getPubKeyHash }
 
 instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.PlutusAppId where
   toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.PlutusAppId uuid

@@ -219,7 +219,7 @@ getUserParties walletDetails marloweParams =
 
     roleTokens = foldMap (Set.map Role <<< Map.keys <<< Map.filter ((/=) zero)) mCurrencyTokens
   in
-    Set.insert (PK $ unwrap pubKeyHash) roleTokens
+    Set.insert (PK pubKeyHash) roleTokens
 
 withStarted ::
   forall action slots msg m.

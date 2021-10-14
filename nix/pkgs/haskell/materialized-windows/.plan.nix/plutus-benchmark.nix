@@ -40,7 +40,6 @@
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
-            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
@@ -79,7 +78,6 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-benchmark".components.sublibs.plutus-benchmark-common or (errorHandler.buildDepError "plutus-benchmark:plutus-benchmark-common"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
             ];
@@ -197,7 +195,6 @@
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
           hsSourceDirs = [ "validation" ];

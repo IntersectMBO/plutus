@@ -127,7 +127,7 @@ instance Monoid Tip where
 instance Ord Tip where
     TipAtGenesis <= _            = True
     _            <= TipAtGenesis = False
-    (Tip ls _ _) <= (Tip rs _ _) = ls <= rs
+    (Tip _ _ lb) <= (Tip _ _ rb) = lb <= rb
 
 instance Pretty Tip where
     pretty TipAtGenesis = "TipAtGenesis"
@@ -244,6 +244,7 @@ data Diagnostics =
         { numTransactions    :: Integer
         , numScripts         :: Integer
         , numAddresses       :: Integer
+        , numAssetClasses    :: Integer
         , numUnspentOutputs  :: Int
         , numUnmatchedInputs :: Int
         , someTransactions   :: [TxId]

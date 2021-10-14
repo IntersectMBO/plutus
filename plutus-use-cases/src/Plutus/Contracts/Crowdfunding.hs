@@ -117,7 +117,7 @@ mkCampaign ddl collectionDdl ownerWallet =
     Campaign
         { campaignDeadline = ddl
         , campaignCollectionDeadline = collectionDdl
-        , campaignOwner = pubKeyHash $ Emulator.walletPubKey ownerWallet
+        , campaignOwner = Emulator.walletPubKeyHash ownerWallet
         }
 
 -- | The 'POSIXTimeRange' during which the funds can be collected
@@ -194,7 +194,7 @@ theCampaign :: POSIXTime -> Campaign
 theCampaign startTime = Campaign
     { campaignDeadline = startTime + 20000
     , campaignCollectionDeadline = startTime + 30000
-    , campaignOwner = pubKeyHash $ Emulator.walletPubKey (knownWallet 1)
+    , campaignOwner = Emulator.walletPubKeyHash (knownWallet 1)
     }
 
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
@@ -204,9 +204,9 @@ theCampaign startTime = Campaign
 contribute :: Campaign -> Promise () CrowdfundingSchema ContractError ()
 contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     logInfo @Text $ "Contributing " <> Text.pack (Haskell.show contribValue)
-    contributor <- ownPubKey
+    contributor <- ownPubKeyHash
     let inst = typedValidator cmp
-        tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
+        tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
 
@@ -219,7 +219,7 @@ contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     let flt Ledger.TxOutRef{txOutRefId} _ = txid Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo Refund
                 <> Constraints.mustValidateIn (refundRange cmp)
-                <> Constraints.mustBeSignedBy (pubKeyHash contributor)
+                <> Constraints.mustBeSignedBy contributor
     if Constraints.modifiesUtxoSet tx'
     then do
         logInfo @Text "Claiming refund"
