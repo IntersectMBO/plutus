@@ -322,10 +322,10 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txMintValue = txMintValue
         , txProtocolParams = C.BuildTxWith protocolParams
         , txScriptValidity = C.TxScriptValidityNone
+        , txExtraKeyWits = C.TxExtraKeyWitnesses C.ExtraKeyWitnessesInAlonzoEra [] -- TODO
         -- unused:
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
-        , txExtraKeyWits = C.TxExtraKeyWitnessesNone
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
