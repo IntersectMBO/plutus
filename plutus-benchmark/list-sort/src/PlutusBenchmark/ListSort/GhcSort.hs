@@ -6,14 +6,11 @@
 {- | Merge sort implementation based on GHC's 'sort' function -}
 module PlutusBenchmark.ListSort.GhcSort where
 
-import           PlutusBenchmark.Common             (compiledCodeToTerm)
-
+import           PlutusBenchmark.Common             (Term, compiledCodeToTerm)
 import           PlutusBenchmark.ListSort.MergeSort (mergeSortWorstCase)
 
-import           PlutusCore.Default
 import qualified PlutusTx                           as Tx
 import           PlutusTx.Prelude                   as Tx
-import qualified UntypedPlutusCore                  as UPLC
 
 {- | GHC's 'sort' algorithm specialised to Integer.
    See https://hackage.haskell.org/package/base-4.15.0.0/docs/src/Data-OldList.html#sortBy
@@ -73,10 +70,10 @@ ghcSort = mergeAll . sequences
 ghcSortWorstCase :: Integer -> [Integer]
 ghcSortWorstCase = mergeSortWorstCase
 
-mkGhcSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkGhcSortTerm :: [Integer] -> Term
 mkGhcSortTerm l =
     compiledCodeToTerm $ $$(Tx.compile [|| ghcSort ||]) `Tx.applyCode` Tx.liftCode l
 
-mkWorstCaseGhcSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseGhcSortTerm :: Integer -> Term
 mkWorstCaseGhcSortTerm = mkGhcSortTerm . ghcSortWorstCase
 

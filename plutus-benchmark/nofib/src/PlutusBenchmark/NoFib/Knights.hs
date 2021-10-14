@@ -8,20 +8,17 @@
 
 module PlutusBenchmark.NoFib.Knights where
 
-import           PlutusBenchmark.Common                        (compiledCodeToTerm)
+import           PlutusBenchmark.Common                        (Term, compiledCodeToTerm)
 
 import           Data.Char
 import           PlutusBenchmark.NoFib.Knights.ChessSetList
 import           PlutusBenchmark.NoFib.Knights.KnightHeuristic
 import           PlutusBenchmark.NoFib.Knights.Queue
 
-import           PlutusCore.Default
 import qualified PlutusCore.Pretty                             as PLC
 import qualified PlutusTx                                      as Tx
 import           PlutusTx.Prelude                              as Tx
 import qualified Prelude                                       as Haskell
-import           UntypedPlutusCore
-
 
 {-# INLINABLE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]
@@ -98,7 +95,7 @@ runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
 {-# INLINABLE mkKnightsTerm #-}
-mkKnightsTerm :: Integer -> Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkKnightsTerm :: Integer -> Integer -> Term
 mkKnightsTerm depth boardSize =
   compiledCodeToTerm $
        $$(Tx.compile [|| runKnights ||])

@@ -1,16 +1,20 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
     ( module Export
-    , NamedDeBruijnTerm
+    , Term
     , getConfig
+    , unDeBruijn
+    , unDeBruijnAnonTerm
+    , toAnonDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
-    , unDeBruijn
     , benchTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
@@ -23,7 +27,6 @@ import qualified PlutusTx                                 as Tx
 
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Default
-import           PlutusCore.Pretty
 import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
@@ -32,7 +35,6 @@ import           Control.Exception
 import           Control.Monad.Trans.Except
 import           Criterion.Main
 import           Criterion.Types                          (Config (..))
-import           Flat
 import           System.FilePath
 
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report
@@ -49,48 +51,69 @@ getConfig limit = do
                 timeLimit = limit
               }
 
-{- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
-compiledCodeToTerm
-    :: ( uni `Everywhere` Flat
-       , uni `Everywhere` PrettyConst
-       , Closed uni
-       , GShow uni
-       , Flat fun
-       , Pretty fun
-       )
-      => Tx.CompiledCodeIn uni fun a -> UPLC.Term UPLC.NamedDeBruijn uni fun ()
-compiledCodeToTerm x = let (UPLC.Program _ _ body) = Tx.getPlc x in body
+type Term    = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 
-{- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
-   if we try to do this over an arbitrary universe.-}
-haskellValueToTerm
-    :: Tx.Lift DefaultUni a => a -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-haskellValueToTerm = compiledCodeToTerm . Tx.liftCode
+{- | Given a DeBruijn-named term, give every variable the name "v".  If we later
+   call unDeBruijn, that will rename the variables to things like "v123", where
+   123 is the relevant de Bruijn index.-}
+makeNamed
+    :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+makeNamed = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix)
 
 
-type NamedDeBruijnTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type NamedTerm = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+{- | Remove the textual names from a NamedDeBruijn term -}
+makeAnon
+    :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+makeAnon = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix)
 
-unDeBruijn :: NamedDeBruijnTerm -> NamedTerm
-unDeBruijn t =
-    case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
-      Left e   -> throw e
-      Right t' -> force t'
+{- | Take a NamedDeBruijn term and convert it to one with Names -}
+unDeBruijn :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> Term
+unDeBruijn term =
+    case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
+      Left e  -> throw e
+      Right t -> force t
       -- We're going to be using the results in benchmarks, so let's try to make
       -- sure that the result is fully evaluated to avoid adding the conversion
       -- overhead.
 
+{- | Take a program whose variables are nameless de Bruijn indices and convert it
+   to one with variables which are textual names. -}
+unDeBruijnAnonTerm :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun () -> Term
+unDeBruijnAnonTerm = unDeBruijn . makeNamed
+
+{- | Take a program whose variables are textual names and convert it to one with
+   variables whose variables are nameless de Bruijn indices. -}
+toAnonDeBruijnTerm :: Term -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+toAnonDeBruijnTerm term =
+  case runExcept @UPLC.FreeVariableError (UPLC.deBruijnTerm term) of
+    Left e  -> throw e
+    Right t -> makeAnon t
+
+{- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
+compiledCodeToTerm
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
+compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = unDeBruijn body
+
+{- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
+   if we try to do this over an arbitrary universe.-}
+haskellValueToTerm
+    :: Tx.Lift DefaultUni a => a -> Term
+haskellValueToTerm = compiledCodeToTerm . Tx.liftCode
+
+
 {- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
-benchTermCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
+benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
-    nf (Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters) $! unDeBruijn term -- Or whnf?
+    nf (Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters) $! term -- Or whnf?
 
 {- | Just run a term (used for tests etc.) -}
-runTermCek :: NamedDeBruijnTerm -> EvaluationResult NamedTerm
-runTermCek = Cek.unsafeEvaluateCekNoEmit PLC.defaultCekParameters . unDeBruijn
+runTermCek :: Term -> EvaluationResult Term
+runTermCek = Cek.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
 
 
-type Result = EvaluationResult NamedTerm
+type Result = EvaluationResult Term
 
 {- | Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled
@@ -98,5 +121,5 @@ type Result = EvaluationResult NamedTerm
    produce reducible terms. The function is polymorphic in the comparison
    operator so that we can use it with both HUnit Assertions and QuickCheck
    Properties.  -}
-cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => NamedDeBruijnTerm -> (Result -> Result -> b) -> a -> b
+cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => Term -> (Result -> Result -> b) -> a -> b
 cekResultMatchesHaskellValue term matches value = (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)

@@ -11,13 +11,12 @@ import           PlutusBenchmark.ListSort.InsertionSort
 import           PlutusBenchmark.ListSort.MergeSort
 import           PlutusBenchmark.ListSort.QuickSort
 
-import           PlutusBenchmark.Common                   (benchTermCek, compiledCodeToTerm, getConfig, unDeBruijn)
+import           PlutusBenchmark.Common                   (Term, benchTermCek, compiledCodeToTerm, getConfig)
 
 import qualified PlutusTx                                 as Tx
 
 import           Data.Text                                (Text)
 import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
 import           PlutusCore.MkPlc
 import qualified PlutusCore.Pretty                        as PP
 import qualified UntypedPlutusCore                        as UPLC
@@ -39,43 +38,38 @@ benchMergeSort n = benchTermCek $ mkWorstCaseMergeSortTerm n
 benchQuickSort :: Integer -> Benchmarkable
 benchQuickSort n = benchTermCek $ mkWorstCaseQuickSortTerm n
 
-benchNamedTermCek :: UPLC.Term UPLC.Name DefaultUni DefaultFun () -> Benchmarkable
-benchNamedTermCek term =
-    nf (Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters) $! term -- Or whnf?
-
-eval :: UPLC.Term UPLC.Name DefaultUni DefaultFun ()
-     -> (EvaluationResult (UPLC.Term UPLC.Name DefaultUni DefaultFun ()), [Text])
+eval :: Term -> (EvaluationResult Term, [Text])
 eval = Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters
 
-mkBuiltinList :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+mkBuiltinList :: Integer -> Term
 mkBuiltinList n = mkConstant @[Integer] () [1..n]
 
-mkBuiltinSumL :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+mkBuiltinSumL :: Integer -> Term
 mkBuiltinSumL n = UPLC.Apply () (UPLC.erase BuiltinList.sum) (mkBuiltinList n)
 
-mkBuiltinSumR :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+mkBuiltinSumR :: Integer -> Term
 mkBuiltinSumR n = UPLC.Apply () (UPLC.erase BuiltinList.sumR) (mkBuiltinList n)
 
-mkScottList :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
-mkScottList n = unDeBruijn $ compiledCodeToTerm (Tx.liftCode [1..n])
+mkScottList :: Integer -> Term
+mkScottList n = compiledCodeToTerm (Tx.liftCode [1..n])
 
-mkScottSumL :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+mkScottSumL :: Integer -> Term
 mkScottSumL n = UPLC.Apply () (UPLC.erase ScottList.sum) (mkScottList n)
 
-mkScottSumR :: Integer -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+mkScottSumR :: Integer -> Term
 mkScottSumR n = UPLC.Apply () (UPLC.erase ScottList.sumR) (mkScottList n)
 
 benchBuiltinSumL :: Integer -> Benchmarkable
-benchBuiltinSumL n = benchNamedTermCek $ mkBuiltinSumL n
+benchBuiltinSumL n = benchTermCek $ mkBuiltinSumL n
 
 benchBuiltinSumR :: Integer -> Benchmarkable
-benchBuiltinSumR n = benchNamedTermCek $ mkBuiltinSumR n
+benchBuiltinSumR n = benchTermCek $ mkBuiltinSumR n
 
 benchScottSumL :: Integer -> Benchmarkable
-benchScottSumL n = benchNamedTermCek $ mkScottSumL n
+benchScottSumL n = benchTermCek $ mkScottSumL n
 
 benchScottSumR :: Integer -> Benchmarkable
-benchScottSumR n = benchNamedTermCek $ mkScottSumR n
+benchScottSumR n = benchTermCek $ mkScottSumR n
 
 benchmarks :: [Benchmark]
 benchmarks =
@@ -94,7 +88,7 @@ benchmarks =
     ]
     where
       sizesForSort = [10,20..500]
-      sizesForSum  = [10, 100, 1000, 10000, 100000]
+      sizesForSum  = [10, 100, 1000, 10000]
 
 main :: IO ()
 main = do
