@@ -67,6 +67,7 @@ pkgs/.stack
 .dir-locals.el
 *.code-workspace
 .*.sw*
+**/.nvimrc
 
 # Frontend generated files (NPM/Yarn, Spago, generated PS, etc.)
 # N.B. officially we use NPM; ignoring Yarn files allows the local use of Yarn for those that want

@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -17,6 +18,7 @@ An emulator trace is a contract trace that can be run in the Plutus emulator.
 module Plutus.Trace.Emulator(
     Emulator
     , EmulatorTrace
+    , EmulatorSnapshot
     , EmulatorErr(..)
     , ContractHandle(..)
     , ContractInstanceTag
@@ -66,10 +68,14 @@ module Plutus.Trace.Emulator(
     , runEmulatorTraceEff
     , runEmulatorTraceIO
     , runEmulatorTraceIO'
+    -- * Capturing and resuming emulation
+    , prerunEmulatorTrace
+    , continueEmulatorTrace
     -- * Interpreter
     , interpretEmulatorTrace
     ) where
 
+import           Control.Applicative                     ((<|>))
 import           Control.Foldl                           (generalize, list)
 import           Control.Lens                            hiding ((:>))
 import           Control.Monad                           (forM_, void)
@@ -82,21 +88,27 @@ import           Control.Monad.Freer.Reader              (Reader, runReader)
 import           Control.Monad.Freer.State               (State, evalState)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import           Data.Default                            (Default (..))
+import           Data.Map                                (Map)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe)
+import           Data.Monoid                             (Alt (Alt))
+import           Data.Semigroup                          (Last (Last))
+import           Data.Sequence                           (Seq)
+import qualified Data.Sequence                           as Seq
 import           Data.Text.Prettyprint.Doc               (defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
+import qualified GHC.Exts                                as GHC
 import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId, exit, runThreads)
 import           System.IO                               (Handle, hPutStrLn, stdout)
 import           Wallet.Emulator.Chain                   (ChainControlEffect)
 import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState (..),
                                                           MultiAgentControlEffect, MultiAgentEffect, _eteEmulatorTime,
-                                                          _eteEvent, schedulerEvent)
+                                                          _eteEvent, fundsDistribution, schedulerEvent)
 import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), feeConfig,
                                                           foldEmulatorStreamM, initialChainState, initialDist,
                                                           runTraceStream, slotConfig)
-import           Wallet.Emulator.Wallet                  (Entity, balances)
+import           Wallet.Emulator.Wallet                  (Entity, Wallet, balances)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, handleDeterministicIds)
@@ -309,3 +321,55 @@ printBalances m = do
         printLn $ show e <> ": "
         forM_ (flattenValue v) $ \(cs, tn, a) ->
             printLn $ "    {" <> show cs <> ", " <> show tn <> "}: " <> show a
+
+-- | A \'frozen\' emulation state, based on a prerun.
+data EmulatorSnapshot =
+  EmulatorSnapshot (Seq EmulatorEvent) (Maybe EmulatorErr) EmulatorState
+
+-- | Given a starting point, and a trace, execute the emulator, then \'freeze\'
+-- the current state of the emulation, suitable for picking up later.
+prerunEmulatorTrace :: EmulatorConfig -> EmulatorTrace () -> EmulatorSnapshot
+prerunEmulatorTrace conf trace = case go of
+  (xs :> (y, z)) -> EmulatorSnapshot (Seq.fromList xs) y z
+  where
+    go :: Of [EmulatorEvent] (Maybe EmulatorErr, EmulatorState)
+    go = run .
+         runReader ((initialDist . _initialChainState) conf) .
+         foldEmulatorStreamM (generalize list) .
+         runEmulatorStream conf $ trace
+
+-- | Given a snapshot and a \'continued\' trace, \'add on\' more computation,
+-- then \'freeze\' again.
+continueEmulatorTrace ::
+  EmulatorSnapshot ->
+  EmulatorTrace () ->
+  EmulatorSnapshot
+continueEmulatorTrace (EmulatorSnapshot logs mErr s) trace =
+  case go of
+    (logs' :> (mErr', s')) ->
+      EmulatorSnapshot (logs <> Seq.fromList logs') (mErr <|> mErr') s'
+  where
+    go :: Of [EmulatorEvent] (Maybe EmulatorErr, EmulatorState)
+    go =
+      run .
+      runReader currentDist .
+      foldEmulatorStreamM (generalize list) .
+      runEmulatorStream' s $ trace
+    currentDist :: Map Wallet Value
+    currentDist = fundsDistribution s
+
+-- | Given a snapshot and a \'concluding\' trace, finish the computation,
+-- delivering the result.
+concludeEmulatorTrace ::
+  EmulatorSnapshot ->
+  EmulatorTrace () ->
+  ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)
+concludeEmulatorTrace snapshot trace =
+  case continueEmulatorTrace snapshot trace of
+    EmulatorSnapshot logs mErr s -> (GHC.toList logs, mErr, s)
+
+runEmulatorStream' ::
+  EmulatorState ->
+  EmulatorTrace () ->
+  Stream (Of (LogMessage EmulatorEvent)) (Eff '[Reader (Map Wallet Value)]) (Maybe EmulatorErr, EmulatorState)
+runEmulatorStream' = _
