@@ -33,15 +33,17 @@ import           Cardano.BM.Trace                               (Trace, logDebug
 import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
 import qualified Cardano.Node.Client                            as NodeClient
-import           Cardano.Node.Types                             (MockServerConfig (..))
+import           Cardano.Node.Types                             (MockServerConfig (..), NodeMode (..))
 import qualified Cardano.Protocol.Socket.Mock.Client            as MockClient
-import qualified Cardano.Wallet.Mock.Client                     as WalletClient
+import qualified Cardano.Wallet.Client                          as WalletClient
+import qualified Cardano.Wallet.Mock.Client                     as WalletMockClient
 import qualified Cardano.Wallet.Mock.Types                      as Wallet
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                      (handleError, throwError)
+import           Control.Monad.Freer.Error                      (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Beam                (handleBeam)
 import           Control.Monad.Freer.Extras.Log                 (mapLog)
+import           Control.Monad.Freer.Reader                     (Reader)
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import           Data.Aeson                                     (FromJSON, ToJSON)
 import           Data.Coerce                                    (coerce)
@@ -74,7 +76,10 @@ import           Plutus.PAB.Types                               (Config (Config)
                                                                  WebserverConfig (..), chainIndexConfig, dbConfig,
                                                                  endpointTimeout, nodeServerConfig, pabWebserverConfig,
                                                                  walletServerConfig)
-import           Servant.Client                                 (ClientEnv, mkClientEnv)
+import           Servant.Client                                 (ClientEnv, ClientError, mkClientEnv)
+import           Wallet.Effects                                 (WalletEffect (..))
+import           Wallet.Emulator.Error                          (WalletAPIError)
+import           Wallet.Emulator.Wallet                         (Wallet (..))
 
 ------------------------------------------------------------
 
@@ -168,12 +173,26 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
             . flip handleError (throwError . WalletError)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . reinterpret (Core.handleMappedReader @(AppEnv a) @ClientEnv walletClientEnv)
-            . reinterpretN @'[_, _, _] (WalletClient.handleWalletClient @IO wallet)
+            . reinterpretN @'[_, _, _] (handleWalletEffect (mscNodeMode $ nodeServerConfig config) wallet)
 
         , onStartup = pure ()
 
         , onShutdown = pure ()
         }
+
+handleWalletEffect
+  :: forall effs.
+  ( LastMember IO effs
+  , Member (Error ClientError) effs
+  , Member (Error WalletAPIError) effs
+  , Member (Reader ClientEnv) effs
+  )
+  => NodeMode
+  -> Wallet
+  -> WalletEffect
+  ~> Eff effs
+handleWalletEffect MockNode   = WalletMockClient.handleWalletClient @IO
+handleWalletEffect AlonzoNode = WalletClient.handleWalletClient
 
 runApp ::
     forall a b.
