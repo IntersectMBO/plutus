@@ -174,13 +174,15 @@ benchmark list-sort
   import: lang
   type: exitcode-stdio-1.0
   main-is: Bench.hs
+  other-modules: BuiltinFold
   hs-source-dirs:
       list-sort/bench
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
     , plutus-core
-    , plutus-tx 
+    , plutus-tx
+    , plutus-tx-plugin
     , list-sort-internal
     , criterion >= 1.5.9.0
     , text -any
