@@ -30,7 +30,7 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
-import Data.Lens (_Just, assign, modifying, over, to, traversed, use, view)
+import Data.Lens (assign, modifying, over, to, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, lastOf, preview)
 import Data.Lens.Index (ix)
@@ -357,13 +357,13 @@ handleAction CompileProgram = do
       -- let's at least be correct.
       newSuccessfulCompilationResult <- use _lastSuccessfulCompilationResult
       let
-        oldSignatures = preview (_Just <<< _functionSchema) oldSuccessfulCompilationResult
+        oldSignatures = view _functionSchema <$> oldSuccessfulCompilationResult
 
-        newSignatures = preview (_Just <<< _functionSchema) newSuccessfulCompilationResult
+        newSignatures = view _functionSchema <$> newSuccessfulCompilationResult
 
-        oldCurrencies = preview (_Just <<< _knownCurrencies) oldSuccessfulCompilationResult
+        oldCurrencies = view _knownCurrencies <$> oldSuccessfulCompilationResult
 
-        newCurrencies = preview (_Just <<< _knownCurrencies) newSuccessfulCompilationResult
+        newCurrencies = view _knownCurrencies <$> newSuccessfulCompilationResult
       unless
         ( oldSignatures == newSignatures
             && oldCurrencies
