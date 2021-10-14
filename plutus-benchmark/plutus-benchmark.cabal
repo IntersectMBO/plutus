@@ -181,7 +181,7 @@ benchmark list-sort
     , plutus-benchmark-common
     , list-sort-internal
     , criterion >= 1.5.9.0
-    
+
 test-suite plutus-benchmark-list-sort-tests
     import: lang
     type: exitcode-stdio-1.0
