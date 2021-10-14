@@ -17,7 +17,7 @@ import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
 import Clipboard (handleAction) as Clipboard
 import Component.Contacts.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
-import Component.Contacts.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
+import Component.Contacts.Types (Action(..), CardSection(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
 import Component.InputField.Lenses (_pristine, _value)
 import Component.InputField.State (handleAction, mkInitialState) as InputField
 import Component.InputField.Types (Action(..), State) as InputField
@@ -40,7 +40,7 @@ import Halogen.Query.HalogenM (mapAction)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (PlutusAppId(..))
-import Marlowe.Semantics (Assets, Token(..), PubKeyHash(..))
+import Marlowe.Semantics (Assets, Token(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Page.Dashboard.Types (Action(..)) as Dashboard
 import Toast.Types (errorToast, successToast)
