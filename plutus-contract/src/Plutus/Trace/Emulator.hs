@@ -18,7 +18,6 @@ An emulator trace is a contract trace that can be run in the Plutus emulator.
 module Plutus.Trace.Emulator(
     Emulator
     , EmulatorTrace
-    , EmulatorSnapshot
     , EmulatorErr(..)
     , ContractHandle(..)
     , ContractInstanceTag
@@ -69,8 +68,10 @@ module Plutus.Trace.Emulator(
     , runEmulatorTraceIO
     , runEmulatorTraceIO'
     -- * Capturing and resuming emulation
+    , EmulatorSnapshot
     , prerunEmulatorTrace
     , continueEmulatorTrace
+    , concludeEmulatorTrace
     -- * Interpreter
     , interpretEmulatorTrace
     ) where
@@ -80,19 +81,21 @@ import           Control.Foldl                           (generalize, list)
 import           Control.Lens                            hiding ((:>))
 import           Control.Monad                           (forM_, void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Coroutine           (Yield)
-import           Control.Monad.Freer.Error               (Error, handleError, throwError)
-import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog)
+import           Control.Monad.Freer.Coroutine           (Yield, yield)
+import           Control.Monad.Freer.Error               (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extras              (wrapError)
+import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog, mapMLog)
 import           Control.Monad.Freer.Extras.Modify       (raiseEnd)
+import           Control.Monad.Freer.Extras.Stream       (runStream)
 import           Control.Monad.Freer.Reader              (Reader, runReader)
-import           Control.Monad.Freer.State               (State, evalState)
+import           Control.Monad.Freer.State               (State, evalState, gets, runState)
 import           Control.Monad.Freer.TH                  (makeEffect)
+import           Data.Bifunctor                          (first)
 import           Data.Default                            (Default (..))
+import           Data.Kind                               (Type)
 import           Data.Map                                (Map)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe)
-import           Data.Monoid                             (Alt (Alt))
-import           Data.Semigroup                          (Last (Last))
 import           Data.Sequence                           (Seq)
 import qualified Data.Sequence                           as Seq
 import           Data.Text.Prettyprint.Doc               (defaultLayoutOptions, layoutPretty, pretty)
@@ -100,9 +103,11 @@ import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import qualified GHC.Exts                                as GHC
 import           Plutus.Trace.Scheduler                  (EmSystemCall, ThreadId, exit, runThreads)
 import           System.IO                               (Handle, hPutStrLn, stdout)
+import qualified Wallet.Emulator                         as EM
 import           Wallet.Emulator.Chain                   (ChainControlEffect)
 import qualified Wallet.Emulator.Chain                   as ChainState
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent, EmulatorEvent' (..), EmulatorState (..),
+                                                          EmulatorTimeEvent (EmulatorTimeEvent),
                                                           MultiAgentControlEffect, MultiAgentEffect, _eteEmulatorTime,
                                                           _eteEvent, fundsDistribution, schedulerEvent)
 import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), feeConfig,
@@ -112,6 +117,7 @@ import           Wallet.Emulator.Wallet                  (Entity, Wallet, balanc
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
 import qualified Ledger.CardanoWallet                    as CW
+import           Ledger.Fee                              (FeeConfig)
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI  (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI  as EmulatedWalletAPI
@@ -128,6 +134,7 @@ import           Plutus.Trace.Emulator.Types             (ContractConstraints, C
                                                           EmulatorRuntimeError (..), EmulatorThreads,
                                                           UserThreadMsg (..))
 import           Streaming                               (Stream)
+import qualified Streaming                               as S
 import           Streaming.Prelude                       (Of (..))
 
 import qualified Data.Aeson                              as A
@@ -325,13 +332,18 @@ printBalances m = do
 
 -- | A \'frozen\' emulation state, based on a prerun.
 data EmulatorSnapshot =
-  EmulatorSnapshot (Seq EmulatorEvent) (Maybe EmulatorErr) EmulatorState
+  EmulatorSnapshot (Seq EmulatorEvent)
+                   (Maybe EmulatorErr)
+                   EmulatorState
+                   SlotConfig
+                   FeeConfig
 
 -- | Given a starting point, and a trace, execute the emulator, then \'freeze\'
 -- the current state of the emulation, suitable for picking up later.
 prerunEmulatorTrace :: EmulatorConfig -> EmulatorTrace () -> EmulatorSnapshot
 prerunEmulatorTrace conf trace = case go of
-  (xs :> (y, z)) -> EmulatorSnapshot (Seq.fromList xs) y z
+  (xs :> (y, z)) ->
+    EmulatorSnapshot (Seq.fromList xs) y z (_slotConfig conf) (_feeConfig conf)
   where
     go :: Of [EmulatorEvent] (Maybe EmulatorErr, EmulatorState)
     go = run .
@@ -345,17 +357,21 @@ continueEmulatorTrace ::
   EmulatorSnapshot ->
   EmulatorTrace () ->
   EmulatorSnapshot
-continueEmulatorTrace (EmulatorSnapshot logs mErr s) trace =
+continueEmulatorTrace (EmulatorSnapshot logs mErr s slotConf feeConf) trace =
   case go of
     (logs' :> (mErr', s')) ->
-      EmulatorSnapshot (logs <> Seq.fromList logs') (mErr <|> mErr') s'
+      EmulatorSnapshot (logs <> Seq.fromList logs')
+                       (mErr <|> mErr')
+                       s'
+                       slotConf
+                       feeConf
   where
     go :: Of [EmulatorEvent] (Maybe EmulatorErr, EmulatorState)
     go =
       run .
       runReader currentDist .
       foldEmulatorStreamM (generalize list) .
-      runEmulatorStream' s $ trace
+      runEmulatorStream' s slotConf feeConf $ trace
     currentDist :: Map Wallet Value
     currentDist = fundsDistribution s
 
@@ -367,10 +383,84 @@ concludeEmulatorTrace ::
   ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)
 concludeEmulatorTrace snapshot trace =
   case continueEmulatorTrace snapshot trace of
-    EmulatorSnapshot logs mErr s -> (GHC.toList logs, mErr, s)
+    EmulatorSnapshot logs mErr s _ _ -> (GHC.toList logs, mErr, s)
 
 runEmulatorStream' ::
   EmulatorState ->
+  SlotConfig ->
+  FeeConfig ->
   EmulatorTrace () ->
   Stream (Of (LogMessage EmulatorEvent)) (Eff '[Reader (Map Wallet Value)]) (Maybe EmulatorErr, EmulatorState)
-runEmulatorStream' = _
+runEmulatorStream' s slotConf feeConf =
+  runTraceStream' s slotConf feeConf . interpretEmulatorTrace' s slotConf
+
+interpretEmulatorTrace' :: forall (effs :: [Type -> Type]) (a :: Type) .
+  (Member MultiAgentEffect effs,
+   Member MultiAgentControlEffect effs,
+   Member (Error EmulatorRuntimeError) effs,
+   Member ChainControlEffect effs,
+   Member (LogMsg EmulatorEvent') effs,
+   Member (State EmulatorState) effs
+   ) =>
+   EmulatorState ->
+   SlotConfig ->
+   EmulatorTrace a ->
+   Eff effs ()
+interpretEmulatorTrace' s slotConf action =
+  let action' = Waiting.nextSlot >> action >> Waiting.nextSlot
+      wallets = Map.keys . _walletStates $ s
+   in evalState @EmulatorThreads mempty .
+        handleDeterministicIds .
+        interpret (mapLog (review schedulerEvent)) .
+        runThreads $ do
+          raise . launchSystemThreads $ wallets
+          handleEmulatorTrace slotConf action'
+
+runTraceStream' :: forall (effs :: [Type -> Type]) .
+    EmulatorState ->
+    SlotConfig ->
+    FeeConfig ->
+    Eff '[ State EmulatorState
+            , LogMsg EmulatorEvent'
+            , MultiAgentEffect
+            , MultiAgentControlEffect
+            , ChainState.ChainEffect
+            , ChainControlEffect
+            , Error EmulatorRuntimeError
+            ] () ->
+    Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
+runTraceStream' s slotConf feeConf =
+    fmap (first (either Just (const Nothing)))
+    . S.hoist (pure . run)
+    . runStream @(LogMessage EmulatorEvent) @_ @'[]
+    . runState s
+    . interpret handleLogCoroutine
+    . reinterpret @_ @(LogMsg EmulatorEvent) (mkTimedLogs @EmulatorEvent')
+    . runError
+    . wrapError WalletErr
+    . wrapError ChainIndexErr
+    . wrapError AssertionErr
+    . wrapError InstanceErr
+    . EM.processEmulated slotConf feeConf
+    . subsume
+    . subsume @(State EmulatorState)
+    . raiseEnd
+
+handleLogCoroutine :: forall (e :: Type) (effs :: [Type -> Type]).
+    Member (Yield (LogMessage e) ()) effs
+    => LogMsg e
+    ~> Eff effs
+handleLogCoroutine = \case LMessage m -> yield m id
+
+mkTimedLogs :: forall (a :: Type) (effs :: [Type -> Type]) .
+    ( Member (LogMsg (EmulatorTimeEvent a)) effs
+    , Member (State EmulatorState) effs
+    )
+    => LogMsg a
+    ~> Eff effs
+mkTimedLogs = mapMLog f where
+    f :: a -> Eff effs (EmulatorTimeEvent a)
+    f a =
+        EmulatorTimeEvent
+            <$> gets (view $ EM.chainState . EM.currentSlot)
+            <*> pure a
