@@ -1,6 +1,6 @@
 module Marlowe.Gen where
 
-import Prelude
+import Prologue
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Gen (class MonadGen, chooseInt, resize, suchThat, unfoldable)
 import Control.Monad.Gen as Gen

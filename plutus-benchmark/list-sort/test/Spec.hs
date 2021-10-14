@@ -8,7 +8,7 @@ module Main where
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common                 (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
+import           PlutusBenchmark.Common                 (Term, cekResultMatchesHaskellValue)
 
 import           PlutusBenchmark.ListSort.GhcSort
 import           PlutusBenchmark.ListSort.InsertionSort
@@ -27,7 +27,7 @@ prop_HaskellOK sort l = isSorted (sort l)
 
 -- | Check that the Plutus translation of a Haskell sorting function gives the
 -- same result as the Haskell version.
-prop_PlutusOK :: ([Integer] -> [Integer]) -> ([Integer] -> NamedDeBruijnTerm) -> [Integer] -> Property
+prop_PlutusOK :: ([Integer] -> [Integer]) -> ([Integer] -> Term) -> [Integer] -> Property
 prop_PlutusOK sort termMaker l = cekResultMatchesHaskellValue (termMaker l) (===) (sort l)
 
 ---------------- Main ----------------

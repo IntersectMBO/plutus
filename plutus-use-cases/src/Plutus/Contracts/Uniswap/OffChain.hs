@@ -40,7 +40,7 @@ import           Ledger                           hiding (singleton)
 import           Ledger.Constraints               as Constraints
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Playground.Contract
-import           Plutus.Contract
+import           Plutus.Contract                  as Contract
 import qualified Plutus.Contracts.Currency        as Currency
 import           Plutus.Contracts.Uniswap.OnChain (mkUniswapValidator, validateLiquidityMinting)
 import           Plutus.Contracts.Uniswap.Pool
@@ -173,7 +173,7 @@ data AddParams = AddParams
 -- for any pair of tokens at any given time.
 start :: forall w s. Contract w s Text Uniswap
 start = do
-    pkh <- pubKeyHash <$> ownPubKey
+    pkh <- Contract.ownPubKeyHash
     cs  <- fmap Currency.currencySymbol $
            mapError (pack . show @Currency.CurrencyError) $
            Currency.mintContract pkh [(uniswapTokenName, 1)]
@@ -224,7 +224,7 @@ create us CreateParams{..} = do
 close :: forall w s. Uniswap -> CloseParams -> Contract w s Text ()
 close us CloseParams{..} = do
     ((oref1, o1, lps), (oref2, o2, lp, liquidity)) <- findUniswapFactoryAndPool us clpCoinA clpCoinB
-    pkh                                            <- pubKeyHash <$> ownPubKey
+    pkh                                            <- Contract.ownPubKeyHash
     let usInst   = uniswapInstance us
         usScript = uniswapScript us
         usDat    = Factory $ filter (/= lp) lps
@@ -257,7 +257,7 @@ close us CloseParams{..} = do
 remove :: forall w s. Uniswap -> RemoveParams -> Contract w s Text ()
 remove us RemoveParams{..} = do
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us rpCoinA rpCoinB
-    pkh                           <- pubKeyHash <$> ownPubKey
+    pkh                           <- Contract.ownPubKeyHash
     when (rpDiff < 1 || rpDiff >= liquidity) $ throwError "removed liquidity must be positive and less than total liquidity"
     let usInst       = uniswapInstance us
         usScript     = uniswapScript us
@@ -291,7 +291,7 @@ remove us RemoveParams{..} = do
 -- | Adds some liquidity to an existing liquidity pool in exchange for newly minted liquidity tokens.
 add :: forall w s. Uniswap -> AddParams -> Contract w s Text ()
 add us AddParams{..} = do
-    pkh                           <- pubKeyHash <$> ownPubKey
+    pkh                           <- Contract.ownPubKeyHash
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us apCoinA apCoinB
     when (apAmountA < 0 || apAmountB < 0) $ throwError "amounts must not be negative"
     let outVal = view ciTxOutValue o
@@ -349,7 +349,7 @@ swap us SwapParams{..} = do
         let outA = Amount $ findSwapB oldA oldB spAmountB
         when (outA == 0) $ throwError "no payout"
         return (oldA - outA, oldB + spAmountB)
-    pkh <- pubKeyHash <$> ownPubKey
+    pkh <- Contract.ownPubKeyHash
 
     logInfo @String $ printf "oldA = %d, oldB = %d, old product = %d, newA = %d, newB = %d, new product = %d" oldA oldB (unAmount oldA * unAmount oldB) newA newB (unAmount newA * unAmount newB)
 
@@ -403,7 +403,7 @@ pools us = do
 -- | Gets the caller's funds.
 funds :: forall w s. Contract w s Text Value
 funds = do
-    pkh <- pubKeyHash <$> ownPubKey
+    pkh <- Contract.ownPubKeyHash
     os  <- map snd . Map.toList <$> utxosAt (pubKeyHashAddress pkh)
     return $ mconcat [view ciTxOutValue o | o <- os]
 

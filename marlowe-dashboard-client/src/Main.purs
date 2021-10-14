@@ -16,7 +16,7 @@ import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Action(..), Msg(..), Query(..))
-import Plutus.PAB.Webserver (SPParams_(SPParams_))
+import Plutus.PAB.Webserver (SPParams_(..))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 import WebSocket.Support as WS
 

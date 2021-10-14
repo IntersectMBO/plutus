@@ -19,16 +19,15 @@
 
 module PlutusBenchmark.NoFib.LastPiece where
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import           Data.Char              (isSpace)
-import           PlutusCore.Default
+
 import qualified PlutusCore.Pretty      as PLC
 import           PlutusTx               as PlutusTx
 import           PlutusTx.Builtins      as Tx
 import           PlutusTx.Prelude       as PLC hiding (Semigroup (..), check, foldMap)
 import qualified Prelude                as Haskell
-import           UntypedPlutusCore
 
 -------------------------------------
 --      Pieces
@@ -303,7 +302,7 @@ unindent d = map (Haskell.dropWhile isSpace) (Haskell.lines . Haskell.show $ d)
 runLastPiece :: Solution
 runLastPiece = search (1,2) Female initialBoard initialPieces
 
-mkLastPieceTerm :: Term NamedDeBruijn DefaultUni DefaultFun ()
+mkLastPieceTerm :: Term
 mkLastPieceTerm =
     compiledCodeToTerm $ $$(compile [|| runLastPiece ||])
 

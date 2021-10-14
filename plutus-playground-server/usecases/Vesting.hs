@@ -21,7 +21,6 @@ import qualified Data.Map                 as Map
 import qualified Data.Text                as T
 
 import           Ledger                   (Address, POSIXTime, POSIXTimeRange, PubKeyHash, Validator)
-import qualified Ledger
 import qualified Ledger.Ada               as Ada
 import           Ledger.Constraints       (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
@@ -212,7 +211,7 @@ retrieveFundsC vesting payment = do
 endpoints :: Contract () VestingSchema T.Text ()
 endpoints = vestingContract vestingParams
   where
-    vestingOwner = Ledger.pubKeyHash $ walletPubKey w1
+    vestingOwner = walletPubKeyHash w1
     vestingParams =
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =

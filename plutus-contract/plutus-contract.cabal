@@ -140,7 +140,11 @@ library
         uuid -any,
         IntervalMap -any,
         QuickCheck -any,
-        openapi3 -any
+        openapi3 -any,
+        cardano-wallet-core -any,
+        text-class -any,
+        cardano-crypto-class -any,
+        cardano-addresses -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

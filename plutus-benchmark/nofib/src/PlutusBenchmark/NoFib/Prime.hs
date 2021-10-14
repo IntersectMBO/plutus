@@ -22,7 +22,7 @@ import           Control.DeepSeq        (NFData)
 import           Data.Char              (isSpace)
 import           GHC.Generics
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import qualified Prelude                as Haskell
 
@@ -31,7 +31,6 @@ import qualified PlutusTx               as Tx
 import           PlutusTx.Builtins      (divideInteger, modInteger)
 import           PlutusTx.Prelude       as Tx hiding (divMod, even)
 import           PlutusTx.Ratio         (divMod)
-import           UntypedPlutusCore
 
 ---------------- Extras ----------------
 
@@ -296,7 +295,7 @@ runPrimalityTest :: Integer -> Result
 runPrimalityTest n = testInteger n initState
 
 -- % Run the program on an arbitrary integer, for testing
-mkPrimalityTestTerm :: Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkPrimalityTestTerm :: Integer -> Term
 mkPrimalityTestTerm n =
   compiledCodeToTerm  $
      $$(Tx.compile [|| runPrimalityTest ||])
@@ -308,7 +307,7 @@ runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
-mkPrimalityBenchTerm :: PrimeID -> Term NamedDeBruijn DefaultUni DefaultFun ()
+mkPrimalityBenchTerm :: PrimeID -> Term
 mkPrimalityBenchTerm pid =
     compiledCodeToTerm $
         $$(Tx.compile [|| runFixedPrimalityTest ||])

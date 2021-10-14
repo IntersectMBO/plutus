@@ -111,6 +111,7 @@ import           Wallet.Emulator.Stream                  (EmulatorConfig (..), E
 import           Wallet.Emulator.Wallet                  (Entity, Wallet, balances)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
+import qualified Ledger.CardanoWallet                    as CW
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI  (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI  as EmulatedWalletAPI
@@ -203,7 +204,7 @@ interpretEmulatorTrace conf action =
     -- initial transaction gets validated before the wallets
     -- try to spend their funds
     let action' = Waiting.nextSlot >> action >> Waiting.nextSlot
-        wallets = fromMaybe Wallet.knownWallets (preview (initialChainState . _Left . to Map.keys) conf)
+        wallets = fromMaybe (Wallet.toMockWallet <$> CW.knownWallets) (preview (initialChainState . _Left . to Map.keys) conf)
     in
     evalState @EmulatorThreads mempty
         $ handleDeterministicIds

@@ -5,12 +5,10 @@
 {- | Simple insertion sort implementation -}
 module PlutusBenchmark.ListSort.InsertionSort where
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import           PlutusCore.Default
 import qualified PlutusTx               as Tx
 import           PlutusTx.Prelude       as Tx
-import qualified UntypedPlutusCore      as UPLC
 
 {-# INLINABLE insertionSort #-}
 insertionSort :: [Integer] -> [Integer]
@@ -29,9 +27,9 @@ insertionSort l0 = sort l0 []
 insertionSortWorstCase :: Integer -> [Integer]
 insertionSortWorstCase n = [1..n]
 
-mkInsertionSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkInsertionSortTerm :: [Integer] -> Term
 mkInsertionSortTerm l =
     compiledCodeToTerm $ $$(Tx.compile [|| insertionSort ||]) `Tx.applyCode` Tx.liftCode l
 
-mkWorstCaseInsertionSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseInsertionSortTerm :: Integer -> Term
 mkWorstCaseInsertionSortTerm = mkInsertionSortTerm . insertionSortWorstCase

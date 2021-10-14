@@ -40,9 +40,11 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         runInterpreter, set, setImports)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
+import           Language.Marlowe.Deserialisation      (byteStringToInt, byteStringToList)
 import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
                                                         typedValidator)
 import           Language.Marlowe.Semantics
+import           Language.Marlowe.Serialisation        (intToByteString, listToByteString)
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
@@ -56,6 +58,7 @@ import           Plutus.Contract.Types                 (_observableState)
 import qualified Plutus.Trace.Emulator                 as Trace
 import           Plutus.Trace.Emulator.Types           (instContractState)
 import qualified PlutusTx.AssocMap                     as AssocMap
+import           PlutusTx.Builtins                     (emptyByteString)
 import           PlutusTx.Lattice
 import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
@@ -90,6 +93,10 @@ tests = testGroup "Marlowe"
     , testProperty "Multiply by zero" mulTest
     , testProperty "Divide zero and by zero" divZeroTest
     , testProperty "DivValue rounding" divisionRoundingTest
+    , testGroup "ByteString ad-hoc (de)serialisation"
+        [ testProperty "Integer (de)serialisation roundtrip" integerBSRoundtripTest
+        , testProperty "Integer list (de)serialisation roundtrip" integerListBSRoundtripTest
+        ]
     , zeroCouponBondTest
     , errorHandlingTest
     , trustFundTest
@@ -116,8 +123,8 @@ zeroCouponBondTest = checkPredicateOptions defaultCheckOptions "Zero Coupon Bond
     T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) (OK reqId "close")) "should be OK"
     ) $ do
     -- Init a contract
-    let alicePk = PK (pubKeyHash $ walletPubKey alice)
-        bobPk = PK (pubKeyHash $ walletPubKey bob)
+    let alicePk = PK (walletPubKeyHash alice)
+        bobPk = PK (walletPubKeyHash bob)
 
     let params = defaultMarloweParams
 
@@ -153,8 +160,8 @@ errorHandlingTest = checkPredicateOptions defaultCheckOptions "Error handling"
     ) "should be fail with SomeError"
     ) $ do
     -- Init a contract
-    let alicePk = PK (pubKeyHash $ walletPubKey alice)
-        bobPk = PK (pubKeyHash $ walletPubKey bob)
+    let alicePk = PK (walletPubKeyHash alice)
+        bobPk = PK (walletPubKeyHash bob)
 
     let params = defaultMarloweParams
 
@@ -197,8 +204,8 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
     ) $ do
 
     -- Init a contract
-    let alicePkh = pubKeyHash $ walletPubKey alice
-        bobPkh = pubKeyHash $ walletPubKey bob
+    let alicePkh = walletPubKeyHash alice
+        bobPkh = walletPubKeyHash bob
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
     bobCompanionHdl <- Trace.activateContract bob marloweCompanionContract "bob companion"
@@ -229,8 +236,8 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
             Trace.callEndpoint @"redeem" bobHdl (reqId, pms, "bob", bobPkh)
             void $ Trace.waitNSlots 2
     where
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
+        alicePk = PK $ walletPubKeyHash alice
+        bobPk = PK $ walletPubKeyHash bob
         chId = ChoiceId "1" alicePk
 
         contract = When [
@@ -245,7 +252,7 @@ trustFundTest = checkPredicateOptions defaultCheckOptions "Trust Fund Contract"
             ] (Slot 20) Close
         (params, _ :: TxConstraints MarloweInput MarloweData, _) =
             let con = setupMarloweParams @MarloweSchema @MarloweError
-                        (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
+                        (AssocMap.fromList [("alice", walletPubKeyHash alice), ("bob", walletPubKeyHash bob)])
                         contract
                 fld = Folds.instanceOutcome con (Trace.walletInstanceTag alice)
                 getOutcome (Done a) = a
@@ -380,7 +387,7 @@ valueSerialization = property $
 mulAnalysisTest :: IO ()
 mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        alicePk = PK $ walletPubKeyHash alice
         contract = If (muliply `ValueGE` Constant 10000) Close (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result
@@ -410,7 +417,7 @@ transferBetweenAccountsTest = do
 divAnalysisTest :: IO ()
 divAnalysisTest = do
     let
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        alicePk = PK $ walletPubKeyHash alice
         contract n d = If (DivValue (Constant n) (Constant d) `ValueGE` Constant 5)
             Close
             (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
@@ -527,3 +534,10 @@ jsonLoops cont = decode (encode cont) === Just cont
 
 prop_jsonLoops :: Property
 prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
+
+integerBSRoundtripTest :: Property
+integerBSRoundtripTest = forAll (arbitrary :: Gen Integer) (\num -> byteStringToInt (intToByteString num) === Just (num, emptyByteString))
+
+integerListBSRoundtripTest :: Property
+integerListBSRoundtripTest = forAll (arbitrary :: Gen [Integer]) (\numList -> byteStringToList byteStringToInt (listToByteString intToByteString numList) === Just (numList, emptyByteString))
+

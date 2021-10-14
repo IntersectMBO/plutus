@@ -22,7 +22,7 @@ import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)
-import Wallet.Emulator.Wallet (WalletNumber(..))
+import Ledger.CardanoWallet (WalletNumber(..))
 import Wallet.Lenses (_simulatorWalletWallet)
 
 walletsPane :: forall p. Signatures -> Value -> Array SimulatorWallet -> HTML p HAction

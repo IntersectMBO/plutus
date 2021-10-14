@@ -4,7 +4,6 @@ module Spec.PubKey(tests, pubKeyTrace) where
 import           Control.Monad           (void)
 import qualified Data.Map                as Map
 
-import qualified Ledger
 import qualified Ledger.Ada              as Ada
 import           Ledger.Constraints      (ScriptLookups (..))
 import qualified Ledger.Constraints      as Constraints
@@ -20,7 +19,7 @@ import           Test.Tasty
 
 theContract :: Contract () EmptySchema PubKeyError ()
 theContract = do
-  (txOutRef, ciTxOut, pkInst) <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
+  (txOutRef, ciTxOut, pkInst) <- pubKeyContract (walletPubKeyHash w1) (Ada.lovelaceValueOf 10)
   let lookups = ScriptLookups
                   { slMPS = Map.empty
                   , slTxOutputs = maybe mempty (Map.singleton txOutRef) ciTxOut
@@ -28,7 +27,7 @@ theContract = do
                   , slOtherData = Map.empty
                   , slPubKeyHashes = Map.empty
                   , slTypedValidator = Nothing
-                  , slOwnPubkey = Nothing
+                  , slOwnPubkeyHash = Nothing
                   }
   void $ submitTxConstraintsWith @Scripts.Any lookups (Constraints.mustSpendScriptOutput txOutRef unitRedeemer)
 

@@ -11,7 +11,7 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common         (NamedDeBruijnTerm, cekResultMatchesHaskellValue)
+import           PlutusBenchmark.Common         (Term, cekResultMatchesHaskellValue)
 
 import qualified PlutusBenchmark.NoFib.Clausify as Clausify
 import qualified PlutusBenchmark.NoFib.Knights  as Knights
@@ -25,7 +25,7 @@ import qualified PlutusTx                       as Tx
 
 -- Unit tests comparing PLC and Haskell computations on given inputs
 
-runAndCheck :: Tx.Lift DefaultUni a => NamedDeBruijnTerm -> a -> IO ()
+runAndCheck :: Tx.Lift DefaultUni a => Term -> a -> IO ()
 runAndCheck term value = cekResultMatchesHaskellValue term (@?=) value
 
 ---------------- Clausify ----------------

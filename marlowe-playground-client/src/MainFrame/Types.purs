@@ -1,44 +1,42 @@
 module MainFrame.Types where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
-import BlocklyComponent.Types as Blockly
-import BlocklyEditor.Types as BE
-import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
-import Data.Either (Either)
+import Component.Blockly.Types as Blockly
+import Component.ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
+import Component.Demos.Types as Demos
+import Component.NewProject.Types as NewProject
+import Component.Projects.Types (Lang(..))
+import Component.Projects.Types as Projects
+import Component.Tooltip.Types (ReferenceId)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', has, (^.))
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Demos.Types as Demos
 import Foreign.Class (class Decode, class Encode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Gist (Gist, GistId)
 import Gists.Types (GistAction)
 import Halogen (ClassName)
 import Halogen as H
-import Halogen.ActusBlockly as AB
 import Halogen.Classes (activeClass)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
-import HaskellEditor.Types as HE
-import JavascriptEditor.Types (CompilationState)
-import JavascriptEditor.Types as JS
 import Marlowe.Extended.Metadata (MetaData)
-import MarloweEditor.Types as ME
 import Network.RemoteData (_Loading)
-import NewProject.Types as NewProject
-import Projects.Types (Lang(..))
-import Projects.Types as Projects
+import Page.ActusBlockly as AB
+import Page.BlocklyEditor.Types as BE
+import Page.HaskellEditor.Types as HE
+import Page.JavascriptEditor.Types (CompilationState)
+import Page.JavascriptEditor.Types as JS
+import Page.MarloweEditor.Types as ME
+import Page.Simulation.Types as Simulation
 import Rename.Types as Rename
 import Router (Route)
 import SaveAs.Types as SaveAs
-import SimulationPage.Types as Simulation
-import Tooltip.Types (ReferenceId)
 import Types (WebData)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 

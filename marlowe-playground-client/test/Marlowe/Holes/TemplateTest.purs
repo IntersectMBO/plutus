@@ -1,8 +1,8 @@
 module Marlowe.Holes.TemplateTest where
 
-import Prelude
+import Prologue
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Maybe (isNothing)
 import Data.Set as Set
 import Data.Traversable (for)
 import Data.Tuple.Nested ((/\))

@@ -1,10 +1,9 @@
 module CloseAnalysis where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (foldl)
 import Data.Lens (assign, use)
-import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))

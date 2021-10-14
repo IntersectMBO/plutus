@@ -9,7 +9,7 @@ module Spec.SimpleEscrow(tests) where
 import           Control.Lens
 import           Control.Monad                 (void)
 
-import           Ledger                        (Value, pubKeyHash)
+import           Ledger                        (Value)
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Time                   (POSIXTime)
 import qualified Ledger.TimeSlot               as TimeSlot
@@ -106,7 +106,7 @@ options =
 mkEscrowParams :: POSIXTime -> Value -> Value -> EscrowParams
 mkEscrowParams startTime p e =
   EscrowParams
-    { payee     = pubKeyHash $ walletPubKey w1
+    { payee     = walletPubKeyHash w1
     , paying    = p
     , expecting = e
     , deadline  = startTime + 100000

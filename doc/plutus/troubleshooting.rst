@@ -26,7 +26,15 @@ Some things you can do to fix it:
   Some more details are in `the plutus-tx readme <https://github.com/input-output-hk/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
 
 If you don't need the plugin to succeed, f.e. when Haddock is building documentation,
-you can pass the GHC option ``-fplugin-opt Plutus.Tx.Plugin:defer-errors``.
+you can pass the GHC option ``-fplugin-opt Plutus.Tx.Plugin:defer-errors`` as a cli parameter::
+
+  cabal repl --ghc-options -fplugin-opt PlutusTx.Plugin:defer-errors plutus-contract
+
+or add the following lines for your ``package-name`` to ``cabal.project``::
+
+  package your-package
+    haddock-options: "--optghc=-fplugin-opt PlutusTx.Plugin:defer-errors"
+
 
 .. note::
   The recommended way to build documentation is with ``nix-build default.nix -A docs.site``

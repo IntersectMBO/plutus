@@ -19,9 +19,8 @@ import           Schema                (ToSchema)
 
 import           Ledger                (Value, txId)
 import           Ledger.Constraints
-import           Ledger.Crypto         (pubKeyHash)
 import           Plutus.Contract
-import           Wallet.Emulator.Types (Wallet, walletPubKey)
+import           Wallet.Emulator.Types (Wallet, walletPubKeyHash)
 
 data PayToWalletParams =
     PayToWalletParams
@@ -35,6 +34,6 @@ type PayToWalletSchema = Endpoint "Pay to wallet" PayToWalletParams
 
 payToWallet :: Promise () PayToWalletSchema ContractError ()
 payToWallet = endpoint @"Pay to wallet" $ \PayToWalletParams{amount, wallet} -> do
-  let pkh = pubKeyHash $ walletPubKey wallet
+  let pkh = walletPubKeyHash wallet
   txid <- submitTx (mustPayToPubKey pkh amount)
   awaitTxConfirmed (txId txid)

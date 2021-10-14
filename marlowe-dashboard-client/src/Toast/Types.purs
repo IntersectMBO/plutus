@@ -13,9 +13,9 @@ module Toast.Types
 import Prologue
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import Component.Icons (Icon(..))
 import Foreign (MultipleErrors)
 import Halogen (SubscriptionId)
-import Material.Icons (Icon(..))
 import Servant.PureScript.Ajax (AjaxError)
 import Types (DecodedAjaxError)
 

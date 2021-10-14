@@ -1,8 +1,7 @@
 module SaveAs.State where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
 import Data.Lens (assign, (^.))
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (border, borderBlue300, btn, btnSecondary, fontSemibold, fullWidth, modalContent, noMargins, spaceBottom, spaceLeft, spaceRight, spaceTop, textBase, textRight, textSm, uppercase)

@@ -5,13 +5,10 @@
 {- | Simple quicksort implementation. -}
 module PlutusBenchmark.ListSort.QuickSort where
 
-import           PlutusBenchmark.Common (compiledCodeToTerm)
+import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import           PlutusCore.Default
 import qualified PlutusTx               as Tx
 import           PlutusTx.Prelude       as Tx
-import qualified UntypedPlutusCore      as UPLC
-
 
 {-# INLINABLE quickSort #-}
 quickSort :: [Integer] -> [Integer]
@@ -35,12 +32,9 @@ quickSort (n:ns) = (quickSort $ before n ns []) ++ (n:(quickSort $ after n ns []
 quickSortWorstCase :: Integer -> [Integer]
 quickSortWorstCase n = reverse [1..n]
 
-quickSortPlc :: Tx.CompiledCodeIn DefaultUni DefaultFun ([Integer] -> [Integer])
-quickSortPlc = $$(Tx.compile [|| quickSort ||])
-
-mkQuickSortTerm :: [Integer] -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkQuickSortTerm :: [Integer] -> Term
 mkQuickSortTerm l =
     compiledCodeToTerm $ $$(Tx.compile [|| quickSort ||]) `Tx.applyCode` Tx.liftCode l
 
-mkWorstCaseQuickSortTerm :: Integer -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkWorstCaseQuickSortTerm :: Integer -> Term
 mkWorstCaseQuickSortTerm = mkQuickSortTerm . quickSortWorstCase

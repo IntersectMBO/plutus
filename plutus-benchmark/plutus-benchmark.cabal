@@ -53,7 +53,6 @@ library plutus-benchmark-common
     , criterion -any
     , deepseq -any
     , filepath -any
-    , flat -any
     , transformers -any
 
 
@@ -156,7 +155,6 @@ library list-sort-internal
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
-    , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
 
@@ -216,7 +214,6 @@ benchmark validation
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , transformers -any
 
 
 ---------------- Cek cost model calibration ----------------

@@ -14,7 +14,7 @@ import           System.Exit                              (exitFailure)
 import           System.IO
 import           Text.PrettyPrint.ANSI.Leijen             (Doc, indent, line, string, text, vsep)
 
-import           PlutusBenchmark.Common                   (unDeBruijn)
+import           PlutusBenchmark.Common                   (toAnonDeBruijnTerm)
 
 import qualified PlutusBenchmark.NoFib.Clausify           as Clausify
 import qualified PlutusBenchmark.NoFib.Knights            as Knights
@@ -191,9 +191,8 @@ evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
 writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr $ Flat.flat prog
 
-writeFlatDeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatDeBruijn  prog = BS.putStr . Flat.flat $
-                      UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
+writeFlatDeBruijn ::UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
+writeFlatDeBruijn  prog = BS.putStr . Flat.flat $ prog
 
 description :: Haskell.String
 description = "This program provides operations on a number of Plutus programs "
@@ -226,7 +225,7 @@ footerInfo = text "Every command takes the name of a program and a (possbily emp
 main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
-    RunPLC pa ->  print . PLC.prettyPlcClassicDebug <$> evaluateWithCek . getUnDBrTerm $ pa
+    RunPLC pa ->  print . PLC.prettyPlcClassicDebug . evaluateWithCek . getTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
@@ -236,13 +235,13 @@ main = do
           Prime input             -> print $ Prime.runFixedPrimalityTest input
           Primetest n             -> if n<0 then Haskell.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
-    DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
+    DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getTerm $ pa
         where unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
-    DumpFlatNamed pa   -> writeFlatNamed . mkProg . getUnDBrTerm $ pa
-    DumpFlatDeBruijn pa-> writeFlatDeBruijn . mkProg . getDBrTerm $ pa
+    DumpFlatNamed pa   -> writeFlatNamed . mkProg . getTerm $ pa
+    DumpFlatDeBruijn pa-> writeFlatDeBruijn . mkProg . toAnonDeBruijnTerm . getTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
-    where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-          getDBrTerm =
+    where getTerm :: ProgAndArgs -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+          getTerm =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
                Queens boardSize alg    -> Queens.mkQueensTerm boardSize alg
@@ -252,8 +251,8 @@ main = do
                Primetest n             -> if n<0 then Haskell.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
 
-          getUnDBrTerm :: ProgAndArgs -> UPLC.Term Name DefaultUni DefaultFun ()
-          getUnDBrTerm = unDeBruijn . getDBrTerm
+--          getUnDBrTerm :: ProgAndArgs -> UPLC.Term Name DefaultUni DefaultFun ()
+--          getUnDBrTerm = unDeBruijn . getDBrTerm
 
           mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
           mkProg = UPLC.Program () (UPLC.Version () 1 0 0)

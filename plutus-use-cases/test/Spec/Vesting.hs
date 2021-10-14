@@ -14,7 +14,6 @@ import           Data.Default             (Default (def))
 import           Test.Tasty
 import qualified Test.Tasty.HUnit         as HUnit
 
-import qualified Ledger
 import qualified Ledger.Ada               as Ada
 import           Ledger.Time              (POSIXTime)
 import qualified Ledger.TimeSlot          as TimeSlot
@@ -81,7 +80,7 @@ vesting startTime =
     VestingParams
         { vestingTranche1 = VestingTranche (startTime + 10000) (Ada.lovelaceValueOf 20)
         , vestingTranche2 = VestingTranche (startTime + 20000) (Ada.lovelaceValueOf 40)
-        , vestingOwner    = Ledger.pubKeyHash $ walletPubKey w1 }
+        , vestingOwner    = walletPubKeyHash w1 }
 
 retrieveFundsTrace :: EmulatorTrace ()
 retrieveFundsTrace = do

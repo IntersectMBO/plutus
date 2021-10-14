@@ -102,9 +102,9 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ view (_endpointValue <<< _Newtype) endpointValue
       ]
-  pretty (OwnPublicKeyResp pubKey) =
+  pretty (OwnPublicKeyHashResp pubKey) =
     span_
-      [ text "OwnPublicKeyResponse:"
+      [ text "OwnPublicKeyHashResponse:"
       , nbsp
       , text $ show pubKey
       ]
@@ -192,7 +192,7 @@ instance prettyContractPABRequest :: Pretty PABReq where
       , nbsp
       , pretty activeEndpoint
       ]
-  pretty OwnPublicKeyReq =
+  pretty OwnPublicKeyHashReq =
     span_
       [ text "OwnPubkeyRequest"
       ]

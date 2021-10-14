@@ -17,13 +17,15 @@ module Wallet.Emulator.Types(
     WalletId(..),
     Crypto.XPrv,
     Crypto.XPub,
-    walletPubKey,
+    walletPubKeyHash,
     addSignature,
     knownWallets,
     knownWallet,
     WalletNumber(..),
     toWalletNumber,
     fromWalletNumber,
+    MockWallet(..),
+    -- fromWalletNumber,
     TxPool,
     -- * Emulator
     EmulatorEffs,
@@ -75,6 +77,7 @@ import           Ledger
 import           Plutus.ChainIndex              (ChainIndexError)
 import           Wallet.API                     (WalletAPIError (..))
 
+import           Ledger.CardanoWallet           (MockWallet (..), WalletNumber (..), toWalletNumber)
 import           Ledger.Fee                     (FeeConfig)
 import           Ledger.TimeSlot                (SlotConfig)
 import           Wallet.Emulator.Chain
