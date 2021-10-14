@@ -39,12 +39,12 @@ import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (PlutusAppId(..))
-import Marlowe.Semantics (Assets, Token(..))
+import Marlowe.Semantics (Assets, Token(..), PubKeyHash(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (errorToast, successToast)
 import Types (WebData)
 import Contacts.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
-import Contacts.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
+import Contacts.Types (Action(..), CardSection(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
 
 mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
@@ -69,8 +69,7 @@ defaultWalletInfo :: WalletInfo
 defaultWalletInfo =
   WalletInfo
     { wallet: Wallet ""
-    , pubKey: ""
-    , pubKeyHash: PubKeyHash ""
+    , pubKeyHash: ""
     }
 
 handleAction ::

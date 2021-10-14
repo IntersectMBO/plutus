@@ -52,8 +52,8 @@ import qualified Control.Monad.Freer.Error        as Freer
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Default                     (Default (..))
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, Datum (..), POSIXTime, PubKey, Validator, ValidatorHash,
-                                                   pubKeyHash)
+import           Ledger                           (Address, Datum (..), POSIXTime, PubKey, PubKeyHash, Validator,
+                                                   ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
@@ -216,9 +216,9 @@ futureContract ft = do
 -- | The data needed to initialise the futures contract.
 data FutureSetup =
     FutureSetup
-        { shortPK       :: PubKey
+        { shortPK       :: PubKeyHash
         -- ^ Initial owner of the short token
-        , longPK        :: PubKey
+        , longPK        :: PubKeyHash
         -- ^ Initial owner of the long token
         , contractStart :: POSIXTime
         -- ^ Start of the futures contract itself. By this time the setup code
@@ -574,11 +574,11 @@ setupTokens
     )
     => Contract w s e FutureAccounts
 setupTokens = mapError (review _FutureError) $ do
-    pk <- ownPubKey
+    pk <- ownPubKeyHash
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- mapError TokenSetupFailed $ Currency.mintContract (pubKeyHash pk) [("long", 1), ("short", 1)]
+    cur <- mapError TokenSetupFailed $ Currency.mintContract pk [("long", 1), ("short", 1)]
     let acc = Account . Value.assetClass (Currency.currencySymbol cur)
     pure $ mkAccounts (acc "long") (acc "short")
 
@@ -598,8 +598,8 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
             [ Escrow.payToScriptTarget address
                 dataScript
                 (scale 2 (initialMargin future))
-            , Escrow.payToPubKeyTarget (pubKeyHash longPK) (tokenFor Long ftos)
-            , Escrow.payToPubKeyTarget (pubKeyHash shortPK) (tokenFor Short ftos)
+            , Escrow.payToPubKeyTarget longPK (tokenFor Long ftos)
+            , Escrow.payToPubKeyTarget shortPK (tokenFor Short ftos)
             ]
     in EscrowParams
         { escrowDeadline = contractStart

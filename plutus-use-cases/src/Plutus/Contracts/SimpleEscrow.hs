@@ -138,14 +138,14 @@ redeemEp = endpoint @"redeem" redeem
   where
     redeem params = do
       time <- currentTime
-      pk <- ownPubKey
+      pk <- ownPubKeyHash
       unspentOutputs <- utxosAt escrowAddress
 
       let value = foldMap (view Tx.ciTxOutValue) unspentOutputs
           tx = Typed.collectFromScript unspentOutputs Redeem
                       <> Constraints.mustValidateIn (Interval.to (Haskell.pred $ deadline params))
                       -- Pay me the output of this script
-                      <> Constraints.mustPayToPubKey (Ledger.pubKeyHash pk) value
+                      <> Constraints.mustPayToPubKey pk value
                       -- Pay the payee their due
                       <> Constraints.mustPayToPubKey (payee params) (expecting params)
 

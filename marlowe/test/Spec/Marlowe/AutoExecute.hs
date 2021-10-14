@@ -189,8 +189,8 @@ awaitUntilTimeoutTest = checkPredicate "Party waits for contract to appear on ch
     -- here Bob gets Timeout and closes the contract
     void $ Trace.waitNSlots 15
 
-alicePk = PK (pubKeyHash $ walletPubKey alice)
-bobPk = PK (pubKeyHash $ walletPubKey bob)
+alicePk = PK (walletPubKeyHash alice)
+bobPk = PK (walletPubKeyHash bob)
 
 params = defaultMarloweParams
 

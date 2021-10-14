@@ -41,7 +41,7 @@ module Playground.Contract
     , TraceError(..)
     , type (.\/)
     , interval
-    , ownPubKey
+    , ownPubKeyHash
     , awaitSlot
     , modifiesUtxoSet
     , utxosAt
@@ -67,7 +67,7 @@ import           Playground.Schema           (endpointsToSchemas)
 import           Playground.TH               (ensureKnownCurrencies, mkFunction, mkFunctions, mkKnownCurrencies,
                                               mkSchemaDefinitions)
 import           Playground.Types            (Expression, FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
-import           Plutus.Contract             (AsContractError, Contract, Endpoint, awaitSlot, endpoint, ownPubKey,
+import           Plutus.Contract             (AsContractError, Contract, Endpoint, awaitSlot, endpoint, ownPubKeyHash,
                                               submitTx, type (.\/), utxosAt, watchAddressUntilSlot)
 import           Plutus.Contract.Trace       (TraceError (..))
 import           Schema                      (FormSchema, ToArgument, ToSchema)

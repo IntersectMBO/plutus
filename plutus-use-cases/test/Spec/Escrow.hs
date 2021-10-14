@@ -5,7 +5,6 @@ module Spec.Escrow(tests, redeemTrace, redeem2Trace, refundTrace) where
 import           Control.Monad           (void)
 import           Data.Default            (Default (def))
 
-import           Ledger                  (pubKeyHash)
 import qualified Ledger.Ada              as Ada
 import           Ledger.Time             (POSIXTime)
 import qualified Ledger.TimeSlot         as TimeSlot
@@ -93,8 +92,8 @@ escrowParams startTime =
   EscrowParams
     { escrowDeadline = startTime + 100000
     , escrowTargets  =
-        [ payToPubKeyTarget (pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
-        , payToPubKeyTarget (pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 20)
+        [ payToPubKeyTarget (walletPubKeyHash w1) (Ada.lovelaceValueOf 10)
+        , payToPubKeyTarget (walletPubKeyHash w2) (Ada.lovelaceValueOf 20)
         ]
     }
 

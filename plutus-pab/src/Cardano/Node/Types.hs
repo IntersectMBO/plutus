@@ -61,6 +61,7 @@ import           Data.Time.Units                     (Millisecond)
 import           Data.Time.Units.Extra               ()
 import           GHC.Generics                        (Generic)
 import           Ledger                              (Tx, txId)
+import           Ledger.CardanoWallet                (WalletNumber (..))
 import           Ledger.TimeSlot                     (SlotConfig)
 import qualified Plutus.Contract.Trace               as Trace
 import           Servant.Client                      (BaseUrl (..), Scheme (..))
@@ -68,7 +69,6 @@ import           Wallet.Emulator                     (Wallet)
 import qualified Wallet.Emulator                     as EM
 import           Wallet.Emulator.Chain               (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent          as MultiAgent
-import           Wallet.Emulator.Wallet              (WalletNumber (..))
 
 import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..), testnetNetworkId)
 import           Ledger.Fee                          (FeeConfig)
@@ -229,7 +229,7 @@ initialAppState wallets = do
 initialChainState :: MonadIO m => Trace.InitialDistribution -> m MockNodeServerChainState
 initialChainState =
     fromEmulatorChainState . view EM.chainState .
-    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
+    MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKeyHash
 
 -- Effects -------------------------------------------------------------------------------------------------------------
 

@@ -25,11 +25,10 @@ import qualified Data.Map                       as Map
 import           Data.Void
 import           Test.Tasty
 
-import           Ledger                         (Address, PubKey)
+import           Ledger                         (Address, PubKeyHash)
 import qualified Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Constraints             as Constraints
-import qualified Ledger.Crypto                  as Crypto
 import           Plutus.Contract                as Con
 import qualified Plutus.Contract.State          as State
 import           Plutus.Contract.Test
@@ -126,7 +125,7 @@ tests =
                 (waitingForSlot theContract tag 20)
                 (void $ activateContract w1 theContract tag)
 
-        , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let smallTx = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
           in run "handle several blockchain events"
                 (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
@@ -175,18 +174,18 @@ tests =
                 Trace.waitNSlots 1
             )
 
-        , let theContract :: Contract () Schema ContractError PubKey = ownPubKey
+        , let theContract :: Contract () Schema ContractError PubKeyHash = ownPubKeyHash
           in run "own public key"
-                (assertDone theContract tag (== walletPubKey w2) "should return the wallet's public key")
+                (assertDone theContract tag (== walletPubKeyHash w2) "should return the wallet's public key")
                 (void $ activateContract w2 (void theContract) tag)
 
-        , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.txId
           in run "await tx confirmed"
             (assertDone theContract tag (const True) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
 
-        , let payment = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
+        , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError TxStatus =
                 submitTx payment >>= awaitTxStatusChange . Ledger.txId
           in run "await change in tx status"
@@ -195,7 +194,7 @@ tests =
 
         , let c :: Contract [TxOutStatus] Schema ContractError () = do
                 -- Submit a payment tx of 10 lovelace to W2.
-                let w2PubKeyHash = Crypto.pubKeyHash $ walletPubKey w2
+                let w2PubKeyHash = walletPubKeyHash w2
                 let payment = Constraints.mustPayToPubKey w2PubKeyHash
                                                           (Ada.lovelaceValueOf 10)
                 tx <- submitTx payment
@@ -210,7 +209,7 @@ tests =
                 -- We submit another tx which spends the utxo belonging to the
                 -- contract's caller. It's status should be changed eventually
                 -- to confirmed spent.
-                pubKeyHash <- Crypto.pubKeyHash <$> ownPubKey
+                pubKeyHash <- ownPubKeyHash
                 ciTxOutM <- txOutFromRef utxo
                 let lookups = Constraints.unspentOutputs (maybe mempty (Map.singleton utxo) ciTxOutM)
                 submitTxConstraintsWith @Void lookups $ Constraints.mustSpendPubKeyOutput utxo
@@ -220,7 +219,7 @@ tests =
 
               expectedAccumState =
                 [ Committed TxValid Unspent
-                , Committed TxValid (Spent "39ad6c37cddb19023a90f124bad28ee40253932a3f5e03b838f728d472d33865")
+                , Committed TxValid (Spent "1c439c63459861e6698707f26a752b7222b3bc8af94c77146a07b571e49e141b")
                 ]
           in run "await change in tx out status"
             ( assertAccumState c tag ((==) expectedAccumState) "should be done"

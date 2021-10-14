@@ -70,8 +70,8 @@ module Plutus.Contract.Request(
     , endpointDescription
     , endpointReq
     , endpointResp
-    -- ** Public keys
-    , ownPubKey
+    -- ** Public key hashes
+    , ownPubKeyHash
     -- ** Submitting transactions
     , submitUnbalancedTx
     , submitBalancedTx
@@ -105,7 +105,7 @@ import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, AssetClass, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
-                                              MintingPolicyHash, POSIXTime, PubKey, Redeemer, RedeemerHash, Slot,
+                                              MintingPolicyHash, POSIXTime, PubKeyHash, Redeemer, RedeemerHash, Slot,
                                               StakeValidator, StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId),
                                               Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds,
                                               txId)
@@ -682,16 +682,16 @@ endpointWithMeta meta f = Promise $ do
 endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription
 endpointDescription = EndpointDescription . symbolVal
 
--- | Get a public key belonging to the wallet that runs this contract.
---   * Any funds paid to this public key will be treated as the wallet's own
+-- | Get the hash of a public key belonging to the wallet that runs this contract.
+--   * Any funds paid to this public key hash will be treated as the wallet's own
 --     funds
 --   * The wallet is able to sign transactions with the private key of this
 --     public key, for example, if the public key is added to the
 --     'requiredSignatures' field of 'Tx'.
 --   * There is a 1-n relationship between wallets and public keys (although in
 --     the mockchain n=1)
-ownPubKey :: forall w s e. (AsContractError e) => Contract w s e PubKey
-ownPubKey = pabReq OwnPublicKeyReq E._OwnPublicKeyResp
+ownPubKeyHash :: forall w s e. (AsContractError e) => Contract w s e PubKeyHash
+ownPubKeyHash = pabReq OwnPublicKeyHashReq E._OwnPublicKeyHashResp
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction when the transaction was submitted. Throws an

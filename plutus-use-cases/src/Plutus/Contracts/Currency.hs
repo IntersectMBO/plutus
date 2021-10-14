@@ -34,7 +34,7 @@ import           PlutusTx.Prelude       hiding (Monoid (..), Semigroup (..))
 import           Plutus.Contract        as Contract
 import           Plutus.Contract.Wallet (getUnspentOutput)
 
-import           Ledger                 (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHash, pubKeyHashAddress,
+import           Ledger                 (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHashAddress,
                                          scriptCurrencySymbol, txId)
 import qualified Ledger.Constraints     as Constraints
 import qualified Ledger.Contexts        as V
@@ -183,7 +183,7 @@ type CurrencySchema =
 mintCurrency
     :: Promise (Maybe (Last OneShotCurrency)) CurrencySchema CurrencyError OneShotCurrency
 mintCurrency = endpoint @"Create native token" $ \SimpleMPS{tokenName, amount} -> do
-    ownPK <- pubKeyHash <$> ownPubKey
+    ownPK <- ownPubKeyHash
     cur <- mintContract ownPK [(tokenName, amount)]
     tell (Just (Last cur))
     pure cur

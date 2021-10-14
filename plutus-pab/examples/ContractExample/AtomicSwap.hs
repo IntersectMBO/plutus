@@ -25,11 +25,10 @@ import           Plutus.Contracts.Escrow (EscrowParams (..))
 import qualified Plutus.Contracts.Escrow as Escrow
 import           Schema                  (ToSchema)
 
-import           Ledger                  (CurrencySymbol, POSIXTime, PubKey, TokenName, Value)
-import qualified Ledger
+import           Ledger                  (CurrencySymbol, POSIXTime, PubKeyHash, TokenName, Value)
 import qualified Ledger.Value            as Value
 import           Plutus.Contract
-import           Wallet.Emulator.Wallet  (Wallet, walletPubKey)
+import           Wallet.Emulator.Wallet  (Wallet, walletPubKeyHash)
 
 -- | Describes an exchange of two
 --   'Value' amounts between two parties
@@ -56,15 +55,15 @@ mkValue2 AtomicSwapParams{currencyHash, tokenName, amount} =
 
 mkEscrowParams :: AtomicSwapParams -> EscrowParams t
 mkEscrowParams p@AtomicSwapParams{party1,party2,deadline} =
-    let pubKey1 = walletPubKey party1
-        pubKey2 = walletPubKey party2
+    let pubKey1 = walletPubKeyHash party1
+        pubKey2 = walletPubKeyHash party2
         value1 = mkValue1 p
         value2 = mkValue2 p
     in EscrowParams
         { escrowDeadline = deadline
         , escrowTargets =
-                [ Escrow.payToPubKeyTarget (Ledger.pubKeyHash pubKey1) value1
-                , Escrow.payToPubKeyTarget (Ledger.pubKeyHash pubKey2) value2
+                [ Escrow.payToPubKeyTarget pubKey1 value1
+                , Escrow.payToPubKeyTarget pubKey2 value2
                 ]
         }
 
@@ -73,7 +72,7 @@ type AtomicSwapSchema = Endpoint "Atomic swap" AtomicSwapParams
 data AtomicSwapError =
     EscrowError Escrow.EscrowError
     | OtherAtomicSwapError ContractError
-    | NotInvolvedError PubKey AtomicSwapParams -- ^ When the wallet's public key doesn't match either of the two keys specified in the 'AtomicSwapParams'
+    | NotInvolvedError PubKeyHash AtomicSwapParams -- ^ When the wallet's public key doesn't match either of the two keys specified in the 'AtomicSwapParams'
     deriving (Show, Generic, ToJSON, FromJSON)
 
 makeClassyPrisms ''AtomicSwapError
@@ -88,17 +87,17 @@ atomicSwap = endpoint @"Atomic swap" $ \p -> do
         value2 = mkValue2 p
         params = mkEscrowParams p
 
-        go pk
-            | pk == walletPubKey (party1 p) =
+        go pkh
+            | pkh == walletPubKeyHash (party1 p) =
                 -- there are two paying transactions and one redeeming transaction.
                 -- The redeeming tx is submitted by party 1.
                 -- TODO: Change 'payRedeemRefund' to check before paying into the
                 -- address, so that the last paying transaction can also be the
                 -- redeeming transaction.
                 void $ mapError EscrowError (Escrow.payRedeemRefund params value2)
-            | pk == walletPubKey (party2 p) =
+            | pkh == walletPubKeyHash (party2 p) =
                 void $ mapError EscrowError (Escrow.pay (Escrow.typedValidator params) params value1) >>= awaitTxConfirmed
-            | otherwise = throwError (NotInvolvedError pk p)
+            | otherwise = throwError (NotInvolvedError pkh p)
 
-    ownPubKey >>= go
+    ownPubKeyHash >>= go
 

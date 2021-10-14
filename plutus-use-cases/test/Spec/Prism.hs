@@ -20,7 +20,6 @@ import           Control.Monad
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
 import qualified Ledger.Ada                         as Ada
-import           Ledger.Crypto                      (pubKeyHash)
 import           Ledger.Value                       (TokenName)
 import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel as ContractModel
@@ -55,14 +54,14 @@ credential :: Credential
 credential =
     Credential
         { credName = kyc
-        , credAuthority = CredentialAuthority (pubKeyHash $ walletPubKey mirror)
+        , credAuthority = CredentialAuthority (walletPubKeyHash mirror)
         }
 
 stoSubscriber :: STOSubscriber
 stoSubscriber =
     STOSubscriber
         { wCredential = credential
-        , wSTOIssuer = pubKeyHash $ walletPubKey issuer
+        , wSTOIssuer = walletPubKeyHash issuer
         , wSTOTokenName = sto
         , wSTOAmount = numTokens
         }
@@ -70,7 +69,7 @@ stoSubscriber =
 stoData :: STOData
 stoData =
     STOData
-        { stoIssuer = pubKeyHash $ walletPubKey issuer
+        { stoIssuer = walletPubKeyHash issuer
         , stoTokenName = sto
         , stoCredentialToken = Credential.token credential
         }

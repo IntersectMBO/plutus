@@ -34,7 +34,6 @@ import           Data.Default                          (Default (def))
 import qualified Data.Text.Encoding                    as Text
 import           Data.Text.Prettyprint.Doc             (defaultLayoutOptions, layoutPretty, pretty, vsep)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger.Crypto                         (pubKeyHash)
 import           Ledger.Value                          (Value)
 import           Playground.Types                      (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
                                                         EvaluationResult, Expression, FunctionSchema (FunctionSchema),
@@ -55,9 +54,8 @@ import           Wallet.Emulator.Folds                 (EmulatorEventFoldM)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, eteEvent, instanceEvent)
 import           Wallet.Emulator.Stream                (foldEmulatorStreamM)
-import           Wallet.Emulator.Types                 (Wallet, WalletNumber, fromWalletNumber, walletPubKey)
+import           Wallet.Emulator.Types                 (Wallet, WalletNumber, fromWalletNumber, walletPubKeyHash)
 import           Wallet.Types                          (EndpointDescription (getEndpointDescription))
-
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
@@ -98,7 +96,7 @@ isInteresting x =
 
 evaluationResultFold :: [WalletNumber] -> EmulatorEventFoldM effs EvaluationResult
 evaluationResultFold wallets =
-    let pkh wallet = (pubKeyHash (walletPubKey $ fromWalletNumber wallet), wallet)
+    let pkh wallet = (walletPubKeyHash $ fromWalletNumber wallet, wallet)
     in Playground.Types.EvaluationResult
             <$> L.generalize (reverse <$> Folds.annotatedBlockchain)
             <*> L.generalize (filter isInteresting <$> Folds.emulatorLog)

@@ -27,7 +27,7 @@ module Plutus.Contract.Trace
     , handleBlockchainQueries
     , handleSlotNotifications
     , handleTimeNotifications
-    , handleOwnPubKeyQueries
+    , handleOwnPubKeyHashQueries
     , handleCurrentSlotQueries
     , handleCurrentTimeQueries
     , handleTimeToSlotConversions
@@ -41,7 +41,7 @@ module Plutus.Contract.Trace
     , defaultDistFor
     -- * Wallets
     , EM.Wallet(..)
-    , EM.walletPubKey
+    , EM.walletPubKeyHash
     , EM.knownWallets
     , EM.knownWallet
     ) where
@@ -149,7 +149,7 @@ handleBlockchainQueries =
     handleUnbalancedTransactions
     <> handlePendingTransactions
     <> handleChainIndexQueries
-    <> handleOwnPubKeyQueries
+    <> handleOwnPubKeyHashQueries
     <> handleOwnInstanceIdQueries
     <> handleSlotNotifications
     <> handleCurrentSlotQueries
@@ -192,13 +192,13 @@ handleChainIndexQueries =
                E.ChainIndexQueryResp
                RequestHandler.handleChainIndexQueries
 
-handleOwnPubKeyQueries ::
+handleOwnPubKeyHashQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member WalletEffect effs
     )
     => RequestHandler effs PABReq PABResp
-handleOwnPubKeyQueries =
-    generalise (preview E._OwnPublicKeyReq) E.OwnPublicKeyResp RequestHandler.handleOwnPubKey
+handleOwnPubKeyHashQueries =
+    generalise (preview E._OwnPublicKeyHashReq) E.OwnPublicKeyHashResp RequestHandler.handleOwnPubKeyHash
 
 handleOwnInstanceIdQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
