@@ -59,11 +59,13 @@
         buildable = true;
         modules = [
           "Language/Marlowe"
+          "Language/Marlowe/Deserialisation"
           "Language/Marlowe/Extended"
           "Language/Marlowe/Semantics"
           "Language/Marlowe/Client"
           "Language/Marlowe/Util"
           "Language/Marlowe/Scripts"
+          "Language/Marlowe/Serialisation"
           "Language/Marlowe/Pretty"
           "Language/Marlowe/Analysis/FSSemantics"
           ];
