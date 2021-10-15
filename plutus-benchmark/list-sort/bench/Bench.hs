@@ -16,6 +16,7 @@ import           PlutusBenchmark.ListSort.QuickSort
 import           PlutusBenchmark.Common                   (Term, benchTermCek, compiledCodeToTerm, getConfig)
 
 import qualified PlutusTx                                 as Tx
+import qualified PlutusTx.Builtins.Internal               as BI
 
 import           Data.Text                                (Text)
 import qualified PlutusCore                               as PLC
@@ -50,6 +51,12 @@ mkBuiltinSumL n = UPLC.Apply () (UPLC.erase BuiltinList.sum) (mkBuiltinList n)
 mkBuiltinSumR :: Integer -> Term
 mkBuiltinSumR n = UPLC.Apply () (UPLC.erase BuiltinList.sumR) (mkBuiltinList n)
 
+mkBuiltinSumL2 :: Integer -> Term
+mkBuiltinSumL2 n = UPLC.Apply () (UPLC.erase BuiltinList.sumL2) (mkBuiltinList n)
+
+mkBuiltinSumR2 :: Integer -> Term
+mkBuiltinSumR2 n = UPLC.Apply () (UPLC.erase BuiltinList.sumR2) (mkBuiltinList n)
+
 mkScottList :: Integer -> Term
 mkScottList n = compiledCodeToTerm (Tx.liftCode [1..n])
 
@@ -65,6 +72,12 @@ benchBuiltinSumL n = benchTermCek $ mkBuiltinSumL n
 benchBuiltinSumR :: Integer -> Benchmarkable
 benchBuiltinSumR n = benchTermCek $ mkBuiltinSumR n
 
+benchBuiltinSumL2 :: Integer -> Benchmarkable
+benchBuiltinSumL2 n = benchTermCek $ mkBuiltinSumL2 n
+
+benchBuiltinSumR2 :: Integer -> Benchmarkable
+benchBuiltinSumR2 n = benchTermCek $ mkBuiltinSumR2 n
+
 benchScottSumL :: Integer -> Benchmarkable
 benchScottSumL n = benchTermCek $ mkScottSumL n
 
@@ -75,52 +88,96 @@ benchScottSumR n = benchTermCek $ mkScottSumR n
 -- the builtin case, which will require a fold written in Haskell using the Tx-level
 -- case builtin.
 
-eval1 :: Term -> (EvaluationResult Term, [Text])
-eval1 = Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters
+mkTxSumLeft :: Integer -> Term
+mkTxSumLeft n = compiledCodeToTerm $ $$(Tx.compile [|| sumLeft ||]) `Tx.applyCode` Tx.liftCode [1..n]
 
-eval = id
+benchTxSumLeft :: Integer -> Benchmarkable
+benchTxSumLeft n = benchTermCek $ mkTxSumLeft n
 
-benchBuiltinSumLeft :: Integer -> Benchmarkable
-benchBuiltinSumLeft n = benchTermCek . compiledCodeToTerm $ $$(Tx.compile [|| sumLeft ||]) `Tx.applyCode` Tx.liftCode [1..n]
+mkTxSumRight :: Integer -> Term
+mkTxSumRight n = compiledCodeToTerm $ $$(Tx.compile [|| sumRight ||]) `Tx.applyCode` Tx.liftCode [1..n]
 
-benchBuiltinSumRight :: Integer -> Benchmarkable
-benchBuiltinSumRight n = benchTermCek . compiledCodeToTerm $ $$(Tx.compile [|| sumRight ||]) `Tx.applyCode` Tx.liftCode [1..n]
+benchTxSumRight :: Integer -> Benchmarkable
+benchTxSumRight n = benchTermCek $ mkTxSumRight n
+
+mkTxSumRightX :: Integer -> Term
+mkTxSumRightX n = compiledCodeToTerm $ $$(Tx.compile [|| sumRightX ||]) `Tx.applyCode` Tx.liftCode (BI.BuiltinList [1..n])
+
+benchTxSumRightX :: Integer -> Benchmarkable
+benchTxSumRightX n = benchTermCek $ mkTxSumRightX n
+
+mkTxSumLeftX :: Integer -> Term
+mkTxSumLeftX n = compiledCodeToTerm $ $$(Tx.compile [|| sumLeftX ||]) `Tx.applyCode` Tx.liftCode (BI.BuiltinList [1..n])
+
+benchTxSumLeftX :: Integer -> Benchmarkable
+benchTxSumLeftX n = benchTermCek $ mkTxSumRightX n
 
 benchmarks :: [Benchmark]
 benchmarks =
-    [ bgroup "sort" $
-      [ bgroup "ghcSort"       $ map (\n -> bench (show n) $ benchGhcSort n)       sizesForSort
-      , bgroup "insertionSort" $ map (\n -> bench (show n) $ benchInsertionSort n) sizesForSort
-      , bgroup "mergeSort"     $ map (\n -> bench (show n) $ benchMergeSort n)     sizesForSort
-      , bgroup "quickSort"     $ map (\n -> bench (show n) $ benchQuickSort n)     sizesForSort
+    [ bgroup "sort"
+      [ mkBMsForSort "ghcSort"       benchGhcSort
+      , mkBMsForSort "insertionSort" benchInsertionSort
+      , mkBMsForSort "mergeSort"     benchMergeSort
+      , mkBMsForSort "quickSort"     benchQuickSort
       ]
-    , bgroup "sum" $
-      [ bgroup "tx-sum-L" $ map (\n -> bench (show n) $ benchBuiltinSumLeft n) sizesForSum
-      , bgroup "tx-sum-R" $ map (\n -> bench (show n) $ benchBuiltinSumRight n) sizesForSum
-      , bgroup "builtin-sum-L" $ map (\n -> bench (show n) $ benchBuiltinSumL n) sizesForSum
-      , bgroup "builtin-sum-R" $ map (\n -> bench (show n) $ benchBuiltinSumR n) sizesForSum
-      , bgroup "Scott-sum-L"   $ map (\n -> bench (show n) $ benchScottSumL n)   sizesForSum
-      , bgroup "Scott-sum-R"   $ map (\n -> bench (show n) $ benchScottSumR n)   sizesForSum
+    , bgroup "sum"
+      [ bgroup "compiled-from-Haskell"
+        [ mkBMsForSum "sum-builtin-L" benchTxSumLeftX
+        , mkBMsForSum "sum-builtin-R" benchTxSumRightX
+        , mkBMsForSum "sum-Scott-L"   benchTxSumLeft
+        , mkBMsForSum "sum-Scott-R"   benchTxSumRight
+        ]
+      , bgroup "hand-written-PLC"
+        [ mkBMsForSum "sum-builtin-L" benchBuiltinSumL
+        , mkBMsForSum "sum-builtin-R" benchBuiltinSumR
+        , mkBMsForSum "sum-Scott-L"   benchScottSumL
+        , mkBMsForSum "sum-Scott-R"   benchScottSumR
+--        , bgroup "builtin-sum-L2" $ map (\n -> bench (show n) $ benchBuiltinSumL2 n) sizesForSum
+--        , bgroup "builtin-sum-R2" $ map (\n -> bench (show n) $ benchBuiltinSumR2 n) sizesForSum
+        ]
       ]
     ]
     where
-      sizesForSort = [10,20..500]
-      sizesForSum  = [1000,5000] -- [10, 100, 1000, 10000]
+      mkBMs sizes name bm = bgroup name $ map (\n -> bench (show n) $ bm n) sizes
+      mkBMsForSum = mkBMs [10, 100, 1000, 10000]
+      mkBMsForSort= mkBMs [10,20..500]
+
+{- Want sumL and sumR for
+  * Scott-encoded lists compiled from Haskell
+  * Builtin lists compiled from Haskell
+  * Scott-encoded lists, hand-written PLC AST
+  * Builtin lists, hand-written PLC AST
+
+  We have all of these, but the hand-written PLC examples for the builtin lists
+  use nullList and ifThenElse instead of chooseList.
+-}
+
+eval1 :: Term -> (EvaluationResult Term, [Text])
+eval1 = Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters
+
+eval2 :: Term -> Term
+eval2 = id
+
+eval = eval1
 
 main :: IO ()
 main = do
   config <- getConfig 15.0  -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
   defaultMainWith config benchmarks
-{-  putStrLn "-----------------------------------------------"
-  putStr "Scott sumL:    "
-  putStrLn . show . PP.prettyPlcClassicDef $ eval $ mkScottSumL 1
-  putStrLn "-----------------------------------------------"
-  putStr "Scott sumR:    "
-  putStrLn . show . PP.prettyPlcClassicDef $ eval $ mkBuiltinSumL 1
-  putStrLn "-----------------------------------------------"
-  putStr "Builtin sumL:  "
-  putStrLn . show . PP.prettyPlcClassicDef $ eval $ mkScottSumR 1
-  putStrLn "-----------------------------------------------"
-  putStr "Builtin sumR:  "
-  putStrLn . show . PP.prettyPlcClassicDef $ eval $ mkBuiltinSumR 1
--}
+  go "Tx sumRightX:  " mkTxSumRightX
+  go "Tx sumLeftX:   " mkTxSumLeftX
+  go "Tx sumRight:   " mkTxSumRight
+  go "Tx sumLeft:    " mkTxSumLeft
+  {-
+  go "Tx sumRight:   " mkTxSumRight
+  go "Scott sumL:    " mkScottSumL
+  go "Scott sumR:    " mkScottSumR
+  go "Builtin sumL:  " mkBuiltinSumL
+  go "Builtin sumR:  " mkBuiltinSumR
+--  go "Builtin sumL2: " mkBuiltinSumL2
+  go "Builtin sumR2: " mkBuiltinSumR2
+-}      where go s t =
+                do   putStrLn "-----------------------------------------------"
+                     putStr s
+                     putStrLn . show . PP.prettyPlcClassicDef . eval  $ t 20
+
