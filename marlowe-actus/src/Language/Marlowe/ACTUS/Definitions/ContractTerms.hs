@@ -266,7 +266,7 @@ instance FromJSON Cycle where
                 <*> return False
 
       unconsConstant :: Char -> Text -> Maybe Text
-      unconsConstant c t | T.head s == c = Just (T.tail t)
+      unconsConstant c t | T.head t == c = Just (T.tail t)
       unconsConstant _ _ = Nothing
 
       hush :: Either a b -> Maybe b
