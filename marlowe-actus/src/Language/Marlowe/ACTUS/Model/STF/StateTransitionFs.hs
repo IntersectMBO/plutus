@@ -77,6 +77,8 @@ stateTransition ev rf prevDate t st = reader stateTransitionFs'
           stf CE ContractTermsPoly {contractType = LAM} = _STF_CE_PAM st time y_sd_t
           stf SC ct@ContractTermsPoly {contractType = NAM} = _STF_SC_LAM ct st rf time y_sd_t y_tfpminus_t y_tfpminus_tfpplus
           stf SC ct@ContractTermsPoly {contractType = ANN} = _STF_SC_LAM ct st rf time y_sd_t y_tfpminus_t y_tfpminus_tfpplus
+          stf XD ct@ContractTermsPoly {contractType = OPTNS} = _STF_XD_OPTNS ct st rf time
+          stf XD ct@ContractTermsPoly {contractType = FUTUR} = _STF_XD_FUTUR ct st rf time
           stf CE _ = _STF_AD_PAM st time y_sd_t
           stf _ _ = st
 
@@ -102,6 +104,7 @@ toMarlowe ct =
   ContractTermsPoly
     { contractId = contractId ct,
       contractType = contractType ct,
+      contractStructure = contractStructure ct,
       ct_CNTRL = ct_CNTRL ct,
       ct_CURS = ct_CURS ct,
       ct_IED = marloweTime <$> ct_IED ct,
@@ -128,6 +131,7 @@ toMarlowe ct =
       ct_PDIED = constnt <$> ct_PDIED ct,
       ct_MD = marloweTime <$> ct_MD ct,
       ct_AD = marloweTime <$> ct_AD ct,
+      ct_XD = marloweTime <$> ct_XD ct,
       ct_PRANX = marloweTime <$> ct_PRANX ct,
       ct_PRCL = ct_PRCL ct,
       ct_PRNXT = constnt <$> ct_PRNXT ct,
@@ -144,6 +148,13 @@ toMarlowe ct =
       ct_SCNT = constnt <$> ct_SCNT ct,
       ct_OPCL = ct_OPCL ct,
       ct_OPANX = marloweTime <$> ct_OPANX ct,
+      ct_OPTP = ct_OPTP ct,
+      ct_OPS1 = constnt <$> ct_OPS1 ct,
+      ct_OPXT = ct_OPXT ct,
+      ct_STP = ct_STP ct,
+      ct_DS = ct_DS ct,
+      ct_XA = constnt <$> ct_XA ct,
+      ct_PFUT = constnt <$> ct_PFUT ct,
       ct_PYRT = constnt <$> ct_PYRT ct,
       ct_PYTP = ct_PYTP ct,
       ct_PPEF = ct_PPEF ct,
@@ -157,6 +168,9 @@ toMarlowe ct =
       ct_RRLC = constnt <$> ct_RRLC ct,
       ct_RRLF = constnt <$> ct_RRLF ct,
       ct_RRMO = ct_RRMO ct,
+      ct_DVCL = ct_DVCL ct,
+      ct_DVANX = marloweTime <$> ct_DVANX ct,
+      ct_DVNP = constnt <$> ct_DVNP ct,
       enableSettlement = enableSettlement ct,
       constraints = constraints ct,
       collateralAmount = collateralAmount ct

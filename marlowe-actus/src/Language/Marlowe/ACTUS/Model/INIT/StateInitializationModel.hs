@@ -12,8 +12,9 @@ module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
   )
 where
 
+import           Control.Applicative                                    ((<|>))
 import           Control.Monad.Reader                                   (Reader, reader)
-import           Data.Maybe                                             (fromMaybe)
+import           Data.Maybe                                             (fromMaybe, maybeToList)
 import           Data.Time.LocalTime                                    (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (CT (..), ContractTerms, ContractTermsPoly (..),
@@ -35,9 +36,10 @@ initializeState = reader initializeState'
     initializeState' :: CtxSTF Double LocalTime -> ContractState
     initializeState' CtxSTF {..} =
       ContractStatePoly
-        { prnxt = nextPrincipalRedemptionPayment contractTerms,
+        { sd = t0,
+          prnxt = nextPrincipalRedemptionPayment contractTerms,
           ipcb = interestPaymentCalculationBase contractTerms,
-          tmd = contractMaturity maturity,
+          tmd = maturity,
           nt = notionalPrincipal contractTerms,
           ipnr = nominalInterestRate contractTerms,
           ipac = interestAccrued contractTerms,
@@ -45,7 +47,8 @@ initializeState = reader initializeState'
           nsc = notionalScaling contractTerms,
           isc = interestScaling contractTerms,
           prf = contractPerformance contractTerms,
-          sd = t0
+          xd = ct_XD contractTerms,
+          xa = ct_XA contractTerms <|> ct_PFUT contractTerms
         }
       where
         t0 = ct_SD contractTerms
@@ -153,7 +156,7 @@ initializeState = reader initializeState'
                 frac = annuity ipnr ti
              in frac * scale
             where
-              prDates = prSchedule ++ [contractMaturity maturity]
+              prDates = prSchedule ++ maybeToList maturity
               ti = zipWith (\tn tm -> _y dcc tn tm md) prDates (tail prDates)
         nextPrincipalRedemptionPayment _ = 0.0
 
@@ -204,7 +207,3 @@ initializeState = reader initializeState'
         contractPerformance :: ContractTerms -> PRF
         contractPerformance ContractTermsPoly {ct_PRF = Just prf} = prf
         contractPerformance _                                     = error "PRF is not set in ContractTerms"
-
-        contractMaturity :: Maybe LocalTime -> LocalTime
-        contractMaturity (Just mat) = mat
-        contractMaturity _          = error "Maturity is not specified"

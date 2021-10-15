@@ -125,6 +125,7 @@ contractTermsGen' ct = do
     ANN -> mightbe date
     _   -> return Nothing
   terminationDate <- mightbe date
+  exerciseDate <- mightbe date
 
   let upperBound = minimum $ catMaybes [Just maturityDate, amortizationDate, terminationDate]
 
@@ -168,10 +169,12 @@ contractTermsGen' ct = do
     ContractTermsPoly
       { contractId = "0",
         contractType = ct,
+        contractStructure = [],
         ct_IED = Just ied,
         ct_SD = sd,
         ct_MD = Just maturityDate,
         ct_AD = amortizationDate,
+        ct_XD = exerciseDate,
         ct_TD = terminationDate,
         ct_PRNXT = nextPrincipalRedemption,
         ct_PRD = purchaseDate,
@@ -195,6 +198,14 @@ contractTermsGen' ct = do
         -- Optionality
         ct_OPCL = optionalityCycle,
         ct_OPANX = optionalityAnchor,
+        ct_OPTP = Nothing,
+        ct_OPS1 = Nothing,
+        ct_OPXT = Nothing,
+        -- Settlement
+        ct_STP = Nothing,
+        ct_DS = Nothing,
+        ct_XA = Nothing,
+        ct_PFUT = Nothing,
         -- Scaling:
         ct_SCIED = Just scied,
         ct_SCEF = Just scef,
@@ -238,6 +249,9 @@ contractTermsGen' ct = do
         ct_CURS = Nothing,
         ct_SCMO = Nothing,
         ct_RRMO = Nothing,
+        ct_DVCL = Nothing,
+        ct_DVANX = Nothing,
+        ct_DVNP = Nothing,
         -- enable settlement currency
         enableSettlement = False,
         constraints = Nothing,

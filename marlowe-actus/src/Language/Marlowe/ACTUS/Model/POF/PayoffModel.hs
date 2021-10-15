@@ -59,3 +59,29 @@ _POF_PR_NAM o_rf_CURS _CNTRL nsc prnxt ipac y_sd_t ipnr ipcb nt =
   let ra = prnxt - _r _CNTRL * (ipac + y_sd_t * ipnr * ipcb)
       r = ra - _max _zero (ra - _abs nt)
    in o_rf_CURS * _r _CNTRL * nsc * r
+
+-- Stock (STK)
+
+_POF_PRD_STK :: RoleSignOps a => CR -> a -> a
+_POF_PRD_STK _CNTRL _PPRD = _zero - _r _CNTRL * _PPRD
+
+_POF_TD_STK :: RoleSignOps a => CR -> a -> a
+_POF_TD_STK _CNTRL _PTD = _r _CNTRL * _PTD
+
+_POF_DV_STK :: RoleSignOps a => CR -> a -> a -> a
+_POF_DV_STK _CNTRL _CURS pp_payoff = _CURS * _r _CNTRL * pp_payoff
+
+-- Option (OPTNS)
+
+_POF_PRD_OPTNS :: RoleSignOps a => CR -> a -> a
+_POF_PRD_OPTNS _CNTRL _PPRD = _zero - _r _CNTRL * _PPRD
+
+_POF_MD_OPTNS :: RoleSignOps a => a
+_POF_MD_OPTNS = _zero
+
+_POF_STD_OPTNS :: RoleSignOps a => CR -> a -> a -> a
+_POF_STD_OPTNS _CNTRL _CURS xa = _CURS * _r _CNTRL * xa
+
+-- Future (FUTUR)
+
+

@@ -16,6 +16,10 @@ useval name t = UseValue $ ValueId $ fromString $ name ++ "_" ++ show t
 letval :: String -> Integer -> Value Observation -> Contract -> Contract
 letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
+letval' :: String -> Integer -> Maybe (Value Observation) -> Contract -> Contract
+letval' name t (Just o) c = Let (ValueId $ fromString $ name ++ "_" ++ show t) o c
+letval' _ _ Nothing c     = c
+
 toMarloweFixedPoint :: Double -> Integer
 toMarloweFixedPoint = round <$> (fromIntegral marloweFixedPoint *)
 
