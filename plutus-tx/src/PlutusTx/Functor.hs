@@ -57,3 +57,7 @@ instance Functor Identity where
 instance Functor (Const m) where
     {-# INLINABLE fmap #-}
     fmap _ (Const c) = Const c
+
+instance Functor ((->) b) where
+    {-# INLINABLE fmap #-}
+    fmap f g = f . g

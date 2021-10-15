@@ -1,5 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TypeApplications   #-}
 {- |
 The interface to Plutus V2 for the ledger.
@@ -30,6 +31,9 @@ module Plutus.V2.Ledger.Api (
     , ScriptContext(..)
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
+    , Lazy (..)
+    , force
+    , pattern Forced
     -- *** ByteStrings
     , BuiltinByteString
     , toBuiltin

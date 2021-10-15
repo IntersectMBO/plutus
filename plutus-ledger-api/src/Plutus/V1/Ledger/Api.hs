@@ -1,5 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TypeApplications   #-}
 {- |
 The interface to Plutus V1 for the ledger.
@@ -30,6 +31,9 @@ module Plutus.V1.Ledger.Api (
     , ScriptContext(..)
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
+    , Lazy (..)
+    , force
+    , pattern Forced
     -- *** ByteStrings
     , BuiltinByteString
     , toBuiltin
@@ -139,6 +143,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
 import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
+import PlutusTx.Lazy
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
 import Prettyprinter
 import UntypedPlutusCore qualified as UPLC

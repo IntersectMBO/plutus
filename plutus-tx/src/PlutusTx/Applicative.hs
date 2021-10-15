@@ -69,3 +69,9 @@ instance Monoid m => Applicative (Const m) where
     pure _ = Const mempty
     {-# INLINABLE (<*>) #-}
     Const m1 <*> Const m2 = Const (mappend m1 m2)
+
+instance Applicative ((->) b) where
+    {-# INLINABLE pure #-}
+    pure x = const x
+    {-# INLINABLE (<*>) #-}
+    (<*>) f g x = f x $ g x

@@ -67,6 +67,7 @@ library
         PlutusTx.Trace
         PlutusTx.These
         PlutusTx.Code
+        PlutusTx.Lazy
         PlutusTx.Lift
         PlutusTx.Lift.Class
         PlutusTx.Builtins
