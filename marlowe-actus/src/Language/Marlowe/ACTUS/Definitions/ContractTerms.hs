@@ -11,8 +11,8 @@ module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import           Control.Monad    (mzero)
 import           Data.Aeson.TH    (deriveJSON)
-import           Data.Aeson.Types (FromJSON, Options (..), ToJSON, Value (Null, Object, String), defaultOptions, object,
-                                   parseJSON, toJSON, (.:), (.=))
+import           Data.Aeson.Types (FromJSON, Options (..), Parser, ToJSON, Value (Null, Object, String), defaultOptions,
+                                   object, parseJSON, toJSON, (.:), (.=))
 import           Data.Maybe       (fromMaybe)
 import           Data.Text        as T hiding (reverse, takeWhile)
 import           Data.Text.Read   as T
@@ -243,31 +243,35 @@ instance ToJSON Cycle where
       _ -> Null
 
 instance FromJSON Cycle where
-  parseJSON (String s) = parseCycle s
+  parseJSON (String s) = fromMaybe mzero (parseCycle s)
     where
-      parseCycle c =
-        case uncons c of
-          Just ('P', r0) ->
-            case T.decimal r0 of
-              Right (n, r1) ->
-                case uncons r1 of
-                  Just (p, r2)
-                    | T.null r2 ->
-                      return (Cycle n)
-                        <*> parseJSON (String $ singleton p)
-                        <*> return LongStub
-                        <*> return False
-                  Just (p, r2) ->
-                    case uncons r2 of
-                      Just ('L', r3) ->
-                        return (Cycle n)
-                          <*> parseJSON (String $ singleton p)
-                          <*> parseJSON (String r3)
-                          <*> return False
-                      _ -> mzero
-                  _ -> mzero
-              _ -> mzero
-          _ -> mzero
+      parseCycle :: Text -> Maybe (Parser Cycle)
+      parseCycle c = do
+        r0 <- unconsConstant 'P' c
+        (n, r1) <- hush $ T.decimal r0
+        (p, r2) <- uncons r1
+        if T.null r2
+          then
+            Just $
+              return (Cycle n)
+                <*> parseJSON (String $ singleton p)
+                <*> return LongStub
+                <*> return False
+          else do
+            r3 <- unconsConstant 'L' r2
+            Just $
+              return (Cycle n)
+                <*> parseJSON (String $ singleton p)
+                <*> parseJSON (String r3)
+                <*> return False
+
+      unconsConstant :: Char -> Text -> Maybe Text
+      unconsConstant c t | T.head s == c = Just (T.tail t)
+      unconsConstant _ _ = Nothing
+
+      hush :: Either a b -> Maybe b
+      hush = either (const Nothing) Just
+
   parseJSON _ = mzero
 
 -- For applicability failures
