@@ -29,7 +29,7 @@ open import Builtin
 open import Utils hiding (TermCon)
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-
+open import Data.Empty
 
 open import Algorithmic.ReductionEC using (_<>>_∈_;start;bubble;saturated;<>>2<>>';lemma<>2;unique<>>;<>>-cancel-both;<>>-cancel-both')
 
@@ -1124,10 +1124,6 @@ cek2ckFrame-·-lem (x ·-) .(cek2ckVal x) refl = _ ,, refl ,, refl ,, refl
 
 postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} → (Red.-· M) ≡ cek2ckFrame f → ∃ λ Γ → ∃ λ (M' : Γ ⊢ A) → ∃ λ (ρ : Env Γ) → f ≡ (-· M' ρ) × M ≡ cek2ckClos M' ρ
 
-open import Data.Empty
-lem◆ : ∀{A B}{M : ∅ ⊢ A}{V : Red.Value M} → CK.◆ B CK.-→s CK.□ V → ⊥
-lem◆ (CK.step* refl p) = lem◆ p
-
 postulate cek2ckFrame--·⋆lem : ∀{K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}(f : Frame (B [ A ]Nf) (Π B)) → Red.-·⋆ A ≡ cek2ckFrame f → f ≡ -·⋆ A
    
 postulate cek2ckFrame-unwrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame _ (μ A B)) → Red.unwrap- {A = A}{B = B} ≡ cek2ckFrame f → f ≡ unwrap-
@@ -1208,7 +1204,7 @@ thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) 
   with thm65bV x1 x2 q r
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
 
-thm65b {M = error _} {s = s} {s' = s'} p q (CK.step* refl r) = ⊥-elim (lem◆ r)
+thm65b {M = error _} {s = s} {s' = s'} p q (CK.step* refl r) = ⊥-elim (CK.lem◆' _ r)
 
 thm65bV {s = CK.ε} {W = W} {s' = s'} refl refl r (CK.step* refl x)
   rewrite cek2ckStack-εlem s' r
