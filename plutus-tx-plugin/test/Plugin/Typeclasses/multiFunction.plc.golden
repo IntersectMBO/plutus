@@ -3,39 +3,18 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl bad_name (fun Bool (fun Bool Bool)))
-      (lam
-        l
-        Bool
-        (lam
-          r
-          Bool
-          {
-            [
-              [
-                { [ Bool_match l ] (all dead (type) Bool) } (abs dead (type) r)
-              ]
-              (abs dead (type) False)
-            ]
-            (all dead (type) dead)
-          }
-        )
-      )
-    )
-    (datatypebind
-      (datatype
         (tyvardecl Animal (type))
 
         Animal_match
         (vardecl Cat Animal) (vardecl Dog Animal)
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
       )
     )
     (datatypebind
@@ -124,13 +103,28 @@
           (lam
             p
             p
-            [
-              [ bad_name [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ] ]
+            {
               [
-                [ lessThanInteger [ [ { age p } dPersonLike ] p ] ]
-                (con integer 30)
+                [
+                  {
+                    [
+                      Bool_match [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ]
+                    ]
+                    (all dead (type) Bool)
+                  }
+                  (abs
+                    dead
+                    (type)
+                    [
+                      [ lessThanInteger [ [ { age p } dPersonLike ] p ] ]
+                      (con integer 30)
+                    ]
+                  )
+                ]
+                (abs dead (type) False)
               ]
-            ]
+              (all dead (type) dead)
+            }
           )
         )
       )
