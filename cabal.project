@@ -129,6 +129,11 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/input-output-hk/cardano-sl-x509
+  tag: 12925934c533b3a6e009b61ede555f8f26bac037
+
+source-repository-package
+  type: git
   location: https://github.com/input-output-hk/cardano-wallet
   tag: ae7569293e94241ef6829139ec02bd91abd069df
   subdir:
@@ -137,6 +142,7 @@ source-repository-package
     lib/core
     lib/test-utils
     lib/numeric
+    lib/launcher
 
 source-repository-package
   type: git
