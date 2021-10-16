@@ -102,7 +102,10 @@ data ExtensionFun
     | ExpensiveSucc
     | FailingPlus
     | ExpensivePlus
+    | Undefined
     | Absurd
+    | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
+                  -- Who knows what machinery a tick could break, hence the @Prime@ part.
     | Cons
     | Comma
     | BiconstPair  -- A safe version of 'Comma' as discussed in
@@ -223,12 +226,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
+    toBuiltinMeaning Undefined =
+        makeBuiltinMeaning
+            undefined
+            (\_ -> ExBudget 1 0)
+
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
-            (absurd
-                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-                => Void -> a)
+            absurd
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ErrorPrime =
+        makeBuiltinMeaning
+            EvaluationFailure
+            (\_ -> ExBudget 1 0)
 
     toBuiltinMeaning Cons = makeBuiltinMeaning consPlc mempty where
         consPlc

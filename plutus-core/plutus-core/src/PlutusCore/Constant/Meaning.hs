@@ -21,10 +21,12 @@ module PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude
 
+import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Function
 import           PlutusCore.Constant.Typed
 import           PlutusCore.Core
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 
 import           Control.Lens                            (ix, (^?))
@@ -237,7 +239,7 @@ type family Lookup n xs where
 -- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
 type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
 
--- | Try to specialize @a@ as a type representing a Plutus type variable.
+-- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
 type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
@@ -252,45 +254,72 @@ instance
     , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j term a
 
--- | For looking into the type of a constant or the type arguments of a polymorphic built-in type
--- and specializing them as types representing Plutus type variables.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleSomeConstant'
--- can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type HandleSomeConstant :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class HandleSomeConstant i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeConstant i j term a
--- Take an argument of a built-in type and try to specialize it as a type representing a Plutus
--- type variable. Note that we don't explicitly handle the no-more-arguments case as it's handled
--- by the OVERLAPPABLE instance right above.
+-- | For looking under special-case types, for example the type of a constant or the type arguments
+-- of a polymorphic built-in type get specialized as types representing PLC type variables,
+-- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
+-- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
+-- (including @0@).
+type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class HandleSpecialCases i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
+-- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
+-- @OVERLAPPABLE@ instance right above.
+-- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
+-- an 'Opaque' thing, but here we only want to instantiate the type representations.
+-- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
+-- a PLC type variable.
 instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term rep
-    , HandleSomeConstant j k term (SomeConstantOf uni f reps)
-    ) => HandleSomeConstant i k term (SomeConstantOf uni f (rep ': reps))
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term rep
-    ) => HandleSomeConstant i j term (SomeConstant uni rep)
+    ( TrySpecializeAsVar i j term (Opaque term rep)
+    , HandleSpecialCases j k term (SomeConstantOf uni f reps)
+    ) => HandleSpecialCases i k term (SomeConstantOf uni f (rep ': reps))
+instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
+        HandleSpecialCases i j term (SomeConstant uni rep)
+instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
+        HandleSpecialCases i j term (EvaluationResult a)
+instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
+        HandleSpecialCases i j term (Emitter a)
+
+-- | Instantiate an argument or result type.
+type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromToOne i j term a | i term a -> j
+-- | First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
+instance
+    ( TrySpecializeAsVar i j term a
+    , HandleSpecialCases j k term a
+    ) => EnumerateFromToOne i k term a
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
--- | Specialize each Haskell type variable in @a@ as a type representing a Plutus Core type variable
--- by deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
--- right) and trying to specialize every argument type as a PLC type variable
+-- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
+-- deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
+-- right) and trying to specialize every argument and result type as a PLC type variable
 -- (via 'TrySpecializeAsVar') until no deconstruction is possible, at which point we've got a result
--- which we don't try to specialize, because that would require an incoherent instance and
--- introducing one makes code that otherwise type checks perfectly throw errors due to a bug in GHC,
--- see https://github.com/input-output-hk/plutus/pull/2521#issuecomment-759522445
--- In practice this means that if the result is a type variable, then this type variable has to
--- be mentioned as an argument type for inference to work. I.e. @absurd :: Void -> a@ does not get
--- inferred, since @a@ is only mentioned as the result type and not as an argument type.
--- But that's a fairly rear use case and we can always provide a type signature manually.
+-- which we don't try to specialize, because it's already monomorphic due to 'EnumerateFromTo'
+-- trying to specialize its argument before recursing on it using this class.
+type EnumerateFromToRec :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromToRec i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromToRec i j term a
+instance {-# OVERLAPPING #-}
+    ( EnumerateFromToOne i j term a
+    , EnumerateFromTo j k term b
+    ) => EnumerateFromToRec i k term (a -> b)
+
+-- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
+-- first trying to specialize the whole type using 'EnumerateFromToOne' and then recursing on the
+-- result of that using 'EnumerateFromToRec'. The initial attempt to specialize the type allows us
+-- to handle the case where the whole type is just a single type variable (such as @undefined :: a@)
+-- and it also allows us to look into the result type due to 'EnumerateFromToRec' mutually
+-- recursively calling 'EnumerateFromTo'. I.e. the initial attempt at specialization allows
+-- 'EnumerateFromToRec' to cut one argument off the type and call 'EnumerateFromTo' over the rest
+-- of the type and so forth until we get to the result, which is attempted to be specialized just
+-- like in the @undefined@ case where there are no argument types in the first place.
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term a
-    , HandleSomeConstant j k term a
-    , EnumerateFromTo k l term b
-    ) => EnumerateFromTo i l term (a -> b)
+instance
+    ( EnumerateFromToOne i j term a
+    , EnumerateFromToRec j k term a
+    ) => EnumerateFromTo i k term a
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -302,6 +331,12 @@ makeBuiltinMeaning
     :: forall a term cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
        , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
+       -- This constraint is just to get through 'KnownPolytype' stuck on an unknown type straight
+       -- to the custom type error that we have in the @Typed@ module. Though, somehow, the error
+       -- gets triggered even without the constraint when this function in used, but I don't
+       -- understand how that is possible and it does not work when the function from the @Debug@
+       -- module is used. So we're just doing the right thing here and adding the constraint.
+       , KnownMonotype term args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
