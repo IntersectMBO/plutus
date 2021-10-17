@@ -114,7 +114,7 @@ Next you need to turn the two ``Wallet`` values into their public key hashes so 
    :start-after: BLOCK6
    :end-before: BLOCK7
 
-Note that the :hsobj:`Wallet.Emulator.Wallet.walletPubKeyHash` function and the :hsobj:`Wallet.Emulator.Wallet.Wallet` type are only available in the simulated environment used by the Plutus playground and by Plutus tests.
+Note that the :hsobj:`Wallet.Emulator.Wallet.walletPubKey` function and the :hsobj:`Wallet.Emulator.Wallet.Wallet` type are only available in the simulated environment used by the Plutus playground and by Plutus tests.
 A real Plutus app would use the metadata server or a custom lookup function for such conversions.
 
 Locking the funds
