@@ -121,19 +121,19 @@ benchmarks =
       , mkBMsForSort "quickSort"     benchQuickSort
       ]
     , bgroup "sum"
-      [ bgroup "compiled-from-Haskell"
+     [
+      bgroup "compiled-from-Haskell"
         [ mkBMsForSum "sum-builtin-L" benchTxSumLeftX
         , mkBMsForSum "sum-builtin-R" benchTxSumRightX
         , mkBMsForSum "sum-Scott-L"   benchTxSumLeft
         , mkBMsForSum "sum-Scott-R"   benchTxSumRight
         ]
-      , bgroup "hand-written-PLC"
-        [ mkBMsForSum "sum-builtin-L" benchBuiltinSumL
-        , mkBMsForSum "sum-builtin-R" benchBuiltinSumR
-        , mkBMsForSum "sum-Scott-L"   benchScottSumL
-        , mkBMsForSum "sum-Scott-R"   benchScottSumR
---        , bgroup "builtin-sum-L2" $ map (\n -> bench (show n) $ benchBuiltinSumL2 n) sizesForSum
---        , bgroup "builtin-sum-R2" $ map (\n -> bench (show n) $ benchBuiltinSumR2 n) sizesForSum
+      ,
+      bgroup "hand-written-PLC"
+        [ mkBMsForSum "sum-builtin-L"  benchBuiltinSumL
+        , mkBMsForSum "sum-builtin-R"  benchBuiltinSumR
+        , mkBMsForSum "sum-Scott-L"    benchScottSumL
+        , mkBMsForSum "sum-Scott-R"    benchScottSumR
         ]
       ]
     ]
@@ -164,19 +164,11 @@ main :: IO ()
 main = do
   config <- getConfig 15.0  -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
   defaultMainWith config benchmarks
-  go "Tx sumRightX:  " mkTxSumRightX
-  go "Tx sumLeftX:   " mkTxSumLeftX
-  go "Tx sumRight:   " mkTxSumRight
-  go "Tx sumLeft:    " mkTxSumLeft
-  {-
-  go "Tx sumRight:   " mkTxSumRight
-  go "Scott sumL:    " mkScottSumL
-  go "Scott sumR:    " mkScottSumR
   go "Builtin sumL:  " mkBuiltinSumL
+  go "Builtin sumL2: " mkBuiltinSumL2
   go "Builtin sumR:  " mkBuiltinSumR
---  go "Builtin sumL2: " mkBuiltinSumL2
   go "Builtin sumR2: " mkBuiltinSumR2
--}      where go s t =
+      where go s t =
                 do   putStrLn "-----------------------------------------------"
                      putStr s
                      putStrLn . show . PP.prettyPlcClassicDef . eval  $ t 20

@@ -11,8 +11,6 @@
 
 module BuiltinFold where
 
-import qualified PlutusCore                 as PLC
-
 import qualified PlutusTx.Builtins          as B
 import qualified PlutusTx.Builtins.Internal as BI
 import           PlutusTx.Prelude           as Plutus
