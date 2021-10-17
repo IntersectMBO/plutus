@@ -19,7 +19,8 @@ module Cardano.Wallet.Mock.Types (
     , MultiWalletEffect (..)
     , createWallet
     , multiWallet
-     -- * wallet configuration
+    , getWalletInfo
+    -- * wallet configuration
     , WalletConfig (..)
     , defaultWalletConfig
 
@@ -34,6 +35,7 @@ module Cardano.Wallet.Mock.Types (
     , ChainIndexUrl
     -- * Wallet info
     , WalletInfo(..)
+    , fromWalletState
     ) where
 
 import           Cardano.BM.Data.Tracer             (ToObject (..))
@@ -50,7 +52,7 @@ import           Data.Map.Strict                    (Map)
 import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty (..), (<+>))
 import           GHC.Generics                       (Generic)
-import           Ledger                             (PubKey, PubKeyHash)
+import           Ledger                             (PubKeyHash)
 import           Plutus.ChainIndex                  (ChainIndexQueryEffect)
 import           Plutus.PAB.Arbitrary               ()
 import           Servant                            (ServerError (..))
@@ -59,23 +61,29 @@ import           Servant.Client.Internal.HttpClient (ClientEnv)
 import           Wallet.Effects                     (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.Wallet             (Wallet, WalletState)
+import           Wallet.Emulator.Wallet             (Wallet (..), WalletId (..), WalletState (..), toMockWallet,
+                                                     walletPubKeyHash)
 
 -- | Information about an emulated wallet.
 data WalletInfo =
     WalletInfo
         { wiWallet     :: Wallet
-        , wiPubKey     :: PubKey
-        , wiPubKeyHash :: PubKeyHash
+        , wiPubKeyHash :: PubKeyHash -- ^ Hash of the wallet's public key, serving as wallet ID
         }
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 type Wallets = Map Wallet WalletState
 
+fromWalletState :: WalletState -> WalletInfo
+fromWalletState WalletState{_mockWallet} = WalletInfo{wiWallet, wiPubKeyHash} where
+    wiWallet = toMockWallet _mockWallet
+    wiPubKeyHash = walletPubKeyHash wiWallet
+
 data MultiWalletEffect r where
     CreateWallet :: MultiWalletEffect WalletInfo
     MultiWallet :: Wallet -> Eff '[WalletEffect] a -> MultiWalletEffect a
+    GetWalletInfo :: WalletId -> MultiWalletEffect (Maybe WalletInfo)
 makeEffect ''MultiWalletEffect
 
 type WalletEffects m = '[ MultiWalletEffect

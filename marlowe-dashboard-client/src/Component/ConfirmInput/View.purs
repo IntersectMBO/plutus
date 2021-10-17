@@ -4,21 +4,21 @@ import Prologue hiding (div)
 import Component.Amount (amount)
 import Component.Box (box)
 import Component.Box as Box
-import Component.Button.View (button)
 import Component.Button.Types as Button
+import Component.Button.View (button)
 import Component.Column (column)
 import Component.Column as Column
 import Component.ConfirmInput.Types (Input)
 import Component.Expand as Expand
 import Component.Heading (Preset(..), heading)
 import Component.IconButton.View (iconButton)
+import Component.Icons (icon_)
+import Component.Icons as Icon
 import Component.Link (link)
 import Component.Row (row)
 import Component.Row as Row
-import Component.Transfer.View (transfer)
 import Component.Transfer.Types (Termini(..))
-import Contract.State (currentStep, partyToParticipant, paymentToTransfer, toInput)
-import Contract.Types (Action(..))
+import Component.Transfer.View (transfer)
 import Data.Array (fromFoldable)
 import Data.Default (default)
 import Data.Foldable (length)
@@ -31,8 +31,8 @@ import Marlowe.Execution.State (mkTx)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Semantics (ChoiceId(..), Contract(..), TransactionOutput(..)) as Semantics
 import Marlowe.Semantics (Token(..), computeTransaction)
-import Material.Icons (icon_)
-import Material.Icons as Icon
+import Page.Contract.State (currentStep, partyToParticipant, paymentToTransfer, toInput)
+import Page.Contract.Types (Action(..))
 
 render :: forall m. Monad m => Input -> ComponentHTML Action ChildSlots m
 render =

@@ -18,7 +18,7 @@ import           Control.Applicative                                        ((<|
 import           Control.Monad.Reader                                       (runReader)
 import           Data.Functor                                               ((<&>))
 import qualified Data.List                                                  as L (groupBy)
-import           Data.Maybe                                                 (isNothing)
+import           Data.Maybe                                                 (fromMaybe, isNothing)
 import           Data.Sort                                                  (sortOn)
 import           Data.Time                                                  (LocalTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (..), RiskFactors)
@@ -40,20 +40,20 @@ genProjectedCashflows ::
   (EventType -> LocalTime -> RiskFactors) -- ^ Risk factors as a function of event type and time
   -> ContractTerms                        -- ^ ACTUS contract terms
   -> [CashFlow]                           -- ^ List of projected cash flows
-genProjectedCashflows getRiskFactors =
+genProjectedCashflows getRiskFactors ct =
   let genCashflow ((_, ev, t), am) =
         CashFlow
           { tick = 0,
-            cashContractId = "0",
+            cashContractId = contractId ct,
             cashParty = "party",
             cashCounterParty = "counterparty",
             cashPaymentDay = paymentDay t,
             cashCalculationDay = calculationDay t,
             cashEvent = ev,
             amount = am,
-            currency = "ada"
+            currency = fromMaybe "unknown" (ct_CURS ct)
           }
-   in sortOn cashPaymentDay . fmap genCashflow . genProjectedPayoffs getRiskFactors
+   in sortOn cashPaymentDay . fmap genCashflow . genProjectedPayoffs getRiskFactors $ ct
 
 genProjectedPayoffs ::
   (EventType -> LocalTime -> RiskFactors)               -- ^ Risk factors as a function of event type and time
@@ -66,7 +66,7 @@ genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
         filter filtersSchedules . postProcessSchedule . sortOn (paymentDay . snd) $
           concatMap scheduleEvent eventTypes
         where
-          eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC]
+          eventTypes = [IED, MD, RR, RRF, IP, PR, PRF, IPCB, IPCI, PRD, TD, SC, DV, XD, STD]
           scheduleEvent ev = (ev,) <$> schedule ev ct
 
       -- states
@@ -102,6 +102,8 @@ genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
     mat = S.maturity ct
 
     filtersSchedules :: (EventType, ShiftedDay) -> Bool
+    filtersSchedules (_, ShiftedDay {..}) | contractType == OPTNS = calculationDay > ct_SD
+    filtersSchedules (_, ShiftedDay {..}) | contractType == FUTUR = calculationDay > ct_SD
     filtersSchedules (_, ShiftedDay {..}) = isNothing ct_TD || Just calculationDay <= ct_TD
 
     filtersStates :: (ContractState, EventType, ShiftedDay) -> Bool
@@ -114,6 +116,7 @@ genProjectedPayoffs getRiskFactors ct@ContractTermsPoly {..} =
           let b1 = isNothing ct_PRD || ev == PRD || Just calculationDay > ct_PRD
               b2 = let m = ct_MD <|> ct_AD <|> mat in isNothing m || Just calculationDay <= m
            in b1 && b2
+        _ -> True
 
     postProcessSchedule :: [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
     postProcessSchedule =

@@ -195,7 +195,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
     txOuts <- traverse (toCardanoTxOut networkId) txOutputs
     txFee' <- toCardanoFee txFee
     txValidityRange <- toCardanoValidityRange txValidRange
-    txMintValue <- toCardanoMintValue txMint txMintScripts
+    txMintValue <- toCardanoMintValue txRedeemers txMint txMintScripts
     first TxBodyError $ makeTransactionBody' C.TxBodyContent
         { txIns = txIns
         , txInsCollateral = txInsCollateral
@@ -271,12 +271,15 @@ toCardanoTxInWitness
         <*> pure zeroExecutionUnits
         )
 
-toCardanoMintWitness :: P.MintingPolicy -> Either ToCardanoError (C.ScriptWitness C.WitCtxMint C.AlonzoEra)
-toCardanoMintWitness (P.MintingPolicy script) = C.PlutusScriptWitness C.PlutusScriptV1InAlonzo C.PlutusScriptV1
-    <$> toCardanoPlutusScript script
-    <*> pure C.NoScriptDatumForMint
-    <*> pure (C.ScriptDataNumber 0) -- TODO: redeemers not modelled yet in Plutus MP scripts, value is ignored
-    <*> pure zeroExecutionUnits
+toCardanoMintWitness :: P.Redeemers -> Int -> P.MintingPolicy -> Either ToCardanoError (C.ScriptWitness C.WitCtxMint C.AlonzoEra)
+toCardanoMintWitness redeemers idx (P.MintingPolicy script) = do
+    let redeemerPtr = P.RedeemerPtr P.Mint (fromIntegral idx)
+    P.Redeemer redeemer <- maybe (Left MissingMintingPolicyRedeemer) Right (Map.lookup redeemerPtr redeemers)
+    C.PlutusScriptWitness C.PlutusScriptV1InAlonzo C.PlutusScriptV1
+        <$> toCardanoPlutusScript script
+        <*> pure C.NoScriptDatumForMint
+        <*> pure (C.fromPlutusData $ Api.toData redeemer)
+        <*> pure zeroExecutionUnits
 
 fromCardanoTxOut :: C.TxOut era -> Either FromCardanoError P.TxOut
 fromCardanoTxOut (C.TxOut addr value datumHash) =
@@ -380,11 +383,11 @@ fromCardanoMintValue :: C.TxMintValue build era -> P.Value
 fromCardanoMintValue C.TxMintNone              = mempty
 fromCardanoMintValue (C.TxMintValue _ value _) = fromCardanoValue value
 
-toCardanoMintValue :: P.Value -> Set.Set P.MintingPolicy -> Either ToCardanoError (C.TxMintValue C.BuildTx C.AlonzoEra)
-toCardanoMintValue value mps =
+toCardanoMintValue :: P.Redeemers -> P.Value -> Set.Set P.MintingPolicy -> Either ToCardanoError (C.TxMintValue C.BuildTx C.AlonzoEra)
+toCardanoMintValue redeemers value mps =
     C.TxMintValue C.MultiAssetInAlonzoEra
         <$> toCardanoValue value
-        <*> (C.BuildTxWith . Map.fromList <$> traverse (\mp -> (,) <$> (toCardanoPolicyId . P.mintingPolicyHash) mp <*> toCardanoMintWitness mp) (Set.toList mps))
+        <*> (C.BuildTxWith . Map.fromList <$> traverse (\(idx, mp) -> (,) <$> (toCardanoPolicyId . P.mintingPolicyHash) mp <*> toCardanoMintWitness redeemers idx mp) (Prelude.zip [0..] $ Set.toList mps))
 
 fromCardanoValue :: C.Value -> P.Value
 fromCardanoValue (C.valueToList -> list) = foldMap toValue list
@@ -515,6 +518,7 @@ data ToCardanoError
     | StakingPointersNotSupported
     | SimpleScriptsNotSupportedToCardano
     | MissingTxInType
+    | MissingMintingPolicyRedeemer
     | Tag String ToCardanoError
 
 instance Pretty ToCardanoError where
@@ -527,6 +531,7 @@ instance Pretty ToCardanoError where
     pretty StakingPointersNotSupported        = "Staking pointers are not supported"
     pretty SimpleScriptsNotSupportedToCardano = "Simple scripts are not supported"
     pretty MissingTxInType                    = "Missing TxInType"
+    pretty MissingMintingPolicyRedeemer       = "Missing minting policy redeemer"
     pretty (Tag t err)                        = pretty t <> colon <+> pretty err
 
 zeroExecutionUnits :: C.ExecutionUnits

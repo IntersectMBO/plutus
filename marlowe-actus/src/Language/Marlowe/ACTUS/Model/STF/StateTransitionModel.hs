@@ -6,7 +6,7 @@ import           Data.Maybe                                        (fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (RiskFactorsPoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTermsPoly (..), FEB (..), IPCB (..),
-                                                                    SCEF (..))
+                                                                    OPTP (..), SCEF (..))
 import           Language.Marlowe.ACTUS.Model.Utility.ANN.Annuity  (annuity)
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), ActusOps (..), DateOps (_lt),
                                                                     RoleSignOps (_r))
@@ -636,3 +636,56 @@ _STF_PRF_ANN
             prnxt = prnxt',
             sd = t
           }
+
+_STF_XD_OPTNS :: (ActusNum a, ActusOps a) => ContractTermsPoly a b -> ContractStatePoly a b -> RiskFactorsPoly a -> b -> ContractStatePoly a b
+_STF_XD_OPTNS
+  ContractTermsPoly
+    { ct_OPTP = Just OPTP_C,
+      ct_OPS1 = Just strike
+    }
+  st
+  RiskFactorsPoly {..}
+  t = st
+    { xa = Just $ _max (pp_payoff - strike) _zero,
+      sd = t
+    }
+_STF_XD_OPTNS
+  ContractTermsPoly
+    { ct_OPTP = Just OPTP_P,
+      ct_OPS1 = Just strike
+    }
+  st
+  RiskFactorsPoly {..}
+  t = st
+    { xa = Just $ _max (strike - pp_payoff) _zero,
+      sd = t
+    }
+_STF_XD_OPTNS
+  ContractTermsPoly
+    { ct_OPTP = Just OPTP_CP,
+      ct_OPS1 = Just strike
+    }
+  st
+  RiskFactorsPoly {..}
+  t = st
+    { xa = Just $ _max (pp_payoff - strike) _zero + _max (strike - pp_payoff) _zero,
+      sd = t
+    }
+_STF_XD_OPTNS _ st _ t =
+  st
+    { sd = t
+    }
+
+_STF_XD_FUTUR :: ActusNum a => ContractTermsPoly a b -> ContractStatePoly a b -> RiskFactorsPoly a -> b -> ContractStatePoly a b
+_STF_XD_FUTUR
+  ContractTermsPoly
+    { ct_PFUT = Just futuresPrice
+    }
+  st
+  RiskFactorsPoly {..}
+  t = st
+    { xa = Just $ pp_payoff - futuresPrice,
+      sd = t
+    }
+_STF_XD_FUTUR _ _ _ _ = undefined
+

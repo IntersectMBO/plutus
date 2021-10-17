@@ -67,6 +67,7 @@ import           Hedgehog
 import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
 import           Ledger
+import qualified Ledger.CardanoWallet       as CW
 import           Ledger.Fee                 (FeeConfig (fcScriptsFeeFactor), calcFees)
 import qualified Ledger.Index               as Index
 import           Ledger.TimeSlot            (SlotConfig (..))
@@ -400,3 +401,6 @@ genMintingPolicyContext chain = do
     txInfo <- genTxInfo chain
     purpose <- genScriptPurposeMinting txInfo
     pure $ ScriptContext txInfo purpose
+
+knownPrivateKeys :: [PrivateKey]
+knownPrivateKeys = CW.privateKey <$> CW.knownWallets

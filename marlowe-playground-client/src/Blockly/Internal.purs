@@ -1,11 +1,10 @@
 module Blockly.Internal where
 
-import Prelude
+import Prologue
 import Blockly.Toolbox (Toolbox, encodeToolbox)
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Data.Argonaut.Core (Json)
 import Data.Array (catMaybes)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (class Foldable, for_, traverse_)

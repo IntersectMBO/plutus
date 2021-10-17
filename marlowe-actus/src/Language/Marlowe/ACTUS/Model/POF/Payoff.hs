@@ -76,6 +76,14 @@ payoff
     let y_sd_t = _y dayCountConvention sd t md
      in _POF_PR_NAM o_rf_CURS cntrl nsc prnxt ipac y_sd_t ipnr ipcb nt
 -- MD
+payoff
+  MD
+  _
+  ContractTermsPoly
+    { contractType = OPTNS
+    }
+  _
+  _ = _POF_MD_OPTNS
 payoff MD RiskFactorsPoly {..} _ ContractStatePoly {..} _ = _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
 -- PP
 payoff PP RiskFactorsPoly {..} _ _ _ = _POF_PP_PAM o_rf_CURS pp_payoff
@@ -126,6 +134,36 @@ payoff
      in _POF_PRD_PAM o_rf_CURS cntrl pprd ipac ipnr nt y_sd_t
 payoff
   PRD
+  _
+  ContractTermsPoly
+    { contractType = STK,
+      ct_CNTRL = cntrl,
+      ct_PPRD = Just pprd
+    }
+  _
+  _ = _POF_PRD_STK cntrl pprd
+payoff
+  PRD
+  _
+  ContractTermsPoly
+    { contractType = OPTNS,
+      ct_CNTRL = cntrl,
+      ct_PPRD = Just pprd
+    }
+  _
+  _ = _POF_PRD_STK cntrl pprd
+payoff
+  PRD
+  _
+  ContractTermsPoly
+    { contractType = FUTUR,
+      ct_CNTRL = cntrl,
+      ct_PPRD = Just pprd
+    }
+  _
+  _ = _POF_PRD_STK cntrl pprd
+payoff
+  PRD
   RiskFactorsPoly {..}
   ContractTermsPoly
     { ct_DCC = Just dayCountConvention,
@@ -152,6 +190,16 @@ payoff
   t =
     let y_sd_t = _y dayCountConvention sd t md
      in _POF_TD_PAM o_rf_CURS cntrl ptd ipac ipnr nt y_sd_t
+payoff
+  TD
+  _
+  ContractTermsPoly
+    { contractType = STK,
+      ct_CNTRL = cntrl,
+      ct_PTD = Just ptd
+    }
+  _
+  _ = _POF_TD_STK cntrl ptd
 payoff
   TD
   RiskFactorsPoly {..}
@@ -189,4 +237,35 @@ payoff
   t =
     let y_sd_t = _y dayCountConvention sd t md
      in _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
+-- DV
+payoff
+  DV
+  RiskFactorsPoly {..}
+  ContractTermsPoly
+    { contractType = STK,
+      ct_CNTRL = cntrl
+    }
+  _
+  _ = _POF_DV_STK cntrl o_rf_CURS pp_payoff
+-- STD
+payoff
+  STD
+  RiskFactorsPoly {..}
+  ContractTermsPoly
+    { contractType = OPTNS,
+      ct_CNTRL = cntrl
+    }
+  ContractStatePoly
+    { xa = Just exerciseAmount}
+  _ = _POF_STD_OPTNS cntrl o_rf_CURS exerciseAmount
+payoff
+  STD
+  RiskFactorsPoly {..}
+  ContractTermsPoly
+    { contractType = FUTUR,
+      ct_CNTRL = cntrl
+    }
+  ContractStatePoly
+    { xa = Just exerciseAmount}
+  _ = _POF_STD_OPTNS cntrl o_rf_CURS exerciseAmount
 payoff _ _ _ _ _ = _zero

@@ -15,8 +15,8 @@ module Blockly.Events
   , newElementId
   ) where
 
+import Prologue
 import Data.Function.Uncurried (Fn4, runFn4)
-import Data.Maybe (Maybe(..))
 import Web.Event.Event (Event)
 
 class HasEvent a where

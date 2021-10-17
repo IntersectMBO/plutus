@@ -43,7 +43,7 @@ import           Ledger.Slot                         (Slot (..))
 import           Ledger.Tx                           (Tx (..))
 import           Plutus.PAB.Types                    (Config (..))
 import           TxInject.RandomTx                   (generateTx)
-import           Wallet.Emulator                     (chainState, txPool, walletPubKey)
+import           Wallet.Emulator                     (chainState, txPool, walletPubKeyHash)
 import           Wallet.Emulator.MultiAgent          (emulatorStateInitialDist)
 import           Wallet.Emulator.Wallet              (fromWalletNumber)
 
@@ -77,7 +77,7 @@ initialUtxoIndex config =
       initialTxs =
         view (chainState . txPool) $
         emulatorStateInitialDist $
-        Map.mapKeys walletPubKey dist
+        Map.mapKeys walletPubKeyHash dist
   in insertBlock (map Valid initialTxs) (UtxoIndex Map.empty)
 
 -- | Starts the producer thread

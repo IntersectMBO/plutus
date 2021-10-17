@@ -181,7 +181,7 @@ instance Arbitrary PABReq where
             , pure CurrentSlotReq
             , pure OwnContractInstanceIdReq
             , ExposeEndpointReq <$> arbitrary
-            , pure OwnPublicKeyReq
+            , pure OwnPublicKeyHashReq
             -- TODO This would need an Arbitrary Tx instance:
             -- , BalanceTxRequest <$> arbitrary
             -- , WriteBalancedTxRequest <$> arbitrary
@@ -218,5 +218,5 @@ instance Arbitrary ActiveEndpoint where
 genResponse :: PABReq -> Maybe (Gen PABResp)
 genResponse (AwaitSlotReq slot)   = Just . pure . AwaitSlotResp $ slot
 genResponse (ExposeEndpointReq _) = Just $ ExposeEndpointResp <$> arbitrary <*> (EndpointValue <$> arbitrary)
-genResponse OwnPublicKeyReq       = Just $ OwnPublicKeyResp <$> arbitrary
+genResponse OwnPublicKeyHashReq   = Just $ OwnPublicKeyHashResp <$> arbitrary
 genResponse _                     = Nothing

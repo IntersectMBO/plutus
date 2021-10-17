@@ -47,10 +47,12 @@ example01 =
         ContractTermsPoly
           { contractId = "0",
             contractType = PAM,
+            contractStructure = [],
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
             ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
             ct_MD = iso8601ParseM "2030-01-01T00:00:00",
             ct_AD = Nothing,
+            ct_XD = Nothing,
             ct_TD = Nothing,
             ct_PRNXT = Nothing,
             ct_PRD = Nothing,
@@ -71,9 +73,6 @@ example01 =
             -- Penalties
             ct_PYRT = Nothing,
             ct_PYTP = Just PYTP_O, -- no penalty
-            -- Optionality
-            ct_OPCL = Nothing,
-            ct_OPANX = Nothing,
             -- Scaling
             ct_SCIP = Nothing,
             ct_SCIED = Nothing,
@@ -83,6 +82,17 @@ example01 =
             ct_SCNT = Nothing,
             ct_SCCL = Nothing,
             ct_SCANX = Nothing,
+            -- Optionality
+            ct_OPCL = Nothing,
+            ct_OPANX = Nothing,
+            ct_OPTP = Nothing,
+            ct_OPS1 = Nothing,
+            ct_OPXT = Nothing,
+            -- Settlement
+            ct_STP = Nothing,
+            ct_DS = Nothing,
+            ct_XA = Nothing,
+            ct_PFUT = Nothing,
             -- Rate Reset
             ct_RRCL = Nothing,
             ct_RRANX = Nothing,
@@ -113,6 +123,10 @@ example01 =
             ct_FEB = Nothing,
             ct_FER = Nothing,
             ct_CURS = Nothing,
+            -- Dividend
+            ct_DVCL = Nothing,
+            ct_DVANX = Nothing,
+            ct_DVNP = Nothing,
             enableSettlement = False,
             constraints = Nothing,
             collateralAmount = 0
@@ -178,10 +192,12 @@ example02 =
         ContractTermsPoly
           { contractId = "0",
             contractType = LAM,
+            contractStructure = [],
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
             ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
             ct_MD = iso8601ParseM "2030-01-01T00:00:00",
             ct_AD = Nothing,
+            ct_XD = Nothing,
             ct_TD = Nothing,
             ct_PRNXT = Just 1000.0,
             ct_PRD = Nothing,
@@ -205,6 +221,14 @@ example02 =
             -- Optionality
             ct_OPCL = Nothing,
             ct_OPANX = Nothing,
+            ct_OPTP = Nothing,
+            ct_OPS1 = Nothing,
+            ct_OPXT = Nothing,
+            -- Settlement
+            ct_STP = Nothing,
+            ct_DS = Nothing,
+            ct_XA = Nothing,
+            ct_PFUT = Nothing,
             -- Scaling
             ct_SCIP = Nothing,
             ct_SCIED = Nothing,
@@ -244,6 +268,10 @@ example02 =
             ct_FEB = Nothing,
             ct_FER = Nothing,
             ct_CURS = Nothing,
+            -- Dividend
+            ct_DVCL = Nothing,
+            ct_DVANX = Nothing,
+            ct_DVNP = Nothing,
             enableSettlement = False,
             constraints = Nothing,
             collateralAmount = 0
@@ -309,10 +337,12 @@ example03 =
         ContractTermsPoly
           { contractId = "0",
             contractType = NAM,
+            contractStructure = [],
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
             ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
             ct_MD = iso8601ParseM "2030-01-01T00:00:00",
             ct_AD = Nothing,
+            ct_XD = Nothing,
             ct_TD = Nothing,
             ct_PRNXT = Just 1000.0,
             ct_PRD = Nothing,
@@ -336,6 +366,14 @@ example03 =
             -- Optionality
             ct_OPCL = Nothing,
             ct_OPANX = Nothing,
+            ct_OPTP = Nothing,
+            ct_OPS1 = Nothing,
+            ct_OPXT = Nothing,
+            -- Settlement
+            ct_STP = Nothing,
+            ct_DS = Nothing,
+            ct_XA = Nothing,
+            ct_PFUT = Nothing,
             -- Scaling
             ct_SCIP = Nothing,
             ct_SCIED = Nothing,
@@ -375,6 +413,10 @@ example03 =
             ct_FEB = Nothing,
             ct_FER = Nothing,
             ct_CURS = Nothing,
+            -- Dividend
+            ct_DVCL = Nothing,
+            ct_DVANX = Nothing,
+            ct_DVNP = Nothing,
             enableSettlement = False,
             constraints = Nothing,
             collateralAmount = 0
@@ -440,10 +482,12 @@ example04 =
         ContractTermsPoly
           { contractId = "0",
             contractType = ANN,
+            contractStructure = [],
             ct_IED = iso8601ParseM "2020-01-01T00:00:00",
             ct_SD = fromJust $ iso8601ParseM "2019-12-31T00:00:00",
             ct_MD = iso8601ParseM "2030-01-01T00:00:00",
             ct_AD = Nothing,
+            ct_XD = Nothing,
             ct_TD = Nothing,
             ct_PRNXT = Just 1000,
             ct_PRD = Nothing,
@@ -467,6 +511,14 @@ example04 =
             -- Optionality
             ct_OPCL = Nothing,
             ct_OPANX = Nothing,
+            ct_OPTP = Nothing,
+            ct_OPS1 = Nothing,
+            ct_OPXT = Nothing,
+            -- Settlement
+            ct_STP = Nothing,
+            ct_DS = Nothing,
+            ct_XA = Nothing,
+            ct_PFUT = Nothing,
             -- Scaling
             ct_SCIP = Nothing,
             ct_SCIED = Nothing,
@@ -506,6 +558,10 @@ example04 =
             ct_FEB = Nothing,
             ct_FER = Nothing,
             ct_CURS = Nothing,
+            -- Dividend
+            ct_DVCL = Nothing,
+            ct_DVANX = Nothing,
+            ct_DVNP = Nothing,
             enableSettlement = False,
             constraints = Nothing,
             collateralAmount = 0

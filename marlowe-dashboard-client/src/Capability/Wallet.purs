@@ -16,7 +16,7 @@ import Halogen (HalogenM)
 import Marlowe.Semantics (Assets)
 import Plutus.V1.Ledger.Tx (Tx)
 import Types (AjaxResponse)
-import Contacts.Types (Wallet, WalletInfo)
+import Component.Contacts.Types (Wallet, WalletInfo)
 
 -- TODO (possibly): make `AppM` a `MonadError` and remove all the `runExceptT`s
 class

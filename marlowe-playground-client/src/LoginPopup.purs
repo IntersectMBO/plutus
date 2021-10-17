@@ -1,10 +1,9 @@
 module LoginPopup where
 
-import Prelude
+import Prologue
 import Auth (AuthRole)
 import Control.Monad.Except (runExcept)
-import Data.Either (Either(..), hush)
-import Data.Maybe (Maybe(..))
+import Data.Either (hush)
 import Data.Traversable (for_)
 import Effect (Effect)
 import Effect.Aff (Aff, finally, makeAff, nonCanceler)

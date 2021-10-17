@@ -161,7 +161,7 @@ genTx ::
 genTx = do
     newOutputs <-
         let outputGen = (,) <$> genAddress <*> genNonZeroAdaValue in
-        sendM (Gen.list (Range.linear 1 50) outputGen)
+        sendM (Gen.list (Range.linear 1 5) outputGen)
     inputs <- availableInputs
 
     allInputs <-
@@ -257,7 +257,7 @@ genNonEmptyBlock ::
     )
     => Eff effs (Tip, [ChainIndexTx])
 genNonEmptyBlock = do
-    numTxns <- sendM $ Gen.integral (Range.linear 1 20)
+    numTxns <- sendM $ Gen.integral (Range.linear 1 10)
     theBlock <- replicateM numTxns genTx
     tp <- gets genStateTip
     pure (tp, theBlock)

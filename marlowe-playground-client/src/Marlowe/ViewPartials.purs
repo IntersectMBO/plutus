@@ -1,16 +1,16 @@
 module Marlowe.ViewPartials where
 
-import Prelude hiding (div)
+import Prologue hiding (div)
+import Component.Hint.State (hint)
+import Component.Popper (Placement(..))
 import Data.Array (mapWithIndex)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (classNames)
 import Halogen.HTML (ClassName(..), b_, div_, h4, li_, ol, text)
 import Halogen.HTML.Properties (classes)
-import Hint.State (hint)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Semantics (Payee(..), TransactionWarning(..))
-import Popper (Placement(..))
 import Pretty (showPrettyToken)
 
 displayWarningList ::

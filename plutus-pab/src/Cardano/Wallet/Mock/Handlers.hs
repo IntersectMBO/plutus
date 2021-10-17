@@ -20,7 +20,7 @@ import           Cardano.BM.Data.Trace               (Trace)
 import qualified Cardano.Node.Client                 as NodeClient
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Cardano.Wallet.Mock.Types           (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
-                                                      WalletMsg (..), Wallets)
+                                                      WalletMsg (..), Wallets, fromWalletState)
 import           Control.Concurrent                  (MVar)
 import           Control.Concurrent.MVar             (putMVar, takeMVar)
 import           Control.Lens                        (at, (?~))
@@ -44,7 +44,9 @@ import qualified Data.Map                            as Map
 import           Data.Text.Encoding                  (encodeUtf8)
 import           Data.Text.Prettyprint.Doc           (pretty)
 import qualified Ledger.Ada                          as Ada
-import           Ledger.Crypto                       (generateFromSeed, privateKey2, pubKeyHash)
+import           Ledger.CardanoWallet                (MockWallet)
+import qualified Ledger.CardanoWallet                as CW
+import           Ledger.Crypto                       (PubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
 import           Ledger.Tx                           (Tx)
@@ -55,12 +57,10 @@ import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Servant                             (ServerError (..), err400, err401, err404)
 import           Servant.Client                      (ClientEnv)
 import           Servant.Server                      (err500)
-import           Wallet.API                          (PubKey, WalletAPIError (..))
+import           Wallet.API                          (WalletAPIError (..))
 import qualified Wallet.API                          as WAPI
 import           Wallet.Effects                      (NodeClientEffect)
 import           Wallet.Emulator.LogMessages         (TxBalanceMsg)
-import           Wallet.Emulator.NodeClient          (emptyNodeClientState)
-import           Wallet.Emulator.Wallet              (Wallet, WalletState (..), defaultSigningProcess, knownWallet)
 import qualified Wallet.Emulator.Wallet              as Wallet
 
 newtype Seed = Seed ScrubbedBytes
@@ -80,15 +80,14 @@ byteString2Integer = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
 integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
 
-distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKey -> Eff effs Tx
-distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
+distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKeyHash -> Eff effs Tx
+distributeNewWalletFunds = WAPI.payToPublicKeyHash WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
-newWallet :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (Wallet, WalletState)
+newWallet :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs MockWallet
 newWallet = do
     Seed seed <- generateSeed
     let secretKeyBytes = BS.pack . unpack $ seed
-    let privateKey = generateFromSeed secretKeyBytes
-    pure (Wallet.Wallet (Wallet.MockWallet privateKey), Wallet.emptyWalletState privateKey)
+    return $ CW.fromSeed secretKeyBytes
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
@@ -117,19 +116,24 @@ handleMultiWallet feeCfg = \case
             Nothing -> throwError $ WAPI.OtherError "Wallet not found"
     CreateWallet -> do
         wallets <- get @Wallets
-        (wallet, newState) <- newWallet
-        let pubKey = Wallet.walletPubKey wallet
-        let wallets' = Map.insert wallet newState wallets
+        mockWallet <- newWallet
+        let walletId = Wallet.Wallet $ Wallet.WalletId $ CW.mwWalletId mockWallet
+            wallets' = Map.insert walletId (Wallet.fromMockWallet mockWallet) wallets
+            pkh = CW.pubKeyHash mockWallet
         put wallets'
         -- For some reason this doesn't work with (Wallet 1)/privateKey1,
         -- works just fine with (Wallet 2)/privateKey2
         -- ¯\_(ツ)_/¯
-        let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (knownWallet 2))
-        _ <- evalState walletState $
+        let sourceWallet = Wallet.fromMockWallet (CW.knownWallet 2)
+        _ <- evalState sourceWallet $
             interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
             $ interpret (Wallet.handleWallet feeCfg)
-            $ distributeNewWalletFunds pubKey
-        return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
+            $ distributeNewWalletFunds
+            $ pkh
+        return $ WalletInfo{wiWallet = walletId, wiPubKeyHash = pkh}
+    GetWalletInfo wllt -> do
+        wallets <- get @Wallets
+        return $ fmap fromWalletState $ Map.lookup (Wallet.Wallet wllt) wallets
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
 --   or set new state on success.

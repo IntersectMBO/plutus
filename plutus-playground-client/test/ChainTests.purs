@@ -13,7 +13,7 @@ import Playground.Types (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Transaction.View (extractAmount)
-import Wallet.Emulator.Wallet (WalletNumber(..))
+import Ledger.CardanoWallet (WalletNumber(..))
 
 all :: TestSuite
 all =

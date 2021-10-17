@@ -41,7 +41,7 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (Ass
                                                                              TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (CashFlow (..), ShiftedDay (..),
                                                                              calculationDay)
-import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, marloweTime,
+import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, letval, letval', marloweTime,
                                                                              timeToSlotNumber, toMarloweFixedPoint,
                                                                              useval)
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability   (validateTerms)
@@ -134,7 +134,7 @@ genFsContract' ct =
 
             stateToContract :: ContractStateMarlowe -> Contract -> Contract
             stateToContract ContractStatePoly {..} =
-              letval "tmd" i tmd
+              letval' "tmd" i tmd
                 . letval "nt" i nt
                 . letval "ipnr" i ipnr
                 . letval "ipac" i ipac
@@ -144,6 +144,8 @@ genFsContract' ct =
                 . letval "sd" i sd
                 . letval "prnxt" i prnxt
                 . letval "ipcb" i ipcb
+                . letval' "xa" i xa
+                . letval' "xd" i xd
 
             comment :: EventType -> Contract -> Contract
             comment IED = letval "IED" i (constnt 0)
@@ -167,8 +169,10 @@ genFsContract' ct =
                   feac = useval "feac" $ i P.- 1,
                   ipnr = useval "ipnr" $ i P.- 1,
                   ipcb = useval "ipcb" $ i P.- 1,
+                  xa = Just $ useval "xa" $ i P.- 1,
+                  xd = Just $ useval "xd" $ i P.- 1,
                   prnxt = useval "prnxt" $ i P.- 1,
-                  tmd = useval "tmd" i,
+                  tmd = Just $ useval "tmd" i,
                   prf = undefined,
                   sd = useval "sd" (timeToSlotNumber prevDate)
                 }
@@ -236,7 +240,7 @@ genFsContract' ct =
 
     stateInitialisation :: ContractState -> Contract -> Contract
     stateInitialisation ContractStatePoly {..} =
-      letval "tmd" 0 (marloweTime tmd)
+      letval' "tmd" 0 (marloweTime <$> tmd)
         . letval "nt" 0 (constnt nt)
         . letval "ipnr" 0 (constnt ipnr)
         . letval "ipac" 0 (constnt ipac)
@@ -246,6 +250,8 @@ genFsContract' ct =
         . letval "sd" 0 (marloweTime sd)
         . letval "prnxt" 0 (constnt prnxt)
         . letval "ipcb" 0 (constnt ipcb)
+        . letval' "xa" 0 (constnt <$> xa)
+        . letval' "xd" 0 (marloweTime <$> xd)
 
     postProcess :: Contract -> Contract
     postProcess cont =

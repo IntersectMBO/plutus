@@ -125,7 +125,7 @@ import           Plutus.PAB.Timeout                      (Timeout)
 import qualified Plutus.PAB.Timeout                      as Timeout
 import           Plutus.PAB.Types                        (PABError (ContractInstanceNotFound, InstanceAlreadyStopped, WalletError))
 import           Plutus.PAB.Webserver.Types              (ContractActivationArgs (..))
-import           Wallet.API                              (PubKey, Slot)
+import           Wallet.API                              (PubKeyHash, Slot)
 import qualified Wallet.API                              as WAPI
 import           Wallet.Effects                          (NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages             (RequestHandlerLogMsg, TxBalanceMsg)
@@ -332,11 +332,11 @@ callEndpointOnInstance' instanceID ep value = do
         $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
 -- | Make a payment to a public key
-payToPublicKey :: Wallet -> PubKey -> Value -> PABAction t env Tx
+payToPublicKey :: Wallet -> PubKeyHash -> Value -> PABAction t env Tx
 payToPublicKey source target amount =
     handleAgentThread source
         $ Modify.wrapError WalletError
-        $ WAPI.payToPublicKey WAPI.defaultSlotRange amount target
+        $ WAPI.payToPublicKeyHash WAPI.defaultSlotRange amount target
 
 -- | Effects available to contract instances with access to external services.
 type ContractInstanceEffects t env effs =

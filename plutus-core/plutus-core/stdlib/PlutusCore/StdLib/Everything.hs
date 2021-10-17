@@ -66,6 +66,7 @@ stdLib =
                   [ plcTypeFile "List"      list
                   , plcTermFile "CaseList"  Builtin.caseList
                   , plcTermFile "FoldrList" Builtin.foldrList
+                  , plcTermFile "FoldList"  Builtin.foldList
                   ]
               , treeFolderContents "Data"
                   [ plcTypeFile "Data"     dataTy

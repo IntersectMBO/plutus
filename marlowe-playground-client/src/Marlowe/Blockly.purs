@@ -1,9 +1,8 @@
 module Marlowe.Blockly where
 
-import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, isWorkspaceEmpty, render, typedArguments)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
 import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
@@ -15,7 +14,7 @@ import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either, note')
+import Data.Either (note')
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
@@ -26,13 +25,13 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.TraversableWithIndex (forWithIndex)
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Foreign.Object as Object
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..))
 import Marlowe.Semantics (Rational(..))
+import Prologue (class Bounded, class Eq, class Ord, class Show, Either, Maybe(..), Tuple(..), Unit, bind, bottom, discard, map, negate, pure, show, unit, zero, ($), (<#>), (<$>), (<<<), (<>), (=<<), (==), (>), (>>=))
 import Record (merge)
 import Type.Proxy (Proxy(..))
 

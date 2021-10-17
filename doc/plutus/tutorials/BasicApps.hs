@@ -93,12 +93,9 @@ unlock = endpoint @"unlock" (unlockFunds . mkSplitData)
 
 mkSplitData :: LockArgs -> SplitData
 mkSplitData LockArgs{recipient1Wallet, recipient2Wallet, totalAda} =
-    let convert :: Wallet -> PubKeyHash
-        convert = pubKeyHash . walletPubKey
-    in
     SplitData
-        { recipient1 = convert recipient1Wallet
-        , recipient2 = convert recipient2Wallet
+        { recipient1 = walletPubKeyHash recipient1Wallet
+        , recipient2 = walletPubKeyHash recipient2Wallet
         , amount = totalAda
         }
 

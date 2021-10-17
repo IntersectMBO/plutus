@@ -27,7 +27,7 @@ import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
 import Validation (ValidationError(..), validate, withPath)
-import Wallet.Emulator.Wallet (WalletNumber(..))
+import Ledger.CardanoWallet (WalletNumber(..))
 import Wallet.Types (EndpointDescription(..))
 
 all :: TestSuite

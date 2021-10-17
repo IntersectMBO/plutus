@@ -15,6 +15,7 @@ You can edit this file as you like.
   , "halogen"
   , "markdown"
   , "node-fs"
+  , "numerics"
   , "now"
   , "prelude"
   , "psci-support"

@@ -9,8 +9,7 @@ module Marlowe.Monaco
   , settings
   ) where
 
-import Prelude
-import Data.Maybe (Maybe(..))
+import Prologue
 import Data.Traversable (traverse)
 import Data.Unfoldable as Unfoldable
 import Effect (Effect)

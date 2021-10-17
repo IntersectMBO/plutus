@@ -21,8 +21,8 @@ import           System.Random.MWC       as MWC
 
 import qualified Ledger.Ada              as Ada
 import qualified Ledger.Address          as Address
+import qualified Ledger.CardanoWallet    as CW
 import           Ledger.Crypto           (PrivateKey, PubKey)
-import qualified Ledger.Crypto           as Crypto
 import qualified Ledger.Generators       as Generators
 import           Ledger.Index            (UtxoIndex (..), runValidation, validateTransaction)
 import           Ledger.Slot             (Slot (..))
@@ -97,8 +97,8 @@ generateTx gen slot (UtxoIndex utxo) = do
 keyPairs :: NonEmpty (PrivateKey, PubKey)
 keyPairs =
     fmap
-        (\pk -> (pk, Crypto.toPublicKey pk))
-        (Crypto.privateKey1 :| drop 1 Crypto.knownPrivateKeys)
+        (\mockWallet -> (CW.privateKey mockWallet, CW.pubKey mockWallet))
+        (CW.knownWallet 1 :| drop 1 CW.knownWallets)
 
 -- | Pick a random element from a non-empty list
 pickNEL :: PrimMonad m => Gen (PrimState m) -> NonEmpty a -> m a

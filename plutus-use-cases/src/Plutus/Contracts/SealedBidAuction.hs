@@ -33,7 +33,6 @@ import           Control.Monad                    (void)
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           GHC.Generics                     (Generic)
 import           Ledger                           (POSIXTime, PubKeyHash, Value)
-import qualified Ledger
 import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
@@ -276,19 +275,19 @@ client auctionParams =
 
 startAuction :: Value -> POSIXTime -> POSIXTime -> Contract () SellerSchema AuctionError ()
 startAuction asset endTime payoutTime = do
-    self <- Ledger.pubKeyHash <$> ownPubKey
+    self <- ownPubKeyHash
     let params = AuctionParams self asset endTime payoutTime
     void $ SM.runInitialise (client params) (Ongoing []) (apAsset params)
 
 bid :: AuctionParams -> Promise () BidderSchema AuctionError ()
 bid params = endpoint @"bid" $ \ BidArgs{secretBid} -> do
-    self <- Ledger.pubKeyHash <$> ownPubKey
+    self <- ownPubKeyHash
     let sBid = extractSecret secretBid
     void $ SM.runStep (client params) (PlaceBid $ SealedBid (hashSecretInteger sBid) self)
 
 reveal :: AuctionParams -> Promise () BidderSchema AuctionError ()
 reveal params = endpoint @"reveal" $ \ RevealArgs{publicBid} -> do
-    self <- Ledger.pubKeyHash <$> ownPubKey
+    self <- ownPubKeyHash
     void $ SM.runStep (client params) (RevealBid $ RevealedBid publicBid self)
 
 payout :: (HasEndpoint "payout" () s) => AuctionParams -> Promise () s AuctionError ()

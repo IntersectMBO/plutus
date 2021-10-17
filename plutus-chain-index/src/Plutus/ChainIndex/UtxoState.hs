@@ -46,7 +46,7 @@ import           Data.Semigroup.Generic            (GenericSemigroupMonoid (..))
 import           GHC.Generics                      (Generic)
 import           Plutus.ChainIndex.ChainIndexError (InsertUtxoFailed (..), RollbackFailed (..))
 import           Plutus.ChainIndex.ChainIndexLog   (InsertUtxoPosition (..))
-import           Plutus.ChainIndex.Types           (Point (..), Tip (..), pointsToTip)
+import           Plutus.ChainIndex.Types           (Depth (..), Point (..), Tip (..), pointsToTip)
 import           Prettyprinter                     (Pretty (..))
 
 -- | UTXO / ledger state, kept in memory. We are only interested in the UTXO set, everything else is stored
@@ -150,8 +150,8 @@ data ReduceBlockCountResult a
 
 -- | Reduce the number of 'UtxoState's. The given number is the minimum, the index is reduced when it larger than twice that size.
 -- The new index is prefixed with one 'UtxoState' that contains the combined state of the removed 'UtxoState's.
-reduceBlockCount :: Monoid a => Int -> UtxoIndex a -> ReduceBlockCountResult a
-reduceBlockCount minCount ix
+reduceBlockCount :: Monoid a => Depth -> UtxoIndex a -> ReduceBlockCountResult a
+reduceBlockCount (Depth minCount) ix
     | utxoBlockCount ix <= 2 * minCount = BlockCountNotReduced
     | otherwise =
         let (old, keep) = FT.split ((> (utxoBlockCount ix - minCount)) . getBlockCount . fst) ix

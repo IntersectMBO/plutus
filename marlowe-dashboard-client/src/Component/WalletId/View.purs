@@ -4,6 +4,8 @@ module Component.WalletId.View
   ) where
 
 import Prologue
+import Component.Icons (icon)
+import Component.Icons as Icon
 import Component.Input.View as Input
 import Component.Label.View as Label
 import Component.WalletId.Types (Input)
@@ -13,8 +15,6 @@ import Halogen.Css (classNames)
 import Halogen.HTML as HH
 import Halogen.HTML.Events.Extra (onClick_)
 import Marlowe.PAB (PlutusAppId(..))
-import Material.Icons (icon)
-import Material.Icons as Icon
 
 defaultInput :: Input
 defaultInput =

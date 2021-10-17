@@ -43,7 +43,7 @@ import           Language.Marlowe.Semantics   hiding (Contract)
 import qualified Language.Marlowe.Semantics   as Marlowe
 import           Language.Marlowe.Util        (extractContractRoles)
 import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, Slot (..), TokenName, TxOut (..),
-                                               inScripts, pubKeyHash, txOutValue)
+                                               inScripts, txOutValue)
 import qualified Ledger
 import           Ledger.Ada                   (adaSymbol, adaValueOf)
 import           Ledger.Address               (pubKeyHashAddress, scriptHashAddress)
@@ -54,7 +54,7 @@ import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..), tyTxOutData)
 import qualified Ledger.Value                 as Val
 import           Plutus.ChainIndex            (_ValidTx, citxInputs, citxOutputs, citxTxId)
-import           Plutus.Contract
+import           Plutus.Contract              as Contract
 import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachineClient (..), Void,
                                                WaitingResult (..))
 import qualified Plutus.Contract.StateMachine as SM
@@ -387,8 +387,7 @@ setupMarloweParams
     -> Contract MarloweContractState s e
         (MarloweParams, TxConstraints i o, ScriptLookups (SM.StateMachine MarloweData MarloweInput))
 setupMarloweParams owners contract = mapError (review _MarloweError) $ do
-    creator <- pubKeyHash <$> ownPubKey
-    let ownAddress = pubKeyHashAddress creator
+    ownAddress <- pubKeyHashAddress <$> Contract.ownPubKeyHash
     let roles = extractContractRoles contract
     if Set.null roles
     then do
@@ -527,7 +526,7 @@ marloweCompanionContract = checkExistingRoleTokens
   where
     checkExistingRoleTokens = do
         -- Get the existing unspend outputs of the wallet that activated the companion contract
-        pkh <- pubKeyHash <$> ownPubKey
+        pkh <- Contract.ownPubKeyHash
         let ownAddress = pubKeyHashAddress pkh
         -- Filter those outputs for role tokens and notify the WebSocket subscribers
         -- NOTE: CombinedWSStreamToServer has an API to subscribe to WS notifications

@@ -20,6 +20,9 @@ main = do
       [ "ann09" -- ann09: currently unsupported, see also actus-core AnnuityTest.java
       ]
       $ p ++ "actus-tests-ann.json"
+  stkTests <- testCasesFromFile [] $ p ++ "actus-tests-stk.json"
+  optnsTests <- testCasesFromFile [] $ p ++ "actus-tests-optns.json"
+  futurTests <- testCasesFromFile [] $ p ++ "actus-tests-futur.json"
 
   defaultMain $
     testGroup
@@ -30,6 +33,9 @@ main = do
           , Spec.Marlowe.ACTUS.TestFramework.tests "LAM" lamTests
           , Spec.Marlowe.ACTUS.TestFramework.tests "NAM" namTests
           , Spec.Marlowe.ACTUS.TestFramework.tests "ANN" annTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "STK" stkTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "OPTNS" optnsTests
+          , Spec.Marlowe.ACTUS.TestFramework.tests "FUTUR" futurTests
           ],
         testGroup
           "ACTUS examples"
