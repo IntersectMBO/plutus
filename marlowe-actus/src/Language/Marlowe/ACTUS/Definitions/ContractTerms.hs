@@ -1,15 +1,14 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
-import           Control.Monad    (mzero)
+import           Control.Monad    (guard, mzero)
 import           Data.Aeson.TH    (deriveJSON)
 import           Data.Aeson.Types (FromJSON, Options (..), Parser, ToJSON, Value (Null, Object, String), defaultOptions,
                                    object, parseJSON, toJSON, (.:), (.=))
@@ -266,8 +265,9 @@ instance FromJSON Cycle where
                 <*> return False
 
       unconsConstant :: Char -> Text -> Maybe Text
-      unconsConstant c t | T.head t == c = Just (T.tail t)
-      unconsConstant _ _ = Nothing
+      unconsConstant c t = do (ht, tt) <- uncons t
+                              guard (ht == c)
+                              return tt
 
       hush :: Either a b -> Maybe b
       hush = either (const Nothing) Just
