@@ -9,7 +9,12 @@ module PlutusCore.StdLib.Data.List
     , caseList
     , foldrList
     , foldList
+    , sum
+    , sumr
+    , product
     ) where
+
+import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
 
 import           PlutusCore.Core
 import           PlutusCore.Default
@@ -129,3 +134,31 @@ foldList = runQuote $ do
         $ [ mkIterApp () (var () f) [var () z, var () x]
           , var () xs'
           ]
+-- > foldList {integer} {integer} addInteger 0
+sum :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+sum = runQuote $ do
+    let int = mkTyBuiltin @_ @Integer ()
+        add = builtin () AddInteger
+    return
+        . mkIterApp () (mkIterInst () foldList [int, int])
+        $ [ add , mkConstant @Integer () 0]
+
+-- > foldrList {integer} {integer} 0 addInteger
+sumr :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+sumr = runQuote $ do
+    let int = mkTyBuiltin @_ @Integer ()
+        add = builtin () AddInteger
+    return
+        . mkIterApp () (mkIterInst () foldrList [int, int])
+        $ [ add, mkConstant @Integer () 0 ]
+
+-- |  'product' as a PLC term.
+--
+-- > foldList {integer} {integer} multiplyInteger 1
+product :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+product = runQuote $ do
+    let int = mkTyBuiltin @_ @Integer ()
+        mul = builtin () MultiplyInteger
+    return
+        . mkIterApp () (mkIterInst () foldList [int, int])
+        $ [ mul , mkConstant @Integer () 1]

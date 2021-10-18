@@ -9,10 +9,7 @@ import qualified Data.HashMap.Monoidal                    as H
 import           Text.Printf                              (printf)
 
 import           PlutusBenchmark.Common                   (Term)
-import           PlutusBenchmark.ListSort.GhcSort
-import           PlutusBenchmark.ListSort.InsertionSort
-import           PlutusBenchmark.ListSort.MergeSort
-import           PlutusBenchmark.ListSort.QuickSort
+import           PlutusBenchmark.Lists.Sort
 
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))

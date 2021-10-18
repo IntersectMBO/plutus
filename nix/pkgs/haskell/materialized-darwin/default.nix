@@ -1175,7 +1175,6 @@
           "ghc-boot".components.library.planned = lib.mkOverride 900 true;
           "serialise".components.library.planned = lib.mkOverride 900 true;
           "fake-pab".components.library.planned = lib.mkOverride 900 true;
-          "plutus-benchmark".components.sublibs."list-sort-internal".planned = lib.mkOverride 900 true;
           "deriving-aeson".components.library.planned = lib.mkOverride 900 true;
           "fake-pab".components.tests."fake-pab-test".planned = lib.mkOverride 900 true;
           "marlowe-playground-server".components.tests."marlowe-playground-server-test".planned = lib.mkOverride 900 true;
@@ -1366,6 +1365,7 @@
           "random".components.library.planned = lib.mkOverride 900 true;
           "validation".components.library.planned = lib.mkOverride 900 true;
           "code-page".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.sublibs."lists-internal".planned = lib.mkOverride 900 true;
           "plutus-use-cases".components.exes."plutus-use-cases-scripts".planned = lib.mkOverride 900 true;
           "auto-update".components.library.planned = lib.mkOverride 900 true;
           "http-conduit".components.library.planned = lib.mkOverride 900 true;
@@ -1484,7 +1484,6 @@
           "generic-data".components.setup.planned = lib.mkOverride 900 true;
           "string-conv".components.library.planned = lib.mkOverride 900 true;
           "tasty-bench".components.library.planned = lib.mkOverride 900 true;
-          "plutus-benchmark".components.tests."plutus-benchmark-list-sort-tests".planned = lib.mkOverride 900 true;
           "plutus-pab".components.exes."plutus-pab-examples".planned = lib.mkOverride 900 true;
           "servant-blaze".components.library.planned = lib.mkOverride 900 true;
           "ouroboros-network-testing".components.library.planned = lib.mkOverride 900 true;
@@ -1617,6 +1616,7 @@
           "postgresql-libpq".components.library.planned = lib.mkOverride 900 true;
           "network-uri".components.library.planned = lib.mkOverride 900 true;
           "foldl".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.benchmarks."lists".planned = lib.mkOverride 900 true;
           "plutus-core".components.tests."untyped-plutus-core-test".planned = lib.mkOverride 900 true;
           "postgresql-libpq".components.setup.planned = lib.mkOverride 900 true;
           "tasty-golden".components.library.planned = lib.mkOverride 900 true;
@@ -1667,6 +1667,7 @@
           "th-orphans".components.library.planned = lib.mkOverride 900 true;
           "plutus-pab".components.exes."plutus-pab-setup".planned = lib.mkOverride 900 true;
           "base64-bytestring-type".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.tests."plutus-benchmark-lists-tests".planned = lib.mkOverride 900 true;
           "hspec-golden-aeson".components.library.planned = lib.mkOverride 900 true;
           "generic-deriving".components.library.planned = lib.mkOverride 900 true;
           "IntervalMap".components.library.planned = lib.mkOverride 900 true;
@@ -1780,7 +1781,6 @@
           "plutus-core".components.sublibs."index-envs".planned = lib.mkOverride 900 true;
           "transformers-compat".components.library.planned = lib.mkOverride 900 true;
           "fmlist".components.library.planned = lib.mkOverride 900 true;
-          "plutus-benchmark".components.benchmarks."list-sort".planned = lib.mkOverride 900 true;
           "memory".components.library.planned = lib.mkOverride 900 true;
           "cardano-protocol-tpraos".components.library.planned = lib.mkOverride 900 true;
           "cardano-node".components.library.planned = lib.mkOverride 900 true;
