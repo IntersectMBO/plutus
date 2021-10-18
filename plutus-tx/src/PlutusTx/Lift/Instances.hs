@@ -32,6 +32,7 @@ import qualified Data.Text                  as Text
 import           GHC.TypeLits               (ErrorMessage (..), TypeError)
 
 -- We do not use qualified import because the whole module contains off-chain code
+import           PlutusTx.Builtins.Class    (FromBuiltin)
 import           Prelude                    as Haskell
 
 -- Derived instances
@@ -111,8 +112,7 @@ instance uni `PLC.Includes` Text.Text => Typeable uni BuiltinString where
 instance uni `PLC.Includes` Text.Text => Lift uni BuiltinString where
     lift b = liftBuiltin $ fromBuiltin b
 
--- TODO: try to make this more general
-instance (uni `PLC.Includes` [Integer]) => Lift uni (BuiltinList Integer) where
+instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
     lift b = liftBuiltin $ fromBuiltin b
 
 -- Standard types
