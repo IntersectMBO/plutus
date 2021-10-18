@@ -21,16 +21,16 @@ benchmarks =
       ]
     , bgroup "sum"
       [ bgroup "compiled-from-Haskell"
-        [ mkBMsForSum "sum-builtin-R" Sum.Compiled.mkSumRightBuiltinTerm
-        , mkBMsForSum "sum-Scott-R"   Sum.Compiled.mkSumRightScottTerm
-        , mkBMsForSum "sum-builtin-L" Sum.Compiled.mkSumLeftBuiltinTerm
-        , mkBMsForSum "sum-Scott-L"   Sum.Compiled.mkSumLeftScottTerm
+        [ mkBMsForSum "sum-right-builtin" Sum.Compiled.mkSumRightBuiltinTerm
+        , mkBMsForSum "sum-right-Scott"   Sum.Compiled.mkSumRightScottTerm
+        , mkBMsForSum "sum-left-builtin"  Sum.Compiled.mkSumLeftBuiltinTerm
+        , mkBMsForSum "sum-left-Scott"    Sum.Compiled.mkSumLeftScottTerm
        ]
       , bgroup "hand-written-PLC"
-        [ mkBMsForSum "sum-builtin-R"  Sum.HandWritten.mkSumRightBuiltinTerm
-        , mkBMsForSum "sum-Scott-R"    Sum.HandWritten.mkSumRightScottTerm
-        , mkBMsForSum "sum-builtin-L"  Sum.HandWritten.mkSumLeftBuiltinTerm
-        , mkBMsForSum "sum-Scott-L"    Sum.HandWritten.mkSumLeftScottTerm
+        [ mkBMsForSum "sum-right-builtin" Sum.HandWritten.mkSumRightBuiltinTerm
+        , mkBMsForSum "sum-right-Scott"   Sum.HandWritten.mkSumRightScottTerm
+        , mkBMsForSum "sum-left-builtin"  Sum.HandWritten.mkSumLeftBuiltinTerm
+        , mkBMsForSum "sum-left-Scott"    Sum.HandWritten.mkSumLeftScottTerm
         ]
       ]
     ]
@@ -38,7 +38,7 @@ benchmarks =
       mkBMsForSort name f = bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ n) sizesForSort
       sizesForSort = [10, 20..500]
       mkBMsForSum name f = bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ [1..n]) sizesForSum
-      sizesForSum = [10, 100, 1000, 10000]
+      sizesForSum = [10, 50, 100, 500, 1000, 5000, 10000]
 
 main :: IO ()
 main = do
