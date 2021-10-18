@@ -23,3 +23,9 @@ Tests should be run with nix:
 ```sh
 nix build -L -f default.nix plutus.haskell.packages.plutus-playground-server.checks
 ```
+
+You can then see the test output by looking in `result/test-stdout`:
+
+```sh
+cat result/test-stdout
+```
