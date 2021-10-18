@@ -6,9 +6,6 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
 
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-
 module BuiltinFold where
 
 import qualified PlutusTx.Builtins          as B
@@ -18,38 +15,38 @@ import           PlutusTx.Prelude           as Plutus
 import qualified Prelude                    as Haskell
 
 
-{-# INLINABLE foldLeft #-}
-foldLeft :: (b -> a -> b) -> b -> [a] -> b
-foldLeft _ z []     = z
-foldLeft f z (x:xs) = foldLeft f (f z x) xs
+{-# INLINABLE foldLeftScott #-}
+foldLeftScott :: (b -> a -> b) -> b -> [a] -> b
+foldLeftScott _ z []     = z
+foldLeftScott f z (x:xs) = foldLeftScott f (f z x) xs
 
-{-# INLINABLE sumLeft #-}
-sumLeft :: [Integer] -> Integer
-sumLeft l = foldLeft (+) 0 l
+{-# INLINABLE sumLeftScott #-}
+sumLeftScott :: [Integer] -> Integer
+sumLeftScott l = foldLeftScott (+) 0 l
 
-{-# INLINABLE foldRight #-}
-foldRight :: (a -> b -> b) -> b -> [a] -> b
-foldRight _ z []     = z
-foldRight f z (x:xs) = f x Haskell.$! (foldRight f z xs)
+{-# INLINABLE foldRightScott #-}
+foldRightScott :: (a -> b -> b) -> b -> [a] -> b
+foldRightScott _ z []     = z
+foldRightScott f z (x:xs) = f x Haskell.$! (foldRightScott f z xs)
 
-{-# INLINABLE sumRight #-}
-sumRight :: [Integer] -> Integer
-sumRight l = foldRight (+) 0 l
+{-# INLINABLE sumRightScott #-}
+sumRightScott :: [Integer] -> Integer
+sumRightScott l = foldRightScott (+) 0 l
 
 ---------------------------------------------------
 
-{-# INLINABLE foldLeftX #-}
-foldLeftX :: (b -> a -> b) -> b -> BI.BuiltinList a -> b
-foldLeftX f z l = B.matchList l z (\x xs -> (foldLeftX f (f z x) xs))
+{-# INLINABLE foldLeftBuiltin #-}
+foldLeftBuiltin :: (b -> a -> b) -> b -> BI.BuiltinList a -> b
+foldLeftBuiltin f z l = B.matchList l z (\x xs -> (foldLeftBuiltin f (f z x) xs))
 
-{-# INLINABLE sumLeftX #-}
-sumLeftX :: BI.BuiltinList Integer -> Integer
-sumLeftX l = foldLeftX B.addInteger 0 l
+{-# INLINABLE sumLeftBuiltin #-}
+sumLeftBuiltin :: BI.BuiltinList Integer -> Integer
+sumLeftBuiltin l = foldLeftBuiltin B.addInteger 0 l
 
-{-# INLINABLE foldRightX #-}
-foldRightX :: (a -> b -> b) -> b -> BI.BuiltinList a -> b
-foldRightX f z l = B.matchList l z (\x xs -> f x Haskell.$! (foldRightX f z xs))
+{-# INLINABLE foldRightBuiltin #-}
+foldRightBuiltin :: (a -> b -> b) -> b -> BI.BuiltinList a -> b
+foldRightBuiltin f z l = B.matchList l z (\x xs -> f x Haskell.$! (foldRightBuiltin f z xs))
 
-{-# INLINABLE sumRightX #-}
-sumRightX :: BI.BuiltinList Integer -> Integer
-sumRightX l = foldRightX B.addInteger 0 l
+{-# INLINABLE sumRightBuiltin #-}
+sumRightBuiltin :: BI.BuiltinList Integer -> Integer
+sumRightBuiltin l = foldRightBuiltin B.addInteger 0 l

@@ -15,7 +15,7 @@ module PlutusCore.StdLib.Data.ScottList
     , reverse
     , enumFromTo
     , sum
-    , sumR
+    , sumr
     , product
     ) where
 
@@ -262,8 +262,8 @@ sum = runQuote $ do
         $ [ add , mkConstant @Integer () 0]
 
 -- > foldrList {integer} {integer} 0 addInteger
-sumR :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
-sumR = runQuote $ do
+sumr :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sumr = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return

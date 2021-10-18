@@ -10,7 +10,7 @@ module PlutusCore.StdLib.Data.List
     , foldrList
     , foldList
     , sum
-    , sumR
+    , sumr
     , product
     ) where
 
@@ -143,9 +143,9 @@ sum = runQuote $ do
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add , mkConstant @Integer () 0]
 
--- > foldRList {integer} {integer} 0 addInteger
-sumR :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-sumR = runQuote $ do
+-- > foldrList {integer} {integer} 0 addInteger
+sumr :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+sumr = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
