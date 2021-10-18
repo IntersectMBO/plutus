@@ -20,7 +20,6 @@ import           Test.Tasty
 import qualified Test.Tasty.HUnit                   as HUnit
 import           Test.Tasty.QuickCheck              (testProperty)
 
-import qualified Ledger
 import qualified Ledger.Ada                         as Ada
 import           Ledger.Slot
 import           Ledger.Time                        (POSIXTime)
@@ -44,7 +43,7 @@ vesting startTime =
     VestingParams
         { vestingTranche1 = VestingTranche (startTime + 10000) (Ada.lovelaceValueOf 20)
         , vestingTranche2 = VestingTranche (startTime + 20000) (Ada.lovelaceValueOf 40)
-        , vestingOwner    = Ledger.pubKeyHash $ walletPubKey w1 }
+        , vestingOwner    = walletPubKeyHash w1 }
 
 params :: VestingParams
 params = vesting (TimeSlot.scSlotZeroTime def)
@@ -113,7 +112,7 @@ instance ContractModel VestingModel where
     s      <- getContractState
     when ( enoughValueLeft slot s v
          && v `leq` amount
-         && Ledger.pubKeyHash (walletPubKey w) == vestingOwner params) $ do
+         && walletPubKeyHash w == vestingOwner params) $ do
       deposit w v
       vestedAmount $= (amount Numeric.- v)
     wait 2
@@ -124,14 +123,14 @@ instance ContractModel VestingModel where
       waitUntil s
 
   precondition s (Vest w) =  w `notElem` s ^. contractState . vested -- After a wallet has vested the contract shuts down
-                          && Ledger.pubKeyHash (walletPubKey w) /= vestingOwner params -- The vesting owner shouldn't vest
+                          && walletPubKeyHash w /= vestingOwner params -- The vesting owner shouldn't vest
                           && slot < t1 -- If you vest after slot 1 it can cause the vesting owner to terminate prematurely
     where
       slot   = s ^. currentSlot
       t1     = s ^. contractState . t1Slot
 
   precondition s (Retrieve w v) = enoughValueLeft slot (s ^. contractState) v
-                                && Ledger.pubKeyHash (walletPubKey w) == vestingOwner params
+                                && walletPubKeyHash w == vestingOwner params
     where
       slot   = s ^. currentSlot
 
@@ -258,16 +257,6 @@ tests =
 
     where
         startTime = TimeSlot.scSlotZeroTime def
-
--- | The scenario used in the property tests. It sets up a vesting scheme for a
---   total of 60 lovelace over 20 blocks (20 lovelace can be taken out before
---   that, at 10 blocks).
-vesting :: POSIXTime -> VestingParams
-vesting startTime =
-    VestingParams
-        { vestingTranche1 = VestingTranche (startTime + 10000) (Ada.lovelaceValueOf 20)
-        , vestingTranche2 = VestingTranche (startTime + 20000) (Ada.lovelaceValueOf 40)
-        , vestingOwner    = walletPubKeyHash w1 }
 
 retrieveFundsTrace :: EmulatorTrace ()
 retrieveFundsTrace = do
