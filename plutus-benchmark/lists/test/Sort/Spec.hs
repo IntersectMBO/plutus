@@ -13,7 +13,7 @@ isSorted [_]      = True
 isSorted (a:b:cs) = a <= b && isSorted (b:cs)
 
 -- | Check that a Haskell implementation of a sorting function really does sort
--- its input
+-- its input.
 prop_HaskellOK :: ([Integer] -> [Integer]) -> [Integer] -> Bool
 prop_HaskellOK sort l = isSorted (sort l)
 
@@ -21,8 +21,6 @@ prop_HaskellOK sort l = isSorted (sort l)
 -- same result as the Haskell version.
 prop_PlutusOK :: ([Integer] -> [Integer]) -> ([Integer] -> Term) -> [Integer] -> Property
 prop_PlutusOK sort termMaker l = cekResultMatchesHaskellValue (termMaker l) (===) (sort l)
-
----------------- Main ----------------
 
 tests :: TestTree
 tests =

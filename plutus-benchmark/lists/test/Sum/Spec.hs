@@ -8,12 +8,10 @@ import           PlutusBenchmark.Common                (Term, cekResultMatchesHa
 import qualified PlutusBenchmark.Lists.Sum.Compiled    as Compiled
 import qualified PlutusBenchmark.Lists.Sum.HandWritten as HandWritten
 
-
 -- | Check that the various summation functions all give the same result as 'sum'
 
 prop_sum :: ([Integer] -> Term) -> [Integer] -> Property
 prop_sum termMaker l = cekResultMatchesHaskellValue (termMaker l) (===) (sum l)
-
 
 tests :: TestTree
 tests =
