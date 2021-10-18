@@ -85,6 +85,8 @@ mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
 
 --  Unfortunately it's currently not possible to get these tests to work outside of a nix build.
 --  Running `cabal test` will yield a lot of import errors because of missing modules.
+--
+--  See the README.md for details on how to run the tests with nix.
 runningInNixBuildTest :: TestTree
 runningInNixBuildTest =
     testGroup
