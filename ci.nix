@@ -5,9 +5,11 @@
 , rootsOnly ? false
   # We explicitly pass true here in the GitHub action but don't want to slow down hydra
 , checkMaterialization ? false
+, sourcesOverride ? { }
+, sources ? import ./nix/sources.nix { system = builtins.currentSystem; } // sourcesOverride
 }:
 let
-  inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
+  inherit (import (sources.plutus-core + "/nix/lib/ci.nix")) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
   # limit supportedSystems to what the CI can actually build
   # currently that is linux and darwin.
   systems = filterSystems supportedSystems;
@@ -56,7 +58,7 @@ let
         let
           packages = import ./default.nix { inherit system crossSystem checkMaterialization; };
           pkgs = packages.pkgs;
-          plutus = packages.plutus;
+          plutus-apps = packages.plutus-apps;
           # Map `crossSystem.config` to a name used in `lib.platforms`
           platformString =
             if crossSystem == null then system
@@ -74,25 +76,25 @@ let
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
-          inherit (plutus.haskell.project) roots;
+          inherit (plutus-apps.haskell.project) roots;
         } // pkgs.lib.optionalAttrs (!rootsOnly) (filterCross {
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab plutus-use-cases deployment;
+          inherit (packages) docs tests plutus-playground plutus-pab plutus-use-cases;
 
           # Build the shell expression to be sure it works on all platforms
           #
           # The shell should never depend on any of our Haskell packages, which can
           # sometimes happen by accident. In practice, everything depends transitively
-          # on 'plutus-core', so this does the job.
+          # on 'plutus-ledger', so this does the job.
           # FIXME: this should simply be set on the main shell derivation, but this breaks
           # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
           # only on the CI version, so that we still catch it, but lorri doesn't see it.
           shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
-            disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
+            disallowedRequisites = [ plutus-apps.haskell.packages.plutus-ledger.components.library ];
           });
 
           # build all haskell packages and tests
-          haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
+          haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus-apps.haskell.projectPackages);
         }));
     in
     dimension "System" systems (name: sys: _select name sys null)

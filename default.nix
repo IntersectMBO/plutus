@@ -1,13 +1,13 @@
 ########################################################################
-# default.nix -- The top-level nix build file for Plutus.
+# default.nix -- The top-level nix build file for Plutus apps.
 #
 # This file defines various attributes that are used for building and
-# developing Plutus.
+# developing Plutus apps.
 #
 ########################################################################
 { system ? builtins.currentSystem
 , crossSystem ? null
-, config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
+, config ? { }
 , sourcesOverride ? { }
 , sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
 , haskellNix ? import sources.haskell-nix {
@@ -18,7 +18,6 @@
     };
   }
 , packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling; }
-  # An explicit git rev to use, passed when we are in Hydra
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
@@ -26,63 +25,33 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus sources;
-  inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell agdaPackages;
-  inherit (plutus) easyPS sphinxcontrib-haddock;
+  inherit (packages) pkgs plutus-apps;
+  inherit (plutus-apps) haskell;
 in
 rec {
-  inherit pkgs plutus;
+  inherit pkgs plutus-apps;
 
-  inherit (plutus) web-ghc;
+  inherit (plutus-apps) web-ghc;
 
   inherit (haskell.packages.plutus-pab.components.exes)
     plutus-pab-examples
     plutus-uniswap;
 
-  inherit (haskell.packages.marlowe.components.exes) marlowe-pab;
-
-  webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
-  webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
-  webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { inherit (plutus.lib) gitignore-nix; };
-  webCommonPlayground = pkgs.callPackage ./web-common-playground { inherit (plutus.lib) gitignore-nix; };
+  webCommon = pkgs.callPackage ./web-common { inherit (plutus-apps.lib) gitignore-nix; };
+  webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus-apps.lib) gitignore-nix; };
+  webCommonPlayground = pkgs.callPackage ./web-common-playground { inherit (plutus-apps.lib) gitignore-nix; };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
-    haddock = plutus.plutus-haddock-combined;
+    haddock = plutus-apps.plutus-haddock-combined;
 
     inherit (pkgs.callPackage ./plutus-playground-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
+      inherit (plutus-apps.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit haskell webCommon webCommonPlutus webCommonPlayground;
     }) client server generate-purescript start-backend;
   };
 
-  marlowe-playground = pkgs.recurseIntoAttrs rec {
-    inherit (pkgs.callPackage ./marlowe-playground-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit haskell webCommon webCommonMarlowe webCommonPlayground;
-    }) client server generate-purescript start-backend;
-  };
-
-  marlowe-dashboard = pkgs.recurseIntoAttrs rec {
-    inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit haskell plutus-pab;
-      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit webCommon webCommonMarlowe;
-    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript start-backend;
-  };
-
-  marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
-    inherit (pkgs.callPackage ./fake-pab {
-      inherit marlowe-dashboard;
-      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
-      inherit haskell webCommon webCommonMarlowe;
-    }) client fake-pab-exe fake-pab-generated-purescript;
-  };
-
-  marlowe-web = pkgs.callPackage ./marlowe-website { inherit (plutus.lib) npmlock2nix gitignore-nix; };
-
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
-    inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
+    inherit (plutus-apps.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
     inherit haskell webCommon webCommonPlutus;
   });
 
@@ -92,28 +61,19 @@ rec {
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;
-    inherit (plutus.lib) gitignore-nix;
-    inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-pab;
+    inherit (plutus-apps.lib) gitignore-nix;
+    inherit (plutus-apps) fixStylishHaskell fixPurty fixPngOptimization;
+    inherit plutus-playground web-ghc plutus-pab;
     src = ./.;
   };
 
-  docs = import ./nix/docs.nix { inherit pkgs plutus; };
-
-  deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
-    plutus = {
-      inherit plutus-pab marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web marlowe-pab;
-    };
-  });
+  docs = import ./nix/docs.nix { inherit pkgs plutus-apps; };
 
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
-  devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
+  devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus-apps; };
 
-  # Test data needed by marlowe-actus provided via niv
-  inherit (sources) actus-tests;
-
-  build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
+  build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus-apps; };
 
   # Packages needed for the bitte deployment
-  bitte-packages = import ./bitte { inherit marlowe-playground plutus-playground web-ghc marlowe-pab marlowe-dashboard marlowe-web docs pkgs; };
+  bitte-packages = import ./bitte { inherit plutus-playground docs pkgs; };
 }

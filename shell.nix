@@ -3,11 +3,10 @@
 , packages ? import ./. { inherit system enableHaskellProfiling; }
 }:
 let
-  inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard fake-pab deployment docs webCommon;
+  inherit (packages) pkgs plutus-apps plutus-playground plutus-pab docs webCommon;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks cardano-cli cardano-node;
-  inherit (plutus) agdaWithStdlib;
-  inherit (plutus) purty purty-pre-commit purs spargo;
+  inherit (plutus-apps) haskell stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks cardano-cli cardano-node;
+  inherit (plutus-apps) purty purty-pre-commit purs spargo;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [
@@ -57,12 +56,11 @@ let
   '';
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
-  nixpkgsInputs = (with pkgs; [
+  nixpkgsInputs = with pkgs; [
     cacert
     editorconfig-core-c
     ghcid
     jq
-    morph
     nixFlakesAlias
     nixpkgs-fmt
     nodejs
@@ -73,11 +71,10 @@ let
     z3
     zlib
     nodePackages.purescript-language-server
-  ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
+  ];
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
-  localInputs = (with plutus; [
-    aws-mfa-login
+  localInputs = (with plutus-apps; [
     cabal-install
     cardano-repo-tool
     fixPngOptimization
@@ -87,10 +84,6 @@ let
     haskell-language-server-wrapper
     hie-bios
     hlint
-    marlowe-dashboard.generate-purescript
-    marlowe-dashboard.start-backend
-    marlowe-playground.generate-purescript
-    marlowe-playground.start-backend
     plutus-playground.generate-purescript
     plutus-playground.start-backend
     plutus-pab.generate-purescript
@@ -111,7 +104,7 @@ let
 
 in
 haskell.project.shellFor {
-  nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
+  nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ sphinxTools ];
   # We don't currently use this, and it's a pain to materialize, and otherwise
   # costs a fair bit of eval time.
   withHoogle = false;
@@ -126,12 +119,5 @@ haskell.project.shellFor {
   # affinity APIs!
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
-  ''
-  # It's handy to have an environment variable for the project root (assuming people
-  # normally start the shell from there.
-  # We also use it in a deployment hack.
-  # We have a local passwords store that we use for deployments etc.
-  + ''
-    export ACTUS_TEST_DATA_DIR=${packages.actus-tests}/tests/
   '';
 }

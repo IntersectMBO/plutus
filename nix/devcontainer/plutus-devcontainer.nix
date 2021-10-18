@@ -1,7 +1,7 @@
 # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
-{ pkgs, plutus }:
+{ pkgs, plutus-apps }:
 let
-  shell = (plutus.haskell.project.shellFor { withHoogle = false; });
+  shell = (plutus-apps.haskell.project.shellFor { withHoogle = false; });
   # This is an evil hack to allow us to have a docker container with a "similar" environment to
   # our haskell.nix shell without having it actually run nix-shell. In particular, we need some
   # of the flags that the stdenv setup hooks set based on the build inputs, like NIX_LDFLAGS.
@@ -20,8 +20,8 @@ pkgs.callPackage (import ./devcontainer.nix) {
   nonRootUser = "plutus";
   extraContents = [
     shell.ghc
-    plutus.haskell-language-server
-    plutus.cabal-install
+    plutus-apps.haskell-language-server
+    plutus-apps.cabal-install
     pkgs.binutils
     pkgs.pkg-config
   ];

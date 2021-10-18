@@ -1,3 +1,0 @@
-(Left An error has occurred:  User error:
-The provided Plutus code called 'error'.
-Caused by: [ [ (builtin divideInteger) (con integer 1) ] (con integer 0) ])

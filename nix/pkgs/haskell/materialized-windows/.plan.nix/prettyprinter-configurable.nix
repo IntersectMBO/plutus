@@ -93,4 +93,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../prettyprinter-configurable; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "15";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "15";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/prettyprinter-configurable; echo source root reset to \$sourceRoot";
+    }

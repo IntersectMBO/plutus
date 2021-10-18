@@ -1,1 +1,0 @@
-(program 0.1.0 (lam x_6 y_1 (lam x_7 z_2 [ (lam f_8 t_4 j_5) x_7 ])))

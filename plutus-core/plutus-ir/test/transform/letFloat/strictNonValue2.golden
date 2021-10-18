@@ -1,6 +1,0 @@
-(let
-  (nonrec)
-  (termbind (nonstrict) (vardecl y (con integer)) (con integer 1))
-  (termbind (strict) (vardecl x (con integer)) [ (lam z (con integer) z) y ])
-  (con integer 1)
-)

@@ -47,9 +47,6 @@ stack.yaml.lock
 *.prof
 .liquid/
 
-# Agda
-*.agdai
-
 # Python
 __pycache__
 

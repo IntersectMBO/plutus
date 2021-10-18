@@ -1,9 +1,0 @@
-(Left Type mismatch at () in term
-  '[
-    { (builtin ifThenElse) (con integer) }
-    [ [ (builtin lessThanEqualsInteger) (con integer 11) ] (con integer 22) ]
-  ]'.
-Expected type
-  '(all *_0 (type) *_0)',
-found type
-  '(fun (con integer) (fun (con integer) (con integer)))')

@@ -1,1 +1,0 @@
-(fun (con bytestring) (fun (con integer) (con integer)))

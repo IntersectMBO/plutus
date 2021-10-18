@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> { }
-, plutus
-, dockerImage ? import ../plutus-devcontainer.nix { inherit pkgs plutus; }
+, plutus-apps
+, dockerImage ? import ../plutus-devcontainer.nix { inherit pkgs plutus-apps; }
 }:
 let
   imageRef = dockerImage.imageName + ":" + dockerImage.imageTag;

@@ -1,9 +1,0 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl x1 (con integer)) (con integer 1))
-  (termbind (strict) (vardecl x2 (con integer)) x1)
-  (termbind (strict) (vardecl x3 (con integer)) x2)
-  (termbind (strict) (vardecl x4 (con integer)) x3)
-  (termbind (strict) (vardecl x5 (con integer)) x4)
-  x5
-)

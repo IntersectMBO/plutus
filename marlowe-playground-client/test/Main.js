@@ -1,3 +1,0 @@
-window = {};
-
-exports.forDeps = function () {};

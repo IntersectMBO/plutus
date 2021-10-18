@@ -13,7 +13,6 @@ This includes a variety of useful tools:
 
 * The right version of GHC with all the external Haskell dependencies in its package database.
 * `cabal-install`
-* Agda with the right libraries set up to build our Agda code
 * `stylish-haskell`
 * `haskell-language-server`
 * `purescript-language-server`
@@ -305,7 +304,7 @@ Use the Github "draft" feature for this.
 
 Until a PR is merged, the branch is yours to do with as you will.
 In particular, rebasing and force-pushing is fine.
-Indeed, if you need to update your branch with changes from master, rebasing is typically better than merging.
+Indeed, if you need to update your branch with changes from main, rebasing is typically better than merging.
 
 So please do use this ability where it helps, for example:
 
@@ -371,9 +370,9 @@ Pull requests cannot be merged without at least the Hydra CI check being green.
 NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
 If you really need this, ask.
 
-CI checks are run on the tip of the PR branch, not on the merge commit that is created with master.
+CI checks are run on the tip of the PR branch, not on the merge commit that is created with main.
 As a result, it's possible to create a "semantic" merge commit where the CI passes on commits C1 and C2, but not on the merge of C1 and C2.
-In this circumstance we can end up with the CI checks being broken on master.
+In this circumstance we can end up with the CI checks being broken on main.
 However, this is sufficiently infrequent that we just live with the possibility, since eliminating it is quite awkward.
 
 ==== Hydra
@@ -404,55 +403,3 @@ These perform some of the same checks as Hydra, but Github Actions is often more
 ==== Buildkite
 
 Buildkite currently only performs the continuous deployment steps.
-
-=== Continuous deployment
-
-Several packages are continuously deployed to a staging environment. See link:./deployment/README.md[deployment/README.md] for detailed information on the deployment setup.
-
-== Integrating with other Cardano projects
-
-=== The Cardano ledger (`cardano-ledger-specs`)
-
-We have a cyclic dependency with `cardano-ledger-specs`:
-1. `cardano-ledger-alonzo` depends on `plutus-ledger-api`.
-2. `plutus-ledger`/`plutus-contract` etc. depend on `cardano-api`, which depends on `cardano-node`, which depends on `cardo-ledger-alonzo`.
-
-This is possible because the cycle is not between *packages*, merely between the respositories.
-Still, it causes some problems: if we make a change to `plutus-ledger-api` or below that causes `cardano-ledger-alonzo` to not compile, we cannot immediately merge that change!
-To do that, we would need to change our `source-repository-package` pin to point to a version of `cardano-ledger-specs` that works with that change.
-But we can't easily make such a PR to `cardano-ledger-specs` either: that would require them to pin a version of `plutus` where everything worked.
-
-To make this less painful, we have a (slightly complicated) workflow for such changes.
-
-==== Staging branch
-
-Firstly, there is a branch `plutus-staging` in `cardano-ledger-specs`.
-The rules for `plutus-staging` are:
-1. It should pass the `cardano-ledger-specs` CI, so it is always mergeable. 
-This means that you *will* need to update the `plutus` pin when you make changes to `plutus-staging`.
-2. It is allowed for the `plutus` pin in `plutus-staging` to point to a _non-master_ commit, such as a commit in an unmerged PR.
-3. The commit pointed to by the `plutus` pin in `plutus-staging` must continue to exist: we should not squash or rebase it away.
-3. When merging `plutus-staging` into `master`, the `plutus` pin should be updated to point to a _master_ commit.
-
-==== PR workflow
-
-1. Create a `plutus` PR (#1) with your changes.
-2. Create a `cardano-ledger-specs` PR (#2) targeting `plutus-staging` with the necessary changes in `cardano-ledger-specs`. 
-The `plutus` pin should point to a commit on the PR #1 branch.
-While you are working, you can point the `cardano-ledger-specs` pin in your PR #1 branch to the tip of PR #2, so that everything compiles.
-3. Once the changes to `cardano-ledger-specs` have settled down, we can merge PR #2.
-After this be careful not to remove the commit from PR #1 which you used in `plutus-staging`!
-4. Update the `cardano-ledger-specs` pin in PR #1 to point to `plutus-staging`.
-5. Once the changes overall settle down, we can merge PR #1.
-
-==== Merging the staging branches
-
-We can do several PRs that touch `cardano-ledger-specs` before we merge `plutus-staging` into master, but it's best not to let it diverge too much.
-The process is:
-
-1. Open a PR in `cardano-ledger-specs` merging `plutus-staging` into master, and updating the `plutus` pin to point to master.
-2. You may need to rerun the `plutus-preprocessor` in `cardano-ledger-specs` before doing this.
-It generates some test scripts, and isn't done automatically.
-3. Open a PR in `plutus` updating the `cardano-ledger-specs` pin to point to master.
-This can happen later.
-

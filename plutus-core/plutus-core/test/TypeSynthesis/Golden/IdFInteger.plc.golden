@@ -1,1 +1,0 @@
-(all f (fun (type) (type)) (fun [ f (con integer) ] [ f (con integer) ]))

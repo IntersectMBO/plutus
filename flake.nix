@@ -5,7 +5,7 @@
 #
 # In case you are not sure if you should be using this flake, the answer is: No.
 {
-  description = "plutus flake for pinning sources and bitte deployments";
+  description = "plutus-apps flake for pinning sources and bitte deployments";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -24,10 +24,6 @@
       flake = false;
     };
 
-    actus-tests = {
-      url = "github:actusfrf/actus-tests";
-      flake = false;
-    };
     cardano-repo-tool = {
       url = "github:input-output-hk/cardano-repo-tool";
       flake = false;
@@ -55,6 +51,10 @@
     };
     npmlock2nix = {
       url = "github:tweag/npmlock2nix";
+      flake = false;
+    };
+    plutus-core = {
+      url = "github:input-output-hk/plutus";
       flake = false;
     };
     pre-commit-hooks-nix = {

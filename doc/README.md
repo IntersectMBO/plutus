@@ -12,5 +12,5 @@ Or you can build it with Nix at the top level, which will also build the Haddock
 nix build -f default.nix docs.site
 ```
 
-The doc site from master is built automatically and hosted [here](https://plutus.readthedocs.io/en/latest).
+The doc site from main is built automatically and hosted [here](https://plutus.readthedocs.io/en/latest).
 Additionally, the site is built for all PRs, and a link to a preview can be found in the PR statuses.

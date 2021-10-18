@@ -1,3 +1,0 @@
-=== `marlowe-actus`
-
-This package contains a prototype implementation of ACTUS standard on Marlowe

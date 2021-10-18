@@ -1,15 +1,14 @@
-{ haskell, makeWrapper, runCommand }:
+{ haskell, makeWrapper, runCommand, extraPackagesFun ? ps: [ ] }:
 let
   web-ghc-server = haskell.packages.web-ghc.components.exes.web-ghc-server;
 
   runtimeGhc = haskell.project.ghcWithPackages (ps: [
     ps.playground-common
-    ps.marlowe
     ps.plutus-core
     ps.plutus-tx
     ps.plutus-contract
     ps.plutus-ledger
-  ]);
+  ] ++ (extraPackagesFun ps));
 in
 runCommand "web-ghc" { buildInputs = [ makeWrapper ]; } ''
   # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db

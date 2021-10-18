@@ -101,4 +101,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../plutus-ledger-api; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "15";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "15";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/plutus-ledger-api; echo source root reset to \$sourceRoot";
+    }

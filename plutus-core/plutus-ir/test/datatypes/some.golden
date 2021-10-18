@@ -1,3 +1,0 @@
-E001: Error during PIR typechecking:
-The result-type of a dataconstructor is malformed at location some:4:6
-The expected result-type is: [ Some f ]

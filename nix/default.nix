@@ -13,8 +13,6 @@ let
     [
       # Modifications to derivations from nixpkgs
       (import ./overlays/nixpkgs-overrides.nix)
-      # fix r-modules
-      (import ./overlays/r.nix)
       # stdenv.lib is still needed by the pinned version of easy purescipt
       (final: prev: { stdenv = prev.stdenv // { inherit (final) lib; }; })
     ];
@@ -39,9 +37,9 @@ let
     config = haskellNix.nixpkgsArgs.config // config;
   };
 
-  plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
+  plutus-apps = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
 
 in
 {
-  inherit pkgs plutus sources;
+  inherit pkgs plutus-apps sources;
 }

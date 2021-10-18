@@ -3,29 +3,15 @@ resolver: lts-17.14
 packages:
 - doc
 - freer-extras
-- marlowe
-- marlowe-dashboard-server
-- marlowe-actus
-- marlowe-playground-server
-- marlowe-symbolic
 - playground-common
-- plutus-benchmark
 - plutus-chain-index
 - plutus-contract
-- plutus-core
-- plutus-errors
 - plutus-ledger
-- plutus-ledger-api
-- plutus-metatheory
 - plutus-pab
 - plutus-playground-server
-- plutus-tx
-- plutus-tx-plugin
 - plutus-use-cases
-- prettyprinter-configurable
 - quickcheck-dynamic
 - web-ghc
-- word-array
 
 extra-deps:
 # Flat compression
@@ -162,6 +148,16 @@ extra-deps:
   commit: edf6945007177a638fbeb8802397f3a6f4e47c14
 - git: https://github.com/input-output-hk/goblins
   commit: cde90a2b27f79187ca8310b6549331e59595e7ba
+- git: https://github.com/input-output-hk/plutus
+  commit: 0cb5c00add3809d9f247e9ec3f069d9ac3becd95
+  subdirs:
+    - plutus-core
+    - plutus-ledger-api
+    - plutus-tx
+    - plutus-tx-plugin
+    - word-array
+    - prettyprinter-configurable
+    - stubs/plutus-ghc-stub
 
 allow-newer: true
 

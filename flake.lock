@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "actus-tests": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1622458452,
-        "narHash": "sha256-/Rwv1d2rOfAl3EFaUi6gj4df3xbL0e8Vc5AezqspnBg=",
-        "owner": "actusfrf",
-        "repo": "actus-tests",
-        "rev": "acfaab81a2eac8334dda0ac01edff89f3271e4df",
-        "type": "github"
-      },
-      "original": {
-        "owner": "actusfrf",
-        "repo": "actus-tests",
-        "type": "github"
-      }
-    },
     "cardano-repo-tool": {
       "flake": false,
       "locked": {
@@ -177,6 +161,22 @@
         "type": "github"
       }
     },
+    "plutus-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1634809151,
+        "narHash": "sha256-Oo5gXR16gBD0LIpeqzXGOmimD1qxyAuqNEYdq0o5vhg=",
+        "owner": "input-output-hk",
+        "repo": "plutus",
+        "rev": "0cb5c00add3809d9f247e9ec3f069d9ac3becd95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "plutus",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks-nix": {
       "flake": false,
       "locked": {
@@ -195,7 +195,6 @@
     },
     "root": {
       "inputs": {
-        "actus-tests": "actus-tests",
         "cardano-repo-tool": "cardano-repo-tool",
         "easy-purescript-nix": "easy-purescript-nix",
         "flake-utils": "flake-utils",
@@ -206,6 +205,7 @@
         "iohk-nix": "iohk-nix",
         "nixpkgs": "nixpkgs",
         "npmlock2nix": "npmlock2nix",
+        "plutus-core": "plutus-core",
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
         "spago2nix": "spago2nix",
         "sphinxcontrib-haddock": "sphinxcontrib-haddock",

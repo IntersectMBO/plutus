@@ -2,12 +2,9 @@
 # Builds Haskell packages with Haskell.nix
 ############################################################################
 { lib
-, rPackages
 , haskell-nix
-, agdaWithStdlib
 , gitignore-nix
 , z3
-, R
 , libsodium-vrf
 , checkMaterialization
 , compiler-nix-name
@@ -15,10 +12,8 @@
   # Whether to set the `defer-plugin-errors` flag on those packages that need
   # it. If set to true, we will also build the haddocks for those packages.
 , deferPluginErrors
-, actus-tests
 }:
 let
-  r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject' ({ pkgs, ... }: {
     inherit compiler-nix-name;
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
@@ -28,7 +23,7 @@ let
         src = root;
         # Otherwise this depends on the name in the parent directory, which reduces caching, and is
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
-        name = "plutus";
+        name = "plutus-apps";
       };
     # These files need to be regenerated when you change the cabal files.
     # See ../CONTRIBUTING.doc for more information.
@@ -59,6 +54,7 @@ let
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
       "https://github.com/input-output-hk/cardano-wallet"."ae7569293e94241ef6829139ec02bd91abd069df" = "1mv1dhpkdj9ridm1fvq6jc85qs6zvbp172228rq72gyawjwrgvi6";
       "https://github.com/input-output-hk/cardano-addresses"."d2f86caa085402a953920c6714a0de6a50b655ec" = "0p6jbnd7ky2yf7bwb1350k8880py8dgqg39k49q02a6ij4ld01ay";
+      "https://github.com/input-output-hk/plutus"."0cb5c00add3809d9f247e9ec3f069d9ac3becd95" = "065y755an7a66jm0pj5ib87scs1sqqssnpla5ks1103s3mfn13is";
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
@@ -71,8 +67,6 @@ let
 
       -- Exlcude test that use `doctest`.  They will not work for windows
       -- cross compilation and `cabal` will not be able to make a plan.
-      package marlowe
-        tests: False
       package prettyprinter-configurable
         tests: False
     '';
@@ -80,11 +74,6 @@ let
       ({ pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) {
         packages = {
           # Things that need plutus-tx-plugin
-          marlowe.package.buildable = false; # Would also require libpq
-          marlowe-actus.package.buildable = false;
-          marlowe-dashboard-server.package.buildable = false;
-          marlowe-playground-server.package.buildable = false; # Would also require libpq
-          marlowe-symbolic.package.buildable = false;
           playground-common.package.buildable = false;
           plutus-benchmark.package.buildable = false;
           plutus-chain-index.package.buildable = false;
@@ -96,13 +85,9 @@ let
           plutus-tx-plugin.package.buildable = false;
           plutus-use-cases.package.buildable = false;
           web-ghc.package.buildable = false;
-          # Needs agda
-          plutus-metatheory.package.buildable = false;
           # These need R
           plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
           plutus-core.components.benchmarks.update-cost-model.buildable = lib.mkForce false;
-          # Windows build of libpq is marked as broken
-          fake-pab.package.buildable = false;
         };
       })
       ({ pkgs, ... }:
@@ -138,11 +123,6 @@ let
       )
       ({ pkgs, config, ... }: {
         packages = {
-          # See https://github.com/input-output-hk/plutus/issues/1213 and
-          # https://github.com/input-output-hk/plutus/pull/2865.
-          marlowe.doHaddock = deferPluginErrors;
-          marlowe.flags.defer-plugin-errors = deferPluginErrors;
-
           plutus-contract.doHaddock = deferPluginErrors;
           plutus-contract.flags.defer-plugin-errors = deferPluginErrors;
 
@@ -152,69 +132,11 @@ let
           plutus-ledger.doHaddock = deferPluginErrors;
           plutus-ledger.flags.defer-plugin-errors = deferPluginErrors;
 
-          # Packages we just don't want docs for
-          plutus-benchmark.doHaddock = false;
           # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
           plutus-tx-plugin.doHaddock = false;
 
-          # Fix missing executables on the paths of the test runners. This is arguably
-          # a bug, and the fix is a bit of a hack.
-          marlowe.components.tests.marlowe-test.preCheck = ''
-            PATH=${lib.makeBinPath [ z3 ]}:$PATH
-          '';
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
-          # I'm slightly surprised this works, hooray for laziness!
-          plutus-metatheory.components.tests.test1.preCheck = ''
-            PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
-          '';
-          # FIXME: Somehow this is broken even with setting the path up as above
-          plutus-metatheory.components.tests.test2.doCheck = false;
-          # plutus-metatheory needs agda with the stdlib around for the custom setup
-          # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
-          plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
-
           # Relies on cabal-doctest, just turn it off in the Nix build
           prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
-
-          plutus-core.components.benchmarks.update-cost-model = {
-            build-tools = r-packages;
-            # Seems to be broken on darwin for some reason
-            platforms = lib.platforms.linux;
-          };
-
-          plutus-core.components.benchmarks.cost-model-test = {
-            build-tools = r-packages;
-            # Seems to be broken on darwin for some reason
-            platforms = lib.platforms.linux;
-          };
-
-          marlowe-actus.components.exes.marlowe-shiny = {
-            build-tools = r-packages;
-            # Seems to be broken on darwin for some reason
-            platforms = lib.platforms.linux;
-          };
-
-          # The marlowe-actus tests depend on external data which is
-          # provided from Nix (as niv dependency)
-          marlowe-actus.components.tests.marlowe-actus-test.preCheck = ''
-            export ACTUS_TEST_DATA_DIR=${actus-tests}/tests/
-          '';
-
-
-          # Note: The following two statements say that these tests should
-          # _only_ run on linux. In actual fact we just don't want them
-          # running on the 'mac-mini' instances, because these tests time out
-          # there. In an ideal world this would be reflected here more
-          # accurately.
-          # TODO: Resolve this situation in a better way.
-          marlowe.components.tests.marlowe-test-long-running = {
-            platforms = lib.platforms.linux;
-          };
 
           plutus-pab.components.tests.plutus-pab-test-full-long-running = {
             platforms = lib.platforms.linux;
@@ -224,29 +146,13 @@ let
           iohk-monitoring.doHaddock = false;
 
           # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
-          plutus-core.ghcOptions = [ "-Werror" ];
-          marlowe.ghcOptions = [ "-Werror" ];
-          marlowe-symbolic.ghcOptions = [ "-Werror" ];
-          marlowe-actus.ghcOptions = [ "-Werror" ];
-          marlowe-playground-server.ghcOptions = [ "-Werror" ];
-          marlowe-dashboard-server.ghcOptions = [ "-Werror" ];
-          fake-pab.ghcOptions = [ "-Werror" ];
           playground-common.ghcOptions = [ "-Werror" ];
-          # FIXME: has warnings
-          #plutus-metatheory.package.ghcOptions = "-Werror";
           plutus-contract.ghcOptions = [ "-Werror" ];
           plutus-ledger.ghcOptions = [ "-Werror" ];
-          plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-playground-server.ghcOptions = [ "-Werror" ];
           plutus-pab.ghcOptions = [ "-Werror" ];
-          plutus-tx.ghcOptions = [ "-Werror" ];
-          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           plutus-doc.ghcOptions = [ "-Werror" ];
           plutus-use-cases.ghcOptions = [ "-Werror" ];
-
-          # External package settings
-
-          inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
 
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.

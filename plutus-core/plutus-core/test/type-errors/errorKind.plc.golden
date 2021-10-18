@@ -1,3 +1,0 @@
-E015: Kind mismatch at line 2, column 4 in type '(lam
-  a (type) a
-)'. Expected kind '(type)' , found kind '(fun (type) (type))'

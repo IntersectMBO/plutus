@@ -1,7 +1,0 @@
-(let
-  (nonrec)
-  (termbind (nonstrict)
-    (vardecl unitval (all a (type) (fun a a))) (abs a (type) (lam x a x))
-  )
-  unitval
-)

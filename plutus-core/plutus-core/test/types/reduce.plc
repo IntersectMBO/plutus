@@ -1,5 +1,0 @@
-(program 0.1.0
-  (lam x [(lam x (type) x) [(lam y (type) y) (con integer)]]
-    (error (con integer))
-  )
-)

@@ -1,1 +1,0 @@
-E002: Error during compilation: Type bindings cannot appear in recursive let, use datatypebind instead((recursive) let binding; from recursiveTypeBind:1:2)

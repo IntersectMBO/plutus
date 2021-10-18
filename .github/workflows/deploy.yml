@@ -2,9 +2,9 @@ name: "Deploy"
 on:
   push:
     branches:
-      - marlowe-dist-demo # production, TODO this should be from the marlowe-production branch
-      - master # staging
-      # TODO need branches for wyohack and plutus-production
+      # Commented out until plutus-ops is updated for the repo split
+      # - main # staging
+      - fake-branch-which-will-not-exist-prior-to-ops-update
 jobs:
   deploy:
     runs-on: ubuntu-latest

@@ -1,7 +1,0 @@
-(program 0.1.0
-
-(wrap x (all r (type) (fun r (fun (fun x r) r)))
-  (abs r (type) (lam z r (lam s (fun (fix x (all r (type) (fun r (fun (fun x r) r)))) r)
-    z))))
-
-)
