@@ -63,7 +63,7 @@ baseName = "TestLawToken"
 -- | A governance contract that requires 6 votes out of 10
 params :: Gov.Params
 params = Gov.Params
-    { Gov.initialHolders = Ledger.pubKeyHash . EM.walletPubKey . knownWallet <$> [1..numberOfHolders]
+    { Gov.initialHolders = EM.walletPubKeyHash . knownWallet <$> [1..numberOfHolders]
     , Gov.requiredVotes = 6
     , Gov.baseTokenName = baseName
     }

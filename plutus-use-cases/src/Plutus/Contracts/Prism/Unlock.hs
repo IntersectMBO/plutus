@@ -28,7 +28,7 @@ import           Control.Lens                        (makeClassyPrisms)
 import           Control.Monad                       (forever)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           GHC.Generics                        (Generic)
-import           Ledger                              (pubKeyHash, txId)
+import           Ledger                              (txId)
 import qualified Ledger.Ada                          as Ada
 import           Ledger.Constraints                  (ScriptLookups, SomeLookupsAndConstraints (..), TxConstraints (..))
 import qualified Ledger.Constraints                  as Constraints
@@ -96,7 +96,7 @@ unlockExchange :: forall w s.
     )
     => Contract w s UnlockError ()
 unlockExchange = awaitPromise $ endpoint @"unlock from exchange" $ \credential -> do
-    ownPK <- mapError WithdrawPkError $ pubKeyHash <$> ownPubKey
+    ownPK <- mapError WithdrawPkError ownPubKeyHash
     (credConstraints, credLookups) <- obtainCredentialTokenData credential
     (accConstraints, accLookups) <-
         mapError UnlockExchangeTokenAccError
@@ -116,7 +116,7 @@ obtainCredentialTokenData credential = do
     -- credentialManager <- mapError WithdrawEndpointError $ endpoint @"credential manager"
     userCredential <- mapError WithdrawPkError $
         UserCredential
-            <$> (pubKeyHash <$> ownPubKey)
+            <$> ownPubKeyHash
             <*> pure credential
             <*> pure (Credential.token credential)
 

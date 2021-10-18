@@ -103,7 +103,8 @@ data DefaultFun
     | EqualsData
     -- Misc constructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
+    -- constructors are often problematic (See note [Representable built-in
+    -- functions over polymorphic built-in types])
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -338,6 +339,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           nullPlc :: SomeConstantOf uni [] '[a] -> Bool
           nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+
     -- Data
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning

@@ -2,15 +2,13 @@ module BridgeTests
   ( all
   ) where
 
-import Prelude
+import Prologue
 import Control.Monad.Except (runExcept)
 import Data.BigInteger (fromInt)
-import Data.Either (Either(..))
 import Data.Map as Map
 import Data.String.Regex (replace)
 import Data.String.Regex.Flags (RegexFlags(..))
 import Data.String.Regex.Unsafe (unsafeRegex)
-import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Foreign (F, MultipleErrors)

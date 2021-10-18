@@ -1,6 +1,7 @@
 module Toast.View (renderToast) where
 
 import Prologue hiding (div)
+import Component.Icons (Icon(..), icon_, icon)
 import Css as Css
 import Data.Lens (preview)
 import Data.Maybe (fromMaybe)
@@ -9,7 +10,6 @@ import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (ref)
-import Material.Icons (Icon(..), icon_, icon)
 import Toast.Lenses (_expanded, _toastMessage)
 import Toast.Types (Action(..), State, ToastMessage)
 

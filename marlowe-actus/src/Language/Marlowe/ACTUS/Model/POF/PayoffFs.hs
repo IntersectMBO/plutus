@@ -73,6 +73,21 @@ payoffFs
             TD  -> Just $ _POF_TD_LAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr ipcb y_sd_t
             IP  -> Just $ _POF_IP_LAM o_rf_CURS isc ipac ipnr ipcb y_sd_t
             _   -> Nothing
+          STK -> case ev of
+            PRD -> Just $ _POF_PRD_STK ct_CNTRL priceAtPurchaseDate
+            TD  -> Just $ _POF_TD_STK ct_CNTRL priceAtTerminationDate
+            DV  -> Just $ _POF_DV_STK ct_CNTRL o_rf_CURS pp_payoff
+            _   -> Nothing
+          OPTNS -> case ev of
+            PRD -> Just $ _POF_PRD_PAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr nt y_sd_t
+            TD  -> Just $ _POF_TD_PAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr nt y_sd_t
+            STD -> _POF_STD_OPTNS ct_CNTRL o_rf_CURS <$> xa
+            _   -> Nothing
+          FUTUR -> case ev of
+            PRD -> Just $ _POF_PRD_PAM o_rf_CURS ct_CNTRL priceAtPurchaseDate ipac ipnr nt y_sd_t
+            TD  -> Just $ _POF_TD_PAM o_rf_CURS ct_CNTRL priceAtTerminationDate ipac ipnr nt y_sd_t
+            STD -> _POF_STD_OPTNS ct_CNTRL o_rf_CURS <$> xa
+            _   -> Nothing
      in (\x -> x / (constnt $ fromIntegral marloweFixedPoint)) <$> pof
     where
       notionalPrincipal = constnt np

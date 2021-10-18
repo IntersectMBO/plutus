@@ -10,7 +10,6 @@ import qualified Data.ByteString.Lazy          as LBS
 import           Data.Default                  (Default (..))
 import           Data.Text.Encoding            (encodeUtf8)
 
-import           Ledger                        (pubKeyHash)
 import           Plutus.Contract.Trace
 
 import           Plutus.Contracts.Crowdfunding
@@ -49,7 +48,7 @@ render trace = do
                $ foldEmulatorStreamM (L.generalize (showBlockchainFold knownWallets'))
                $ takeUntilSlot 21
                $ runEmulatorStream def trace
-        knownWallets' = fmap (\w -> (pubKeyHash (walletPubKey w), w)) knownWallets
+        knownWallets' = fmap (\w -> (walletPubKeyHash w, w)) knownWallets
     case result of
         Left err       -> assertFailure $ show err
         Right rendered -> pure $ LBS.fromStrict $ encodeUtf8 rendered

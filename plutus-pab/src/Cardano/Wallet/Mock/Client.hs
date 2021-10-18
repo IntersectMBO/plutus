@@ -63,7 +63,7 @@ handleWalletClient wallet event = do
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     case event of
         SubmitTxn t           -> runClient (submitTxn wallet t)
-        OwnPubKey             -> wiPubKey <$> runClient (ownPublicKey wallet)
+        OwnPubKeyHash         -> wiPubKeyHash <$> runClient (ownPublicKey wallet)
         BalanceTx utx         -> runClient (balanceTx wallet utx)
         WalletAddSignature tx -> runClient $ sign wallet tx
         TotalFunds            -> runClient (totalFunds wallet)

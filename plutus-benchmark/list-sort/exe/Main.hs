@@ -8,30 +8,24 @@ module Main where
 import qualified Data.HashMap.Monoidal                    as H
 import           Text.Printf                              (printf)
 
-import           PlutusBenchmark.Common                   (unDeBruijn)
-
+import           PlutusBenchmark.Common                   (Term)
 import           PlutusBenchmark.ListSort.GhcSort
 import           PlutusBenchmark.ListSort.InsertionSort
 import           PlutusBenchmark.ListSort.MergeSort
 import           PlutusBenchmark.ListSort.QuickSort
 
 import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
 import           PlutusCore.Evaluation.Machine.ExMemory
-import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-type NamedDeBruijnTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type NamedTerm = UPLC.Term PLC.Name DefaultUni DefaultFun ()
-
-getBudgetUsage :: NamedTerm -> Maybe Integer
+getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =
     case Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting term of
       (Left _, _)                 -> Nothing
       (Right _, Cek.CountingSt c) -> let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral cpu
 
-getCekSteps :: NamedTerm -> Maybe Integer
+getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
     case Cek.runCekNoEmit PLC.unitCekParameters Cek.tallying term of
       (Left _, _)                   -> Nothing
@@ -44,7 +38,7 @@ getCekSteps term =
               totalComputeSteps = sum $ map getCount allNodeTags
           in Just totalComputeSteps
 
-getInfo :: NamedTerm -> Maybe (Integer, Integer)
+getInfo :: Term -> Maybe (Integer, Integer)
 getInfo term =
     case (getBudgetUsage term, getCekSteps term) of
       (Just c, Just n) -> Just (c,n)
@@ -52,9 +46,9 @@ getInfo term =
 
 -- Create a term sorting a list of length n and execute it in counting mode then
 -- tallying mode and print out the cost and the number of CEK compute steps.
-printSortStatistics :: (Integer -> NamedDeBruijnTerm) -> Integer -> IO ()
+printSortStatistics :: (Integer -> Term) -> Integer -> IO ()
 printSortStatistics termMaker n =
-    let term = unDeBruijn (termMaker n)
+    let term = termMaker n
     in case getInfo term of
          Nothing -> putStrLn "Error during execution"
          Just (cpu, steps) ->

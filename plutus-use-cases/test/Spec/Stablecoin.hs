@@ -19,7 +19,8 @@ import           Prelude                     hiding (negate)
 import           Ledger.Ada                  (adaSymbol, adaToken)
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (Address)
-import           Ledger.Crypto               (PrivateKey, privateKey2)
+import qualified Ledger.CardanoWallet        as CW
+import           Ledger.Crypto               (PrivateKey, toPublicKey)
 import           Ledger.Oracle               (Observation, SignedMessage, signObservation)
 import           Ledger.Time                 (POSIXTime)
 import qualified Ledger.TimeSlot             as TimeSlot
@@ -42,18 +43,15 @@ import           Test.Tasty
 user :: Wallet
 user = w1
 
-oracle :: Wallet
-oracle = w2
-
 oraclePrivateKey :: PrivateKey
-oraclePrivateKey = privateKey2
+oraclePrivateKey = CW.privateKey $ CW.fromWalletNumber $ CW.WalletNumber 2
 
 onePercent :: Ratio Integer
 onePercent = 1 % 100
 
 coin :: Stablecoin
 coin = Stablecoin
-    { scOracle = walletPubKey oracle
+    { scOracle = toPublicKey oraclePrivateKey
     , scFee = onePercent
     , scMinReserveRatio = zero
     , scMaxReserveRatio = 4 % 1

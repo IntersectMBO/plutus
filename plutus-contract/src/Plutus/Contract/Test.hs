@@ -21,6 +21,7 @@ module Plutus.Contract.Test(
     , ContractConstraints
     , Plutus.Contract.Test.not
     , (.&&.)
+    , (.||.)
     , w1, w2, w3, w4, w5, w6, w7, w8, w9, w10
     -- * Assertions
     , endpointAvailable
@@ -134,9 +135,13 @@ import           Wallet.Emulator.Stream                (filterLogLevel, foldEmul
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 
 infixl 3 .&&.
+infixl 2 .||.
 
 (.&&.) :: TracePredicate -> TracePredicate -> TracePredicate
 (.&&.) = liftA2 (&&)
+
+(.||.) :: TracePredicate -> TracePredicate -> TracePredicate
+(.||.) = liftA2 (||)
 
 not :: TracePredicate -> TracePredicate
 not = fmap Prelude.not

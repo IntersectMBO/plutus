@@ -3,6 +3,8 @@
 module Language.Marlowe.ACTUS.Model.Utility.DateShift
   ( applyBDC
   , applyBDCWithCfg
+  , getPreceedingBusinessDay
+  , getFollowingBusinessDay
   )
 where
 

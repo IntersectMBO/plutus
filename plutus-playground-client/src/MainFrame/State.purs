@@ -72,7 +72,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulator.View (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos, lookupContractDemo)
 import Validation (_argumentValues, _argument)
-import Wallet.Emulator.Wallet (WalletNumber(WalletNumber))
+import Ledger.CardanoWallet (WalletNumber(WalletNumber))
 import Wallet.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Web.HTML.Event.DataTransfer as DataTransfer
 

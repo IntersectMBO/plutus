@@ -34,6 +34,8 @@ module Plutus.Contract.Request(
     , txOutFromRef
     , txFromTxId
     , utxoRefMembership
+    , utxoRefsAt
+    , utxoRefsWithCurrency
     , utxosAt
     , utxosTxOutTxAt
     , utxosTxOutTxFromTx
@@ -68,8 +70,8 @@ module Plutus.Contract.Request(
     , endpointDescription
     , endpointReq
     , endpointResp
-    -- ** Public keys
-    , ownPubKey
+    -- ** Public key hashes
+    , ownPubKeyHash
     -- ** Submitting transactions
     , submitUnbalancedTx
     , submitBalancedTx
@@ -102,8 +104,8 @@ import           Data.Text.Extras            (tshow)
 import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
-import           Ledger                      (Address, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
-                                              MintingPolicyHash, POSIXTime, PubKey, Redeemer, RedeemerHash, Slot,
+import           Ledger                      (Address, AssetClass, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
+                                              MintingPolicyHash, POSIXTime, PubKeyHash, Redeemer, RedeemerHash, Slot,
                                               StakeValidator, StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId),
                                               Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds,
                                               txId)
@@ -353,6 +355,21 @@ utxoRefsAt pq addr = do
     E.UtxoSetAtResponse r -> pure r
     _ -> throwError $ review _OtherError
                     $ Text.pack "Could not request UtxoSetAtAddress from the chain index"
+
+-- | Get the unspent transaction output references with a specific currrency ('AssetClass').
+utxoRefsWithCurrency ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => PageQuery TxOutRef
+    -> AssetClass
+    -> Contract w s e (Tip, Page TxOutRef)
+utxoRefsWithCurrency pq assetClass = do
+  cir <- pabReq (ChainIndexQueryReq $ E.UtxoSetWithCurrency pq assetClass) E._ChainIndexQueryResp
+  case cir of
+    E.UtxoSetWithCurrencyResponse r -> pure r
+    _ -> throwError $ review _OtherError
+                    $ Text.pack "Could not request UtxoSetWithCurrency from the chain index"
 
 -- | Fold through each 'Page's of unspent 'TxOutRef's at a given 'Address', and
 -- accumulate the result.
@@ -665,16 +682,16 @@ endpointWithMeta meta f = Promise $ do
 endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription
 endpointDescription = EndpointDescription . symbolVal
 
--- | Get a public key belonging to the wallet that runs this contract.
---   * Any funds paid to this public key will be treated as the wallet's own
+-- | Get the hash of a public key belonging to the wallet that runs this contract.
+--   * Any funds paid to this public key hash will be treated as the wallet's own
 --     funds
 --   * The wallet is able to sign transactions with the private key of this
 --     public key, for example, if the public key is added to the
 --     'requiredSignatures' field of 'Tx'.
 --   * There is a 1-n relationship between wallets and public keys (although in
 --     the mockchain n=1)
-ownPubKey :: forall w s e. (AsContractError e) => Contract w s e PubKey
-ownPubKey = pabReq OwnPublicKeyReq E._OwnPublicKeyResp
+ownPubKeyHash :: forall w s e. (AsContractError e) => Contract w s e PubKeyHash
+ownPubKeyHash = pabReq OwnPublicKeyHashReq E._OwnPublicKeyHashResp
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction when the transaction was submitted. Throws an

@@ -59,11 +59,13 @@
         buildable = true;
         modules = [
           "Language/Marlowe"
+          "Language/Marlowe/Deserialisation"
           "Language/Marlowe/Extended"
           "Language/Marlowe/Semantics"
           "Language/Marlowe/Client"
           "Language/Marlowe/Util"
           "Language/Marlowe/Scripts"
+          "Language/Marlowe/Serialisation"
           "Language/Marlowe/Pretty"
           "Language/Marlowe/Analysis/FSSemantics"
           ];
@@ -130,6 +132,7 @@
             (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
             (hsPkgs."network" or (errorHandler.buildDepError "network"))
             (hsPkgs."openapi3" or (errorHandler.buildDepError "openapi3"))
+            (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
             ];
           buildable = true;
           modules = [ "Spec/PAB/Workflow" "MarloweContract" ];

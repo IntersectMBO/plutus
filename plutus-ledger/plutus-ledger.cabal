@@ -46,6 +46,7 @@ library
         Ledger.Address
         Ledger.AddressMap
         Ledger.Blockchain
+        Ledger.CardanoWallet
         Ledger.Constraints
         Ledger.Constraints.OffChain
         Ledger.Constraints.OnChain
@@ -119,6 +120,9 @@ library
         cardano-binary -any,
         cardano-crypto -any,
         cardano-crypto-class -any,
+        cardano-addresses -any,
+        cardano-wallet-core -any,
+        servant -any,
         deepseq -any,
         openapi3 -any,
         freer-extras

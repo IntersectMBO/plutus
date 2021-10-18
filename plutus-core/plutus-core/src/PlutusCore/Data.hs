@@ -2,10 +2,8 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE MultiWayIf         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE ViewPatterns       #-}
 
 module PlutusCore.Data (Data (..)) where
 

@@ -20,7 +20,6 @@ import Capability.Contract (class ManageContract)
 import Capability.Contract (invokeEndpoint) as Contract
 import Capability.PlutusApps.MarloweApp.Lenses (_applyInputs, _create, _marloweAppEndpointMutex, _redeem, _requests)
 import Capability.PlutusApps.MarloweApp.Types (EndpointMutex, LastResult(..), MarloweAppEndpointMutexEnv)
-import Contacts.Types (PubKeyHash)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (findMap, take, (:))
 import Data.Foldable (elem)
@@ -40,7 +39,7 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Foreign.Generic (class Encode)
 import Marlowe.PAB (PlutusAppId)
-import Marlowe.Semantics (Contract, MarloweParams, SlotInterval(..), TokenName, TransactionInput(..))
+import Marlowe.Semantics (Contract, MarloweParams, SlotInterval(..), TokenName, TransactionInput(..), PubKeyHash)
 import Plutus.Contract.Effects (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Plutus.V1.Ledger.Slot (Slot) as Back

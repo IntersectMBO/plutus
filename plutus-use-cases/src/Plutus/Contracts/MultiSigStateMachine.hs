@@ -33,7 +33,7 @@ import           Control.Lens                 (makeClassyPrisms)
 import           Control.Monad                (forever, void)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           GHC.Generics                 (Generic)
-import           Ledger                       (POSIXTime, PubKeyHash, pubKeyHash)
+import           Ledger                       (POSIXTime, PubKeyHash)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import           Ledger.Contexts              (ScriptContext (..), TxInfo (..))
@@ -261,7 +261,7 @@ contract params = forever endpoints where
     endpoints = selectList [lock, propose, cancel, addSignature, pay]
     propose = endpoint @"propose-payment" $ void . SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" $ \() -> void $ SM.runStep theClient Cancel
-    addSignature = endpoint @"add-signature" $ \() -> (pubKeyHash <$> ownPubKey) >>= void . SM.runStep theClient . AddSignature
+    addSignature = endpoint @"add-signature" $ \() -> ownPubKeyHash >>= void . SM.runStep theClient . AddSignature
     lock = endpoint @"lock" $ void . SM.runInitialise theClient Holding
     pay = endpoint @"pay" $ \() -> void $ SM.runStep theClient Pay
 

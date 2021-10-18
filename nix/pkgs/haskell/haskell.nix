@@ -220,7 +220,6 @@ let
             platforms = lib.platforms.linux;
           };
 
-
           # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
           iohk-monitoring.doHaddock = false;
 

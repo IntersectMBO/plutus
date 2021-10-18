@@ -17,7 +17,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _AwaitTxStatusChangeReq,
     _AwaitTxOutStatusChangeReq,
     _OwnContractInstanceIdReq,
-    _OwnPublicKeyReq,
+    _OwnPublicKeyHashReq,
     _ChainIndexQueryReq,
     _BalanceTxReq,
     _WriteBalancedTxReq,
@@ -32,6 +32,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _TxFromTxId,
     _UtxoSetMembership,
     _UtxoSetAtAddress,
+    _UtxoSetWithCurrency,
     _GetTip,
     -- * Plutus application backend response effect types
     PABResp(..),
@@ -45,7 +46,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _AwaitTxStatusChangeResp',
     _AwaitTxOutStatusChangeResp,
     _OwnContractInstanceIdResp,
-    _OwnPublicKeyResp,
+    _OwnPublicKeyHashResp,
     _ChainIndexQueryResp,
     _BalanceTxResp,
     _WriteBalancedTxResp,
@@ -60,6 +61,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _TxIdResponse,
     _UtxoSetMembershipResponse,
     _UtxoSetAtResponse,
+    _UtxoSetWithCurrencyResponse,
     _GetTipResponse,
     -- * Etc.
     matches,
@@ -79,9 +81,9 @@ import           Data.List.NonEmpty          (NonEmpty)
 import qualified Data.OpenApi.Schema         as OpenApi
 import           Data.Text.Prettyprint.Doc   (Pretty (..), hsep, indent, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
-import           Ledger                      (Address, Datum, DatumHash, MintingPolicy, MintingPolicyHash, PubKey,
-                                              Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash, Tx, TxId,
-                                              TxOutRef, ValidatorHash, txId)
+import           Ledger                      (Address, AssetClass, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
+                                              PubKeyHash, Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash,
+                                              Tx, TxId, TxOutRef, ValidatorHash, txId)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Credential           (Credential)
 import           Ledger.Scripts              (Validator)
@@ -106,7 +108,7 @@ data PABReq =
     | CurrentSlotReq
     | CurrentTimeReq
     | OwnContractInstanceIdReq
-    | OwnPublicKeyReq
+    | OwnPublicKeyHashReq
     | ChainIndexQueryReq ChainIndexQuery
     | BalanceTxReq UnbalancedTx
     | WriteBalancedTxReq Tx
@@ -126,7 +128,7 @@ instance Pretty PABReq where
     AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
     AwaitTxOutStatusChangeReq ref           -> "Await txout status change:" <+> pretty ref
     OwnContractInstanceIdReq                -> "Own contract instance ID"
-    OwnPublicKeyReq                         -> "Own public key"
+    OwnPublicKeyHashReq                     -> "Own public key"
     ChainIndexQueryReq q                    -> "Chain index query:" <+> pretty q
     BalanceTxReq utx                        -> "Balance tx:" <+> pretty utx
     WriteBalancedTxReq tx                   -> "Write balanced tx:" <+> pretty tx
@@ -144,7 +146,7 @@ data PABResp =
     | CurrentSlotResp Slot
     | CurrentTimeResp POSIXTime
     | OwnContractInstanceIdResp ContractInstanceId
-    | OwnPublicKeyResp PubKey
+    | OwnPublicKeyHashResp PubKeyHash
     | ChainIndexQueryResp ChainIndexResponse
     | BalanceTxResp BalanceTxResponse
     | WriteBalancedTxResp WriteBalancedTxResponse
@@ -164,7 +166,7 @@ instance Pretty PABResp where
     AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
     AwaitTxOutStatusChangeResp ref status    -> "Status of" <+> pretty ref <+> "changed to" <+> pretty status
     OwnContractInstanceIdResp i              -> "Own contract instance ID:" <+> pretty i
-    OwnPublicKeyResp k                       -> "Own public key:" <+> pretty k
+    OwnPublicKeyHashResp k                   -> "Own public key:" <+> pretty k
     ChainIndexQueryResp rsp                  -> pretty rsp
     BalanceTxResp r                          -> "Balance tx:" <+> pretty r
     WriteBalancedTxResp r                    -> "Write balanced tx:" <+> pretty r
@@ -182,7 +184,7 @@ matches a b = case (a, b) of
   (AwaitTxStatusChangeReq i, AwaitTxStatusChangeResp i' _) -> i == i'
   (AwaitTxOutStatusChangeReq i, AwaitTxOutStatusChangeResp i' _) -> i == i'
   (OwnContractInstanceIdReq, OwnContractInstanceIdResp{})  -> True
-  (OwnPublicKeyReq, OwnPublicKeyResp{})                    -> True
+  (OwnPublicKeyHashReq, OwnPublicKeyHashResp{})                    -> True
   (ChainIndexQueryReq r, ChainIndexQueryResp r')           -> chainIndexMatches r r'
   (BalanceTxReq{}, BalanceTxResp{})                        -> True
   (WriteBalancedTxReq{}, WriteBalancedTxResp{})            -> True
@@ -202,6 +204,7 @@ chainIndexMatches q r = case (q, r) of
     (TxFromTxId{}, TxIdResponse{})                           -> True
     (UtxoSetMembership{}, UtxoSetMembershipResponse{})       -> True
     (UtxoSetAtAddress{}, UtxoSetAtResponse{})                -> True
+    (UtxoSetWithCurrency{}, UtxoSetWithCurrencyResponse{})   -> True
     (GetTip{}, GetTipResponse{})                             -> True
     _                                                        -> False
 
@@ -218,6 +221,7 @@ data ChainIndexQuery =
   | TxFromTxId TxId
   | UtxoSetMembership TxOutRef
   | UtxoSetAtAddress (PageQuery TxOutRef) Credential
+  | UtxoSetWithCurrency (PageQuery TxOutRef) AssetClass
   | GetTip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, OpenApi.ToSchema)
@@ -233,6 +237,7 @@ instance Pretty ChainIndexQuery where
         TxFromTxId i               -> "requesting chain index tx from id" <+> pretty i
         UtxoSetMembership txOutRef -> "whether tx output is part of the utxo set" <+> pretty txOutRef
         UtxoSetAtAddress _ c       -> "requesting utxos located at addresses with the credential" <+> pretty c
+        UtxoSetWithCurrency _ ac   -> "requesting utxos containing the asset class" <+> pretty ac
         GetTip                     -> "requesting the tip of the chain index"
 
 -- | Represents all possible responses to chain index queries. Each constructor
@@ -248,6 +253,7 @@ data ChainIndexResponse =
   | TxIdResponse (Maybe ChainIndexTx)
   | UtxoSetMembershipResponse (Tip, Bool)
   | UtxoSetAtResponse (Tip, Page TxOutRef)
+  | UtxoSetWithCurrencyResponse (Tip, Page TxOutRef)
   | GetTipResponse Tip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -268,6 +274,12 @@ instance Pretty ChainIndexResponse where
             <+> pretty tip
         UtxoSetAtResponse (tip, txOutRefPage) ->
                 "Chain index UTxO set from address response:"
+            <+> "Current tip is"
+            <+> pretty tip
+            <+> "and utxo refs are"
+            <+> hsep (fmap pretty $ pageItems txOutRefPage)
+        UtxoSetWithCurrencyResponse (tip, txOutRefPage) ->
+                "Chain index UTxO with asset class response:"
             <+> "Current tip is"
             <+> pretty tip
             <+> "and utxo refs are"

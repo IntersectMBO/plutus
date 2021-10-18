@@ -74,11 +74,13 @@ library
     build-depends: plutus-tx-plugin -any
   exposed-modules:
     Language.Marlowe
+    Language.Marlowe.Deserialisation
     Language.Marlowe.Extended
     Language.Marlowe.Semantics
     Language.Marlowe.Client
     Language.Marlowe.Util
     Language.Marlowe.Scripts
+    Language.Marlowe.Serialisation
     Language.Marlowe.Pretty
     Language.Marlowe.Analysis.FSSemantics
   other-modules:
@@ -125,6 +127,7 @@ test-suite marlowe-test-long-running
         websockets -any,
         network -any,
         openapi3 -any,
+        uuid -any,
 
 test-suite marlowe-test
     import: lang
