@@ -30,6 +30,7 @@ common lang
     -fno-omit-interface-pragmas
   ghc-options:
      -Wall -Wnoncanonical-monad-instances -Wunused-packages
+
      -Wincomplete-uni-patterns -Wincomplete-record-updates
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances
@@ -141,20 +142,25 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-quickcheck -any
 
 
----------------- list-sort ----------------
+---------------- lists ----------------
 
-library list-sort-internal
+library lists-internal
   import: lang
   hs-source-dirs:
-      list-sort/src
+      lists/src
   exposed-modules:
-      PlutusBenchmark.ListSort.GhcSort
-      PlutusBenchmark.ListSort.InsertionSort
-      PlutusBenchmark.ListSort.MergeSort
-      PlutusBenchmark.ListSort.QuickSort
+      PlutusBenchmark.Lists.Sort
+      PlutusBenchmark.Lists.Sum.Compiled
+      PlutusBenchmark.Lists.Sum.HandWritten
+  other-modules:
+      PlutusBenchmark.Lists.Sort.GhcSort
+      PlutusBenchmark.Lists.Sort.InsertionSort
+      PlutusBenchmark.Lists.Sort.MergeSort
+      PlutusBenchmark.Lists.Sort.QuickSort
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
+    , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
 
@@ -162,40 +168,38 @@ executable list-sort-exe
   import: lang
   main-is: Main.hs
   hs-source-dirs:
-      list-sort/exe
+      lists/exe
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
-    , list-sort-internal
+    , lists-internal
     , monoidal-containers -any
     , plutus-core -any
 
-benchmark list-sort
+benchmark lists
   import: lang
   type: exitcode-stdio-1.0
   main-is: Bench.hs
-  other-modules: BuiltinFold
   hs-source-dirs:
-      list-sort/bench
+      lists/bench
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
-    , plutus-core
-    , plutus-tx
-    , plutus-tx-plugin
-    , list-sort-internal
+    , lists-internal
     , criterion >= 1.5.9.0
-    , text -any
     
-test-suite plutus-benchmark-list-sort-tests
+test-suite plutus-benchmark-lists-tests
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: list-sort/test
+    hs-source-dirs: lists/test
+    other-modules:
+        Sort.Spec
+        Sum.Spec
     build-depends:
         base >=4.7 && <5
       , plutus-benchmark-common
-      , list-sort-internal
+      , lists-internal
       , tasty -any
       , tasty-quickcheck -any
 

@@ -1,6 +1,6 @@
 ## Plutus Benchmarks
 
-This directory contains two sets of benchmarks:
+This directory contains three sets of benchmarks:
 
 * `nofib`: Plutus versions of some of Haskell's `nofib` benchmarks from https://github.com/ghc/nofib.
 
@@ -53,6 +53,8 @@ This directory contains two sets of benchmarks:
      of 20 seconds (a single execution takes approximately 5-15 ms) to get
      statistically reasonable total number of executions.  It takes about 10
      minutes to run the entire suite (again, this will depend on the hardware).
+
+* `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
 
 See also [nofib/README.md](./nofib/README.md) and [validation/README.md](./validation/README.md).
 
