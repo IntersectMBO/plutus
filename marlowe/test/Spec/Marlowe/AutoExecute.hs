@@ -19,6 +19,7 @@ import           Data.Text.Lazy                        (toStrict)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
+import           Language.Marlowe.SemanticsTypes
 import           Language.Marlowe.Util
 import           System.IO.Unsafe                      (unsafePerformIO)
 

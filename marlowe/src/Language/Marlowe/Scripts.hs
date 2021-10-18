@@ -22,22 +22,24 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module Language.Marlowe.Scripts where
-import           Data.Default                 (Default (def))
-import           Language.Marlowe.Semantics   hiding (Contract)
-import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
-                                               TokenName, ValidatorHash, mkValidatorScript, validatorHash, valueSpent)
-import           Ledger.Ada                   (adaSymbol)
+import           Data.Default                    (Default (def))
+import           Language.Marlowe.Semantics
+import           Language.Marlowe.SemanticsTypes hiding (Contract)
+import           Ledger                          (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
+                                                  TokenName, ValidatorHash, mkValidatorScript, validatorHash,
+                                                  valueSpent)
+import           Ledger.Ada                      (adaSymbol)
 import           Ledger.Constraints
-import qualified Ledger.Interval              as Interval
-import           Ledger.Scripts               (Validator)
-import qualified Ledger.TimeSlot              as TimeSlot
-import qualified Ledger.Typed.Scripts         as Scripts
-import qualified Ledger.Value                 as Val
-import           Plutus.Contract.StateMachine (StateMachine (..), Void)
-import qualified Plutus.Contract.StateMachine as SM
+import qualified Ledger.Interval                 as Interval
+import           Ledger.Scripts                  (Validator)
+import qualified Ledger.TimeSlot                 as TimeSlot
+import qualified Ledger.Typed.Scripts            as Scripts
+import qualified Ledger.Value                    as Val
+import           Plutus.Contract.StateMachine    (StateMachine (..), Void)
+import qualified Plutus.Contract.StateMachine    as SM
 import qualified PlutusTx
-import qualified PlutusTx.AssocMap            as AssocMap
-import qualified PlutusTx.Prelude             as P
+import qualified PlutusTx.AssocMap               as AssocMap
+import qualified PlutusTx.Prelude                as P
 
 type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])

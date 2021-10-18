@@ -39,7 +39,7 @@ import           Language.Haskell.Interpreter                     (CompilationEr
 import qualified Language.Marlowe                                 as S
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Extended
-import           Language.Marlowe.Semantics                       (State (..))
+import           Language.Marlowe.SemanticsTypes                  (State (..))
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
                                                                    mkSumType, psTypeParameters, typeModule, typeName,
@@ -77,7 +77,7 @@ psContract =
 contractBridge :: BridgePart
 contractBridge = do
     typeName ^== "Contract"
-    typeModule ^== "Language.Marlowe.Semantics"
+    typeModule ^== "Language.Marlowe.SemanticsTypes"
     psContract
 
 psState :: MonadReader BridgeData m => m PSType
@@ -88,7 +88,7 @@ psState =
 stateBridge :: BridgePart
 stateBridge = do
     typeName ^== "State"
-    typeModule ^== "Language.Marlowe.Semantics"
+    typeModule ^== "Language.Marlowe.SemanticsTypes"
     psState
 
 psTransactionInput :: MonadReader BridgeData m => m PSType
