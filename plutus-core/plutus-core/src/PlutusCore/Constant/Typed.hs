@@ -53,7 +53,7 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc
+import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Name
 
 import           Control.Monad.Except
@@ -66,6 +66,7 @@ import           Data.SOP.Constraint
 import qualified Data.Some.GADT                          as GADT
 import           Data.String
 import qualified Data.Text                               as Text
+import           GHC.Ix
 import           GHC.TypeLits
 import           Universe
 
@@ -398,18 +399,6 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
 data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
--- See Note [Motivation for polymorphic built-in functions].
--- See Note [Implementation of polymorphic built-in functions].
--- See Note [Pattern matching on built-in types].
--- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
--- an application of a type variable). I.e. the denotation of such a term is the term itself.
--- This is because we have parametricity in Haskell, so we can't inspect a value whose
--- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
--- Haskell and back and instead can keep it intact.
-newtype Opaque term (rep :: GHC.Type) = Opaque
-    { unOpaque :: term
-    } deriving newtype (Pretty)
-
 -- | Throw an 'UnliftingError' saying that the received argument is not a constant.
 throwNotAConstant
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
@@ -426,6 +415,20 @@ class AsConstant term where
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+type instance UniOf (Opaque term rep) = UniOf term
+
+-- See Note [Motivation for polymorphic built-in functions].
+-- See Note [Implementation of polymorphic built-in functions].
+-- See Note [Pattern matching on built-in types].
+-- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
+-- an application of a type variable). I.e. the denotation of such a term is the term itself.
+-- This is because we have parametricity in Haskell, so we can't inspect a value whose
+-- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
+-- Haskell and back and instead can keep it intact.
+newtype Opaque term (rep :: GHC.Type) = Opaque
+    { unOpaque :: term
+    } deriving newtype (Pretty, AsConstant, FromConstant)
 
 instance AsConstant (Term TyName Name uni fun ann) where
     asConstant _        (Constant _ val) = pure val
@@ -743,6 +746,8 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
     makeKnown _ = pure . unOpaque
     readKnown _ = pure . Opaque
 
+-- Built-in types.
+
 instance uni `Contains` Integer       => KnownTypeAst uni Integer
 instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
 instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
@@ -780,6 +785,76 @@ instance KnownBuiltinType term Integer => KnownType term Int where
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
             throwingWithCause _EvaluationFailure () mayCause
         pure $ fromIntegral i
+
+-- Custom type errors to guide the programmer adding a new built-in type or function.
+-- We cover a lot of cases here, but some are missing, for example we do not attempt to detect
+-- higher-kinded type variables, which means that if your function returns an @m a@ we can neither
+-- instantiate @m@ (which is impossible anyway: it could be 'EvaluationResult' or 'Emitter'
+-- or else), nor report that higher-kinded type variables are not allowed and suggest
+-- to instantiate such variables manually. In general, we do not attempt to look inside type
+-- applications (as it's a rather hard thing to do) and so a type variable inside, say, a list
+-- does not get instantiated, hence the custom type error does not get triggered (as it's only
+-- triggered for instantiated type variables) and the user gets a standard unhelpful GHC error.
+
+-- We don't have @Unsatisfiable@ yet (https://github.com/ghc-proposals/ghc-proposals/pull/433).
+-- | To be used when there's a 'TypeError' in the context. The condition is not checked as there's
+-- no way we could do that.
+underTypeError :: void
+underTypeError = error "Panic: a 'TypeError' was bypassed"
+
+type UnknownTypeErrMsg a =
+    'Text "There's no 'KnownType' instance for " ':<>: 'ShowType a ':$$:
+    'Text "Did you add a new built-in type and forget to provide a 'KnownType' instance for it?"
+
+instance {-# OVERLAPPABLE #-} (TypeError (UnknownTypeErrMsg a), KnownTypeAst (UniOf term) a) =>
+            KnownType term a where
+    makeKnown = underTypeError
+    readKnown = underTypeError
+
+type NoConstraintsErrMsg =
+    'Text "Built-in functions are not allowed to have constraints" ':$$:
+    'Text "To fix this error instantiate all constrained type variables"
+
+instance TypeError NoConstraintsErrMsg => Eq (Opaque term rep) where
+    (==) = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Ord (Opaque term rep) where
+    compare = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Num (Opaque term rep) where
+    (+)         = underTypeError
+    (*)         = underTypeError
+    abs         = underTypeError
+    signum      = underTypeError
+    fromInteger = underTypeError
+    negate      = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Enum (Opaque term rep) where
+    toEnum   = underTypeError
+    fromEnum = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Real (Opaque term rep) where
+    toRational = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Integral (Opaque term rep) where
+    quotRem   = underTypeError
+    divMod    = underTypeError
+    toInteger = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Bounded (Opaque term rep) where
+    minBound = underTypeError
+    maxBound = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Ix (Opaque term rep) where
+    range   = underTypeError
+    index   = underTypeError
+    inRange = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Semigroup (Opaque term rep) where
+    (<>) = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Monoid (Opaque term rep) where
+    mempty = underTypeError
 
 -- Utils
 
