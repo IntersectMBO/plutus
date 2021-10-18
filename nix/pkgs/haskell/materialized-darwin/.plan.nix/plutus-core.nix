@@ -191,6 +191,7 @@
           "PlutusCore/Check/Uniques"
           "PlutusCore/Check/Value"
           "PlutusCore/Constant"
+          "PlutusCore/Constant/Debug"
           "PlutusCore/Constant/Dynamic/Emit"
           "PlutusCore/Core"
           "PlutusCore/Data"
