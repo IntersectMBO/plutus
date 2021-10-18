@@ -34,8 +34,8 @@ import           PlutusTx.Prelude       hiding (Monoid (..), Semigroup (..))
 import           Plutus.Contract        as Contract
 import           Plutus.Contract.Wallet (getUnspentOutput)
 
-import           Ledger                 (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHashAddress,
-                                         scriptCurrencySymbol, txId)
+import           Ledger                 (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), getCardanoTxId,
+                                         pubKeyHashAddress, scriptCurrencySymbol)
 import qualified Ledger.Constraints     as Constraints
 import qualified Ledger.Contexts        as V
 import           Ledger.Scripts
@@ -163,7 +163,7 @@ mintContract pk amounts = mapError (review _CurrencyError) $ do
         mintTx      = Constraints.mustSpendPubKeyOutput txOutRef
                         <> Constraints.mustMintValue (mintedValue theCurrency)
     tx <- submitTxConstraintsWith @Scripts.Any lookups mintTx
-    _ <- awaitTxConfirmed (txId tx)
+    _ <- awaitTxConfirmed (getCardanoTxId tx)
     pure theCurrency
 
 -- | Minting policy for a currency that has a fixed amount of tokens issued

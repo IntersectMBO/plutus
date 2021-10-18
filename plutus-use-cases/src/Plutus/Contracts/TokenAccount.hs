@@ -50,11 +50,12 @@ import           Plutus.Contract
 import           Plutus.Contract.Constraints
 import qualified PlutusTx
 
-import           Ledger                           (Address, PubKeyHash, Tx, ValidatorHash)
+import           Ledger                           (Address, PubKeyHash, ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Constraints               as Constraints
 import qualified Ledger.Contexts                  as V
 import qualified Ledger.Scripts
+import           Ledger.Tx                        (CardanoTx)
 import           Ledger.Typed.Scripts             (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Value                     (TokenName, Value)
@@ -151,7 +152,7 @@ pay
        )
     => Account
     -> Value
-    -> Contract w s e Tx
+    -> Contract w s e CardanoTx
 pay account vl = do
     let inst = typedValidator account
     logInfo @String
@@ -197,7 +198,7 @@ redeem
   -- ^ Where the token should go after the transaction
   -> Account
   -- ^ The token account
-  -> Contract w s e Tx
+  -> Contract w s e CardanoTx
 redeem pk account = mapError (review _TokenAccountError) $ do
     (constraints, lookups) <- redeemTx account pk
     tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups constraints)

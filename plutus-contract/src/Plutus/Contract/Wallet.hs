@@ -39,7 +39,7 @@ import qualified Ledger                      as Plutus
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Constraints          (mustPayToPubKey)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
-import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
+import           Ledger.Tx                   (CardanoTx, TxOutRef, getCardanoTxInputs, txInRef)
 import qualified Plutus.Contract.CardanoAPI  as CardanoAPI
 import qualified Plutus.Contract.Request     as Contract
 import           Plutus.Contract.Types       (Contract (..))
@@ -89,7 +89,7 @@ handleTx ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     )
-    => UnbalancedTx -> Eff effs Tx
+    => UnbalancedTx -> Eff effs CardanoTx
 handleTx = balanceTx >=> either throwError WAPI.signTxAndSubmit
 
 -- | Get an unspent output belonging to the wallet.
@@ -99,7 +99,7 @@ getUnspentOutput = do
     let constraints = mustPayToPubKey ownPK (Ada.lovelaceValueOf 1)
     utx <- either (throwing _ConstraintResolutionError) pure (mkTx @Void mempty constraints)
     tx <- Contract.balanceTx utx
-    case Set.lookupMin (txInputs tx) of
+    case Set.lookupMin (getCardanoTxInputs tx) of
         Just inp -> pure $ txInRef inp
         Nothing  -> throwing _OtherError "Balanced transaction has no inputs"
 

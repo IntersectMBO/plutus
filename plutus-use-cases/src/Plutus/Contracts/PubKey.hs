@@ -75,10 +75,10 @@ pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
 
     ledgerTx <- submitTxConstraints inst tx
 
-    _ <- awaitTxConfirmed (txId ledgerTx)
+    _ <- awaitTxConfirmed (getCardanoTxId ledgerTx)
     let refs = Map.keys
                $ Map.filter ((==) address . txOutAddress)
-               $ unspentOutputsTx ledgerTx
+               $ getCardanoTxUnspentOutputsTx ledgerTx
 
     case refs of
         []                   -> throwing _ScriptOutputMissing pk

@@ -131,7 +131,7 @@ contract = selectList [failFalseC, failHeadNilC, divZeroC, divZeroTraceC, succes
           hash = validatorHash (validatorScript validator)
           tx = mustPayToOtherScript hash (Datum $ toBuiltinData ()) (Ada.lovelaceValueOf 1)
       r <- submitTx tx
-      awaitTxConfirmed (txId r)
+      awaitTxConfirmed (getCardanoTxId r)
       utxos <- utxosAt addr
       let tx' = collectFromScript utxos 0
       submitTxConstraintsSpending validator utxos tx'

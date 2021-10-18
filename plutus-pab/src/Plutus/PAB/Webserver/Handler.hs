@@ -10,6 +10,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -31,6 +32,7 @@ import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
 import qualified Data.Aeson                              as JSON
+import           Data.Either                             (fromRight)
 import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (fromMaybe, mapMaybe)
@@ -105,7 +107,7 @@ apiHandler =
         healthcheck
         :<|> getFullReport
         :<|> activateContract
-              :<|> (\cid -> (contractInstanceState cid) :<|> contractSchema cid :<|> (\y z -> callEndpoint cid y z) :<|> (shutdown cid))
+              :<|> (\cid -> contractInstanceState cid :<|> contractSchema cid :<|> (\y z -> callEndpoint cid y z) :<|> shutdown cid)
               :<|> instancesForWallets
               :<|> allInstanceStates
               :<|> availableContracts
@@ -158,7 +160,7 @@ allInstanceStates mStatus = do
     mp <- Contract.getContracts @t mActivityStatus
     instWithStatuses <- Core.instancesWithStatuses
     let isInstanceStatusMatch s = maybe True ((==) s) mActivityStatus
-    let getStatus (i, args) = (\s -> (i, args, s)) <$> Map.lookup i instWithStatuses
+    let getStatus (i, args) = (i, args,) <$> Map.lookup i instWithStatuses
     let get (i, ContractActivationArgs{caWallet, caID}, s) = fromInternalState caID i s caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
     filter (isInstanceStatusMatch . cicStatus) <$> traverse get (mapMaybe getStatus $ Map.toList mp)
 
@@ -205,8 +207,13 @@ walletProxy ::
     :<|> (WalletId -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     createNewWallet
-    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
-    :<|> (\w -> (\pkh -> WalletInfo{wiWallet=Wallet w, wiPubKeyHash = pkh }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKeyHash)
-    :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
+    :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn $ Right tx))
+    :<|> (\w -> (\pkh -> WalletInfo{wiWallet=Wallet w, wiPubKeyHash = pkh })
+            <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKeyHash)
+    :<|> (\w -> fmap (fmap (fromRight (error "Plutus.PAB.Webserver.Handler: Expecting a mock tx, not an Alonzo tx when submitting it.")))
+              . Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
     :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
-    :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
+    :<|> (\w tx -> fmap (fromRight (error "Plutus.PAB.Webserver.Handler: Expecting a mock tx, not an Alonzo tx when adding a signature."))
+                 $ Core.handleAgentThread (Wallet w)
+                 $ Wallet.Effects.walletAddSignature
+                 $ Right tx)

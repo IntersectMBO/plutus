@@ -54,7 +54,6 @@ library
         Cardano.Protocol.Socket.Client
         Plutus.ChainIndex.Compatibility
         Plutus.Contract.CardanoAPI
-        Plutus.Contract.CardanoAPITemp
     hs-source-dirs: src
     build-depends:
         plutus-core -any,
@@ -62,14 +61,6 @@ library
         plutus-ledger-api -any,
         plutus-tx -any,
         freer-extras -any,
-    -- Temporary for Plutus.Contract.CardanoAPITemp
-    build-depends:
-        cardano-ledger-core -any,
-        cardano-ledger-alonzo -any,
-        cardano-ledger-shelley-ma -any,
-        ouroboros-consensus-shelley -any,
-        shelley-spec-ledger -any,
-        strict-containers -any,
     build-depends:
         aeson -any,
         base >=4.7 && <5,

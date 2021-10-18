@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
@@ -62,8 +61,10 @@ handleWalletClient wallet event = do
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     case event of
-        SubmitTxn t           -> runClient (submitTxn wallet t)
-        OwnPubKeyHash         -> wiPubKeyHash <$> runClient (ownPublicKey wallet)
-        BalanceTx utx         -> runClient (balanceTx wallet utx)
-        WalletAddSignature tx -> runClient $ sign wallet tx
-        TotalFunds            -> runClient (totalFunds wallet)
+        SubmitTxn (Left _)            -> error "Cardano.Wallet.Mock.Client: Expecting a mock tx, not an Alonzo tx when submitting it."
+        SubmitTxn (Right tx)          -> runClient (submitTxn wallet tx)
+        OwnPubKeyHash                 -> wiPubKeyHash <$> runClient (ownPublicKey wallet)
+        BalanceTx utx                 -> runClient (fmap (fmap Right) $ balanceTx wallet utx)
+        WalletAddSignature (Left _)   -> error "Cardano.Wallet.Mock.Client: Expection a mock tx, not an Alonzo tx when adding a signature."
+        WalletAddSignature (Right tx) -> runClient $ fmap Right $ sign wallet tx
+        TotalFunds                    -> runClient (totalFunds wallet)

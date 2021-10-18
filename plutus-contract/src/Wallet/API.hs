@@ -70,7 +70,7 @@ payToPublicKeyHash ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     )
-    => SlotRange -> Value -> PubKeyHash -> Eff effs Tx
+    => SlotRange -> Value -> PubKeyHash -> Eff effs CardanoTx
 payToPublicKeyHash range v pk = do
     let tx = mempty{txOutputs = [pubKeyHashTxOut v pk], txValidRange = range}
     balancedTx <- balanceTx emptyUnbalancedTx{unBalancedTxTx = tx}
@@ -89,7 +89,7 @@ payToPublicKeyHash_ r v = void . payToPublicKeyHash r v
 signTxAndSubmit ::
     ( Member WalletEffect effs
     )
-    => Tx -> Eff effs Tx
+    => CardanoTx -> Eff effs CardanoTx
 signTxAndSubmit t = do
     tx' <- walletAddSignature t
     submitTxn tx'
@@ -99,7 +99,7 @@ signTxAndSubmit t = do
 signTxAndSubmit_ ::
     ( Member WalletEffect effs
     )
-    => Tx -> Eff effs ()
+    => CardanoTx -> Eff effs ()
 signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.

@@ -24,7 +24,7 @@ import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (POSIXTime, PubKeyHash, TxId, txId, txSignedBy, valuePaidTo)
+import           Ledger                   (POSIXTime, PubKeyHash, TxId, getCardanoTxId, txSignedBy, valuePaidTo)
 import qualified Ledger
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
@@ -151,7 +151,7 @@ redeemEp = endpoint @"redeem" redeem
 
       if time >= deadline params
       then throwing _RedeemFailed DeadlinePassed
-      else RedeemSuccess . txId <$> do submitTxConstraintsSpending escrowInstance unspentOutputs tx
+      else RedeemSuccess . getCardanoTxId <$> do submitTxConstraintsSpending escrowInstance unspentOutputs tx
 
 -- | Refunds the locked amount back to the 'payee'.
 refundEp :: Promise () EscrowSchema EscrowError RefundSuccess
@@ -164,7 +164,7 @@ refundEp = endpoint @"refund" refund
                   <> Constraints.mustValidateIn (Interval.from (deadline params))
 
       if Constraints.modifiesUtxoSet tx
-      then RefundSuccess . txId <$> submitTxConstraintsSpending escrowInstance unspentOutputs tx
+      then RefundSuccess . getCardanoTxId <$> submitTxConstraintsSpending escrowInstance unspentOutputs tx
       else throwing _RefundFailed ()
 
 PlutusTx.unstableMakeIsData ''EscrowParams

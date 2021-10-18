@@ -103,7 +103,7 @@ import           Data.Proxy                              (Proxy (..))
 import           Data.Set                                (Set)
 import           Data.Text                               (Text)
 import           Ledger                                  (TxOutRef)
-import           Ledger.Tx                               (Address, Tx)
+import           Ledger.Tx                               (Address, CardanoTx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
 import           Plutus.ChainIndex                       (ChainIndexQueryEffect, RollbackState (..), TxOutStatus,
@@ -332,7 +332,7 @@ callEndpointOnInstance' instanceID ep value = do
         $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
 -- | Make a payment to a public key
-payToPublicKey :: Wallet -> PubKeyHash -> Value -> PABAction t env Tx
+payToPublicKey :: Wallet -> PubKeyHash -> Value -> PABAction t env CardanoTx
 payToPublicKey source target amount =
     handleAgentThread source
         $ Modify.wrapError WalletError

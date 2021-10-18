@@ -22,6 +22,7 @@ import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
 import Types (_contractInstanceIdString)
+import Data.RawJson (RawJson)
 
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
@@ -276,6 +277,15 @@ instance prettyTx :: Pretty Tx where
       , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
       ]
+
+instance prettyCardanoTx :: Pretty (Either RawJson Tx) where
+  pretty (Left tx) =
+    span_
+      [ text "SomeCardanoApiTx:"
+      , nbsp
+      , text $ show tx
+      ]
+  pretty (Right tx) = pretty tx
 
 instance prettyActiveEndpoint :: Pretty ActiveEndpoint where
   pretty endpoint = pretty $ view _aeDescription endpoint

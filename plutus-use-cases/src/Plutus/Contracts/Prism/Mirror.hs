@@ -20,10 +20,10 @@ import           Control.Lens
 import           Control.Monad                       (forever, void)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           GHC.Generics                        (Generic)
-import           Ledger                              (txId)
 import qualified Ledger.Ada                          as Ada
 import qualified Ledger.Constraints                  as Constraints
 import           Ledger.Crypto                       (PubKeyHash)
+import           Ledger.Tx                           (getCardanoTxId)
 import qualified Ledger.Typed.Scripts                as Scripts
 import           Ledger.Value                        (TokenName)
 import           Plutus.Contract
@@ -81,7 +81,7 @@ createTokens authority = endpoint @"issue" $ \CredentialOwnerReference{coTokenNa
             <> Constraints.mustPayToPubKey pk (Ada.lovelaceValueOf 1)   -- Add self-spend to force an input
     _ <- mapError CreateTokenTxError $ do
             tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
-            awaitTxConfirmed (txId tx)
+            awaitTxConfirmed (getCardanoTxId tx)
     let stateMachine = StateMachine.mkMachineClient authority (walletPubKeyHash coOwner) coTokenName
     void $ mapError StateMachineError $ SM.runInitialise stateMachine Active theToken
 
@@ -99,7 +99,7 @@ revokeToken authority = endpoint @"revoke" $ \CredentialOwnerReference{coTokenNa
         Left{} -> return () -- Ignore invalid transitions
         Right StateMachineTransition{smtConstraints=constraints, smtLookups=lookups'} -> do
             tx <- submitTxConstraintsWith (lookups <> lookups') constraints
-            awaitTxConfirmed (txId tx)
+            awaitTxConfirmed (getCardanoTxId tx)
 
 ---
 -- Errors and Logging

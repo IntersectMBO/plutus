@@ -25,17 +25,17 @@ module Wallet.Effects(
     ) where
 
 import           Control.Monad.Freer.TH      (makeEffect)
-import           Ledger                      (PubKeyHash, Slot, Tx, Value)
+import           Ledger                      (CardanoTx, PubKeyHash, Slot, Tx, Value)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.TimeSlot             (SlotConfig)
 import           Wallet.Emulator.Error       (WalletAPIError)
 
 data WalletEffect r where
-    SubmitTxn :: Tx -> WalletEffect ()
+    SubmitTxn :: CardanoTx -> WalletEffect ()
     OwnPubKeyHash :: WalletEffect PubKeyHash
-    BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError Tx)
+    BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError CardanoTx)
     TotalFunds :: WalletEffect Value -- ^ Total of all funds that are in the wallet (incl. tokens)
-    WalletAddSignature :: Tx -> WalletEffect Tx
+    WalletAddSignature :: CardanoTx -> WalletEffect CardanoTx
 makeEffect ''WalletEffect
 
 data NodeClientEffect r where

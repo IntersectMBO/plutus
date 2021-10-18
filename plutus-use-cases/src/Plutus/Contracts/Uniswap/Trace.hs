@@ -72,7 +72,7 @@ setupTokens = do
         let pkh = walletPubKeyHash w
         when (pkh /= ownPK) $ do
             tx <- submitTx $ mustPayToPubKey pkh v
-            awaitTxConfirmed $ txId tx
+            awaitTxConfirmed $ getCardanoTxId tx
 
     tell $ Just $ Semigroup.Last cur
 

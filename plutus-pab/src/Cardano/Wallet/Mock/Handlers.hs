@@ -49,7 +49,7 @@ import qualified Ledger.CardanoWallet                as CW
 import           Ledger.Crypto                       (PubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
-import           Ledger.Tx                           (Tx)
+import           Ledger.Tx                           (CardanoTx)
 import           Plutus.ChainIndex                   (ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Client            as ChainIndex
 import           Plutus.PAB.Arbitrary                ()
@@ -80,7 +80,7 @@ byteString2Integer = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
 integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
 
-distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKeyHash -> Eff effs Tx
+distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKeyHash -> Eff effs CardanoTx
 distributeNewWalletFunds = WAPI.payToPublicKeyHash WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
 newWallet :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs MockWallet
