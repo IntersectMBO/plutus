@@ -17,10 +17,6 @@ module Plutus.V2.Ledger.Api (
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
-    -- * Serialising scripts
-    , plutusScriptEnvelopeType
-    , plutusDatumEnvelopeType
-    , plutusRedeemerEnvelopeType
     -- * Costing-related types
     , ExBudget (..)
     , ExCPU (..)
@@ -112,11 +108,6 @@ module Plutus.V2.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import           Data.Text                 (Text)
-
-import           Plutus.V1.Ledger.Api      hiding (ScriptContext (..), TxInfo (..), plutusScriptEnvelopeType)
+import           Plutus.V1.Ledger.Api      hiding (ScriptContext (..), TxInfo (..))
 import           Plutus.V2.Ledger.Contexts
 import           PlutusTx.AssocMap         (Map, fromList)
-
-plutusScriptEnvelopeType :: Text
-plutusScriptEnvelopeType = "PlutusV2Script"

@@ -17,10 +17,6 @@ module Plutus.V1.Ledger.Api (
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
-    -- * Serialising scripts
-    , plutusScriptEnvelopeType
-    , plutusDatumEnvelopeType
-    , plutusRedeemerEnvelopeType
     -- * Costing-related types
     , ExBudget (..)
     , ExCPU (..)
@@ -149,18 +145,6 @@ import           PlutusTx.Builtins.Internal                       (BuiltinData (
 import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
-
-plutusScriptEnvelopeType :: Text
-plutusScriptEnvelopeType = "PlutusV1Script"
-
--- | It was discussed with the Ledger team that the envelope types for 'Datum'
--- and 'Redeemer' should be in plutus-ledger-api.
---
--- For now, those types will be generic and versioning might be included in
--- the future.
-plutusDatumEnvelopeType, plutusRedeemerEnvelopeType  :: Text
-plutusDatumEnvelopeType = "ScriptDatum"
-plutusRedeemerEnvelopeType = "ScriptRedeemer"
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You

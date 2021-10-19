@@ -62,6 +62,7 @@ data PluginOptions = PluginOptions {
     , poContextLevel                   :: Int
     , poDumpPir                        :: Bool
     , poDumpPlc                        :: Bool
+    , poDumpUPlc                       :: Bool
     , poOptimize                       :: Bool
     , poPedantic                       :: Bool
     , poVerbose                        :: Bool
@@ -139,6 +140,7 @@ parsePluginArgs args = do
             , poContextLevel = if elem' "no-context" then 0 else if elem "debug-context" args then 3 else 1
             , poDumpPir = elem' "dump-pir"
             , poDumpPlc = elem' "dump-plc"
+            , poDumpUPlc = elem' "dump-uplc"
             , poOptimize = notElem' "no-optimize"
             , poPedantic = elem' "pedantic"
             , poVerbose = elem' "verbose"
@@ -392,7 +394,7 @@ runCompiler moduleName opts expr = do
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
     uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.simplifyProgram $ UPLC.eraseProgram plcP
-    when (poDumpPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
