@@ -7,13 +7,6 @@ assignees: ''
 
 ---
 
-## Area
-
-[] *Plutus Foundation* Related to the GHC plugin, Haskell-to-Plutus compiler, on-chain code
-[] *Plutus Application Framework* Related to the Plutus application backend (PAB), emulator, Plutus libraries
-[] *Marlowe* Related to Marlowe
-[] *Other* Any other topic (Playgrounds, etc.)
-
 ## Describe the feature you'd like
 
 A clear and detailed description of what you are suggesting.

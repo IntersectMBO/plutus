@@ -1,6 +1,5 @@
 { lib
 , sources
-, agdaWithStdlib
 , stdenv
 , haskell-nix
 , buildPackages
@@ -39,7 +38,7 @@ let
     { deferPluginErrors }:
     import ./haskell.nix {
       inherit lib haskell-nix R libsodium-vrf rPackages z3;
-      inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+      inherit checkMaterialization compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
       inherit actus-tests;
@@ -54,7 +53,9 @@ let
 
   # Just the packages in the project
   projectPackages = haskell-nix.haskellLib.selectProjectPackages packages;
-  projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
+  projectPackagesAllHaddock = (haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs) // {
+    inherit (projectAllHaddock.hsPkgs) plutus-core plutus-tx plutus-tx-plugin plutus-ledger-api plutus-pab plutus-contract plutus-chain-index plutus-ledger;
+  };
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix sources buildPackages writeShellScript;

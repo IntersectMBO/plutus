@@ -1,6 +1,0 @@
--- | This module contains all the public API types for the component.
-module Component.$name.Types where
-
-type Input
-  = {
-    }

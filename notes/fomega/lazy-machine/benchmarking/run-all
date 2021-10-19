@@ -1,5 +1,0 @@
-#!/bin/bash
-./run-loop
-./run-tri
-./run-fac
-./run-fib

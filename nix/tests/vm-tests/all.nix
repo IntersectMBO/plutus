@@ -3,14 +3,13 @@
 , docs
 , plutus-pab
 , marlowe-pab
-, plutus-playground
 , marlowe-playground
 , marlowe-dashboard
 , web-ghc
+, sources
 , vmCompileTests # when enabled the test tries to compile plutus/marlowe code on webghc
 }:
 let
-  plutusApiRequest = builtins.toFile "plutus-request.json" (builtins.readFile ./contract-api-request.json);
   marloweApiRequest = builtins.toFile "marlowe-request.json" (builtins.readFile ./runghc-api-request.json);
 in
 makeTest {
@@ -54,14 +53,12 @@ makeTest {
 
     playgrounds = { pkgs, ... }: {
       imports = [
-        ../../modules/plutus-playground.nix
         ../../modules/marlowe-playground.nix
       ];
 
       networking = {
-        firewall.allowedTCPPorts = [ 7070 8080 9090 ];
+        firewall.allowedTCPPorts = [ 7070 9090 ];
         extraHosts = ''
-          127.0.0.1 plutus-playground
           127.0.0.1 marlowe-playground
           127.0.0.1 marlowe-dashboard
           192.168.1.1 pab
@@ -79,13 +76,6 @@ makeTest {
           playground-server-package = marlowe-playground.server;
         };
 
-        plutus-playground = {
-          enable = true;
-          port = 4000;
-          playground-server-package = plutus-playground.server;
-          webghcURL = "http://webghc";
-        };
-
         nginx = {
           enable = true;
           recommendedGzipSettings = true;
@@ -93,7 +83,6 @@ makeTest {
           recommendedOptimisation = true;
 
           upstreams = {
-            plutus-playground.servers."127.0.0.1:4000" = { };
             marlowe-playground.servers."127.0.0.1:4001" = { };
             marlowe-dashboard.servers."192.168.1.1:8080" = { };
           };
@@ -103,34 +92,6 @@ makeTest {
               locations = {
                 "/" = {
                   proxyPass = "http://192.168.1.1:8080";
-                };
-              };
-            };
-            "plutus-playground" = {
-              listen = [{ addr = "0.0.0.0"; port = 8080; }];
-              locations = {
-                "/api" = {
-                  proxyPass = "http://plutus-playground";
-                  proxyWebsockets = true;
-                };
-                "^~ /doc/" = {
-                  alias = "${docs.site}/";
-                  extraConfig = ''
-                    error_page 404 = @fallback;
-                  '';
-                };
-                "/" = {
-                  root = "${plutus-playground.client}";
-                  extraConfig = ''
-                    error_page 404 = @fallback;
-                  '';
-                };
-                "@fallback" = {
-                  proxyPass = "http://plutus-playground";
-                  proxyWebsockets = true;
-                  extraConfig = ''
-                    error_page 404 = @fallback;
-                  '';
                 };
               };
             };
@@ -181,7 +142,7 @@ makeTest {
       };
 
       imports = [
-        ../../modules/web-ghc.nix
+        (sources.plutus-apps + "/nix/modules/web-ghc.nix")
       ];
       services = {
         web-ghc = {
@@ -226,22 +187,11 @@ makeTest {
     # playground / frontend asserts
     #
     playgrounds.wait_for_unit("marlowe-playground.service")
-    playgrounds.wait_for_unit("plutus-playground.service")
     playgrounds.wait_for_unit("nginx.service")
     playgrounds.wait_for_open_port(7070)
-    playgrounds.wait_for_open_port(8080)
     playgrounds.wait_for_open_port(9090)
 
     with subtest("********************************************************************************************* TEST: All content is being served on playgrounds"):
-      res = playgrounds.succeed("curl --silent http://plutus-playground:8080/")
-      assert "plutus" in res, "Expected string 'plutus' from 'http://plutus-playground:8080'. Actual: {}".format(res)
-
-      res = playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/")
-      assert "The Plutus Platform" in res, "Expected string 'The Plutus Platform' from 'http://plutus-playground:8080/doc/'. Actual: {}".format(res)
-
-      res = playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/plutus/tutorials/")
-      assert "The Plutus Platform" in res, "Expected string 'Tutorials' from 'http://plutus-playground:8080/doc/plutus/tutorials/'. Actual: {}".format(res)
-
       res = playgrounds.succeed("curl --silent http://marlowe-playground:9090/")
       assert "marlowe-playground" in res, "Expected string 'marlowe-playground' from 'http://marlowe-playground:9090'. Actual: {}".format(res)
 
@@ -273,9 +223,6 @@ makeTest {
     # marlowe-playground / webghc : using /runghc
     #
     with subtest("********************************************************************************************* TEST: compilation works"):
-      res = playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract")
-      assert "Right" in res, "Expected response wrapped in 'Right'. Actual: {}".format(res)
-
       res = playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${marloweApiRequest} http://marlowe-playground:9090/runghc")
       assert "Right" in res, "Expected response wrapped in 'Right'. Actual: {}".format(res)
   '';

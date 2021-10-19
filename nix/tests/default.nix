@@ -4,13 +4,13 @@
 , fixPurty
 , fixPngOptimization
 , src
-, plutus-playground
 , marlowe-playground
 , marlowe-dashboard
 , web-ghc
 , plutus-pab
 , marlowe-pab
 , docs
+, sources
 , vmCompileTests ? false
 }:
 let
@@ -41,7 +41,7 @@ pkgs.recurseIntoAttrs {
   };
 
   vmTests = pkgs.callPackage ./vm.nix {
-    inherit vmCompileTests plutus-playground marlowe-playground
-      marlowe-dashboard web-ghc plutus-pab marlowe-pab docs;
+    inherit vmCompileTests marlowe-playground
+      marlowe-dashboard web-ghc plutus-pab marlowe-pab docs sources;
   };
 }

@@ -1,9 +1,0 @@
-(let (rec)
-   (termbind (strict) (vardecl x (con integer))
-   (let (nonrec) (termbind (strict) (vardecl y (con integer))
-      (let (nonrec) (termbind (nonstrict) (vardecl z (con integer))
-           [ [ (builtin addInteger) x ] (con integer 1) ])
-           z))
-           y))
-  x)
--- float out of let anchor (unfloatable) y

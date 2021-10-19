@@ -177,6 +177,38 @@
         "type": "github"
       }
     },
+    "plutus-apps": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1634569763,
+        "narHash": "sha256-0Oxq5FAhkPa3/ZIA0HR4te4VMqj2HDdIMFJl4Z14xkU=",
+        "owner": "input-output-hk",
+        "repo": "plutus-apps",
+        "rev": "0d966207d345f6e83f36af0a287f459a00261c2d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "plutus-apps",
+        "type": "github"
+      }
+    },
+    "plutus-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1634809151,
+        "narHash": "sha256-Oo5gXR16gBD0LIpeqzXGOmimD1qxyAuqNEYdq0o5vhg=",
+        "owner": "input-output-hk",
+        "repo": "plutus",
+        "rev": "0cb5c00add3809d9f247e9ec3f069d9ac3becd95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "plutus",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks-nix": {
       "flake": false,
       "locked": {
@@ -206,6 +238,8 @@
         "iohk-nix": "iohk-nix",
         "nixpkgs": "nixpkgs",
         "npmlock2nix": "npmlock2nix",
+        "plutus-apps": "plutus-apps",
+        "plutus-core": "plutus-core",
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
         "spago2nix": "spago2nix",
         "sphinxcontrib-haddock": "sphinxcontrib-haddock",

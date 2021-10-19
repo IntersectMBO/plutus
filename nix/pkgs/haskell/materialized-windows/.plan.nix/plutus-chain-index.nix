@@ -180,4 +180,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../plutus-chain-index; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/plutus-chain-index; echo source root reset to \$sourceRoot";
+    }

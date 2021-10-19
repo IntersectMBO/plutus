@@ -1,31 +1,24 @@
-= https://github.com/input-output-hk/plutus[The Plutus Platform and Marlowe]
+= https://github.com/input-output-hk/marlowe-cardano[Marlowe on the Cardano Blockchain]
 :email: plutus@iohk.io
 :author: Input Output HK Limited
 :toc: left
 :reproducible:
 
-The Plutus Platform is an application development platform for developing distributed applications using the Cardano blockchain; and Marlowe is a platform specifically for financial products, built on top of Plutus.
-For more information about the projects, see the <<user-documentation>>.
+Marlowe is a platform for financial products as smart contracts. Marlowe-Cardano is
+an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
 
 This repository contains:
 
-* Plutus Platform
-** The implementation, specification, and mechanized metatheory of Plutus Core, the scripting language embedded in the Cardano ledger.
-** Plutus Tx, the compiler from Haskell to Plutus Core.
-** Libraries which implement the Plutus Application Framework, a framework for writing applications that work with Cardano.
-** A selection of end-to-end usecases written with the Plutus Application Framework
-** The Plutus Playground, a web-based playground for learning and writing basic Plutus Applications.
-* Marlowe
-** The implementation of the Marlowe domain-specific language.
-** Tools for working with Marlowe, including static analysis.
-** A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
-** The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
+* The implementation of the Marlowe domain-specific language.
+* Tools for working with Marlowe, including static analysis.
+* A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
+* The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
 
 [IMPORTANT]
 ====
-The rest of this README is focussed on people who want to develop or contribute to the Platform.
+The rest of this README is focussed on people who want to develop or contribute to Marlowe.
 
-For people who want to *use* the Platform, please consult the <<user-documentation>>.
+For people who want to *use* Marlowe, please consult the <<user-documentation>>.
 ====
 
 [[cache-warning]]
@@ -42,26 +35,7 @@ If you find yourself building GHC, STOP and fix the cache.
 
 === User documentation
 
-The main documentation is located https://plutus.readthedocs.io/en/latest/[here].
-
-=== Talks
-
-- https://www.youtube.com/watch?v=MpWeg6Fg0t8[Functional Smart Contracts on Cardano]
-- https://www.youtube.com/watch?v=usMPt8KpBeI[The Plutus Platform]
-
-=== Specifications and design
-
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report] (draft)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
-
-=== Academic papers
-
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support] (in press)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model] (in press)
+The main documentation for the whole Plutus ecosystem is located https://plutus.readthedocs.io/en/latest/[here].
 
 == Working with the project
 
@@ -81,11 +55,9 @@ See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processe
 None of our libraries are on Hackage, unfortunately (many of our dependencies aren't either).
 So for the time being, you need to:
 
-. Add `plutus` as a `source-repository-package` to your `cabal.project`.
+. Add `marlowe` as a `source-repository-package` to your `cabal.project`.
 . Copy the `source-repository-package` stanzas from our `cabal.project` to yours.
 . Copy additional stanzas from our `cabal.project` as you need, e.g. you may need some of the `allow-newer` stanzas.
-
-The https://github.com/input-output-hk/plutus-starter[plutus-starter] project provides an example.
 
 === How to build the project's artifacts
 
@@ -95,7 +67,7 @@ For development work see <<how-to-develop>> for more information.
 [[prerequisites]]
 ==== Prerequisites
 
-The Haskell libraries in the Plutus Platform are built with `cabal` and Nix.
+The Haskell libraries in the Marlowe project are built with `cabal` and Nix.
 The other artifacts (docs etc.) are also most easily built with Nix.
 
 ===== Nix
@@ -119,7 +91,7 @@ If you use Nix, these tools are provided for you via `shell.nix`, and you do *no
 [[building-with-nix]]
 ==== How to build the Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix plutus.haskell.packages.plutus-core.components.library` from the root to build the Plutus Core library.
+Run `nix build -f default.nix marlowe.haskell.packages.marlowe.components.library` from the root to build the Marlowe library.
 
 See <<nix-build-attributes>> to find out what other attributes you can build.
 
@@ -134,7 +106,7 @@ The best way is to do this is inside a `nix-shell`.
 For fresh development setups, you also need to run `cabal update`.
 ====
 
-Run `cabal build plutus-core` from the root to build the Plutus Core library.
+Run `cabal build marlowe` from the root to build the Marlowe library.
 
 See the link:./cabal.project[cabal project file] to see the other packages that you can build with `cabal`.
 
@@ -196,14 +168,12 @@ These can be built using `nix build`.
 For example:
 
 ----
-nix build -f default.nix docs.papers.eutxo
+nix build -f default.nix docs.site
 ----
 
 .Example attributes
-* Project packages: defined inside `plutus.haskell.packages`
-** e.g. `plutus.haskell.packages.plutus-core.components.library`
-* Documents: defined inside `docs`
-** e.g. `docs.plutus-core-spec`
+* Project packages: defined inside `marlowe.haskell.packages`
+** e.g. `plutus.haskell.packages.marlowe.components.library`
 
 There are other attributes defined in link:./default.nix[`default.nix`].
 

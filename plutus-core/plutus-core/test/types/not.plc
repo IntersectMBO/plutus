@@ -1,4 +1,0 @@
-(program 0.1.0
- (lam b (all A (type) (fun A (fun A A)))
-  (abs T (type) (lam x T (lam y T [{b T} y x]))))
-)

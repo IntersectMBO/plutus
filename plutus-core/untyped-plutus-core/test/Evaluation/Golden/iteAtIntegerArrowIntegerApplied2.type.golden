@@ -1,6 +1,0 @@
-(Left Type mismatch at () in term
-  '(builtin multiplyInteger)'.
-Expected type
-  '(fun (con integer) (fun (con integer) (con integer)))',
-found type
-  '(fun (con integer) (con integer))')

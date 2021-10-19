@@ -1,9 +1,0 @@
-steps:
-  - label: ':shipit: deploy devcontainer image for plutus-starter'
-    branches: "plutus-starter-devcontainer/v*"
-    command:
-      - "./.buildkite/plutus-starter-devcontainer-push.sh"
-    concurrency: 1
-    concurrency_group: "plutus-starter-devcontainer-push"
-    agents:
-      system: x86_64-linux

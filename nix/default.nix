@@ -39,9 +39,9 @@ let
     config = haskellNix.nixpkgsArgs.config // config;
   };
 
-  plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
+  marlowe = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
 
 in
 {
-  inherit pkgs plutus sources;
+  inherit pkgs marlowe sources;
 }

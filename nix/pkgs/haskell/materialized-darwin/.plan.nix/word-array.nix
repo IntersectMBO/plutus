@@ -73,4 +73,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../word-array; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "16";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "16";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/word-array; echo source root reset to \$sourceRoot";
+    }

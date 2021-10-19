@@ -122,4 +122,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../plutus-tx; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "16";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "16";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/plutus-tx; echo source root reset to \$sourceRoot";
+    }

@@ -1,9 +1,0 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl unitval (all dead (type) (all a (type) (fun a a))))
-    (abs dead (type) (abs a (type) (lam x a x)))
-  )
-  { unitval (all dead (type) dead) }
-)

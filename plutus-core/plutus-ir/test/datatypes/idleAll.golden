@@ -1,3 +1,0 @@
-E001: Error during PIR typechecking:
-The result-type of a dataconstructor is malformed at location idleAll:12:6
-The expected result-type is: [ D2 a ]

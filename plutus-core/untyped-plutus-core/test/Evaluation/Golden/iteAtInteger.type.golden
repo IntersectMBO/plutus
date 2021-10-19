@@ -1,1 +1,0 @@
-(Right (fun (con bool) (fun (con integer) (fun (con integer) (con integer)))))

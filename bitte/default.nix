@@ -1,23 +1,14 @@
-{ marlowe-playground, plutus-playground, web-ghc, marlowe-pab, marlowe-dashboard, marlowe-web, docs, pkgs }:
+{ marlowe-playground, marlowe-pab, web-ghc, marlowe-dashboard, marlowe-web, docs, pkgs, sources }:
 let
-  staticSite = pkgs.callPackage ./static-site.nix { };
-  playgroundStatic = pkgs.callPackage ./playground-static.nix { inherit staticSite; docs = docs.site; };
+  staticSite = pkgs.callPackage (sources.plutus-apps + "/bitte/static-site.nix") { };
+  playgroundStatic = pkgs.callPackage (sources.plutus-apps + "/bitte/playground-static.nix") { inherit staticSite; docs = docs.site; };
 in
 {
   web-ghc-server-entrypoint = pkgs.callPackage ./web-ghc-server.nix {
     web-ghc-server = web-ghc;
   };
 
-  plutus-playground-server-entrypoint = pkgs.callPackage ./plutus-playground-server.nix {
-    variant = "plutus";
-    pkg = plutus-playground.server;
-  };
-  plutus-playground-client-entrypoint = playgroundStatic {
-    client = plutus-playground.client;
-    variant = "plutus";
-  };
-
-  marlowe-playground-server-entrypoint = pkgs.callPackage ./plutus-playground-server.nix {
+  marlowe-playground-server-entrypoint = pkgs.callPackage (sources.plutus-apps + "/bitte/plutus-playground-server.nix") {
     variant = "marlowe";
     pkg = marlowe-playground.server;
   };

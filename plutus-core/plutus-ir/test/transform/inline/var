@@ -1,7 +1,0 @@
-(lam y (con integer)
-(let
-  (nonrec)
-  (termbind (strict) (vardecl x (con integer)) y)
-  x
-)
-)

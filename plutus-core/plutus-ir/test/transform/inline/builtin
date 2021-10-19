@@ -1,5 +1,0 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl add (fun (con integer) (fun (con integer) (con integer)))) (builtin addInteger))
-  add
-)

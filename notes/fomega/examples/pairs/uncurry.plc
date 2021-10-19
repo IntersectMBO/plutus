@@ -1,7 +1,0 @@
-(program 0.1.0
-
-(abs a (type) (abs b (type) (abs c (type) (lam f (fun a (fun b c))
-  (lam p (all r (type) (fun (fun a (fun b r)) r)) [ { p c } f ])))))
-    
-
-)

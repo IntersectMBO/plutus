@@ -1,3 +1,0 @@
-(Left E015: Kind mismatch at () in type '(lam
-  a_1 (type) (fun a_1 a_1)
-)'. Expected kind '(type)' , found kind '(fun (type) (type))')

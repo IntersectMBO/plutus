@@ -70,4 +70,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../quickcheck-dynamic; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/quickcheck-dynamic; echo source root reset to \$sourceRoot";
+    }

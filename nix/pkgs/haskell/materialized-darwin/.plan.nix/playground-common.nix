@@ -139,4 +139,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault ../playground-common; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "17";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/playground-common; echo source root reset to \$sourceRoot";
+    }

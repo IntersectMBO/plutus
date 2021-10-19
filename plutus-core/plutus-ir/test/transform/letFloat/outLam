@@ -1,7 +1,0 @@
-(lam x (con integer)
-     (let
-       (nonrec)
-       (termbind (nonstrict) (vardecl y (con integer)) (con integer 3))
-       [(builtin addInteger) x y])
-)
--- float out of lambda

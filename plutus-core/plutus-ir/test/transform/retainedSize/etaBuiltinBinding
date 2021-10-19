@@ -1,7 +1,0 @@
-(let
-  (nonrec)
-  (termbind (strict)
-    (vardecl add (fun (con integer) (con integer))) (lam arg1 (con integer) (lam arg2 (con integer) [ [ (builtin addInteger) arg1 ] arg2 ]))
-  )
-  (abs a (type) (lam x a x))
-)

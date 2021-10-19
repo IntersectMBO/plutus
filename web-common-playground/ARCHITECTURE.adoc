@@ -1,3 +1,0 @@
-=== `web-common-playground`
-
-This contains frontend code that is shared between plutus and marlowe playground projects.

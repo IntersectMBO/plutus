@@ -1,4 +1,4 @@
-{ writeText, makeTest, web-ghc }:
+{ writeText, makeTest, web-ghc, sources }:
 let
   testCode = ''
     module Main where
@@ -20,7 +20,7 @@ makeTest {
   skipLint = true;
   machine = { pkgs, ... }:
     {
-      imports = [ ../../modules/web-ghc.nix ];
+      imports = [ (sources.plutus-apps + "/nix/modules/web-ghc.nix") ];
       environment.systemPackages = with pkgs; [ curl ];
       services.web-ghc = {
         enable = true;

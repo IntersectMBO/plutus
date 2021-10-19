@@ -1,1 +1,0 @@
-(all f (fun (type) (type)) (fun (all a (type) [ f a ]) (all a (type) [ f a ])))
