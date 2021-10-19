@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -45,6 +46,7 @@ import qualified Data.ByteString.Lazy             as BSL
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Monoid                      (Last (..), Sum (..))
+import           Data.OpenApi.Schema              (ToSchema)
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
@@ -143,7 +145,7 @@ instance Pretty Tip where
 -- | Validity of a transaction that has been added to the ledger
 data TxValidity = TxValid | TxInvalid | UnknownValidity
   deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, ToSchema)
   deriving Pretty via (PrettyShow TxValidity)
 
 instance MeetSemiLattice TxValidity where
@@ -237,7 +239,7 @@ liftTxOutStatus = void
 
 newtype BlockNumber = BlockNumber { unBlockNumber :: Word64 }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON)
+    deriving newtype (Num, Real, Enum, Integral, Pretty, ToJSON, FromJSON, ToSchema)
 
 data Diagnostics =
     Diagnostics
@@ -285,6 +287,9 @@ instance Monoid TxIdState where
     mappend = (<>)
     mempty  = TxIdState { txnsConfirmed=mempty, txnsDeleted=mempty }
 
+deriving newtype instance ToJSON (Sum Int)
+deriving newtype instance FromJSON (Sum Int)
+
 data TxConfirmedState =
   TxConfirmedState
     { timesConfirmed :: Sum Int
@@ -292,6 +297,7 @@ data TxConfirmedState =
     , validity       :: Last TxValidity
     }
     deriving stock (Eq, Generic, Show)
+    deriving anyclass (FromJSON, ToJSON, ToSchema)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid TxConfirmedState)
 
 -- | The effect of a transaction (or a number of them) on the tx output set.

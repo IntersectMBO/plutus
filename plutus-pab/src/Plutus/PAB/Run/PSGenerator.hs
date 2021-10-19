@@ -31,6 +31,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A, B)
 import qualified PSGenerator.Common
+import           Plutus.ChainIndex.Types                    (TxConfirmedState)
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.Contract.StateMachine               (InvalidTransition, SMContractError)
@@ -107,6 +108,7 @@ pabTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))
     , (genericShow <*> mkSumType) (Proxy @(ContractInstanceClientState A))
     , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
+    , (genericShow <*> mkSumType) (Proxy @TxConfirmedState)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)
     , (genericShow <*> mkSumType) (Proxy @WalletInfo)

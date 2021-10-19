@@ -14,6 +14,8 @@ module Plutus.PAB.Webserver.API
 import qualified Cardano.Wallet.Mock.API    as Wallet
 import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
+import           Ledger.TxId                (TxId)
+import           Plutus.ChainIndex.Types    (TxConfirmedState)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
                                              ContractSignatureResponse, FullReport)
 import           Servant.API                (Capture, Description, Get, JSON, Post, Put, QueryParam, ReqBody, (:<|>),
@@ -34,6 +36,7 @@ type WSAPI =
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type API t walletId -- see note [WalletID type in wallet API]
     = "api" :> ("healthcheck" :> Description "Is the server alive?" :> Get '[JSON] ()
+    :<|> "tx-status" :> ReqBody '[JSON] TxId :> Post '[JSON] (Maybe TxConfirmedState)
     :<|> ("fullreport" :> Description "Details of the contracts: the signatures and their states." :> Get '[JSON] (FullReport t))
     :<|> "contract" :> ("activate" :> ReqBody '[JSON] (ContractActivationArgs t) :> Description "Start a new instance." :> Post '[JSON] ContractInstanceId
             :<|> "instance" :>

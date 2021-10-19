@@ -12,6 +12,8 @@ import           Data.Aeson                 (FromJSON, ToJSON (..))
 import qualified Data.Aeson                 as JSON
 import           Data.Proxy
 import           Data.Text                  (Text)
+import           Ledger                     (TxId)
+import           Plutus.ChainIndex.Types    (TxConfirmedState)
 import           Plutus.PAB.Events.Contract
 import           Plutus.PAB.Instances       ()
 import           Plutus.PAB.Webserver.API
@@ -21,19 +23,21 @@ import           Servant.Client
 
 -- | Client for PAB. The first type-argument is contract type that is used for PAB-simulator.
 data PabClient t walletId = PabClient
-  { healthcheck      :: ClientM ()
+  { healthcheck         :: ClientM ()
       -- ^ call healthcheck method
-  , fullreport       :: ClientM (FullReport t)
+  , getTxConfirmedState :: TxId -> ClientM (Maybe TxConfirmedState)
+      -- ^ Inspect the cofirmation status of a transaction
+  , fullreport          :: ClientM (FullReport t)
       -- ^ call fullreport method
-  , activateContract :: ContractActivationArgs t -> ClientM ContractInstanceId
+  , activateContract    :: ContractActivationArgs t -> ClientM ContractInstanceId
       -- ^ call activate contract method
-  , instanceClient   :: ContractInstanceId -> InstanceClient t
+  , instanceClient      :: ContractInstanceId -> InstanceClient t
       -- ^ call methods for instance client. We should turn @ContractInstanceId@ to @Text@ for the first argument.
-  , getWallet        :: walletId -> Maybe Text -> ClientM [ContractInstanceClientState t]
+  , getWallet           :: walletId -> Maybe Text -> ClientM [ContractInstanceClientState t]
       -- ^ get wallet instances
-  , getInstances     :: Maybe Text -> ClientM [ContractInstanceClientState t]
+  , getInstances        :: Maybe Text -> ClientM [ContractInstanceClientState t]
       -- ^ get instances
-  , getDefinitions   :: ClientM [ContractSignatureResponse t]
+  , getDefinitions      :: ClientM [ContractSignatureResponse t]
       -- ^ get definitions
   }
 
@@ -54,6 +58,7 @@ pabClient :: forall t walletId. (ToJSON t, FromJSON t, ToHttpApiData walletId) =
 pabClient = PabClient{..}
   where
     (healthcheck
+      :<|> getTxConfirmedState
       :<|> fullreport
       :<|> activateContract
       :<|> toInstanceClient
