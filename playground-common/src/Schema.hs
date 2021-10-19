@@ -60,7 +60,8 @@ import           GHC.Generics                             (C1, Constructor, D1, 
                                                            (:*:) ((:*:)), (:+:) (L1, R1))
 import           Ledger                                   (Ada, AssetClass, CurrencySymbol, DatumHash, Interval,
                                                            POSIXTime, POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash,
-                                                           Signature, TokenName, TxId, TxOutRef, ValidatorHash, Value)
+                                                           Signature, Slot, TokenName, TxId, TxOutRef, ValidatorHash,
+                                                           Value)
 import           Ledger.Bytes                             (LedgerBytes)
 import           Ledger.CardanoWallet                     (WalletNumber)
 import           Plutus.Contract.Secrets                  (SecretArgument (EndpointSide, UserSide))
@@ -400,6 +401,8 @@ deriving anyclass instance ToSchema PubKey
 deriving anyclass instance ToSchema PubKeyHash
 
 deriving anyclass instance ToSchema RedeemerHash
+
+deriving anyclass instance ToSchema Slot
 
 deriving anyclass instance ToSchema Signature
 
