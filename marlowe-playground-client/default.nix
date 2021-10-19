@@ -2,9 +2,9 @@
 let
   playground-exe = haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
-  build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)";
+  build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A marlowe.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)";
 
-  build-ghc-with-marlowe = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).plutus.haskell.project.ghcWithPackages(ps: [ ps.marlowe ])')";
+  build-ghc-with-marlowe = "$(nix-build --quiet --no-build-output -E '(import ./.. {}).marlowe.haskell.project.ghcWithPackages(ps: [ ps.marlowe ])')";
 
   # Output containing the purescript bridge code
   generated-purescript = pkgs.runCommand "marlowe-playground-purescript" { } ''
