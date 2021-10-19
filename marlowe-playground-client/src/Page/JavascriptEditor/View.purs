@@ -189,7 +189,7 @@ panelContents state metadata MetadataView = metadataView (state ^. _metadataHint
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text "There was an error when running the JavaScript code:", code_ [ pre_ [ text $ error ] ] ]
 
-compilationErrorPane (JSONParsingError error) = div_ [ text "There was an error when parsing the resulting JSON:", code_ [ pre_ [ text $ error ] ], text "Please, use the JS API provided (see tutorial and examples). If you did use the JS API and still get this error, kindly report the problem at ", a [ href "https://github.com/input-output-hk/plutus/issues/new" ] [ text "https://github.com/input-output-hk/plutus/issues/new" ], text " including the code that caused the error. Thank you" ]
+compilationErrorPane (JSONParsingError error) = div_ [ text "There was an error when parsing the resulting JSON:", code_ [ pre_ [ text $ error ] ], text "Please, use the JS API provided (see tutorial and examples). If you did use the JS API and still get this error, kindly report the problem at ", a [ href "https://github.com/input-output-hk/marlowe-cardano/issues/new" ] [ text "https://github.com/input-output-hk/marlowe-cardano/issues/new" ], text " including the code that caused the error. Thank you" ]
 
 compilationErrorPane (CompilationError error) =
   div

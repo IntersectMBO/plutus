@@ -41,7 +41,7 @@ The main documentation for the whole Plutus ecosystem is located https://plutus.
 
 === How to submit an issue
 
-Issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+Issues can be filed in the https://github.com/input-output-hk/marlowe-cardano/issues[GitHub Issue tracker].
 
 However, note that this is pre-release software, so we will not usually be providing support.
 
@@ -173,12 +173,12 @@ nix build -f default.nix docs.site
 
 .Example attributes
 * Project packages: defined inside `marlowe.haskell.packages`
-** e.g. `plutus.haskell.packages.marlowe.components.library`
+** e.g. `marlowe.haskell.packages.marlowe.components.library`
 
 There are other attributes defined in link:./default.nix[`default.nix`].
 
 == Licensing
 
-You are free to copy, modify, and distribute the Plutus Platform with
-under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
+You are free to copy, modify, and distribute Marlowe under the terms
+of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
 and link:./NOTICE[NOTICE] files for details.

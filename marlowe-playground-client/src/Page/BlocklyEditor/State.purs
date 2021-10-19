@@ -147,7 +147,7 @@ processBlocklyCode = do
             <<< over (_analysisState <<< _templateContent) maybeUpdateTemplateContent
         )
   where
-  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/marlowe-cardano/issues/new: " <> s
 
 runAnalysis ::
   forall m.

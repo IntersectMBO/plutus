@@ -102,7 +102,7 @@ handleQuery (GetBlockRepresentation next) = do
       assign _errorMessage Nothing
       pure <<< Just <<< next $ block
   where
-  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/marlowe-cardano/issues/new: " <> s
 
 handleQuery (SelectWarning warning next) = do
   let

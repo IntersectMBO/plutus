@@ -130,7 +130,7 @@ You need to do a few things when adding a new package, in the following order:
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Update the xref:update-generated[package set].
 . Update the `xref:update-hie[hie-*.yaml` files].
-. Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.
+. Check that you can run `nix build -f default.nix marlowe.haskell.projectPackages.<package name>` successfully.
 
 [[update-haskell-pins]]
 === How to update our pinned Haskell dependencies
