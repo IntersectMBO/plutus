@@ -106,13 +106,12 @@ import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, AssetClass, Datum, DatumHash, DiffMilliSeconds, MintingPolicy,
                                               MintingPolicyHash, POSIXTime, PubKeyHash, Redeemer, RedeemerHash, Slot,
-                                              StakeValidator, StakeValidatorHash, Tx, TxId, TxOutRef (txOutRefId),
-                                              Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds,
-                                              txId)
+                                              StakeValidator, StakeValidatorHash, TxId, TxOutRef (txOutRefId),
+                                              Validator, ValidatorHash, Value, addressCredential, fromMilliSeconds)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
 import qualified Ledger.Constraints.OffChain as Constraints
-import           Ledger.Tx                   (ChainIndexTxOut, ciTxOutValue)
+import           Ledger.Tx                   (CardanoTx, ChainIndexTxOut, ciTxOutValue, getCardanoTxId)
 import           Ledger.Typed.Scripts        (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Value                as V
 import           Plutus.Contract.Util        (loopM)
@@ -696,7 +695,7 @@ ownPubKeyHash = pabReq OwnPublicKeyHashReq E._OwnPublicKeyHashResp
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction when the transaction was submitted. Throws an
 --    error if balancing or signing failed.
-submitUnbalancedTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
+submitUnbalancedTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e CardanoTx
 -- See Note [Injecting errors into the user's error type]
 submitUnbalancedTx utx = do
   tx <- balanceTx utx
@@ -704,7 +703,7 @@ submitUnbalancedTx utx = do
 
 -- | Send an unbalanced transaction to be balanced. Returns the balanced transaction.
 --    Throws an error if balancing failed.
-balanceTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
+balanceTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e CardanoTx
 -- See Note [Injecting errors into the user's error type]
 balanceTx t =
   let req = pabReq (BalanceTxReq t) E._BalanceTxResp in
@@ -713,7 +712,7 @@ balanceTx t =
 -- | Send an balanced transaction to be signed. Returns the ID
 --    of the final transaction when the transaction was submitted. Throws an
 --    error if signing failed.
-submitBalancedTx :: forall w s e. (AsContractError e) => Tx -> Contract w s e Tx
+submitBalancedTx :: forall w s e. (AsContractError e) => CardanoTx -> Contract w s e CardanoTx
 -- See Note [Injecting errors into the user's error type]
 submitBalancedTx t =
   let req = pabReq (WriteBalancedTxReq t) E._WriteBalancedTxResp in
@@ -726,7 +725,7 @@ submitTx :: forall w s e.
   ( AsContractError e
   )
   => TxConstraints Void Void
-  -> Contract w s e Tx
+  -> Contract w s e CardanoTx
 submitTx = submitTxConstraintsWith @Void mempty
 
 -- | Build a transaction that satisfies the constraints, then submit it to the
@@ -741,7 +740,7 @@ submitTxConstraints
   )
   => TypedValidator a
   -> TxConstraints (RedeemerType a) (DatumType a)
-  -> Contract w s e Tx
+  -> Contract w s e CardanoTx
 submitTxConstraints inst = submitTxConstraintsWith (Constraints.typedValidatorLookups inst)
 
 -- | Build a transaction that satisfies the constraints using the UTXO map
@@ -756,7 +755,7 @@ submitTxConstraintsSpending
   => TypedValidator a
   -> Map TxOutRef ChainIndexTxOut
   -> TxConstraints (RedeemerType a) (DatumType a)
-  -> Contract w s e Tx
+  -> Contract w s e CardanoTx
 submitTxConstraintsSpending inst utxo =
   let lookups = Constraints.typedValidatorLookups inst <> Constraints.unspentOutputs utxo
   in submitTxConstraintsWith lookups
@@ -785,10 +784,10 @@ submitTxConstraintsWith
   )
   => ScriptLookups a
   -> TxConstraints (RedeemerType a) (DatumType a)
-  -> Contract w s e Tx
+  -> Contract w s e CardanoTx
 submitTxConstraintsWith sl constraints = mkTxConstraints sl constraints >>= submitUnbalancedTx
 
 -- | A version of 'submitTx' that waits until the transaction has been
 --   confirmed on the ledger before returning.
 submitTxConfirmed :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e ()
-submitTxConfirmed t = submitUnbalancedTx t >>= awaitTxConfirmed . txId
+submitTxConfirmed t = submitUnbalancedTx t >>= awaitTxConfirmed . getCardanoTxId

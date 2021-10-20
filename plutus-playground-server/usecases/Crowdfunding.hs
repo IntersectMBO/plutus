@@ -25,7 +25,7 @@ import           Control.Applicative         (Applicative (pure))
 import           Control.Monad               (void)
 import           Data.Default                (Default (def))
 import           Ledger                      (POSIXTime, POSIXTimeRange, PubKeyHash, ScriptContext (..), TxInfo (..),
-                                              Validator, txId)
+                                              Validator, getCardanoTxId)
 import qualified Ledger
 import qualified Ledger.Contexts             as V
 import qualified Ledger.Interval             as Interval
@@ -166,7 +166,7 @@ contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))
-    txid <- fmap txId (submitTxConstraints inst tx)
+    txid <- fmap getCardanoTxId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntilTime (Scripts.validatorAddress inst) (campaignCollectionDeadline cmp)
 

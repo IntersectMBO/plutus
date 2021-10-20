@@ -62,6 +62,7 @@ library
         Ledger.TimeSlot
         Ledger.Tokens
         Ledger.Tx
+        Ledger.Tx.CardanoAPI
         Ledger.Typed.Scripts
         Ledger.Typed.Scripts.MonetaryPolicies
         Ledger.Typed.Scripts.StakeValidators
@@ -84,12 +85,26 @@ library
         -- The rest of the plutus-ledger-api modules are reexported from within
         -- the Haskell modules and not in the current cabal file.
         -- For example: Plutus.V1.Ledger.Address is reexported by Ledger.Address
+    other-modules:
+        Ledger.Tx.CardanoAPITemp
 
     build-depends:
         base >=4.9 && <5,
         aeson -any,
         base16-bytestring,
         bytestring -any,
+        cardano-addresses -any,
+        cardano-api -any,
+        cardano-api:gen -any,
+        cardano-binary -any,
+        cardano-crypto -any,
+        cardano-crypto-class -any,
+        cardano-ledger-alonzo -any,
+        cardano-ledger-byron -any,
+        cardano-ledger-core -any,
+        cardano-ledger-shelley-ma -any,
+        cardano-wallet-core -any,
+        deepseq -any,
         cborg -any,
         containers -any,
         cryptonite >=0.25,
@@ -97,15 +112,19 @@ library
         flat -any,
         hashable -any,
         hedgehog -any,
+        iohk-monitoring -any,
         plutus-core -any,
         plutus-ledger-api -any,
         memory -any,
         mtl -any,
+        ouroboros-consensus-shelley -any,
         plutus-tx-plugin -any,
         prettyprinter -any,
         plutus-tx -any,
         serialise -any,
         scientific -any,
+        shelley-spec-ledger -any,
+        strict-containers -any,
         template-haskell -any,
         text -any,
         time -any,
@@ -115,17 +134,10 @@ library
         lens -any,
         newtype-generics -any,
         http-api-data -any,
-        cardano-api -any,
-        cardano-api:gen -any,
-        cardano-binary -any,
-        cardano-crypto -any,
-        cardano-crypto-class -any,
-        cardano-addresses -any,
-        cardano-wallet-core -any,
         servant -any,
         deepseq -any,
         openapi3 -any,
-        freer-extras
+        freer-extras,
 
     ghc-options: -fprint-potential-instances
 

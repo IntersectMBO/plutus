@@ -54,7 +54,7 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           GHC.Generics                         (Generic)
 
-import           Ledger                               (POSIXTime, POSIXTimeRange, PubKeyHash, Validator, txId)
+import           Ledger                               (POSIXTime, POSIXTimeRange, PubKeyHash, Validator, getCardanoTxId)
 import qualified Ledger
 import qualified Ledger.Ada                           as Ada
 import qualified Ledger.Constraints                   as Constraints
@@ -208,7 +208,7 @@ contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))
-    txid <- fmap txId (submitTxConstraints inst tx)
+    txid <- fmap getCardanoTxId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntilTime (Scripts.validatorAddress inst) $ campaignCollectionDeadline cmp
 

@@ -159,8 +159,8 @@ txnUpdateUtxo = property $ do
         -- submit the same txn twice, so it should be accepted the first time
         -- and rejected the second time.
         trace = do
-            Trace.liftWallet wallet1 (submitTxn txn)
-            Trace.liftWallet wallet1 (submitTxn txn)
+            Trace.liftWallet wallet1 (submitTxn $ Right txn)
+            Trace.liftWallet wallet1 (submitTxn $ Right txn)
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
@@ -175,7 +175,7 @@ validTrace :: Property
 validTrace = property $ do
     (Mockchain m _, txn) <- forAll genChainTxn
     let options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
-        trace = Trace.liftWallet wallet1 (submitTxn txn)
+        trace = Trace.liftWallet wallet1 (submitTxn $ Right txn)
     checkPredicateInner options assertNoFailedTransactions trace Hedgehog.annotate Hedgehog.assert
 
 validTrace2 :: Property
@@ -183,8 +183,8 @@ validTrace2 = property $ do
     (Mockchain m _, txn) <- forAll genChainTxn
     let options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
         trace = do
-            Trace.liftWallet wallet1 (submitTxn txn)
-            Trace.liftWallet wallet1 (submitTxn txn)
+            Trace.liftWallet wallet1 (submitTxn $ Right txn)
+            Trace.liftWallet wallet1 (submitTxn $ Right txn)
         predicate = assertFailedTransaction (\_ _ _ -> True)
     checkPredicateInner options predicate trace Hedgehog.annotate Hedgehog.assert
 
@@ -193,7 +193,7 @@ invalidTrace = property $ do
     (Mockchain m _, txn) <- forAll genChainTxn
     let invalidTxn = txn { txMint = Ada.adaValueOf 1 }
         options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
-        trace = Trace.liftWallet wallet1 (submitTxn invalidTxn)
+        trace = Trace.liftWallet wallet1 (submitTxn $ Right invalidTxn)
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
@@ -226,9 +226,9 @@ invalidScript = property $ do
         -- may spend outputs belonging to one of the other two wallets.
         -- So we add all the wallets' signatures with 'signAll'.
         trace = do
-            Trace.liftWallet wallet1 (submitTxn (Gen.signAll scriptTxn))
+            Trace.liftWallet wallet1 (submitTxn $ Right (Gen.signAll scriptTxn))
             _ <- Trace.nextSlot
-            Trace.liftWallet wallet1 (submitTxn invalidTxn)
+            Trace.liftWallet wallet1 (submitTxn $ Right invalidTxn)
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _

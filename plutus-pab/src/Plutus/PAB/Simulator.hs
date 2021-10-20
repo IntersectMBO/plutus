@@ -100,7 +100,7 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
-import           Ledger                                         (Address (..), Blockchain, PubKeyHash, Tx, TxId,
+import           Ledger                                         (Address (..), Blockchain, CardanoTx, PubKeyHash, TxId,
                                                                  TxOut (..), eitherTx, txFee, txId)
 import qualified Ledger.Ada                                     as Ada
 import           Ledger.CardanoWallet                           (MockWallet)
@@ -774,11 +774,11 @@ logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String 
 logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
 
 -- | Make a payment from one wallet to another
-payToWallet :: forall t. Wallet -> Wallet -> Value -> Simulation t Tx
+payToWallet :: forall t. Wallet -> Wallet -> Value -> Simulation t CardanoTx
 payToWallet source target = payToPublicKeyHash source (Emulator.walletPubKeyHash target)
 
 -- | Make a payment from one wallet to a public key address
-payToPublicKeyHash :: forall t. Wallet -> PubKeyHash -> Value -> Simulation t Tx
+payToPublicKeyHash :: forall t. Wallet -> PubKeyHash -> Value -> Simulation t CardanoTx
 payToPublicKeyHash source target amount =
     handleAgentThread source
         $ flip (handleError @WAPI.WalletAPIError) (throwError . WalletError)

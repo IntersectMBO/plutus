@@ -45,9 +45,10 @@ import           Data.Text                      (Text)
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (POSIXTime, POSIXTimeRange, PubKeyHash, Slot, SlotRange, Tx)
+import           Ledger                         (POSIXTime, POSIXTimeRange, PubKeyHash, Slot, SlotRange)
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
+import           Ledger.Tx                      (CardanoTx)
 import           Plutus.ChainIndex              (ChainIndexQueryEffect)
 import qualified Plutus.ChainIndex.Effects      as ChainIndexEff
 import           Plutus.Contract.Effects        (ChainIndexQuery (..), ChainIndexResponse (..))
@@ -192,7 +193,7 @@ handleUnbalancedTransactions ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs UnbalancedTx (Either WalletAPIError Tx)
+    => RequestHandler effs UnbalancedTx (Either WalletAPIError CardanoTx)
 handleUnbalancedTransactions =
     RequestHandler $ \unbalancedTx ->
         surroundDebug @Text "handleUnbalancedTransactions" $ do
@@ -204,7 +205,7 @@ handlePendingTransactions ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs Tx (Either WalletAPIError Tx)
+    => RequestHandler effs CardanoTx (Either WalletAPIError CardanoTx)
 handlePendingTransactions =
     RequestHandler $ \tx ->
         surroundDebug @Text "handlePendingTransactions" $ do

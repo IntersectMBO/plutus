@@ -28,11 +28,11 @@ import           Control.Lens                        (makeClassyPrisms)
 import           Control.Monad                       (forever)
 import           Data.Aeson                          (FromJSON, ToJSON)
 import           GHC.Generics                        (Generic)
-import           Ledger                              (txId)
 import qualified Ledger.Ada                          as Ada
 import           Ledger.Constraints                  (ScriptLookups, SomeLookupsAndConstraints (..), TxConstraints (..))
 import qualified Ledger.Constraints                  as Constraints
 import           Ledger.Crypto                       (PubKeyHash)
+import           Ledger.Tx                           (getCardanoTxId)
 import           Ledger.Value                        (TokenName)
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine        (InvalidTransition, SMContractError, StateMachine,
@@ -85,7 +85,7 @@ subscribeSTO = forever $ handleError (const $ return ()) $ awaitPromise $
                 Constraints.mintingPolicy (STO.policy stoData)
                 <> credLookups
         mapError WithdrawTxError
-            $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . txId
+            $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . getCardanoTxId
 
 type UnlockExchangeSchema = Endpoint "unlock from exchange" Credential
 
@@ -105,7 +105,7 @@ unlockExchange = awaitPromise $ endpoint @"unlock from exchange" $ \credential -
         Left mkTxErr -> throwError (UnlockMkTxError mkTxErr)
         Right utx -> mapError WithdrawTxError $ do
             tx <- submitUnbalancedTx utx
-            awaitTxConfirmed (txId tx)
+            awaitTxConfirmed (getCardanoTxId tx)
 
 -- | Get the constraints and script lookups that are needed to construct a
 --   transaction that presents the 'Credential'

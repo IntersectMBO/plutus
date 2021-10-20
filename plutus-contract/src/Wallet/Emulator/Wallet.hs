@@ -192,9 +192,12 @@ handleWallet ::
     => FeeConfig
     -> WalletEffect ~> Eff effs
 handleWallet feeCfg = \case
-    SubmitTxn tx -> do
-        logInfo $ SubmittingTx tx
-        publishTx tx
+    SubmitTxn ctx -> do
+        case ctx of
+          Left _ -> error "Wallet.Emulator.Wallet.handleWallet: Expecting a mock tx, not an Alonzo tx when submitting it."
+          Right tx -> do
+            logInfo $ SubmittingTx tx
+            publishTx tx
     OwnPubKeyHash -> gets (CW.pubKeyHash . _mockWallet)
     BalanceTx utx' -> runError $ do
         logInfo $ BalancingUnbalancedTx utx'
@@ -207,8 +210,11 @@ handleWallet feeCfg = \case
         tx' <- handleBalanceTx utxo (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
         tx'' <- handleAddSignature tx'
         logInfo $ FinishedBalancing tx''
-        pure tx''
-    WalletAddSignature tx -> handleAddSignature tx
+        pure $ Right tx''
+    WalletAddSignature ctx ->
+      case ctx of
+        Left _   -> error "Wallet.Emulator.Wallet.handleWallet: Expecting a mock tx, not an Alonzo tx when adding a signature."
+        Right tx -> Right <$> handleAddSignature tx
     TotalFunds -> foldMap (view ciTxOutValue) <$> (get >>= ownOutputs)
 
 handleAddSignature ::

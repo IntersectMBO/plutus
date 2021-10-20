@@ -29,6 +29,7 @@ import           Ledger                         (Address, PubKeyHash)
 import qualified Ledger
 import qualified Ledger.Ada                     as Ada
 import qualified Ledger.Constraints             as Constraints
+import           Ledger.Tx                      (getCardanoTxId)
 import           Plutus.Contract                as Con
 import qualified Plutus.Contract.State          as State
 import           Plutus.Contract.Test
@@ -126,7 +127,7 @@ tests =
                 (void $ activateContract w1 theContract tag)
 
         , let smallTx = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
-              theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx >>= awaitTxConfirmed . Ledger.txId
+              theContract :: Contract () Schema ContractError () = submitTx smallTx >>= awaitTxConfirmed . getCardanoTxId >> submitTx smallTx >>= awaitTxConfirmed . getCardanoTxId
           in run "handle several blockchain events"
                 (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
                     .&&. assertNoFailedTransactions
@@ -180,14 +181,14 @@ tests =
                 (void $ activateContract w2 (void theContract) tag)
 
         , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
-              theContract :: Contract () Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.txId
+              theContract :: Contract () Schema ContractError () = submitTx payment >>= awaitTxConfirmed . Ledger.getCardanoTxId
           in run "await tx confirmed"
             (assertDone theContract tag (const True) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
 
         , let payment = Constraints.mustPayToPubKey (walletPubKeyHash w2) (Ada.lovelaceValueOf 10)
               theContract :: Contract () Schema ContractError TxStatus =
-                submitTx payment >>= awaitTxStatusChange . Ledger.txId
+                submitTx payment >>= awaitTxStatusChange . Ledger.getCardanoTxId
           in run "await change in tx status"
             (assertDone theContract tag ((==) (Committed TxValid ())) "should be done")
             (activateContract w1 theContract tag >> void (Trace.waitNSlots 1))
@@ -200,7 +201,7 @@ tests =
                 tx <- submitTx payment
                 -- There should be 2 utxos. We suppose the first belongs to the
                 -- wallet calling the contract and the second one to W2.
-                let utxo = head $ fmap snd $ Ledger.txOutRefs tx
+                let utxo = head $ fmap snd $ Ledger.getCardanoTxOutRefs tx
                 -- We wait for W1's utxo to change status. It should be of
                 -- status confirmed unspent.
                 s <- awaitTxOutStatusChange utxo

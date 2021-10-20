@@ -83,14 +83,14 @@ import           Data.Text.Prettyprint.Doc   (Pretty (..), hsep, indent, viaShow
 import           GHC.Generics                (Generic)
 import           Ledger                      (Address, AssetClass, Datum, DatumHash, MintingPolicy, MintingPolicyHash,
                                               PubKeyHash, Redeemer, RedeemerHash, StakeValidator, StakeValidatorHash,
-                                              Tx, TxId, TxOutRef, ValidatorHash, txId)
+                                              TxId, TxOutRef, ValidatorHash)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Credential           (Credential)
 import           Ledger.Scripts              (Validator)
 import           Ledger.Slot                 (Slot (..), SlotRange)
 import           Ledger.Time                 (POSIXTime (..), POSIXTimeRange)
 import           Ledger.TimeSlot             (SlotConversionError)
-import           Ledger.Tx                   (ChainIndexTxOut)
+import           Ledger.Tx                   (CardanoTx, ChainIndexTxOut, getCardanoTxId)
 import           Plutus.ChainIndex           (Page (pageItems), PageQuery)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (_citxTxId))
 import           Plutus.ChainIndex.Types     (Tip (..), TxOutStatus, TxStatus)
@@ -111,7 +111,7 @@ data PABReq =
     | OwnPublicKeyHashReq
     | ChainIndexQueryReq ChainIndexQuery
     | BalanceTxReq UnbalancedTx
-    | WriteBalancedTxReq Tx
+    | WriteBalancedTxReq CardanoTx
     | ExposeEndpointReq ActiveEndpoint
     | PosixTimeRangeToContainedSlotRangeReq POSIXTimeRange
     deriving stock (Eq, Show, Generic)
@@ -288,14 +288,14 @@ instance Pretty ChainIndexResponse where
 
 data BalanceTxResponse =
   BalanceTxFailed WalletAPIError
-  | BalanceTxSuccess Tx
+  | BalanceTxSuccess CardanoTx
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty BalanceTxResponse where
   pretty = \case
-    BalanceTxFailed e  -> "BalanceTxFailed:" <+> pretty e
-    BalanceTxSuccess i -> "BalanceTxSuccess:" <+> pretty (txId i)
+    BalanceTxFailed e   -> "BalanceTxFailed:" <+> pretty e
+    BalanceTxSuccess tx -> "BalanceTxSuccess:" <+> pretty (getCardanoTxId tx)
 
 _AwaitTxStatusChangeResp' :: TxId -> Prism' PABResp TxStatus
 _AwaitTxStatusChangeResp' i =
@@ -303,23 +303,23 @@ _AwaitTxStatusChangeResp' i =
     (AwaitTxStatusChangeResp i)
     (\case { AwaitTxStatusChangeResp i' s | i == i' -> Just s; _ -> Nothing })
 
-balanceTxResponse :: Iso' BalanceTxResponse (Either WalletAPIError Tx)
+balanceTxResponse :: Iso' BalanceTxResponse (Either WalletAPIError CardanoTx)
 balanceTxResponse = iso f g where
   f = \case { BalanceTxFailed w -> Left w; BalanceTxSuccess t -> Right t }
   g = either BalanceTxFailed BalanceTxSuccess
 
 data WriteBalancedTxResponse =
   WriteBalancedTxFailed WalletAPIError
-  | WriteBalancedTxSuccess Tx
+  | WriteBalancedTxSuccess CardanoTx
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WriteBalancedTxResponse where
   pretty = \case
-    WriteBalancedTxFailed e  -> "WriteBalancedTxFailed:" <+> pretty e
-    WriteBalancedTxSuccess i -> "WriteBalancedTxSuccess:" <+> pretty (txId i)
+    WriteBalancedTxFailed e   -> "WriteBalancedTxFailed:" <+> pretty e
+    WriteBalancedTxSuccess tx -> "WriteBalancedTxFailed:" <+> pretty (getCardanoTxId tx)
 
-writeBalancedTxResponse :: Iso' WriteBalancedTxResponse (Either WalletAPIError Tx)
+writeBalancedTxResponse :: Iso' WriteBalancedTxResponse (Either WalletAPIError CardanoTx)
 writeBalancedTxResponse = iso f g where
   f = \case { WriteBalancedTxFailed w -> Left w; WriteBalancedTxSuccess t -> Right t }
   g = either WriteBalancedTxFailed WriteBalancedTxSuccess

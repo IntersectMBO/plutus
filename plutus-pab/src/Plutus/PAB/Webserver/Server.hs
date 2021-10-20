@@ -107,7 +107,6 @@ app fp walletClient pabRunner = do
                 rest = Proxy @(CombinedAPI t :<|> (WalletProxy WalletId) :<|> Raw)
             Servant.serve rest (apiServer :<|> wpServer :<|> fileServer)
 
-
 -- | Start the server using the config. Returns an action that shuts it down
 --   again, and an MVar that is filled when the webserver
 --   thread exits.

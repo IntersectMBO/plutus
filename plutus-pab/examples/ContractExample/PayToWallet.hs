@@ -17,7 +17,7 @@ import           Data.Aeson            (FromJSON, ToJSON)
 import           GHC.Generics          (Generic)
 import           Schema                (ToSchema)
 
-import           Ledger                (Value, txId)
+import           Ledger                (Value, getCardanoTxId)
 import           Ledger.Constraints
 import           Plutus.Contract
 import           Wallet.Emulator.Types (Wallet, walletPubKeyHash)
@@ -36,4 +36,4 @@ payToWallet :: Promise () PayToWalletSchema ContractError ()
 payToWallet = endpoint @"Pay to wallet" $ \PayToWalletParams{amount, wallet} -> do
   let pkh = walletPubKeyHash wallet
   txid <- submitTx (mustPayToPubKey pkh amount)
-  awaitTxConfirmed (txId txid)
+  awaitTxConfirmed (getCardanoTxId txid)

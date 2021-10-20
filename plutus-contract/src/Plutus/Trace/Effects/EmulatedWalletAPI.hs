@@ -39,8 +39,12 @@ payToWallet ::
     -> Wallet
     -> Value
     -> Eff effs TxId
-payToWallet source target amount =
-    liftWallet source $ fmap txId $ payToPublicKeyHash defaultSlotRange amount (EM.walletPubKeyHash target)
+payToWallet source target amount = do
+    ctx <- liftWallet source
+         $ payToPublicKeyHash defaultSlotRange amount (EM.walletPubKeyHash target)
+    case ctx of
+      Left _   -> error "Plutus.Trace.EmulatedWalletAPI.payToWallet: Expecting a mock tx, not an Alonzo tx"
+      Right tx -> pure $ txId tx
 
 -- | Handle the 'EmulatedWalletAPI' effect using the emulator's
 --   'MultiAgent' effect.

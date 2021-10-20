@@ -188,12 +188,21 @@ exBudgetBridge = do
 someCardanoApiTxBridge :: BridgePart
 someCardanoApiTxBridge = do
     typeName ^== "SomeCardanoApiTx"
-    typeModule ^== "Ledger.Tx"
+    typeModule ^== "Ledger.Tx.CardanoAPI"
     pure psJson
 
 miscBridge :: BridgePart
 miscBridge =
-    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> word64Bridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge <|> someCardanoApiTxBridge
+        bultinByteStringBridge
+    <|> byteStringBridge
+    <|> integerBridge
+    <|> word64Bridge
+    <|> scientificBridge
+    <|> digestBridge
+    <|> naturalBridge
+    <|> satIntBridge
+    <|> exBudgetBridge
+    <|> someCardanoApiTxBridge
 
 ------------------------------------------------------------
 

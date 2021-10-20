@@ -46,8 +46,8 @@ import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (Datum (..), DatumHash, POSIXTime, PubKeyHash, TxId, ValidatorHash, interval,
-                                           scriptOutputsAt, txId, txSignedBy, valuePaidTo)
+import           Ledger                   (Datum (..), DatumHash, POSIXTime, PubKeyHash, TxId, ValidatorHash,
+                                           getCardanoTxId, interval, scriptOutputsAt, txSignedBy, valuePaidTo)
 import qualified Ledger
 import           Ledger.Constraints       (TxConstraints)
 import qualified Ledger.Constraints       as Constraints
@@ -252,7 +252,7 @@ pay inst escrow vl = do
     pk <- ownPubKeyHash
     let tx = Constraints.mustPayToTheScript pk vl
                 <> Constraints.mustValidateIn (Ledger.interval 1 (escrowDeadline escrow))
-    txId <$> submitTxConstraints inst tx
+    getCardanoTxId <$> submitTxConstraints inst tx
 
 newtype RedeemSuccess = RedeemSuccess TxId
     deriving (Haskell.Eq, Haskell.Show)
@@ -291,7 +291,7 @@ redeem inst escrow = mapError (review _EscrowError) $ do
     then throwing _RedeemFailed DeadlinePassed
     else if foldMap (view Tx.ciTxOutValue) unspentOutputs `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress
-         else RedeemSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx
+         else RedeemSuccess . getCardanoTxId <$> submitTxConstraintsSpending inst unspentOutputs tx
 
 newtype RefundSuccess = RefundSuccess TxId
     deriving newtype (Haskell.Eq, Haskell.Show, Generic)
@@ -319,7 +319,7 @@ refund inst escrow = do
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
                 <> Constraints.mustValidateIn (from (Haskell.succ $ escrowDeadline escrow))
     if Constraints.modifiesUtxoSet tx'
-    then RefundSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx'
+    then RefundSuccess . getCardanoTxId <$> submitTxConstraintsSpending inst unspentOutputs tx'
     else throwing _RefundFailed ()
 
 -- | Pay some money into the escrow contract. Then release all funds to their

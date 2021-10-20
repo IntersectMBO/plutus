@@ -182,7 +182,7 @@ start = do
         inst = uniswapInstance us
         tx   = mustPayToTheScript (Factory []) $ unitValue c
     ledgerTx <- submitTxConstraints inst tx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
     void $ waitNSlots 1
 
     logInfo @String $ printf "started Uniswap %s at address %s" (show us) (show $ uniswapAddress us)
@@ -216,7 +216,7 @@ create us CreateParams{..} = do
                    Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toBuiltinData $ Create lp)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
 
     logInfo $ "created liquidity pool: " ++ show lp
 
@@ -249,7 +249,7 @@ close us CloseParams{..} = do
                    Constraints.mustIncludeDatum (Datum $ PlutusTx.toBuiltinData $ Pool lp liquidity)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
 
     logInfo $ "closed liquidity pool: " ++ show lp
 
@@ -284,7 +284,7 @@ remove us RemoveParams{..} = do
                    Constraints.mustSpendScriptOutput oref redeemer
 
     ledgerTx <- submitTxConstraintsWith lookups tx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
 
     logInfo $ "removed liquidity from pool: " ++ show lp
 
@@ -329,7 +329,7 @@ add us AddParams{..} = do
     logInfo $ show tx
 
     ledgerTx <- submitTxConstraintsWith lookups tx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
 
     logInfo $ "added liquidity to pool: " ++ show lp
 
@@ -367,7 +367,7 @@ swap us SwapParams{..} = do
     logInfo $ show tx
     ledgerTx <- submitTxConstraintsWith lookups tx
     logInfo $ show ledgerTx
-    void $ awaitTxConfirmed $ txId ledgerTx
+    void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
     logInfo $ "swapped with: " ++ show lp
 
 -- | Finds all liquidity pools and their liquidity belonging to the Uniswap instance.

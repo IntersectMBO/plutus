@@ -144,7 +144,6 @@ library
         cardano-wallet-core -any,
         text-class -any,
         cardano-crypto-class -any,
-        cardano-addresses -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -184,6 +183,7 @@ test-suite plutus-contract-test
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cardano-api -any,
         containers -any,
         data-default -any,
         freer-extras -any,
