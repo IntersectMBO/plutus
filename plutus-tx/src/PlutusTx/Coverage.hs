@@ -78,27 +78,43 @@ instance Pretty CoverageAnnotation where
   pretty (CoverLocation loc) = pretty loc
   pretty (CoverBool loc b)   = pretty b <> " at " <> pretty loc
 
+data Metadata = ApplicationHeadSymbol String
+    deriving (Ord, Eq, Show, Generic, Serialise)
+    deriving Flat via (AsSerialize Metadata)
+
+newtype CoverageMetadata = CoverageMetadata { _metadatSet :: Set Metadata }
+    deriving (Ord, Eq, Show, Generic, Serialise)
+    deriving newtype (Semigroup, Monoid)
+    deriving Flat via (AsSerialize CoverageMetadata)
+
 -- | This type keeps track of all coverage annotations and where they have been inserted / what
 -- annotations are expected to be found when executing a piece of code.
-newtype CoverageIndex = CoverageIndex { _coverageAnnotations :: Set CoverageAnnotation }
-                      deriving (Ord, Eq, Show, Generic)
-                      deriving newtype (Semigroup, Monoid, Serialise)
+data CoverageIndex = CoverageIndex { _coverageAnnotations :: Set CoverageAnnotation
+                                   , _coverageMetadata    :: Map CoverageAnnotation CoverageMetadata }
+                      deriving (Ord, Eq, Show, Generic, Serialise)
                       deriving Flat via (AsSerialize CoverageIndex)
 
 makeLenses ''CoverageIndex
+
+instance Semigroup CoverageIndex where
+  ci <> ci' = CoverageIndex (_coverageAnnotations ci <> _coverageAnnotations ci')
+                            (Map.unionWith (<>) (_coverageMetadata ci) (_coverageMetadata ci'))
+
+instance Monoid CoverageIndex where
+  mempty = CoverageIndex mempty Map.empty
 
 -- | Include a location coverage annotation in the index
 addLocationToCoverageIndex :: MonadWriter CoverageIndex m => GHC.RealSrcSpan -> m CoverageAnnotation
 addLocationToCoverageIndex src = do
   let ann = CoverLocation (toCovLoc src)
-  tell . CoverageIndex $ Set.singleton ann
+  tell $ CoverageIndex (Set.singleton ann) Map.empty
   return ann
 
 -- | Include a boolean coverage annotation in the index
 addBoolCaseToCoverageIndex :: MonadWriter CoverageIndex m => GHC.RealSrcSpan -> Bool -> m CoverageAnnotation
 addBoolCaseToCoverageIndex src b = do
   let ann = boolCaseCoverageAnn src b
-  tell . CoverageIndex $ Set.singleton ann
+  tell $ CoverageIndex (Set.singleton ann) Map.empty
   return ann
 
 boolCaseCoverageAnn :: GHC.RealSrcSpan -> Bool -> CoverageAnnotation

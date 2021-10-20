@@ -13,8 +13,8 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
--- You need to use all of these to get coverage
 {-# OPTIONS_GHC -g -fplugin-opt PlutusTx.Plugin:coverage-all #-}
+-- You need to use all of these to get coverage
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word

@@ -684,6 +684,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
+        -- See Note [Tick-unfloating]
+        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
+
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
@@ -700,6 +703,12 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+{- Note [Tick-unfloating]
+   GHC likes to float ticks on case scrutinees. This screws with boolean
+   coverage (because the result of the case expression is not necessarily
+   boolean typed) so we un-float these ticks.
+-}
 
 -- | Do your best to try to extract a source span from a tick
 getSourceSpan :: Maybe GHC.ModBreaks -> GHC.GenTickish pass -> Maybe GHC.RealSrcSpan
