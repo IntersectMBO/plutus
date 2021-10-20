@@ -20,7 +20,6 @@
 
 module Wallet.Emulator.Wallet where
 
-import           Cardano.Crypto.Hash            as Crypto
 import qualified Cardano.Wallet.Primitive.Types as Cardano.Wallet
 import           Control.Lens                   hiding (from, to)
 import           Control.Monad                  (foldM)
@@ -32,7 +31,6 @@ import           Control.Monad.Freer.TH         (makeEffect)
 import           Data.Aeson                     (FromJSON (..), ToJSON (..), ToJSONKey)
 import qualified Data.Aeson                     as Aeson
 import           Data.Bifunctor
-import           Data.ByteArray                 (convert)
 import           Data.Default                   (Default (def))
 import           Data.Foldable
 import qualified Data.Map                       as Map
@@ -126,12 +124,15 @@ toBase16 = toText . unWalletId
 fromBase16 :: T.Text -> Either String WalletId
 fromBase16 s = bimap show WalletId (fromText s)
 
--- | The public key hash of a wallet.
-walletPubKeyHash :: Wallet -> PubKeyHash
-walletPubKeyHash = \case
-    Wallet (WalletId (Cardano.Wallet.WalletId i)) -> PubKeyHash $ PlutusTx.toBuiltin @ByteString $ convert i
+-- | The 'MockWallet' whose ID is the given wallet ID (if it exists)
+walletMockWallet :: Wallet -> Maybe MockWallet
+walletMockWallet (Wallet wid) = find ((==) wid . WalletId . CW.mwWalletId) CW.knownWallets
 
--- | Get a wallet's address.
+-- | The public key hash of a mock wallet.  (Fails if the wallet is not a mock wallet).
+walletPubKeyHash :: Wallet -> PubKeyHash
+walletPubKeyHash = CW.pubKeyHash . fromMaybe (error "walletPubKeyHash: Wallet is not a mock wallet") . walletMockWallet
+
+-- | Get the address of a mock wallet. (Fails if the wallet is not a mock wallet).
 walletAddress :: Wallet -> Address
 walletAddress = pubKeyHashAddress . walletPubKeyHash
 
@@ -181,7 +182,7 @@ fromMockWallet mw = WalletState mw emptyNodeClientState mempty sp where
 -- | Empty wallet state for an emulator 'Wallet'. Returns 'Nothing' if the wallet
 --   is not known in the emulator.
 emptyWalletState :: Wallet -> Maybe WalletState
-emptyWalletState (Wallet wid) = fmap fromMockWallet $ find ((==) wid . WalletId . CW.mwWalletId) CW.knownWallets
+emptyWalletState = fmap fromMockWallet . walletMockWallet
 
 handleWallet ::
     ( Member NodeClientEffect effs
