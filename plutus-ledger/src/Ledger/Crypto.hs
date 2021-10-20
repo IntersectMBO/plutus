@@ -31,7 +31,7 @@ pubKeyHash (PubKey (LedgerBytes bs)) =
     PubKeyHash
       $ toBuiltin
       $ BA.convert @_ @BS.ByteString
-      $ Crypto.hashWith Crypto.Blake2b_160 (fromBuiltin bs)
+      $ Crypto.hashWith Crypto.Blake2b_224 (fromBuiltin bs)
 
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool

@@ -31,7 +31,6 @@ import           Codec.Serialise                (serialise)
 import qualified Crypto.Hash                    as Crypto
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Aeson.Extras              (encodeByteString)
-import qualified Data.ByteArray                 as BA
 import qualified Data.ByteString                as BS
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Hashable                  (Hashable (..))
@@ -41,7 +40,7 @@ import qualified Data.Text                      as T
 import           GHC.Generics                   (Generic)
 import           Ledger.Crypto                  (PrivateKey, PubKey (..), PubKeyHash (..))
 import qualified Ledger.Crypto                  as Crypto
-import qualified PlutusTx.Prelude               as PlutusTx
+import           Plutus.V1.Ledger.Bytes         (LedgerBytes (..))
 import           Servant.API                    (FromHttpApiData (..), ToHttpApiData (..))
 
 newtype MockPrivateKey = MockPrivateKey { unMockPrivateKey :: XPrv }
@@ -79,8 +78,9 @@ fromSeed bs = MockWallet{mwWalletId, mwKey} where
     mwWalletId = CW.WalletId
         $ fromMaybe (error "CardanoWallet: fromSeed: digestFromByteString")
         $ Crypto.digestFromByteString
-        $ getPubKeyHash
-        $ Crypto.pubKeyHash
+        $ Crypto.hashWith Crypto.Blake2b_160
+        $ getLedgerBytes
+        $ getPubKey
         $ Crypto.toPublicKey k
     k = Crypto.generateFromSeed bs'
     mwKey = MockPrivateKey k
@@ -103,7 +103,7 @@ privateKey = unMockPrivateKey . mwKey
 
 -- | The mock wallet's public key hash
 pubKeyHash :: MockWallet -> PubKeyHash
-pubKeyHash MockWallet{mwWalletId=CW.WalletId i} = PubKeyHash . PlutusTx.toBuiltin @BS.ByteString $ BA.convert i
+pubKeyHash = Crypto.pubKeyHash . pubKey
 
 -- | The mock wallet's public key
 pubKey :: MockWallet -> PubKey

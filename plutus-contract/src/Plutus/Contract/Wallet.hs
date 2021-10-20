@@ -130,13 +130,14 @@ instance FromJSON ExportTx where
     parseJSON _ = fail "Expexted Object"
 
 export :: C.ProtocolParameters -> C.NetworkId -> UnbalancedTx -> Either CardanoAPI.ToCardanoError ExportTx
-export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} =
+export params networkId UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex, unBalancedTxRequiredSignatories} =
+    let requiredSigners = fst <$> Map.toList unBalancedTxRequiredSignatories in
     ExportTx
-        <$> mkPartialTx params networkId unBalancedTxTx
+        <$> mkPartialTx requiredSigners params networkId unBalancedTxTx
         <*> mkLookups networkId unBalancedTxUtxoIndex
 
-mkPartialTx :: C.ProtocolParameters -> C.NetworkId -> Plutus.Tx -> Either CardanoAPI.ToCardanoError (C.Tx C.AlonzoEra)
-mkPartialTx params networkId = fmap (C.makeSignedTransaction []) . CardanoAPI.toCardanoTxBody (Just params) networkId
+mkPartialTx :: [WAPI.PubKeyHash] -> C.ProtocolParameters -> C.NetworkId -> Plutus.Tx -> Either CardanoAPI.ToCardanoError (C.Tx C.AlonzoEra)
+mkPartialTx requiredSigners params networkId = fmap (C.makeSignedTransaction []) . CardanoAPI.toCardanoTxBody requiredSigners (Just params) networkId
 
 mkLookups :: C.NetworkId -> Map Plutus.TxOutRef Plutus.TxOut -> Either CardanoAPI.ToCardanoError [ExportTxInput]
 mkLookups networkId = fmap (fmap $ uncurry ExportTxInput) . traverse (bitraverse CardanoAPI.toCardanoTxIn (CardanoAPI.toCardanoTxOut networkId)) . Map.toList

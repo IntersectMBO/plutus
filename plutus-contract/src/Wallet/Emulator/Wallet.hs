@@ -235,7 +235,7 @@ ownOutputs WalletState{_mockWallet} = do
     Map.fromList . catMaybes <$> traverse txOutRefTxOutFromRef refs
   where
     cred :: Credential
-    cred = addressCredential $ pubKeyAddress $ toPublicKey $ CW.privateKey _mockWallet
+    cred = PubKeyCredential (CW.pubKeyHash _mockWallet)
 
     -- Accumulate all unspent 'TxOutRef's from the resulting pages.
     allUtxoSet :: Maybe (PageQuery TxOutRef) -> Eff effs [TxOutRef]

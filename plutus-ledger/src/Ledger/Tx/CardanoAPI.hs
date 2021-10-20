@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs              #-}
@@ -301,17 +302,19 @@ fromAlonzoLedgerScript (Alonzo.PlutusScript bs) =
    in either (const Nothing) Just script
 
 toCardanoTxBody ::
-    Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
+    [Api.PubKeyHash] -- ^ Required signers of the transaction
+    -> Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
     -> C.NetworkId -- ^ Network ID
     -> P.Tx
     -> Either ToCardanoError (C.TxBody C.AlonzoEra)
-toCardanoTxBody protocolParams networkId P.Tx{..} = do
+toCardanoTxBody sigs protocolParams networkId P.Tx{..} = do
     txIns <- traverse toCardanoTxInBuild $ Set.toList txInputs
     txInsCollateral <- toCardanoTxInsCollateral txCollateral
     txOuts <- traverse (toCardanoTxOut networkId) txOutputs
     txFee' <- toCardanoFee txFee
     txValidityRange <- toCardanoValidityRange txValidRange
     txMintValue <- toCardanoMintValue txRedeemers txMint txMintScripts
+    txExtraKeyWits <- C.TxExtraKeyWitnesses C.ExtraKeyWitnessesInAlonzoEra <$> traverse toCardanoPaymentKeyHash sigs
     first TxBodyError $ makeTransactionBody' C.TxBodyContent
         { txIns = txIns
         , txInsCollateral = txInsCollateral
@@ -322,7 +325,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txMintValue = txMintValue
         , txProtocolParams = C.BuildTxWith protocolParams
         , txScriptValidity = C.TxScriptValidityNone
-        , txExtraKeyWits = C.TxExtraKeyWitnesses C.ExtraKeyWitnessesInAlonzoEra [] -- TODO
+        , txExtraKeyWits
         -- unused:
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
@@ -444,7 +447,10 @@ fromCardanoPaymentKeyHash :: C.Hash C.PaymentKey -> P.PubKeyHash
 fromCardanoPaymentKeyHash paymentKeyHash = P.PubKeyHash $ PlutusTx.toBuiltin $ C.serialiseToRawBytes paymentKeyHash
 
 toCardanoPaymentKeyHash :: P.PubKeyHash -> Either ToCardanoError (C.Hash C.PaymentKey)
-toCardanoPaymentKeyHash (P.PubKeyHash bs) = tag "toCardanoPaymentKeyHash" $ deserialiseFromRawBytes (C.AsHash C.AsPaymentKey) $ PlutusTx.fromBuiltin bs
+toCardanoPaymentKeyHash (P.PubKeyHash bs) =
+    let bsx = PlutusTx.fromBuiltin bs
+        tg = "toCardanoPaymentKeyHash (" <> show (BS.length bsx) <> " bytes)"
+    in tag tg $ deserialiseFromRawBytes (C.AsHash C.AsPaymentKey) bsx
 
 fromCardanoScriptHash :: C.ScriptHash -> P.ValidatorHash
 fromCardanoScriptHash scriptHash = P.ValidatorHash $ PlutusTx.toBuiltin $ C.serialiseToRawBytes scriptHash
