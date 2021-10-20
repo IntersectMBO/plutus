@@ -133,7 +133,6 @@ import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM, initialChainState,
                                                         initialDist)
 
-import           Debug.Trace                           as D
 
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 
@@ -217,7 +216,7 @@ checkPredicateInner CheckOptions{_minLogLevel, _emulatorConfig} predicate action
                 $ runReader dist
                 $ consumeStream theStream
 
-    unless (fmap S.fst' (D.traceShowId result) == Right True) $ do
+    unless (fmap S.fst' result == Right True) $ do
         annot "Test failed."
         annot "Emulator log:"
         S.mapM_ annot
@@ -232,7 +231,7 @@ checkPredicateInner CheckOptions{_minLogLevel, _emulatorConfig} predicate action
                 annot (describeError err)
                 annot (show err)
                 assert False
-            Right _ -> assert False
+            Right r -> assert $ S.fst' r
 
 -- | A version of 'checkPredicateGen' with configurable 'CheckOptions'
 checkPredicateGenOptions ::

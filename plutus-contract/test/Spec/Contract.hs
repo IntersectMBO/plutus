@@ -271,10 +271,15 @@ tests =
 
         , let theContract :: Contract () Schema ContractError () = void $ awaitSlot 10
               emTrace = do
-                void $ Trace.assert "Always fails" $ const False
-                void $ activateContract w1 theContract tag
+                void $ Trace.assert "Always succeeds" $ const True
                 void $ Trace.waitNSlots 10
-          in checkEmulatorFails "assert throws error" (defaultCheckOptions & maxSlot .~ 1) (waitingForSlot theContract tag 10) emTrace
+          in run "assert succeeds" (waitingForSlot theContract tag 10) emTrace
+
+        , let theContract :: Contract () Schema ContractError () = void $ awaitSlot 10
+              emTrace = do
+                void $ Trace.assert "Always fails" $ const False
+                void $ Trace.waitNSlots 10
+          in checkEmulatorFails "assert throws error" (defaultCheckOptions & minLogLevel .~ Debug) (waitingForSlot theContract tag 10) emTrace
         ]
 
 checkpointContract :: Contract () Schema ContractError ()
