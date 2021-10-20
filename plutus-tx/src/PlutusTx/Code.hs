@@ -63,7 +63,7 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhe
 
     decode = do
         p <- decode
-        pure $ DeserializedCode p Nothing
+        pure $ DeserializedCode p Nothing mempty
 
     size c = size (getPlc c)
 

@@ -165,8 +165,8 @@ import           Plutus.Trace.Emulator.Types           (ContractInstanceMsg (Rec
                                                         unContractInstanceTag)
 import           Plutus.V1.Ledger.Scripts
 import qualified PlutusTx.Builtins                     as Builtins
-import           PlutusTx.ErrorCodes
 import           PlutusTx.Coverage
+import           PlutusTx.ErrorCodes
 import           PlutusTx.Monoid                       (inv)
 import qualified Streaming                             as S
 import qualified Test.QuickCheck.DynamicLogic.Monad    as DL
@@ -177,7 +177,7 @@ import           Test.QuickCheck.StateModel            hiding (Action, Actions, 
                                                         stateAfter)
 import qualified Test.QuickCheck.StateModel            as StateModel
 
-import           Test.QuickCheck                       hiding (checkCoverage,(.&&.), (.||.))
+import           Test.QuickCheck                       hiding (checkCoverage, (.&&.), (.||.))
 import qualified Test.QuickCheck                       as QC
 import           Test.QuickCheck.Monadic               (PropertyM, monadic)
 import qualified Test.QuickCheck.Monadic               as QC
@@ -1238,7 +1238,6 @@ checkNoLockedFundsProof options spec NoLockedFundsProof{nlfpMainStrategy   = mai
                               "  " ++ show bal'
                     DL.assert err (bal `leq` bal')
 
-<<<<<<< HEAD
 -- | A whitelist entry tells you what final log entry prefixes
 -- are acceptable for a given error
 data Whitelist = Whitelist { errorPrefixes :: [Text.Text] }
@@ -1277,17 +1276,18 @@ checkErrorWhitelist :: ContractModel m
                     -> Whitelist
                     -> Actions m
                     -> Property
-checkErrorWhitelist = checkErrorWhitelistWithOptions defaultCheckOptions
+checkErrorWhitelist = checkErrorWhitelistWithOptions defaultCheckOptions defaultCoverageOptions
 
 -- | Check that running a contract model does not result in validation
 -- failures that are not accepted by the whitelist.
 checkErrorWhitelistWithOptions :: forall m. ContractModel m
                                => CheckOptions
+                               -> CoverageOptions
                                -> [ContractInstanceSpec m]
                                -> Whitelist
                                -> Actions m
                                -> Property
-checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go check acts
+checkErrorWhitelistWithOptions opts copts handleSpecs whitelist acts = property $ go check acts
   where
     check :: TracePredicate
     check = checkOnchain .&&. (assertNoFailedTransactions .||. checkOffchain)
@@ -1307,6 +1307,6 @@ checkErrorWhitelistWithOptions opts handleSpecs whitelist acts = property $ go c
     checkEvents events = all checkEvent [ f | (TxnValidationFail _ _ _ (ScriptFailure f) _) <- events ]
 
     go :: TracePredicate -> Actions m -> Property
-    go check actions = monadic (flip State.evalState mempty) $ finalChecks opts check $ do
+    go check actions = monadic (flip State.evalState mempty) $ finalChecks opts copts handleSpecs check $ do
                         QC.run $ setHandles $ activateWallets handleSpecs
                         void $ runActionsInState StateModel.initialState (toStateModelActions actions)
