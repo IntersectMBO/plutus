@@ -24,7 +24,7 @@ This instructs the plugin to insert profiling instrumentation for all functions.
 In the future there may be the option to profile a more targeted set of functions.
 
 Acquiring an executable script
------------------------------
+------------------------------
 
 Profiling works by seeing how the budget is used as the script runs.
 It therefore requires an executable script, which means that you need not only the validator script but all the arguments it receives.
