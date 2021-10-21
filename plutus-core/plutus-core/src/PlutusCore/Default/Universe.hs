@@ -193,6 +193,8 @@ instance Closed DefaultUni where
         )
 
     -- See Note [Stable encoding of tags].
+    -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'Everywhere' RIGHT ABOVE AND
+    -- 'withDecodedUni' RIGHT BELOW AS WELL.
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
     encodeUni DefaultUniString            = [2]

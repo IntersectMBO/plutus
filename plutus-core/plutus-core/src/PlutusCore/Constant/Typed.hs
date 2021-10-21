@@ -11,12 +11,14 @@
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE QuantifiedConstraints    #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE UndecidableSuperClasses  #-}
 
 {-# LANGUAGE StrictData               #-}
 
@@ -49,6 +51,7 @@ import           PlutusPrelude
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Core
 import           PlutusCore.Data
+import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
@@ -68,7 +71,6 @@ import           Data.String
 import qualified Data.Text                               as Text
 import           GHC.Ix
 import           GHC.TypeLits
-import           Universe
 
 infixr 9 `TypeSchemeArrow`
 
@@ -466,8 +468,11 @@ class KnownTypeAst uni (a :: k) where
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
 
+-- Making it a class synonym, so that it can be partially applied and used in
+-- 'TestDefaultUniTypesAreAllKnown'.
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
-type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
+class    KnownBuiltinTypeIn (UniOf term) term a => KnownBuiltinType term a
+instance KnownBuiltinTypeIn (UniOf term) term a => KnownBuiltinType term a
 
 -- | Delete all @x@s from a list.
 type family Delete x xs :: [a] where
@@ -765,6 +770,14 @@ instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]
 instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
 instance KnownBuiltinType term Data          => KnownType term Data
+
+class DefaultUni `Everywhere` (KnownBuiltinType `Implies1` KnownType) =>
+    TestDefaultUniTypesAreAllKnown
+instance
+    TestDefaultUniTypesAreAllKnown
+
+class    (forall a. c a b => d a b) => Implies1 c d b 
+instance (forall a. c a b => d a b) => Implies1 c d b 
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
