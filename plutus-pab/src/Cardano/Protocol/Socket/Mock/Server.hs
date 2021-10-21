@@ -390,7 +390,7 @@ protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
     networkState <- newNetworkMutableState
     _ <- async $ cleanNetworkMutableState networkState
     withServerNode
-      (localSnocket iocp "")
+      (localSnocket iocp)
       nullNetworkServerTracers
       networkState
       (AcceptedConnectionsLimit maxBound maxBound 0)

@@ -111,7 +111,7 @@ data ExportTx =
             }
     deriving stock (Generic, Typeable)
 
-data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.AlonzoEra}
+data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.CtxTx C.AlonzoEra}
     deriving stock (Generic, Typeable)
     deriving anyclass (ToJSON)
 

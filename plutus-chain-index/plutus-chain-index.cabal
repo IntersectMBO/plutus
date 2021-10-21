@@ -94,6 +94,7 @@ library
         semigroups -any,
         serialise -any,
         sqlite-simple -any,
+        typed-protocols -any,
         typed-protocols-examples -any,
         unordered-containers -any,
         bytestring -any,

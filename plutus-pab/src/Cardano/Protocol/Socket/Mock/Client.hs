@@ -74,7 +74,7 @@ runChainSync socketPath slotConfig onNewBlock = do
       loop timeout ch@ChainSyncHandle{ cshHandler } iocp = do
         catchAll
           (connectTo
-            (localSnocket iocp socketPath)
+            (localSnocket iocp)
             nullNetworkConnectTracers
             (versionedNodeToClientProtocols
               nodeToClientVersion
@@ -145,7 +145,7 @@ runTxSender socketPath = do
       loop timeout ch@TxSendHandle{ tshQueue } iocp = do
         catchAll
           (connectTo
-            (localSnocket iocp socketPath)
+            (localSnocket iocp)
             nullNetworkConnectTracers
             (versionedNodeToClientProtocols
               nodeToClientVersion
