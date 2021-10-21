@@ -12,7 +12,7 @@
 module Plutus.PAB.CoreSpec
     ( tests
     , stopContractInstanceTest
-    , walletFundsChangeTest
+    , pubKeyHashFundsChangeTest
     , observableStateChangeTest
     , runScenario
     , assertEqual
@@ -45,10 +45,11 @@ import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
 import           Ledger                                   (getCardanoTxId, getCardanoTxOutRefs, pubKeyAddress,
                                                            pubKeyHash, pubKeyHashAddress, toPubKeyHash, txId,
-                                                           txOutAddress, txOutRefId, txOutRefs, txOutputs)
+                                                           txOutAddress, txOutRefId, txOutRefs, txOutputs, PubKeyHash)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import qualified Ledger.Ada                               as Ada
 import qualified Ledger.AddressMap                        as AM
+import qualified Ledger.CardanoWallet                     as CW
 import           Ledger.Value                             (valueOf)
 import           Plutus.ChainIndex                        (Depth (Depth),
                                                            RollbackState (Committed, TentativelyConfirmed, Unknown),
@@ -101,6 +102,9 @@ runScenario sim = do
 defaultWallet :: Wallet
 defaultWallet = knownWallet 1
 
+defaultWalletPubKeyHash :: PubKeyHash
+defaultWalletPubKeyHash = CW.pubKeyHash (CW.fromWalletNumber $ CW.WalletNumber 1)
+
 activateContractTests :: TestTree
 activateContractTests =
     testGroup
@@ -128,7 +132,7 @@ executionTests =
         , testCase "can wait for tx status change" waitForTxStatusChangeTest
         , testCase "can wait for tx output status change" waitForTxOutStatusChangeTest
         , testCase "can subscribe to slot updates" slotChangeTest
-        , testCase "can subscribe to wallet funds changes" walletFundsChangeTest
+        , testCase "can subscribe to wallet funds changes" pubKeyHashFundsChangeTest
         , testCase "can subscribe to observable state changes" observableStateChangeTest
         ]
 
@@ -257,24 +261,24 @@ waitForTxOutStatusChangeTest = runScenario $ do
               (Committed TxValid Unspent)
               txOutStatus2''
 
-walletFundsChangeTest :: IO ()
-walletFundsChangeTest = runScenario $ do
+pubKeyHashFundsChangeTest :: IO ()
+pubKeyHashFundsChangeTest = runScenario $ do
     let initialBalance = lovelaceValueOf 10_000_000_000
         payment = lovelaceValueOf 50
         fee     = lovelaceValueOf 10 -- TODO: Calculate the fee from the tx
 
     env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
-    let stream = WS.walletFundsChange defaultWallet env
+    let stream = WS.pubKeyHashFundsChange defaultWalletPubKeyHash env
     (initialValue, next) <- liftIO (readOne stream)
-    (wllt, pk) <- Simulator.addWallet
-    _ <- Simulator.payToPublicKeyHash defaultWallet pk payment
+    (_, pkh) <- Simulator.addWallet
+    _ <- Simulator.payToPublicKeyHash defaultWallet pkh payment
     nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
     (finalValue, _) <- liftIO (readOne nextStream)
     let difference = initialValue <> inv finalValue
     assertEqual "defaultWallet should make a payment" difference (payment <> fee)
 
     -- Check that the funds are correctly registered in the newly created wallet
-    let stream2 = WS.walletFundsChange wllt env
+    let stream2 = WS.pubKeyHashFundsChange pkh env
     vl2 <- liftIO (readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
     assertEqual "generated wallet should receive a payment" (initialBalance <> payment) vl2
 
@@ -320,7 +324,7 @@ guessingGameTest =
           runScenario $ do
               let openingBalance = 100_000_000_000
                   lockAmount = 15
-                  walletFundsChange msg delta = do
+                  pubKeyHashFundsChange msg delta = do
                         address <- pubKeyHashAddress <$> Simulator.handleAgentThread defaultWallet ownPubKeyHash
                         balance <- Simulator.valueAt address
                         fees <- Simulator.walletFees defaultWallet
@@ -328,7 +332,7 @@ guessingGameTest =
                             (openingBalance + delta)
                             (valueOf (balance <> fees) adaSymbol adaToken)
               initialTxCounts <- Simulator.txCounts
-              walletFundsChange "Check our opening balance." 0
+              pubKeyHashFundsChange "Check our opening balance." 0
               -- need to add contract address to wallet's watched addresses
               instanceId <- Simulator.activateContract defaultWallet GameStateMachine
 
@@ -345,7 +349,7 @@ guessingGameTest =
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
                   (initialTxCounts & Simulator.txValidated +~ 2)
-              walletFundsChange "Locking the game should reduce our balance." (negate lockAmount)
+              pubKeyHashFundsChange "Locking the game should reduce our balance." (negate lockAmount)
               game1Id <- Simulator.activateContract defaultWallet GameStateMachine
 
               guess
@@ -373,7 +377,7 @@ guessingGameTest =
               assertTxCounts
                 "A correct guess creates a third transaction."
                 (initialTxCounts & Simulator.txValidated +~ 3)
-              walletFundsChange "The wallet should now have its money back." 0
+              pubKeyHashFundsChange "The wallet should now have its money back." 0
               blocks <- Simulator.blockchain
               assertBool
                   "We have some confirmed blocks in this test."

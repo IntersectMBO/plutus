@@ -8,7 +8,7 @@ import Capability.PlutusApps.MarloweApp as MarloweApp
 import Capability.PlutusApps.MarloweApp.Types (LastResult(..))
 import Capability.Toast (class Toast, addToast)
 import Clipboard (class MonadClipboard)
-import Component.Contacts.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
+import Component.Contacts.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo, _pubKeyHash)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -112,7 +112,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       mDashboardState <- peruse _dashboardState
       for_ mDashboardState \dashboardState -> do
         let
-          wallet = view (_walletDetails <<< _walletInfo <<< _wallet) dashboardState
+          wallet = view (_walletDetails <<< _walletInfo <<< _pubKeyHash) dashboardState
 
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _contracts dashboardState
@@ -133,10 +133,10 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       -- note: we should only ever be notified of changes to the current wallet, since we subscribe to
       -- this update when we pick it up, and unsubscribe when we put it down - but we check here
       -- anyway in case
-      WalletFundsChange wallet value -> do
-        mCurrentWallet <- peruse (_dashboardState <<< _walletDetails <<< _walletInfo <<< _wallet)
+      PubKeyHashFundsChange publicKeyHash value -> do
+        mCurrentWallet <- peruse (_dashboardState <<< _walletDetails <<< _walletInfo <<< _pubKeyHash)
         for_ mCurrentWallet \currentWallet -> do
-          when (currentWallet == toFront wallet)
+          when (currentWallet == toFront publicKeyHash)
             $ assign (_dashboardState <<< _walletDetails <<< _assets) (toFront value)
       -- update the state when a contract instance changes
       -- note: we should be subscribed to updates from all (and only) the current wallet's contract
@@ -259,7 +259,7 @@ handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   let
     followerAppIds :: Array PlutusAppId
     followerAppIds = Set.toUnfoldable $ keys followerApps
-  unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
+  unsubscribeFromWallet $ view (_walletInfo <<< _pubKeyHash) walletDetails
   unsubscribeFromPlutusApp $ view _companionAppId walletDetails
   unsubscribeFromPlutusApp $ view _marloweAppId walletDetails
   for_ followerAppIds unsubscribeFromPlutusApp
@@ -283,7 +283,7 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       let
         followerAppIds :: Array PlutusAppId
         followerAppIds = Set.toUnfoldable $ keys followerApps
-      subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
+      subscribeToWallet $ view (_walletInfo <<< _pubKeyHash) walletDetails
       subscribeToPlutusApp $ view _companionAppId walletDetails
       subscribeToPlutusApp $ view _marloweAppId walletDetails
       for_ followerAppIds subscribeToPlutusApp

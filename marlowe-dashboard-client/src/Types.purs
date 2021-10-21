@@ -14,7 +14,7 @@ import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
 import Network.RemoteData (RemoteData)
 import Servant.PureScript.Ajax (AjaxError)
-import Wallet.Emulator.Wallet (Wallet) as Back
+import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
 import Wallet.Types (ContractInstanceId) as Back
 
 type AjaxResponse
@@ -36,8 +36,8 @@ type DecodedAjaxError
 -- encode/decode instances are wrong. I haven't figured out how to fix that yet, but in the
 -- meantime this hack works. :/
 data CombinedWSStreamToServer
-  = Subscribe (Either Back.ContractInstanceId Back.Wallet)
-  | Unsubscribe (Either Back.ContractInstanceId Back.Wallet)
+  = Subscribe (Either Back.ContractInstanceId Back.PubKeyHash)
+  | Unsubscribe (Either Back.ContractInstanceId Back.PubKeyHash)
 
 derive instance genericCombinedWSStreamToServer :: Generic CombinedWSStreamToServer _
 

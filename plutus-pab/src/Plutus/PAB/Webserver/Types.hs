@@ -16,7 +16,7 @@ import           Data.Map                                (Map)
 import qualified Data.OpenApi.Schema                     as OpenApi
 import           Data.Text.Prettyprint.Doc               (Pretty, pretty, (<+>))
 import           GHC.Generics                            (Generic)
-import           Ledger                                  (Tx, TxId)
+import           Ledger                                  (PubKeyHash, Tx, TxId)
 import           Ledger.Index                            (UtxoIndex)
 import           Ledger.Slot                             (Slot)
 import           Ledger.Value                            (Value)
@@ -108,13 +108,13 @@ data InstanceStatusToClient
 data CombinedWSStreamToClient
     = InstanceUpdate ContractInstanceId InstanceStatusToClient
     | SlotChange Slot -- ^ New slot number
-    | WalletFundsChange Wallet Value -- ^ The funds of the wallet have changed
+    | PubKeyHashFundsChange PubKeyHash Value -- ^ The funds at the pubkeyhash address have changed
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Instructions sent to the server through the combined websocket API
 data CombinedWSStreamToServer
-    = Subscribe (Either ContractInstanceId Wallet)
-    | Unsubscribe (Either ContractInstanceId Wallet)
+    = Subscribe (Either ContractInstanceId PubKeyHash)
+    | Unsubscribe (Either ContractInstanceId PubKeyHash)
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)

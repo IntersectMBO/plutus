@@ -21,7 +21,7 @@ module Plutus.PAB.Webserver.WebSocket
     -- * Reports
     , getContractReport
     -- ** Streams of PAB events
-    , walletFundsChange
+    , pubKeyHashFundsChange
     , openEndpoints
     , slotChange
     , observableStateChange
@@ -45,6 +45,7 @@ import           Data.Set                                (Set)
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.Text                               as Text
+import           Ledger                                  (PubKeyHash)
 import qualified Ledger
 import           Ledger.Slot                             (Slot)
 import qualified Network.WebSockets                      as WS
@@ -62,8 +63,6 @@ import           Plutus.PAB.Webserver.Types              (CombinedWSStreamToClie
                                                           ContractReport (..), ContractSignatureResponse (..),
                                                           InstanceStatusToClient (..))
 import           Servant                                 ((:<|>) ((:<|>)))
-import           Wallet.Emulator.Wallet                  (Wallet (..))
-import qualified Wallet.Emulator.Wallet                  as Wallet
 import           Wallet.Types                            (ContractInstanceId (..))
 
 getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
@@ -86,21 +85,21 @@ combinedUpdates wsState =
 -- | The subscriptions for a websocket (wallet funds and contract instance notifications)
 data WSState = WSState
     { wsInstances :: STM.TVar (Set ContractInstanceId) -- ^ Contract instances that we want updates for
-    , wsWallets   :: STM.TVar (Set Wallet) -- ^ Wallets whose funds we are watching
+    , wsWallets   :: STM.TVar (Set PubKeyHash) -- ^ Wallets whose funds we are watching
     }
 
-instancesAndWallets :: WSState -> STMStream (Set ContractInstanceId, Set Wallet)
+instancesAndWallets :: WSState -> STMStream (Set ContractInstanceId, Set PubKeyHash)
 instancesAndWallets WSState{wsInstances, wsWallets} =
     (,) <$> unfold (STM.readTVar wsInstances) <*> unfold (STM.readTVar wsWallets)
 
 combinedWSStreamToClient :: WSState -> BlockchainEnv -> InstancesState -> STMStream CombinedWSStreamToClient
 combinedWSStreamToClient wsState blockchainEnv instancesState = do
-    (instances, wallets) <- instancesAndWallets wsState
-    let mkWalletStream wallet = WalletFundsChange wallet <$> walletFundsChange wallet blockchainEnv
+    (instances, pubKeyHashes) <- instancesAndWallets wsState
+    let mkWalletStream pubKeyHash = PubKeyHashFundsChange pubKeyHash <$> pubKeyHashFundsChange pubKeyHash blockchainEnv
         mkInstanceStream instanceId = InstanceUpdate instanceId <$> instanceUpdates instanceId instancesState
     fold
         [ SlotChange <$> slotChange blockchainEnv
-        , foldMap mkWalletStream wallets
+        , foldMap mkWalletStream pubKeyHashes
         , foldMap mkInstanceStream instances
         ]
 
@@ -110,10 +109,10 @@ initialWSState = WSState <$> STM.newTVar mempty <*> STM.newTVar mempty
 slotChange :: BlockchainEnv -> STMStream Slot
 slotChange = unfold . Instances.currentSlot
 
-walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
+pubKeyHashFundsChange :: PubKeyHash -> BlockchainEnv -> STMStream Ledger.Value
 -- TODO: Change from 'Wallet' to 'Address' (see SCP-2208)
-walletFundsChange wallet blockchainEnv =
-    unfold (Instances.valueAt (Wallet.walletAddress wallet) blockchainEnv)
+pubKeyHashFundsChange pubKeyHash blockchainEnv =
+    unfold (Instances.valueAt (Ledger.pubKeyHashAddress pubKeyHash) blockchainEnv)
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
 observableStateChange contractInstanceId instancesState =
@@ -205,11 +204,11 @@ receiveMessagesFromClient connection wsState = forever $ do
 addInstanceId :: WSState -> ContractInstanceId -> STM ()
 addInstanceId WSState{wsInstances} i = STM.modifyTVar wsInstances (Set.insert i)
 
-addWallet :: WSState -> Wallet -> STM ()
+addWallet :: WSState -> PubKeyHash -> STM ()
 addWallet WSState{wsWallets} w = STM.modifyTVar wsWallets (Set.insert w)
 
 removeInstanceId :: WSState -> ContractInstanceId -> STM ()
 removeInstanceId WSState{wsInstances} i = STM.modifyTVar wsInstances (Set.delete i)
 
-removeWallet :: WSState -> Wallet -> STM ()
+removeWallet :: WSState -> PubKeyHash -> STM ()
 removeWallet WSState{wsWallets} w = STM.modifyTVar wsWallets (Set.delete w)

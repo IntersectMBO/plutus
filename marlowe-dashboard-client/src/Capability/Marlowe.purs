@@ -80,9 +80,9 @@ class
   getRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
   getFollowerApps :: WalletDetails -> m (DecodedAjaxResponse (Map PlutusAppId ContractHistory))
   subscribeToPlutusApp :: PlutusAppId -> m Unit
-  subscribeToWallet :: Wallet -> m Unit
+  subscribeToWallet :: PubKeyHash -> m Unit
   unsubscribeFromPlutusApp :: PlutusAppId -> m Unit
-  unsubscribeFromWallet :: Wallet -> m Unit
+  unsubscribeFromWallet :: PubKeyHash -> m Unit
 
 instance manageMarloweAppM :: ManageMarlowe AppM where
   createWallet = do
