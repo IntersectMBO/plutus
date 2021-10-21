@@ -11,7 +11,7 @@
     flags = { release = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "cardano-wallet-core"; version = "2021.9.9"; };
+      identifier = { name = "cardano-wallet-core"; version = "2021.9.29"; };
       license = "Apache-2.0";
       copyright = "2018-2020 IOHK";
       maintainer = "operations@iohk.io";
@@ -73,6 +73,7 @@
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."http-media" or (errorHandler.buildDepError "http-media"))
           (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
+          (hsPkgs."int-cast" or (errorHandler.buildDepError "int-cast"))
           (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
           (hsPkgs."lattices" or (errorHandler.buildDepError "lattices"))
@@ -192,6 +193,7 @@
           "Cardano/Wallet/Primitive/Types/Address"
           "Cardano/Wallet/Primitive/Types/Coin"
           "Cardano/Wallet/Primitive/Types/Hash"
+          "Cardano/Wallet/Primitive/Types/Redeemer"
           "Cardano/Wallet/Primitive/Types/RewardAccount"
           "Cardano/Wallet/Primitive/Types/TokenBundle"
           "Cardano/Wallet/Primitive/Types/TokenMap"
@@ -201,6 +203,7 @@
           "Cardano/Wallet/Primitive/Types/UTxO"
           "Cardano/Wallet/Primitive/Types/UTxOIndex"
           "Cardano/Wallet/Primitive/Types/UTxOIndex/Internal"
+          "Cardano/Wallet/Primitive/Types/UTxOSelection"
           "Cardano/Wallet/Registry"
           "Cardano/Wallet/TokenMetadata/MockServer"
           "Cardano/Wallet/Transaction"
@@ -220,7 +223,7 @@
           "Network/Wai/Middleware/Logging"
           "Ouroboros/Network/Client/Wallet"
           "UnliftIO/Compat"
-          "Cardano/Wallet/Primitive/CoinSelection/Gen"
+          "Cardano/Wallet/Primitive/CoinSelection/Balance/Gen"
           "Cardano/Wallet/Primitive/Types/Address/Gen"
           "Cardano/Wallet/Primitive/Types/Coin/Gen"
           "Cardano/Wallet/Primitive/Types/RewardAccount/Gen"
@@ -231,6 +234,7 @@
           "Cardano/Wallet/Primitive/Types/Tx/Gen"
           "Cardano/Wallet/Primitive/Types/UTxO/Gen"
           "Cardano/Wallet/Primitive/Types/UTxOIndex/Gen"
+          "Cardano/Wallet/Primitive/Types/UTxOSelection/Gen"
           "Cardano/Wallet/Gen"
           ];
         hsSourceDirs = [ "src" ];
@@ -364,6 +368,7 @@
             "Cardano/Wallet/Primitive/AddressDiscovery/SharedSpec"
             "Cardano/Wallet/Primitive/Delegation/StateSpec"
             "Cardano/Wallet/Primitive/AddressDiscoverySpec"
+            "Cardano/Wallet/Primitive/CoinSelectionSpec"
             "Cardano/Wallet/Primitive/CoinSelection/BalanceSpec"
             "Cardano/Wallet/Primitive/CoinSelection/CollateralSpec"
             "Cardano/Wallet/Primitive/CollateralSpec"
@@ -386,10 +391,11 @@
             "Cardano/Wallet/Primitive/Types/UTxOSpec"
             "Cardano/Wallet/Primitive/Types/UTxOIndexSpec"
             "Cardano/Wallet/Primitive/Types/UTxOIndex/TypeErrorSpec"
+            "Cardano/Wallet/Primitive/Types/UTxOSelectionSpec"
+            "Cardano/Wallet/Primitive/Types/UTxOSelectionSpec/TypeErrorSpec"
             "Cardano/Wallet/Primitive/TypesSpec"
             "Cardano/Wallet/TokenMetadataSpec"
             "Cardano/Wallet/RegistrySpec"
-            "Cardano/Wallet/TransactionSpec"
             "Cardano/WalletSpec"
             "Control/Concurrent/ConciergeSpec"
             "Data/Function/UtilsSpec"

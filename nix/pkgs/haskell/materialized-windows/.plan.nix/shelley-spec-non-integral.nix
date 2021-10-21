@@ -8,7 +8,7 @@
   , config
   , ... }:
   {
-    flags = { development = false; };
+    flags = {};
     package = {
       specVersion = "2.2";
       identifier = { name = "shelley-spec-non-integral"; version = "0.1.0.0"; };
@@ -32,23 +32,13 @@
       };
     components = {
       "library" = {
-        depends = [ (hsPkgs."base" or (errorHandler.buildDepError "base")) ];
+        depends = [
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."non-integral" or (errorHandler.buildDepError "non-integral"))
+          ];
         buildable = true;
         modules = [ "Shelley/Spec/NonIntegral" ];
         hsSourceDirs = [ "src" ];
-        };
-      tests = {
-        "shelley-spec-non-integral-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
-            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-            ];
-          buildable = true;
-          modules = [ "Tests/Shelley/Spec/NonIntegral" ];
-          hsSourceDirs = [ "test" ];
-          mainPath = [ "Tests.hs" ];
-          };
         };
       };
     } // {

@@ -57,13 +57,12 @@
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
+          (hsPkgs."typed-protocols-cborg" or (errorHandler.buildDepError "typed-protocols-cborg"))
           (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
-          (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
           ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
         buildable = true;
         modules = [
           "Ouroboros/Network/Linger"
-          "Ouroboros/Network/Codec"
           "Ouroboros/Network/CodecCBORTerm"
           "Ouroboros/Network/Channel"
           "Ouroboros/Network/Driver"
@@ -116,7 +115,6 @@
             (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))
             ];
           buildable = true;
-          modules = [ "Network/TypedProtocol/PingPong/Codec/CBOR" ];
           hsSourceDirs = [ "demo" "test" ];
           mainPath = [
             "ping-pong.hs"
@@ -145,6 +143,7 @@
             (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
             (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
             (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
+            (hsPkgs."typed-protocols-cborg" or (errorHandler.buildDepError "typed-protocols-cborg"))
             (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
             ] ++ (pkgs.lib).optionals (system.isWindows) [
             (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
@@ -152,10 +151,6 @@
             ];
           buildable = true;
           modules = [
-            "Network/TypedProtocol/PingPong/Codec/CBOR"
-            "Network/TypedProtocol/ReqResp/Codec/CBOR"
-            "Test/Network/TypedProtocol/PingPong/Codec"
-            "Test/Network/TypedProtocol/ReqResp/Codec"
             "Test/Ouroboros/Network/Driver"
             "Test/Ouroboros/Network/Orphans"
             "Test/Ouroboros/Network/Socket"

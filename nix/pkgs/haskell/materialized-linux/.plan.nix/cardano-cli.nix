@@ -73,7 +73,7 @@
           (hsPkgs."parsec" or (errorHandler.buildDepError "parsec"))
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-          (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
+          (hsPkgs."cardano-ledger-shelley" or (errorHandler.buildDepError "cardano-ledger-shelley"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."split" or (errorHandler.buildDepError "split"))
           (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
@@ -124,7 +124,6 @@
           "Cardano/CLI/Shelley/Run/TextView"
           "Cardano/CLI/Shelley/Run/Transaction"
           "Cardano/CLI/Shelley/Script"
-          "Cardano/CLI/Mary/ValueParser"
           "Cardano/CLI/TopHandler"
           ];
         hsSourceDirs = [ "src" ];
@@ -150,6 +149,7 @@
         "cardano-cli-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."bech32" or (errorHandler.buildDepError "bech32"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
@@ -167,6 +167,7 @@
             (hsPkgs."parsec" or (errorHandler.buildDepError "parsec"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             ];
           buildable = true;
           modules = [

@@ -42,7 +42,11 @@
           (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           ];
         buildable = true;
-        modules = [ "Control/Monad/IOSim/Internal" "Control/Monad/IOSim" ];
+        modules = [
+          "Control/Monad/IOSim/Internal"
+          "Data/List/Trace"
+          "Control/Monad/IOSim"
+          ];
         hsSourceDirs = [ "src" ];
         };
       tests = {

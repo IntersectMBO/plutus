@@ -34,7 +34,6 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
@@ -45,7 +44,7 @@
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
-          (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
+          (hsPkgs."non-integral" or (errorHandler.buildDepError "non-integral"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
@@ -57,6 +56,7 @@
           "Cardano/Protocol/TPraos/Rules/OCert"
           "Cardano/Protocol/TPraos/Rules/Overlay"
           "Cardano/Protocol/TPraos/Rules/Prtcl"
+          "Cardano/Protocol/TPraos/Rules/Tickn"
           "Cardano/Protocol/TPraos/Rules/Updn"
           ];
         hsSourceDirs = [ "src" ];

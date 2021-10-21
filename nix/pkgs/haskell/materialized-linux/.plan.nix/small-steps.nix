@@ -8,7 +8,7 @@
   , config
   , ... }:
   {
-    flags = { development = false; sts_assert = false; };
+    flags = { sts_assert = false; };
     package = {
       specVersion = "2.2";
       identifier = { name = "small-steps"; version = "0.1.0.0"; };

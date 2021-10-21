@@ -43,22 +43,22 @@ let
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {
-      "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
+      "https://github.com/Quid2/flat.git"."d32c2c0c0c3c38c41177684ade9febe92d279b06" = "11bplximwg4n6azlrmig23gh7z520lg507wbx448ar90q91j8fp5";
       "https://github.com/input-output-hk/purescript-bridge.git"."6a92d7853ea514be8b70bab5e72077bf5a510596" = "13j64vv116in3c204qsl1v0ajphac9fqvsjp7x3zzfr7n7g61drb";
       "https://github.com/input-output-hk/servant-purescript.git"."a0c7c7e37c95564061247461aef4be505a853538" = "177na04jf6wf18kandzsah40lw3xswmmccpr3hkb8wb4hypcffnf";
-      "https://github.com/input-output-hk/cardano-base"."592aa61d657ad5935a33bace1243abce3728b643" = "1bgq3a2wfdz24jqfwylcc6jjg5aji8dpy5gjkhpnmkkvgcr2rkyb";
+      "https://github.com/input-output-hk/cardano-base"."4ea7e2d927c9a7f78ddc69738409a5827ab66b98" = "0n0hxbr0l95cdc25jmmgs7apmmw17i91chhj5rzzv1k7f3iymf6d";
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
-      "https://github.com/raduom/cardano-ledger-specs"."ef6bb99782d61316da55470620c7da994cc352b2" = "0z2818kwiwv7smz0ff8wr4zb405pymgd12zm32asas0mp5bqxkin";
-      "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
+      "https://github.com/input-output-hk/cardano-ledger-specs"."bf008ce028751cae9fb0b53c3bef20f07c06e333" = "0my3801w1vinc0kf5yh9lxl6saqxgwm6ccg0vvzi104pafcwwcqx";
+      "https://github.com/input-output-hk/cardano-prelude"."c7fc9fba236972c27a55e0f3d34c2758cf616bfc" = "0sg1hhnifqxfc5n5f9ikbxyrjlg77hynbhsql0h4smqniw29dbwk";
       "https://github.com/input-output-hk/goblins"."cde90a2b27f79187ca8310b6549331e59595e7ba" = "17c88rbva3iw82yg9srlxjv2ia5wjb9cyqw44hik565f5v9svnyg";
       "https://github.com/input-output-hk/iohk-monitoring-framework"."46f994e216a1f8b36fe4669b47b2a7011b0e153c" = "1il8fx3misp3650ryj368b3x95ksz01zz3x0z9k00807j93d0ka0";
       "https://github.com/input-output-hk/optparse-applicative"."7497a29cb998721a9068d5725d49461f2bba0e7a" = "1gvsrg925vynwgqwplgjmp53vj953qyh3wbdf34pw21c8r47w35r";
-      "https://github.com/input-output-hk/ouroboros-network"."5d37a927046bc7da2887830d8e35cf604622ce09" = "1620zcnivgm1wp1kq3vqc44g77lv7dalzgywc96qsblf1sv9fw3p";
-      "https://github.com/input-output-hk/cardano-node.git"."ed7fdbf65f40f8e194850b87dd8c631fe26154e6" = "0ivvqnw6fflfbzywychfsyyjd6jn3pg1r0vv63m1rdwp04v59kh5";
+      "https://github.com/input-output-hk/ouroboros-network"."94782e5ca52f234ff8eeddc6322a46cca0b69c0e" = "1da3pka4pn6sjf6w19d957aryjc9ip1a3g0vz7jz66pjri3v2n0j";
+      "https://github.com/input-output-hk/cardano-node.git"."0a553b572a3e2da9e401886155b1e1451c851901" = "0s0b6g7pq0xh48rakvc2m42ydij2fq6q4pmfy6kl1bllpcd2bfw2";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
-      "https://github.com/input-output-hk/cardano-wallet"."ae7569293e94241ef6829139ec02bd91abd069df" = "1mv1dhpkdj9ridm1fvq6jc85qs6zvbp172228rq72gyawjwrgvi6";
-      "https://github.com/input-output-hk/cardano-addresses"."d2f86caa085402a953920c6714a0de6a50b655ec" = "0p6jbnd7ky2yf7bwb1350k8880py8dgqg39k49q02a6ij4ld01ay";
+      "https://github.com/input-output-hk/cardano-wallet"."db038ace21190ee764c141e4e7d27ba3f5fff9b5" = "1ny3scykx7l1na8xjsfwd7c38jz6l8rp12aq0pd12gdylvbnmgr9";
+      "https://github.com/input-output-hk/cardano-addresses"."806a2244f5de71b6cedb29a47cc68740fdc5cb18" = "00ivg1ycv6p193ka8b4vz2b7d2rff1f4xgrh2s60srfdd0vmryif";
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied

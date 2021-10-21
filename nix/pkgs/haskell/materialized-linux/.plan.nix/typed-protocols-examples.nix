@@ -35,25 +35,29 @@
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
           (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
+          (hsPkgs."typed-protocols-cborg" or (errorHandler.buildDepError "typed-protocols-cborg"))
           ];
         buildable = true;
         modules = [
           "Network/TypedProtocol/Channel"
-          "Network/TypedProtocol/Codec"
           "Network/TypedProtocol/Driver/Simple"
           "Network/TypedProtocol/PingPong/Type"
           "Network/TypedProtocol/PingPong/Client"
           "Network/TypedProtocol/PingPong/Server"
           "Network/TypedProtocol/PingPong/Codec"
+          "Network/TypedProtocol/PingPong/Codec/CBOR"
           "Network/TypedProtocol/PingPong/Examples"
           "Network/TypedProtocol/ReqResp/Type"
           "Network/TypedProtocol/ReqResp/Client"
           "Network/TypedProtocol/ReqResp/Server"
           "Network/TypedProtocol/ReqResp/Codec"
+          "Network/TypedProtocol/ReqResp/Codec/CBOR"
           "Network/TypedProtocol/ReqResp/Examples"
           ];
         hsSourceDirs = [ "src" ];
@@ -62,8 +66,10 @@
         "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
+            (hsPkgs."typed-protocols-cborg" or (errorHandler.buildDepError "typed-protocols-cborg"))
             (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
             (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))

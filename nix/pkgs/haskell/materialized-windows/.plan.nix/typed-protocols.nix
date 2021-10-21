@@ -40,6 +40,7 @@
         modules = [
           "Network/TypedProtocol"
           "Network/TypedProtocol/Core"
+          "Network/TypedProtocol/Codec"
           "Network/TypedProtocol/Pipelined"
           "Network/TypedProtocol/Driver"
           "Network/TypedProtocol/Proofs"

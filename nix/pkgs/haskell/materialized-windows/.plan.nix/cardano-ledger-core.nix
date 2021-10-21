@@ -56,7 +56,7 @@
           (hsPkgs."partial-order" or (errorHandler.buildDepError "partial-order"))
           (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
-          (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
+          (hsPkgs."non-integral" or (errorHandler.buildDepError "non-integral"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -68,18 +68,22 @@
           "Cardano/Ledger/Address"
           "Cardano/Ledger/AuxiliaryData"
           "Cardano/Ledger/BaseTypes"
+          "Cardano/Ledger/BHeaderView"
+          "Cardano/Ledger/Block"
           "Cardano/Ledger/Coin"
           "Cardano/Ledger/Compactible"
           "Cardano/Ledger/Core"
           "Cardano/Ledger/Credential"
           "Cardano/Ledger/Crypto"
           "Cardano/Ledger/Era"
-          "Cardano/Ledger/Keys"
           "Cardano/Ledger/Hashes"
+          "Cardano/Ledger/Keys"
+          "Cardano/Ledger/PoolDistr"
           "Cardano/Ledger/Rules/ValidationMode"
           "Cardano/Ledger/SafeHash"
           "Cardano/Ledger/Serialization"
           "Cardano/Ledger/Slot"
+          "Cardano/Ledger/TxIn"
           "Cardano/Ledger/Val"
           ];
         hsSourceDirs = [ "src" ];
