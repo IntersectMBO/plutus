@@ -12,11 +12,20 @@ This repository contains:
 * The implementation, specification, and mechanized metatheory of Plutus Core
 * Plutus Tx, the compiler from Haskell to Plutus Core.
 
-[IMPORTANT]
-====
 The rest of this README is focussed on people who want to develop or contribute to the project.
 
 For people who want to *use* the project, please consult the <<user-documentation>>.
+
+[IMPORTANT]
+====
+This repository used to contain the code for the Plutus Application Framework and Marlowe.
+These have now *moved*:
+
+- https://github.com/input-output-hk/plutus-apps[Plutus Application Framework]
+- https://github.com/input-output-hk/marlowe-cardano[Marlowe]
+
+Please ensure that you make PRs and issues in the appropriate repository!
+
 ====
 
 [[cache-warning]]
@@ -27,6 +36,7 @@ DO NOT IGNORE THIS
 If you want to use Nix with this project, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
 If you do not do this, you will end up building GHC, which takes several hours.
 If you find yourself building GHC, STOP and fix the cache.
+
 ====
 
 == Documentation
@@ -37,22 +47,22 @@ The main documentation is located https://plutus.readthedocs.io/en/latest/[here]
 
 === Talks
 
-- https://www.youtube.com/watch?v=MpWeg6Fg0t8[Functional Smart Contracts on Cardano]
-- https://www.youtube.com/watch?v=usMPt8KpBeI[The Plutus Platform]
+- https://www.youtube.com/watch?v=MpWeg6Fg0t8[Functional Smart Contracts on Cardano (2020)]: an overview of the ideas behind the Plutus Platform.
+- https://www.youtube.com/watch?v=usMPt8KpBeI[The Plutus Platform (2020)]: an overview of the Platform as a whole (including the Application Framework) at the time.
 
 === Specifications and design
 
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report] (draft)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report (draft)]: a technical report and design document for the project.
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]: the formal specification of the core language.
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]: a design document for the core changes to the Cardano ledger.
 
 === Academic papers
 
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support] (in press)
-- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model] (in press)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion]: a description of some of the compilation strategies used in Plutus IR (https://doi.org/10.1007/978-3-030-33636-3_15[published version]).
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda]: a formal model of System F in Agda (https://doi.org/10.1007/978-3-030-33636-3_10[published version]).
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
 
 == Working with the project
 
@@ -65,7 +75,7 @@ However, note that this is pre-release software, so we will not usually be provi
 [[how-to-develop]]
 === How to develop and contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail including development environments; and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail including development environments.
 
 === How to depend on the project from another Haskell project
 
@@ -128,7 +138,6 @@ For fresh development setups, you also need to run `cabal update`.
 Run `cabal build plutus-core` from the root to build the Plutus Core library.
 
 See the link:./cabal.project[cabal project file] to see the other packages that you can build with `cabal`.
-
 
 [[nix-advice]]
 == Nix
@@ -201,6 +210,6 @@ There are other attributes defined in link:./default.nix[`default.nix`].
 
 == Licensing
 
-You are free to copy, modify, and distribute the Plutus Platform with
+You are free to copy, modify, and distribute this software
 under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
 and link:./NOTICE[NOTICE] files for details.
