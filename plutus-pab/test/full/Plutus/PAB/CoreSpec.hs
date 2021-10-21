@@ -43,9 +43,9 @@ import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Text.Extras                         (tshow)
-import           Ledger                                   (getCardanoTxId, getCardanoTxOutRefs, pubKeyAddress,
-                                                           pubKeyHash, pubKeyHashAddress, toPubKeyHash, txId,
-                                                           txOutAddress, txOutRefId, txOutRefs, txOutputs, PubKeyHash)
+import           Ledger                                   (PubKeyHash, getCardanoTxId, getCardanoTxOutRefs,
+                                                           pubKeyAddress, pubKeyHash, pubKeyHashAddress, toPubKeyHash,
+                                                           txId, txOutAddress, txOutRefId, txOutRefs, txOutputs)
 import           Ledger.Ada                               (adaSymbol, adaToken, lovelaceValueOf)
 import qualified Ledger.Ada                               as Ada
 import qualified Ledger.AddressMap                        as AM
