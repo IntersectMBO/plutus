@@ -44,6 +44,7 @@ import           Language.Marlowe.Deserialisation      (byteStringToInt, byteStr
 import           Language.Marlowe.Scripts              (MarloweInput, mkMarloweStateMachineTransition, rolePayoutScript,
                                                         typedValidator)
 import           Language.Marlowe.Semantics
+import           Language.Marlowe.SemanticsTypes
 import           Language.Marlowe.Serialisation        (intToByteString, listToByteString)
 import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)

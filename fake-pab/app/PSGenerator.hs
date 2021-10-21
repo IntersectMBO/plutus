@@ -44,7 +44,7 @@ psContract =
 contractBridge :: BridgePart
 contractBridge = do
     typeName ^== "Contract"
-    typeModule ^== "Language.Marlowe.Semantics"
+    typeModule ^== "Language.Marlowe.SemanticsTypes"
     psContract
 
 psState :: MonadReader BridgeData m => m PSType
@@ -55,7 +55,7 @@ psState =
 stateBridge :: BridgePart
 stateBridge = do
     typeName ^== "State"
-    typeModule ^== "Language.Marlowe.Semantics"
+    typeModule ^== "Language.Marlowe.SemanticsTypes"
     psState
 
 psTransactionInput :: MonadReader BridgeData m => m PSType

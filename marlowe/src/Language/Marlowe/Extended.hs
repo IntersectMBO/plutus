@@ -22,13 +22,13 @@ module Language.Marlowe.Extended ( module Language.Marlowe.Extended
                                  , (%)
                                  ) where
 
-import           Data.Ratio                 ((%))
+import           Data.Ratio                      ((%))
 import           GHC.Generics
-import           Language.Marlowe.Pretty    (Pretty (..), pretty)
-import qualified Language.Marlowe.Semantics as S
-import           Language.Marlowe.Util      (ada)
-import           Ledger.Ada                 (adaSymbol, adaToken)
-import           Text.PrettyPrint.Leijen    (parens, text)
+import           Language.Marlowe.Pretty         (Pretty (..), pretty)
+import qualified Language.Marlowe.SemanticsTypes as S
+import           Language.Marlowe.Util           (ada)
+import           Ledger.Ada                      (adaSymbol, adaToken)
+import           Text.PrettyPrint.Leijen         (parens, text)
 
 
 data Timeout = SlotParam String
