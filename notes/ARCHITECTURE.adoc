@@ -1,5 +1,0 @@
-=== `docs`
-
-This folder contains a variety of miscellaneous documents.
-
-NOTE: Many of these are quite out of date, but can be useful for reference.
