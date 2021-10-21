@@ -772,17 +772,28 @@ coverageCompile originalExpr exprType src compiledTerm covT =
         resultType <- delayType compiledType
         let instantiated = PIR.TyInst () matched resultType
 
-        fc <- addBoolCaseToCoverageIndex src False
+        let headSymName = findHeadSymbol originalExpr
+
+        fc <- addBoolCaseToCoverageIndex src False headSymName
         falseTerm <- compileExpr (GHC.mkConApp dcFalse [])
         falseBranch <- delay $ mkTrace compiledType (T.pack . show $ fc) falseTerm
 
-        tc <- addBoolCaseToCoverageIndex src True
+        tc <- addBoolCaseToCoverageIndex src True headSymName
         trueTerm <- compileExpr (GHC.mkConApp dcTrue [])
         trueBranch <- delay $ mkTrace compiledType (T.pack . show $ tc) trueTerm
         let branches = [trueBranch, falseBranch]
 
         let applied = PIR.mkIterApp () instantiated branches
         force applied
+    where
+      findHeadSymbol :: GHC.Expr a -> Maybe String
+      findHeadSymbol (GHC.Var n)    = Just $ GHC.getOccString n
+      findHeadSymbol (GHC.App t _)  = findHeadSymbol t
+      findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
+      findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
+      findHeadSymbol _              = Nothing
 
 compileExprWithDefs
     :: CompilingDefault uni fun m

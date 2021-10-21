@@ -8,7 +8,11 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , CoverageIndex(..)
+                         , CoverageMetadata(..)
+                         , Metadata(..)
+                         , metadataSet
                          , coverageAnnotations
+                         , coverageMetadata
                          , addLocationToCoverageIndex
                          , addBoolCaseToCoverageIndex
                          ) where
@@ -82,10 +86,18 @@ data Metadata = ApplicationHeadSymbol String
     deriving (Ord, Eq, Show, Generic, Serialise)
     deriving Flat via (AsSerialize Metadata)
 
-newtype CoverageMetadata = CoverageMetadata { _metadatSet :: Set Metadata }
+instance Pretty Metadata where
+  pretty = fromString . show
+
+newtype CoverageMetadata = CoverageMetadata { _metadataSet :: Set Metadata }
     deriving (Ord, Eq, Show, Generic, Serialise)
     deriving newtype (Semigroup, Monoid)
     deriving Flat via (AsSerialize CoverageMetadata)
+
+makeLenses ''CoverageMetadata
+
+instance Pretty CoverageMetadata where
+  pretty = pretty . Set.toList . _metadataSet
 
 -- | This type keeps track of all coverage annotations and where they have been inserted / what
 -- annotations are expected to be found when executing a piece of code.
@@ -111,10 +123,13 @@ addLocationToCoverageIndex src = do
   return ann
 
 -- | Include a boolean coverage annotation in the index
-addBoolCaseToCoverageIndex :: MonadWriter CoverageIndex m => GHC.RealSrcSpan -> Bool -> m CoverageAnnotation
-addBoolCaseToCoverageIndex src b = do
+addBoolCaseToCoverageIndex :: MonadWriter CoverageIndex m => GHC.RealSrcSpan -> Bool -> Maybe String -> m CoverageAnnotation
+addBoolCaseToCoverageIndex src b mHeadSym = do
   let ann = boolCaseCoverageAnn src b
-  tell $ CoverageIndex (Set.singleton ann) Map.empty
+      meta = case mHeadSym of
+        Just name -> Map.singleton ann $ CoverageMetadata $ Set.singleton $ ApplicationHeadSymbol name
+        Nothing   -> Map.empty
+  tell $ CoverageIndex (Set.singleton ann) meta
   return ann
 
 boolCaseCoverageAnn :: GHC.RealSrcSpan -> Bool -> CoverageAnnotation

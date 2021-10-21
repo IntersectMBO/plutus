@@ -1056,7 +1056,10 @@ addEndpointCoverage copts specs es pm
                          , e <- eps ]
         -- Coverage annotation coverage for locations
         anns = getExecutedCoverageAnnotations es
-        coverAnnCovers = [ QC.cover 0.01 (Set.member cann anns) (show . pretty $ cann)
+        toPretty cann = case Map.lookup cann $ copts ^. coverageIndex . coverageMetadata of
+          Just md | not $ Set.null (md ^. metadataSet) -> pretty cann <+> pretty md
+          _                                            -> pretty cann
+        coverAnnCovers = [ QC.cover 0.01 (Set.member cann anns) (show $ toPretty cann)
                          | cann <- Set.toList $ copts ^. coverageIndex . coverageAnnotations ]
     QC.monitor . foldr (.) id $ endpointCovers ++ coverAnnCovers
     return x
