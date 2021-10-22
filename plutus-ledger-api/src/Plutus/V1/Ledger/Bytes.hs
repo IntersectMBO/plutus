@@ -18,21 +18,21 @@ module Plutus.V1.Ledger.Bytes ( LedgerBytes (..)
                 ) where
 
 import           Codec.Serialise
-import           Control.DeepSeq                  (NFData)
-import           Data.Aeson                       (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson                       as JSON
-import qualified Data.Aeson.Extras                as JSON
-import qualified Data.ByteString                  as BS
-import           Data.ByteString.Internal         (c2w, w2c)
-import           Data.Either.Extras               (unsafeFromEither)
-import           Data.String                      (IsString (..))
-import qualified Data.Text                        as Text
-import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
-import           Data.Word                        (Word8)
-import           GHC.Generics                     (Generic)
-import qualified PlutusTx                         as PlutusTx
+import           Control.DeepSeq          (NFData)
+import           Data.Aeson               (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
+import qualified Data.ByteString          as BS
+import           Data.ByteString.Internal (c2w, w2c)
+import           Data.Either.Extras       (unsafeFromEither)
+import           Data.String              (IsString (..))
+import qualified Data.Text                as Text
+import           Data.Word                (Word8)
+import           GHC.Generics             (Generic)
+import qualified PlutusTx                 as PlutusTx
 import           PlutusTx.Lift
-import qualified PlutusTx.Prelude                 as P
+import qualified PlutusTx.Prelude         as P
+import           Prettyprinter.Extras     (Pretty, PrettyShow (..))
 
 fromHex :: BS.ByteString -> Either String LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral

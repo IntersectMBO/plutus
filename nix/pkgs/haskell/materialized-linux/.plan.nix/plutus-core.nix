@@ -301,7 +301,7 @@
           "Crypto"
           "Data/ByteString/Hash"
           "Data/SatInt"
-          "Data/Text/Prettyprint/Doc/Custom"
+          "Prettyprinter/Custom"
           "ErrorCode"
           "PlcTestUtils"
           "PlutusPrelude"

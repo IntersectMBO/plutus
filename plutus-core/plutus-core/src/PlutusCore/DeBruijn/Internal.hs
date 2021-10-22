@@ -36,18 +36,18 @@ import           PlutusCore.Pretty
 import           PlutusCore.Quote
 
 import           Control.Exception
-import           Control.Lens              hiding (Index, Level, index, ix)
+import           Control.Lens             hiding (Index, Level, index, ix)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Bimap                as BM
-import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc
+import qualified Data.Bimap               as BM
+import qualified Data.Text                as T
+import           Prettyprinter
 
 import           Numeric.Natural
 
-import           Control.DeepSeq           (NFData)
+import           Control.DeepSeq          (NFData)
 import           ErrorCode
 import           GHC.Generics
 

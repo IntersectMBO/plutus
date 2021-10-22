@@ -76,8 +76,8 @@ import qualified Data.Kind                                                as GHC
 import           Data.Proxy
 import           Data.Semigroup                                           (stimes)
 import           Data.Text                                                (Text)
-import           Data.Text.Prettyprint.Doc
 import           Data.Word64Array.Word8
+import           Prettyprinter
 import           Universe
 
 {- Note [Compilation peculiarities]

@@ -20,11 +20,11 @@ import           Codec.Serialise.Class       (Serialise)
 import           Control.DeepSeq             (NFData)
 import           Data.Aeson                  (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import           Data.Hashable               (Hashable)
-import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                (Generic)
 import qualified PlutusTx
 import qualified PlutusTx.Bool               as PlutusTx
 import qualified PlutusTx.Eq                 as PlutusTx
+import           Prettyprinter
 
 import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
 import           Plutus.V1.Ledger.Crypto

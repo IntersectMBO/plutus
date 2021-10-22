@@ -149,10 +149,10 @@ import           PlutusPrelude                          hiding (toList)
 
 import           Data.Char                              (toLower)
 import           Data.Semigroup
-import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
+import           Prettyprinter
 
 
 -- | This is used elsewhere to convert cost models into JSON objects where the

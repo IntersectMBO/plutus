@@ -32,10 +32,10 @@ import           PlutusCore.Pretty.PrettyConst
 
 import qualified Data.ByteString                          as BS
 import           Data.Functor.Identity
-import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
+import           Prettyprinter
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString

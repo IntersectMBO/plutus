@@ -49,34 +49,34 @@ module Plutus.V1.Ledger.Value(
     , flattenValue
     ) where
 
-import qualified Prelude                          as Haskell
+import qualified Prelude                  as Haskell
 
-import           Codec.Serialise.Class            (Serialise)
-import           Control.DeepSeq                  (NFData)
-import           Control.Monad                    (guard)
-import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
-import qualified Data.Aeson                       as JSON
-import qualified Data.Aeson.Extras                as JSON
-import qualified Data.ByteString                  as BS
-import           Data.Hashable                    (Hashable)
-import qualified Data.List                        (sortBy)
-import           Data.String                      (IsString (fromString))
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
-import qualified Data.Text.Encoding               as E
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                     (Generic)
-import           GHC.Show                         (showList__)
-import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
-import           Plutus.V1.Ledger.Orphans         ()
+import           Codec.Serialise.Class    (Serialise)
+import           Control.DeepSeq          (NFData)
+import           Control.Monad            (guard)
+import           Data.Aeson               (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
+import qualified Data.ByteString          as BS
+import           Data.Hashable            (Hashable)
+import qualified Data.List                (sortBy)
+import           Data.String              (IsString (fromString))
+import           Data.Text                (Text)
+import qualified Data.Text                as Text
+import qualified Data.Text.Encoding       as E
+import           GHC.Generics             (Generic)
+import           GHC.Show                 (showList__)
+import           Plutus.V1.Ledger.Bytes   (LedgerBytes (LedgerBytes))
+import           Plutus.V1.Ledger.Orphans ()
 import           Plutus.V1.Ledger.Scripts
-import qualified PlutusTx                         as PlutusTx
-import qualified PlutusTx.AssocMap                as Map
-import           PlutusTx.Lift                    (makeLift)
-import qualified PlutusTx.Ord                     as Ord
-import           PlutusTx.Prelude                 as PlutusTx
+import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx.AssocMap        as Map
+import           PlutusTx.Lift            (makeLift)
+import qualified PlutusTx.Ord             as Ord
+import           PlutusTx.Prelude         as PlutusTx
 import           PlutusTx.These
+import           Prettyprinter
+import           Prettyprinter.Extras
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes

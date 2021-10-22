@@ -14,11 +14,11 @@ import           PlcTestUtils
 
 import           PlutusTx.Code
 
-import qualified PlutusCore                as PLC
-import           PlutusCore.Pretty         (PrettyConst)
+import qualified PlutusCore        as PLC
+import           PlutusCore.Pretty (PrettyConst)
 
-import           Data.Text.Prettyprint.Doc
-import           Flat                      (Flat)
+import           Flat              (Flat)
+import           Prettyprinter
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, PLC.GShow uni, Pretty fun, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where

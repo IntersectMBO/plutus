@@ -6,11 +6,11 @@ module PlutusIR.Compiler.Provenance where
 
 import           PlutusIR
 
-import qualified PlutusCore.Pretty         as PLC
+import qualified PlutusCore.Pretty as PLC
 
-import qualified Data.Set                  as S
-import           Data.Text.Prettyprint.Doc ((<+>))
-import qualified Data.Text.Prettyprint.Doc as PP
+import qualified Data.Set          as S
+import           Prettyprinter     ((<+>))
+import qualified Prettyprinter     as PP
 
 -- | Indicates where a value comes from.
 --

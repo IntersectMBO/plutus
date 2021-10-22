@@ -15,23 +15,23 @@ module Plutus.V1.Ledger.Crypto(
     , Signature(..)
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Control.Newtype.Generics  (Newtype)
-import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
-                                            ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
-                                            genericParseJSON, genericToJSON, (.:))
-import qualified Data.Aeson                as JSON
-import qualified Data.Aeson.Extras         as JSON
-import           Data.Hashable             (Hashable)
+import           Codec.Serialise.Class    (Serialise)
+import           Control.DeepSeq          (NFData)
+import           Control.Newtype.Generics (Newtype)
+import           Data.Aeson               (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
+                                           ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
+                                           genericParseJSON, genericToJSON, (.:))
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
+import           Data.Hashable            (Hashable)
 import           Data.String
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
-import           Plutus.V1.Ledger.Orphans  ()
+import           GHC.Generics             (Generic)
+import           Plutus.V1.Ledger.Bytes   (LedgerBytes (..))
+import           Plutus.V1.Ledger.Orphans ()
 import qualified PlutusTx
-import           PlutusTx.Lift             (makeLift)
-import qualified PlutusTx.Prelude          as PlutusTx
+import           PlutusTx.Lift            (makeLift)
+import qualified PlutusTx.Prelude         as PlutusTx
+import           Prettyprinter
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }

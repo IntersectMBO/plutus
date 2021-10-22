@@ -13,26 +13,26 @@
 module PlutusTx.Builtins.Internal where
 
 import           Codec.Serialise
-import           Control.DeepSeq           (NFData)
+import           Control.DeepSeq      (NFData)
 import qualified Crypto
-import qualified Data.ByteArray            as BA
-import           Data.ByteString           as BS
-import qualified Data.ByteString.Hash      as Hash
-import           Data.Coerce               (coerce)
-import           Data.Hashable             (Hashable)
-import           Data.Maybe                (fromMaybe)
-import           Data.Text                 as Text (Text, empty)
-import           Data.Text.Encoding        as Text (decodeUtf8, encodeUtf8)
-import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
-import           GHC.Generics              (Generic)
-import qualified PlutusCore.Data           as PLC
-import           PlutusTx.Utils            (mustBeReplaced)
+import qualified Data.ByteArray       as BA
+import           Data.ByteString      as BS
+import qualified Data.ByteString.Hash as Hash
+import           Data.Coerce          (coerce)
+import           Data.Hashable        (Hashable)
+import           Data.Maybe           (fromMaybe)
+import           Data.Text            as Text (Text, empty)
+import           Data.Text.Encoding   as Text (decodeUtf8, encodeUtf8)
+import           GHC.Generics         (Generic)
+import qualified PlutusCore.Data      as PLC
+import           PlutusTx.Utils       (mustBeReplaced)
+import           Prettyprinter        (Pretty (..), viaShow)
 
 {-
 We do not use qualified import because the whole module contains off-chain code
 which is replaced later with on-chain implementations by the plutus-tx-plugin.
 -}
-import           Prelude                   as Haskell
+import           Prelude              as Haskell
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

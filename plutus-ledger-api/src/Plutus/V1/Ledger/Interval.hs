@@ -38,16 +38,16 @@ module Plutus.V1.Ledger.Interval(
     , strictUpperBound
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
-import           GHC.Generics              (Generic)
-import qualified Prelude                   as Haskell
+import           Codec.Serialise.Class (Serialise)
+import           Control.DeepSeq       (NFData)
+import           Data.Aeson            (FromJSON, ToJSON)
+import           Data.Hashable         (Hashable)
+import           GHC.Generics          (Generic)
+import qualified Prelude               as Haskell
+import           Prettyprinter         (Pretty (pretty), comma, (<+>))
 
 import qualified PlutusTx
-import           PlutusTx.Lift             (makeLift)
+import           PlutusTx.Lift         (makeLift)
 import           PlutusTx.Prelude
 
 -- | An interval of @a@s.
