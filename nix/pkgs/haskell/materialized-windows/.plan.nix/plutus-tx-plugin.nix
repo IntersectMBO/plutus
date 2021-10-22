@@ -100,6 +100,7 @@
             "Plugin/Spec"
             "Plugin/Basic/Spec"
             "Plugin/Data/Spec"
+            "Plugin/Data/StableTerms"
             "Plugin/Errors/Spec"
             "Plugin/Functions/Spec"
             "Plugin/Laziness/Spec"
