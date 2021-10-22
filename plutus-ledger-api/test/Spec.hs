@@ -35,7 +35,7 @@ saltedFunction =
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $ fromInteger $ toInteger n
-            f' = saltFuntion salt f
+            f' = saltFunction salt f
             args = replicate (fromEnum n) $ I 1
             ((_, res), (_, res')) = evaluate f f' args
         in cover 25 (isRight res) "success" $
@@ -45,7 +45,7 @@ saltedFunction =
     , testProperty "unsaturated" $ \(n :: Word8) (n' :: Word8) salt fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $
                 fromInteger (toInteger n) + fromInteger (toInteger n') + 1
-            f' = saltFuntion salt f
+            f' = saltFunction salt f
             args = replicate (fromEnum n) $ I 1
             ((_, res), (_, res')) = evaluate f f' args
         in cover 25 (isRight res) "success" $
@@ -53,15 +53,15 @@ saltedFunction =
     , testProperty "oversaturated" $ \(n :: Word8) (n' :: Word8) salt fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $
                 fromInteger (toInteger n)
-            f' = saltFuntion salt f
+            f' = saltFunction salt f
             args = replicate (fromEnum n + fromEnum n' + 1) $ I 1
             ((_, res), (_, res')) = evaluate f f' args
         in cover 25 (isLeft res) "fail" $
             void res === void res'
     , testProperty "salt" $ \(n :: Word8) salt salt' fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $ fromInteger $ toInteger n
-            f' = saltFuntion salt f
-            f'' = saltFuntion salt' f
+            f' = saltFunction salt f
+            f'' = saltFunction salt' f
         in salt /= salt' ==> f' /= f''
     ]
 
