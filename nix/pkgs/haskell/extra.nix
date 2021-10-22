@@ -74,7 +74,8 @@ let
     # a) Where we care (mostly just formatters), constrain the versions of tools which HLS uses explicitly
     # b) pull out the tools themselves from the HLS project so we can use them elsewhere
     cabalProjectLocal = ''
-      constraints: stylish-haskell==0.12.2.0
+      constraints: stylish-haskell==0.13.0.0, hlint==3.2.7
+      allow-newer: hls-stylish-haskell-plugin:stylish-haskell
     '';
     src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
