@@ -146,11 +146,15 @@ let
 
           # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
-          # FIXME: has warnings
+          # FIXME: has warnings in generated code
           #plutus-metatheory.package.ghcOptions = "-Werror";
+          plutus-benchmark.ghcOptions = [ "-Werror" ];
+          plutus-errors.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          prettyprinter-configurable.ghcOptions = [ "-Werror" ];
+          word-array.ghcOptions = [ "-Werror" ];
 
           # External package settings
 

@@ -16,7 +16,7 @@
         {
           [ { { Tuple2_match (con integer) } (con integer) } ds ] (con integer)
         }
-        (lam a (con integer) (lam b (con integer) a))
+        (lam a (con integer) (lam ds (con integer) a))
       ]
     )
   )

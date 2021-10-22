@@ -30,7 +30,6 @@ common lang
     -fno-omit-interface-pragmas
   ghc-options:
      -Wall -Wnoncanonical-monad-instances -Wunused-packages
-
      -Wincomplete-uni-patterns -Wincomplete-record-updates
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances
@@ -234,13 +233,13 @@ benchmark cek-calibration
     main-is: Main.hs
     hs-source-dirs:
        cek-calibration
+    -- Something weird causes this to sometimes report the plugin
+    -- package as unused...
+    ghc-options: -Wno-unused-packages
     build-depends:
         base -any
-      , bytestring -any
       , plutus-core -any
       , plutus-tx -any
       , plutus-tx-plugin -any
       , criterion >= 1.5.9.0
       , mtl -any
-      , random >= 1.2.0
-      , containers -any

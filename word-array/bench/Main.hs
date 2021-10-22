@@ -42,10 +42,10 @@ main = do
     [
       bgroup "word-array"
         [ bench "overIndex" $ nf (overIndex 0 (+1)) someArray
-        , bench "ifor" $ nf (flip iforWordArray (\i w -> Const $ Sum i)) (toWordArray maxBound)
+        , bench "ifor" $ nf (flip iforWordArray (\i _ -> Const $ Sum i)) (toWordArray maxBound)
         ]
       , bgroup "prim-array"
         [ env mkPrimArray $ \arr -> bench "overIndex" $ nfIO (overIndexPA 0 (+1) arr)
-        , env mkPrimArray $ \arr -> bench "ifor" $ nfIO (flip iforPrimArray (\i w -> pure ()) arr)
+        , env mkPrimArray $ \arr -> bench "ifor" $ nfIO (flip iforPrimArray (\_ _ -> pure ()) arr)
         ]
     ]

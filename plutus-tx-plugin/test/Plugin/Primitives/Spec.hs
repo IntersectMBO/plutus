@@ -11,24 +11,14 @@ module Plugin.Primitives.Spec where
 import           Common
 import           Lib
 import           PlcTestUtils
-import           Plugin.Lib
 
-import qualified PlutusTx.Builtins          as Builtins
-import qualified PlutusTx.Builtins.Class    as Builtins
-import qualified PlutusTx.Builtins.Internal as BI
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Code
-import           PlutusTx.IsData
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude           as P
-
-import qualified PlutusCore                 as PLC
-import qualified PlutusCore.Default         as PLC
+import qualified PlutusTx.Prelude  as P
 
 import           Data.Proxy
-import           Data.Text                  (Text)
-
-import           GHC.Magic
 
 primitives :: TestNested
 primitives = testNested "Primitives" [
@@ -102,7 +92,7 @@ tuple :: CompiledCode (Integer, Integer)
 tuple = plc (Proxy @"tuple") (1::Integer, 2::Integer)
 
 tupleMatch :: CompiledCode ((Integer, Integer) -> Integer)
-tupleMatch = plc (Proxy @"tupleMatch") (\(x:: (Integer, Integer)) -> let (a, b) = x in a)
+tupleMatch = plc (Proxy @"tupleMatch") (\(x:: (Integer, Integer)) -> let (a, _) = x in a)
 
 intCompare :: CompiledCode (Integer -> Integer -> Bool)
 intCompare = plc (Proxy @"intCompare") (\(x::Integer) (y::Integer) -> Builtins.lessThanInteger x y)

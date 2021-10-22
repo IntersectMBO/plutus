@@ -62,11 +62,9 @@
         "bench" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-bench" or (errorHandler.buildDepError "tasty-bench"))
             (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
             (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             ];
           buildable = true;
           hsSourceDirs = [ "bench" ];
