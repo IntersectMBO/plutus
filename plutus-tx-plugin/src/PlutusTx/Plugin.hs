@@ -72,6 +72,13 @@ data PluginOptions = PluginOptions {
     , poDoSimplifierBeta               :: Bool
     , poDoSimplifierInline             :: Bool
     , poDoSimplifierRemoveDeadBindings :: Bool
+
+    -- This options allows the compiler to remove unsused constructors when removing dead bindings.
+    -- Which might not be desirable when terms are compiled then applied separately.
+    -- Which yields incompatible types when certain constructors are used in a few programs but not in others.
+    -- This is usually useful when compiling large standalone programs like validator scripts.
+    , poTruncateTypes                  :: Bool
+
     , poProfile                        :: ProfileOpts
     }
 
@@ -151,6 +158,7 @@ parsePluginArgs args = do
             , poDoSimplifierBeta = notElem' "no-simplifier-beta"
             , poDoSimplifierInline = notElem' "no-simplifier-inline"
             , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
+            , poTruncateTypes = notElem' "no-truncate-types"
             -- profiling: @profile-all@ turns on profiling for everything
             , poProfile =
                 if elem' "profile-all" then All
@@ -374,6 +382,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coTruncateTypes)                  (poTruncateTypes opts)
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr

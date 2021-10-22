@@ -160,7 +160,7 @@ unwrapCancel =
 deadCode :: TestNested
 deadCode =
     testNested "deadCode"
-    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings True) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "typeLet"
     , "termLet"
     , "strictLet"

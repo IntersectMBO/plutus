@@ -52,12 +52,18 @@ data CompilationOpts = CompilationOpts {
     , _coDoSimplifierBeta         :: Bool
     , _coDoSimplifierInline       :: Bool
     , _coProfile                  :: Bool
+
+    -- This options allows the compiler to remove unsused constructors when removing dead bindings.
+    -- Which might not be desirable when terms are compiled then applied separately.
+    -- Which yields incompatible types when certain constructors are used in a few programs but not in others.
+    -- This is usually useful when compiling large standalone programs like validator scripts.
+    , _coTruncateTypes            :: Bool
     } deriving (Eq, Show)
 
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True False False False 8 True True True False
+defaultCompilationOpts = CompilationOpts True False False False 8 True True True False True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts

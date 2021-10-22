@@ -23,6 +23,7 @@ module PlutusIR.Compiler (
     coDoSimplifierBeta,
     coDoSimplifierInline,
     coProfile,
+    coTruncateTypes,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -145,6 +146,11 @@ check arg = do
     -- the typechecker requires global uniqueness, so rename here
     if shouldCheck then typeCheckTerm =<< PLC.rename arg else pure ()
 
+removeDeadBindings :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+removeDeadBindings t = do
+  tt <- onOption coTruncateTypes
+  DeadCode.removeDeadBindings tt t
+
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
@@ -159,7 +165,7 @@ compileToReadable =
     >=> PLC.rename
     >=> through typeCheckTerm
     >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> DeadCode.removeDeadBindings
+    >=> removeDeadBindings
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! floatTerm")
@@ -191,7 +197,7 @@ compileReadableToPlc =
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
     >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> DeadCode.removeDeadBindings
+    >=> removeDeadBindings
     >=> through check
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm

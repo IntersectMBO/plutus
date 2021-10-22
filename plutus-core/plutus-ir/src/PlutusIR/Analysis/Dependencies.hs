@@ -140,13 +140,14 @@ bindingDeps b = case b of
         vDeps <- tyVarDeclDeps d
         tvDeps <- traverse tyVarDeclDeps tvs
         cstrDeps <- traverse varDeclDeps constrs
-        -- All the datatype bindings depend on each other since they can't be used separately. Consider
-        -- the identity function on a datatype type - it only uses the type variable, but the whole definition
-        -- will therefore be kept, and so we must consider any uses in e.g. the constructors as live.
+        -- Making a match depends on all constructors for the time being.
+        -- TODO: Erase impossible cases and their respective constructors.
+        let destrDeps = G.connect (G.vertex (Variable (destr ^. PLC.theUnique)))
+                                  (G.vertices (Variable . view PLC.theUnique . _varDeclName <$> constrs))
+        -- TODO: Erase unused types.
         let tyus = fmap (view PLC.theUnique) $ _tyVarDeclName d : fmap _tyVarDeclName tvs
-        let tus = fmap (view PLC.theUnique) $ destr : fmap _varDeclName constrs
-        let localDeps = G.clique (fmap Variable $ tyus ++ tus)
-        pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
+        let localDeps = G.clique (fmap Variable tyus)
+        pure $ G.overlays $ [vDeps] ++ tvDeps ++ [destrDeps] ++ cstrDeps ++ [localDeps]
 
 bindingStrictness
     :: (MonadState DepState m, PLC.HasUnique name PLC.TermUnique)
