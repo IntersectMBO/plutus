@@ -1,7 +1,8 @@
 -- Bump this if you need newer packages
 index-state: 2021-10-20T00:00:00Z
 
-packages: plutus-benchmark
+packages: doc
+          plutus-benchmark
           plutus-core
           plutus-errors
           plutus-ledger-api
