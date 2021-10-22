@@ -7,19 +7,22 @@
     (termbind
       (strict)
       (vardecl y (con integer))
-      (lam
-        k
-        (con integer)
-        (let
-          (nonrec)
-          (termbind
-            (nonstrict)
-            (vardecl y' (con integer))
-            [ [ (builtin addInteger) k ] y ]
+      [
+        (lam
+          k
+          (con integer)
+          (let
+            (nonrec)
+            (termbind
+              (nonstrict)
+              (vardecl y' (con integer))
+              [ [ (builtin addInteger) k ] y ]
+            )
+            y'
           )
-          y'
         )
-      )
+        y
+      ]
     )
     x
   )

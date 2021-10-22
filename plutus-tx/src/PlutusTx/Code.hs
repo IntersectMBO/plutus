@@ -19,12 +19,14 @@ import qualified PlutusCore.Pretty       as PLC
 import qualified UntypedPlutusCore       as UPLC
 
 import           Control.Exception
-import           Flat                    (Flat, unflat)
+import           Flat                    (Flat (..), unflat)
 import           Flat.Decoder            (DecodeException)
 
 import qualified Data.ByteString         as BS
 import qualified Data.ByteString.Lazy    as BSL
 import           ErrorCode
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                 as Haskell
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
@@ -48,11 +50,21 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 applyCode
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
-applyCode fun arg = DeserializedCode (getPlc fun `UPLC.applyProgram` getPlc arg) Nothing
+applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg)) (PIR.applyProgram <$> getPir fun <*> getPir arg)
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun) => CompiledCodeIn uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
+
+instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
+    => Flat (CompiledCodeIn uni fun a) where
+    encode c = encode (getPlc c)
+
+    decode = do
+        p <- decode
+        pure $ DeserializedCode p Nothing
+
+    size c = size (getPlc c)
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

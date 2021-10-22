@@ -3,20 +3,33 @@
 {-# LANGUAGE TypeApplications #-}
 module PlutusTx.TH (
     compile,
-    compileUntyped) where
+    compileUntyped,
+    loadFromFile) where
 
 import           Data.Proxy
+import qualified Language.Haskell.TH        as TH
+import qualified Language.Haskell.TH.Syntax as TH
 import           PlutusTx.Code
 import           PlutusTx.Plugin.Utils
 
-import qualified Language.Haskell.TH        as TH
-import qualified Language.Haskell.TH.Syntax as TH
+-- We do not use qualified import because the whole module contains off-chain code
+import           Control.Monad.IO.Class
+import qualified Data.ByteString            as BS
+import           Prelude
 
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp (CompiledCode a))
 -- See note [Typed TH]
 compile e = TH.unsafeTExpCoerce $ compileUntyped $ TH.unType <$> e
+
+-- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.
+loadFromFile :: FilePath -> TH.Q (TH.TExp (CompiledCode a))
+loadFromFile fp = do
+    -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
+    -- so we lift the bytestring and construct the value in the quote.
+    bs <- liftIO $ BS.readFile fp
+    [|| SerializedCode bs Nothing ||]
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we

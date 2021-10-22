@@ -13,21 +13,27 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusTx.Lift.Instances () where
 
-import qualified PlutusCore          as PLC
+import qualified PlutusCore                 as PLC
 
 import           PlutusCore.Data
 import           PlutusTx.Builtins
+import           PlutusTx.Builtins.Internal (BuiltinList)
 import           PlutusTx.Lift.Class
+
 
 import           PlutusIR
 import           PlutusIR.MkPir
 
-import qualified Data.ByteString     as BS
-import qualified Data.Kind           as GHC
+import qualified Data.ByteString            as BS
+import qualified Data.Kind                  as GHC
 import           Data.Proxy
-import qualified Data.Text           as Text
+import qualified Data.Text                  as Text
 
-import           GHC.TypeLits        (ErrorMessage (..), TypeError)
+import           GHC.TypeLits               (ErrorMessage (..), TypeError)
+
+-- We do not use qualified import because the whole module contains off-chain code
+import           PlutusTx.Builtins.Class    (FromBuiltin)
+import           Prelude                    as Haskell
 
 -- Derived instances
 
@@ -70,11 +76,11 @@ liftBuiltin = pure . mkConstant ()
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Typeable uni Int where
-    typeRep = Prelude.error "unsupported"
+    typeRep = Haskell.error "unsupported"
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Lift uni Int where
-    lift = Prelude.error "unsupported"
+    lift = Haskell.error "unsupported"
 
 instance uni `PLC.Includes` Integer => Typeable uni Integer where
     typeRep = typeRepBuiltin
@@ -104,6 +110,9 @@ instance uni `PLC.Includes` Text.Text => Typeable uni BuiltinString where
     typeRep _proxyPByteString = typeRepBuiltin (Proxy @Text.Text)
 
 instance uni `PLC.Includes` Text.Text => Lift uni BuiltinString where
+    lift b = liftBuiltin $ fromBuiltin b
+
+instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
     lift b = liftBuiltin $ fromBuiltin b
 
 -- Standard types

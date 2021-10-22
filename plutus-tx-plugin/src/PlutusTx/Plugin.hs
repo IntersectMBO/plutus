@@ -48,7 +48,7 @@ import           Data.List                     (isPrefixOf)
 import qualified Data.Map                      as Map
 import           Data.Maybe                    (fromMaybe)
 import qualified Data.Text.Prettyprint.Doc     as PP
-import           Data.Traversable
+import           Data.Traversable              (for)
 import           ErrorCode
 import qualified FamInstEnv                    as GHC
 import           Text.Read                     (readMaybe)
@@ -62,6 +62,7 @@ data PluginOptions = PluginOptions {
     , poContextLevel                   :: Int
     , poDumpPir                        :: Bool
     , poDumpPlc                        :: Bool
+    , poDumpUPlc                       :: Bool
     , poOptimize                       :: Bool
     , poPedantic                       :: Bool
     , poVerbose                        :: Bool
@@ -71,6 +72,7 @@ data PluginOptions = PluginOptions {
     , poDoSimplifierBeta               :: Bool
     , poDoSimplifierInline             :: Bool
     , poDoSimplifierRemoveDeadBindings :: Bool
+    , poProfile                        :: ProfileOpts
     }
 
 data PluginCtx = PluginCtx
@@ -138,6 +140,7 @@ parsePluginArgs args = do
             , poContextLevel = if elem' "no-context" then 0 else if elem "debug-context" args then 3 else 1
             , poDumpPir = elem' "dump-pir"
             , poDumpPlc = elem' "dump-plc"
+            , poDumpUPlc = elem' "dump-uplc"
             , poOptimize = notElem' "no-optimize"
             , poPedantic = elem' "pedantic"
             , poVerbose = elem' "verbose"
@@ -148,6 +151,10 @@ parsePluginArgs args = do
             , poDoSimplifierBeta = notElem' "no-simplifier-beta"
             , poDoSimplifierInline = notElem' "no-simplifier-inline"
             , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
+            -- profiling: @profile-all@ turns on profiling for everything
+            , poProfile =
+                if elem' "profile-all" then All
+                else None
             }
     -- TODO: better parsing with failures
     pure opts
@@ -281,7 +288,7 @@ compileMarkedExprs expr = do
 
 -- | Behaves the same as 'compileMarkedExpr', unless a compilation error occurs ;
 -- if a compilation error happens and the 'defer-errors' option is turned on,
--- the compilation error is supressed and the original hs expression is replaced with a
+-- the compilation error is suppressed and the original hs expression is replaced with a
 -- haskell runtime-error expression.
 compileMarkedExprOrDefer :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprOrDefer locStr codeTy origE = do
@@ -316,7 +323,7 @@ compileMarkedExpr locStr codeTy origE = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let ctx = CompileContext {
-            ccOpts = CompileOptions {},
+            ccOpts = CompileOptions {coProfile =poProfile opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccBuiltinNameInfo = nameInfo,
@@ -368,7 +375,6 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
 
-
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
     when (poDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
@@ -381,7 +387,6 @@ runCompiler moduleName opts expr = do
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
     when (poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
@@ -389,7 +394,7 @@ runCompiler moduleName opts expr = do
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
     uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.simplifyProgram $ UPLC.eraseProgram plcP
-    when (poDumpPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where

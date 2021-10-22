@@ -26,6 +26,6 @@ mkTySyn (err, code) =
     let aliasName = mkName $ show $ PP.pretty code
     in TySynD aliasName [] $ ConT err
 
--- | find the duplicate occurences in a list
+-- | find the duplicate occurrences in a list
 findDuplicates :: Ord a => [a] -> [[a]]
 findDuplicates xs = filter (\g -> length g >1) . group $ sort xs

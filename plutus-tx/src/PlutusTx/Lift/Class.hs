@@ -56,6 +56,9 @@ import qualified Data.Text.Prettyprint.Doc     as PP
 import           Data.Traversable
 import           ErrorCode
 
+-- We do not use qualified import because the whole module contains off-chain code
+import           Prelude                       as Haskell
+
 {- Note [Compiling at TH time and runtime]
 We want to reuse PIR's machinery for defining datatypes. However, one cannot
 get a PLC Type consisting of the compiled PIR type, because the compilation of the

@@ -3,6 +3,7 @@
 
 module PlutusIR.Analysis.RetainedSize
     ( RetainedSize (..)
+    , Size (..)
     , termRetentionMap
     , annotateWithRetainedSize
     ) where

@@ -41,6 +41,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , noEmitter
     , logEmitter
     , logWithTimeEmitter
+    , logWithBudgetEmitter
     -- * Misc
     , CekValue(..)
     , readKnownCek
@@ -102,7 +103,8 @@ unsafeRunCekNoEmit
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit params mode =
-    first unsafeExtractEvaluationResult . runCekNoEmit params mode
+    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . runCekNoEmit params mode
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
@@ -113,7 +115,7 @@ evaluateCek
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
     case runCek params restrictingEnormous emitMode term of
-        (errOrRes, _, logs) -> (errOrRes, logs)
+         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
@@ -133,7 +135,9 @@ unsafeEvaluateCek
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [Text])
-unsafeEvaluateCek emitTime params = first unsafeExtractEvaluationResult . evaluateCek emitTime params
+unsafeEvaluateCek emitTime params =
+    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . evaluateCek emitTime params
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
@@ -155,4 +159,4 @@ readKnownCek
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek params = evaluateCekNoEmit params >=> readKnown
+readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf

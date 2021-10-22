@@ -1,6 +1,9 @@
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE PartialTypeSignatures     #-}
+{-# LANGUAGE RankNTypes                #-}
 
 module Main (main) where
 
@@ -13,7 +16,6 @@ import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory 
 import qualified Data.Aeson                               as Aeson
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (asum)
-import           Data.Function                            ((&))
 import           Data.Functor                             (void)
 import           Data.List                                (nub)
 import           Data.List.Split                          (splitOn)
@@ -23,8 +25,10 @@ import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import           Control.DeepSeq                          (NFData, rnf)
+import qualified Data.Text                                as T
 import           Options.Applicative
-import           System.Exit                              (exitFailure, exitSuccess)
+import           System.Exit                              (exitFailure)
+import           System.IO                                (hPrint, stderr)
 import           Text.Read                                (readMaybe)
 
 uplcHelpText :: String
@@ -34,10 +38,11 @@ uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
 
 data BudgetMode  = Silent
-                 | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
-                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
+                 | Verbose SomeBudgetMode
 
-data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TimingMode CekModel
+data SomeBudgetMode = forall cost. (Eq cost, NFData cost, PrintBudgetState cost) => SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
+
+data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TraceMode Output TimingMode CekModel
 
 ---------------- Main commands -----------------
 
@@ -54,12 +59,12 @@ cekmodel :: Parser CekModel
 cekmodel = flag Default Unit
            (  short '1'
            <> long "unit-cek-model"
-           <> help "Use unit AST node costs for CEK cost model (tallying mode only)"
+           <> help "Use unit AST node costs and builtin costs for CEK cost model (tallying mode only)"
            )
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode <*> cekmodel
+  EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> tracemode <*> output <*> timingmode <*> cekmodel
 
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
@@ -75,13 +80,13 @@ exbudgetReader = do
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
 restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
+restrictingbudgetEnormous = flag' (Verbose $ SomeBudgetMode Cek.restrictingEnormous)
                             (  long "restricting-enormous"
                             <> short 'r'
                             <> help "Run the machine in restricting mode with an enormous budget" )
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
+restrictingbudget = Verbose . SomeBudgetMode . Cek.restricting . ExRestrictingBudget
                     <$> option exbudgetReader
                             (  long "restricting"
                             <> short 'R'
@@ -89,13 +94,13 @@ restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
                             <> help "Run the machine in restricting mode with the given limits" )
 
 countingbudget :: Parser BudgetMode
-countingbudget = flag' (Verbose Cek.counting)
+countingbudget = flag' (Verbose $ SomeBudgetMode Cek.counting)
                  (  long "counting"
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
 tallyingbudget :: Parser BudgetMode
-tallyingbudget = flag' (Verbose Cek.tallying)
+tallyingbudget = flag' (Verbose $ SomeBudgetMode Cek.tallying)
                  (  long "tallying"
                  <> short 't'
                  <> help "Run machine in tallying mode and report results" )
@@ -160,45 +165,44 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode timingMode cekModel) = do
+runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
     prog <- getProgram ifmt inp
     let term = void . UPLC.toTerm $ prog
         !_ = rnf term
         cekparams = case cekModel of
                     Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
                     Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                         -- type is encountered.  This is useful for calibrating the budgeting code.
-    case budgetMode of
-        Silent -> do
-            let evaluate = Cek.evaluateCekNoEmit cekparams
-            case timingMode of
-                NoTiming -> evaluate term & handleEResult printMode
-                Timing n -> timeEval n evaluate term >>= handleTimingResults term
-        Verbose bm -> do
-            let evaluate = Cek.runCekNoEmit cekparams bm
-            case timingMode of
-                NoTiming -> do
-                        let (result, budget) = evaluate term
-                        printBudgetState term cekModel budget
-                        handleResultSilently result  -- We just want to see the budget information
-                Timing n -> timeEval n evaluate term >>= handleTimingResultsWithBudget term
-    where
-        handleResultSilently =
-            \case
-                Right _  -> exitSuccess
-                Left err -> print err >> exitFailure
-        handleTimingResultsWithBudget term results =
-            case nub results of
-            [(Right _, budget)] -> do
-                putStrLn ""
-                printBudgetState term cekModel budget
-                exitSuccess
-            [(Left err,   budget)] -> do
-                putStrLn ""
-                print err
-                printBudgetState term cekModel budget
-                exitFailure
-            _                                   -> error "Timing evaluations returned inconsistent results"
+                                                         -- type is encountered.  This is useful for calibrating the budgeting code
+    let budgetM = case budgetMode of
+            Silent     -> SomeBudgetMode Cek.restrictingEnormous
+            Verbose bm -> bm
+    let emitM = case traceMode of
+            None               -> Cek.noEmitter
+            Logs               -> Cek.logEmitter
+            LogsWithTimestamps -> Cek.logWithTimeEmitter
+            LogsWithBudgets    -> Cek.logWithBudgetEmitter
+    -- Need the existential cost type in scope
+    case budgetM of
+        SomeBudgetMode bm -> evalWithTiming term >>= handleResults term
+            where
+                evaluate = Cek.runCek cekparams bm emitM
+                evalWithTiming t = case timingMode of
+                        NoTiming -> pure $ evaluate t
+                        Timing n -> do
+                            rs <- timeEval n evaluate t
+                            case nub rs of
+                                [a] -> pure a
+                                _   -> error "Timing evaluations returned inconsistent results"
+                handleResults t (res, budget, logs) = do
+                    case res of
+                        Left err -> hPrint stderr err >> exitFailure
+                        Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                    case budgetMode of
+                        Silent    -> pure ()
+                        Verbose _ -> printBudgetState t cekModel budget
+                    case traceMode of
+                        None -> pure ()
+                        _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::

@@ -1,4 +1,0 @@
-=== `playground-common`
-
-This package contains some library code which is shared between the Plutus and
-Marlowe Playgrounds.

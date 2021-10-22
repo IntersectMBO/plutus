@@ -6,10 +6,12 @@ import           Control.Applicative   (Const (..))
 import           Data.Coerce           (coerce)
 import           Data.Functor.Identity (Identity (..))
 import           PlutusTx.Applicative  (Applicative (..), liftA2)
+import           PlutusTx.Base
+import           PlutusTx.Either       (Either (..))
 import           PlutusTx.Foldable     (Foldable)
-import           PlutusTx.Functor      (Functor, id, (<$>))
+import           PlutusTx.Functor      (Functor, (<$>))
+import           PlutusTx.Maybe        (Maybe (..))
 import           PlutusTx.Monoid       (Monoid)
-import           Prelude               (Either (..), Maybe (..), flip)
 
 -- | Plutus Tx version of 'Data.Traversable.Traversable'.
 class (Functor t, Foldable t) => Traversable t where

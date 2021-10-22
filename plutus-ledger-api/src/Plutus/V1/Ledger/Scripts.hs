@@ -17,6 +17,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
 module Plutus.V1.Ledger.Scripts(
@@ -50,6 +51,7 @@ module Plutus.V1.Ledger.Scripts(
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
+    ScriptHash(..),
     ValidatorHash(..),
     MintingPolicyHash (..),
     StakeValidatorHash (..),
@@ -99,7 +101,7 @@ newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni 
   -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
   deriving Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())))
 
-{- Note [Using Flat inside CBOR instance of Script]
+{-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.
@@ -123,7 +125,7 @@ instance Flat.Flat a => Serialise (SerialiseViaFlat a) where
     bs <- decodeBytes
     case Flat.unflat bs of
       Left  err -> Haskell.fail (Haskell.show err)
-      Right v   -> return (SerialiseViaFlat v)
+      Right v   -> Haskell.return (SerialiseViaFlat v)
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -194,15 +196,39 @@ mkTermToEvaluate (Script (UPLC.Program a v t)) =
 evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
 evaluateScript s = do
     p <- case mkTermToEvaluate s of
-        Right p -> return p
+        Right p -> Haskell.return p
         Left e  -> throwError $ MalformedScript $ Haskell.show e
     let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
     case result of
         Right _ -> Haskell.pure ()
-        Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
-            InternalEvaluationError internalEvalError    -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
-            UserEvaluationError evalError -> EvaluationError logOut (PLC.show evalError)  -- TODO fix this error channel fuckery
+        Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
+            InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
+            UserEvaluationError evalError -> EvaluationError logOut (mkError evalError cause) -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
+
+-- | Create an error message from the contents of an ErrorWithCause.
+-- If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
+-- the error will be a "BuiltinEvaluationFailure" otherwise it will be `PLC.show evalError`
+mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> String
+mkError evalError Nothing = PLC.show evalError
+mkError evalError (Just t) =
+  case findBuiltin t of
+    Just b  -> "BuiltinEvaluationFailure of " ++ Haskell.show b
+    Nothing -> PLC.show evalError
+  where
+    findBuiltin :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
+    findBuiltin t = case t of
+       UPLC.Apply _ t _   -> findBuiltin t
+       UPLC.Builtin _ fun -> Just fun
+       -- These two *really shouldn't* appear but
+       -- we are future proofing for a day when they do
+       UPLC.Force _ t     -> findBuiltin t
+       UPLC.Delay _ t     -> findBuiltin t
+       -- Future proofing for eta-expanded builtins
+       UPLC.LamAbs _ _ t  -> findBuiltin t
+       UPLC.Var _ _       -> Nothing
+       UPLC.Constant _ _  -> Nothing
+       UPLC.Error _       -> Nothing
 
 {- Note [JSON instances for Script]
 The JSON instances for Script are partially hand-written rather than going via the Serialise
@@ -220,10 +246,10 @@ instance FromJSON Script where
     -- See note [JSON instances for Script]
     parseJSON v = do
         (SerialiseViaFlat p) <- JSON.decodeSerialise v
-        return $ Script p
+        Haskell.return $ Script p
 
-deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON (PLC.Data)
-deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON (PLC.Data)
+deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON PLC.Data
+deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON PLC.Data
 
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
@@ -275,7 +301,7 @@ instance BA.ByteArrayAccess Datum where
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
   deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
 
 instance BA.ByteArrayAccess Redeemer where
@@ -315,6 +341,14 @@ instance BA.ByteArrayAccess StakeValidator where
         BA.length . BSL.toStrict . serialise
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
+
+-- | Script runtime representation of a @Digest SHA256@.
+newtype ScriptHash =
+    ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
+    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
@@ -439,3 +473,5 @@ makeLift ''DatumHash
 makeLift ''RedeemerHash
 
 makeLift ''Datum
+
+makeLift ''Redeemer

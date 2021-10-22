@@ -102,7 +102,10 @@ data ExtensionFun
     | ExpensiveSucc
     | FailingPlus
     | ExpensivePlus
+    | Undefined
     | Absurd
+    | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
+                  -- Who knows what machinery a tick could break, hence the @Prime@ part.
     | Cons
     | Comma
     | BiconstPair  -- A safe version of 'Comma' as discussed in
@@ -130,17 +133,17 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
+    type ToBinds (PlcListRep a) = ToBinds a
+
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (PlcListRep a) = ToBinds a
 
 instance KnownTypeAst uni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance KnownType term Void where
-    makeKnown = absurd
-    readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
-type instance ToBinds Void = '[]
+    makeKnown _ = absurd
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
@@ -223,12 +226,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
+    toBuiltinMeaning Undefined =
+        makeBuiltinMeaning
+            undefined
+            (\_ -> ExBudget 1 0)
+
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
-            (absurd
-                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-                => Void -> a)
+            absurd
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ErrorPrime =
+        makeBuiltinMeaning
+            EvaluationFailure
+            (\_ -> ExBudget 1 0)
 
     toBuiltinMeaning Cons = makeBuiltinMeaning consPlc mempty where
         consPlc

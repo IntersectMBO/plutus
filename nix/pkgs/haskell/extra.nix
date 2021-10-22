@@ -64,22 +64,18 @@ let
       "https://github.com/input-output-hk/nix-archive"."7dcf21b2af54d0ab267f127b6bd8fa0b31cfa49d" = "0mhw896nfqbd2iwibzymydjlb3yivi9gm0v2g1nrjfdll4f7d8ly";
     };
   };
-  stylishHaskellProject = haskell-nix.hackage-project {
-    name = "stylish-haskell";
-    version = "0.12.2.0";
-    inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./stylish-haskell.sha);
-  };
-  hlintProject = haskell-nix.hackage-project {
-    name = "hlint";
-    version = "3.2.1";
-    inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./hlint.sha);
-    modules = [{ reinstallableLibGhc = false; }];
-  };
   # See https://github.com/input-output-hk/nix-tools/issues/97
   hlsShaFile = if stdenv.isLinux then ./hls-linux.sha else ./hls-darwin.sha;
   hlsProject = haskell-nix.cabalProject' {
+    # See https://github.com/haskell/haskell-language-server/issues/411.
+    # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools *and* through HLS. But we need to have consistent versions in both
+    # cases, otherwise e.g. you could format the code in HLS and then have the CI complain that it's wrong.
+    # The solution we use here is to:
+    # a) Where we care (mostly just formatters), constrain the versions of tools which HLS uses explicitly
+    # b) pull out the tools themselves from the HLS project so we can use them elsewhere
+    cabalProjectLocal = ''
+      constraints: stylish-haskell==0.12.2.0
+    '';
     src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
@@ -88,6 +84,7 @@ let
       "https://github.com/haskell/lsp.git"."ef59c28b41ed4c5775f0ab0c1e985839359cec96" = "1whcgw4hhn2aplrpy9w8q6rafwy7znnp0rczgr6py15fqyw2fwb5";
     };
     modules = [{
+      # for compatibility with the GHC patch for extensible interfaces, not needed on mainline GHC.
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
       # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
       packages.haskell-language-server.patches = lib.mkIf stdenv.isDarwin [ ../../patches/haskell-language-server-dynamic.patch ];
@@ -102,18 +99,14 @@ let
   updateAllShaFiles = writeShellScript "updateShaFiles" ''
     ${updateShaFile cabalInstallProject ./cabal-install.sha}
     ${updateShaFile agdaProject ./agda.sha}
-    ${updateShaFile stylishHaskellProject ./stylish-haskell.sha}
-    ${updateShaFile hlintProject ./hlint.sha}
     ${updateShaFile hlsProject hlsShaFile}
     ${updateShaFile cardanoRepoToolProject ./cardano-repo-tool.sha}
   '';
 in
 {
   inherit (agdaProject.hsPkgs) Agda;
-  inherit (hlsProject.hsPkgs) haskell-language-server hie-bios implicit-hie;
+  inherit (hlsProject.hsPkgs) haskell-language-server hie-bios implicit-hie stylish-haskell hlint;
   inherit (cabalInstallProject.hsPkgs) cabal-install;
-  inherit (stylishHaskellProject.hsPkgs) stylish-haskell;
-  inherit (hlintProject.hsPkgs) hlint;
   inherit (cardanoRepoToolProject.hsPkgs) cardano-repo-tool;
   inherit updateAllShaFiles;
 }

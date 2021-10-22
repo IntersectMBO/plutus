@@ -236,3 +236,18 @@ thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
 test = ε ▻ (ƛ (con unit) · (ibuiltin iData · con (integer (+ 0))))
+
+postulate
+  lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)
+
+lem□ : ∀{A}{M M' : ∅ ⊢ A}(V : Value M)(V' : Value M')
+  → □ V -→s □ V' → ∃ λ p → substEq Value p V ≡ V'
+lem□ W .W base = refl ,, refl
+lem□ W V (step* refl p) = lem□ {M = deval W}{M' = deval V} W V p
+
+lem◆ : ∀ {A A' T} → ◆ {T = T} A -→s ◆ A' → A ≡ A'
+lem◆ base = refl
+lem◆ (step* refl p) = lem◆ p
+
+lem◆' : ∀ {A A'}{M : ∅ ⊢ A}(V : Value M) → ◆ A' -→s □ V → ⊥
+lem◆' V (step* refl p) = lem◆' V p

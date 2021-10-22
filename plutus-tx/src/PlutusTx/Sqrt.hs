@@ -4,11 +4,9 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
-{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module PlutusTx.Sqrt(
     Sqrt (..)
@@ -18,9 +16,8 @@ module PlutusTx.Sqrt(
 
 import           PlutusTx.IsData  (makeIsDataIndexed)
 import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude (divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
+import           PlutusTx.Prelude (Integer, divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
 import           PlutusTx.Ratio   (Rational, denominator, numerator, (%))
-import           Prelude          (Integer)
 import qualified Prelude          as Haskell
 
 -- | Integer square-root representation, discarding imaginary integers.

@@ -1,4 +1,0 @@
-=== `marlowe`
-
-This package contains an implementation of the Marlowe interpreter as a Plutus
-contract.

@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase               #-}
 -- | This module assigns types to built-ins.
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
@@ -8,6 +7,7 @@
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
@@ -35,8 +35,11 @@ module PlutusCore.Constant.Typed
     , HasConstant
     , HasConstantIn
     , KnownTypeAst (..)
+    , Merge
+    , ListToBinds
     , KnownType (..)
-    , makeKnownNoEmit
+    , readKnownSelf
+    , makeKnownOrFail
     , SomeConstant (..)
     , SomeConstantOf (..)
     ) where
@@ -50,7 +53,7 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc
+import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Name
 
 import           Control.Monad.Except
@@ -60,8 +63,10 @@ import           Data.Functor.Const
 import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.SOP.Constraint
+import qualified Data.Some.GADT                          as GADT
 import           Data.String
 import qualified Data.Text                               as Text
+import           GHC.Ix
 import           GHC.TypeLits
 import           Universe
 
@@ -394,8 +399,27 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
 data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
+-- | Throw an 'UnliftingError' saying that the received argument is not a constant.
+throwNotAConstant
+    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
+    => Maybe cause -> m r
+throwNotAConstant = throwingWithCause _UnliftingError "Not a constant"
+
+class AsConstant term where
+    -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
+    -- is not a 'Constant'.
+    asConstant
+        :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
+        => Maybe cause -> term -> m (Some (ValueOf (UniOf term)))
+
+class FromConstant term where
+    -- | Wrap a Haskell value as a @term@.
+    fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+type instance UniOf (Opaque term rep) = UniOf term
+
 -- See Note [Motivation for polymorphic built-in functions].
--- See Note [Implemetation of polymorphic built-in functions].
+-- See Note [Implementation of polymorphic built-in functions].
 -- See Note [Pattern matching on built-in types].
 -- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
 -- an application of a type variable). I.e. the denotation of such a term is the term itself.
@@ -404,28 +428,11 @@ data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 -- Haskell and back and instead can keep it intact.
 newtype Opaque term (rep :: GHC.Type) = Opaque
     { unOpaque :: term
-    } deriving newtype (Pretty)
-
--- | Throw an 'UnliftingError' saying that the received argument is not a constant.
-throwNotAConstant
-    :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
-    => term -> m r
-throwNotAConstant = throwingWithCause _UnliftingError "Not a constant" . Just
-
-class AsConstant term where
-    -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
-    -- is not a 'Constant'.
-    asConstant
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
-        => term -> m (Some (ValueOf (UniOf term)))
-
-class FromConstant term where
-    -- | Wrap a Haskell value as a @term@.
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+    } deriving newtype (Pretty, AsConstant, FromConstant)
 
 instance AsConstant (Term TyName Name uni fun ann) where
-    asConstant (Constant _ val) = pure val
-    asConstant term             = throwNotAConstant term
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = throwNotAConstant mayCause
 
 instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
@@ -443,6 +450,14 @@ type HasConstant term = (AsConstant term, FromConstant term)
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 class KnownTypeAst uni (a :: k) where
+    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantOf' has to be
+    -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
+    -- type variables in them just like monomorphic ones.
+    -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+    -- in an @a@.
+    type ToBinds (a :: k) :: [GADT.Some TyNameRep]
+    type ToBinds _ = '[]
+
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
     default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
@@ -454,42 +469,66 @@ type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
-{- Note [KnownType's defaults]
-We use @default@ for providing instances for built-in types instead of @DerivingVia@, because the
-latter breaks on @m a@
--}
+-- | Delete all @x@s from a list.
+type family Delete x xs :: [a] where
+    Delete _ '[]       = '[]
+    Delete x (x ': xs) = Delete x xs
+    Delete x (y ': xs) = y ': Delete x xs
 
--- See Note [KnownType's defaults].
+-- | Delete all elements appearing in the first list from the second one and concatenate the lists.
+type family Merge xs ys :: [a] where
+    Merge '[]       ys = ys
+    Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
+
+-- There's no sensible way to provide a 'KnownTypeAst' instance for a type-level list, so we
+-- create a separate type family. We could have a single type family on the top level for both
+-- 'ToBinds' and 'ListToBinds', but then we'd lose a very convenient default of each type from the
+-- universe returning an empty list from 'ToBinds' and the user would need to do provide a
+-- @type instance@ themselves (which is no big deal, but it's nicer not to ask the user to do that).
+-- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+-- in a list.
+type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
+type instance ListToBinds '[]       = '[]
+type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
+
+-- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
+-- the latter breaks on @m a@
 -- | Haskell types known to exist on the PLC side.
+-- Both the methods take a @Maybe cause@ argument to report the cause of a potential failure.
+-- @cause@ is different to @term@ to support evaluators that distinguish between terms and values
+-- (@makeKnown@ normally constructs a value, but it's convenient to report the cause of a failure
+-- as a term). Note that an evaluator might require the cause to be computed lazily for best
+-- performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
+-- the cause stored in it is not forced due to @Maybe@ being a lazy data type.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadEmitter m, MonadError err m, AsEvaluationFailure err
+        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
            )
-        => a -> m term
+        => Maybe cause -> a -> m term
     default makeKnown
-        :: ( MonadError err m
+        :: ( MonadError (ErrorWithCause err cause) m
            , KnownBuiltinType term a
            )
-        => a -> m term
+        => Maybe cause -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
            )
-        => term -> m a
+        => Maybe cause -> term -> m a
     default readKnown
-        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
            , KnownBuiltinType term a
            )
-        => term -> m a
-    readKnown term = asConstant term >>= \case
+        => Maybe cause -> term -> m a
+    readKnown mayCause term = asConstant mayCause term >>= \case
         Some (ValueOf uniAct x) -> do
             let uniExp = knownUni @_ @(UniOf term) @a
             case uniAct `geq` uniExp of
@@ -500,18 +539,42 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
                             , "expected: " ++ gshow uniExp
                             , "; actual: " ++ gshow uniAct
                             ]
-                    throwingWithCause _UnliftingError err $ Just term
+                    throwingWithCause _UnliftingError err mayCause
 
-makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownNoEmit = unNoEmitterT . makeKnown
+-- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
+readKnownSelf
+    :: ( KnownType term a
+       , MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+       )
+    => term -> m a
+readKnownSelf term = readKnown (Just term) term
+
+-- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
+newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
+    { unNoCauseT :: m a
+    } deriving newtype (Functor, Applicative, Monad)
+
+instance (MonadError err m, AsEvaluationFailure err) =>
+            MonadError (ErrorWithCause err term) (NoCauseT term m) where
+    throwError _ = NoCauseT $ throwError evaluationFailure
+    NoCauseT a `catchError` h =
+        NoCauseT $ a `catchError` \err ->
+            unNoCauseT . h $ ErrorWithCause err Nothing
+
+-- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
+-- For example the monad can be simply 'EvaluationResult'.
+makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
+makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
+    type ToBinds (EvaluationResult a) = ToBinds a
+
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
             KnownType term (EvaluationResult a) where
-    makeKnown EvaluationFailure     = throwError evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
+    makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
+    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -519,15 +582,18 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
     -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
     -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
-    readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
+    readKnown mayCause _ =
+        throwingWithCause _UnliftingError "Error catching is not supported" mayCause
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
+    type ToBinds (Emitter a) = ToBinds a
+
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownType term a => KnownType term (Emitter a) where
-    makeKnown = unEmitter >=> makeKnown
+    makeKnown mayCause = unEmitter >=> makeKnown mayCause
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
-    readKnown = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" . Just
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
 
 -- | For unlifting from the 'Constant' constructor. For cases where we care about having a type tag
 -- in the denotation of a builtin rather than full unlifting to a specific built-in type.
@@ -539,12 +605,14 @@ newtype SomeConstant uni rep = SomeConstant
     }
 
 instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant uni' rep) where
+    type ToBinds (SomeConstant _ rep) = ToBinds rep
+
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownType term (SomeConstant uni rep) where
-    makeKnown = pure . fromConstant . unSomeConstant
-    readKnown = fmap SomeConstant . asConstant
+    makeKnown _ = pure . fromConstant . unSomeConstant
+    readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
 {- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
 constants, the former is for unlifting constants of a specific polymorphic built-in type
@@ -590,6 +658,8 @@ runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
 
 instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
             KnownTypeAst uni (SomeConstantOf uni' f reps) where
+    type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
+
     toTypeAst _ =
         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
         mkIterTyApp () (mkTyBuiltin @_ @f ()) $
@@ -606,9 +676,9 @@ data ReadSomeConstantOf m uni f reps =
 
 instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownType term (SomeConstantOf uni f reps) where
-    makeKnown = pure . fromConstant . runSomeConstantOf
+    makeKnown _ = pure . fromConstant . runSomeConstantOf
 
-    readKnown term = asConstant term >>= \case
+    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
         Some (ValueOf uni xs) -> do
             let uniF = knownUni @_ @_ @f
                 err = fromString $ concat
@@ -616,8 +686,8 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
                     , "expected an application of: " ++ gshow uniF
                     , "; but got the following type: " ++ gshow uni
                     ]
-                wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
-                wrongType = throwingWithCause _UnliftingError err $ Just term
+                wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
+                wrongType = throwingWithCause _UnliftingError err mayCause
             -- In order to prove that the type of @xs@ is an application of @f@ we need to
             -- peel all type applications off in the type of @xs@ until we get to the head and then
             -- check that the head is indeed @f@. Each peeled type application becomes a
@@ -644,15 +714,23 @@ toTyNameAst _ =
         (Text.pack $ symbolVal @text Proxy)
         (Unique . fromIntegral $ natVal @uniq Proxy)
 
-instance (KnownSymbol text, KnownNat uniq) =>
-            KnownTypeAst uni (TyVarRep ('TyNameRep text uniq)) where
+instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst uni (TyVarRep var) where
+    type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
+
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
+    type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
+
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
 
-instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
-            KnownTypeAst uni (TyForallRep ('TyNameRep @kind text uniq) a) where
+instance
+        ( var ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
+        , KnownKind kind, KnownTypeAst uni a
+        ) => KnownTypeAst uni (TyForallRep var a) where
+    type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
+
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
@@ -660,15 +738,19 @@ instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =
             (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
+    type ToBinds (Opaque _ rep) = ToBinds rep
+
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
-    makeKnown = pure . unOpaque
-    readKnown = pure . Opaque
+    makeKnown _ = pure . unOpaque
+    readKnown _ = pure . Opaque
+
+-- Built-in types.
 
 instance uni `Contains` Integer       => KnownTypeAst uni Integer
 instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Contains` Text.Text          => KnownTypeAst uni Text.Text
+instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
 instance uni `Contains` ()            => KnownTypeAst uni ()
 instance uni `Contains` Bool          => KnownTypeAst uni Bool
 instance uni `Contains` [a]           => KnownTypeAst uni [a]
@@ -677,7 +759,7 @@ instance uni `Contains` Data          => KnownTypeAst uni Data
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term Text.Text          => KnownType term Text.Text
+instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]
@@ -697,12 +779,82 @@ instance uni `Includes` Integer => KnownTypeAst uni Int where
 
 -- See Note [Int as Integer].
 instance KnownBuiltinType term Integer => KnownType term Int where
-    makeKnown = makeKnown . toInteger
-    readKnown term = do
-        i :: Integer <- readKnown term
+    makeKnown mayCause = makeKnown mayCause . toInteger
+    readKnown mayCause term = do
+        i :: Integer <- readKnown mayCause term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () $ Just term
+            throwingWithCause _EvaluationFailure () mayCause
         pure $ fromIntegral i
+
+-- Custom type errors to guide the programmer adding a new built-in type or function.
+-- We cover a lot of cases here, but some are missing, for example we do not attempt to detect
+-- higher-kinded type variables, which means that if your function returns an @m a@ we can neither
+-- instantiate @m@ (which is impossible anyway: it could be 'EvaluationResult' or 'Emitter'
+-- or else), nor report that higher-kinded type variables are not allowed and suggest
+-- to instantiate such variables manually. In general, we do not attempt to look inside type
+-- applications (as it's a rather hard thing to do) and so a type variable inside, say, a list
+-- does not get instantiated, hence the custom type error does not get triggered (as it's only
+-- triggered for instantiated type variables) and the user gets a standard unhelpful GHC error.
+
+-- We don't have @Unsatisfiable@ yet (https://github.com/ghc-proposals/ghc-proposals/pull/433).
+-- | To be used when there's a 'TypeError' in the context. The condition is not checked as there's
+-- no way we could do that.
+underTypeError :: void
+underTypeError = error "Panic: a 'TypeError' was bypassed"
+
+type UnknownTypeErrMsg a =
+    'Text "There's no 'KnownType' instance for " ':<>: 'ShowType a ':$$:
+    'Text "Did you add a new built-in type and forget to provide a 'KnownType' instance for it?"
+
+instance {-# OVERLAPPABLE #-} (TypeError (UnknownTypeErrMsg a), KnownTypeAst (UniOf term) a) =>
+            KnownType term a where
+    makeKnown = underTypeError
+    readKnown = underTypeError
+
+type NoConstraintsErrMsg =
+    'Text "Built-in functions are not allowed to have constraints" ':$$:
+    'Text "To fix this error instantiate all constrained type variables"
+
+instance TypeError NoConstraintsErrMsg => Eq (Opaque term rep) where
+    (==) = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Ord (Opaque term rep) where
+    compare = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Num (Opaque term rep) where
+    (+)         = underTypeError
+    (*)         = underTypeError
+    abs         = underTypeError
+    signum      = underTypeError
+    fromInteger = underTypeError
+    negate      = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Enum (Opaque term rep) where
+    toEnum   = underTypeError
+    fromEnum = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Real (Opaque term rep) where
+    toRational = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Integral (Opaque term rep) where
+    quotRem   = underTypeError
+    divMod    = underTypeError
+    toInteger = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Bounded (Opaque term rep) where
+    minBound = underTypeError
+    maxBound = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Ix (Opaque term rep) where
+    range   = underTypeError
+    index   = underTypeError
+    inRange = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Semigroup (Opaque term rep) where
+    (<>) = underTypeError
+
+instance TypeError NoConstraintsErrMsg => Monoid (Opaque term rep) where
+    mempty = underTypeError
 
 -- Utils
 

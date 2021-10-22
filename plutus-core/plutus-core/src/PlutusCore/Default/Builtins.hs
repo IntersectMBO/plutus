@@ -15,6 +15,8 @@
 
 module PlutusCore.Default.Builtins where
 
+import           PlutusPrelude
+
 import           PlutusCore.Constant
 import           PlutusCore.Data
 import           PlutusCore.Default.Universe
@@ -23,7 +25,6 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
 
-import           Control.DeepSeq
 import           Crypto
 import qualified Data.ByteString                                as BS
 import qualified Data.ByteString.Hash                           as Hash
@@ -31,7 +32,6 @@ import           Data.Char
 import           Data.Ix
 import           Data.Text                                      (Text)
 import           Data.Text.Encoding                             (decodeUtf8', encodeUtf8)
-import           Data.Word                                      (Word8)
 import           Flat                                           hiding (from, to)
 import           Flat.Decoder
 import           Flat.Encoder                                   as Flat
@@ -103,7 +103,8 @@ data DefaultFun
     | EqualsData
     -- Misc constructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
+    -- constructors are often problematic (See note [Representable built-in
+    -- functions over polymorphic built-in types])
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -231,7 +232,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
-            ((<>) :: Text -> Text -> Text)
+            ((<>) @Text)
             (runCostingFunTwoArguments . paramAppendString)
     toBuiltinMeaning EqualsString =
         makeBuiltinMeaning
@@ -239,11 +240,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramEqualsString)
     toBuiltinMeaning EncodeUtf8 =
         makeBuiltinMeaning
-            (encodeUtf8 :: Text -> BS.ByteString)
+            encodeUtf8
             (runCostingFunOneArgument . paramEncodeUtf8)
     toBuiltinMeaning DecodeUtf8 =
         makeBuiltinMeaning
-            (\bs -> case decodeUtf8' bs of { Right t -> EvaluationSuccess t ; Left _ -> EvaluationFailure })
+            (reoption @_ @EvaluationResult . decodeUtf8')
             (runCostingFunOneArgument . paramDecodeUtf8)
     -- Bool
     toBuiltinMeaning IfThenElse =
@@ -268,7 +269,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
           fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
-              Opaque . fromConstant . Some $ ValueOf uniA x
+              fromConstant $ someValueOf uniA x
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
             sndPlc
@@ -276,14 +277,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
           sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
-              Opaque . fromConstant . Some $ ValueOf uniB y
+              fromConstant $ someValueOf uniB y
     -- Lists
     toBuiltinMeaning ChooseList =
         makeBuiltinMeaning
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)
         where
-          choosePlc :: SomeConstantOf uni [] '[a] -> Opaque term b -> Opaque term b -> Opaque term b
+          choosePlc :: SomeConstantOf uni [] '[a] -> b -> b -> b
           choosePlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) a b =
               case xs of
                 []    -> a
@@ -319,7 +320,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
           headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) =
               case xs of
-                x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
+                x : _ -> EvaluationSuccess . fromConstant $ someValueOf uniA x
                 _     -> EvaluationFailure
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
@@ -338,6 +339,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           nullPlc :: SomeConstantOf uni [] '[a] -> Bool
           nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+
     -- Data
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning
@@ -408,19 +410,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Misc constructors
     toBuiltinMeaning MkPairData =
         makeBuiltinMeaning
-            ((,) :: Data -> Data -> (Data, Data))
+            ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
     toBuiltinMeaning MkNilData =
         -- Nullary builtins don't work, so we need a unit argument
         makeBuiltinMeaning
-            @(() -> [Data])
-            (\() -> [])
+            (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
     toBuiltinMeaning MkNilPairData =
         -- Nullary builtins don't work, so we need a unit argument
         makeBuiltinMeaning
-            @(() -> [(Data,Data)])
-            (\() -> [])
+            (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running

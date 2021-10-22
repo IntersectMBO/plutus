@@ -29,8 +29,12 @@ import qualified Data.ByteString.Lazy                 as BSL
 
 
 -- | Take one UPLC program and apply it to another.
-applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
-applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
+applyProgram
+    :: Monoid a
+    => Program name uni fun a
+    -> Program name uni fun a
+    -> Program name uni fun a
+applyProgram (Program a1 _ t1) (Program a2 _ t2) = Program (a1 <> a2) (PLC.defaultVersion mempty) (Apply mempty t1 t2)
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
