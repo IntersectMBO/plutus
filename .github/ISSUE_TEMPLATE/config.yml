@@ -5,4 +5,4 @@ contact_links:
     about: Please raise any Plutus Application Framework issues here (e.g. PAB and Plutus Playground)
   - name: Marlowe
     url: https://github.com/input-output-hk/marlowe-cardano/issues
-    about: Please report security vulnerabilities here.
+    about: Please raise any Marlowek issues here (e.g. Marlowe Playground)
