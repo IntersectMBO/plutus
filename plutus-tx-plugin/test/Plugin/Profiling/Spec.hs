@@ -12,28 +12,15 @@
 
 module Plugin.Profiling.Spec where
 import           Common
-import           Lib                       (goldenPir)
-import           PlcTestUtils              (ToUPlc (toUPlc), goldenUEvalProfile, rethrow, runUPlcProfile)
-import           Plugin.Basic.Spec
-import           Plugin.Lib                (MyExternalRecord (myExternal), andExternal, evenDirect)
+import           Lib               (goldenPir)
+import           PlcTestUtils      (ToUPlc (toUPlc), goldenUEvalProfile)
 
-import           Plugin.Data.Spec
-import           Plugin.Functions.Spec     hiding (fib, recursiveFunctions)
-import           Plugin.Typeclasses.Spec
-import qualified PlutusCore.Default        as PLC
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code             (CompiledCode)
-import           PlutusTx.Plugin           (plc)
+import qualified PlutusTx.Builtins as Builtins
+import           PlutusTx.Code     (CompiledCode)
+import           PlutusTx.Plugin   (plc)
 
-import           Control.Lens.Combinators  (_2)
-import           Control.Lens.Getter       (view)
-import           Data.Proxy                (Proxy (Proxy))
-import           Data.Text                 (Text)
-import qualified PlutusCore.Default        as Builtins
+import           Data.Proxy        (Proxy (Proxy))
 import           Prelude
-import           Prettyprinter.Internal    (pretty)
-import           Prettyprinter.Render.Text (hPutDoc)
-import           System.IO                 (IOMode (WriteMode), withFile)
 
 profiling :: TestNested
 profiling = testNested "Profiling" [

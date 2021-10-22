@@ -5,20 +5,19 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Data.Spec where
 
 import           Common
 import           Lib
 import           PlcTestUtils
-import           Plugin.Lib
 
-import qualified PlutusTx.Builtins  as Builtins
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude   as P
-
-import qualified PlutusCore.Default as PLC
+import qualified PlutusTx.Prelude  as P
 
 import           Data.Proxy
 
@@ -84,7 +83,7 @@ irrefutableMatch :: CompiledCode (MyMonoData -> Integer)
 irrefutableMatch = plc (Proxy @"irrefutableMatch") (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
 
 atPattern :: CompiledCode ((Integer, Integer) -> Integer)
-atPattern = plc (Proxy @"atPattern") (\t@(x::Integer, y::Integer) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
+atPattern = plc (Proxy @"atPattern") (\t@(_::Integer, y::Integer) -> let fst (a, _) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
     deriving (Show, Eq)
@@ -128,6 +127,7 @@ instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
     {-# INLINABLE (==) #-}
     (Poly1 a1 b1) == (Poly1 a2 b2) = a1 P.== a2 && b1 P.== b2
     (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
+    _ == _                         = False
 
 polyDataType :: CompiledCode (MyPolyData Integer Integer -> MyPolyData Integer Integer)
 polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> x)
@@ -301,6 +301,7 @@ associatedParam = plc (Proxy @"associatedParam") (paramId (Param 1) 1)
 
 -- Here we cannot reduce the type family
 {-# NOINLINE tfId #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 tfId :: forall a . a -> BasicClosed a -> BasicClosed a
 tfId _ x = x
 

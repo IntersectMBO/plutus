@@ -1,8 +1,6 @@
 module Plugin.Spec where
 
 import           Common
-import           PlcTestUtils
-import           Plugin.Lib
 
 import           Plugin.Basic.Spec
 import           Plugin.Data.Spec

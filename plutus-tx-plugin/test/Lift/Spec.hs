@@ -8,7 +8,7 @@
 module Lift.Spec where
 
 import           Common
-import           Lib
+import           Lib                    ()
 import           PlcTestUtils
 import           Plugin.Data.Spec
 import           Plugin.Primitives.Spec
