@@ -52,7 +52,7 @@ let
   };
   cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";
-    version = "3.4.0.0";
+    version = "3.6.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
   };
