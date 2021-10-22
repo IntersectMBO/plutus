@@ -39,7 +39,7 @@ import           Data.Primitive.PrimArray
 import           Data.STRef
 import           Data.SatInt
 import           Data.Semigroup.Generic
-import           Data.Text.Prettyprint.Doc
+import           Prettyprinter
 import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.

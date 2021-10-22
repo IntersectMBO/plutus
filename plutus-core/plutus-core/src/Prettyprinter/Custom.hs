@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Text.Prettyprint.Doc.Custom ( brackets'
+module Prettyprinter.Custom ( brackets'
                                         , braces'
                                         , parens'
                                         , sexp
                                         ) where
 
-import           Data.Text.Prettyprint.Doc
+import           Prettyprinter
 
 -- | An area bracketed by two delimiters. When on multiple lines the delimiters are not indented but the content is.
 section' :: Doc a -> Doc a -> Doc a -> Doc a

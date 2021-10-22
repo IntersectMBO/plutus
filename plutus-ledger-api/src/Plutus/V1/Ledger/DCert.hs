@@ -18,12 +18,12 @@ import           Codec.Serialise.Class       (Serialise)
 import           Control.DeepSeq             (NFData)
 import           Data.Aeson                  (FromJSON, ToJSON)
 import           Data.Hashable               (Hashable)
-import           Data.Text.Prettyprint.Doc   (Pretty (..), viaShow)
 import           GHC.Generics                (Generic)
 import           Plutus.V1.Ledger.Credential (StakingCredential)
 import           Plutus.V1.Ledger.Crypto     (PubKeyHash)
 import qualified PlutusTx                    as PlutusTx
 import qualified PlutusTx.Prelude            as P
+import           Prettyprinter               (Pretty (..), viaShow)
 
 -- | A representation of the ledger DCert. Some information is digested, and
 --   not included

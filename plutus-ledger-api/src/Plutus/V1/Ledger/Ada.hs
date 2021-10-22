@@ -26,21 +26,21 @@ module Plutus.V1.Ledger.Ada(
     , isZero
     ) where
 
-import qualified Prelude                          as Haskell
+import qualified Prelude                as Haskell
 
 import           Data.Fixed
 
-import           Codec.Serialise.Class            (Serialise)
-import           Data.Aeson                       (FromJSON, ToJSON)
+import           Codec.Serialise.Class  (Serialise)
+import           Data.Aeson             (FromJSON, ToJSON)
 import           Data.Tagged
-import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                     (Generic)
-import           Plutus.V1.Ledger.Value           (CurrencySymbol (..), TokenName (..), Value)
-import qualified Plutus.V1.Ledger.Value           as TH
-import qualified PlutusTx                         as PlutusTx
-import           PlutusTx.Lift                    (makeLift)
-import           PlutusTx.Prelude                 hiding (divide)
-import qualified PlutusTx.Prelude                 as P
+import           GHC.Generics           (Generic)
+import           Plutus.V1.Ledger.Value (CurrencySymbol (..), TokenName (..), Value)
+import qualified Plutus.V1.Ledger.Value as TH
+import qualified PlutusTx               as PlutusTx
+import           PlutusTx.Lift          (makeLift)
+import           PlutusTx.Prelude       hiding (divide)
+import qualified PlutusTx.Prelude       as P
+import           Prettyprinter.Extras
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.

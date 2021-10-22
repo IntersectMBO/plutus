@@ -60,7 +60,7 @@
         modules = [
           "Data/Aeson/Extras"
           "Data/Either/Extras"
-          "Data/Text/Prettyprint/Doc/Extras"
+          "Prettyprinter/Extras"
           "Plutus/V1/Ledger/Address"
           "Plutus/V1/Ledger/Ada"
           "Plutus/V1/Ledger/Api"

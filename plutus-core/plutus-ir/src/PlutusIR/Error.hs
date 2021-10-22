@@ -17,17 +17,17 @@ module PlutusIR.Error
     , PLC.Normalized (..)
     ) where
 
-import qualified PlutusCore                as PLC
-import qualified PlutusCore.Pretty         as PLC
+import qualified PlutusCore        as PLC
+import qualified PlutusCore.Pretty as PLC
 import           PlutusPrelude
 
-import qualified PlutusIR                  as PIR
+import qualified PlutusIR          as PIR
 
 import           Control.Lens
 
-import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc as PP
+import qualified Data.Text         as T
 import           ErrorCode
+import           Prettyprinter     as PP
 
 data TypeErrorExt uni ann =
       MalformedDataConstrResType

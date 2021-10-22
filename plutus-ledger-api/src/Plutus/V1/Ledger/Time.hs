@@ -28,13 +28,13 @@ import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, T
 import           Data.Aeson.Types          (prependFailure, typeMismatch)
 import           Data.Hashable             (Hashable)
 import           Data.Scientific           (floatingOrInteger, scientific)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Interval
 import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 import qualified Prelude                   as Haskell
+import           Prettyprinter             (Pretty (pretty), (<+>))
 
 
 -- | This is a length of time, as measured by a number of milliseconds.

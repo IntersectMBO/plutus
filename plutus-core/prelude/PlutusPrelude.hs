@@ -85,33 +85,33 @@ module PlutusPrelude
     , showText
     ) where
 
-import           Control.Applicative       (Alternative (..))
-import           Control.Arrow             ((&&&))
-import           Control.Composition       ((.*))
-import           Control.DeepSeq           (NFData)
-import           Control.Exception         (Exception, throw)
+import           Control.Applicative    (Alternative (..))
+import           Control.Arrow          ((&&&))
+import           Control.Composition    ((.*))
+import           Control.DeepSeq        (NFData)
+import           Control.Exception      (Exception, throw)
 import           Control.Lens
 import           Control.Monad.Reader
 import           Data.Array
-import           Data.Bifunctor            (first, second)
-import           Data.Bool                 (bool)
-import           Data.Coerce               (Coercible, coerce)
-import           Data.Either               (fromRight, isRight)
-import           Data.Foldable             (fold, toList)
-import           Data.Function             (on)
-import           Data.Functor              (($>))
+import           Data.Bifunctor         (first, second)
+import           Data.Bool              (bool)
+import           Data.Coerce            (Coercible, coerce)
+import           Data.Either            (fromRight, isRight)
+import           Data.Foldable          (fold, toList)
+import           Data.Function          (on)
+import           Data.Functor           (($>))
 import           Data.Functor.Compose
-import           Data.List                 (foldl')
-import           Data.List.NonEmpty        (NonEmpty (..))
-import           Data.Maybe                (fromMaybe, isJust, isNothing)
-import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Traversable          (for)
-import           Data.Typeable             (Typeable)
-import           Data.Word                 (Word8)
+import           Data.List              (foldl')
+import           Data.List.NonEmpty     (NonEmpty (..))
+import           Data.Maybe             (fromMaybe, isJust, isNothing)
+import qualified Data.Text              as T
+import           Data.Traversable       (for)
+import           Data.Typeable          (Typeable)
+import           Data.Word              (Word8)
 import           Debug.Trace
 import           GHC.Generics
-import           GHC.Natural               (Natural)
+import           GHC.Natural            (Natural)
+import           Prettyprinter
 import           Text.PrettyBy.Default
 import           Text.PrettyBy.Internal
 

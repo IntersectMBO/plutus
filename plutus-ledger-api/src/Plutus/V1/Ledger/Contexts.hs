@@ -51,10 +51,10 @@ module Plutus.V1.Ledger.Contexts
     , fromSymbol
     ) where
 
-import           Data.Text.Prettyprint.Doc   (Pretty (..), nest, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
 import           PlutusTx
 import           PlutusTx.Prelude
+import           Prettyprinter               (Pretty (..), nest, viaShow, vsep, (<+>))
 
 import           Plutus.V1.Ledger.Ada        (Ada)
 import qualified Plutus.V1.Ledger.Ada        as Ada
