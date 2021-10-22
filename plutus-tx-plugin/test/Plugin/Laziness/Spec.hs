@@ -11,9 +11,10 @@ module Plugin.Laziness.Spec where
 import           Common
 import           Lib
 import           PlcTestUtils
+import           Plugin.Data.StableTerms
 import           Plugin.Lib
 
-import qualified PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins       as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
 
@@ -22,7 +23,7 @@ import           Data.Proxy
 laziness :: TestNested
 laziness = testNested "Laziness" [
     goldenPir "joinError" joinErrorPir
-    , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
+    , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc stableTrue, toUPlc stableFalse ]
     , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 

@@ -2,10 +2,7 @@
   (nonrec)
   (datatypebind
     (datatype
-      (tyvardecl Maybe (fun (type) (type)))
-      (tyvardecl a (type))
-      match_Maybe
-      (vardecl Nothing [ Maybe a ]) (vardecl Just (fun a [ Maybe a ]))
+      (tyvardecl Maybe (fun (type) (type))) (tyvardecl a (type)) match_Maybe 
     )
   )
   (error Maybe)

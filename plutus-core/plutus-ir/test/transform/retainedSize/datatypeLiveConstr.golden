@@ -2,11 +2,11 @@
   (nonrec)
   (datatypebind
     (datatype
-      $1$
+      $0$
       (tyvardecl $4$ Maybe (fun (type) (type)))
       (tyvardecl $2$ a (type))
       match_Maybe
-      (vardecl $17$ Nothing [ Maybe a ]) (vardecl $6$ Just (fun a [ Maybe a ]))
+      (vardecl $10$ Nothing [ Maybe a ]) (vardecl $0$ Just (fun a [ Maybe a ]))
     )
   )
   Nothing

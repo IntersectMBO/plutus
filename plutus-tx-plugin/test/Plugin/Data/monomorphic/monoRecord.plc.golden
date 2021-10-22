@@ -2,14 +2,7 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl MyMonoRecord (type))
-
-        MyMonoRecord_match
-        (vardecl
-          MyMonoRecord (fun (con integer) (fun (con integer) MyMonoRecord))
-        )
-      )
+      (datatype (tyvardecl MyMonoRecord (type))  MyMonoRecord_match )
     )
     (lam ds MyMonoRecord ds)
   )

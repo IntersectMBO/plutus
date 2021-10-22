@@ -7,8 +7,6 @@
 
         MyMonoData_match
         (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
-        (vardecl Mono (fun (con integer) MyMonoData))
-        (vardecl Mono (fun (con integer) MyMonoData))
       )
     )
     Mono

@@ -4,7 +4,9 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
@@ -13,11 +15,12 @@ module Plugin.Data.Spec where
 import           Common
 import           Lib
 import           PlcTestUtils
+import           Plugin.Data.StableTerms
 
-import qualified PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins       as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude  as P
+import qualified PlutusTx.Prelude        as P
 
 import           Data.Proxy
 
@@ -184,7 +187,7 @@ recursiveTypes = testNested "recursive" [
     , goldenPir "listConstruct2" listConstruct2
     , goldenPir "listConstruct3" listConstruct3
     , goldenPir "listMatch" listMatch
-    , goldenUEval "listConstDest" [ toUPlc listMatch, toUPlc listConstruct ]
+    , goldenUEval "listConstDest" [ toUPlc listMatch, toUPlc stableListConstruct ]
     , goldenUEval "listConstDest2" [ toUPlc listMatch, toUPlc listConstruct2 ]
     , goldenPir "ptreeConstruct" ptreeConstruct
     , goldenPir "ptreeMatch" ptreeMatch

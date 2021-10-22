@@ -11,12 +11,13 @@ module Plugin.Primitives.Spec where
 import           Common
 import           Lib
 import           PlcTestUtils
+import           Plugin.Data.StableTerms
 
-import qualified PlutusTx.Builtins as Builtins
+import qualified PlutusTx.Builtins       as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude  as P
+import qualified PlutusTx.Prelude        as P
 
 import           Data.Proxy
 
@@ -25,9 +26,11 @@ primitives = testNested "Primitives" [
     goldenPir "string" string
   , goldenPir "int" int
   , goldenPir "int2" int2
-  , goldenPir "bool" bool
+  , goldenPir "true" true
+  , goldenPir "false" false
+  , goldenPir "bool" stableTrue
   , goldenPir "and" andPlc
-  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
+  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc stableTrue, toUPlc stableFalse ]
   , goldenPir "tuple" tuple
   , goldenPir "tupleMatch" tupleMatch
   , goldenUEval "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]
@@ -82,8 +85,11 @@ int2 = plc (Proxy @"int2") (2::Integer)
 emptyBS :: CompiledCode Builtins.BuiltinByteString
 emptyBS = plc (Proxy @"emptyBS") Builtins.emptyByteString
 
-bool :: CompiledCode Bool
-bool = plc (Proxy @"bool") True
+true :: CompiledCode Bool
+true = plc (Proxy @"true") True
+
+false :: CompiledCode Bool
+false = plc (Proxy @"false") False
 
 andPlc :: CompiledCode (Bool -> Bool -> Bool)
 andPlc = plc (Proxy @"andPlc") (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)

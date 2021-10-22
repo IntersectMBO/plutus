@@ -1,0 +1,9 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Bool (type))  Bool_match (vardecl True Bool))
+    )
+    True
+  )
+)
