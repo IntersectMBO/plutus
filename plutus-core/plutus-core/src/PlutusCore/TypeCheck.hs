@@ -6,7 +6,8 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module PlutusCore.TypeCheck
-    ( Typecheckable
+    ( ToKind
+    , Typecheckable
     -- * Configuration.
     , BuiltinTypes (..)
     , TypeCheckConfig (..)

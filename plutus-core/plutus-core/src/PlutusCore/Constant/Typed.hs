@@ -36,11 +36,15 @@ module PlutusCore.Constant.Typed
     , FromConstant (..)
     , HasConstant
     , HasConstantIn
+    , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , Merge
     , ListToBinds
+    , KnownBuiltinTypeIn
     , KnownBuiltinType
-    , KnownType (..)
+    , KnownTypeIn (..)
+    , KnownType
+    , TestTypesFromTheUniverseAreAllKnown
     , readKnownSelf
     , makeKnownOrFail
     , SomeConstant (..)
@@ -50,8 +54,8 @@ module PlutusCore.Constant.Typed
 import           PlutusPrelude
 
 import           PlutusCore.Constant.Dynamic.Emit
+import           PlutusCore.Constant.Kinded
 import           PlutusCore.Core
-import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
@@ -70,6 +74,7 @@ import           Data.String
 import qualified Data.Text                               as Text
 import           GHC.Ix
 import           GHC.TypeLits
+import           Universe
 
 infixr 9 `TypeSchemeArrow`
 
@@ -134,7 +139,7 @@ We need to support polymorphism for built-in functions for these reasons:
    defined over them are polymorphic as well
 -}
 
-{- Note [Implemetation of polymorphic built-in functions]
+{- Note [Implementation of polymorphic built-in functions]
 Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
 It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 But we'd rather avoid such heavy techniques.
@@ -226,8 +231,7 @@ It would be nice if we didn't need to define that @*Rep@ stuff at the type level
 to the term level via a type class, but this hasn't been investigated yet. A plausible way would be
 to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually. But that doesn't seem
 to give rise to a terribly nice API. And we'd lose all the static guarantees, which is not a big
-deal, but losing the automatic inference of type schemes would suck, given that it's already quite
-handy and is going to be improved.
+deal, but losing the automatic inference of type schemes would suck, given that it's quite handy.
 
 Representing contructors as poly-kinded data families and handling those with open type families
 and/or type classes is a way of solving the expression problem for indexed data types at the type
@@ -450,6 +454,26 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
+-- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
+-- We add such a trivial type synonym to make instances of 'KnownTypeAst' for built-in types look
+-- better. For example, the \"abstract\" 'KnownBuiltinTypeAst' looks sensible here:
+--
+-- > instance KnownBuiltinTypeAst DefaultUni Integer => KnownTypeAst DefaultUni Integer
+--
+-- while inlining the definition would give us
+--
+-- > instance DefaultUni `Contains` Integer => KnownTypeAst DefaultUni Integer
+--
+-- which is nonsense, because the @DefaultUni `Contains` Integer@ constraint is redundant
+-- (by means of being trivially satisfied).
+--
+-- We could omit the constraint in both the cases due to `Integer` being monomorphic, but for
+-- polymorphic built-in types we do need it and so we keep things uniform by introducing this
+-- type synonym. Which also allows us to replicate the same pattern as with 'KnownTypeIn':
+--
+-- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
+type KnownBuiltinTypeAst = Contains
+
 class KnownTypeAst uni (a :: k) where
     -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantOf' has to be
     -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
@@ -461,7 +485,7 @@ class KnownTypeAst uni (a :: k) where
 
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
-    default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
+    default toTypeAst :: KnownBuiltinTypeAst uni a => proxy a -> Type TyName uni ()
     toTypeAst _ = mkTyBuiltin @_ @a ()
 
 -- | Delete all @x@s from a list.
@@ -486,11 +510,19 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
--- | A constraint for \"@a@ is a known type by means of being included in the universe\".
-class (GShow uni, GEq uni, uni `Contains` a) => KnownBuiltinType uni a
+-- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
+-- hence defining it as a class synonym.
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+            KnownBuiltinTypeIn uni term a
+instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+            KnownBuiltinTypeIn uni term a
+
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
+type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 -- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
--- the latter breaks on @m a@
+-- the latter breaks on @m a@ (and for brevity).
 -- | Haskell types known to exist on the PLC side.
 -- Both the methods take a @Maybe cause@ argument to report the cause of a potential failure.
 -- @cause@ is different to @term@ to support evaluators that distinguish between terms and values
@@ -498,29 +530,37 @@ class (GShow uni, GEq uni, uni `Contains` a) => KnownBuiltinType uni a
 -- as a term). Note that an evaluator might require the cause to be computed lazily for best
 -- performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
 -- the cause stored in it is not forced due to @Maybe@ being a lazy data type.
-class KnownTypeAst (UniOf term) a => KnownType term a where
+class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: (MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err)
+        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
+           )
         => Maybe cause -> a -> m term
-
-    -- | Convert a PLC term to the corresponding Haskell value.
-    -- The inverse of 'makeKnown'.
-    readKnown
-        :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
-        => Maybe cause -> term -> m a
-
-instance {-# OVERLAPPABLE #-} (HasConstantIn uni term, KnownBuiltinType uni a, KnownTypeAst uni a) =>
-        KnownType term a where
+    default makeKnown
+        :: ( MonadError (ErrorWithCause err cause) m
+           , KnownBuiltinType term a
+           )
+        => Maybe cause -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
     makeKnown _ x = pure . fromConstant . someValue $! x
 
+    -- | Convert a PLC term to the corresponding Haskell value.
+    -- The inverse of 'makeKnown'.
+    readKnown
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
+           )
+        => Maybe cause -> term -> m a
+    default readKnown
+        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
+           , KnownBuiltinType term a
+           )
+        => Maybe cause -> term -> m a
     readKnown mayCause term = asConstant mayCause term >>= \case
         Some (ValueOf uniAct x) -> do
-            let uniExp = knownUni @_ @(UniOf term) @a
+            let uniExp = knownUni @_ @uni @a
             case uniAct `geq` uniExp of
                 Just Refl -> pure x
                 Nothing   -> do
@@ -531,6 +571,9 @@ instance {-# OVERLAPPABLE #-} (HasConstantIn uni term, KnownBuiltinType uni a, K
                             ]
                     throwingWithCause _UnliftingError err mayCause
 
+-- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
+type KnownType term = KnownTypeIn (UniOf term) term
+
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
     :: ( KnownType term a
@@ -538,6 +581,17 @@ readKnownSelf
        )
     => term -> m a
 readKnownSelf term = readKnown (Just term) term
+
+-- | For providing a 'KnownTypeIn' instance for a built-in type it's enough for that type to satisfy
+-- 'KnownBuiltinTypeIn', hence the definition.
+class    (forall term. KnownBuiltinTypeIn uni term a => KnownTypeIn uni term a) =>
+    ImplementedKnownBuiltinTypeIn uni a
+instance (forall term. KnownBuiltinTypeIn uni term a => KnownTypeIn uni term a) =>
+    ImplementedKnownBuiltinTypeIn uni a
+
+-- | An instance of this class not having any constraints ensures that every type
+-- (according to 'Everywhere') from the universe has a 'KnownTypeIn' instance.
+class uni `Everywhere` ImplementedKnownBuiltinTypeIn uni => TestTypesFromTheUniverseAreAllKnown uni
 
 -- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
 newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
@@ -561,8 +615,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
     toTypeAst _ = toTypeAst $ Proxy @a
 
-instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
-            KnownType term (EvaluationResult a) where
+instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
+            KnownTypeIn uni term (EvaluationResult a) where
     makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
     makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
 
@@ -580,7 +634,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
 
     toTypeAst _ = toTypeAst $ Proxy @a
 
-instance KnownType term a => KnownType term (Emitter a) where
+instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
     makeKnown mayCause = unEmitter >=> makeKnown mayCause
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
@@ -600,7 +654,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
-            KnownType term (SomeConstant uni rep) where
+            KnownTypeIn uni term (SomeConstant uni rep) where
     makeKnown _ = pure . fromConstant . unSomeConstant
     readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
@@ -664,8 +718,8 @@ type ReadSomeConstantOf
 data ReadSomeConstantOf m uni f reps =
     forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
 
-instance (HasConstantIn uni term, KnownBuiltinType uni f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
-            KnownType term (SomeConstantOf uni f reps) where
+instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
+            KnownTypeIn uni term (SomeConstantOf uni f reps) where
     makeKnown _ = pure . fromConstant . runSomeConstantOf
 
     readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
@@ -724,7 +778,7 @@ instance
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
-            (knownKind $ Proxy @kind)
+            (runSingKind $ knownKind @kind)
             (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
@@ -732,60 +786,12 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
 
     toTypeAst _ = toTypeAst $ Proxy @rep
 
-instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
+instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
+            KnownTypeIn uni term (Opaque term' rep) where
     makeKnown _ = pure . unOpaque
     readKnown _ = pure . Opaque
 
--- Built-in types.
-
--- instance uni `Contains` Integer       => KnownTypeAst uni Integer
--- instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
--- instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
--- instance uni `Contains` ()            => KnownTypeAst uni ()
--- instance uni `Contains` Bool          => KnownTypeAst uni Bool
--- instance uni `Contains` [a]           => KnownTypeAst uni [a]
--- instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
--- instance uni `Contains` Data          => KnownTypeAst uni Data
-
--- instance KnownBuiltinType term Integer       => KnownType term Integer
--- instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
--- instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
--- instance KnownBuiltinType term ()            => KnownType term ()
--- instance KnownBuiltinType term Bool          => KnownType term Bool
--- instance KnownBuiltinType term [a]           => KnownType term [a]
--- instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
--- instance KnownBuiltinType term Data          => KnownType term Data
-
--- class uni `Everywhere` (KnownBuiltinType `Implies1` KnownType) =>
---     TestTypesFromTheUniverseAreAllKnown uni
-
--- instance
---     TestTypesFromTheUniverseAreAllKnown DefaultUni
-
--- class    (forall a. c a b => d a b) => Implies1 c d b
--- instance (forall a. c a b => d a b) => Implies1 c d b
-
-{- Note [Int as Integer]
-We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
-unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
-if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
-internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
-being "internal".
--}
-
-instance KnownTypeAst uni Integer => KnownTypeAst uni Int where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
-
--- See Note [Int as Integer].
-instance KnownType term Integer => KnownType term Int where
-    makeKnown mayCause = makeKnown mayCause . toInteger
-    readKnown mayCause term = do
-        i :: Integer <- readKnown mayCause term
-        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () mayCause
-        pure $ fromIntegral i
-
--- Custom type errors to guide the programmer adding a new built-in type or function.
+-- Custom type errors to guide the programmer adding a new built-in function.
 -- We cover a lot of cases here, but some are missing, for example we do not attempt to detect
 -- higher-kinded type variables, which means that if your function returns an @m a@ we can neither
 -- instantiate @m@ (which is impossible anyway: it could be 'EvaluationResult' or 'Emitter'
@@ -800,15 +806,6 @@ instance KnownType term Integer => KnownType term Int where
 -- no way we could do that.
 underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
-
-type UnknownTypeErrMsg a =
-    'Text "There's no 'KnownBuiltinType' instance for " ':<>: 'ShowType a ':$$:
-    'Text "Did you add a new built-in type without providing a 'KnownBuiltinType' instance for it?"
-
-instance {-# OVERLAPPABLE #-}
-    ( TypeError (UnknownTypeErrMsg a)
-    , GShow uni, GEq uni, uni `Contains` a
-    ) => KnownBuiltinType uni a
 
 type NoConstraintsErrMsg =
     'Text "Built-in functions are not allowed to have constraints" ':$$:

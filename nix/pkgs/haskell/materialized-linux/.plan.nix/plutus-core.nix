@@ -111,6 +111,7 @@
         modules = [
           "PlutusCore/Analysis/Definitions"
           "PlutusCore/Constant/Function"
+          "PlutusCore/Constant/Kinded"
           "PlutusCore/Constant/Meaning"
           "PlutusCore/Constant/Typed"
           "PlutusCore/Core/Instance"

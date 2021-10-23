@@ -41,6 +41,7 @@ module PlutusCore
     , Term (..)
     , termSubterms
     , termSubtypes
+    , UniOf
     , Type (..)
     , typeSubtypes
     , Kind (..)
@@ -81,7 +82,6 @@ module PlutusCore
     , formatDoc
     -- * Processing
     , HasUniques
-    , ToKind (..)
     , Rename (..)
     -- * Type checking
     , module TypeCheck

@@ -24,7 +24,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Foldable
 import           Data.Ix
-import           PlutusCore                    (ToKind (..), typeAnn)
+import           PlutusCore                    (ToKind, typeAnn)
 import           PlutusCore.Error              as PLC
 import           PlutusCore.Quote
 import           PlutusCore.Rename             as PLC

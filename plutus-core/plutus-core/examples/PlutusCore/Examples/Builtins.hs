@@ -137,11 +137,11 @@ instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
-instance KnownTypeAst uni Void where
+instance KnownTypeAst DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
-instance KnownType term Void where
+instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
     makeKnown _ = absurd
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 

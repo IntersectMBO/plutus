@@ -25,15 +25,19 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
-import           PlutusCore.Core
+import           PlutusCore.Constant
 import           PlutusCore.Data
+import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Result
 import           PlutusCore.Parsable
 
 import           Control.Applicative
-import qualified Data.ByteString     as BS
+import           Control.Monad
+import qualified Data.ByteString                         as BS
 import           Data.Foldable
-import qualified Data.Text           as Text
-import           Universe            as Export
+import           Data.Proxy
+import qualified Data.Text                               as Text
+import           Universe                                as Export
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -88,7 +92,6 @@ pattern DefaultUniList uniA =
     DefaultUniProtoList `DefaultUniApply` uniA
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
--- Just for backwards compatibility, probably should be removed at some point.
 
 deriveGEq ''DefaultUni
 
@@ -97,19 +100,15 @@ noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 instance ToKind DefaultUni where
-    toKind DefaultUniInteger        = kindOf DefaultUniInteger
-    toKind DefaultUniByteString     = kindOf DefaultUniByteString
-    toKind DefaultUniString         = kindOf DefaultUniString
-    toKind DefaultUniUnit           = kindOf DefaultUniUnit
-    toKind DefaultUniBool           = kindOf DefaultUniBool
-    toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
-    toKind DefaultUniProtoPair      = kindOf DefaultUniProtoPair
-    toKind (DefaultUniApply uniF _) = case toKind uniF of
-        -- We can avoid using @error@ here by having more type astronautics with 'Typeable',
-        -- but having @error@ should be fine.
-        Type _            -> error "Panic: a type function can't be of type *"
-        KindArrow _ _ cod -> cod
-    toKind DefaultUniData = kindOf DefaultUniData
+    toSingKind DefaultUniInteger        = knownKind
+    toSingKind DefaultUniByteString     = knownKind
+    toSingKind DefaultUniString         = knownKind
+    toSingKind DefaultUniUnit           = knownKind
+    toSingKind DefaultUniBool           = knownKind
+    toSingKind DefaultUniProtoList      = knownKind
+    toSingKind DefaultUniProtoPair      = knownKind
+    toSingKind (DefaultUniApply uniF _) = case toSingKind uniF of _ `SingKindArrow` cod -> cod
+    toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
     matchUniApply (DefaultUniApply f a) _ h = h f a
@@ -172,6 +171,48 @@ instance DefaultUni `Contains` Data          where knownUni = DefaultUniData
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
 
+instance KnownBuiltinTypeAst DefaultUni Integer       => KnownTypeAst DefaultUni Integer
+instance KnownBuiltinTypeAst DefaultUni BS.ByteString => KnownTypeAst DefaultUni BS.ByteString
+instance KnownBuiltinTypeAst DefaultUni Text.Text     => KnownTypeAst DefaultUni Text.Text
+instance KnownBuiltinTypeAst DefaultUni ()            => KnownTypeAst DefaultUni ()
+instance KnownBuiltinTypeAst DefaultUni Bool          => KnownTypeAst DefaultUni Bool
+instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni [a]
+instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
+instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
+
+instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
+instance KnownBuiltinTypeIn DefaultUni term BS.ByteString => KnownTypeIn DefaultUni term BS.ByteString
+instance KnownBuiltinTypeIn DefaultUni term Text.Text     => KnownTypeIn DefaultUni term Text.Text
+instance KnownBuiltinTypeIn DefaultUni term ()            => KnownTypeIn DefaultUni term ()
+instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn DefaultUni term Bool
+instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
+instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
+instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
+
+-- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
+-- (you'll also need to add a 'KnownTypeAst' instance as well).
+instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+
+{- Note [Int as Integer]
+We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
+unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
+if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
+internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
+being "internal".
+-}
+
+instance KnownTypeAst DefaultUni Int where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Int as Integer].
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+    makeKnown mayCause = makeKnown mayCause . toInteger
+    readKnown mayCause term = do
+        i :: Integer <- readKnown mayCause term
+        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
+            throwingWithCause _EvaluationFailure () mayCause
+        pure $ fromIntegral i
+
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
@@ -193,8 +234,7 @@ instance Closed DefaultUni where
         )
 
     -- See Note [Stable encoding of tags].
-    -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'Everywhere' RIGHT ABOVE AND
-    -- 'withDecodedUni' RIGHT BELOW AS WELL.
+    -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'withDecodedUni' RIGHT BELOW.
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
     encodeUni DefaultUniString            = [2]

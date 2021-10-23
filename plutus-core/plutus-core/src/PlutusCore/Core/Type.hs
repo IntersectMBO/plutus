@@ -24,10 +24,7 @@ module PlutusCore.Core.Type
     , TyDecl (..)
     , tyDeclVar
     , HasUniques
-    , KnownKind (..)
-    , ToKind (..)
     , Binder (..)
-    , kindOf
     , defaultVersion
     -- * Helper functions
     , toTerm
@@ -53,7 +50,6 @@ import           PlutusCore.Name
 import           Control.Lens
 import           Data.Hashable
 import qualified Data.Kind                as GHC
-import           Data.Proxy
 import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
 import           Universe
@@ -157,31 +153,6 @@ type instance HasUniques (Term tyname name uni fun ann) =
     (HasUnique tyname TypeUnique, HasUnique name TermUnique)
 type instance HasUniques (Program tyname name uni fun ann) =
     HasUniques (Term tyname name uni fun ann)
-
--- | A class for converting Haskell kinds to PLC kinds.
-class KnownKind kind where
-    knownKind :: proxy kind -> Kind ()
-
-instance KnownKind GHC.Type where
-    knownKind _ = Type ()
-
-instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
-    knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
-
--- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
--- producing them directly or by parsing/decoding them and in both the cases we have access to the
--- @Typeable@ information for the Haskell kind of a type and so we could just keep it around
--- (instead of throwing it away like we do now) and compute the Plutus kind directly from that.
--- That might be less efficient and probably requires updating the Plutus Tx compiler, so we went
--- with the simplest option for now and it's to have a class. Providing an instance per universe is
--- no big deal.
--- | For getting the Plutus kind of a type from the universe.
-class ToKind (uni :: GHC.Type -> GHC.Type) where
-    toKind :: forall k (a :: k). uni (Esc a) -> Kind ()
-
--- | Get the PLC kind of @a@.
-kindOf :: forall uni k (a :: k). KnownKind k => uni (Esc a) -> Kind ()
-kindOf _ = knownKind $ Proxy @k
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann

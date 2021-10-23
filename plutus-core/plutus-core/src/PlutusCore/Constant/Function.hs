@@ -10,12 +10,13 @@ module PlutusCore.Constant.Function
     , getArity
     ) where
 
+import           PlutusCore.Constant.Kinded
 import           PlutusCore.Constant.Typed
 import           PlutusCore.Core
 import           PlutusCore.Name
 
 import           Data.Proxy
-import qualified Data.Text                 as Text
+import qualified Data.Text                  as Text
 import           GHC.TypeLits
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
@@ -28,7 +29,7 @@ typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
         let text = Text.pack $ symbolVal @text Proxy
             uniq = fromIntegral $ natVal @uniq Proxy
             a    = TyName $ Name text $ Unique uniq
-        in TyForall () a (knownKind $ Proxy @kind) $ typeSchemeToType (schK Proxy)
+        in TyForall () a (runSingKind $ knownKind @kind) $ typeSchemeToType (schK Proxy)
 
 countTermArgs :: TypeScheme uni args res -> Int
 countTermArgs (TypeSchemeResult _)     = 0
