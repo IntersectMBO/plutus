@@ -18,7 +18,6 @@ import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
 import           Lib
 import           PlcTestUtils
-import           PlutusCore.Data            (Data (..))
 import           Test.Tasty                 (TestName)
 import           Test.Tasty.Hedgehog        (testProperty)
 

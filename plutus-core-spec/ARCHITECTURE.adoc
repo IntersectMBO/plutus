@@ -1,3 +1,0 @@
-=== `plutus-core-spec`
-
-This folder contains the Plutus Core specification.

@@ -7,23 +7,9 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module Plugin.Lib where
 
-import           Common
-import           PlcTestUtils
-
-import           Language.Haskell.TH
 import           PlutusTx.Prelude
 
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Evaluation
-import           PlutusTx.Prelude
-import           PlutusTx.TH
-
-import           PlutusCore.Pretty         (PrettyConst)
-import qualified UntypedPlutusCore         as UPLC
-
-import           Codec.Serialise           (Serialise)
-import           Data.Text.Prettyprint.Doc
+import qualified PlutusTx.Builtins as Builtins
 
 -- This is here for the Plugin spec, but we're testing using things from a different module
 andExternal :: Bool -> Bool -> Bool

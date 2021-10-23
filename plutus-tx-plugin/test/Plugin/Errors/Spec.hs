@@ -5,19 +5,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Errors.Spec where
 
 import           Common
-import           Lib
+import           Lib                       ()
 import           PlcTestUtils
-import           Plugin.Lib
 
 import qualified PlutusTx.Builtins         as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
-
-import qualified PlutusCore.Default        as PLC
 
 import           Data.Proxy
 import           Data.String
@@ -51,7 +49,7 @@ negativeInt :: CompiledCode Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# _ -> True; _ -> False; } )
 
 stringLiteral :: CompiledCode String
 stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)

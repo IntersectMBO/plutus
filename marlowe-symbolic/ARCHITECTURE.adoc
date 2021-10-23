@@ -1,4 +1,0 @@
-=== `marlowe-symbolic`
-
-This package contains a web-service for doing static analysis of Marlowe
-programs using symbolic execution.

@@ -38,7 +38,6 @@ module PlutusTx.AssocMap (
     ) where
 
 import           Control.DeepSeq            (NFData)
-import           Data.Text.Prettyprint.Doc  (Pretty (..))
 import           GHC.Generics               (Generic)
 import qualified PlutusTx.Builtins          as P
 import qualified PlutusTx.Builtins.Internal as BI
@@ -48,6 +47,7 @@ import           PlutusTx.Prelude           hiding (filter, mapMaybe, null, toLi
 import qualified PlutusTx.Prelude           as P
 import           PlutusTx.These
 import qualified Prelude                    as Haskell
+import           Prettyprinter              (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}
 

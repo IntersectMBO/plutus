@@ -41,8 +41,8 @@ import           Control.Monad.Error.Lens               (throwing_)
 import           Control.Monad.Except
 import           Data.String                            (IsString)
 import           Data.Text                              (Text)
-import           Data.Text.Prettyprint.Doc
 import           ErrorCode
+import           Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError

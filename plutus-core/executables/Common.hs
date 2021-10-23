@@ -39,9 +39,9 @@ import qualified Data.List                                as List
 import qualified Data.Text                                as T
 import           Data.Text.Encoding                       (encodeUtf8)
 import qualified Data.Text.IO                             as T
-import           Data.Text.Prettyprint.Doc                (Doc, pretty, (<+>))
 import           Data.Traversable                         (for)
 import           Flat                                     (Flat, flat, unflat)
+import           Prettyprinter                            (Doc, pretty, (<+>))
 
 import           System.CPUTime                           (getCPUTime)
 import           System.Exit                              (exitFailure, exitSuccess)

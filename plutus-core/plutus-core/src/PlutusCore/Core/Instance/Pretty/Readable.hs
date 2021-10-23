@@ -19,7 +19,7 @@ import           PlutusCore.Pretty.PrettyConst
 import           PlutusCore.Pretty.Readable
 
 import           Control.Monad.Reader
-import           Data.Text.Prettyprint.Doc
+import           Prettyprinter
 import           Universe
 
 -- | Pretty-print a binding at the type level.

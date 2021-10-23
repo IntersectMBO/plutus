@@ -6,13 +6,17 @@ labels: enhancement
 assignees: ''
 
 ---
+<!--
+IMPORTANT
 
-## Area
+This repository used to contain the code for the Plutus Application Framework and Marlowe.
+These have now *moved*:
 
-[] *Plutus Foundation* Related to the GHC plugin, Haskell-to-Plutus compiler, on-chain code
-[] *Plutus Application Framework* Related to the Plutus application backend (PAB), emulator, Plutus libraries
-[] *Marlowe* Related to Marlowe
-[] *Other* Any other topic (Playgrounds, etc.)
+- [Plutus Application Framework](https://github.com/input-output-hk/plutus-apps)
+- [Marlowe](https://github.com/input-output-hk/marlowe-cardano)
+
+Please ensure that you make your issue in the appropriate repository!
+-->
 
 ## Describe the feature you'd like
 

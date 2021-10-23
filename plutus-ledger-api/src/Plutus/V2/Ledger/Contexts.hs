@@ -52,11 +52,11 @@ module Plutus.V2.Ledger.Contexts
     , fromSymbol
     ) where
 
-import           Data.Text.Prettyprint.Doc   (Pretty (..), nest, vsep, (<+>))
 import           GHC.Generics                (Generic)
 import           PlutusTx
 import           PlutusTx.AssocMap           hiding (filter, mapMaybe)
 import           PlutusTx.Prelude            hiding (toList)
+import           Prettyprinter               (Pretty (..), nest, vsep, (<+>))
 
 import           Plutus.V1.Ledger.Ada        (Ada)
 import qualified Plutus.V1.Ledger.Ada        as Ada

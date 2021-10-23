@@ -8,14 +8,14 @@ module PlutusIR.Core.Instance.Pretty () where
 
 import           PlutusPrelude
 
-import qualified PlutusCore                       as PLC
-import           PlutusCore.Flat                  ()
-import qualified PlutusCore.Pretty                as PLC
+import qualified PlutusCore           as PLC
+import           PlutusCore.Flat      ()
+import qualified PlutusCore.Pretty    as PLC
 
 import           PlutusIR.Core.Type
 
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom
+import           Prettyprinter
+import           Prettyprinter.Custom
 
 -- Pretty-printing
 

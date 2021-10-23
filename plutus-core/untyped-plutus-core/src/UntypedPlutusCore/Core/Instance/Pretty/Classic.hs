@@ -18,8 +18,8 @@ import           PlutusCore.Core.Instance.Pretty.Common ()
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
 
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom
+import           Prettyprinter
+import           Prettyprinter.Custom
 import           Universe
 
 instance

@@ -12,13 +12,10 @@ module Plugin.Basic.Spec where
 import           Common
 import           Lib
 import           PlcTestUtils
-import           Plugin.Lib
 
-import qualified PlutusTx.Builtins  as Builtins
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
-
-import qualified PlutusCore.Default as PLC
 
 import           Data.Proxy
 
@@ -37,7 +34,7 @@ monoId :: CompiledCode (Integer -> Integer)
 monoId = plc (Proxy @"monoId") (\(x :: Integer) -> x)
 
 monoK :: CompiledCode (Integer -> Integer -> Integer)
-monoK = plc (Proxy @"monoK") (\(i :: Integer) -> \(j :: Integer) -> i)
+monoK = plc (Proxy @"monoK") (\(i :: Integer) -> \(_ :: Integer) -> i)
 
 -- GHC actually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode (Integer -> Integer -> Bool)

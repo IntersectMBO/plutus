@@ -301,7 +301,7 @@
           "Crypto"
           "Data/ByteString/Hash"
           "Data/SatInt"
-          "Data/Text/Prettyprint/Doc/Custom"
+          "Prettyprinter/Custom"
           "ErrorCode"
           "PlcTestUtils"
           "PlutusPrelude"
@@ -397,18 +397,10 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."time" or (errorHandler.buildDepError "time"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
           buildable = true;

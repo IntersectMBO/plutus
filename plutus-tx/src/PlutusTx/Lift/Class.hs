@@ -52,9 +52,9 @@ import           Data.List                     (sortBy)
 import           Data.Maybe
 import           Data.Proxy
 import qualified Data.Text                     as T
-import qualified Data.Text.Prettyprint.Doc     as PP
 import           Data.Traversable
 import           ErrorCode
+import qualified Prettyprinter                 as PP
 
 -- We do not use qualified import because the whole module contains off-chain code
 import           Prelude                       as Haskell

@@ -1,6 +1,8 @@
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+
 {- | Executable for profiling. See note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
@@ -21,19 +23,13 @@ control this with the '--column' argument.
 
 module Main where
 
-import qualified Data.ByteString       as BS
-import qualified Data.ByteString.Lazy  as BSL
-import qualified Data.Csv              as CSV
-import           Data.Fixed            (Fixed (MkFixed), Pico)
-import           Data.Foldable         (toList)
-import           Data.List             (intercalate)
-import qualified Data.Text             as T
-import           Data.Time.Clock
-import           Data.Time.Clock.POSIX
-import qualified Data.Vector           as V
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Csv             as CSV
+import           Data.Foldable        (toList)
+import           Data.List            (intercalate)
+import qualified Data.Text            as T
+import qualified Data.Vector          as V
 import           Options.Applicative
-import           System.Environment    (getArgs)
-import           Text.Read             (readMaybe)
 
 data StackFrame
   = MkStackFrame
@@ -120,7 +116,7 @@ getStacks = go []
           -- time spent on this function is the total time spent
           -- minus the time spent on the function(s) it called.
           MkStackTime (var:fnsEntered) (diffVal - valSpentCalledFun):go updatedStack tl
-    go _ ((MkProfileEvent _ Exit _):tl) =
+    go _ ((MkProfileEvent _ Exit _):_) =
       error "go: tried to exit but couldn't."
     go [] [] = []
     go stacks [] = error $

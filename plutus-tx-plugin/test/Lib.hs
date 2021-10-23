@@ -5,25 +5,20 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
+{-# OPTIONS_GHC -Wno-orphans  #-}
 module Lib where
 
 import           Common
 import           PlcTestUtils
 
-import           Language.Haskell.TH
-
-import qualified PlutusTx.Builtins          as Builtins
 import           PlutusTx.Code
-import           PlutusTx.Evaluation
-import           PlutusTx.TH
 
-import qualified PlutusCore                 as PLC
-import           PlutusCore.Pretty          (PrettyConst)
-import qualified UntypedPlutusCore          as UPLC
-import qualified UntypedPlutusCore.DeBruijn as UPLC
+import qualified PlutusCore        as PLC
+import           PlutusCore.Pretty (PrettyConst)
 
-import           Data.Text.Prettyprint.Doc
-import           Flat                       (Flat)
+import           Flat              (Flat)
+import           Prettyprinter
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, PLC.GShow uni, Pretty fun, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
@@ -32,6 +27,6 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` Pretty
         toUPlc v'
 
 goldenPir
-    :: (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PLC.GShow uni, Pretty fun, Flat fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PLC.GShow uni, Pretty fun, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value

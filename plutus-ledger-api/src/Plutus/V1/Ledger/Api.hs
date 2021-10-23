@@ -115,7 +115,6 @@ import           Data.Either
 import           Data.Maybe                                       (isJust)
 import           Data.SatInt
 import           Data.Text                                        (Text)
-import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import           Plutus.V1.Ledger.Ada
 import           Plutus.V1.Ledger.Address
@@ -143,6 +142,7 @@ import           PlutusTx                                         (FromData (..)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
                                                                    dataToBuiltinData)
 import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
+import           Prettyprinter
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 

@@ -17,17 +17,17 @@ module Plutus.V1.Ledger.Credential(
     , Credential(..)
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
-import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
-import           Plutus.V1.Ledger.Scripts  (ValidatorHash)
-import qualified PlutusTx                  as PlutusTx
-import qualified PlutusTx.Bool             as PlutusTx
-import qualified PlutusTx.Eq               as PlutusTx
+import           Codec.Serialise.Class    (Serialise)
+import           Control.DeepSeq          (NFData)
+import           Data.Aeson               (FromJSON, ToJSON)
+import           Data.Hashable            (Hashable)
+import           GHC.Generics             (Generic)
+import           Plutus.V1.Ledger.Crypto  (PubKeyHash)
+import           Plutus.V1.Ledger.Scripts (ValidatorHash)
+import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx.Bool            as PlutusTx
+import qualified PlutusTx.Eq              as PlutusTx
+import           Prettyprinter            (Pretty (..), (<+>))
 
 -- | Staking credential used to assign rewards
 data StakingCredential

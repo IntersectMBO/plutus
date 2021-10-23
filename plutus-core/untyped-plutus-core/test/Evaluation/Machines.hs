@@ -28,10 +28,10 @@ import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
 
 import           Common
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text
 import           GHC.Ix
 import           Hedgehog                                        hiding (Size, Var, eval)
+import           Prettyprinter
+import           Prettyprinter.Render.Text
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

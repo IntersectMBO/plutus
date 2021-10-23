@@ -17,33 +17,28 @@ module TH.Spec (tests) where
 import           Common
 import           Lib
 import           PlcTestUtils
-import           PlutusPrelude             (view)
+import           PlutusPrelude            (view)
 
 import           TH.TestTH
 
-import qualified Prelude                   as Haskell
+import qualified Prelude                  as Haskell
 
 import           PlutusTx
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code
+import qualified PlutusTx.Builtins        as Builtins
 import           PlutusTx.Evaluation
 import           PlutusTx.Prelude
-import           PlutusTx.TH
 
-import qualified PlutusIR                  as PIR
 
-import qualified PlutusCore                as PLC
+import qualified PlutusCore               as PLC
 import           PlutusCore.Pretty
 import           UntypedPlutusCore
-import qualified UntypedPlutusCore         as UPLC
+import qualified UntypedPlutusCore        as UPLC
 
 import           Control.Exception
-import           Control.Lens.Combinators  (_1)
+import           Control.Lens.Combinators (_1)
 import           Control.Monad.Except
 
-import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc
-import           Test.Tasty
+import           Data.Text                (Text)
 
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do

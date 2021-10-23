@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE UnboxedTuples       #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Functions.Spec where
 
@@ -15,11 +16,9 @@ import           Plugin.Lib
 
 import           Plugin.Data.Spec
 
-import qualified PlutusTx.Builtins  as Builtins
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
-
-import qualified PlutusCore.Default as PLC
 
 import           Data.Proxy
 

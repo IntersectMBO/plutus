@@ -158,7 +158,7 @@ library
         Crypto
         Data.ByteString.Hash
         Data.SatInt
-        Data.Text.Prettyprint.Doc.Custom
+        Prettyprinter.Custom
         ErrorCode
         PlcTestUtils
         PlutusPrelude
@@ -494,24 +494,16 @@ executable pir
         text -any
 
 executable traceToStacks
+    import: lang
     main-is: Main.hs
     hs-source-dirs: executables/traceToStacks
-    default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         cassava -any,
-        flat -any,
-        deepseq -any,
         integer-gmp -any,
-        plutus-core -any,
-        prettyprinter -any,
-        mtl -any,
         bytestring -any,
         optparse-applicative -any,
-        serialise -any,
         text -any,
-        time -any,
-        lens -any,
         vector -any,
 
 -- This runs the microbenchmarks used to generate the cost models for built-in functions,

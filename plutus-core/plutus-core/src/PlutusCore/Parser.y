@@ -38,7 +38,6 @@ import qualified Data.List.NonEmpty        as NE
 import qualified Data.Map
 import           Data.Proxy
 import qualified Data.Text as T
-import Data.Text.Prettyprint.Doc.Internal  (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 

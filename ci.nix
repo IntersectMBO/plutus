@@ -77,7 +77,7 @@ let
           inherit (plutus.haskell.project) roots;
         } // pkgs.lib.optionalAttrs (!rootsOnly) (filterCross {
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab plutus-use-cases deployment;
+          inherit (packages) docs tests;
 
           # Build the shell expression to be sure it works on all platforms
           #

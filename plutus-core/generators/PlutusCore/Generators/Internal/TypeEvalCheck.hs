@@ -40,7 +40,7 @@ import           Control.Lens.TH
 import           Control.Monad.Except
 import           Data.Proxy
 import           Data.String
-import           Data.Text.Prettyprint.Doc
+import           Prettyprinter
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,

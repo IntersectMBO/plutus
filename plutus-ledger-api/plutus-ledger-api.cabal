@@ -23,6 +23,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses FlexibleContexts
+                        ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -Wunused-packages
@@ -36,7 +37,7 @@ library
     exposed-modules:
         Data.Aeson.Extras
         Data.Either.Extras
-        Data.Text.Prettyprint.Doc.Extras
+        Prettyprinter.Extras
 
         Plutus.V1.Ledger.Address
         Plutus.V1.Ledger.Ada
@@ -97,4 +98,5 @@ test-suite plutus-ledger-api-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        tasty-quickcheck -any

@@ -15,17 +15,16 @@ import           Common
 import           Lib
 import           PlcTestUtils
 import           Plugin.Data.Spec
-import           Plugin.Primitives.Spec
 
-import qualified PlutusTx.Builtins      as Builtins
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Code
-import qualified PlutusTx.IsData        as IsData
+import qualified PlutusTx.IsData   as IsData
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude       as P
+import qualified PlutusTx.Prelude  as P
 
-import qualified PlutusCore             as PLC
-import qualified PlutusCore.MkPlc       as PLC
-import qualified UntypedPlutusCore      as UPLC
+import qualified PlutusCore        as PLC
+import qualified PlutusCore.MkPlc  as PLC
+import qualified UntypedPlutusCore as UPLC
 
 import           Data.Proxy
 

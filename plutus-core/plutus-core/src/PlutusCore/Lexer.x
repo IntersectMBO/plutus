@@ -28,7 +28,6 @@ import           Control.Monad.State
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Char (isSpace)
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
 import           Language.Haskell.TH.Syntax (Lift)
