@@ -297,7 +297,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           consPlc
               :: SomeConstant uni a
               -> SomeConstantOf uni [] '[a]
-              -> EvaluationResult (SomeConstantOf uni [] '[a])
+              -> EvaluationResult (Opaque term (SomeConstantOf uni [] '[a]))
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
@@ -310,8 +310,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     -- https://github.com/input-output-hk/plutus/pull/3035
                     Nothing   -> EvaluationFailure
                     Just Refl ->
-                        EvaluationSuccess . SomeConstantOfArg uniA $
-                            SomeConstantOfRes uniListA $ x : xs
+                        EvaluationSuccess . fromConstant . someValueOf uniListA $ x : xs
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
             headPlc
@@ -327,10 +326,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             tailPlc
             (runCostingFunOneArgument . paramTailList)
         where
-          tailPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (SomeConstantOf uni [] '[a])
-          tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) =
+          tailPlc
+            :: listA ~ SomeConstantOf uni [] '[a]
+            => listA -> EvaluationResult (Opaque term listA)
+          tailPlc (SomeConstantOfArg _ (SomeConstantOfRes uniListA xs)) =
               case xs of
-                _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
+                _ : xs' -> EvaluationSuccess . fromConstant $ someValueOf uniListA xs'
                 _       -> EvaluationFailure
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
