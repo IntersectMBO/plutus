@@ -39,6 +39,7 @@ module PlutusCore.Constant.Typed
     , KnownTypeAst (..)
     , Merge
     , ListToBinds
+    , KnownBuiltinType
     , KnownType (..)
     , readKnownSelf
     , makeKnownOrFail
@@ -50,7 +51,6 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Core
-import           PlutusCore.Data
 import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -60,7 +60,6 @@ import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Name
 
 import           Control.Monad.Except
-import qualified Data.ByteString                         as BS
 import           Data.Functor.Compose
 import           Data.Functor.Const
 import qualified Data.Kind                               as GHC (Type)
@@ -465,15 +464,6 @@ class KnownTypeAst uni (a :: k) where
     default toTypeAst :: uni `Contains` a => proxy a -> Type TyName uni ()
     toTypeAst _ = mkTyBuiltin @_ @a ()
 
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
-
--- Making it a class synonym, so that it can be partially applied and used in
--- 'TestDefaultUniTypesAreAllKnown'.
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
-class    KnownBuiltinTypeIn (UniOf term) term a => KnownBuiltinType term a
-instance KnownBuiltinTypeIn (UniOf term) term a => KnownBuiltinType term a
-
 -- | Delete all @x@s from a list.
 type family Delete x xs :: [a] where
     Delete _ '[]       = '[]
@@ -496,6 +486,9 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
+-- | A constraint for \"@a@ is a known type by means of being included in the universe\".
+class (GShow uni, GEq uni, uni `Contains` a) => KnownBuiltinType uni a
+
 -- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
 -- the latter breaks on @m a@
 -- | Haskell types known to exist on the PLC side.
@@ -509,30 +502,22 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
-           )
+        :: (MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err)
         => Maybe cause -> a -> m term
-    default makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m
-           , KnownBuiltinType term a
-           )
-        => Maybe cause -> a -> m term
+
+    -- | Convert a PLC term to the corresponding Haskell value.
+    -- The inverse of 'makeKnown'.
+    readKnown
+        :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
+        => Maybe cause -> term -> m a
+
+instance {-# OVERLAPPABLE #-} (HasConstantIn uni term, KnownBuiltinType uni a, KnownTypeAst uni a) =>
+        KnownType term a where
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
     makeKnown _ x = pure . fromConstant . someValue $! x
 
-    -- | Convert a PLC term to the corresponding Haskell value.
-    -- The inverse of 'makeKnown'.
-    readKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
-           )
-        => Maybe cause -> term -> m a
-    default readKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
-           , KnownBuiltinType term a
-           )
-        => Maybe cause -> term -> m a
     readKnown mayCause term = asConstant mayCause term >>= \case
         Some (ValueOf uniAct x) -> do
             let uniExp = knownUni @_ @(UniOf term) @a
@@ -679,7 +664,7 @@ type ReadSomeConstantOf
 data ReadSomeConstantOf m uni f reps =
     forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
 
-instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
+instance (HasConstantIn uni term, KnownBuiltinType uni f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownType term (SomeConstantOf uni f reps) where
     makeKnown _ = pure . fromConstant . runSomeConstantOf
 
@@ -753,31 +738,32 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
 
 -- Built-in types.
 
-instance uni `Contains` Integer       => KnownTypeAst uni Integer
-instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
-instance uni `Contains` ()            => KnownTypeAst uni ()
-instance uni `Contains` Bool          => KnownTypeAst uni Bool
-instance uni `Contains` [a]           => KnownTypeAst uni [a]
-instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
-instance uni `Contains` Data          => KnownTypeAst uni Data
+-- instance uni `Contains` Integer       => KnownTypeAst uni Integer
+-- instance uni `Contains` BS.ByteString => KnownTypeAst uni BS.ByteString
+-- instance uni `Contains` Text.Text     => KnownTypeAst uni Text.Text
+-- instance uni `Contains` ()            => KnownTypeAst uni ()
+-- instance uni `Contains` Bool          => KnownTypeAst uni Bool
+-- instance uni `Contains` [a]           => KnownTypeAst uni [a]
+-- instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
+-- instance uni `Contains` Data          => KnownTypeAst uni Data
 
-instance KnownBuiltinType term Integer       => KnownType term Integer
-instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
-instance KnownBuiltinType term ()            => KnownType term ()
-instance KnownBuiltinType term Bool          => KnownType term Bool
-instance KnownBuiltinType term [a]           => KnownType term [a]
-instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
-instance KnownBuiltinType term Data          => KnownType term Data
+-- instance KnownBuiltinType term Integer       => KnownType term Integer
+-- instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
+-- instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
+-- instance KnownBuiltinType term ()            => KnownType term ()
+-- instance KnownBuiltinType term Bool          => KnownType term Bool
+-- instance KnownBuiltinType term [a]           => KnownType term [a]
+-- instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
+-- instance KnownBuiltinType term Data          => KnownType term Data
 
-class DefaultUni `Everywhere` (KnownBuiltinType `Implies1` KnownType) =>
-    TestDefaultUniTypesAreAllKnown
-instance
-    TestDefaultUniTypesAreAllKnown
+-- class uni `Everywhere` (KnownBuiltinType `Implies1` KnownType) =>
+--     TestTypesFromTheUniverseAreAllKnown uni
 
-class    (forall a. c a b => d a b) => Implies1 c d b 
-instance (forall a. c a b => d a b) => Implies1 c d b 
+-- instance
+--     TestTypesFromTheUniverseAreAllKnown DefaultUni
+
+-- class    (forall a. c a b => d a b) => Implies1 c d b
+-- instance (forall a. c a b => d a b) => Implies1 c d b
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
@@ -787,11 +773,11 @@ internal one -- it's a normal evaluation failure, but unlifting errors have this
 being "internal".
 -}
 
-instance uni `Includes` Integer => KnownTypeAst uni Int where
+instance KnownTypeAst uni Integer => KnownTypeAst uni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance KnownBuiltinType term Integer => KnownType term Int where
+instance KnownType term Integer => KnownType term Int where
     makeKnown mayCause = makeKnown mayCause . toInteger
     readKnown mayCause term = do
         i :: Integer <- readKnown mayCause term
@@ -816,13 +802,13 @@ underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
 
 type UnknownTypeErrMsg a =
-    'Text "There's no 'KnownType' instance for " ':<>: 'ShowType a ':$$:
-    'Text "Did you add a new built-in type and forget to provide a 'KnownType' instance for it?"
+    'Text "There's no 'KnownBuiltinType' instance for " ':<>: 'ShowType a ':$$:
+    'Text "Did you add a new built-in type without providing a 'KnownBuiltinType' instance for it?"
 
-instance {-# OVERLAPPABLE #-} (TypeError (UnknownTypeErrMsg a), KnownTypeAst (UniOf term) a) =>
-            KnownType term a where
-    makeKnown = underTypeError
-    readKnown = underTypeError
+instance {-# OVERLAPPABLE #-}
+    ( TypeError (UnknownTypeErrMsg a)
+    , GShow uni, GEq uni, uni `Contains` a
+    ) => KnownBuiltinType uni a
 
 type NoConstraintsErrMsg =
     'Text "Built-in functions are not allowed to have constraints" ':$$:
