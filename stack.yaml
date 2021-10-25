@@ -8,10 +8,9 @@ packages:
 - plutus-metatheory
 - plutus-tx
 - plutus-tx-plugin
-- plutus-use-cases
 - prettyprinter-configurable
-- quickcheck-dynamic
 - word-array
+- stubs/plutus-ghc-stub
 
 extra-deps:
 # Flat compression
@@ -73,17 +72,17 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: 46502694f6a9f0498f822068008b232b3837a9e9
+  commit: 592aa61d657ad5935a33bace1243abce3728b643
   subdirs:
     - base-deriving-via
     - binary
     - binary/test
-    - measures
-    - orphans-deriving-via
-    - slotting
     - cardano-crypto-class
     - cardano-crypto-praos
     - cardano-crypto-tests
+    - measures
+    - orphans-deriving-via
+    - slotting
     - strict-containers
 
 allow-newer: true
