@@ -461,6 +461,7 @@
         cardano-prelude = ./.plan.nix/cardano-prelude.nix;
         plutus-ledger-api = ./.plan.nix/plutus-ledger-api.nix;
         orphans-deriving-via = ./.plan.nix/orphans-deriving-via.nix;
+        Win32-network = ./.plan.nix/Win32-network.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         strict-containers = ./.plan.nix/strict-containers.nix;
@@ -518,6 +519,7 @@
           "orphans-deriving-via" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
           "prettyprinter-configurable" = { flags = {}; };
           "cardano-crypto" = {
             flags = {
@@ -551,6 +553,7 @@
           "lens".components.library.planned = lib.mkOverride 900 true;
           "lens".components.setup.planned = lib.mkOverride 900 true;
           "semigroupoids".components.library.planned = lib.mkOverride 900 true;
+          "Win32-network".components.exes."named-pipe-demo".planned = lib.mkOverride 900 true;
           "criterion-measurement".components.library.planned = lib.mkOverride 900 true;
           "bifunctors".components.library.planned = lib.mkOverride 900 true;
           "ral".components.library.planned = lib.mkOverride 900 true;
@@ -575,6 +578,7 @@
           "aeson-pretty".components.exes."aeson-pretty".planned = lib.mkOverride 900 true;
           "cardano-crypto".components.library.planned = lib.mkOverride 900 true;
           "StateVar".components.library.planned = lib.mkOverride 900 true;
+          "Win32-network".components.library.planned = lib.mkOverride 900 true;
           "monoidal-containers".components.library.planned = lib.mkOverride 900 true;
           "extensible-exceptions".components.library.planned = lib.mkOverride 900 true;
           "composition-prelude".components.library.planned = lib.mkOverride 900 true;
