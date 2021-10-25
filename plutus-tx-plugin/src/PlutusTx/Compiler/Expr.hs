@@ -20,6 +20,7 @@ import PlutusTx.Compiler.Names
 import PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
+import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
@@ -29,6 +30,9 @@ import FV qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
 import PrelNames qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
+import SrcLoc qualified as GHC
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -41,12 +45,15 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 
+import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
 
+import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
+import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
@@ -444,6 +451,18 @@ mkTrace ty str v =
         (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
         [PLC.mkConstant () str, v]
 
+-- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
+mkLazyTrace
+    :: CompilingDefault uni fun m
+    => PLC.Type PLC.TyName uni ()
+    -> T.Text
+    -> PIRTerm uni PLC.DefaultFun
+    -> m (PIRTerm uni fun)
+mkLazyTrace ty str v = do
+  delayedBody <- delay v
+  delayedType <- delayType ty
+  force $ mkTrace delayedType str delayedBody
+
 -- | Trace inside a term's lambda. I.e., turn
 -- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
 traceInside ::
@@ -476,12 +495,41 @@ traceInside varName lamName = go
 
 -- Expressions
 
+{- Note [Tracking coverage and lazyness]
+   When we insert a coverage annotation `a` that is meant to be collected when we execute
+   `a` we would like do something like `trace (show a) body`. However, we can't do this
+   because `body` may throw an exception and that would in turn cause `show a` never to be logged.
+   To get around this we instead generate the code `force (trace (show a) (delay body))` to
+   guarantee that the annotation `a` is logged before we execute `body`.
+-}
+
+{- Note [Tick-unfloating]
+   GHC likes to float ticks on case scrutinees. This screws with boolean
+   coverage (because the result of the case expression is not necessarily
+   boolean typed) so we un-float these ticks. Specifically, GHC will convert an
+   expression like:
+   ```
+   if <tick with source location of condition> condition
+   then trueCase
+   else falseCase
+   ```
+   into something equivalent to:
+   ```
+   <tick with source location of condition>
+   if condition
+   then trueCase
+   else falseCase
+   ```
+   which means that we don't get boolean coverage for `condition` as there is no tick around it (so we
+   don't know where it is).
+-}
+
 compileExpr
     :: CompilingDefault uni fun m
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
+    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -666,16 +714,144 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
+        -- See Note [Tick-unfloating]
+        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
+
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
-        GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ compileExpr body
+        -- See Note [What source locations to cover]
+        GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+              CompileContext {ccOpts=coverageOpts} <- ask
+              -- See Note [Coverage annotations]
+              let anns = Set.toList $ activeCoverageTypes coverageOpts
+              compiledBody <- compileExpr body
+              foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+
         -- ignore other annotations
         GHC.Tick _ body -> compileExpr body
         -- See Note [Coercions and newtypes]
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+{- Note [What source locations to cover]
+   We try to get as much coverage information as we can out of GHC. This means that
+   anything we find in the GHC Core code that hints at a source location will be
+   included as a coverage annotation. This has both advantages and disadvantages.
+   On the one hand "trying as hard as we can" gives us as much coverage information as
+   possible. On the other hand GHC can sometimes do tricky things like tick floating
+   (see Note [Tick-unfloating]) that will degrade the quality of the coverage information
+   we get. However, we have yet to find any evidence that GHC treats different ticks
+   differently with regards to tick floating.
+-}
+
+-- | Do your best to try to extract a source span from a tick
+-- See Note [What source locations to cover]
+getSourceSpan :: Maybe GHC.ModBreaks -> GHC.GenTickish pass -> Maybe GHC.RealSrcSpan
+getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
+getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
+  case cc of
+    GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp) -> Just sp
+    GHC.AllCafsCC _ (GHC.RealSrcSpan sp)    -> Just sp
+    _                                       -> Nothing
+getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
+  mb <- mmb
+  let arr = GHC.modBreaks_locs mb
+      range = Array.bounds arr
+  GHC.RealSrcSpan sp <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  return sp
+getSourceSpan _ _ = Nothing
+
+-- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
+toCovLoc :: GHC.RealSrcSpan -> CovLoc
+toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
+                     (GHC.srcSpanStartLine sp)
+                     (GHC.srcSpanEndLine sp)
+                     (GHC.srcSpanStartCol sp)
+                     (GHC.srcSpanEndCol sp)
+
+-- Here be dragons:
+-- See Note [Tracking coverage and lazyness]
+-- See Note [Coverage order]
+-- | Annotate a term for coverage
+coverageCompile :: CompilingDefault uni fun m
+                => GHC.CoreExpr -- ^ The original expression
+                -> GHC.Type -- ^ The type of the expression
+                -> GHC.RealSrcSpan -- ^ The source location of this expression
+                -> PIRTerm uni fun -- ^ The current term (this is what we add coverage tracking to)
+                -> CoverageType -- ^ The type of coverage to do next
+                -> m (PIRTerm uni fun)
+coverageCompile originalExpr exprType src compiledTerm covT =
+  case covT of
+    -- Add a location covereage annotation to tell us "we've executed this piece of code"
+    LocationCoverage -> do
+      ann <- addLocationToCoverageIndex (toCovLoc src)
+      ty <- compileTypeNorm exprType
+      mkLazyTrace ty (T.pack . show $ ann) compiledTerm
+
+    -- Add two boolean coverage annotations to tell us "this boolean has been True/False respectively"
+    BooleanCoverage -> do
+      -- Check if the thing we are compiling is a boolean
+      CompileContext {ccNameInfo=nameInfo} <- ask
+      let bool = GHC.getName <$> Map.lookup ''Bool nameInfo -- TODO: This should always return a `Just` and it may be worthwhile to crash the compiler with an error if it doesn't
+          tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
+          headSymName = GHC.getName <$> findHeadSymbol originalExpr
+          isTrueOrFalse = case headSymName of
+            Nothing -> False
+            -- We have to do it this convoluted way because GHC decides that
+            -- `nm` is a *variable* but `'True` and `'False` are data constructors and
+            -- they are not equal as names even if `originalExpr` is e.g. the expression `True`
+            Just nm ->
+              or [ GHC.getOccString nm == GHC.getOccString con
+                 | Just con <- [ GHC.getName <$> Map.lookup sym nameInfo | sym <- ['True, 'False] ] -- TODO: likewise to above these two should always both return `Just`
+                 , GHC.nameSpacesRelated (GHC.occNameSpace . GHC.getOccName $ nm) (GHC.occNameSpace . GHC.getOccName $ con)
+                 ]
+      if tyHeadName /= bool || isTrueOrFalse
+      then return compiledTerm
+      -- It is a boolean that's not `True` or `False`,
+      -- generate the code:
+      -- ```
+      -- if compiledTerm
+      -- then trace (compiledTerm was true) True
+      -- else trace (compiledTerm was false) False
+      -- ```
+      else do
+        cons <- case GHC.tyConAppTyCon_maybe exprType of
+          Just tc -> getDataCons tc
+          Nothing -> throwSd UnsupportedError $ "PANIC! This error should be unreachable in funtion coverageCompile"
+        (dcTrue, dcFalse) <- case cons of
+          [a, b] -> return (a, b)
+          _      -> throwSd UnsupportedError $ "PANIC! This error should be unreachable in funtion coverageCompile"
+
+        match <- getMatchInstantiated exprType
+        let matched = PIR.Apply () match compiledTerm
+
+        compiledType <- compileTypeNorm exprType
+        resultType <- delayType compiledType
+        let instantiated = PIR.TyInst () matched resultType
+
+        let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
+        fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
+        falseTerm <- compileExpr (GHC.mkConApp dcFalse [])
+        falseBranch <- delay $ mkTrace compiledType (T.pack . show $ fc) falseTerm
+
+        tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
+        trueTerm <- compileExpr (GHC.mkConApp dcTrue [])
+        trueBranch <- delay $ mkTrace compiledType (T.pack . show $ tc) trueTerm
+        let branches = [trueBranch, falseBranch]
+
+        let applied = PIR.mkIterApp () instantiated branches
+        force applied
+    where
+      findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
+      findHeadSymbol (GHC.Var n)    = Just $ n
+      findHeadSymbol (GHC.App t _)  = findHeadSymbol t
+      findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
+      findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
+      findHeadSymbol _              = Nothing
 
 compileExprWithDefs
     :: CompilingDefault uni fun m

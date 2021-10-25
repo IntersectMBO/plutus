@@ -154,7 +154,7 @@ which handles these cases too.
 mkBuiltin :: fun -> PIR.Term tyname name uni fun ()
 mkBuiltin = PIR.Builtin ()
 
--- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
+-- | The 'TH.Name's for which 'NameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
@@ -241,7 +241,7 @@ builtinNames = [
 -- failing if it is missing.
 getThing :: Compiling uni fun m => TH.Name -> m GHC.TyThing
 getThing name = do
-    CompileContext{ccBuiltinNameInfo=names} <- ask
+    CompileContext{ccNameInfo=names} <- ask
     case Map.lookup name names of
         Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
         Just thing -> pure thing

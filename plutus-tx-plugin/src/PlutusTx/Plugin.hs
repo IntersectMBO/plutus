@@ -17,6 +17,7 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
+import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
@@ -40,13 +41,16 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.Writer hiding (All)
 import Flat (Flat, flat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
+import Data.Foldable (fold)
 import Data.List (isPrefixOf)
 import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
+import Data.Set qualified as Set
 import Data.Traversable (for)
 import ErrorCode
 import FamInstEnv qualified as GHC
@@ -73,13 +77,15 @@ data PluginOptions = PluginOptions {
     , poDoSimplifierInline             :: Bool
     , poDoSimplifierRemoveDeadBindings :: Bool
     , poProfile                        :: ProfileOpts
+    , poCoverage                       :: CoverageOpts
     }
 
 data PluginCtx = PluginCtx
-    { pcOpts       :: PluginOptions
-    , pcFamEnvs    :: GHC.FamInstEnvs
-    , pcMarkerName :: GHC.Name
-    , pcModuleName :: GHC.ModuleName
+    { pcOpts            :: PluginOptions
+    , pcFamEnvs         :: GHC.FamInstEnvs
+    , pcMarkerName      :: GHC.Name
+    , pcModuleName      :: GHC.ModuleName
+    , pcModuleModBreaks :: Maybe GHC.ModBreaks
     }
 
 {- Note [Making sure unfoldings are present]
@@ -153,8 +159,13 @@ parsePluginArgs args = do
             , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
             -- profiling: @profile-all@ turns on profiling for everything
             , poProfile =
-                if elem' "profile-all" then All
+                if elem' "profile-all"
+                then All
                 else None
+            , poCoverage = CoverageOpts . Set.fromList $
+                   [ l | l <- [minBound .. maxBound], elem' "coverage-all" ]
+                ++ [ LocationCoverage  | elem' "coverage-location"  ]
+                ++ [ BooleanCoverage  | elem' "coverage-boolean"  ]
             }
     -- TODO: better parsing with failures
     pure opts
@@ -207,6 +218,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
                                  , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
                                  , pcMarkerName = markerName
                                  , pcModuleName = GHC.moduleName $ GHC.mg_module guts
+                                 , pcModuleModBreaks = GHC.mg_modBreaks guts
                                  }
                 -- start looking for plc calls from the top-level binds
             in GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
@@ -321,35 +333,39 @@ compileMarkedExpr locStr codeTy origE = do
     moduleName <- asks pcModuleName
     let moduleNameStr = GHC.showSDocForUser flags GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
-    nameInfo <- makePrimitiveNameInfo builtinNames
+    nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True]
+    modBreaks <- asks pcModuleModBreaks
     let ctx = CompileContext {
-            ccOpts = CompileOptions {coProfile =poProfile opts},
+            ccOpts = CompileOptions {coProfile =poProfile opts , coCoverage = poCoverage opts },
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
-            ccBuiltinNameInfo = nameInfo,
+            ccNameInfo = nameInfo,
             ccScopes = initialScopeStack,
-            ccBlackholed = mempty
+            ccBlackholed = mempty,
+            ccModBreaks = modBreaks
             }
 
-    (pirP,uplcP) <- runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE
 
-    -- serialize the PIR and PLC outputs into a bytestring.
+    -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
     bsPlc <- makeByteStringLiteral $ flat uplcP
+    covIdxFlat <- makeByteStringLiteral $ flat covIdx
 
     builder <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
-    -- inject the two bytestrings back as Haskell code.
+    -- inject the three bytestrings back as Haskell code.
     pure $
         GHC.Var builder
         `GHC.App` GHC.Type codeTy
         `GHC.App` bsPlc
         `GHC.App` bsPir
+        `GHC.App` covIdxFlat
 
 -- | The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
 runCompiler
-    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
+    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadWriter CoverageIndex m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
     => String
     -> PluginOptions
     -> GHC.CoreExpr
@@ -456,12 +472,12 @@ stripTicks = \case
     e            -> e
 
 -- | Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
-mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a
+mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci)
 
--- | Make a 'BuiltinNameInfo' mapping the given set of TH names to their
+-- | Make a 'NameInfo' mapping the given set of TH names to their
 -- 'GHC.TyThing's for later reference.
-makePrimitiveNameInfo :: [TH.Name] -> PluginM uni fun BuiltinNameInfo
+makePrimitiveNameInfo :: [TH.Name] -> PluginM uni fun NameInfo
 makePrimitiveNameInfo names = do
     infos <- for names $ \name -> do
         ghcName <- thNameToGhcNameOrFail name

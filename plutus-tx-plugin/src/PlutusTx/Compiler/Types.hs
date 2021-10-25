@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -9,6 +10,7 @@
 module PlutusTx.Compiler.Types where
 
 import PlutusTx.Compiler.Error
+import PlutusTx.Coverage
 import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
@@ -18,31 +20,39 @@ import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 
 import FamInstEnv qualified as GHC
+import FastString qualified as GHC
 import GhcPlugins qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.Writer
 
 import Data.List.NonEmpty qualified as NE
+import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
+import Prettyprinter
+
+type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
-newtype CompileOptions = CompileOptions {
-    coProfile :: ProfileOpts
-}
+data CompileOptions = CompileOptions {
+      coProfile  :: ProfileOpts
+    , coCoverage :: CoverageOpts
+    }
 
 data CompileContext uni fun = CompileContext {
-    ccOpts            :: CompileOptions,
-    ccFlags           :: GHC.DynFlags,
-    ccFamInstEnvs     :: GHC.FamInstEnvs,
-    ccBuiltinNameInfo :: BuiltinNameInfo,
-    ccScopes          :: ScopeStack uni fun,
-    ccBlackholed      :: Set.Set GHC.Name
+    ccOpts        :: CompileOptions,
+    ccFlags       :: GHC.DynFlags,
+    ccFamInstEnvs :: GHC.FamInstEnvs,
+    ccNameInfo    :: NameInfo,
+    ccScopes      :: ScopeStack uni fun,
+    ccBlackholed  :: Set.Set GHC.Name,
+    ccModBreaks   :: Maybe GHC.ModBreaks
     }
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
@@ -50,6 +60,36 @@ data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
     deriving (Eq)
+
+-- | Coverage options
+-- See Note [Coverage annotations]
+data CoverageOpts = CoverageOpts { unCoverageOpts :: Set CoverageType }
+
+-- | Get the coverage types we are using
+activeCoverageTypes :: CompileOptions -> Set CoverageType
+activeCoverageTypes = unCoverageOpts . coCoverage
+
+-- | Option `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-all #-}` enables all these
+-- See Note [Adding more coverage annotations].
+-- See Note [Coverage order]
+data CoverageType = LocationCoverage -- ^ Check that all source locations that we can identify in GHC Core have been covered.
+                                     -- For this to work at all we need `{-# OPTIONS_GHC -g #-}`
+                                     -- turn on with `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-}`
+                  | BooleanCoverage -- ^ Check that every boolean valued expression that isn't `True` or `False` for which
+                                    -- we know the source location have been covered. For this to work at all we need
+                                    -- `{-# OPTIONS_GHC -g #-}` turn on with
+                                    -- `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-}`
+                    deriving (Ord, Eq, Show, Enum, Bounded)
+
+{- Note [Coverage order]
+   The order in which `CoverageType` constructors appear in the type determine the order in
+   which their respective transformations in `coverageCompile` will be executed. The topmost `CoverageType`
+   will be executed first, followed by the second from the top and so on. It is important to either:
+   1. Never add coverage transformations that don't commute or
+   2. BE VERY CAREFUL!
+   Currently we are employing option (1). Please don't change that unless you know what you're doing
+   and you've read the code of `coverageCompile` carefully.
+-}
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
 -- will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use
@@ -123,6 +163,7 @@ type Compiling uni fun m =
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
     , MonadDefs LexName uni fun () m
+    , MonadWriter CoverageIndex m
     , PLC.GShow uni, PLC.GEq uni
     , PLC.ToBuiltinMeaning uni fun
     )
