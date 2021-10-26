@@ -23,6 +23,7 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Function
+import           PlutusCore.Constant.Kinded
 import           PlutusCore.Constant.Typed
 import           PlutusCore.Core
 import           PlutusCore.Evaluation.Machine.Exception
