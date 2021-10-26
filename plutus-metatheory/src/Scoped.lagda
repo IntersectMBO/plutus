@@ -187,7 +187,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  ibuiltin : (b : Builtin) → ScopedTm w
+  builtin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
@@ -275,7 +275,7 @@ scopeCheckTm (t · u) = do
   u ← scopeCheckTm u
   return (t · u)
 scopeCheckTm (con c) = return (con c)
-scopeCheckTm (builtin b) = return (ibuiltin b)
+scopeCheckTm (builtin b) = return (builtin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
@@ -324,7 +324,7 @@ extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con c
 extricateScope (error A) = error (extricateScopeTy A)
-extricateScope (ibuiltin bn) = builtin bn
+extricateScope (builtin bn) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
@@ -361,7 +361,7 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
+ugly (builtin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
   " " ++

@@ -71,7 +71,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
        → Value (Π B)
 
 data BAPP b where
-  base : BAPP b (start (arity b)) (itype b)
+  base : BAPP b (start (arity b)) (btype b)
   app : ∀{A B}{az as}
     → (p : az <>> (Term ∷ as) ∈ arity b)
     → BAPP b p (A ⇒ B)
@@ -125,7 +125,7 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
   (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2ren ρ)) M)
 
 dischargeB : ∀{b A}{az}{as}{p : az <>> as ∈ arity b} → BAPP b p A → ∅ ⊢ A
-dischargeB {b = b} base = ibuiltin b
+dischargeB {b = b} base = builtin b
 dischargeB (app p bt vu) = dischargeB bt · discharge vu
 dischargeB (app⋆ p bt refl) = dischargeB bt ·⋆ _
 
@@ -816,7 +816,7 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 
 
 
-ival : ∀ b → Value (itype b)
+ival : ∀ b → Value (btype b)
 ival addInteger = V-I⇒ addInteger _ base
 ival subtractInteger = V-I⇒ subtractInteger _ base
 ival multiplyInteger = V-I⇒ multiplyInteger _ base
@@ -878,7 +878,7 @@ step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L
 step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
 step (s ; ρ ▻ unwrap L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c
-step (s ; ρ ▻ ibuiltin b) = s ◅ ival b
+step (s ; ρ ▻ builtin b) = s ◅ ival b
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
@@ -973,7 +973,7 @@ cek2ckClos (L ·⋆ A) ρ = cek2ckClos L ρ ·⋆ A
 cek2ckClos (wrap A B L) ρ = wrap A B (cek2ckClos L ρ)
 cek2ckClos (unwrap L) ρ = unwrap (cek2ckClos L ρ)
 cek2ckClos (con c) ρ = con c
-cek2ckClos (ibuiltin b) ρ = ibuiltin b
+cek2ckClos (builtin b) ρ = builtin b
 cek2ckClos (error _) ρ = error _
 
 cek2ckFrame : ∀{A B} → Frame A B → Red.Frame A B
@@ -1046,7 +1046,7 @@ thm65a (s ; ρ ▻ (L ·⋆ A)) s' (step* refl q) = CK.step* refl (thm65a _ s' 
 thm65a (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
-thm65a (s ; ρ ▻ ibuiltin b) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
+thm65a (s ; ρ ▻ builtin b) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
 thm65a (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (ε ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
@@ -1104,7 +1104,7 @@ postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A 
 
 postulate cek2ckClos-conlem : ∀{tc : TyCon ∅}(c : TermCon (con tc)){Γ}{M' : Γ ⊢ con tc}{ρ : Env Γ} → con c ≡ cek2ckClos M' ρ → M' ≡ con c ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
 
-postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ itype b}{ρ : Env Γ} → ibuiltin b ≡ cek2ckClos M' ρ → (M' ≡ ibuiltin b × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : ibuiltin b ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
+postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ btype b}{ρ : Env Γ} → builtin b ≡ cek2ckClos M' ρ → (M' ≡ builtin b × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : builtin b ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
 
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
@@ -1196,11 +1196,11 @@ thm65b {M = con c}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
 ... | inj₁ refl = _ ,, step* refl r' ,, x1 ,, x2
 ... | inj₂ (var ,, refl ,, y2) = _ ,, step* (cong (s' ◅_) (sym y2)) r' ,, x1 ,, x2
 
-thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
+thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-ibuiltinlem {M' = N}{ρ = ρ} p
-thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y2 ,, y3) with thm65bV y2 y3 q r
+thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y2 ,, y3) with thm65bV y2 y3 q r
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
-thm65b {M = ibuiltin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₁ (refl ,, x1 ,, x2)
+thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₁ (refl ,, x1 ,, x2)
   with thm65bV x1 x2 q r
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
 

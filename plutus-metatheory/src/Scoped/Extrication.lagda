@@ -104,6 +104,6 @@ extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ 
   (extricate t)
 extricate (unwrap t) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate (ibuiltin b) = ibuiltin b
+extricate (builtin b) = builtin b
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

@@ -188,7 +188,7 @@ stepT (E ▻ (M ·⋆ A))   = extEC E (-·⋆ A) ▻ M
 stepT (E ▻ wrap A B M) = extEC E wrap- ▻ M
 stepT (E ▻ unwrap M)   = extEC E unwrap- ▻ M
 stepT (E ▻ con c)      = E ◅ V-con c
-stepT (E ▻ ibuiltin b) = E ◅ ival b
+stepT (E ▻ builtin b)  = E ◅ ival b
 stepT (E ▻ error A)    = ◆ A
 stepT (E ◅ V)          = stepV V (dissect E)
 stepT (□ V)            = □ V
@@ -1045,8 +1045,8 @@ thm1b (wrap A B M) M' E p N V (step* refl q) =
 thm1b (unwrap M) M' E p N V (step* refl q) =
   thm1b M _ (extEC E unwrap-) (trans p (sym (extEC-[]ᴱ E unwrap- M))) N V q
 thm1b (con c) M' E p N V (step* refl q) = thm1bV (con c) (V-con c) M' E p N V q
-thm1b (ibuiltin b) M' E p N V (step* refl q) =
-  thm1bV (ibuiltin b) (ival b) M' E p N V q
+thm1b (builtin b) M' E p N V (step* refl q) =
+  thm1bV (builtin b) (ival b) M' E p N V q
 thm1b (error _) M' E p N V (step* refl q) = ⊥-elim (diamond2box N V q)
 
 thm1bV M W M' E p N V (step* x q) with dissect E | inspect dissect E

@@ -151,7 +151,7 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 data BApp (b : Builtin) : ∀{az}{as}
   → az <>> as ∈ arity b
   → ∀{A} → ∅ ⊢ A → Set where
-  base : BApp b (start (arity b)) (ibuiltin b)
+  base : BApp b (start (arity b)) (builtin b)
   step : ∀{A B}{az as}
     → (p : az <>> (Term ∷ as) ∈ arity b)
     → {t : ∅ ⊢ A ⇒ B} → BApp b p t
@@ -258,7 +258,7 @@ VALUE2Value (V-IΠ b p refl x) = V-IΠ b p x
 data BAPP (b : Builtin) : ∀{az}{as}
   → az <>> as ∈ arity b
   → ∀{A} → ∅ ⊢ A → Set where
-  base : BAPP b (start (arity b)) (ibuiltin b)
+  base : BAPP b (start (arity b)) (builtin b)
   step : ∀{A B}{az as}
     → (p : az <>> (Term ∷ as) ∈ arity b)
     → {t : ∅ ⊢ A ⇒ B} → BAPP b p t
@@ -634,7 +634,7 @@ lemma∷1 as .as (start .as) = refl
 -- HINT: pattern matching on p rather than the next arg (q) generates
 -- fewer cases
 
-bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Term ∷ as) ∈ arity b)
+bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> Term ∷ as ∈ arity b)
   → BAPP b p M → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
 bappTermLem addInteger _ (start _) base = _ ,, _ ,, refl
 bappTermLem addInteger {as = as} _ (bubble {as = az} p) q
@@ -879,7 +879,7 @@ bappTermLem mkCons _ (bubble (start _)) (step _ base _)
 bappTermLem appendByteString _ _ base = _ ,, _ ,, refl
 bappTermLem appendByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] :< Term) :< Term) as p
-bappTermLem appendByteString {as = .[]} (.(ibuiltin appendByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem appendByteString {as = .[]} (.(builtin appendByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
 bappTermLem appendByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] :< Type) :< Term) (([] :< Term) :< Term) as p refl
@@ -1107,7 +1107,7 @@ V-I b {a = Term} p q with bappTermLem b _ p (BApp2BAPP q)
 V-I b {a = Type} p q  with bappTypeLem b _ p (BApp2BAPP q)
 ... | _ ,, _ ,, refl = V-IΠ b p q
 
-ival : ∀ b → Value (ibuiltin b)
+ival : ∀ b → Value (builtin b)
 
 -- ival b = V-I b (start _) base
 -- ^ not possible as we could have a builtin with no args
@@ -1201,7 +1201,7 @@ progress (unwrap M) with progress M
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V) refl refl)
 ... | error E-error = step (ruleErr (unwrap []) refl)
 progress (con c)      = done (V-con c)
-progress (ibuiltin b) = done (ival b)
+progress (builtin b) = done (ival b)
 progress (error A)    = error E-error
 
 _↓ : ∀{A} → ∅ ⊢ A → Set
@@ -1248,7 +1248,7 @@ lemma51 (unwrap M) with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, p ,, p') =
   inj₂ (B ,, unwrap E ,, L ,, p ,, cong unwrap p')
 lemma51 (con c) = inj₁ (V-con c)
-lemma51 (ibuiltin b) = inj₁ (ival b)
+lemma51 (builtin b) = inj₁ (ival b)
 lemma51 (error _) = inj₂ (_ ,, ([] ,, (error _ ,, (inj₂ E-error) ,, refl)))
 
 progress' : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
@@ -1267,7 +1267,7 @@ uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
 uniqueBApp : ∀{A b as az}
   → (p : az <>> as ∈ arity b)(M : ∅ ⊢ A)(v v' : BApp b p M) → v ≡ v'
-uniqueBApp .(start (arity b)) (ibuiltin b) base base = refl
+uniqueBApp .(start (arity b)) (builtin b) base base = refl
 uniqueBApp .(bubble p) (M ·⋆ A) (step⋆ p v) (step⋆ .p v')
   with uniqueBApp p M v v'
 ... | refl = refl
@@ -1278,7 +1278,7 @@ uniqueBApp .(bubble p) (M · M') (step p v w) (step .p v' w')
 uniqueBApp' : ∀{A b b' as as' az az'}(M : ∅ ⊢ A)(p : az <>> as ∈ arity b)(p' : az' <>> as' ∈ arity b')(v : BApp b p M)(v' : BApp b' p' M)
   → ∃ λ (r : b ≡ b') → ∃ λ (r' : az ≡ az') → ∃ λ (r'' : as ≡ as')
   → p ≡ subst<>>∈ p' r r' r''
-uniqueBApp' (ibuiltin b) .(start (arity b)) .(start (arity b)) base base =
+uniqueBApp' (builtin b) .(start (arity b)) .(start (arity b)) base base =
   refl ,, refl ,, refl ,, refl
 uniqueBApp' (M · M') .(bubble p) .(bubble p₁) (step p q x) (step p₁ q' x₁)
   with uniqueBApp' M p p₁ q q'
@@ -1709,7 +1709,7 @@ rlemma51! (unwrap M) with rlemma51! M
   λ E p q → let X ,, Y ,, Y' = Uunwrap2 VM refl E (≡-to-≅ p) q in
     X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
 rlemma51! (con c)      = done (V-con c)
-rlemma51! (ibuiltin b) = done (ival b)
+rlemma51! (builtin b)  = done (ival b)
 rlemma51! (error _)    = step
   (valerr E-error)
   []

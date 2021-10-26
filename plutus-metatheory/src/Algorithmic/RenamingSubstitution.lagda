@@ -92,7 +92,7 @@ ren ρ⋆ ρ (unwrap {A = A}{B} M) = conv⊢
   (sym (ren-nf-μ ρ⋆ A B))
   (unwrap (ren ρ⋆ ρ M)) 
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
-ren ρ⋆ ρ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
+ren ρ⋆ ρ (builtin b) = conv⊢ refl (btype-ren b ρ⋆) (builtin b)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 \end{code}
 
@@ -181,7 +181,7 @@ sub σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
   (sym (sub-nf-μ σ⋆ A B))
   (unwrap (sub σ⋆ σ M))
 sub σ⋆ σ (con c) = con (subTermCon σ⋆ c)
-sub σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-sub b σ⋆) (ibuiltin b)
+sub σ⋆ σ (builtin b) = conv⊢ refl (btype-sub b σ⋆) (builtin b)
 sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 \end{code}
 

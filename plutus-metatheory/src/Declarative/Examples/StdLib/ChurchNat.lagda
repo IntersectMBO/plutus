@@ -40,7 +40,7 @@ con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con1 = con (integer (ℤ.pos 1))
 
 inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer ⇒ con integer
-inc = ƛ (ibuiltin addInteger · con1  · ` Z)
+inc = ƛ (builtin addInteger · con1  · ` Z)
 
 Nat2Int : ∅ ⊢ N ⇒ con integer
 Nat2Int = ƛ (Iter
