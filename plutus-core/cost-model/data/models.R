@@ -164,8 +164,8 @@ adjustModel <- function (m, fname) {
 
     ensurePositive <- function(x, name) {
         if (x<0) {
-            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to zero.\n",
-                         x, name, fname))
+#            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to zero.\n",
+#                         x, name, fname))
             0
         }
         else x
@@ -180,6 +180,7 @@ adjustModel <- function (m, fname) {
 
 
 modelFun <- function(path) {
+    cat ("** modelFun **\n")
     data <- get.bench.data(path)
 
     ## Look for a single entry with the given name and return the "Mean" value
@@ -194,15 +195,15 @@ modelFun <- function(path) {
             r <- t
         }
         else if (len == 0) {
-            cat(sprintf ("* WARNING: %s not found in input - returning 0\n", name))
+#            cat(sprintf ("* WARNING: %s not found in input - returning 0\n", name))
             r <- 0
         } else {
-            cat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value\n", name))
+#            cat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value\n", name))
             r <- mean(t)
         }
 
         if (r < 0) {
-            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0\n", name))
+#            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0\n", name))
             return (0)
         }
         return (r)
@@ -218,8 +219,8 @@ modelFun <- function(path) {
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
         }
         else {
-            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
-                              name, mean.time, args.overhead));
+#            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
+ #                             name, mean.time, args.overhead));
             mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x/10000 }))
             ## FIXME.  Don't understand this: putting function(x){0} causes a failure when the model is read from R.
         }
@@ -533,10 +534,10 @@ modelFun <- function(path) {
         errors = (f$Mean-pr(f$x))/f$Mean  ## Residuals as fraction of observed values.
         over = -errors[errors<0]   ## Overpredictions (observed value < prediction) - good, or at least acceptable.
         under = errors[errors>=0]  ## Underpredictions (observed value >= prediction) - bad
-        cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
-           (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
-        cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
-        (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
+#        cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
+#           (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
+#        cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
+ #       (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
         m2 <- lm(Mean ~ x_mem, f)  ## A model with the expected structure
         m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it
         adjustModel(m2,fname)

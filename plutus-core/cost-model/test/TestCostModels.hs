@@ -13,19 +13,23 @@ import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 
-import           Foreign.R                                      hiding (unsafeCoerce)
-import           H.Prelude                                      (MonadR, Region, r)
-import           Language.R                                     hiding (unsafeCoerce)
-
-import           Control.Applicative
-import           Control.Monad.Morph
 import           CostModelCreation
-import           Data.Coerce
-import           Hedgehog
-import qualified Hedgehog.Gen                                   as Gen
-import           Hedgehog.Main
-import qualified Hedgehog.Range                                 as Range
+
+import           Control.Applicative                            (Const, getConst)
+import           Control.Monad.Morph                            (MFunctor, hoist, lift)
+import           Data.Coerce                                    (coerce)
 import           Unsafe.Coerce                                  (unsafeCoerce)
+
+import           H.Prelude                                      (MonadR, Region)
+import           Language.R                                     as R (R, SomeSEXP, defaultConfig, fromSomeSEXP,
+                                                                      runRegion, unsafeRunRegion, withEmbeddedR)
+import           Language.R.QQ                                  (r)
+
+import           Hedgehog                                       (Group, Property, PropertyT, check, checkSequential,
+                                                                 diff, discover, forAll, property, withTests)
+import qualified Hedgehog.Gen                                   as Gen
+import qualified Hedgehog.Main                                  as HH (defaultMain)
+import qualified Hedgehog.Range                                 as Range
 
 
 {- | This module is supposed to test that the R cost models for built-in functions
@@ -91,8 +95,8 @@ prop_lessThanInteger :: Property
 prop_lessThanInteger =
     testPredictTwo lessThanInteger (getConst . paramLessThanInteger)
 
-prop_lessThanEqualsInteger :: Property
-prop_lessThanEqualsInteger =
+-- prop_lessThanEqualsInteger :: Property
+prop_lessThanEqualsInteger modelsR =
     testPredictTwo lessThanEqualsInteger (getConst . paramLessThanEqualsInteger)
 
 prop_equalsInteger :: Property
@@ -107,11 +111,9 @@ prop_sha2_256 :: Property
 prop_sha2_256 =
     testPredictOne sha2_256 (getConst . paramSha2_256)
 
-{-  Not sure why this is failing.
 prop_sha3_256 :: Property
 prop_sha3_256 =
     testPredictOne sha3_256 (getConst . paramSha3_256)
--}
 
 prop_blake2b :: Property
 prop_blake2b =
@@ -139,12 +141,14 @@ prop_lessThanEqualsByteString =
 -- prop_ifThenElse =
 --    testPredictTwo ifThenElse (getConst . paramIfThenElse)
 
+-- type PropertyR = forall s . PropertyT (R s) ()
+
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
 -- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s
 -- a)` to ensure no `R` types leave the scope. Additionally, it has an `NFData`
 -- constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does away
--- with the first constraint. However, consuring up a `NFData` constraint for
+-- with the first constraint. However, conjuring up a `NFData` constraint for
 -- `PropertyT` is impossible, because internally, `PropertyT` constructs a `TreeT`
 -- to hold all the branches for reduction. These branches will contain `(R s)`,
 -- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for
@@ -162,8 +166,8 @@ testPredictOne :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelOneArgume
   -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictOne haskellModelFun modelFun = propertyR $ do
-  modelR <- lift $ costModelsR
-  modelH <- lift $ haskellModelFun $ modelFun modelR
+  modelR <- lift costModelsR                         --  BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))
+  modelH <- lift . haskellModelFun $ modelFun modelR --  CostingFun ModelOneArgument
   let
     predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
@@ -186,8 +190,8 @@ testPredictTwo :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArgume
   -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictTwo haskellModelFun modelFun = propertyR $ do
-  modelR <- lift $ costModelsR
-  modelH <- lift $ haskellModelFun $ modelFun modelR
+  modelR <- lift costModelsR
+  modelH <- lift . haskellModelFun $ modelFun modelR
   let
     predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y =
@@ -212,8 +216,8 @@ testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeAr
   -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictThree haskellModelFun modelFun = propertyR $ do
-  modelR <- lift $ costModelsR
-  modelH <- lift $ haskellModelFun $ modelFun modelR
+  modelR <- lift costModelsR
+  modelH <- lift . haskellModelFun $ modelFun modelR
   let
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y _z =
@@ -236,5 +240,37 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
   diff byR (>) 0
   diff byR (~=) (predictH x y z)
 
+
+-- main1 :: IO ()
+-- main1 =  withEmbeddedR defaultConfig $ defaultMain $ [checkSequential $$(discover)]
+
+{-
+  defaultMain :: [IO Bool] -> IO ()  -- Hedgehog.Main
+  modelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+
+  withEmbeddedR :: Config -> IO a -> IO a
+
+  Initialize a new instance of R, execute actions that interact with the
+  R instance and then finalize the instance. This is typically called at
+  the very beginning of the main function of the program.
+
+  costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+
+  instance MonadR IO, MonadR (R s)
+
+  data R s a
+
+  The R monad, for sequencing actions interacting with a single instance of the
+  R interpreter, much as the IO monad sequences actions interacting with the
+  real world. The R monad embeds the IO monad, so all IO actions can be lifted
+  to R actions
+
+-}
+
 main :: IO ()
-main =  withEmbeddedR defaultConfig $ defaultMain $ [checkSequential $$(discover)]
+main = do
+  withEmbeddedR R.defaultConfig $
+                  do
+                    -- modelsR <- runRegion costModelsR
+                    HH.defaultMain $ [check $ prop_verifySignature]
+
