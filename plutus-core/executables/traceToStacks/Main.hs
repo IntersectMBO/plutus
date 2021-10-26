@@ -12,7 +12,7 @@ Workflow for profiling evaluation time:
 or by using the Plutus Tx plugin option 'dump-plc' if you have a self-contained program.
 3. Run the dumped program with 'uplc --trace-mode LogsWithTimestamps -o logs'
 4. Run 'cat logs | traceToStacks | flamegraph.pl > out.svg'
-5. Open out.svg in your viewer of choiece e.g. firefox.
+5. Open out.svg in your viewer of choice e.g. firefox.
 
 You can also profile the abstract memory and budget units.
 To do so, run 'uplc' with '--trace-mode LogsWithBudgets'.
@@ -35,9 +35,9 @@ data StackFrame
   = MkStackFrame
   { -- | The variable name.
     varName           :: T.Text,
-    -- | The time when it starts to be evaluated.
+    -- | The resource value when it starts to be evaluated.
     startVal          :: Integer,
-    -- | The time spent on evaluating the functions it called.
+    -- | The resource spent on evaluating the functions it called.
     valSpentCalledFun :: Integer
   }
   deriving (Show)
@@ -49,18 +49,17 @@ data Transition =
   Enter
   | Exit
 
--- | Represent one of the "folded" flamegraph lines, which include fns it's in and time spent.
-data StackTime =
-  MkStackTime [T.Text] Integer
+-- | Represent one of the "folded" flamegraph lines, which include fns it's in and resource spent.
+data StackVal =
+  MkStackVal [T.Text] Integer
 
-instance Show StackTime where
-  show (MkStackTime fns duration) =
+instance Show StackVal where
+  show (MkStackVal fns duration) =
     intercalate
       "; "
       -- reverse to make the functions in the order correct for flamegraphs.
       (reverse (map T.unpack fns))
       <>" "
-      -- turn duration in seconds to micro-seconds for readability
       <>show duration
 
 data LogRow = LogRow String [Integer]
@@ -69,7 +68,7 @@ instance CSV.FromRecord LogRow where
     parseRecord v | V.length v == 0 = fail "empty"
     parseRecord v = LogRow <$> CSV.parseField (V.unsafeHead v) <*> traverse CSV.parseField (V.toList $ V.unsafeTail v)
 
-processLog :: Int -> BSL.ByteString -> [StackTime]
+processLog :: Int -> BSL.ByteString -> [StackVal]
 processLog valIx content =
   let lEvents = case CSV.decode CSV.NoHeader content of
         Left e   -> error e
@@ -91,13 +90,13 @@ parseProfileEvent valIx (LogRow str vals) =
       "parseProfileEvent: invalid log, expecting a form of [t1,t2,t3,transition,var] but got "
       <> show invalid
 
-getStacks :: [ProfileEvent] -> [StackTime]
+getStacks :: [ProfileEvent] -> [StackVal]
 getStacks = go []
   where
     go ::
       [StackFrame] ->
       [ProfileEvent] ->
-      [StackTime]
+      [StackVal]
     go curStack ((MkProfileEvent startVal Enter varName):tl) =
           go
             (MkStackFrame{varName, startVal, valSpentCalledFun = 0}:curStack)
@@ -113,14 +112,14 @@ getStacks = go []
             -- work anyway for fg and the input sizes are small.
             fnsEntered = map varName updatedStack
         in
-          -- time spent on this function is the total time spent
-          -- minus the time spent on the function(s) it called.
-          MkStackTime (var:fnsEntered) (diffVal - valSpentCalledFun):go updatedStack tl
+          -- resource spent on this function is the total resource spent
+          -- minus the resource spent on the function(s) it called.
+          MkStackVal (var:fnsEntered) (diffVal - valSpentCalledFun):go updatedStack tl
     go _ ((MkProfileEvent _ Exit _):_) =
       error "go: tried to exit but couldn't."
     go [] [] = []
     go stacks [] = error $
-      "go: stack " <> show stacks <> " isn't empty but the log is."
+      "getStacks; go: stack " <> show stacks <> " isn't empty but the log is."
 
 column :: Parser Int
 column = option auto
