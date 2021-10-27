@@ -69,17 +69,17 @@ erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : T.Sub Φ Ψ)
   → D.Sub Γ Δ σ⋆ → U.Sub (len Γ) (len Δ) 
 
-erase (` α)             = ` (eraseVar α)
-erase (ƛ t)             = ƛ (erase t) 
-erase (t · u)           = erase t · erase u
-erase (Λ t)             = delay (erase t)
-erase (t ·⋆ A)          = force (erase t)
-erase (wrap A B t)      = erase t
-erase (unwrap t)        = erase t
-erase (conv p t)        = erase t
-erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
-erase (ibuiltin b)      = builtin b
-erase (error A)         = error
+erase (` α)           = ` (eraseVar α)
+erase (ƛ t)           = ƛ (erase t) 
+erase (t · u)         = erase t · erase u
+erase (Λ t)           = delay (erase t)
+erase (t ·⋆ A)        = force (erase t)
+erase (wrap A B t)    = erase t
+erase (unwrap t)      = erase t
+erase (conv p t)      = erase t
+erase {Γ = Γ} (con t) = con (eraseTC {Γ = Γ} t)
+erase (builtin b)     = builtin b
+erase (error A)       = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *
 backVar⋆ (Γ ,⋆ J) x = T.weaken (backVar⋆ Γ x)

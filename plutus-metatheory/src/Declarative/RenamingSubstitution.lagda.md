@@ -99,7 +99,7 @@ ren _ ρ (wrap A B L) = wrap _ _ (conv⊢ refl (⋆.ren-μ _ A B) (ren _ ρ L))
 ren _ ρ (unwrap L) = conv⊢ refl (sym (⋆.ren-μ _ _ _)) (unwrap (ren _ ρ L))
 ren _ ρ (conv p L) = conv (ren≡β _ p) (ren _ ρ L)
 ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
-ren ρ⋆ _ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
+ren ρ⋆ _ (builtin b) = conv⊢ refl (btype-ren b ρ⋆) (builtin b)
 ren _ _ (error A) = error (⋆.ren _ A)
 ```
 
@@ -193,7 +193,7 @@ sub _  σ (unwrap L)   =
   conv⊢ refl (sym (⋆.sub-μ _ (muPat L) (muArg L))) (unwrap (sub _ σ L))
 sub _  σ (conv p L)   = conv (sub≡β _ p) (sub _ σ L)
 sub σ⋆ _ (con cn)     = con (subTermCon σ⋆ cn)
-sub _  _ (ibuiltin b) = conv⊢ refl (itype-sub b _) (ibuiltin b)
+sub _  _ (builtin b) = conv⊢ refl (btype-sub b _) (builtin b)
 sub _  _ (error A)    = error (⋆.sub _ A)
 ```
 

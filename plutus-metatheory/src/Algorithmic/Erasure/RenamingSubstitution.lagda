@@ -158,8 +158,8 @@ ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t) = trans
   (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t)))
   (ren-erase ρ⋆ ρ t)
 ren-erase ρ⋆ ρ (con c)            = cong con (renTermCon-erase ρ⋆ ρ c)
-ren-erase ρ⋆ ρ (ibuiltin b)       =
- sym (lem-erase refl (itype-ren b ρ⋆) (ibuiltin b))
+ren-erase ρ⋆ ρ (builtin b)        =
+ sym (lem-erase refl (btype-ren b ρ⋆) (builtin b))
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 
@@ -240,8 +240,8 @@ sub-erase σ⋆ σ (unwrap {A = A}{B} t) = trans
   (conv⊢-erase (sym (sub-nf-μ σ⋆ A B)) (unwrap (A.sub σ⋆ σ t)))
   (sub-erase σ⋆ σ t)
 sub-erase σ⋆ σ (con c) = cong con (subTermCon-erase σ⋆ σ c)
-sub-erase σ⋆ σ (ibuiltin b) =
- sym (lem-erase refl (itype-sub b σ⋆) (ibuiltin b))
+sub-erase σ⋆ σ (builtin b) =
+ sym (lem-erase refl (btype-sub b σ⋆) (builtin b))
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)

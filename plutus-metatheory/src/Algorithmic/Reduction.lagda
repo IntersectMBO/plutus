@@ -126,7 +126,7 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
   -- but is it helpful to have it on the top level?
 
   V-I⇒ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
+    → let Ψ ,, Γ' ,, C' = sig b in
       (p : Ψ ≡ Φ)
     → (q : substEq Ctx p Γ' ≡ Γ)
     → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
@@ -137,7 +137,7 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
     → Value t
 
   V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
+    → let Ψ ,, Γ' ,, C' = sig b in
       (p : Ψ ≡ Φ)
     → (q : substEq Ctx p Γ' ≡ Γ)
     → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
@@ -176,7 +176,7 @@ convVal refl v = v
 
 \begin{code}
 IBUILTIN : (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
+    → let Φ ,, Γ ,, C = sig b in
       (σ : SubNf Φ ∅)
     → (tel : ITel b Γ σ)
       -----------------------------
@@ -251,7 +251,7 @@ IBUILTIN unBData σ (tt ,, _ ,, V-con (Data (bDATA b))) =
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
+    → let Φ ,, Γ ,, C = sig b in
       ∀{Φ'}{Γ' : Ctx Φ'}
     → (p : Φ ≡ Φ')
     → (q : substEq Ctx p Γ ≡ Γ')
@@ -337,7 +337,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
 
   β-sbuiltin :
       (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
+    → let Φ ,, Γ ,, C = sig b in
       ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}
     → (σ : SubNf Φ' ∅)
     → (p : Φ ≡ Φ')
@@ -353,7 +353,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
 
   β-sbuiltin⋆ :
       (b : Builtin)
-    → let Φ ,, Γ ,, C = ISIG b in
+    → let Φ ,, Γ ,, C = sig b in
       ∀{Φ'}{Γ' : Ctx Φ'}{K}{A : ∅ ⊢Nf⋆ K}
     → (σ : SubNf Φ' ∅)
     → (p : Φ ≡ Φ' ,⋆ K)
@@ -427,58 +427,58 @@ progress-· (error E-error) q = step E-·₁
 convValue : ∀{A A'}{t : ∅ ⊢ A}(p : A ≡ A') → Value (conv⊢ refl p t) → Value t
 convValue refl v = v
 
-ival : ∀ b → Value (ibuiltin b)
-ival addInteger = V-I⇒ addInteger refl refl refl (λ()) (skip base) tt (ibuiltin addInteger)
-ival subtractInteger = V-I⇒ subtractInteger refl refl refl (λ()) (skip base) tt (ibuiltin subtractInteger)
-ival multiplyInteger = V-I⇒ multiplyInteger refl refl refl (λ()) (skip base) tt (ibuiltin multiplyInteger)
-ival divideInteger = V-I⇒ divideInteger refl refl refl (λ()) (skip base) tt (ibuiltin divideInteger)
-ival quotientInteger = V-I⇒ quotientInteger refl refl refl (λ()) (skip base) tt (ibuiltin quotientInteger)
-ival remainderInteger = V-I⇒ remainderInteger refl refl refl (λ()) (skip base) tt (ibuiltin remainderInteger)
-ival modInteger = V-I⇒ modInteger refl refl refl (λ()) (skip base) tt (ibuiltin modInteger)
-ival lessThanInteger = V-I⇒ lessThanInteger refl refl refl (λ()) (skip base) tt (ibuiltin lessThanInteger)
-ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsInteger)
-ival equalsInteger = V-I⇒ equalsInteger refl refl refl (λ()) (skip base) tt (ibuiltin equalsInteger)
-ival lessThanByteString = V-I⇒ lessThanByteString refl refl refl (λ()) (skip base) tt (ibuiltin lessThanByteString)
-ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsByteString)
-ival sha2-256 = V-I⇒ sha2-256 refl refl refl (λ()) base tt (ibuiltin sha2-256)
-ival sha3-256 = V-I⇒ sha3-256 refl refl refl (λ()) base tt (ibuiltin sha3-256)
-ival verifySignature = V-I⇒ verifySignature refl refl refl (λ()) (skip (skip base)) tt (ibuiltin verifySignature)
-ival equalsByteString = V-I⇒ equalsByteString refl refl refl (λ()) (skip base) tt (ibuiltin equalsByteString)
-ival appendByteString = V-I⇒ appendByteString refl refl refl (λ()) (skip base) tt (ibuiltin appendByteString)
-ival appendString = V-I⇒ appendString refl refl refl (λ()) (skip base) tt (ibuiltin appendString)
-ival ifThenElse = V-IΠ ifThenElse refl refl refl (λ()) (skip (skip (skip base))) tt (ibuiltin ifThenElse)
-ival trace = V-IΠ trace refl refl refl (λ()) (skip (skip base)) tt (ibuiltin trace)
-ival equalsString = V-I⇒ equalsString refl refl refl (λ()) (skip base) tt (ibuiltin equalsString)
-ival encodeUtf8 = V-I⇒ encodeUtf8 refl refl refl (λ()) base tt (ibuiltin encodeUtf8)
-ival decodeUtf8 = V-I⇒ decodeUtf8 refl refl refl (λ()) base tt (ibuiltin decodeUtf8)
-ival fstPair = V-IΠ fstPair refl refl refl (λ()) (skip⋆ (skip base)) tt (ibuiltin fstPair)
-ival sndPair = V-IΠ sndPair refl refl refl (λ()) (skip⋆ (skip base)) tt (ibuiltin sndPair)
-ival nullList = V-IΠ nullList refl refl refl (λ()) (skip base) tt (ibuiltin nullList)
-ival headList = V-IΠ headList refl refl refl (λ()) (skip base) tt (ibuiltin headList)
-ival tailList = V-IΠ tailList refl refl refl (λ()) (skip base) tt (ibuiltin tailList)
-ival chooseList = V-IΠ chooseList refl refl refl (λ()) (skip⋆ (skip (skip (skip base)))) tt (ibuiltin chooseList)
-ival constrData = V-I⇒ constrData refl refl refl (λ()) (skip base) tt (ibuiltin constrData)
-ival mapData = V-I⇒ mapData refl refl refl (λ()) base tt (ibuiltin mapData)
-ival listData = V-I⇒ listData refl refl refl (λ()) base tt (ibuiltin listData)
-ival iData = V-I⇒ iData refl refl refl (λ()) base tt (ibuiltin iData)
-ival bData = V-I⇒ bData refl refl refl (λ()) base tt (ibuiltin bData)
-ival unConstrData = V-I⇒ unConstrData refl refl refl (λ()) base tt (ibuiltin unConstrData)
-ival unMapData = V-I⇒ unMapData refl refl refl (λ()) base tt (ibuiltin unMapData) 
-ival unListData = V-I⇒ unListData refl refl refl (λ()) base tt (ibuiltin unListData)
-ival unIData = V-I⇒ unIData refl refl refl (λ()) base tt (ibuiltin unIData)
-ival unBData = V-I⇒ unBData refl refl refl (λ()) base tt (ibuiltin unBData)
-ival equalsData = V-I⇒ equalsData refl refl refl (λ()) (skip base) tt (ibuiltin equalsData)
-ival chooseData = V-IΠ chooseData refl refl refl (λ()) (skip (skip (skip (skip (skip (skip base)))))) tt (ibuiltin chooseData)
-ival chooseUnit = V-IΠ chooseUnit refl refl refl (λ()) (skip (skip base)) tt (ibuiltin chooseUnit)
-ival mkPairData = V-I⇒ mkPairData refl refl refl (λ()) (skip base) tt (ibuiltin mkPairData)
-ival mkNilData = V-I⇒ mkNilData refl refl refl (λ()) base tt (ibuiltin mkNilData)
-ival mkNilPairData = V-I⇒ mkNilPairData refl refl refl (λ()) base tt (ibuiltin mkNilPairData)
-ival mkCons = V-I⇒ mkCons refl refl refl (λ()) (skip base) tt (ibuiltin mkCons)
-ival consByteString = V-I⇒ consByteString refl refl refl (λ()) (skip base) tt (ibuiltin consByteString)
-ival sliceByteString = V-I⇒ sliceByteString refl refl refl (λ()) (skip (skip base)) tt (ibuiltin sliceByteString)
-ival lengthOfByteString = V-I⇒ lengthOfByteString refl refl refl (λ()) base tt (ibuiltin lengthOfByteString)
-ival indexByteString = V-I⇒ indexByteString refl refl refl (λ()) (skip base) tt (ibuiltin indexByteString)
-ival blake2b-256 = V-I⇒ blake2b-256 refl refl refl (λ()) base tt (ibuiltin blake2b-256)
+ival : ∀ b → Value (builtin b)
+ival addInteger = V-I⇒ addInteger refl refl refl (λ()) (skip base) tt (builtin addInteger)
+ival subtractInteger = V-I⇒ subtractInteger refl refl refl (λ()) (skip base) tt (builtin subtractInteger)
+ival multiplyInteger = V-I⇒ multiplyInteger refl refl refl (λ()) (skip base) tt (builtin multiplyInteger)
+ival divideInteger = V-I⇒ divideInteger refl refl refl (λ()) (skip base) tt (builtin divideInteger)
+ival quotientInteger = V-I⇒ quotientInteger refl refl refl (λ()) (skip base) tt (builtin quotientInteger)
+ival remainderInteger = V-I⇒ remainderInteger refl refl refl (λ()) (skip base) tt (builtin remainderInteger)
+ival modInteger = V-I⇒ modInteger refl refl refl (λ()) (skip base) tt (builtin modInteger)
+ival lessThanInteger = V-I⇒ lessThanInteger refl refl refl (λ()) (skip base) tt (builtin lessThanInteger)
+ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (builtin lessThanEqualsInteger)
+ival equalsInteger = V-I⇒ equalsInteger refl refl refl (λ()) (skip base) tt (builtin equalsInteger)
+ival lessThanByteString = V-I⇒ lessThanByteString refl refl refl (λ()) (skip base) tt (builtin lessThanByteString)
+ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (builtin lessThanEqualsByteString)
+ival sha2-256 = V-I⇒ sha2-256 refl refl refl (λ()) base tt (builtin sha2-256)
+ival sha3-256 = V-I⇒ sha3-256 refl refl refl (λ()) base tt (builtin sha3-256)
+ival verifySignature = V-I⇒ verifySignature refl refl refl (λ()) (skip (skip base)) tt (builtin verifySignature)
+ival equalsByteString = V-I⇒ equalsByteString refl refl refl (λ()) (skip base) tt (builtin equalsByteString)
+ival appendByteString = V-I⇒ appendByteString refl refl refl (λ()) (skip base) tt (builtin appendByteString)
+ival appendString = V-I⇒ appendString refl refl refl (λ()) (skip base) tt (builtin appendString)
+ival ifThenElse = V-IΠ ifThenElse refl refl refl (λ()) (skip (skip (skip base))) tt (builtin ifThenElse)
+ival trace = V-IΠ trace refl refl refl (λ()) (skip (skip base)) tt (builtin trace)
+ival equalsString = V-I⇒ equalsString refl refl refl (λ()) (skip base) tt (builtin equalsString)
+ival encodeUtf8 = V-I⇒ encodeUtf8 refl refl refl (λ()) base tt (builtin encodeUtf8)
+ival decodeUtf8 = V-I⇒ decodeUtf8 refl refl refl (λ()) base tt (builtin decodeUtf8)
+ival fstPair = V-IΠ fstPair refl refl refl (λ()) (skip⋆ (skip base)) tt (builtin fstPair)
+ival sndPair = V-IΠ sndPair refl refl refl (λ()) (skip⋆ (skip base)) tt (builtin sndPair)
+ival nullList = V-IΠ nullList refl refl refl (λ()) (skip base) tt (builtin nullList)
+ival headList = V-IΠ headList refl refl refl (λ()) (skip base) tt (builtin headList)
+ival tailList = V-IΠ tailList refl refl refl (λ()) (skip base) tt (builtin tailList)
+ival chooseList = V-IΠ chooseList refl refl refl (λ()) (skip⋆ (skip (skip (skip base)))) tt (builtin chooseList)
+ival constrData = V-I⇒ constrData refl refl refl (λ()) (skip base) tt (builtin constrData)
+ival mapData = V-I⇒ mapData refl refl refl (λ()) base tt (builtin mapData)
+ival listData = V-I⇒ listData refl refl refl (λ()) base tt (builtin listData)
+ival iData = V-I⇒ iData refl refl refl (λ()) base tt (builtin iData)
+ival bData = V-I⇒ bData refl refl refl (λ()) base tt (builtin bData)
+ival unConstrData = V-I⇒ unConstrData refl refl refl (λ()) base tt (builtin unConstrData)
+ival unMapData = V-I⇒ unMapData refl refl refl (λ()) base tt (builtin unMapData) 
+ival unListData = V-I⇒ unListData refl refl refl (λ()) base tt (builtin unListData)
+ival unIData = V-I⇒ unIData refl refl refl (λ()) base tt (builtin unIData)
+ival unBData = V-I⇒ unBData refl refl refl (λ()) base tt (builtin unBData)
+ival equalsData = V-I⇒ equalsData refl refl refl (λ()) (skip base) tt (builtin equalsData)
+ival chooseData = V-IΠ chooseData refl refl refl (λ()) (skip (skip (skip (skip (skip (skip base)))))) tt (builtin chooseData)
+ival chooseUnit = V-IΠ chooseUnit refl refl refl (λ()) (skip (skip base)) tt (builtin chooseUnit)
+ival mkPairData = V-I⇒ mkPairData refl refl refl (λ()) (skip base) tt (builtin mkPairData)
+ival mkNilData = V-I⇒ mkNilData refl refl refl (λ()) base tt (builtin mkNilData)
+ival mkNilPairData = V-I⇒ mkNilPairData refl refl refl (λ()) base tt (builtin mkNilPairData)
+ival mkCons = V-I⇒ mkCons refl refl refl (λ()) (skip base) tt (builtin mkCons)
+ival consByteString = V-I⇒ consByteString refl refl refl (λ()) (skip base) tt (builtin consByteString)
+ival sliceByteString = V-I⇒ sliceByteString refl refl refl (λ()) (skip (skip base)) tt (builtin sliceByteString)
+ival lengthOfByteString = V-I⇒ lengthOfByteString refl refl refl (λ()) base tt (builtin lengthOfByteString)
+ival indexByteString = V-I⇒ indexByteString refl refl refl (λ()) (skip base) tt (builtin indexByteString)
+ival blake2b-256 = V-I⇒ blake2b-256 refl refl refl (λ()) base tt (builtin blake2b-256)
 
 progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
@@ -513,7 +513,7 @@ progress (M ·⋆ A)             = progress-·⋆ (progress M) A
 progress (wrap A B M) = progress-wrap (progress M)
 progress (unwrap M)          = progress-unwrap (progress M)
 progress (con c)              = done (V-con c)
-progress (ibuiltin b) = done (ival b)
+progress (builtin b) = done (ival b)
 progress (error A)            = error E-error
 
 open import Data.Nat

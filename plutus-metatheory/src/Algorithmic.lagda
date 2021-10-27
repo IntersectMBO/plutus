@@ -91,85 +91,85 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
-ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
-ISIG ifThenElse = _ ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
-ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG lessThanEqualsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG appendString = ∅ ,, ∅ , con string , con string ,, con string
-ISIG trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
-ISIG equalsString = ∅ ,, ∅ , con string , con string ,, con bool
-ISIG encodeUtf8 = ∅ ,, ∅ , con string ,, con bytestring
-ISIG decodeUtf8 = ∅ ,, ∅ , con bytestring ,, con string
-ISIG fstPair =
+sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
+sig ifThenElse = _ ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
+sig addInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig subtractInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig multiplyInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig divideInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig quotientInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig remainderInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig modInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig lessThanInteger = _ ,, ∅ , con integer , con integer ,, con bool
+sig lessThanEqualsInteger = _ ,, ∅ , con integer , con integer ,, con bool
+sig equalsInteger = _ ,, ∅ , con integer , con integer ,, con bool
+sig appendByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bytestring
+sig lessThanByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
+sig lessThanEqualsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
+sig sha2-256 = _ ,, ∅ , con bytestring ,, con bytestring
+sig sha3-256 = _ ,, ∅ , con bytestring ,, con bytestring
+sig verifySignature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig equalsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
+sig appendString = _ ,, ∅ , con string , con string ,, con string
+sig trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
+sig equalsString = _ ,, ∅ , con string , con string ,, con bool
+sig encodeUtf8 = _ ,, ∅ , con string ,, con bytestring
+sig decodeUtf8 = _ ,, ∅ , con bytestring ,, con string
+sig fstPair =
   _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` (S Z))
-ISIG sndPair = 
+sig sndPair = 
   _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
-ISIG nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
-ISIG headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, ne (` Z)
-ISIG tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
-ISIG chooseList =
+sig nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
+sig headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, ne (` Z)
+sig tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
+sig chooseList =
   _
   ,,
   ∅ ,⋆ * ,⋆ * , ne (` (S Z)) , ne (` (S Z)) , con (list (ne (` Z)))
   ,,
   ne (` (S Z)) 
-ISIG constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
-ISIG mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
-ISIG listData = _ ,, ∅ , con (list (con Data)) ,, con Data
-ISIG iData = _ ,, ∅ , con integer ,, con Data
-ISIG bData = _ ,, ∅ , con bytestring ,, con Data
-ISIG unConstrData =
+sig constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
+sig mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
+sig listData = _ ,, ∅ , con (list (con Data)) ,, con Data
+sig iData = _ ,, ∅ , con integer ,, con Data
+sig bData = _ ,, ∅ , con bytestring ,, con Data
+sig unConstrData =
   _ ,, ∅ , con Data ,, con (pair (con integer) (con (list (con Data))))
-ISIG unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
-ISIG unListData = _ ,, ∅ , con Data ,, con (list (con Data))
-ISIG unIData = _ ,, ∅ , con Data ,, con integer
-ISIG unBData = _ ,, ∅ , con Data ,, con bytestring
-ISIG equalsData = _ ,, ∅ , con Data , con Data ,, con bool
-ISIG chooseData =
+sig unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
+sig unListData = _ ,, ∅ , con Data ,, con (list (con Data))
+sig unIData = _ ,, ∅ , con Data ,, con integer
+sig unBData = _ ,, ∅ , con Data ,, con bytestring
+sig equalsData = _ ,, ∅ , con Data , con Data ,, con bool
+sig chooseData =
   _
   ,,
   ∅ ,⋆ * , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , con Data
   ,,
   ne (` Z)
-ISIG chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
-ISIG mkPairData =
+sig chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
+sig mkPairData =
   _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
-ISIG mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
-ISIG mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
-ISIG mkCons =
+sig mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
+sig mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
+sig mkCons =
   _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
-ISIG consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
-ISIG sliceByteString =
+sig consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
+sig sliceByteString =
   _ ,, ∅ , con integer , con integer , con bytestring ,, con bytestring
-ISIG lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
-ISIG indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
-ISIG blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
+sig lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
+sig indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
+sig blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
 
-isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-isig2type .∅ ∅ C = C
-isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
-isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
+sig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
+sig2type .∅ ∅ C = C
+sig2type (Φ ,⋆ J) (Γ ,⋆ J) C = sig2type Φ Γ (Π C)
+sig2type Φ        (Γ ,  A) C = sig2type Φ Γ (A ⇒ C)
 
-itype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C)
+btype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
+btype b = let Φ ,, Γ ,, C = sig b in subNf (λ()) (sig2type Φ Γ C)
 
-postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
-postulate itype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ subNf ρ (itype b)
+postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
+postulate btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
 
 infixl 7 _·⋆_
 
@@ -221,7 +221,7 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ⊢ con tcn
 
-  ibuiltin : (b :  Builtin) → Γ ⊢ itype b
+  builtin : (b :  Builtin) → Γ ⊢ btype b
 
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 \end{code}
@@ -265,5 +265,5 @@ ctx2bwdarity (Γ ,⋆ J) = ctx2bwdarity Γ :< Type
 ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
 
 arity : Builtin → Arity
-arity b = ctx2bwdarity (proj₁ (proj₂ (ISIG b))) <>> []
+arity b = ctx2bwdarity (proj₁ (proj₂ (sig b))) <>> []
 \end{code}

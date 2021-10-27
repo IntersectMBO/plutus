@@ -67,7 +67,7 @@ erase (_·⋆_ t A)           = force (erase t)
 erase (wrap A B t)         = erase t
 erase (unwrap t)           = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (ibuiltin b)         = builtin b
+erase (builtin b)          = builtin b
 erase (error A)            = error
 \end{code}
 
@@ -269,9 +269,9 @@ same {Γ = Γ} (D.con tcn) = trans
   (cong con (sameTC {Γ = Γ} tcn))
   (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
 
-same {Γ = Γ} (D.ibuiltin b) = trans
+same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
-  (lem-erase refl (itype-lem b) (ibuiltin b)))
+  (lem-erase refl (btype-lem b) (builtin b)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
 open import Algorithmic.Soundness
@@ -326,6 +326,6 @@ same' {Γ = Γ} (unwrap t) = same' t
 same' {Γ = Γ} (con x) = trans
   (cong con (same'TC {Γ = Γ} x))
   (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
-same' {Γ = Γ} (ibuiltin b) = lembuiltin b (same'Len Γ)
+same' {Γ = Γ} (builtin b) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

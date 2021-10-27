@@ -48,7 +48,7 @@ erase≤C' (A.skip⋆ p) = U.skipType (erase≤C' p)
 erase≤C' (A.skip p)  = U.skipTerm (erase≤C' p)
 
 -- there could be a simpler version of this without p and q...
-erase-arity-lem : ∀ b {Φ}{Γ}(p : proj₁ (ISIG b) ≡ Φ)(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ) → eraseCtx Γ ≡ U.arity b
+erase-arity-lem : ∀ b {Φ}{Γ}(p : proj₁ (sig b) ≡ Φ)(q : subst Ctx p (proj₁ (proj₂ (sig b))) ≡ Γ) → eraseCtx Γ ≡ U.arity b
 erase-arity-lem addInteger refl refl = refl
 erase-arity-lem subtractInteger refl refl = refl
 erase-arity-lem multiplyInteger refl refl = refl
@@ -142,9 +142,9 @@ erase-decIf (no ¬p) t f = refl
 -- typed semantics would give the same answer. Here we just
 -- exhaustively pattern match on the builtin and its typed args to get
 -- it to compute.
-erase-BUILTIN : ∀ b (σ : SubNf (proj₁ (ISIG b)) ∅)(vs : A.ITel b (proj₁ (proj₂ (ISIG b))) σ) →
+erase-BUILTIN : ∀ b (σ : SubNf (proj₁ (sig b)) ∅)(vs : A.ITel b (proj₁ (proj₂ (sig b))) σ) →
   proj₁
-  (U.IBUILTIN' b (erase-arity-lem b refl refl) (eraseITel b (proj₁ (proj₂ (ISIG b))) σ vs))
+  (U.IBUILTIN' b (erase-arity-lem b refl refl) (eraseITel b (proj₁ (proj₂ (sig b))) σ vs))
   ≡ erase (proj₁ (A.IBUILTIN b σ vs))
 erase-BUILTIN addInteger      σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) = refl
 erase-BUILTIN subtractInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) = refl
@@ -223,7 +223,7 @@ erase-BUILTIN indexByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.
 ... | yes _ = refl
 erase-BUILTIN blake2b-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 
-erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →
+erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (sig b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (sig b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (sig b))) ≡ C') →
   proj₁
   (U.IBUILTIN' b (erase-arity-lem b p q)
    (eraseITel b Γ' σ vs))

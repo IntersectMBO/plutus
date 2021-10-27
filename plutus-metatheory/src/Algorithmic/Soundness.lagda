@@ -139,7 +139,7 @@ lemsub A A' σ p = trans≡β
       ((≡2β (sym (cong embNf (sub-eval A' idCR (embNf ∘ σ))))))))
   (sym≡β (soundness (sub (embNf ∘ σ) A')))
 
-postulate itype-lem≡β : ∀{Φ} b → Dec.itype {Φ} b ≡β embNf (Alg.itype b)
+postulate btype-lem≡β : ∀{Φ} b → Dec.btype {Φ} b ≡β embNf (Alg.btype b)
 
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 emb (Alg.` α) = Dec.` (embVar α)
@@ -155,7 +155,7 @@ emb (Alg.wrap A B t) = Dec.wrap
 emb (Alg.unwrap {A = A}{B} t) =
   Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
-emb (Alg.ibuiltin b) = Dec.conv (itype-lem≡β b) (Dec.ibuiltin b)
+emb (Alg.builtin b) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
 emb (Alg.error A) = Dec.error (embNf A)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A

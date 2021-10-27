@@ -54,5 +54,5 @@ eraseTm (con c)                = con c
 eraseTm (error A)              = error
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
-eraseTm (ibuiltin b)           = error -- builtin b (≤″⇒≤‴ (≤⇒≤″ z≤n)) []
+eraseTm (builtin b)            = error -- builtin b (≤″⇒≤‴ (≤⇒≤″ z≤n)) []
 \end{code}

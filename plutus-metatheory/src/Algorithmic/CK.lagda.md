@@ -82,7 +82,7 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
-step (s ▻ ibuiltin b) = s ◅ ival b
+step (s ▻ builtin b) = s ◅ ival b
 step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
   s ▻ BUILTIN' b (bubble p) (app p bt vu)
 step ((s , (V-I⇒ b {as' = _ ∷ as'} p bt ·-)) ◅ vu) =
@@ -168,7 +168,7 @@ thm64 (E CC.▻ unwrap M) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E unwrap-)) (thm64 _ E' p)
 thm64 (E CC.▻ con M) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
-thm64 (E CC.▻ ibuiltin b) E' (CC.step* refl p) =
+thm64 (E CC.▻ builtin b) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
 thm64 (E CC.▻ error _) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
 thm64 (E CC.◅ V) E' (CC.step* refl p) with CC.dissect E | inspect CC.dissect E
@@ -197,7 +197,7 @@ thm64b (s ▻ (M ·⋆ A)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ wrap A B M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ unwrap M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ con c) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ ibuiltin b) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ builtin b) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ error _) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (ε ◅ V) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b ((s , (-· M)) ◅ V) s' (step* refl p) = CC.step*
@@ -235,7 +235,7 @@ thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
-test = ε ▻ (ƛ (con unit) · (ibuiltin iData · con (integer (+ 0))))
+test = ε ▻ (ƛ (con unit) · (builtin iData · con (integer (+ 0))))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)
