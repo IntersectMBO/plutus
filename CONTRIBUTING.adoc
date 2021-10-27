@@ -87,6 +87,26 @@ Setting `profiling: true` already sorts this out properly.
 
 Then you can use the RTS `-p` option to dump a profile e.g. `cabal run plc ... -- +RTS -p`.
 
+[WARNING]
+====
+When building `plutus-core`, you might get a compilation error similar to the following:
+
+```
+ghc: ^^ Could not load 'recursionzmschemeszm5zi2zm8KxPjFseRtMJfccAAVODSC_DataziFunctorziFoldableziTH_zdfMakeBaseFunctorNamezuzdcmakeBaseFunctor_closure', dependency unresolved. See top entry above.
+
+ByteCodeLink.lookupCE
+During interactive linking, GHCi couldn't find the following symbol:
+  recursionzmschemeszm5zi2zm8KxPjFseRtMJfccAAVODSC_DataziFunctorziFoldableziTH_zdfMakeBaseFunctorNamezuzdcmakeBaseFunctor_closure
+```
+
+To resolve it, simply add the following lines in your `cabal.project.local`:
+
+```
+package plutus-core
+  ghc-options: -fexternal-interpreter
+```
+====
+
 There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
 
 === How to setup `haskell-language-server`
@@ -143,7 +163,7 @@ actually use flakes for normal Nix builds. To manage the dependencies,
 see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
 and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html[the Nix flake lock command].
 
-Specifically, you will probabl want to say `nix flake lock --update-input <input-name>`. 
+Specifically, you will probabl want to say `nix flake lock --update-input <input-name>`.
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
 
 Inside of the project nix-shell, a version of Nix with flakes is available under the alias `nix-flakes`.
