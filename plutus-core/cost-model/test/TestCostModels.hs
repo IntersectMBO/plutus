@@ -131,7 +131,8 @@ prop_blake2b =
 
 prop_verifySignature :: Model2 s -> Property
 prop_verifySignature models =
-    testPredictThree models verifySignature (getConst . paramVerifySignature)
+    let x = getConst . paramVerifySignature $ models
+    in testPredictThree models verifySignature (getConst . paramVerifySignature)
 
 {-
 prop_equalsByteString :: Property
