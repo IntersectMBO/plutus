@@ -18,9 +18,11 @@ import           CostModelCreation
 import           Control.Applicative                            (Const, getConst)
 import           Control.Monad.Morph                            (MFunctor, hoist, lift)
 import           Data.Coerce                                    (coerce)
+import           System.IO.Unsafe                               (unsafePerformIO)
 import           Unsafe.Coerce                                  (unsafeCoerce)
 
-import           H.Prelude                                      (MonadR, Region)
+import           H.Prelude                                      (MonadR, Region, getExecContext, io,
+                                                                 unsafeRunWithExecContext)
 import           Language.R                                     as R (R, SomeSEXP, defaultConfig, fromSomeSEXP,
                                                                       runRegion, unsafeRunRegion, withEmbeddedR)
 import           Language.R.QQ                                  (r)
@@ -30,6 +32,13 @@ import           Hedgehog                                       (Group, Property
 import qualified Hedgehog.Gen                                   as Gen
 import qualified Hedgehog.Main                                  as HH (defaultMain)
 import qualified Hedgehog.Range                                 as Range
+
+
+import           Debug.Trace
+
+type Model s = R s (BuiltinCostModelBase (Const (SomeSEXP s)))
+type Model2 s = BuiltinCostModelBase (Const (SomeSEXP s))
+-- This is just a record in which every field refers to an SEXP (over some state)
 
 
 {- | This module is supposed to test that the R cost models for built-in functions
@@ -119,9 +128,9 @@ prop_blake2b :: Property
 prop_blake2b =
     testPredictOne blake2b (getConst . paramBlake2b)
 
-prop_verifySignature :: Property
-prop_verifySignature =
-    testPredictThree verifySignature (getConst . paramVerifySignature)
+prop_verifySignature :: Model2 s -> Property
+prop_verifySignature models =
+    testPredictThree models verifySignature (getConst . paramVerifySignature)
 
 {-
 prop_equalsByteString :: Property
@@ -212,12 +221,18 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
   diff byR (>) 0
   diff byR (~=) (predictH x y)
 
-testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
-  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
-  -> Property
-testPredictThree haskellModelFun modelFun = propertyR $ do
-  modelR <- lift costModelsR
-  modelH <- lift . haskellModelFun $ modelFun modelR
+-- verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+
+testPredictThree
+    :: forall s .
+       BuiltinCostModelBase (Const (SomeSEXP s))
+    -> ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
+    -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+    -> Property
+testPredictThree models haskellModelFun modelFun = propertyR $ do
+--  modelR <- Debug.Trace.trace "lift" $ lift models :: PropertyT (R s) (Model2 s)
+  let modelX = modelFun models :: SomeSEXP s
+  modelH <- lift $ haskellModelFun modelX
   let
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y _z =
@@ -225,9 +240,8 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
         -- zD = fromInteger z :: Double
-        model = modelFun modelR
       in
-        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelX_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = do
@@ -255,6 +269,7 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
   the very beginning of the main function of the program.
 
   costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+  - A record (in an R monad) mapping builtin names to R SEXPs
 
   instance MonadR IO, MonadR (R s)
 
@@ -270,7 +285,8 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
 main :: IO ()
 main = do
   withEmbeddedR R.defaultConfig $
-                  do
-                    -- modelsR <- runRegion costModelsR
-                    HH.defaultMain $ [check $ prop_verifySignature]
+    do
+      let model = costModelsR  :: R s (BuiltinCostModelBase (Const (SomeSEXP s)))
+      x <- unsafeRunRegion model
+      HH.defaultMain $ [check $ prop_verifySignature x]
 

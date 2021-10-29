@@ -102,15 +102,15 @@ builtinCostModelNames = BuiltinCostModelBase
 
 
 -- Loads the models from R
--- The "_hs" suffixes below make Haskell variables accessible inside [r| ...|]
+-- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
 costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR = do
   list <- [r|
     source(DataFilePaths.modelFile_hs)
     modelFun(DataFilePaths.benchingResultsFile_hs)
   |]
-  Debug.Trace.trace "** costModelsR **\n" $
-       bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
+  Debug.Trace.trace "** Running costModelsR **\n" $
+       bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
   -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
