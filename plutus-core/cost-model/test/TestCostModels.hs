@@ -230,9 +230,8 @@ testPredictThree
     -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
     -> Property
 testPredictThree models haskellModelFun modelFun = propertyR $ do
---  modelR <- Debug.Trace.trace "lift" $ lift models :: PropertyT (R s) (Model2 s)
-  let modelX = modelFun models :: SomeSEXP s
-  modelH <- lift $ haskellModelFun modelX
+  let modelR = modelFun models :: SomeSEXP s
+  modelH <- lift $ haskellModelFun modelR
   let
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y _z =
