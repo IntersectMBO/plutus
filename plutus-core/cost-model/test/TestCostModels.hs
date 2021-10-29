@@ -56,9 +56,10 @@ memUsageGen =
         where small   = Gen.integral (Range.constant 0 2)
               largish = Gen.integral (Range.linear 0 5000)
 
--- Just to make our signatures more concise.  This type is just a record in
--- which every field refers to an R SEXP (over some state)
-type CostingFunctions s = BuiltinCostModelBase (Const (SomeSEXP s))
+-- A type alias to make our signatures more concise.  This type is a record in
+-- which every field refers to an R SEXP (over some state s), the lm model for
+-- the benchmark data for the relevant builtin.
+type RModels s = BuiltinCostModelBase (Const (SomeSEXP s))
 
 {- The region where we want to carry out tests for a two-dimensional model.  The
    Haskell versions of some of these models are defined in several pieces and we
@@ -79,83 +80,88 @@ x ~= y
     where x' = fromIntegral x :: Double
           y' = fromIntegral y :: Double
           err = abs ((x'-y')/y')
-prop_addInteger :: CostingFunctions s -> Property
+
+
+-- Properties for individual builtins
+
+prop_addInteger :: RModels s -> Property
 prop_addInteger =
     testPredictTwo Everywhere addInteger . paramAddInteger
 
-prop_subtractInteger :: CostingFunctions s -> Property
+prop_subtractInteger :: RModels s -> Property
 prop_subtractInteger =
     testPredictTwo Everywhere subtractInteger . paramSubtractInteger
 
-prop_multiplyInteger :: CostingFunctions s -> Property
+prop_multiplyInteger :: RModels s -> Property
 prop_multiplyInteger =
     testPredictTwo Everywhere multiplyInteger . paramMultiplyInteger
 
-prop_divideInteger :: CostingFunctions s -> Property
+prop_divideInteger :: RModels s -> Property
 prop_divideInteger =
     testPredictTwo BelowDiagonal divideInteger . paramDivideInteger
 
-prop_quotientInteger :: CostingFunctions s -> Property
+prop_quotientInteger :: RModels s -> Property
 prop_quotientInteger =
     testPredictTwo BelowDiagonal quotientInteger . paramQuotientInteger
 
-prop_remainderInteger :: CostingFunctions s -> Property
+prop_remainderInteger :: RModels s -> Property
 prop_remainderInteger =
     testPredictTwo BelowDiagonal remainderInteger . paramRemainderInteger
 
-prop_modInteger :: CostingFunctions s -> Property
+prop_modInteger :: RModels s -> Property
 prop_modInteger =
     testPredictTwo BelowDiagonal modInteger . paramModInteger
 
-prop_lessThanInteger :: CostingFunctions s -> Property
+prop_lessThanInteger :: RModels s -> Property
 prop_lessThanInteger =
     testPredictTwo Everywhere lessThanInteger . paramLessThanInteger
 
-prop_lessThanEqualsInteger :: CostingFunctions s -> Property
+prop_lessThanEqualsInteger :: RModels s -> Property
 prop_lessThanEqualsInteger =
     testPredictTwo Everywhere lessThanEqualsInteger . paramLessThanEqualsInteger
 
-prop_equalsInteger :: CostingFunctions s -> Property
+prop_equalsInteger :: RModels s -> Property
 prop_equalsInteger =
     testPredictTwo Everywhere equalsInteger . paramEqualsInteger
 
-prop_appendByteString :: CostingFunctions s -> Property
+prop_appendByteString :: RModels s -> Property
 prop_appendByteString =
     testPredictTwo Everywhere appendByteString . paramAppendByteString
 
-prop_sha2_256 :: CostingFunctions s -> Property
+prop_sha2_256 :: RModels s -> Property
 prop_sha2_256 =
     testPredictOne sha2_256 . paramSha2_256
 
-prop_sha3_256 :: CostingFunctions s -> Property
+prop_sha3_256 :: RModels s -> Property
 prop_sha3_256 =
     testPredictOne sha3_256 . paramSha3_256
 
-prop_blake2b :: CostingFunctions s -> Property
+prop_blake2b :: RModels s -> Property
 prop_blake2b =
     testPredictOne blake2b . paramBlake2b
 
-prop_verifySignature :: CostingFunctions s -> Property
+prop_verifySignature :: RModels s -> Property
 prop_verifySignature =
     testPredictThree verifySignature . paramVerifySignature
 
-prop_equalsByteString :: CostingFunctions s -> Property
+prop_equalsByteString :: RModels s -> Property
 prop_equalsByteString =
     testPredictTwo OnDiagonal equalsByteString . paramEqualsByteString
 
-prop_lessThanByteString :: CostingFunctions s -> Property
+prop_lessThanByteString :: RModels s -> Property
 prop_lessThanByteString =
     testPredictTwo Everywhere lessThanByteString . paramLessThanByteString
 
-prop_lessThanEqualsByteString :: CostingFunctions s -> Property
+prop_lessThanEqualsByteString :: RModels s -> Property
 prop_lessThanEqualsByteString =
     testPredictTwo Everywhere lessThanEqualsByteString . paramLessThanEqualsByteString
 
--- prop_ifThenElse :: Property
--- prop_ifThenElse =
---    testPredictTwo ifThenElse (getConst . paramIfThenElse)
+prop_ifThenElse :: RModels s -> Property
+prop_ifThenElse =
+    testPredictThree ifThenElse . paramIfThenElse
 
--- type PropertyR = forall s . PropertyT (R s) ()
+
+-- Testing the properties
 
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
@@ -176,7 +182,7 @@ propertyR prop = withTests 100 $ property $ unsafeHoist unsafeRunRegion prop
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
 testPredictOne
-    :: ((SomeSEXP s) -> R s (CostingFun ModelOneArgument))
+    :: (SomeSEXP s -> R s (CostingFun ModelOneArgument))
     -> Const (SomeSEXP s) a
     -> Property
 testPredictOne haskellModelFun modelR1 = propertyR $ do
@@ -188,7 +194,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
       let
         xD = fromIntegral x :: Double
       in
-        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
+       msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
     predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = memUsageGen
@@ -198,8 +204,8 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
   diff byR (~=) (predictH x)
 
 testPredictTwo
-    :: TestDomain
-    -> ((SomeSEXP s) -> R s (CostingFun ModelTwoArguments))
+    :: forall s a . TestDomain
+    -> (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
     -> Const (SomeSEXP s) a
     -> Property
 testPredictTwo domain haskellModelFun modelR1 = propertyR $ do
@@ -212,7 +218,7 @@ testPredictTwo domain haskellModelFun modelR1 = propertyR $ do
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
       in
-        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = case domain of
@@ -225,15 +231,8 @@ testPredictTwo domain haskellModelFun modelR1 = propertyR $ do
   diff byR (>=) 0
   diff byR (~=) (predictH x y)
 
-{- testPredictThree
-    :: forall s .
-       (SomeSEXP (Region (R s)) -> R (CostingFun ModelThreeArguments) s)
-    -> Const (SomeSEXP s) ModelThreeArguments
-    -> Property
--}
-
 testPredictThree
-    :: ((SomeSEXP s) -> R s (CostingFun ModelThreeArguments))
+    :: (SomeSEXP s -> R s (CostingFun ModelThreeArguments))
     -> Const (SomeSEXP s) a
     -> Property
 testPredictThree haskellModelFun modelR1 = propertyR $ do
@@ -247,7 +246,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
         yD = fromIntegral y :: Double
         -- zD = fromInteger z :: Double
       in
-        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
@@ -264,23 +263,24 @@ main =
     withEmbeddedR R.defaultConfig $ do
       models <- unsafeRunRegion costModelsR
       let tests =
-              [ ("addInteger",               prop_addInteger models)
-              , ("subtractInteger",          prop_subtractInteger models)
-              , ("multiplyInteger",          prop_multiplyInteger models)
-              , ("divideInteger",            prop_divideInteger models)
-              , ("quotientInteger",          prop_quotientInteger models)
-              , ("remainderInteger",         prop_remainderInteger models)
-              , ("modInteger",               prop_modInteger models)
-              , ("lessThanInteger",          prop_lessThanInteger models)
-              , ("lessThanEqualsInteger",    prop_lessThanEqualsInteger models)
-              , ("equalsInteger",            prop_equalsInteger models)
-              , ("equalsByteString",         prop_equalsByteString models)
-              , ("appendByteString",         prop_appendByteString models)
-              , ("lessThanByteString",       prop_lessThanByteString models)
+              [ ("addInteger",               prop_addInteger               models)
+              , ("subtractInteger",          prop_subtractInteger          models)
+              , ("multiplyInteger",          prop_multiplyInteger          models)
+              , ("divideInteger",            prop_divideInteger            models)
+              , ("quotientInteger",          prop_quotientInteger          models)
+              , ("remainderInteger",         prop_remainderInteger         models)
+              , ("modInteger",               prop_modInteger               models)
+              , ("lessThanInteger",          prop_lessThanInteger          models)
+              , ("lessThanEqualsInteger",    prop_lessThanEqualsInteger    models)
+              , ("equalsInteger",            prop_equalsInteger            models)
+              , ("equalsByteString",         prop_equalsByteString         models)
+              , ("appendByteString",         prop_appendByteString         models)
+              , ("lessThanByteString",       prop_lessThanByteString       models)
               , ("lessThanEqualsByteString", prop_lessThanEqualsByteString models)
-              , ("verifySignature",          prop_verifySignature models)
-              , ("sha2_256",                 prop_sha2_256 models)
-              , ("sha3_256",                 prop_sha3_256 models)
-              , ("blake2b",                  prop_blake2b models)
+              , ("sha2_256",                 prop_sha2_256                 models)
+              , ("sha3_256",                 prop_sha3_256                 models)
+              , ("blake2b",                  prop_blake2b                  models)
+              , ("verifySignature",          prop_verifySignature          models)
+              , ("ifThenElse",               prop_ifThenElse               models)
               ]
       HH.defaultMain $ [checkSequential $ Group "Builtin model tests" tests]
