@@ -255,6 +255,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
   diff byR (>=) 0
   diff byR (~=) (predictH x y z)
 
+
 -- TODO: discover the properties automatically.  $$(discover) doesn't work
 -- because it expects to find Properties, but we have to apply each prop_xyz to
 -- 'models' to get a Property
