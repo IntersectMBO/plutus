@@ -27,8 +27,9 @@ import           Language.R                                     as R (R, SomeSEX
                                                                       runRegion, unsafeRunRegion, withEmbeddedR)
 import           Language.R.QQ                                  (r)
 
-import           Hedgehog                                       (Group, Property, PropertyT, check, checkSequential,
-                                                                 diff, discover, forAll, property, withTests)
+import           Hedgehog                                       (Group (..), Property, PropertyT, check,
+                                                                 checkSequential, diff, discover, forAll, property,
+                                                                 withTests)
 import qualified Hedgehog.Gen                                   as Gen
 import qualified Hedgehog.Main                                  as HH (defaultMain)
 import qualified Hedgehog.Range                                 as Range
@@ -221,8 +222,6 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
   diff byR (>) 0
   diff byR (~=) (predictH x y)
 
--- verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-
 testPredictThree
     :: forall s .
        BuiltinCostModelBase (Const (SomeSEXP s))
@@ -240,7 +239,7 @@ testPredictThree models haskellModelFun modelFun = propertyR $ do
         yD = fromIntegral y :: Double
         -- zD = fromInteger z :: Double
       in
-        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelX_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = do
@@ -285,7 +284,6 @@ main :: IO ()
 main = do
   withEmbeddedR R.defaultConfig $
     do
-      let model = costModelsR  :: R s (BuiltinCostModelBase (Const (SomeSEXP s)))
-      x <- unsafeRunRegion model
-      HH.defaultMain $ [check $ prop_verifySignature x]
+      models <- unsafeRunRegion costModelsR
+      HH.defaultMain [check $ prop_verifySignature models]
 
