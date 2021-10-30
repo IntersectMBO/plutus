@@ -93,7 +93,7 @@ nopCostParameters = toMachineParameters $ CostModel defaultCekMachineCosts nopCo
    arguments.  We have checked this and there there was no dependence: let's
    leave open the possibility of doing it again in case anything changes.
 -}
-instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
+instance KnownBuiltinTypeIn uni Integer => ToBuiltinMeaning uni NopFuns where
     type CostingPart uni NopFuns = NopCostModel
     toBuiltinMeaning
         :: HasConstantIn uni term
