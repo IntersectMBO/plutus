@@ -19,6 +19,7 @@ import           CostModelCreation
 import           Control.Applicative                            (Const, getConst)
 import           Control.Monad.Morph                            (MFunctor, hoist, lift)
 import           Data.Coerce                                    (coerce)
+import           Data.Function                                  ((&))
 import           Unsafe.Coerce                                  (unsafeCoerce)
 
 import           H.Prelude                                      (MonadR)
@@ -61,11 +62,11 @@ memUsageGen =
 -- the benchmark data for the relevant builtin.
 type RModels s = BuiltinCostModelBase (Const (SomeSEXP s))
 
-{- The region where we want to carry out tests for a two-dimensional model.  The
-   Haskell versions of some of these models are defined in several pieces and we
-   don't yet have corresponding piecewise R models, so we just restrict to the
-   places where the piecewise models are interesting (they're typically constant
-   elsewhere). -}
+{- The region in the plane where we want to carry out tests for a two-dimensional
+   model.  The Haskell versions of some of these models are defined in several
+   pieces and we don't yet have corresponding piecewise R models, so we just
+   restrict to the places where the piecewise models are interesting (they're
+   typically constant elsewhere). -}
 data TestDomain =
     Everywhere
   | OnDiagonal
@@ -258,30 +259,31 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
 
 -- TODO: discover the properties automatically.  $$(discover) doesn't work
 -- because it expects to find Properties, but we have to apply each prop_xyz to
--- 'models' to get a Property
+-- 'models' to get a Property.
 main :: IO ()
 main =
     withEmbeddedR R.defaultConfig $ do
-      models <- unsafeRunRegion costModelsR
-      let tests =
-              [ ("addInteger",               prop_addInteger               models)
-              , ("subtractInteger",          prop_subtractInteger          models)
-              , ("multiplyInteger",          prop_multiplyInteger          models)
-              , ("divideInteger",            prop_divideInteger            models)
-              , ("quotientInteger",          prop_quotientInteger          models)
-              , ("remainderInteger",         prop_remainderInteger         models)
-              , ("modInteger",               prop_modInteger               models)
-              , ("lessThanInteger",          prop_lessThanInteger          models)
-              , ("lessThanEqualsInteger",    prop_lessThanEqualsInteger    models)
-              , ("equalsInteger",            prop_equalsInteger            models)
-              , ("equalsByteString",         prop_equalsByteString         models)
-              , ("appendByteString",         prop_appendByteString         models)
-              , ("lessThanByteString",       prop_lessThanByteString       models)
-              , ("lessThanEqualsByteString", prop_lessThanEqualsByteString models)
-              , ("sha2_256",                 prop_sha2_256                 models)
-              , ("sha3_256",                 prop_sha3_256                 models)
-              , ("blake2b",                  prop_blake2b                  models)
-              , ("verifySignature",          prop_verifySignature          models)
-              , ("ifThenElse",               prop_ifThenElse               models)
-              ]
-      HH.defaultMain $ [checkSequential $ Group "Builtin model tests" tests]
+      models <- unsafeRunRegion CostModelCreation.costModelsR
+      HH.defaultMain $ [checkSequential $ Group "Builtin model tests" (tests models)]
+          where tests models =
+                    -- models & p = p models; this is just to make the alignment neater
+                    [ ("addInteger",               models & prop_addInteger)
+                    , ("subtractInteger",          models & prop_subtractInteger)
+                    , ("multiplyInteger",          models & prop_multiplyInteger)
+                    , ("divideInteger",            models & prop_divideInteger)
+                    , ("quotientInteger",          models & prop_quotientInteger)
+                    , ("remainderInteger",         models & prop_remainderInteger)
+                    , ("modInteger",               models & prop_modInteger)
+                    , ("lessThanInteger",          models & prop_lessThanInteger)
+                    , ("lessThanEqualsInteger",    models & prop_lessThanEqualsInteger)
+                    , ("equalsInteger",            models & prop_equalsInteger)
+                    , ("equalsByteString",         models & prop_equalsByteString)
+                    , ("appendByteString",         models & prop_appendByteString)
+                    , ("lessThanByteString",       models & prop_lessThanByteString)
+                    , ("lessThanEqualsByteString", models & prop_lessThanEqualsByteString)
+                    , ("sha2_256",                 models & prop_sha2_256)
+                    , ("sha3_256",                 models & prop_sha3_256)
+                    , ("blake2b",                  models & prop_blake2b)
+                    , ("verifySignature",          models & prop_verifySignature)
+                    , ("ifThenElse",               models & prop_ifThenElse)
+                    ]
