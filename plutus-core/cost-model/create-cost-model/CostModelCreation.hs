@@ -8,6 +8,7 @@
 
 module CostModelCreation where
 
+import qualified PlutusCore.DataFilePaths                       as DataFilePaths
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 
@@ -26,9 +27,10 @@ import qualified Data.Text.Encoding                             as T
 import           Data.Vector
 import           GHC.Generics
 
-import           Foreign.R
-import           H.Prelude                                      (MonadR, Region, r)
-import           Language.R
+import           H.Prelude                                      (MonadR, Region)
+import           Language.R                                     (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion,
+                                                                 withEmbeddedR)
+import           Language.R.QQ                                  (r)
 
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
@@ -96,17 +98,16 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkNilPairData            = "mkNilPairDataModel"
   }
 
+
 -- Loads the models from R
+-- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
 costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR = do
   list <- [r|
-    source("cost-model/data/models.R")
-    modelFun("cost-model/data/benching.csv")
+    source(DataFilePaths.modelFile_hs)
+    modelFun(DataFilePaths.benchingResultsFile_hs)
   |]
-  -- Unfortunately we can't use the paths defined in DataFilePaths inside [r|...].
-  -- The above code may not work on Windows because of that, but we only ever
-  -- want to run this on a Linux reference machine anyway.
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
   -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
