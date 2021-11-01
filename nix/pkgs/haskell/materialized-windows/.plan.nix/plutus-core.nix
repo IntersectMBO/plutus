@@ -516,26 +516,6 @@
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
           };
-        "cost-model-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
-            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
-            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
-            ];
-          buildable = true;
-          modules = [ "CostModelCreation" ];
-          hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
-          mainPath = [ "TestCostModels.hs" ];
-          };
         "index-envs-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -604,6 +584,25 @@
           buildable = true;
           modules = [ "CostModelCreation" ];
           hsSourceDirs = [ "cost-model/create-cost-model" ];
+          };
+        "cost-model-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            ];
+          buildable = true;
+          modules = [ "CostModelCreation" ];
+          hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
           };
         "index-envs-bench" = {
           depends = [

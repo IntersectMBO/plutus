@@ -581,7 +581,7 @@ benchmark update-cost-model
 -- that the predictions of the Haskell version are identical to the R ones.
 -- This test is problematic in CI: pretending that it's a benchmark will prevent
 -- it from being run automatically but will still allow us to run it manually.
-test-suite cost-model-test
+benchmark cost-model-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
