@@ -343,6 +343,9 @@ test_Integer = testCase "Integer" $ do
     evals False LessThanEqualsInteger [cons @Integer 4001, cons @Integer 4000]
     evals True EqualsInteger [cons @Integer (-101), cons @Integer (-101)]
     evals False EqualsInteger [cons @Integer 0, cons @Integer 1]
+    evals @Integer 24 ShiftInteger [cons @Integer 3, cons @Integer 3]
+    evals @Integer 0 ShiftInteger [cons @Integer 3, cons @Integer (-3)]
+    evals @Integer (-2) ShiftInteger [cons @Integer (-3), cons @Integer (-1)]
 
 -- | Test all string-like builtins
 test_String :: TestTree

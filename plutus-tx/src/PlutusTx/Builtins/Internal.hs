@@ -15,6 +15,7 @@ module PlutusTx.Builtins.Internal where
 import           Codec.Serialise
 import           Control.DeepSeq      (NFData)
 import qualified Crypto
+import qualified Data.Bits            as Bits
 import qualified Data.ByteArray       as BA
 import           Data.ByteString      as BS
 import qualified Data.ByteString.Hash as Hash
@@ -142,6 +143,10 @@ lessThanEqualsInteger = coerce ((<=) @Integer)
 {-# NOINLINE equalsInteger #-}
 equalsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
 equalsInteger = coerce ((==) @Integer)
+
+{-# NOINLINE shiftInteger #-}
+shiftInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinInteger
+shiftInteger x i = Bits.shift @Integer x (fromIntegral @Integer i)
 
 {-
 BYTESTRING

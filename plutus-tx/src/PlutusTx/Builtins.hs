@@ -35,6 +35,7 @@ module PlutusTx.Builtins (
                                 , lessThanInteger
                                 , lessThanEqualsInteger
                                 , equalsInteger
+                                , shiftInteger
                                 -- * Error
                                 , error
                                 -- * Data
@@ -216,6 +217,15 @@ lessThanEqualsInteger x y = fromBuiltin (BI.lessThanEqualsInteger (toBuiltin x) 
 -- | Check if two 'Integer's are equal.
 equalsInteger :: Integer -> Integer -> Bool
 equalsInteger x y = fromBuiltin (BI.equalsInteger (toBuiltin x) (toBuiltin y))
+
+{-# INLINABLE shiftInteger #-}
+{-| @'shiftInteger' x i@ shifts @x@ left by @i@ bits if @i@ is positive,
+    or right by @-i@ bits otherwise.
+    Right shifts perform sign extension on signed number types;
+    i.e. they fill the top bits with 1 if the @x@ is negative
+    and with 0 otherwise. -}
+shiftInteger :: Integer -> Integer -> Integer
+shiftInteger x y = fromBuiltin (BI.shiftInteger (toBuiltin x) (toBuiltin y))
 
 {-# INLINABLE error #-}
 -- | Aborts evaluation with an error.

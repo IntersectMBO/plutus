@@ -26,6 +26,7 @@ import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
 
 import           Crypto
+import qualified Data.Bits                                      as Bits
 import qualified Data.ByteString                                as BS
 import qualified Data.ByteString.Hash                           as Hash
 import           Data.Char
@@ -51,6 +52,7 @@ data DefaultFun
     | EqualsInteger
     | LessThanInteger
     | LessThanEqualsInteger
+    | ShiftInteger
     -- Bytestrings
     | AppendByteString
     | ConsByteString
@@ -178,6 +180,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqualsInteger)
+    toBuiltinMeaning ShiftInteger =
+        makeBuiltinMeaning
+            (\x i -> Bits.shift @Integer x (fromIntegral @Integer i))
+            mempty -- TODO: add costing for ShiftInteger
     -- Bytestrings
     toBuiltinMeaning AppendByteString =
         makeBuiltinMeaning
@@ -502,6 +508,8 @@ instance Flat DefaultFun where
               MkNilData                -> 49
               MkNilPairData            -> 50
 
+              ShiftInteger             -> 51
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -554,6 +562,7 @@ instance Flat DefaultFun where
               go 48 = pure MkPairData
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
+              go 51 = pure ShiftInteger
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

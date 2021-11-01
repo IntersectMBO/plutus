@@ -186,6 +186,7 @@ builtinNames = [
     , 'Builtins.lessThanInteger
     , 'Builtins.lessThanEqualsInteger
     , 'Builtins.equalsInteger
+    , 'Builtins.shiftInteger
 
     , 'Builtins.error
 
@@ -305,6 +306,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
     defineBuiltinTerm 'Builtins.lessThanEqualsInteger $ mkBuiltin PLC.LessThanEqualsInteger
     defineBuiltinTerm 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger
+    defineBuiltinTerm 'Builtins.shiftInteger $ mkBuiltin PLC.ShiftInteger
 
     -- Error
     -- See Note [Delaying error]
