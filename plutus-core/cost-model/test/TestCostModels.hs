@@ -56,9 +56,9 @@ numberOfTests = 100
 -- range of inputs, but that we also get small inputs.
 memUsageGen :: Gen CostingInteger
 memUsageGen =
-    Gen.choice [small, largish]
-        where small   = Gen.integral (Range.constant 0 2)
-              largish = Gen.integral (Range.linear 0 5000)
+    Gen.choice [small, large]
+        where small = Gen.integral (Range.constant 0 2)
+              large = Gen.integral (Range.linear 0 5000)
 
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for
