@@ -10,21 +10,21 @@ import           PlutusPrelude
 
 import           PlutusIR
 
-import           Control.Lens  (transformOf)
+import           Control.Lens  (mapMOf)
 
 {-|
 A single non-recursive application of the beta rule.
 -}
 betaStep
     :: Term tyname name uni fun a
-    -> Term tyname name uni fun a
+    -> Maybe (Term tyname name uni fun a)
 betaStep = \case
     Apply a (LamAbs _ name typ body) arg ->
         let varDecl  = VarDecl a name typ
             binding  = TermBind a Strict varDecl arg
             bindings = binding :| []
         in
-            Let a NonRec bindings body
+            Just $ Let a NonRec bindings body
     -- This case is disabled as it introduces a lot of type inlining (determined from profiling)
     -- and is currently unsound https://input-output.atlassian.net/browse/SCP-2570.
     -- TyInst a (TyAbs _ tyname kind body) typ ->
@@ -33,7 +33,7 @@ betaStep = \case
     --         bindings  = tyBinding :| []
     --     in
     --         Let a NonRec bindings body
-    t -> t
+    _ -> Nothing
 
 {-|
 Recursively apply the beta transformation on the code, both for the terms
@@ -56,5 +56,5 @@ and types
 -}
 beta
     :: Term tyname name uni fun a
-    -> Term tyname name uni fun a
-beta = transformOf termSubterms betaStep
+    -> Maybe (Term tyname name uni fun a)
+beta = mapMOf termSubterms betaStep

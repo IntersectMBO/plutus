@@ -13,22 +13,22 @@ module PlutusIR.Transform.Unwrap (
 
 import           PlutusIR
 
-import           Control.Lens (transformOf)
+import           Control.Lens (mapMOf)
 
 {-|
 A single non-recursive application of wrap/unwrap cancellation.
 -}
 unwrapCancelStep
     :: Term tyname name uni fun a
-    -> Term tyname name uni fun a
+    -> Maybe (Term tyname name uni fun a)
 unwrapCancelStep = \case
-    Unwrap _ (IWrap _ _ _ b) -> b
-    t                        -> t
+    Unwrap _ (IWrap _ _ _ b) -> Just b
+    _                        -> Nothing
 
 {-|
 Recursively apply wrap/unwrap cancellation.
 -}
 unwrapCancel
     :: Term tyname name uni fun a
-    -> Term tyname name uni fun a
-unwrapCancel = transformOf termSubterms unwrapCancelStep
+    -> Maybe (Term tyname name uni fun a)
+unwrapCancel = mapMOf termSubterms unwrapCancelStep

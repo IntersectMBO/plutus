@@ -93,8 +93,8 @@ applyPass pass = runIfM (_shouldRun pass) $ through (mapM check) <=< \term -> do
 
 availablePasses :: [Pass uni fun]
 availablePasses =
-    [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Just . Unwrap.unwrapCancel)
-    , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Just . Beta.beta)
+    [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
+    , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
     ]
 
