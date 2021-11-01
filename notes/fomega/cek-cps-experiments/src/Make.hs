@@ -13,16 +13,16 @@ module PlutusCore.Constant.Make
     , unsafeMakeBuiltin
     ) where
 
-import           PlutusCore.Constant.Typed
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.Type
-import           PlutusPrelude
+import PlutusCore.Constant.Typed
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.Type
+import PlutusPrelude
 
-import           Data.Bits                   (bit)
-import qualified Data.ByteString.Lazy        as BSL
-import           Data.Maybe
+import Data.Bits (bit)
+import Data.ByteString.Lazy qualified as BSL
+import Data.Maybe
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)

@@ -10,51 +10,51 @@
 {-# LANGUAGE ViewPatterns               #-}
 module PlutusTx.Plugin (plugin, plc) where
 
-import           Data.Bifunctor
-import           PlutusTx.Code
-import           PlutusTx.Compiler.Builtins
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Expr
-import           PlutusTx.Compiler.Types
-import           PlutusTx.Compiler.Utils
-import           PlutusTx.PIRTypes
-import           PlutusTx.PLCTypes
-import           PlutusTx.Plugin.Utils
+import Data.Bifunctor
+import PlutusTx.Code
+import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Expr
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.PIRTypes
+import PlutusTx.PLCTypes
+import PlutusTx.Plugin.Utils
 
-import qualified GhcPlugins                    as GHC
-import qualified Panic                         as GHC
+import GhcPlugins qualified as GHC
+import Panic qualified as GHC
 
-import qualified PlutusCore                    as PLC
-import           PlutusCore.Pretty             as PLC
-import           PlutusCore.Quote
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty as PLC
+import PlutusCore.Quote
 
-import qualified UntypedPlutusCore             as UPLC
+import UntypedPlutusCore qualified as UPLC
 
-import qualified PlutusIR                      as PIR
-import qualified PlutusIR.Compiler             as PIR
-import qualified PlutusIR.Compiler.Definitions as PIR
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
 
-import           Language.Haskell.TH.Syntax    as TH hiding (lift)
+import Language.Haskell.TH.Syntax as TH hiding (lift)
 
-import           Control.Lens
-import           Control.Monad
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Flat                          (Flat, flat)
+import Control.Lens
+import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Reader
+import Flat (Flat, flat)
 
-import qualified Data.ByteString               as BS
-import qualified Data.ByteString.Unsafe        as BSUnsafe
-import           Data.List                     (isPrefixOf)
-import qualified Data.Map                      as Map
-import           Data.Maybe                    (fromMaybe)
-import           Data.Traversable              (for)
-import           ErrorCode
-import qualified FamInstEnv                    as GHC
-import qualified Prettyprinter                 as PP
-import           Text.Read                     (readMaybe)
+import Data.ByteString qualified as BS
+import Data.ByteString.Unsafe qualified as BSUnsafe
+import Data.List (isPrefixOf)
+import Data.Map qualified as Map
+import Data.Maybe (fromMaybe)
+import Data.Traversable (for)
+import ErrorCode
+import FamInstEnv qualified as GHC
+import Prettyprinter qualified as PP
+import Text.Read (readMaybe)
 
-import           System.IO                     (openTempFile)
-import           System.IO.Unsafe              (unsafePerformIO)
+import System.IO (openTempFile)
+import System.IO.Unsafe (unsafePerformIO)
 
 data PluginOptions = PluginOptions {
     poDoTypecheck                      :: Bool

@@ -18,20 +18,20 @@ module PlutusCore.Flat
     , safeEncodeBits
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Data
-import           PlutusCore.DeBruijn
-import           PlutusCore.Lexer.Type
-import           PlutusCore.Name
+import PlutusCore.Core
+import PlutusCore.Data
+import PlutusCore.DeBruijn
+import PlutusCore.Lexer.Type
+import PlutusCore.Name
 
-import           Codec.Serialise       (Serialise, deserialiseOrFail, serialise)
-import           Data.Functor
-import           Data.Proxy
-import           Data.Word             (Word8)
-import           Flat
-import           Flat.Decoder
-import           Flat.Encoder
-import           Universe
+import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+import Data.Functor
+import Data.Proxy
+import Data.Word (Word8)
+import Flat
+import Flat.Decoder
+import Flat.Encoder
+import Universe
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

@@ -10,14 +10,14 @@ module NonDefault
     ( test_nonDefault
     ) where
 
-import           Text.Pretty
-import           Text.PrettyBy.Internal
+import Text.Pretty
+import Text.PrettyBy.Internal
 
-import           Data.Char              (intToDigit)
-import           Data.Text              (Text)
-import           Numeric                (showIntAtBase)
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Data.Char (intToDigit)
+import Data.Text (Text)
+import Numeric (showIntAtBase)
+import Test.Tasty
+import Test.Tasty.HUnit
 
 -- | A pretty-printing config.
 data CustomDefaults = CustomDefaults

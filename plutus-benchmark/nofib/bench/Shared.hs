@@ -2,11 +2,11 @@
 module Shared (mkBenchMarks, BenchmarkRunners)
 where
 
-import           Criterion.Main
+import Criterion.Main
 
-import qualified PlutusBenchmark.NoFib.Clausify as Clausify
-import qualified PlutusBenchmark.NoFib.Prime    as Prime
-import qualified PlutusBenchmark.NoFib.Queens   as Queens
+import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Prime qualified as Prime
+import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 {- | Package together functions to create benchmarks for each program given suitable inputs. -}
 type BenchmarkRunners =

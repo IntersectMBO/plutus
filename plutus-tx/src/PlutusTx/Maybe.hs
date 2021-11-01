@@ -5,10 +5,10 @@ module PlutusTx.Maybe (Maybe(..), isJust, isNothing, maybe, fromMaybe, mapMaybe)
 We export off-chain Haskell's Maybe type as on-chain Plutus's Maybe type since they are the same.
 -}
 
-import           PlutusTx.Base (id)
-import           PlutusTx.Bool
-import           PlutusTx.List (foldr)
-import           Prelude       (Maybe (..))
+import PlutusTx.Base (id)
+import PlutusTx.Bool
+import PlutusTx.List (foldr)
+import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 

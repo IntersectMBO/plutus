@@ -13,22 +13,22 @@
 
 module PlutusCore.Pretty.PrettyConst where
 
-import           PlutusCore.Data
+import PlutusCore.Data
 
-import           Codec.Serialise        (serialise)
-import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Lazy   as BSL
-import           Data.Coerce
-import           Data.Foldable          (fold)
-import           Data.Proxy
-import qualified Data.Text              as T
-import           Data.Word              (Word8)
-import           Numeric                (showHex)
-import           Prettyprinter
-import           Prettyprinter.Internal (Doc (Text))
-import           Text.PrettyBy
-import           Text.PrettyBy.Internal (DefaultPrettyBy (..))
-import           Universe
+import Codec.Serialise (serialise)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.Coerce
+import Data.Foldable (fold)
+import Data.Proxy
+import Data.Text qualified as T
+import Data.Word (Word8)
+import Numeric (showHex)
+import Prettyprinter
+import Prettyprinter.Internal (Doc (Text))
+import Text.PrettyBy
+import Text.PrettyBy.Internal (DefaultPrettyBy (..))
+import Universe
 
 {- Note [Prettyprinting built-in constants]
 When we're printing PLC

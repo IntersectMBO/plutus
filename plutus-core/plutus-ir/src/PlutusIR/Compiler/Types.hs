@@ -7,23 +7,23 @@
 {-# LANGUAGE TypeOperators         #-}
 module PlutusIR.Compiler.Types where
 
-import qualified PlutusIR                      as PIR
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Error
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Error
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import           Control.Lens
+import Control.Lens
 
-import qualified PlutusCore                    as PLC
-import qualified PlutusCore.MkPlc              as PLC
-import qualified PlutusCore.Pretty             as PLC
-import           PlutusCore.Quote
-import qualified PlutusCore.StdLib.Type        as Types
-import qualified PlutusCore.TypeCheck.Internal as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Quote
+import PlutusCore.StdLib.Type qualified as Types
+import PlutusCore.TypeCheck.Internal qualified as PLC
 
-import qualified Data.Text                     as T
+import Data.Text qualified as T
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level

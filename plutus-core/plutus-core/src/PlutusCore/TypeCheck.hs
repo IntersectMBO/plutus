@@ -23,20 +23,20 @@ module PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Error
-import           PlutusCore.Name
-import           PlutusCore.Normalize
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusCore.TypeCheck.Internal
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Error
+import PlutusCore.Name
+import PlutusCore.Normalize
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.TypeCheck.Internal
 
-import           Control.Monad.Except
-import           Data.Array
-import           Universe
+import Control.Monad.Except
+import Data.Array
+import Universe
 
 type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
 

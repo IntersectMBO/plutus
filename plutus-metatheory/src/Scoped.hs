@@ -1,6 +1,6 @@
 module Scoped where
 
-import           PlutusCore
+import PlutusCore
 
 data ScKind = ScKiStar
             | ScKiFun ScKind ScKind

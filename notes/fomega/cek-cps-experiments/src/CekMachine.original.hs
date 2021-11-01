@@ -15,15 +15,15 @@ module PlutusCore.Interpreter.CekMachine
     , runCek
     ) where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
-import           PlutusCore.Evaluation.Result           (EvaluationResult (..))
-import           PlutusCore.View
-import           PlutusPrelude
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.View
+import PlutusPrelude
 
-import           Data.IntMap                            (IntMap)
-import qualified Data.IntMap                            as IntMap
+import Data.IntMap (IntMap)
+import Data.IntMap qualified as IntMap
 
 type Plain f = f TyName Name ()
 

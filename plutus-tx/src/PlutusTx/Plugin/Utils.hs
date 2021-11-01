@@ -6,10 +6,10 @@
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module PlutusTx.Plugin.Utils where
 
-import           Data.Proxy
-import           GHC.TypeLits
-import           PlutusTx.Code
-import           PlutusTx.Utils
+import Data.Proxy
+import GHC.TypeLits
+import PlutusTx.Code
+import PlutusTx.Utils
 
 {- Note [plc and Proxy]
 It would be nice to use TypeApplications instead of passing a Proxy to plc.

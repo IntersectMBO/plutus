@@ -51,24 +51,24 @@ module Plutus.V1.Ledger.Contexts
     , fromSymbol
     ) where
 
-import           GHC.Generics                (Generic)
-import           PlutusTx
-import           PlutusTx.Prelude
-import           Prettyprinter               (Pretty (..), nest, viaShow, vsep, (<+>))
+import GHC.Generics (Generic)
+import PlutusTx
+import PlutusTx.Prelude
+import Prettyprinter (Pretty (..), nest, viaShow, vsep, (<+>))
 
-import           Plutus.V1.Ledger.Ada        (Ada)
-import qualified Plutus.V1.Ledger.Ada        as Ada
-import           Plutus.V1.Ledger.Address    (Address (..), toPubKeyHash)
-import           Plutus.V1.Ledger.Bytes      (LedgerBytes (..))
-import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
-import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..))
-import           Plutus.V1.Ledger.DCert      (DCert (..))
-import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Time       (POSIXTimeRange)
-import           Plutus.V1.Ledger.Tx         (TxOut (..), TxOutRef (..))
-import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value      (CurrencySymbol (..), Value)
-import qualified Prelude                     as Haskell
+import Plutus.V1.Ledger.Ada (Ada)
+import Plutus.V1.Ledger.Ada qualified as Ada
+import Plutus.V1.Ledger.Address (Address (..), toPubKeyHash)
+import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
+import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
+import Plutus.V1.Ledger.Crypto (PubKey (..), PubKeyHash (..), Signature (..))
+import Plutus.V1.Ledger.DCert (DCert (..))
+import Plutus.V1.Ledger.Scripts
+import Plutus.V1.Ledger.Time (POSIXTimeRange)
+import Plutus.V1.Ledger.Tx (TxOut (..), TxOutRef (..))
+import Plutus.V1.Ledger.TxId
+import Plutus.V1.Ledger.Value (CurrencySymbol (..), Value)
+import Prelude qualified as Haskell
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

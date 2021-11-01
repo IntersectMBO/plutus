@@ -10,16 +10,16 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE UnboxedTuples      #-}
 module Data.SatInt (SatInt) where
 
-import           Control.DeepSeq            (NFData)
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Bits
-import           Data.Csv
-import           Data.Primitive             (Prim)
-import           GHC.Base
-import           GHC.Generics
-import           GHC.Num
-import           GHC.Real
-import           Language.Haskell.TH.Syntax (Lift)
+import Control.DeepSeq (NFData)
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Bits
+import Data.Csv
+import Data.Primitive (Prim)
+import GHC.Base
+import GHC.Generics
+import GHC.Num
+import GHC.Real
+import Language.Haskell.TH.Syntax (Lift)
 
 newtype SatInt = SI { unSatInt :: Int }
     deriving newtype (NFData, Bits, FiniteBits, Prim)

@@ -4,16 +4,16 @@
 
 module PlutusTx.Compiler.Utils where
 
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Types
 
-import qualified CoreSyn                 as GHC
-import qualified GhcPlugins              as GHC
+import CoreSyn qualified as GHC
+import GhcPlugins qualified as GHC
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Text               as T
+import Data.Text qualified as T
 
 sdToTxt :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m T.Text
 sdToTxt sd = do

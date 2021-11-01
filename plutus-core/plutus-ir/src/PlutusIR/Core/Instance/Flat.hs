@@ -3,12 +3,12 @@
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Flat () where
 
-import           PlutusIR.Core.Type
+import PlutusIR.Core.Type
 
-import qualified PlutusCore         as PLC
-import           PlutusCore.Flat    ()
+import PlutusCore qualified as PLC
+import PlutusCore.Flat ()
 
-import           Flat               (Flat)
+import Flat (Flat)
 
 {- Note: [Serialization of PIR]
 The serialized version of Plutus-IR will be included in  the final

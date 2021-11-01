@@ -19,15 +19,15 @@ module PlutusBenchmark.NoFib.Knights.ChessSetList
       isSquareFree
     ) where
 
-import           Control.DeepSeq                     (NFData)
-import           GHC.Generics
+import Control.DeepSeq (NFData)
+import GHC.Generics
 
-import           PlutusBenchmark.NoFib.Knights.Sort
-import           PlutusBenchmark.NoFib.Knights.Utils
+import PlutusBenchmark.NoFib.Knights.Sort
+import PlutusBenchmark.NoFib.Knights.Utils
 
-import           PlutusTx.Prelude                    as Tx
+import PlutusTx.Prelude as Tx
 
-import qualified Prelude                             as Haskell
+import Prelude qualified as Haskell
 
 
 type Tile     = (Integer,Integer)

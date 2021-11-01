@@ -1,8 +1,8 @@
 module Evaluation.Spec where
 
-import           Evaluation.Machines (test_machines)
+import Evaluation.Machines (test_machines)
 
-import           Test.Tasty
+import Test.Tasty
 
 test_evaluation :: TestTree
 test_evaluation =

@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Plugin.Typeclasses.Lib where
 
-import qualified PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins qualified as Builtins
 
 data Animal = Dog | Cat
 data Person = Jim | Jane

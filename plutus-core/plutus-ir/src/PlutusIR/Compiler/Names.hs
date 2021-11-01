@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
-import qualified PlutusCore       as PLC
-import           PlutusCore.Quote
+import PlutusCore qualified as PLC
+import PlutusCore.Quote
 
-import           Data.Char
-import           Data.List
-import qualified Data.Text        as T
+import Data.Char
+import Data.List
+import Data.Text qualified as T
 
 {- Note [PLC names]
 We convert names from other kinds of names quite frequently, but PLC admits a much

@@ -1,12 +1,12 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-missing-signatures #-}
-import qualified Data.RandomAccessList.SkewBinary as B
-import           Data.Semigroup
-import           GHC.Exts
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
+import Data.RandomAccessList.SkewBinary qualified as B
+import Data.Semigroup
+import GHC.Exts
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
 instance Arbitrary a => Arbitrary (B.RAList a) where
     arbitrary = fromList <$> arbitrary

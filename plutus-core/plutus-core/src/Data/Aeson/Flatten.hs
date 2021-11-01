@@ -5,9 +5,9 @@ module Data.Aeson.Flatten
     , mergeValue
     ) where
 
-import           Data.Aeson
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Text           as Text
+import Data.Aeson
+import Data.HashMap.Strict qualified as HM
+import Data.Text qualified as Text
 
 -- | Turn a nested object into a "flat" object where the keys represent paths into the original object. The keys in the result
 -- will be the keys in the original path, separated by `sep`. The inverse of 'unflattenObject'.

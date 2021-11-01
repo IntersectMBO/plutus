@@ -13,28 +13,28 @@ In particular, we want to get rid of "trivial" let bindings which the Plutus Tx 
 -}
 module PlutusIR.Transform.Inline (inline) where
 
-import           PlutusIR
-import qualified PlutusIR.Analysis.Dependencies as Deps
-import qualified PlutusIR.Analysis.Usages       as Usages
-import           PlutusIR.MkPir
-import           PlutusIR.Purity
-import           PlutusIR.Transform.Rename      ()
-import           PlutusPrelude
+import PlutusIR
+import PlutusIR.Analysis.Dependencies qualified as Deps
+import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.MkPir
+import PlutusIR.Purity
+import PlutusIR.Transform.Rename ()
+import PlutusPrelude
 
-import qualified PlutusCore                     as PLC
-import qualified PlutusCore.Constant.Meaning    as PLC
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           PlutusCore.Subst               (typeSubstTyNamesM)
+import PlutusCore qualified as PLC
+import PlutusCore.Constant.Meaning qualified as PLC
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Subst (typeSubstTyNamesM)
 
-import           Control.Lens                   hiding (Strict)
-import           Control.Monad.Reader
-import           Control.Monad.State
+import Control.Lens hiding (Strict)
+import Control.Monad.Reader
+import Control.Monad.State
 
-import qualified Algebra.Graph                  as G
-import qualified Data.Map                       as Map
-import           Data.Semigroup.Generic         (GenericSemigroupMonoid (..))
-import           Witherable
+import Algebra.Graph qualified as G
+import Data.Map qualified as Map
+import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
+import Witherable
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
 The approach we take is more-or-less exactly taken from 'Secrets of the GHC Inliner'.

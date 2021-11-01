@@ -51,30 +51,30 @@ module PlutusCore.Constant.Typed
     , SomeConstantOf (..)
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant.Dynamic.Emit
-import           PlutusCore.Constant.Kinded
-import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc                        hiding (error)
-import           PlutusCore.Name
+import PlutusCore.Constant.Dynamic.Emit
+import PlutusCore.Constant.Kinded
+import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Name
 
-import           Control.Monad.Except
-import           Data.Functor.Compose
-import           Data.Functor.Const
-import qualified Data.Kind                               as GHC (Type)
-import           Data.Proxy
-import           Data.SOP.Constraint
-import qualified Data.Some.GADT                          as GADT
-import           Data.String
-import qualified Data.Text                               as Text
-import           GHC.Ix
-import           GHC.TypeLits
-import           Universe
+import Control.Monad.Except
+import Data.Functor.Compose
+import Data.Functor.Const
+import Data.Kind qualified as GHC (Type)
+import Data.Proxy
+import Data.SOP.Constraint
+import Data.Some.GADT qualified as GADT
+import Data.String
+import Data.Text qualified as Text
+import GHC.Ix
+import GHC.TypeLits
+import Universe
 
 infixr 9 `TypeSchemeArrow`
 

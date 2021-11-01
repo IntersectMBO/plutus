@@ -7,10 +7,10 @@ module PlutusCore.StdLib.Data.ScottUnit
     , unitval
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
 -- | '()' as a PLC type.
 --

@@ -16,24 +16,24 @@
 
 module PlutusCore.Examples.Builtins where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.ScottList        as Plc
+import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
-import           Control.Exception
-import           Data.Either
-import           Data.Hashable                           (Hashable)
-import qualified Data.Kind                               as GHC (Type)
-import           Data.Proxy
-import           Data.Tuple
-import           Data.Void
-import           GHC.Generics
-import           GHC.Ix
-import           Prettyprinter
+import Control.Exception
+import Data.Either
+import Data.Hashable (Hashable)
+import Data.Kind qualified as GHC (Type)
+import Data.Proxy
+import Data.Tuple
+import Data.Void
+import GHC.Generics
+import GHC.Ix
+import Prettyprinter
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound

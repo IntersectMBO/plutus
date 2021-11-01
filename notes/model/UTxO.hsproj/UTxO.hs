@@ -22,17 +22,17 @@
 module UTxO
 where
 
-import           "cryptonite" Crypto.Hash
-import           Data.List
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import           Data.Maybe
-import           Data.Set                 (Set)
-import qualified Data.Set                 as Set
+import "cryptonite" Crypto.Hash
+import Data.List
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Set (Set)
+import Data.Set qualified as Set
 
-import           Ledger
-import           Types
-import           Witness
+import Ledger
+import Types
+import Witness
 
 
 -- |Determine the transaction that an input refers to.

@@ -9,19 +9,19 @@
 
 module PlutusCore.ParserCommon where
 
-import           Data.Char                  (isAlphaNum)
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
-import qualified PlutusCore                 as PLC
-import qualified PlutusCore.Parsable        as PLC
-import           PlutusPrelude
-import           Text.Megaparsec            hiding (ParseError, State, parse)
-import           Text.Megaparsec.Char       (char, letterChar, space1, string)
-import qualified Text.Megaparsec.Char.Lexer as Lex
+import Data.Char (isAlphaNum)
+import Data.Map qualified as M
+import Data.Text qualified as T
+import PlutusCore qualified as PLC
+import PlutusCore.Parsable qualified as PLC
+import PlutusPrelude
+import Text.Megaparsec hiding (ParseError, State, parse)
+import Text.Megaparsec.Char (char, letterChar, space1, string)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
-import           Control.Monad.State        (MonadState (get, put), StateT, evalStateT)
+import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
-import           Data.Proxy                 (Proxy (Proxy))
+import Data.Proxy (Proxy (Proxy))
 
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }

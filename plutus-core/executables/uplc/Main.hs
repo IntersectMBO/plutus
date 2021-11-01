@@ -7,29 +7,29 @@
 
 module Main (main) where
 
-import           Common
-import           Parsers
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
-import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
+import Common
+import Parsers
+import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import qualified Data.Aeson                               as Aeson
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Foldable                            (asum)
-import           Data.Functor                             (void)
-import           Data.List                                (nub)
-import           Data.List.Split                          (splitOn)
-import           Data.Maybe                               (fromJust)
+import Data.Aeson qualified as Aeson
+import Data.ByteString.Lazy qualified as BSL
+import Data.Foldable (asum)
+import Data.Functor (void)
+import Data.List (nub)
+import Data.List.Split (splitOn)
+import Data.Maybe (fromJust)
 
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
-import           Control.DeepSeq                          (NFData, rnf)
-import qualified Data.Text                                as T
-import           Options.Applicative
-import           System.Exit                              (exitFailure)
-import           System.IO                                (hPrint, stderr)
-import           Text.Read                                (readMaybe)
+import Control.DeepSeq (NFData, rnf)
+import Data.Text qualified as T
+import Options.Applicative
+import System.Exit (exitFailure)
+import System.IO (hPrint, stderr)
+import Text.Read (readMaybe)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"

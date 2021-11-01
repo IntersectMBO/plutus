@@ -29,16 +29,16 @@ module PlutusCore.Name
     , isEmpty
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.ConfigName
 
-import           Control.Lens
-import           Data.Hashable
-import qualified Data.IntMap.Strict           as IM
-import qualified Data.Text                    as T
-import           Instances.TH.Lift            ()
-import           Language.Haskell.TH.Syntax   (Lift)
+import Control.Lens
+import Data.Hashable
+import Data.IntMap.Strict qualified as IM
+import Data.Text qualified as T
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name

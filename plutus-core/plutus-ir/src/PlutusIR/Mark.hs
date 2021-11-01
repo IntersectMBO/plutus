@@ -4,13 +4,13 @@ module PlutusIR.Mark
     , markNonFreshProgram
     ) where
 
-import qualified PlutusCore.Core  as PLC
-import qualified PlutusCore.Name  as PLC
+import PlutusCore.Core qualified as PLC
+import PlutusCore.Name qualified as PLC
 
-import           PlutusCore.Quote
+import PlutusCore.Quote
 
-import           PlutusIR.Core
-import           PlutusIR.Subst
+import PlutusIR.Core
+import PlutusIR.Subst
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.

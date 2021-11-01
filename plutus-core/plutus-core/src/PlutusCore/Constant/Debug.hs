@@ -7,11 +7,11 @@
 -- @Meaning@ module.
 module PlutusCore.Constant.Debug where
 
-import           PlutusCore.Constant.Meaning
-import           PlutusCore.Constant.Typed
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Name
+import PlutusCore.Constant.Meaning
+import PlutusCore.Constant.Typed
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Name
 
 type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 

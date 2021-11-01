@@ -1,8 +1,8 @@
 module Main where
 
-import           Build_doctests     (flags, module_sources, pkgs)
-import           System.Environment (unsetEnv)
-import           Test.DocTest       (doctest)
+import Build_doctests (flags, module_sources, pkgs)
+import System.Environment (unsetEnv)
+import Test.DocTest (doctest)
 
 main :: IO ()
 main = do

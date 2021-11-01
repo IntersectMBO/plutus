@@ -16,16 +16,16 @@ module PlutusCore.Parsable
     )
 where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Data
+import PlutusCore.Data
 
-import           Data.Bits       (shiftL, (.|.))
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString as BS (pack)
-import           Data.Char       (ord)
-import qualified Data.Text       as T
-import           Text.Read
+import Data.Bits (shiftL, (.|.))
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS (pack)
+import Data.Char (ord)
+import Data.Text qualified as T
+import Text.Read
 
 {- Note [Parsing horribly broken]
 As the title suggests, at the moment parsing is horribly broken. 'parse' expects a closed chunk of

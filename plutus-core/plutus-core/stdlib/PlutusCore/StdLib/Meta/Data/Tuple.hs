@@ -16,15 +16,15 @@ module PlutusCore.StdLib.Meta.Data.Tuple
     , getSpineToTuple
     ) where
 
-import           PlutusPrelude        (showText)
+import PlutusPrelude (showText)
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Control.Lens.Indexed (ifor, itraverse)
-import           Data.Traversable
+import Control.Lens.Indexed (ifor, itraverse)
+import Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.
 data Tuple term uni ann where

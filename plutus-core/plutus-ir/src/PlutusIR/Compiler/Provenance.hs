@@ -4,13 +4,13 @@
 -- | Module handling provenances of terms.
 module PlutusIR.Compiler.Provenance where
 
-import           PlutusIR
+import PlutusIR
 
-import qualified PlutusCore.Pretty as PLC
+import PlutusCore.Pretty qualified as PLC
 
-import qualified Data.Set          as S
-import           Prettyprinter     ((<+>))
-import qualified Prettyprinter     as PP
+import Data.Set qualified as S
+import Prettyprinter ((<+>))
+import Prettyprinter qualified as PP
 
 -- | Indicates where a value comes from.
 --

@@ -48,37 +48,37 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
 
-import           ErrorCode
-import           PlutusPrelude
+import ErrorCode
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core
-import           UntypedPlutusCore.Subst
+import UntypedPlutusCore.Core
+import UntypedPlutusCore.Subst
 
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
-import           Control.Lens.Review
-import           Control.Monad.Catch
-import           Control.Monad.Except
-import           Control.Monad.ST
-import           Control.Monad.ST.Unsafe
-import           Data.Array
-import           Data.Hashable                                            (Hashable)
-import qualified Data.Kind                                                as GHC
-import           Data.Proxy
-import           Data.Semigroup                                           (stimes)
-import           Data.Text                                                (Text)
-import           Data.Word64Array.Word8
-import           Prettyprinter
-import           Universe
+import Control.Lens.Review
+import Control.Monad.Catch
+import Control.Monad.Except
+import Control.Monad.ST
+import Control.Monad.ST.Unsafe
+import Data.Array
+import Data.Hashable (Hashable)
+import Data.Kind qualified as GHC
+import Data.Proxy
+import Data.Semigroup (stimes)
+import Data.Text (Text)
+import Data.Word64Array.Word8
+import Prettyprinter
+import Universe
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

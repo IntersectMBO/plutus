@@ -10,11 +10,11 @@
 
 module PlutusBenchmark.NoFib.Clausify where
 
-import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified PlutusTx               as Tx
-import           PlutusTx.Prelude       as Plutus
-import qualified Prelude                as Haskell
+import PlutusTx qualified as Tx
+import PlutusTx.Prelude as Plutus
+import Prelude qualified as Haskell
 
 type Var = Integer
 

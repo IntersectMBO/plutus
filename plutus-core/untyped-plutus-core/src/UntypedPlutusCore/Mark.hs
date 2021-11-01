@@ -3,11 +3,11 @@ module UntypedPlutusCore.Mark
     , markNonFreshProgram
     ) where
 
-import           PlutusCore.Core         (HasUniques)
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           UntypedPlutusCore.Core
-import           UntypedPlutusCore.Subst
+import PlutusCore.Core (HasUniques)
+import PlutusCore.Name
+import PlutusCore.Quote
+import UntypedPlutusCore.Core
+import UntypedPlutusCore.Subst
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.

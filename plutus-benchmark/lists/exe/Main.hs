@@ -5,16 +5,16 @@
 
 module Main where
 
-import qualified Data.HashMap.Monoidal                    as H
-import           Text.Printf                              (printf)
+import Data.HashMap.Monoidal qualified as H
+import Text.Printf (printf)
 
-import           PlutusBenchmark.Common                   (Term)
-import           PlutusBenchmark.Lists.Sort
+import PlutusBenchmark.Common (Term)
+import PlutusBenchmark.Lists.Sort
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..))
-import           PlutusCore.Evaluation.Machine.ExMemory
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExMemory
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =

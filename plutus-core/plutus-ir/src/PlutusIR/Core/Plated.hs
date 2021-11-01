@@ -25,16 +25,16 @@ module PlutusIR.Core.Plated
     , termUniquesDeep
     ) where
 
-import qualified PlutusCore             as PLC
-import           PlutusCore.Core.Plated (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques,
-                                         typeUniquesDeep, varDeclSubtypes)
-import           PlutusCore.Flat        ()
-import qualified PlutusCore.Name        as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Core.Plated (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques,
+                               typeUniquesDeep, varDeclSubtypes)
+import PlutusCore.Flat ()
+import PlutusCore.Name qualified as PLC
 
-import           PlutusIR.Core.Type
+import PlutusIR.Core.Type
 
-import           Control.Lens           hiding (Strict, (<.>))
-import           Data.Functor.Apply
+import Control.Lens hiding (Strict, (<.>))
+import Data.Functor.Apply
 
 infixr 6 <^>
 

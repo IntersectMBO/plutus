@@ -30,19 +30,19 @@ module PlutusCore.Evaluation.Machine.Exception
     , unsafeExtractEvaluationResult
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Instance.Pretty.Common ()
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Pretty
+import PlutusCore.Core.Instance.Pretty.Common ()
+import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty
 
-import           Control.Lens
-import           Control.Monad.Error.Lens               (throwing_)
-import           Control.Monad.Except
-import           Data.String                            (IsString)
-import           Data.Text                              (Text)
-import           ErrorCode
-import           Prettyprinter
+import Control.Lens
+import Control.Monad.Error.Lens (throwing_)
+import Control.Monad.Except
+import Data.String (IsString)
+import Data.Text (Text)
+import ErrorCode
+import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError

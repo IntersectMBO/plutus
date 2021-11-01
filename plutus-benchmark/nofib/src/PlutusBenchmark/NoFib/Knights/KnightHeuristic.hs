@@ -7,10 +7,10 @@ module PlutusBenchmark.NoFib.Knights.KnightHeuristic
      tourFinished
    ) where
 
-import           PlutusBenchmark.NoFib.Knights.ChessSetList
-import           PlutusBenchmark.NoFib.Knights.Sort         (quickSort)
+import PlutusBenchmark.NoFib.Knights.ChessSetList
+import PlutusBenchmark.NoFib.Knights.Sort (quickSort)
 
-import           PlutusTx.Prelude                           as Tx
+import PlutusTx.Prelude as Tx
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD
 

@@ -2,15 +2,15 @@
 
 module Benchmarks.Unit (makeBenchmarks) where
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore
+import PlutusCore.Evaluation.Machine.ExMemory
 
-import           Common
-import           Generators
+import Common
+import Generators
 
-import           Control.DeepSeq                        (NFData)
-import           Criterion.Main
-import           System.Random                          (StdGen)
+import Control.DeepSeq (NFData)
+import Criterion.Main
+import System.Random (StdGen)
 
 
 createChooseUnitBench

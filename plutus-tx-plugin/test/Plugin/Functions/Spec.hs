@@ -9,18 +9,18 @@
 
 module Plugin.Functions.Spec where
 
-import           Common
-import           Lib
-import           PlcTestUtils
-import           Plugin.Lib
+import Common
+import Lib
+import PlcTestUtils
+import Plugin.Lib
 
-import           Plugin.Data.Spec
+import Plugin.Data.Spec
 
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Plugin
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Plugin
 
-import           Data.Proxy
+import Data.Proxy
 
 functions :: TestNested
 functions = testNested "Functions" [

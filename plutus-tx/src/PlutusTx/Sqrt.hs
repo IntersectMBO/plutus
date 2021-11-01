@@ -14,11 +14,11 @@ module PlutusTx.Sqrt(
     , isqrt
     ) where
 
-import           PlutusTx.IsData  (makeIsDataIndexed)
-import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude (Integer, divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
-import           PlutusTx.Ratio   (Rational, denominator, numerator, (%))
-import qualified Prelude          as Haskell
+import PlutusTx.IsData (makeIsDataIndexed)
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude (Integer, divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
+import PlutusTx.Ratio (Rational, denominator, numerator, (%))
+import Prelude qualified as Haskell
 
 -- | Integer square-root representation, discarding imaginary integers.
 data Sqrt

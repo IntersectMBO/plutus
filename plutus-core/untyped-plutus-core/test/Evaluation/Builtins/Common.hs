@@ -9,18 +9,18 @@ module Evaluation.Builtins.Common
     , typecheckReadKnownCek
     ) where
 
-import qualified PlutusCore                                      as TPLC
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Name
+import PlutusCore qualified as TPLC
+import PlutusCore.Constant
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Name
 
-import qualified UntypedPlutusCore                               as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.Monad.Except
-import           Data.Text                                       (Text)
+import Control.Monad.Except
+import Data.Text (Text)
 
 -- | Type check and evaluate a term.
 typecheckAnd

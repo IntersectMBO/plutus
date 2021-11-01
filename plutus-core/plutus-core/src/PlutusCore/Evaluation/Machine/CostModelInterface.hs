@@ -9,16 +9,16 @@ module PlutusCore.Evaluation.Machine.CostModelInterface
     )
 where
 
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel           ()
-import           PlutusCore.Evaluation.Machine.MachineParameters          (CostModel (..))
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel ()
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
 
-import           Data.Aeson
-import           Data.Aeson.Flatten
-import qualified Data.HashMap.Strict                                      as HM
-import qualified Data.Map                                                 as Map
-import qualified Data.Map.Merge.Lazy                                      as Map
-import qualified Data.Text                                                as Text
+import Data.Aeson
+import Data.Aeson.Flatten
+import Data.HashMap.Strict qualified as HM
+import Data.Map qualified as Map
+import Data.Map.Merge.Lazy qualified as Map
+import Data.Text qualified as Text
 
 
 {- Note [Cost model parameters]

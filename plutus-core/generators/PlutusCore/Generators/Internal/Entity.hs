@@ -24,32 +24,32 @@ module PlutusCore.Generators.Internal.Entity
     , withAnyTermLoose
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Generators.Internal.Denotation
-import           PlutusCore.Generators.Internal.Dependent
-import           PlutusCore.Generators.Internal.TypeEvalCheck
-import           PlutusCore.Generators.Internal.TypedBuiltinGen
-import           PlutusCore.Generators.Internal.Utils
+import PlutusCore.Generators.Internal.Denotation
+import PlutusCore.Generators.Internal.Dependent
+import PlutusCore.Generators.Internal.TypeEvalCheck
+import PlutusCore.Generators.Internal.TypedBuiltinGen
+import PlutusCore.Generators.Internal.Utils
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty                              (PrettyConst, prettyConst)
-import           PlutusCore.Quote
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
+import PlutusCore.Pretty (PrettyConst, prettyConst)
+import PlutusCore.Quote
 
-import qualified Control.Monad.Morph                            as Morph
-import           Control.Monad.Reader
-import qualified Data.ByteString                                as BS
-import qualified Data.Dependent.Map                             as DMap
-import           Data.Functor.Compose
-import           Data.Kind                                      as GHC
-import           Data.Proxy
-import           Hedgehog                                       hiding (Size, Var)
-import qualified Hedgehog.Gen                                   as Gen
-import           Prettyprinter
+import Control.Monad.Morph qualified as Morph
+import Control.Monad.Reader
+import Data.ByteString qualified as BS
+import Data.Dependent.Map qualified as DMap
+import Data.Functor.Compose
+import Data.Kind as GHC
+import Data.Proxy
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Prettyprinter
 
 type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
 

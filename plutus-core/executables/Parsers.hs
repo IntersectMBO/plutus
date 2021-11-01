@@ -4,9 +4,9 @@
 
 module Parsers where
 
-import           Common
+import Common
 
-import           Options.Applicative
+import Options.Applicative
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input

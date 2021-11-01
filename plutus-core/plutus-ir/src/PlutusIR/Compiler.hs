@@ -32,33 +32,33 @@ module PlutusIR.Compiler (
     AllowEscape(..),
     toDefaultCompilationCtx) where
 
-import           PlutusIR
+import PlutusIR
 
-import qualified PlutusIR.Compiler.Let              as Let
-import           PlutusIR.Compiler.Lower
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Compiler.Types
-import           PlutusIR.Error
-import qualified PlutusIR.Transform.Beta            as Beta
-import qualified PlutusIR.Transform.DeadCode        as DeadCode
-import qualified PlutusIR.Transform.Inline          as Inline
-import qualified PlutusIR.Transform.LetFloat        as LetFloat
-import qualified PlutusIR.Transform.LetMerge        as LetMerge
-import qualified PlutusIR.Transform.NonStrict       as NonStrict
-import qualified PlutusIR.Transform.RecSplit        as RecSplit
-import           PlutusIR.Transform.Rename          ()
-import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
-import qualified PlutusIR.Transform.Unwrap          as Unwrap
-import           PlutusIR.TypeCheck.Internal
+import PlutusIR.Compiler.Let qualified as Let
+import PlutusIR.Compiler.Lower
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Compiler.Types
+import PlutusIR.Error
+import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.Inline qualified as Inline
+import PlutusIR.Transform.LetFloat qualified as LetFloat
+import PlutusIR.Transform.LetMerge qualified as LetMerge
+import PlutusIR.Transform.NonStrict qualified as NonStrict
+import PlutusIR.Transform.RecSplit qualified as RecSplit
+import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
+import PlutusIR.Transform.Unwrap qualified as Unwrap
+import PlutusIR.TypeCheck.Internal
 
-import qualified PlutusCore                         as PLC
+import PlutusCore qualified as PLC
 
-import           Control.Lens
-import           Control.Monad
-import           Control.Monad.Extra                (orM, whenM)
-import           Control.Monad.Reader
-import           Debug.Trace                        (traceM)
-import           PlutusPrelude
+import Control.Lens
+import Control.Monad
+import Control.Monad.Extra (orM, whenM)
+import Control.Monad.Reader
+import Debug.Trace (traceM)
+import PlutusPrelude
 
 -- Simplifier passes
 data Pass uni fun =

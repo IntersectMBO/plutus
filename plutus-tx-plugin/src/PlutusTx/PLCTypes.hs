@@ -1,8 +1,8 @@
 module PlutusTx.PLCTypes where
 
-import qualified PlutusCore        as PLC
-import qualified PlutusCore.MkPlc  as PLC
-import qualified UntypedPlutusCore as UPLC
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import UntypedPlutusCore qualified as UPLC
 
 type PLCKind = PLC.Kind ()
 type PLCType uni = PLC.Type PLC.TyName uni ()

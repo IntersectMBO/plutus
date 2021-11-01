@@ -1,6 +1,6 @@
 module PrelNames where
 
-import           StubTypes
+import StubTypes
 
 eqIntegerPrimName, eqName :: Name
 isStringClassName :: Name

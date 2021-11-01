@@ -3,8 +3,8 @@
 module PlutusBenchmark.NaturalSort (naturalSort)
 where
 
-import           Data.Char (isDigit)
-import           Data.List (sortBy)
+import Data.Char (isDigit)
+import Data.List (sortBy)
 
 {- | If we have the list of file names ["multisig-sm-1", "multisig-sm-2",
    "multisig-sm-10"] then Haskell's standard 'sort' function will return

@@ -3,14 +3,14 @@
 module Examples.Simple
 where
 
-import           Data.Map (Map)
-import qualified Data.Map as Map
-import           Data.Set (Set)
-import qualified Data.Set as Set
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 
-import           Ledger
-import           UTxO
-import           Witness
+import Ledger
+import UTxO
+import Witness
 
 
 simpleLedger = [t6, t5, t4, t3, t2, t1]

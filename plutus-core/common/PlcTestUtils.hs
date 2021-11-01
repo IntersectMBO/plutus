@@ -39,40 +39,40 @@ module PlcTestUtils (
     test_scopingBad
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Common
+import Common
 
-import qualified PlutusCore                               as TPLC
-import           PlutusCore.Check.Scoping
-import           PlutusCore.DeBruijn
-import           PlutusCore.Default.Universe
-import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
-import           PlutusCore.Generators
-import           PlutusCore.Generators.AST
-import           PlutusCore.Pretty
-import qualified PlutusCore.Rename.Monad                  as TPLC
+import PlutusCore qualified as TPLC
+import PlutusCore.Check.Scoping
+import PlutusCore.DeBruijn
+import PlutusCore.Default.Universe
+import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
+import PlutusCore.Generators
+import PlutusCore.Generators.AST
+import PlutusCore.Pretty
+import PlutusCore.Rename.Monad qualified as TPLC
 
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import           Control.Exception
-import           Control.Lens.Combinators                 (_2)
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Data.Text                                (Text)
-import           Hedgehog
-import qualified Prettyprinter                            as PP
-import           System.IO.Unsafe
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Control.Exception
+import Control.Lens.Combinators (_2)
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
+import Data.Text (Text)
+import Hedgehog
+import Prettyprinter qualified as PP
+import System.IO.Unsafe
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
-import           Hedgehog.Internal.Config
-import           Hedgehog.Internal.Region
-import           Hedgehog.Internal.Report
-import           Hedgehog.Internal.Runner
+import Hedgehog.Internal.Config
+import Hedgehog.Internal.Region
+import Hedgehog.Internal.Report
+import Hedgehog.Internal.Runner
 
 -- | @check@ is supposed to just check if the property fails or not, but for some stupid reason it
 -- also performs shrinking and prints the counterexample and other junk. This function is like

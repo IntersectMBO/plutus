@@ -3,4 +3,4 @@ module Text.Pretty
     ( module Export
     ) where
 
-import           Prettyprinter as Export
+import Prettyprinter as Export

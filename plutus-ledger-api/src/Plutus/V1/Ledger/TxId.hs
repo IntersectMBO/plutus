@@ -9,16 +9,16 @@ module Plutus.V1.Ledger.TxId(
     TxId (..)
     ) where
 
-import           Codec.Serialise.Class    (Serialise)
-import           Control.DeepSeq          (NFData)
-import           Data.Aeson               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.String              (IsString)
-import           GHC.Generics             (Generic)
-import           Plutus.V1.Ledger.Bytes   (LedgerBytes (..))
-import           Plutus.V1.Ledger.Orphans ()
-import qualified PlutusTx                 as PlutusTx
-import qualified PlutusTx.Prelude         as PlutusTx
-import           Prettyprinter            (Pretty)
+import Codec.Serialise.Class (Serialise)
+import Control.DeepSeq (NFData)
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import Data.String (IsString)
+import GHC.Generics (Generic)
+import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
+import Plutus.V1.Ledger.Orphans ()
+import PlutusTx qualified as PlutusTx
+import PlutusTx.Prelude qualified as PlutusTx
+import Prettyprinter (Pretty)
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }

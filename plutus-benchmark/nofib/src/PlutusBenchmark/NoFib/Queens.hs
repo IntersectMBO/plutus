@@ -21,18 +21,18 @@ module PlutusBenchmark.NoFib.Queens where
 	See Proceedings of WAAAPL '99
 -}
 
-import           Control.DeepSeq        (NFData)
-import           Control.Monad          (forM_)
-import           Data.Char              (isSpace)
-import           GHC.Generics
-import qualified Prelude                as Haskell
-import           System.Environment
+import Control.DeepSeq (NFData)
+import Control.Monad (forM_)
+import Data.Char (isSpace)
+import GHC.Generics
+import Prelude qualified as Haskell
+import System.Environment
 
-import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified PlutusCore.Pretty      as PLC
-import qualified PlutusTx               as Tx
-import           PlutusTx.Prelude       as TxPrelude
+import PlutusCore.Pretty qualified as PLC
+import PlutusTx qualified as Tx
+import PlutusTx.Prelude as TxPrelude
 
 
 -----------------------------

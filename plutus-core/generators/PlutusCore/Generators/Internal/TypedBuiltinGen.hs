@@ -20,22 +20,22 @@ module PlutusCore.Generators.Internal.TypedBuiltinGen
     , genTypedBuiltinDef
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Generators.Internal.Dependent
+import PlutusCore.Generators.Internal.Dependent
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Default.Universe
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Pretty.PrettyConst
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Default.Universe
+import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty.PrettyConst
 
-import qualified Data.ByteString                          as BS
-import           Data.Functor.Identity
-import           Hedgehog                                 hiding (Size, Var)
-import qualified Hedgehog.Gen                             as Gen
-import qualified Hedgehog.Range                           as Range
-import           Prettyprinter
+import Data.ByteString qualified as BS
+import Data.Functor.Identity
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Prettyprinter
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString

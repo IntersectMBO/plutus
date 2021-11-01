@@ -4,15 +4,15 @@ This module contains example values to be used for testing. These should NOT be 
 -}
 module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, saltFunction) where
 
-import           Codec.Serialise
-import           Data.ByteString.Lazy     (fromStrict, toStrict)
-import           Data.ByteString.Short
-import           Numeric.Natural
-import           Plutus.V1.Ledger.Api
-import qualified Plutus.V1.Ledger.Scripts as Scripts
-import qualified PlutusCore               as PLC
-import           Universe                 (Some (Some))
-import qualified UntypedPlutusCore        as UPLC
+import Codec.Serialise
+import Data.ByteString.Lazy (fromStrict, toStrict)
+import Data.ByteString.Short
+import Numeric.Natural
+import Plutus.V1.Ledger.Api
+import Plutus.V1.Ledger.Scripts qualified as Scripts
+import PlutusCore qualified as PLC
+import Universe (Some (Some))
+import UntypedPlutusCore qualified as UPLC
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating
