@@ -32,7 +32,7 @@ import qualified PlutusCore.StdLib.Type        as Types
 
 import           Control.Monad.Error.Lens
 
-import           Data.Maybe                    (fromJust)
+import           Data.Maybe                    (catMaybes)
 import qualified Data.Text                     as T
 import           Data.Traversable
 
@@ -94,8 +94,8 @@ constructorArgTypes :: VarDecl tyname name uni fun a -> [Type tyname uni a]
 constructorArgTypes = funTyArgs . _varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
-unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni fun a -> Type tyname uni a -> Type tyname uni a
-unveilDatatype dty (Datatype _ tn _ _ _) = fromJust . typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
+unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni fun a -> Type tyname uni a -> Maybe (Type tyname uni a)
+unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni fun a -> m TyName
 resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ _tyVarDeclName tn)
@@ -329,7 +329,7 @@ mkConstructor dty d@(Datatype ann _ tvs _ constrs) index = do
           -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
           -- see note [Abstract data types]
           -- FIXME: normalize datacons' types also here
-          let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (TyVar ann resultType)) constrs
+          let caseTypes = catMaybes $ unveilDatatype (getType dty) d <$> fmap (constructorCaseType (TyVar ann resultType)) constrs
           caseArgNames <- for constrs (\c -> safeFreshName $ "case_" <> T.pack (varDeclNameString c))
           pure $ zipWith (VarDecl ann) caseArgNames caseTypes
 
@@ -342,7 +342,7 @@ mkConstructor dty d@(Datatype ann _ tvs _ constrs) index = do
         -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
         -- see note [Abstract data types]
         -- FIXME: normalize datacons' types also here
-        let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes constr
+        let argTypes = catMaybes $ unveilDatatype (getType dty) d <$> constructorArgTypes constr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
         argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName $ "arg_" <> showText i)
         pure $ zipWith (VarDecl ann) argNames argTypes
