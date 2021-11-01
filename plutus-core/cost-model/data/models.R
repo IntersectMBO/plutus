@@ -180,7 +180,7 @@ adjustModel <- function (m, fname) {
 
 
 modelFun <- function(path) {
-    cat ("** Reading CSV, creating R models **\n")
+##    cat ("** Reading CSV, creating R models **\n")
     data <- get.bench.data(path)
 
     ## Look for a single entry with the given name and return the "Mean" value

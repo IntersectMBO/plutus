@@ -22,18 +22,17 @@ import           Data.Coerce                                    (coerce)
 import           Data.Function                                  ((&))
 import           Unsafe.Coerce                                  (unsafeCoerce)
 
-import           H.Prelude                                      (MonadR)
+import           H.Prelude                                      as H (MonadR, io)
 import           Language.R                                     as R (R, SomeSEXP, defaultConfig, fromSomeSEXP,
-                                                                      unsafeRunRegion, withEmbeddedR)
+                                                                      runRegion, unsafeRunRegion, withEmbeddedR)
 import           Language.R.QQ                                  (r)
 
-import           Hedgehog                                       (Gen, Group (..), Property, PropertyT, checkSequential,
-                                                                 diff, forAll, property, withTests)
+import           Hedgehog                                       (Gen, Group (..), Property, PropertyT, TestLimit,
+                                                                 checkSequential, diff, forAll, property, withTests)
 import qualified Hedgehog.Gen                                   as Gen
 import qualified Hedgehog.Main                                  as HH (defaultMain)
 import qualified Hedgehog.Range                                 as Range
 
--- import           Debug.Trace
 
 {- | This module is supposed to test that the R cost models for built-in functions
    defined in BuiltinCostModel.hs produce the same results as the Haskell
@@ -48,6 +47,10 @@ import qualified Hedgehog.Range                                 as Range
    within a factor of 1/100 (one percent).
 
 -}
+
+-- How many tests to run for each costing function
+numberOfTests :: TestLimit
+numberOfTests = 100
 
 -- | Generate inputs for costing functions, making sure that we test a large
 -- range of inputs, but that we also get small inputs.
@@ -76,14 +79,29 @@ data TestDomain =
 (~=) :: Integral a => a -> a -> Bool
 x ~= y
   | x==0 && y==0 = True
-  | otherwise = -- Debug.Trace.trace ("err = " ++ show (err * 100)) $
-                err < 1/100
+  | otherwise = err < 1/100
     where x' = fromIntegral x :: Double
           y' = fromIntegral y :: Double
           err = abs ((x'-y')/y')
 
 
--- Properties for individual builtins
+-- Properties for individual builtins --
+
+-- One argument --
+
+prop_sha2_256 :: RModels s -> Property
+prop_sha2_256 =
+    testPredictOne sha2_256 . paramSha2_256
+
+prop_sha3_256 :: RModels s -> Property
+prop_sha3_256 =
+    testPredictOne sha3_256 . paramSha3_256
+
+prop_blake2b :: RModels s -> Property
+prop_blake2b =
+    testPredictOne blake2b . paramBlake2b
+
+-- Two arguments --
 
 prop_addInteger :: RModels s -> Property
 prop_addInteger =
@@ -129,22 +147,6 @@ prop_appendByteString :: RModels s -> Property
 prop_appendByteString =
     testPredictTwo Everywhere appendByteString . paramAppendByteString
 
-prop_sha2_256 :: RModels s -> Property
-prop_sha2_256 =
-    testPredictOne sha2_256 . paramSha2_256
-
-prop_sha3_256 :: RModels s -> Property
-prop_sha3_256 =
-    testPredictOne sha3_256 . paramSha3_256
-
-prop_blake2b :: RModels s -> Property
-prop_blake2b =
-    testPredictOne blake2b . paramBlake2b
-
-prop_verifySignature :: RModels s -> Property
-prop_verifySignature =
-    testPredictThree verifySignature . paramVerifySignature
-
 prop_equalsByteString :: RModels s -> Property
 prop_equalsByteString =
     testPredictTwo OnDiagonal equalsByteString . paramEqualsByteString
@@ -157,12 +159,18 @@ prop_lessThanEqualsByteString :: RModels s -> Property
 prop_lessThanEqualsByteString =
     testPredictTwo Everywhere lessThanEqualsByteString . paramLessThanEqualsByteString
 
+-- Three arguments --
+
+prop_verifySignature :: RModels s -> Property
+prop_verifySignature =
+    testPredictThree verifySignature . paramVerifySignature
+
 prop_ifThenElse :: RModels s -> Property
 prop_ifThenElse =
     testPredictThree ifThenElse . paramIfThenElse
 
 
--- Testing the properties
+-- Testing the properties --
 
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
@@ -174,7 +182,7 @@ propertyR :: PropertyT (R s) () -> Property
 -- to hold all the branches for reduction. These branches will contain `(R s)`,
 -- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for
 -- `TreeT`. For now, this didn't crash yet.
-propertyR prop = withTests 100 $ property $ unsafeHoist unsafeRunRegion prop
+propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegion prop
   where
     unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
     unsafeHoist nt = hoist (unsafeCoerce nt)
@@ -257,14 +265,15 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
   diff byR (~=) (predictH x y z)
 
 
--- TODO: discover the properties automatically.  $$(discover) doesn't work
--- because it expects to find Properties, but we have to apply each prop_xyz to
--- 'models' to get a Property.
+-- TODO: discover the properties automatically.  Hedgehog's $$(discover) doesn't
+-- work because it expects to find Properties, but our prop_* functions have
+-- type RModels s -> Property.  I think this'll require us to steal some stuff
+-- from Hedgehog.Internal.TH.
 main :: IO ()
 main =
-    withEmbeddedR R.defaultConfig $ do
-      models <- unsafeRunRegion CostModelCreation.costModelsR
-      HH.defaultMain $ [checkSequential $ Group "Builtin model tests" (tests models)]
+    withEmbeddedR R.defaultConfig $ runRegion $ do
+      models <- CostModelCreation.costModelsR
+      H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
           where tests models =
                     -- models & p = p models; this is just to make the alignment neater
                     [ ("addInteger",               models & prop_addInteger)

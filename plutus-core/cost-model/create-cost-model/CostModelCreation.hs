@@ -32,8 +32,6 @@ import           Language.R                                     (SomeSEXP, defau
                                                                  withEmbeddedR)
 import           Language.R.QQ                                  (r)
 
-import qualified Debug.Trace                                    (trace)
-
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 msToPs :: Double -> CostingInteger
@@ -109,8 +107,7 @@ costModelsR = do
     source(DataFilePaths.modelFile_hs)
     modelFun(DataFilePaths.benchingResultsFile_hs)
   |]
-  Debug.Trace.trace "** Running costModelsR **\n" $
-       bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
   -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
