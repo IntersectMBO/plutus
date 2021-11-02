@@ -151,7 +151,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
 {-# INLINABLE findContinuingOutputs #-}
--- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
+-- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
@@ -159,6 +159,7 @@ findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} 
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
+-- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
