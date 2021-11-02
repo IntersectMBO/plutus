@@ -40,6 +40,7 @@ module Universe.Core
     , gshow
     , GEq (..)
     , deriveGEq
+    , deriveGCompare
     , (:~:)(..)
     ) where
 
@@ -730,6 +731,28 @@ instance GEq uni => Eq (SomeTypeIn uni) where
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
     (==) = defaultEq
+
+-------------------- 'Compare' / 'GCompare'
+
+instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
+            GCompare (ValueOf uni) where
+    ValueOf uni1 x1 `gcompare` ValueOf uni2 x2 =
+        case uni1 `gcompare` uni2 of
+            GLT -> GLT
+            GGT -> GGT
+            GEQ ->
+                bring (Proxy @Ord) uni1 $ case x1 `compare` x2 of
+                    EQ -> GEQ
+                    LT -> GLT
+                    GT -> GGT
+
+instance GCompare uni => Ord (SomeTypeIn uni) where
+    SomeTypeIn a1 `compare` SomeTypeIn a2 = a1 `defaultCompare` a2
+
+-- We need the 'Eq' constraint in order for @Ord (ValueOf uni a)@ to imply @Eq (ValueOf uni a)@.
+instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
+            Ord (ValueOf uni a) where
+    compare = defaultCompare
 
 -------------------- 'NFData'
 
