@@ -123,12 +123,12 @@ defaultIndex name = do
     info <- TH.reifyDatatype name
     pure $ zip (TH.constructorName <$> TH.datatypeCons info) [0..]
 
--- | Generate an 'IsData' instance for a type. This may not be stable in the face of constructor additions, renamings,
--- etc. Use 'makeIsDataIndexed' if you need stability.
+-- | Generate a 'FromData' and a 'ToData' instance for a type. This may not be stable in the face of constructor additions,
+-- renamings, etc. Use 'makeIsDataIndexed' if you need stability.
 unstableMakeIsData :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 
--- | Generate an 'IsData' instance for a type, using an explicit mapping of constructor names to indices. Use
+-- | Generate a 'FromData' and a 'ToData' instance for a type, using an explicit mapping of constructor names to indices. Use
 -- this for types where you need to keep the representation stable.
 makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
 makeIsDataIndexed name indices = do
