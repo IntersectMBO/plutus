@@ -1,15 +1,15 @@
 module Pretty.Readable (test_Pretty) where
 
-import           PlutusCore.Default
-import           PlutusCore.FsTree
-import           PlutusCore.Pretty
+import PlutusCore.Default
+import PlutusCore.FsTree
+import PlutusCore.Pretty
 
-import           PlutusCore.Examples.Everything (examples)
-import           PlutusCore.StdLib.Everything   (stdLib)
+import PlutusCore.Examples.Everything (examples)
+import PlutusCore.StdLib.Everything (stdLib)
 
-import           Common
+import Common
 
-import           Test.Tasty
+import Test.Tasty
 
 prettyConfigReadable :: PrettyConfigPlc
 prettyConfigReadable

@@ -7,16 +7,16 @@ module UntypedPlutusCore.Analysis.Definitions
     , runTermDefs
     ) where
 
-import           UntypedPlutusCore.Core
+import UntypedPlutusCore.Core
 
-import           PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
-import           PlutusCore.Error
-import           PlutusCore.Name
+import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
+import PlutusCore.Error
+import PlutusCore.Name
 
-import           Data.Functor.Foldable
+import Data.Functor.Foldable
 
-import           Control.Monad.State
-import           Control.Monad.Writer
+import Control.Monad.State
+import Control.Monad.Writer
 
 termDefs
     :: (Ord ann,

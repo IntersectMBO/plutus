@@ -15,24 +15,24 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExMemoryUsage(..)
 ) where
 
-import           PlutusCore.Data
-import           PlutusCore.Name
-import           PlutusCore.Pretty
-import           PlutusPrelude
+import PlutusCore.Data
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusPrelude
 
-import           Control.Monad.RWS.Strict
-import           Data.Aeson
-import qualified Data.ByteString            as BS
-import           Data.Proxy
-import           Data.SatInt
-import qualified Data.Text                  as T
-import qualified Data.Text.Foreign          as T (lengthWord16)
-import           GHC.Exts                   (Int (I#))
-import           GHC.Integer
-import           GHC.Integer.Logarithms
-import           GHC.Prim
-import           Language.Haskell.TH.Syntax (Lift)
-import           Universe
+import Control.Monad.RWS.Strict
+import Data.Aeson
+import Data.ByteString qualified as BS
+import Data.Proxy
+import Data.SatInt
+import Data.Text qualified as T
+import Data.Text.Foreign qualified as T (lengthWord16)
+import GHC.Exts (Int (I#))
+import GHC.Integer
+import GHC.Integer.Logarithms
+import GHC.Prim
+import Language.Haskell.TH.Syntax (Lift)
+import Universe
 
 #include "MachDeps.h"
 

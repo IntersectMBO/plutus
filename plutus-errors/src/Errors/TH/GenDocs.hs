@@ -2,12 +2,12 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Errors.TH.GenDocs (genDocs) where
 
-import           Data.List
-import           ErrorCode
-import           Errors
-import           Errors.TH.GenCodes
-import           Language.Haskell.TH as TH
-import qualified Prettyprinter       as PP
+import Data.List
+import ErrorCode
+import Errors
+import Errors.TH.GenCodes
+import Language.Haskell.TH as TH
+import Prettyprinter qualified as PP
 
 -- | Generate haddock documentation for all errors and their codes,
 -- by creating type-synonyms to lifted dataconstructors using a DataKinds trick.

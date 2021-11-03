@@ -15,20 +15,20 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 where
 
-import           PlutusCore.Constant
+import PlutusCore.Constant
 
-import qualified PlutusCore.DataFilePaths                                 as DFP
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.CostModelInterface
-import           PlutusCore.Evaluation.Machine.ExBudget                   ()
-import           PlutusCore.Evaluation.Machine.ExMemory                   ()
-import           PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.DataFilePaths qualified as DFP
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostModelInterface
+import PlutusCore.Evaluation.Machine.ExBudget ()
+import PlutusCore.Evaluation.Machine.ExMemory ()
+import PlutusCore.Evaluation.Machine.MachineParameters
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           Data.Aeson.THReader
+import Data.Aeson.THReader
 
 
 -- | The default cost model for built-in functions.

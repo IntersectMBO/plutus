@@ -3,21 +3,21 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main where
 
-import           Evaluation.Builtins (test_builtins)
-import           Evaluation.Golden   (test_golden)
-import           Evaluation.Machines
-import           Transform.Simplify  (test_simplify)
+import Evaluation.Builtins (test_builtins)
+import Evaluation.Golden (test_golden)
+import Evaluation.Machines
+import Transform.Simplify (test_simplify)
 
-import           Data.ByteString     as BS
-import           Data.Either
+import Data.ByteString as BS
+import Data.Either
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
-import qualified PlutusCore.MkPlc    as UPLC
-import qualified UntypedPlutusCore   as UPLC
+import PlutusCore.MkPlc qualified as UPLC
+import UntypedPlutusCore qualified as UPLC
 
-import           Flat
+import Flat
 
 main :: IO ()
 main = defaultMain $ testGroup "Untyped Plutus Core"

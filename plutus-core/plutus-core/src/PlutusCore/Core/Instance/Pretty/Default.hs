@@ -9,14 +9,14 @@
 
 module PlutusCore.Core.Instance.Pretty.Default () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Instance.Pretty.Classic ()
-import           PlutusCore.Core.Type
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.PrettyConst
+import PlutusCore.Core.Instance.Pretty.Classic ()
+import PlutusCore.Core.Type
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.PrettyConst
 
-import           Universe
+import Universe
 
 instance Pretty ann => Pretty (Kind ann) where
     pretty = prettyClassicDef

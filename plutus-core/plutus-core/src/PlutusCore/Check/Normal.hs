@@ -10,12 +10,12 @@ module PlutusCore.Check.Normal
     , NormCheckError (..)
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.Error
+import PlutusCore.Core
+import PlutusCore.Error
 
-import           Control.Monad.Except
+import Control.Monad.Except
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram

@@ -2,16 +2,16 @@
 {-# LANGUAGE TypeApplications  #-}
 module Transform.Simplify where
 
-import qualified PlutusCore           as PLC
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty
-import           UntypedPlutusCore
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
+import UntypedPlutusCore
 
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Coerce          (coerce)
-import           Data.Text.Encoding   (encodeUtf8)
-import           Test.Tasty
-import           Test.Tasty.Golden
+import Data.ByteString.Lazy qualified as BSL
+import Data.Coerce (coerce)
+import Data.Text.Encoding (encodeUtf8)
+import Test.Tasty
+import Test.Tasty.Golden
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1

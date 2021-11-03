@@ -12,17 +12,17 @@ module PlutusCore.Normalize.Internal
     , normalizeTypesInM
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc     (mkTyBuiltinOf)
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusPrelude
+import PlutusCore.Core
+import PlutusCore.MkPlc (mkTyBuiltinOf)
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusPrelude
 
-import           Control.Lens
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Universe
+import Control.Lens
+import Control.Monad.Reader
+import Control.Monad.State
+import Universe
 
 {- Note [Global uniqueness]
 WARNING: everything in this module works under the assumption that the global uniqueness condition

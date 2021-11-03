@@ -23,16 +23,16 @@ module PlutusCore.DeBruijn
     , fakeNameDeBruijn
     ) where
 
-import           PlutusCore.DeBruijn.Internal
+import PlutusCore.DeBruijn.Internal
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Bimap                   as BM
+import Data.Bimap qualified as BM
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'NamedTyDeBruijn's.
 deBruijnTy

@@ -18,19 +18,19 @@
 
 module PlutusBenchmark.NoFib.Prime where
 
-import           Control.DeepSeq        (NFData)
-import           Data.Char              (isSpace)
-import           GHC.Generics
+import Control.DeepSeq (NFData)
+import Data.Char (isSpace)
+import GHC.Generics
 
-import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified Prelude                as Haskell
+import Prelude qualified as Haskell
 
-import qualified PlutusCore.Pretty      as PLC
-import qualified PlutusTx               as Tx
-import           PlutusTx.Builtins      (divideInteger, modInteger)
-import           PlutusTx.Prelude       as Tx hiding (divMod, even)
-import           PlutusTx.Ratio         (divMod)
+import PlutusCore.Pretty qualified as PLC
+import PlutusTx qualified as Tx
+import PlutusTx.Builtins (divideInteger, modInteger)
+import PlutusTx.Prelude as Tx hiding (divMod, even)
+import PlutusTx.Ratio (divMod)
 
 ---------------- Extras ----------------
 

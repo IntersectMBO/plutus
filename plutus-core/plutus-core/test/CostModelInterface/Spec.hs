@@ -6,23 +6,23 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module CostModelInterface.Spec (test_costModelInterface) where
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.CostModelInterface
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostModelInterface
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.MachineParameters
 
-import           Data.Aeson
-import qualified Data.ByteString.Lazy                             as BSL
-import qualified Data.Map                                         as Map
-import           Data.Maybe
-import qualified Data.Text                                        as Text
-import           Instances.TH.Lift                                ()
-import qualified Language.Haskell.TH.Syntax                       as TH
-import           System.FilePath
-import           TH.RelativePaths
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Data.Aeson
+import Data.ByteString.Lazy qualified as BSL
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Text qualified as Text
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Syntax qualified as TH
+import System.FilePath
+import TH.RelativePaths
+import Test.Tasty
+import Test.Tasty.HUnit
 
 {- Note [Testing the expected ledger cost model parameters]
 The ledger is going to call us with a particular 'CostModelParams'. This will be originally derived from the model

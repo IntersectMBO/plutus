@@ -2,33 +2,33 @@
 
 module Main where
 
-import           Prelude                                  ((<>))
-import qualified Prelude                                  as Haskell
+import Prelude ((<>))
+import Prelude qualified as Haskell
 
-import           Control.Monad                            ()
-import qualified Data.ByteString                          as BS
-import           Data.Char                                (isSpace)
-import qualified Flat
-import           Options.Applicative                      as Opt hiding (action)
-import           System.Exit                              (exitFailure)
-import           System.IO
-import           Text.PrettyPrint.ANSI.Leijen             (Doc, indent, line, string, text, vsep)
+import Control.Monad ()
+import Data.ByteString qualified as BS
+import Data.Char (isSpace)
+import Flat qualified
+import Options.Applicative as Opt hiding (action)
+import System.Exit (exitFailure)
+import System.IO
+import Text.PrettyPrint.ANSI.Leijen (Doc, indent, line, string, text, vsep)
 
-import           PlutusBenchmark.Common                   (toAnonDeBruijnTerm)
+import PlutusBenchmark.Common (toAnonDeBruijnTerm)
 
-import qualified PlutusBenchmark.NoFib.Clausify           as Clausify
-import qualified PlutusBenchmark.NoFib.Knights            as Knights
-import qualified PlutusBenchmark.NoFib.LastPiece          as LastPiece
-import qualified PlutusBenchmark.NoFib.Prime              as Prime
-import qualified PlutusBenchmark.NoFib.Queens             as Queens
+import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Knights qualified as Knights
+import PlutusBenchmark.NoFib.LastPiece qualified as LastPiece
+import PlutusBenchmark.NoFib.Prime qualified as Prime
+import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-import           PlutusCore                               (Name (..))
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-import qualified PlutusCore.Pretty                        as PLC
-import           PlutusTx.Prelude                         as Plutus hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
-import qualified UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import PlutusCore (Name (..))
+import PlutusCore qualified as PLC
+import PlutusCore.Default
+import PlutusCore.Pretty qualified as PLC
+import PlutusTx.Prelude as Plutus hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 failWithMsg :: Haskell.String -> IO a
 failWithMsg s = hPutStrLn stderr s >> exitFailure

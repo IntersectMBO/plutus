@@ -6,30 +6,30 @@ module Evaluation.Golden
     ( test_golden
     ) where
 
-import           Prelude                                  hiding (even)
+import Prelude hiding (even)
 
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.Nat
-import           PlutusCore.StdLib.Data.ScottList
-import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Meta.Data.Tuple
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.Nat
+import PlutusCore.StdLib.Data.ScottList
+import PlutusCore.StdLib.Meta
+import PlutusCore.StdLib.Meta.Data.Tuple
+import PlutusCore.StdLib.Type
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty
-import qualified UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import PlutusCore
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Generators.Interesting
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Data.Bifunctor
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Text                                (Text)
-import           Data.Text.Encoding                       (encodeUtf8)
-import           Test.Tasty
-import           Test.Tasty.Golden
+import Data.Bifunctor
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
+import Test.Tasty
+import Test.Tasty.Golden
 
 -- (con integer)
 integer :: uni `Includes` Integer => Type TyName uni ()

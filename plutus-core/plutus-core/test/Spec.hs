@@ -9,37 +9,37 @@ module Main
     ( main
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import qualified Check.Spec                      as Check
-import           CostModelInterface.Spec
-import           Evaluation.Spec                 (test_evaluation)
-import           Names.Spec
-import           Normalization.Check
-import           Normalization.Type
-import           Pretty.Readable
-import           TypeSynthesis.Spec              (test_typecheck)
+import Check.Spec qualified as Check
+import CostModelInterface.Spec
+import Evaluation.Spec (test_evaluation)
+import Names.Spec
+import Normalization.Check
+import Normalization.Type
+import Pretty.Readable
+import TypeSynthesis.Spec (test_typecheck)
 
-import           PlutusCore
-import           PlutusCore.Generators
-import           PlutusCore.Generators.AST       as AST
-import qualified PlutusCore.Generators.NEAT.Spec as NEAT
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Generators
+import PlutusCore.Generators.AST as AST
+import PlutusCore.Generators.NEAT.Spec qualified as NEAT
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy            as BSL
-import qualified Data.Text                       as T
-import           Data.Text.Encoding              (encodeUtf8)
-import           Flat                            (flat)
-import qualified Flat
-import           Hedgehog                        hiding (Var)
-import qualified Hedgehog.Gen                    as Gen
-import qualified Hedgehog.Range                  as Range
-import           Test.Tasty
-import           Test.Tasty.Golden
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Control.Monad.Except
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text qualified as T
+import Data.Text.Encoding (encodeUtf8)
+import Flat (flat)
+import Flat qualified
+import Hedgehog hiding (Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Test.Tasty
+import Test.Tasty.Golden
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 main :: IO ()
 main = do

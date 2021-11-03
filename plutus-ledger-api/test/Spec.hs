@@ -1,17 +1,17 @@
 module Main(main) where
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
-import           Control.Monad             (void)
-import           Data.Either
-import           Data.Maybe
-import           Data.Word                 (Word8)
-import           Plutus.V1.Ledger.Api
-import           Plutus.V1.Ledger.Examples
-import qualified Spec.Interval
-import qualified Spec.Time
+import Control.Monad (void)
+import Data.Either
+import Data.Maybe
+import Data.Word (Word8)
+import Plutus.V1.Ledger.Api
+import Plutus.V1.Ledger.Examples
+import Spec.Interval qualified
+import Spec.Time qualified
 
 main :: IO ()
 main = defaultMain tests

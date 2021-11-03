@@ -3,10 +3,10 @@ module PlutusCore.Check.Value
     ( isTermValue
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Error
+import PlutusCore.Core
+import PlutusCore.Error
 
-import           Data.Either
+import Data.Either
 
 isTermValue :: Term tyname name uni fun ann -> Bool
 isTermValue = isRight . termValue

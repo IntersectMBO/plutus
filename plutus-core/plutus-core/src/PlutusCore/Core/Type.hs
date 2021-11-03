@@ -43,16 +43,16 @@ module PlutusCore.Core.Type
     )
 where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
+import PlutusCore.Name
 
-import           Control.Lens
-import           Data.Hashable
-import qualified Data.Kind                as GHC
-import           Instances.TH.Lift        ()
-import           Language.Haskell.TH.Lift
-import           Universe
+import Control.Lens
+import Data.Hashable
+import Data.Kind qualified as GHC
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Lift
+import Universe
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.

@@ -1,27 +1,26 @@
 module Main where
 
-import           Control.Monad.Except
-import           Data.Coolean
-import           Data.Either
-import           Data.List
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Generators.NEAT.Spec
-import           PlutusCore.Generators.NEAT.Term
-import           PlutusCore.Lexer
-import           PlutusCore.Normalize
-import           PlutusCore.Pretty
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import qualified UntypedPlutusCore                as U
+import Control.Monad.Except
+import Data.Coolean
+import Data.Either
+import Data.List
+import PlutusCore
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Generators.NEAT.Spec
+import PlutusCore.Generators.NEAT.Term
+import PlutusCore.Lexer
+import PlutusCore.Normalize
+import PlutusCore.Pretty
+import Test.Tasty
+import Test.Tasty.HUnit
+import UntypedPlutusCore qualified as U
 
-import           MAlonzo.Code.Main                (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                   normalizeTypeAgda, normalizeTypeTermAgda, runTCEKAgda, runTCKAgda,
-                                                   runTLAgda, runUAgda)
-import           PlutusCore.DeBruijn
-import           Raw                              hiding (TypeError, tynames)
+import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda, normalizeTypeAgda,
+                          normalizeTypeTermAgda, runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
+import PlutusCore.DeBruijn
+import Raw hiding (TypeError, tynames)
 
-import           Debug.Trace
+import Debug.Trace
 
 main :: IO ()
 main = defaultMain $ allTests defaultGenOptions

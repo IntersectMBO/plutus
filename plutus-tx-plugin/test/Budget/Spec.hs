@@ -10,13 +10,13 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 module Budget.Spec where
 
-import           Budget.Lib       (goldenBudget)
-import           Common
-import           Lib              (goldenPir)
+import Budget.Lib (goldenBudget)
+import Common
+import Lib (goldenPir)
 
-import           PlutusTx.Code
-import qualified PlutusTx.Prelude as PlutusTx
-import           PlutusTx.TH      (compile)
+import PlutusTx.Code
+import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [

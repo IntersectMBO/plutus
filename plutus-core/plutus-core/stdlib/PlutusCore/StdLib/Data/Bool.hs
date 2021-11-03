@@ -11,15 +11,15 @@ module PlutusCore.StdLib.Data.Bool
     , ifThenElse
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Default.Builtins
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default.Builtins
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Data.Unit
 
-import           Universe
+import Universe
 
 -- | 'Bool' as a PLC type.
 bool :: uni `Includes` Bool => Type TyName uni ()

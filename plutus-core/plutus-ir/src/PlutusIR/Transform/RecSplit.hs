@@ -4,23 +4,23 @@
 module PlutusIR.Transform.RecSplit
     (recSplit) where
 
-import qualified PlutusCore.Name                      as PLC
-import           PlutusIR
-import           PlutusIR.Subst
+import PlutusCore.Name qualified as PLC
+import PlutusIR
+import PlutusIR.Subst
 
-import qualified Algebra.Graph.AdjacencyMap           as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM hiding (isAcyclic)
-import qualified Algebra.Graph.NonEmpty.AdjacencyMap  as AMN
-import           Algebra.Graph.ToGraph                (isAcyclic)
-import           Control.Lens
-import           Data.Either
-import           Data.Foldable                        (foldl')
-import           Data.List                            (nub)
-import qualified Data.List.NonEmpty                   as NE
-import qualified Data.Map                             as M
-import           Data.Semigroup.Foldable
-import qualified Data.Set                             as S
-import           PlutusIR.MkPir                       (mkLet)
+import Algebra.Graph.AdjacencyMap qualified as AM
+import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM hiding (isAcyclic)
+import Algebra.Graph.NonEmpty.AdjacencyMap qualified as AMN
+import Algebra.Graph.ToGraph (isAcyclic)
+import Control.Lens
+import Data.Either
+import Data.Foldable (foldl')
+import Data.List (nub)
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as M
+import Data.Semigroup.Foldable
+import Data.Set qualified as S
+import PlutusIR.MkPir (mkLet)
 
 {- Note [LetRec splitting pass]
 

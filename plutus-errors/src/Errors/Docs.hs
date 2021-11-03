@@ -6,6 +6,6 @@
 -- | All the Plutus errors project-wide, indexed by their error code.
 module Errors.Docs () where
 
-import           Errors.TH.GenDocs
+import Errors.TH.GenDocs
 
 genDocs

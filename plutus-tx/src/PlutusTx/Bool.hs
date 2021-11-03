@@ -5,7 +5,7 @@ module PlutusTx.Bool (Bool(..), (&&), (||), not, otherwise) where
 We export off-chain Haskell's Bool type as on-chain Plutus's Bool type since they are the same.
 -}
 
-import           Prelude (Bool (..), otherwise)
+import Prelude (Bool (..), otherwise)
 
 {- HLINT ignore -}
 

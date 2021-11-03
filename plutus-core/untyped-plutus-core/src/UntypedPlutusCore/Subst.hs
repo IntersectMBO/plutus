@@ -13,15 +13,15 @@ module UntypedPlutusCore.Subst
     , vTerm
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core        (HasUniques)
-import           PlutusCore.Name
-import           UntypedPlutusCore.Core
+import PlutusCore.Core (HasUniques)
+import PlutusCore.Name
+import UntypedPlutusCore.Core
 
-import           Control.Lens
-import           Data.Set               as Set
-import           Data.Set.Lens          (setOf)
+import Control.Lens
+import Data.Set as Set
+import Data.Set.Lens (setOf)
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce

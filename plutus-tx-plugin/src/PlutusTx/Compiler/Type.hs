@@ -15,32 +15,32 @@ module PlutusTx.Compiler.Type (
     getMatch,
     getMatchInstantiated) where
 
-import           PlutusTx.Compiler.Binders
-import           PlutusTx.Compiler.Builtins
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Kind
-import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Types
-import           PlutusTx.Compiler.Utils
-import           PlutusTx.PIRTypes
+import PlutusTx.Compiler.Binders
+import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Kind
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.PIRTypes
 
-import qualified FamInstEnv                    as GHC
-import qualified GhcPlugins                    as GHC
-import qualified TysPrim                       as GHC
+import FamInstEnv qualified as GHC
+import GhcPlugins qualified as GHC
+import TysPrim qualified as GHC
 
-import qualified PlutusIR                      as PIR
-import qualified PlutusIR.Compiler.Definitions as PIR
-import qualified PlutusIR.MkPir                as PIR
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.MkPir qualified as PIR
 
-import qualified PlutusCore.Name               as PLC
+import PlutusCore.Name qualified as PLC
 
-import           Control.Monad.Extra
-import           Control.Monad.Reader
+import Control.Monad.Extra
+import Control.Monad.Reader
 
-import           Data.List                     (sortBy)
-import qualified Data.List.NonEmpty            as NE
-import qualified Data.Set                      as Set
-import           Data.Traversable
+import Data.List (sortBy)
+import Data.List.NonEmpty qualified as NE
+import Data.Set qualified as Set
+import Data.Traversable
 
 -- Types
 

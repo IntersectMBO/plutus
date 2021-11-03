@@ -23,20 +23,20 @@ module PlutusCore.Quote
     , markNonFreshMax
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
+import PlutusCore.Name
 
-import           Control.Monad.Except
-import           Control.Monad.Morph       as MM
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
-import           Data.Functor.Identity
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as Text
-import           Hedgehog                  (GenT, PropertyT)
+import Control.Monad.Except
+import Control.Monad.Morph as MM
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Maybe
+import Data.Functor.Identity
+import Data.Set (Set)
+import Data.Set qualified as Set
+import Data.Text qualified as Text
+import Hedgehog (GenT, PropertyT)
 
 -- | The state contains the "next" 'Unique' that should be used for a name
 type FreshState = Unique

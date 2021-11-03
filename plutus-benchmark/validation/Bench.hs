@@ -3,26 +3,26 @@
 
 module Main where
 
-import           PlutusBenchmark.Common                   (Term, getConfig, getDataDir, unDeBruijnAnonTerm)
-import           PlutusBenchmark.NaturalSort
+import PlutusBenchmark.Common (Term, getConfig, getDataDir, unDeBruijnAnonTerm)
+import PlutusBenchmark.NaturalSort
 
-import qualified PlutusCore                               as PLC
+import PlutusCore qualified as PLC
 
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import           Criterion.Main
-import           Criterion.Main.Options                   (Mode, parseWith)
-import           Criterion.Types                          (Config (..))
-import           Options.Applicative
+import Criterion.Main
+import Criterion.Main.Options (Mode, parseWith)
+import Criterion.Types (Config (..))
+import Options.Applicative
 
-import           Control.DeepSeq                          (force)
-import qualified Data.ByteString                          as BS
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.List                                (isPrefixOf)
-import           Flat
-import           System.Directory                         (listDirectory)
-import           System.FilePath
+import Control.DeepSeq (force)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.List (isPrefixOf)
+import Flat
+import System.Directory (listDirectory)
+import System.FilePath
 
 {- | Benchmarks based on validations obtained using
 plutus-use-cases:plutus-use-cases-scripts, which runs various contracts on the

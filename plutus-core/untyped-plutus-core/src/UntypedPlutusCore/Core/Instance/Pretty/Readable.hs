@@ -10,16 +10,16 @@
 
 module UntypedPlutusCore.Core.Instance.Pretty.Readable () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Type
 
-import           PlutusCore.Core.Instance.Pretty.Common ()
-import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Pretty.Readable
+import PlutusCore.Core.Instance.Pretty.Common ()
+import PlutusCore.Pretty.PrettyConst
+import PlutusCore.Pretty.Readable
 
-import           Prettyprinter
-import           Universe
+import Prettyprinter
+import Universe
 
 instance
         ( PrettyReadableBy configName name

@@ -7,9 +7,9 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module Plugin.Lib where
 
-import           PlutusTx.Prelude
+import PlutusTx.Prelude
 
-import qualified PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins qualified as Builtins
 
 -- This is here for the Plugin spec, but we're testing using things from a different module
 andExternal :: Bool -> Bool -> Bool

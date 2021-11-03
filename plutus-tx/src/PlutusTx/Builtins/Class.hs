@@ -11,17 +11,17 @@
 
 module PlutusTx.Builtins.Class where
 
-import           Data.ByteString            (ByteString)
-import           PlutusTx.Builtins.Internal
+import Data.ByteString (ByteString)
+import PlutusTx.Builtins.Internal
 
-import           Data.String                (IsString (..))
-import           Data.Text                  (Text, pack)
+import Data.String (IsString (..))
+import Data.Text (Text, pack)
 
-import qualified GHC.Magic                  as Magic
-import           PlutusTx.Base              (const, id, ($))
-import           PlutusTx.Bool              (Bool (..))
-import           PlutusTx.Integer           (Integer)
-import qualified Prelude                    as Haskell (String)
+import GHC.Magic qualified as Magic
+import PlutusTx.Base (const, id, ($))
+import PlutusTx.Bool (Bool (..))
+import PlutusTx.Integer (Integer)
+import Prelude qualified as Haskell (String)
 
 {- Note [Fundeps versus type families in To/FromBuiltin]
 We could use a type family here to get the builtin representation of a type. After all, it's

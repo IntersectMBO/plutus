@@ -5,15 +5,15 @@
 -- in safeint, since I want to upstream this in due course.
 module Main where
 
-import           Control.Exception                    as E
-import           Data.List
-import           Data.Maybe
-import           Data.SatInt
-import           Test.Framework                       as TF
-import           Test.Framework.Providers.HUnit
-import           Test.Framework.Providers.QuickCheck2
-import           Test.HUnit                           as T
-import           Test.QuickCheck
+import Control.Exception as E
+import Data.List
+import Data.Maybe
+import Data.SatInt
+import Test.Framework as TF
+import Test.Framework.Providers.HUnit
+import Test.Framework.Providers.QuickCheck2
+import Test.HUnit as T
+import Test.QuickCheck
 
 main :: IO ()
 main = defaultMain tests

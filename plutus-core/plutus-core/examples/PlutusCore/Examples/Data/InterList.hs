@@ -8,16 +8,16 @@ module PlutusCore.Examples.Data.InterList
     , foldrInterList
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Type
 
-import           Universe
+import Universe
 
 {- Note [InterList]
 We encode the following in this module:

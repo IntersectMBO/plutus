@@ -5,10 +5,10 @@
 {- | Simple merge sort implementation -}
 module PlutusBenchmark.Lists.Sort.MergeSort where
 
-import           PlutusBenchmark.Common (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified PlutusTx               as Tx
-import           PlutusTx.Prelude       as Tx
+import PlutusTx qualified as Tx
+import PlutusTx.Prelude as Tx
 
 {-# INLINABLE drop #-}
 drop :: Integer -> [a] -> [a]

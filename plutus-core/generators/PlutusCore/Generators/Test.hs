@@ -16,25 +16,25 @@ module PlutusCore.Generators.Test
     , propEvaluate
     ) where
 
-import           PlutusPrelude                                (ShowPretty (..))
+import PlutusPrelude (ShowPretty (..))
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.Generators.Internal.TypeEvalCheck
-import           PlutusCore.Generators.Internal.Utils
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Internal.TypeEvalCheck
+import PlutusCore.Generators.Internal.Utils
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           Control.Monad.Except
-import           Data.Functor                                 ((<&>))
-import qualified Data.Text.IO                                 as Text
-import           Hedgehog                                     hiding (Size, Var, eval)
-import qualified Hedgehog.Gen                                 as Gen
-import           System.FilePath                              ((</>))
+import Control.Monad.Except
+import Data.Functor ((<&>))
+import Data.Text.IO qualified as Text
+import Hedgehog hiding (Size, Var, eval)
+import Hedgehog.Gen qualified as Gen
+import System.FilePath ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue

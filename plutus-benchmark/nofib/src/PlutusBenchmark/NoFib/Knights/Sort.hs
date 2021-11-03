@@ -6,7 +6,7 @@ module PlutusBenchmark.NoFib.Knights.Sort
           quickSort
         ) where
 
-import qualified PlutusTx.Prelude as Tx
+import PlutusTx.Prelude qualified as Tx
 
 {-# INLINABLE insertSort #-}
 insertSort :: (Tx.Ord a) => [a] -> [a]

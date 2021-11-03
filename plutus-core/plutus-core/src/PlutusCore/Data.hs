@@ -7,22 +7,22 @@
 
 module PlutusCore.Data (Data (..)) where
 
-import           Codec.CBOR.Decoding      (Decoder)
-import qualified Codec.CBOR.Decoding      as CBOR
-import           Codec.CBOR.Encoding      (Encoding)
-import qualified Codec.CBOR.Encoding      as CBOR
-import qualified Codec.CBOR.Magic         as CBOR
-import           Codec.Serialise          (Serialise (decode, encode))
-import           Codec.Serialise.Decoding (decodeSequenceLenIndef, decodeSequenceLenN)
-import           Control.DeepSeq          (NFData)
-import           Control.Monad.Except
-import           Data.Bits                (shiftR)
-import qualified Data.ByteString          as BS
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.Word                (Word64, Word8)
-import           GHC.Generics
-import           Prelude
-import           Prettyprinter
+import Codec.CBOR.Decoding (Decoder)
+import Codec.CBOR.Decoding qualified as CBOR
+import Codec.CBOR.Encoding (Encoding)
+import Codec.CBOR.Encoding qualified as CBOR
+import Codec.CBOR.Magic qualified as CBOR
+import Codec.Serialise (Serialise (decode, encode))
+import Codec.Serialise.Decoding (decodeSequenceLenIndef, decodeSequenceLenN)
+import Control.DeepSeq (NFData)
+import Control.Monad.Except
+import Data.Bits (shiftR)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.Word (Word64, Word8)
+import GHC.Generics
+import Prelude
+import Prettyprinter
 
 -- | A generic "data" type.
 --

@@ -44,21 +44,21 @@ module Universe.Core
     , (:~:)(..)
     ) where
 
-import           Control.Applicative
-import           Control.DeepSeq
-import           Control.Monad
-import           Control.Monad.Trans.State.Strict
-import           Data.GADT.Compare
-import           Data.GADT.Compare.TH
-import           Data.GADT.DeepSeq
-import           Data.GADT.Show
-import           Data.Hashable
-import           Data.Kind
-import           Data.Proxy
-import           Data.Some.Newtype
-import           Data.Type.Equality
-import           Text.Show.Deriving
-import           Type.Reflection
+import Control.Applicative
+import Control.DeepSeq
+import Control.Monad
+import Control.Monad.Trans.State.Strict
+import Data.GADT.Compare
+import Data.GADT.Compare.TH
+import Data.GADT.DeepSeq
+import Data.GADT.Show
+import Data.Hashable
+import Data.Kind
+import Data.Proxy
+import Data.Some.Newtype
+import Data.Type.Equality
+import Text.Show.Deriving
+import Type.Reflection
 
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like

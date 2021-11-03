@@ -105,46 +105,44 @@ module Plutus.V1.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import qualified Codec.Serialise                                  as CBOR
-import           Control.Monad.Except
-import           Control.Monad.Writer
-import           Data.Bifunctor
-import           Data.ByteString.Lazy                             (fromStrict)
-import           Data.ByteString.Short
-import           Data.Either
-import           Data.Maybe                                       (isJust)
-import           Data.SatInt
-import           Data.Text                                        (Text)
-import           Data.Tuple
-import           Plutus.V1.Ledger.Ada
-import           Plutus.V1.Ledger.Address
-import           Plutus.V1.Ledger.Bytes
-import           Plutus.V1.Ledger.Contexts
-import           Plutus.V1.Ledger.Credential
-import           Plutus.V1.Ledger.Crypto
-import           Plutus.V1.Ledger.DCert
-import           Plutus.V1.Ledger.Interval                        hiding (singleton)
-import           Plutus.V1.Ledger.Scripts                         hiding (mkTermToEvaluate)
-import qualified Plutus.V1.Ledger.Scripts                         as Scripts
-import           Plutus.V1.Ledger.Time
-import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value
-import           PlutusCore                                       as PLC
-import qualified PlutusCore.Data                                  as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
-import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Pretty
-import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
-                                                                   fromData, toData)
-import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
-                                                                   dataToBuiltinData)
-import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
-import           Prettyprinter
-import qualified UntypedPlutusCore                                as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
+import Codec.Serialise qualified as CBOR
+import Control.Monad.Except
+import Control.Monad.Writer
+import Data.Bifunctor
+import Data.ByteString.Lazy (fromStrict)
+import Data.ByteString.Short
+import Data.Either
+import Data.Maybe (isJust)
+import Data.SatInt
+import Data.Text (Text)
+import Data.Tuple
+import Plutus.V1.Ledger.Ada
+import Plutus.V1.Ledger.Address
+import Plutus.V1.Ledger.Bytes
+import Plutus.V1.Ledger.Contexts
+import Plutus.V1.Ledger.Credential
+import Plutus.V1.Ledger.Crypto
+import Plutus.V1.Ledger.DCert
+import Plutus.V1.Ledger.Interval hiding (singleton)
+import Plutus.V1.Ledger.Scripts hiding (mkTermToEvaluate)
+import Plutus.V1.Ledger.Scripts qualified as Scripts
+import Plutus.V1.Ledger.Time
+import Plutus.V1.Ledger.TxId
+import Plutus.V1.Ledger.Value
+import PlutusCore as PLC
+import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Pretty
+import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
+import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
+import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
+import Prettyprinter
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You

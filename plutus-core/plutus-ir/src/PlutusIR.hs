@@ -26,4 +26,4 @@ module PlutusIR (
     tyVarDeclNameString
     ) where
 
-import           PlutusIR.Core
+import PlutusIR.Core

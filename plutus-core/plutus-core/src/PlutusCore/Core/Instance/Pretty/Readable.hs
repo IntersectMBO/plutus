@@ -11,16 +11,16 @@
 
 module PlutusCore.Core.Instance.Pretty.Readable () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Instance.Pretty.Common ()
-import           PlutusCore.Core.Type
-import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Pretty.Readable
+import PlutusCore.Core.Instance.Pretty.Common ()
+import PlutusCore.Core.Type
+import PlutusCore.Pretty.PrettyConst
+import PlutusCore.Pretty.Readable
 
-import           Control.Monad.Reader
-import           Prettyprinter
-import           Universe
+import Control.Monad.Reader
+import Prettyprinter
+import Universe
 
 -- | Pretty-print a binding at the type level.
 typeBinderDocM

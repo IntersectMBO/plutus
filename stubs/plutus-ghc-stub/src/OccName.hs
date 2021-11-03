@@ -1,5 +1,5 @@
 module OccName (module StubTypes) where
 
-import           StubTypes
+import StubTypes
 -- data NameSpace = NameSpace
 

@@ -2,10 +2,10 @@
 
 module Main where
 
-import           Criterion.Main
-import           Criterion.Main.Options
-import           Criterion.Types
-import           Test.QuickCheck
+import Criterion.Main
+import Criterion.Main.Options
+import Criterion.Types
+import Test.QuickCheck
 
 --------------------
 -- Scott Encoding --

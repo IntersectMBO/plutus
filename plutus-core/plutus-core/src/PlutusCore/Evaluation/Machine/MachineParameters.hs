@@ -5,12 +5,12 @@
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
-import           PlutusCore.Constant
+import PlutusCore.Constant
 
-import           PlutusCore.Core.Type                   hiding (Type)
-import           PlutusCore.Evaluation.Machine.ExBudget ()
+import PlutusCore.Core.Type hiding (Type)
+import PlutusCore.Evaluation.Machine.ExBudget ()
 
-import           GHC.Types                              (Type)
+import GHC.Types (Type)
 
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in

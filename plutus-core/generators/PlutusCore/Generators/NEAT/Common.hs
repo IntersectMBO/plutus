@@ -19,11 +19,11 @@ module PlutusCore.Generators.NEAT.Common where
 
 
 
-import           Control.Enumerable
-import qualified Data.Stream        as Stream
-import qualified Data.Text          as Text
-import           PlutusCore.Name    (Name, TyName (..))
-import           PlutusCore.Quote   (MonadQuote (..), freshName)
+import Control.Enumerable
+import Data.Stream qualified as Stream
+import Data.Text qualified as Text
+import PlutusCore.Name (Name, TyName (..))
+import PlutusCore.Quote (MonadQuote (..), freshName)
 
 data Z deriving (Eq, Ord, Show)
 

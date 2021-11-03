@@ -9,17 +9,17 @@ module Data.Aeson.Extras(
     , JSONViaSerialise (..)
     ) where
 
-import qualified Codec.CBOR.Write       as Write
-import           Codec.Serialise        (Serialise, deserialiseOrFail, encode)
-import           Control.Monad          ((>=>))
-import qualified Data.Aeson             as Aeson
-import qualified Data.Aeson.Types       as Aeson
-import           Data.Bifunctor         (first)
-import qualified Data.ByteString        as BSS
-import qualified Data.ByteString.Base16 as Base16
-import qualified Data.ByteString.Lazy   as BSL
-import qualified Data.Text              as Text
-import qualified Data.Text.Encoding     as TE
+import Codec.CBOR.Write qualified as Write
+import Codec.Serialise (Serialise, deserialiseOrFail, encode)
+import Control.Monad ((>=>))
+import Data.Aeson qualified as Aeson
+import Data.Aeson.Types qualified as Aeson
+import Data.Bifunctor (first)
+import Data.ByteString qualified as BSS
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as TE
 
 encodeByteString :: BSS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode

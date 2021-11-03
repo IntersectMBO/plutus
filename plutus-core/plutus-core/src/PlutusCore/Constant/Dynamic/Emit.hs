@@ -7,11 +7,11 @@ module PlutusCore.Constant.Dynamic.Emit
     , WithEmitterT (..)
     ) where
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
-import           Control.Monad.Trans.Identity
-import           Data.Text                    (Text)
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Identity
+import Data.Text (Text)
 
 -- | A class for emitting 'Text's in a monadic context (basically, for logging).
 class Monad m => MonadEmitter m where

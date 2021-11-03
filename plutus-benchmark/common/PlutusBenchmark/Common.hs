@@ -21,21 +21,21 @@ module PlutusBenchmark.Common
      )
 where
 
-import           Paths_plutus_benchmark                   as Export
+import Paths_plutus_benchmark as Export
 
-import qualified PlutusTx                                 as Tx
+import PlutusTx qualified as Tx
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-import qualified UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import PlutusCore qualified as PLC
+import PlutusCore.Default
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import           Control.DeepSeq                          (force)
-import           Control.Exception
-import           Control.Monad.Trans.Except
-import           Criterion.Main
-import           Criterion.Types                          (Config (..))
-import           System.FilePath
+import Control.DeepSeq (force)
+import Control.Exception
+import Control.Monad.Trans.Except
+import Criterion.Main
+import Criterion.Types (Config (..))
+import System.FilePath
 
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report
    to be generated.  If run via stack/cabal this will be written to the

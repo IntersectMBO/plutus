@@ -9,15 +9,15 @@
 
 module UntypedPlutusCore.Core.Instance.Pretty.Default () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.PrettyConst
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.PrettyConst
 
-import           UntypedPlutusCore.Core.Instance.Pretty.Classic ()
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Instance.Pretty.Classic ()
+import UntypedPlutusCore.Core.Type
 
-import           Universe
+import Universe
 
 instance
         ( PrettyClassic name

@@ -9,16 +9,16 @@
 {-# OPTIONS_GHC -Wno-orphans  #-}
 module Lib where
 
-import           Common
-import           PlcTestUtils
+import Common
+import PlcTestUtils
 
-import           PlutusTx.Code
+import PlutusTx.Code
 
-import qualified PlutusCore        as PLC
-import           PlutusCore.Pretty (PrettyConst)
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty (PrettyConst)
 
-import           Flat              (Flat)
-import           Prettyprinter
+import Flat (Flat)
+import Prettyprinter
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, PLC.GShow uni, Pretty fun, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where

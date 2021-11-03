@@ -16,5 +16,5 @@ module Text.PrettyBy
     , displayBy
     ) where
 
-import           Text.PrettyBy.Default
-import           Text.PrettyBy.Internal
+import Text.PrettyBy.Default
+import Text.PrettyBy.Internal

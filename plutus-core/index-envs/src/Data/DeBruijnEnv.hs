@@ -1,11 +1,11 @@
 {-# LANGUAGE TypeFamilies #-}
 module Data.DeBruijnEnv (DeBruijnEnv (..), RelativizedMap (..)) where
 
-import qualified Data.IntMap.Strict               as IM
-import           Data.Kind
-import           Data.Maybe                       (fromJust)
-import qualified Data.RAList                      as RAL
-import qualified Data.RandomAccessList.SkewBinary as BRAL
+import Data.IntMap.Strict qualified as IM
+import Data.Kind
+import Data.Maybe (fromJust)
+import Data.RAList qualified as RAL
+import Data.RandomAccessList.SkewBinary qualified as BRAL
 
 {-|
 A class for types that can be used to implement a de Bruijn index environment.

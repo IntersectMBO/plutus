@@ -19,22 +19,22 @@ module UntypedPlutusCore.Evaluation.HOAS
     , unsafeEvaluateHoas
     ) where
 
-import           UntypedPlutusCore.Core                  (Term (..), UniOf, bindFunM)
+import UntypedPlutusCore.Core (Term (..), UniOf, bindFunM)
 
-import           PlutusCore.Constant                     hiding (lookupBuiltin)
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Constant hiding (lookupBuiltin)
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           Control.Lens                            (ix, (^?))
-import           Control.Lens.TH
-import           Control.Monad.Except
-import           Data.Array
-import           Data.Bifunctor
-import           Data.Proxy
-import           Data.Typeable
-import           Universe
+import Control.Lens (ix, (^?))
+import Control.Lens.TH
+import Control.Monad.Except
+import Data.Array
+import Data.Bifunctor
+import Data.Proxy
+import Data.Typeable
+import Universe
 
 -- | A higher-order version of 'Term'.
 -- We parameterize it by a monad, because there's no way we could generally convert a first-order

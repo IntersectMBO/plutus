@@ -7,13 +7,13 @@ module PlutusIR.Analysis.Size
     , varDeclSize
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusIR.Core
+import PlutusIR.Core
 
-import           PlutusCore.Size (Size (..), kindSize, tyVarDeclSize, typeSize, varDeclSize)
+import PlutusCore.Size (Size (..), kindSize, tyVarDeclSize, typeSize, varDeclSize)
 
-import           Control.Lens
+import Control.Lens
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term tyname name uni fun ann -> Size

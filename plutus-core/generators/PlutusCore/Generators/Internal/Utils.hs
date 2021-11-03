@@ -17,14 +17,14 @@ module PlutusCore.Generators.Internal.Utils
     , prettyPlcErrorString
     ) where
 
-import           PlutusCore.Pretty
+import PlutusCore.Pretty
 
-import           Control.Monad.Morph
-import           Control.Monad.Reader
-import           Data.Functor.Identity
-import           Hedgehog                   hiding (Size, Var)
-import qualified Hedgehog.Gen               as Gen
-import           Hedgehog.Internal.Property (forAllWithT)
+import Control.Monad.Morph
+import Control.Monad.Reader
+import Data.Functor.Identity
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Internal.Property (forAllWithT)
 
 -- | @hoist lift@
 liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a

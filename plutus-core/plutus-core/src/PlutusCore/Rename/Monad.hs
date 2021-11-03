@@ -21,13 +21,13 @@ module PlutusCore.Rename.Monad
     , withRenamedName
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Control.Lens
-import           Control.Monad.Reader
+import Control.Lens
+import Control.Monad.Reader
 
 -- | The monad the renamer runs in.
 newtype RenameT ren m a = RenameT

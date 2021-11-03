@@ -19,28 +19,28 @@ module PlutusIR.TypeCheck.Internal
     ) where
 
 
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Data.Foldable
-import           Data.Ix
-import           PlutusCore                    (ToKind, typeAnn)
-import           PlutusCore.Error              as PLC
-import           PlutusCore.Quote
-import           PlutusCore.Rename             as PLC
-import           PlutusIR
-import           PlutusIR.Compiler.Datatype
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Compiler.Types
-import           PlutusIR.Error
-import           PlutusIR.Transform.Rename     ()
-import           PlutusPrelude
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Foldable
+import Data.Ix
+import PlutusCore (ToKind, typeAnn)
+import PlutusCore.Error as PLC
+import PlutusCore.Quote
+import PlutusCore.Rename as PLC
+import PlutusIR
+import PlutusIR.Compiler.Datatype
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Compiler.Types
+import PlutusIR.Error
+import PlutusIR.Transform.Rename ()
+import PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import           PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
-import qualified PlutusIR.MkPir                as PIR
+import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
+import PlutusIR.MkPir qualified as PIR
 
-import           Universe
+import Universe
 
 {- Note [PLC Typechecker code reuse]
 For PIR kind-checking, we reuse `checkKindM`, `inferKindM` directly from the PLC typechecker.

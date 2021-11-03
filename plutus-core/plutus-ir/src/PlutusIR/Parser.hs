@@ -17,18 +17,18 @@ module PlutusIR.Parser
     , SourcePos
     ) where
 
-import           PlutusPrelude
-import           Prelude                            hiding (fail)
+import PlutusPrelude
+import Prelude hiding (fail)
 
 
-import qualified PlutusCore                         as PLC
-import qualified PlutusCore.Parsable                as PLC
-import           PlutusCore.ParserCommon
-import           PlutusIR                           as PIR
-import qualified PlutusIR.MkPir                     as PIR
-import           Text.Megaparsec                    hiding (ParseError, State, many, parse, some)
+import PlutusCore qualified as PLC
+import PlutusCore.Parsable qualified as PLC
+import PlutusCore.ParserCommon
+import PlutusIR as PIR
+import PlutusIR.MkPir qualified as PIR
+import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
-import qualified Control.Monad.Combinators.NonEmpty as NE
+import Control.Monad.Combinators.NonEmpty qualified as NE
 
 
 recursivity :: Parser SourcePos Recursivity

@@ -1,4 +1,4 @@
-import           Examples
+import Examples
 
 main :: IO ()
 main = do

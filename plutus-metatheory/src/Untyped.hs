@@ -2,14 +2,14 @@
 
 module Untyped where
 
-import           PlutusCore.Data
-import           PlutusCore.Default
-import           UntypedPlutusCore
+import PlutusCore.Data
+import PlutusCore.Default
+import UntypedPlutusCore
 
-import           Data.ByteString    as BS
-import           Data.Text          as T
-import           GHC.Natural
-import           Universe
+import Data.ByteString as BS
+import Data.Text as T
+import GHC.Natural
+import Universe
 
 
 -- Untyped (Raw) syntax

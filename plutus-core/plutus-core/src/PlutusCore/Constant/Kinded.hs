@@ -5,11 +5,11 @@
 
 module PlutusCore.Constant.Kinded where
 
-import           PlutusCore.Core
+import PlutusCore.Core
 
-import           Data.Kind       as GHC
-import           GHC.Types
-import           Universe
+import Data.Kind as GHC
+import GHC.Types
+import Universe
 
 -- | The type of singletonized Haskell kinds representing Plutus kinds.
 -- Indexing by a Haskell kind allows us to avoid an 'error' call in the 'ToKind' instance of

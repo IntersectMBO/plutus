@@ -9,15 +9,15 @@
 
 module Plugin.Basic.Spec where
 
-import           Common
-import           Lib
-import           PlcTestUtils
+import Common
+import Lib
+import PlcTestUtils
 
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Plugin
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Plugin
 
-import           Data.Proxy
+import Data.Proxy
 
 basic :: TestNested
 basic = testNested "Basic" [

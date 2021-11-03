@@ -10,22 +10,22 @@
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Type
 
-import           PlutusCore.Flat
-import           PlutusCore.Pretty
+import PlutusCore.Flat
+import PlutusCore.Pretty
 
-import           Data.Word                   (Word8)
-import           Flat
-import           Flat.Decoder
-import           Flat.Decoder.Types
-import           Flat.Encoder
-import           Universe
+import Data.Word (Word8)
+import Flat
+import Flat.Decoder
+import Flat.Decoder.Types
+import Flat.Encoder
+import Universe
 
-import           Data.Primitive              (Ptr)
-import           Data.Proxy
-import           Foreign                     (minusPtr)
-import           GHC.TypeLits
+import Data.Primitive (Ptr)
+import Data.Proxy
+import Foreign (minusPtr)
+import GHC.TypeLits
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.

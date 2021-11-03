@@ -2,10 +2,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.ErrorCodes where
 
-import           Data.Map          (Map)
-import qualified Data.Map          as Map
-import           PlutusTx.Builtins as Builtins
-import           Prelude           (String)
+import Data.Map (Map)
+import Data.Map qualified as Map
+import PlutusTx.Builtins as Builtins
+import Prelude (String)
 
 {-
 All error codes in this module should be unique and can be used only once!

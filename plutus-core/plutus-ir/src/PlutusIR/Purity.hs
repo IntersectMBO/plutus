@@ -5,12 +5,12 @@
 {-# LANGUAGE TypeOperators       #-}
 module PlutusIR.Purity (isPure) where
 
-import           PlutusIR
+import PlutusIR
 
-import           PlutusCore.Constant.Meaning
-import           PlutusCore.Constant.Typed
+import PlutusCore.Constant.Meaning
+import PlutusCore.Constant.Typed
 
-import           Data.Proxy
+import Data.Proxy
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)

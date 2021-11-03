@@ -3,5 +3,5 @@ module GhcPlugins(
     module StubTypes,
     ) where
 
-import           Plugins
-import           StubTypes
+import Plugins
+import StubTypes

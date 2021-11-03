@@ -14,22 +14,22 @@
 
 module Benchmarks.Nops (makeBenchmarks) where
 
-import           Common
-import           Generators                                      (randNwords)
+import Common
+import Generators (randNwords)
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel  hiding (BuiltinCostModel)
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Pretty
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Pretty
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.DeepSeq                                 (NFData)
-import           Criterion.Main
-import           Data.Char                                       (toLower)
-import           Data.Ix                                         (Ix)
-import           GHC.Generics                                    (Generic)
-import           System.Random                                   (StdGen)
+import Control.DeepSeq (NFData)
+import Criterion.Main
+import Data.Char (toLower)
+import Data.Ix (Ix)
+import GHC.Generics (Generic)
+import System.Random (StdGen)
 
 data NopFuns
     = Nop1

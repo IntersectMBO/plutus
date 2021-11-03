@@ -6,12 +6,12 @@ module Data.ByteString.Hash
     , blake2b
     ) where
 
-import           Cardano.Crypto.Hash.Blake2b
-import           Cardano.Crypto.Hash.Class
-import           Cardano.Crypto.Hash.SHA256
-import           Cardano.Crypto.Hash.SHA3_256
-import qualified Data.ByteString              as BS
-import           Data.Proxy
+import Cardano.Crypto.Hash.Blake2b
+import Cardano.Crypto.Hash.Class
+import Cardano.Crypto.Hash.SHA256
+import Cardano.Crypto.Hash.SHA3_256
+import Data.ByteString qualified as BS
+import Data.Proxy
 
 -- | Hash a [[BSL.ByteString]] using the SHA-256 hash function.
 sha2 :: BS.ByteString -> BS.ByteString

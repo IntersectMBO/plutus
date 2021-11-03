@@ -50,24 +50,24 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     )
 where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
-import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Core
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           Data.Ix                                                  (Ix)
-import           Data.Text                                                (Text)
-import           Universe
+import Data.Ix (Ix)
+import Data.Text (Text)
+import Universe
 
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.

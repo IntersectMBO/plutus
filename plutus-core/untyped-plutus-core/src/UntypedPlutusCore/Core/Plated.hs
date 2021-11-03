@@ -10,11 +10,11 @@ module UntypedPlutusCore.Core.Plated
     , termUniquesDeep
     ) where
 
-import           PlutusCore.Core             (HasUniques)
-import           PlutusCore.Name
-import           UntypedPlutusCore.Core.Type
+import PlutusCore.Core (HasUniques)
+import PlutusCore.Name
+import UntypedPlutusCore.Core.Type
 
-import           Control.Lens
+import Control.Lens
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term name uni fun ann) name

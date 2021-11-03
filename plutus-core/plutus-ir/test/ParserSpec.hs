@@ -4,25 +4,25 @@
 
 module ParserSpec (parsing) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           Common
+import Common
 
-import           Data.Char
-import qualified Data.Text               as T
+import Data.Char
+import Data.Text qualified as T
 
-import qualified PlutusCore.Default      as PLC
+import PlutusCore.Default qualified as PLC
 
-import           PlutusIR
-import           PlutusIR.Generators.AST
-import           PlutusIR.Parser
+import PlutusIR
+import PlutusIR.Generators.AST
+import PlutusIR.Parser
 
-import           Hedgehog                hiding (Var)
-import qualified Hedgehog.Gen            as Gen
-import qualified Hedgehog.Range          as Range
+import Hedgehog hiding (Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
 instance Show PrettyProg where

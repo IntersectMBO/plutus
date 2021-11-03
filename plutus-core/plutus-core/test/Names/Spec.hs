@@ -5,23 +5,23 @@
 
 module Names.Spec where
 
-import           PlcTestUtils
+import PlcTestUtils
 
-import           PlutusCore
-import           PlutusCore.DeBruijn
-import           PlutusCore.Mark
-import           PlutusCore.Pretty
-import           PlutusCore.Rename.Internal
+import PlutusCore
+import PlutusCore.DeBruijn
+import PlutusCore.Mark
+import PlutusCore.Pretty
+import PlutusCore.Rename.Internal
 
-import           PlutusCore.Generators
-import           PlutusCore.Generators.AST         as AST
-import           PlutusCore.Generators.Interesting
+import PlutusCore.Generators
+import PlutusCore.Generators.AST as AST
+import PlutusCore.Generators.Interesting
 
-import           Hedgehog                          hiding (Var)
-import qualified Hedgehog.Gen                      as Gen
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Hedgehog hiding (Var)
+import Hedgehog.Gen qualified as Gen
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property . generalizeT $ do

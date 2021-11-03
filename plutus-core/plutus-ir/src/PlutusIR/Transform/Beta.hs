@@ -6,11 +6,11 @@ module PlutusIR.Transform.Beta (
   beta
   ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusIR
+import PlutusIR
 
-import           Control.Lens  (transformOf)
+import Control.Lens (transformOf)
 
 {-|
 A single non-recursive application of the beta rule.
