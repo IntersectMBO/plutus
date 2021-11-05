@@ -35,16 +35,16 @@ import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
 {- | This module is supposed to test that the R cost models for built-in functions
-   defined in BuiltinCostModel.hs produce the same results as the Haskell
-   versions. However there are a couple of subtleties.  (A) The R models use
-   floating point numbers and the Haskell versions use CostingIntegers, and
-   there will be some difference in precision because of this. (B) The R models
-   produce results in milliseconds and the Haskell versions produce results in
-   picoseconds. We deal with (B) by using the msToPs function from
-   CostModelCreation to convert R results to picoseconds expressed as
-   CostingIntegers.  To deal with (A), we don't check for exact equality of the
-   outputs but instead check that the R result and the Haskell result agreee to
-   within a factor of 1/100 (one percent).
+   defined in models.R (using the data in benching.csv) produce the same results
+   as the Haskell versions. However there are a couple of subtleties.  (A) The R
+   models use floating point numbers and the Haskell versions use
+   CostingIntegers, and there will be some difference in precision because of
+   this. (B) The R models produce results in milliseconds and the Haskell
+   versions produce results in picoseconds. We deal with (B) by using the msToPs
+   function from CostModelCreation to convert R results to picoseconds expressed
+   as CostingIntegers.  To deal with (A), we don't check for exact equality of
+   the outputs but instead check that the R result and the Haskell result agreee
+   to within a factor of 1/100 (one percent).
 
 -}
 
