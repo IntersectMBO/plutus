@@ -11,27 +11,25 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
 
-import           CostModelCreation
-import           TH
+import CostModelCreation
+import TH
 
-import           Control.Applicative                            (Const, getConst)
-import           Control.Monad.Morph                            (MFunctor, hoist, lift)
-import           Data.Coerce                                    (coerce)
-import           Data.String                                    (fromString)
-import           Unsafe.Coerce                                  (unsafeCoerce)
+import Control.Applicative (Const, getConst)
+import Control.Monad.Morph (MFunctor, hoist, lift)
+import Data.Coerce (coerce)
+import Data.String (fromString)
+import Unsafe.Coerce (unsafeCoerce)
 
-import           H.Prelude                                      as H (MonadR, io)
-import           Language.R                                     as R (R, SomeSEXP, defaultConfig, fromSomeSEXP,
-                                                                      runRegion, unsafeRunRegion, withEmbeddedR)
-import           Language.R.QQ                                  (r)
+import H.Prelude as H (MonadR, io)
+import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion, withEmbeddedR)
+import Language.R.QQ (r)
 
-import Hedgehog                                       (Gen, Group (..), Property, PropertyName, PropertyT,
-                                                                 TestLimit, checkSequential, diff, forAll, property,
-                                                                 withTests)
+import Hedgehog (Gen, Group (..), Property, PropertyName, PropertyT, TestLimit, checkSequential, diff, forAll, property,
+                 withTests)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
