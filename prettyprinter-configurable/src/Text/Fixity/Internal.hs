@@ -108,7 +108,7 @@ Parsing Mixfix Operators paper)
 
 4. Our system
 
-We allow unary operators to have associativity. It makes sense to render @-(-x)@ as @--x@ and it
+We allow unary operators to have associativity. It makes sense to render @-(-x)@ as @-(-x)@ and it
 makes sense to render @~(~x)@ as @~~x@ (where @~@is boolean NOT). It really should be configurable
 and associativity is one way to configure how unary operators get pretty-printed. See docs of
 'FixityOver' for details.
