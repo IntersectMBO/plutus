@@ -22,8 +22,11 @@ mkIterApp = foldl AppE
 
       $(genTest 3 "xyz") -> makeProp3 "xyz" xyz paramXyz models
 
-   Note that we can supply extra arguments after the generated code if makePropN
-   requires them.  We use this when generating tests for makeProp2.
+   Appropriate variables/functions must be in scope when 'genTest' is called,
+   but this should always be the case if it's used inside the 'tests' list in
+   TestCostModels (and the error messages are very helpful if something goes
+   wrong).. Note that we can supply extra arguments after the generated code if
+   makePropN requires them: we use this when generating tests for makeProp2.
 -}
 genTest :: Int -> String -> Q Exp
 genTest n s =
