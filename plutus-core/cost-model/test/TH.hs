@@ -25,7 +25,7 @@ mkIterApp = foldl AppE
    Appropriate variables/functions must be in scope when 'genTest' is called,
    but this should always be the case if it's used inside the 'tests' list in
    TestCostModels (and the error messages are very helpful if something goes
-   wrong).. Note that we can supply extra arguments after the generated code if
+   wrong). Note that we can supply extra arguments after the generated code if
    makePropN requires them: we use this when generating tests for makeProp2.
 -}
 genTest :: Int -> String -> Q Exp
