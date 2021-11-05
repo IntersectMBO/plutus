@@ -38,6 +38,7 @@ module PlutusTx.Prelude (
     check,
     -- * Booleans
     module Bool,
+    module BoolTH,
     -- * Integer numbers
     Integer,
     divide,
@@ -84,6 +85,7 @@ import PlutusCore.Data (Data (..))
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
+import PlutusTx.Bool.TH as BoolTH
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
                           consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
                           equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
