@@ -36,6 +36,7 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."haskell-src-meta" or (errorHandler.buildDepError "haskell-src-meta"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."th-abstraction" or (errorHandler.buildDepError "th-abstraction"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -64,6 +65,7 @@
           "PlutusTx/Applicative"
           "PlutusTx/Base"
           "PlutusTx/Bool"
+          "PlutusTx/Bool/TH"
           "PlutusTx/IsData"
           "PlutusTx/IsData/Class"
           "PlutusTx/ErrorCodes"
