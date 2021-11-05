@@ -6,12 +6,12 @@
 
 module PlutusCore.Core.Instance.Pretty.Plc () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Instance.Pretty.Classic  ()
-import           PlutusCore.Core.Instance.Pretty.Readable ()
-import           PlutusCore.Core.Type
-import           PlutusCore.Pretty.Plc
+import PlutusCore.Core.Instance.Pretty.Classic ()
+import PlutusCore.Core.Instance.Pretty.Readable ()
+import PlutusCore.Core.Type
+import PlutusCore.Pretty.Plc
 
 deriving via PrettyAny (Kind ann)
     instance DefaultPrettyPlcStrategy (Kind ann) =>

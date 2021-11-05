@@ -11,16 +11,16 @@
 -- | Tests for the profiling machinery.
 
 module Plugin.Profiling.Spec where
-import           Common
-import           Lib               (goldenPir)
-import           PlcTestUtils      (ToUPlc (toUPlc), goldenUEvalProfile)
+import Common
+import Lib (goldenPir)
+import PlcTestUtils (ToUPlc (toUPlc), goldenUEvalProfile)
 
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Code     (CompiledCode)
-import           PlutusTx.Plugin   (plc)
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code (CompiledCode)
+import PlutusTx.Plugin (plc)
 
-import           Data.Proxy        (Proxy (Proxy))
-import           Prelude
+import Data.Proxy (Proxy (Proxy))
+import Prelude
 
 profiling :: TestNested
 profiling = testNested "Profiling" [

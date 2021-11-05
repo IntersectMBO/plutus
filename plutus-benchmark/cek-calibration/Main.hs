@@ -14,19 +14,19 @@ get an idea of the average cost of the basic CEK operations.
 module Main (main) where
 
 
-import qualified Prelude                                  as Haskell
+import Prelude qualified as Haskell
 
-import           PlutusCore
-import qualified PlutusCore.Pretty                        as PP
-import qualified PlutusTx                                 as Tx
-import           PlutusTx.Prelude                         as Tx
-import           UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import PlutusCore
+import PlutusCore.Pretty qualified as PP
+import PlutusTx qualified as Tx
+import PlutusTx.Prelude as Tx
+import UntypedPlutusCore as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.Exception
-import           Control.Monad.Except
-import           Criterion.Main
-import qualified Criterion.Types                          as C
+import Control.Exception
+import Control.Monad.Except
+import Criterion.Main
+import Criterion.Types qualified as C
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 

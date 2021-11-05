@@ -1,11 +1,11 @@
 module Sort.Spec (tests) where
 
-import           Test.Tasty
-import           Test.Tasty.QuickCheck
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common     (Term, cekResultMatchesHaskellValue)
+import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
 
-import qualified PlutusBenchmark.Lists.Sort as Sort
+import PlutusBenchmark.Lists.Sort qualified as Sort
 
 isSorted :: Ord a => [a] -> Bool
 isSorted []       = True

@@ -13,27 +13,27 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusTx.Lift.Instances () where
 
-import qualified PlutusCore                 as PLC
+import PlutusCore qualified as PLC
 
-import           PlutusCore.Data
-import           PlutusTx.Builtins
-import           PlutusTx.Builtins.Internal (BuiltinList)
-import           PlutusTx.Lift.Class
+import PlutusCore.Data
+import PlutusTx.Builtins
+import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Lift.Class
 
 
-import           PlutusIR
-import           PlutusIR.MkPir
+import PlutusIR
+import PlutusIR.MkPir
 
-import qualified Data.ByteString            as BS
-import qualified Data.Kind                  as GHC
-import           Data.Proxy
-import qualified Data.Text                  as Text
+import Data.ByteString qualified as BS
+import Data.Kind qualified as GHC
+import Data.Proxy
+import Data.Text qualified as Text
 
-import           GHC.TypeLits               (ErrorMessage (..), TypeError)
+import GHC.TypeLits (ErrorMessage (..), TypeError)
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           PlutusTx.Builtins.Class    (FromBuiltin)
-import           Prelude                    as Haskell
+import PlutusTx.Builtins.Class (FromBuiltin)
+import Prelude as Haskell
 
 -- Derived instances
 

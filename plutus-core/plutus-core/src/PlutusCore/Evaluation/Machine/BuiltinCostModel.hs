@@ -37,18 +37,18 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     )
 where
 
-import           PlutusPrelude                          hiding (toList)
+import PlutusPrelude hiding (toList)
 
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
 
-import           Barbies
-import           Data.Aeson
-import           Data.Default.Class
-import           Data.Hashable
-import qualified Data.Kind                              as Kind
-import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax             hiding (Name, newName)
+import Barbies
+import Data.Aeson
+import Data.Default.Class
+import Data.Hashable
+import Data.Kind qualified as Kind
+import Deriving.Aeson
+import Language.Haskell.TH.Syntax hiding (Name, newName)
 
 type BuiltinCostModel = BuiltinCostModelBase CostingFun
 

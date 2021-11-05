@@ -8,26 +8,26 @@
 
 module PlutusTx.Compiler.Types where
 
-import           PlutusTx.Compiler.Error
-import           PlutusTx.PLCTypes
+import PlutusTx.Compiler.Error
+import PlutusTx.PLCTypes
 
-import           PlutusIR.Compiler.Definitions
+import PlutusIR.Compiler.Definitions
 
-import qualified PlutusCore.Constant           as PLC
-import qualified PlutusCore.Default            as PLC
-import           PlutusCore.Quote
+import PlutusCore.Constant qualified as PLC
+import PlutusCore.Default qualified as PLC
+import PlutusCore.Quote
 
-import qualified FamInstEnv                    as GHC
-import qualified GhcPlugins                    as GHC
+import FamInstEnv qualified as GHC
+import GhcPlugins qualified as GHC
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.List.NonEmpty            as NE
-import qualified Data.Map                      as Map
-import qualified Data.Set                      as Set
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
+import Data.Set qualified as Set
 
-import qualified Language.Haskell.TH.Syntax    as TH
+import Language.Haskell.TH.Syntax qualified as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 

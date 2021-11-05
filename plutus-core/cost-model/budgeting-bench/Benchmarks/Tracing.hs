@@ -1,12 +1,12 @@
 module Benchmarks.Tracing (makeBenchmarks) where
 
-import           PlutusCore
+import PlutusCore
 
-import           Common
-import           Generators
+import Common
+import Generators
 
-import           Criterion.Main
-import           System.Random  (StdGen)
+import Criterion.Main
+import System.Random (StdGen)
 
 
 -- We expect tracing (with a null emitter) to be constant time, but generate

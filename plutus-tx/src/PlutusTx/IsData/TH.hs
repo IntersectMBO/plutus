@@ -1,22 +1,22 @@
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
-import           Data.Foldable
-import           Data.Traversable
+import Data.Foldable
+import Data.Traversable
 
-import qualified Language.Haskell.TH          as TH
-import qualified Language.Haskell.TH.Datatype as TH
-import           PlutusTx.ErrorCodes
+import Language.Haskell.TH qualified as TH
+import Language.Haskell.TH.Datatype qualified as TH
+import PlutusTx.ErrorCodes
 
-import qualified PlutusTx.Applicative         as PlutusTx
+import PlutusTx.Applicative qualified as PlutusTx
 
-import           PlutusTx.Builtins            as Builtins
-import qualified PlutusTx.Builtins.Internal   as BI
-import           PlutusTx.IsData.Class
-import           PlutusTx.Trace               (traceError)
+import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.IsData.Class
+import PlutusTx.Trace (traceError)
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude                      as Haskell
+import Prelude as Haskell
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
@@ -123,12 +123,12 @@ defaultIndex name = do
     info <- TH.reifyDatatype name
     pure $ zip (TH.constructorName <$> TH.datatypeCons info) [0..]
 
--- | Generate an 'IsData' instance for a type. This may not be stable in the face of constructor additions, renamings,
--- etc. Use 'makeIsDataIndexed' if you need stability.
+-- | Generate a 'FromData' and a 'ToData' instance for a type. This may not be stable in the face of constructor additions,
+-- renamings, etc. Use 'makeIsDataIndexed' if you need stability.
 unstableMakeIsData :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 
--- | Generate an 'IsData' instance for a type, using an explicit mapping of constructor names to indices. Use
+-- | Generate a 'FromData' and a 'ToData' instance for a type, using an explicit mapping of constructor names to indices. Use
 -- this for types where you need to keep the representation stable.
 makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
 makeIsDataIndexed name indices = do

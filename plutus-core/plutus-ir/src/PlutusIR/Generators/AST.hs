@@ -13,16 +13,16 @@ module PlutusIR.Generators.AST
     , genRecursivity
     ) where
 
-import           PlutusIR
+import PlutusIR
 
-import qualified PlutusCore.Default        as PLC
-import           PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion, runAstGen,
-                                                      simpleRecursive)
-import qualified PlutusCore.Generators.AST as PLC
+import PlutusCore.Default qualified as PLC
+import PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion, runAstGen,
+                                            simpleRecursive)
+import PlutusCore.Generators.AST qualified as PLC
 
-import           Hedgehog                  hiding (Var)
-import qualified Hedgehog.Gen              as Gen
-import qualified Hedgehog.Range            as Range
+import Hedgehog hiding (Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 
 genName :: PLC.AstGen Name
 genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where

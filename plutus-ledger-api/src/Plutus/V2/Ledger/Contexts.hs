@@ -52,27 +52,27 @@ module Plutus.V2.Ledger.Contexts
     , fromSymbol
     ) where
 
-import           GHC.Generics                (Generic)
-import           PlutusTx
-import           PlutusTx.AssocMap           hiding (filter, mapMaybe)
-import           PlutusTx.Prelude            hiding (toList)
-import           Prettyprinter               (Pretty (..), nest, vsep, (<+>))
+import GHC.Generics (Generic)
+import PlutusTx
+import PlutusTx.AssocMap hiding (filter, mapMaybe)
+import PlutusTx.Prelude hiding (toList)
+import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
-import           Plutus.V1.Ledger.Ada        (Ada)
-import qualified Plutus.V1.Ledger.Ada        as Ada
-import           Plutus.V1.Ledger.Address    (Address (..))
-import           Plutus.V1.Ledger.Bytes      (LedgerBytes (..))
-import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
-import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..))
-import           Plutus.V1.Ledger.DCert      (DCert (..))
-import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Time       (POSIXTimeRange)
-import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value      (CurrencySymbol, Value)
-import qualified Prelude                     as Haskell
+import Plutus.V1.Ledger.Ada (Ada)
+import Plutus.V1.Ledger.Ada qualified as Ada
+import Plutus.V1.Ledger.Address (Address (..))
+import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
+import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
+import Plutus.V1.Ledger.Crypto (PubKey (..), PubKeyHash (..), Signature (..))
+import Plutus.V1.Ledger.DCert (DCert (..))
+import Plutus.V1.Ledger.Scripts
+import Plutus.V1.Ledger.Time (POSIXTimeRange)
+import Plutus.V1.Ledger.TxId
+import Plutus.V1.Ledger.Value (CurrencySymbol, Value)
+import Prelude qualified as Haskell
 
-import           Plutus.V1.Ledger.Contexts   (ScriptPurpose (..), TxInInfo (..), TxOut (..), TxOutRef (..), fromSymbol,
-                                              pubKeyOutput)
+import Plutus.V1.Ledger.Contexts (ScriptPurpose (..), TxInInfo (..), TxOut (..), TxOutRef (..), fromSymbol,
+                                  pubKeyOutput)
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
@@ -151,7 +151,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
 {-# INLINABLE findContinuingOutputs #-}
--- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
+-- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
@@ -159,6 +159,7 @@ findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} 
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
+-- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where

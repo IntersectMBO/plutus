@@ -1,11 +1,11 @@
 module Main where
 
-import           PlutusCore.DataFilePaths
+import PlutusCore.DataFilePaths
 
-import           Data.Aeson.Encode.Pretty
-import qualified Data.ByteString.Lazy     as BSL
+import Data.Aeson.Encode.Pretty
+import Data.ByteString.Lazy qualified as BSL
 
-import           CostModelCreation
+import CostModelCreation
 
 {- See Note [Creation of the Cost Model]
 -}

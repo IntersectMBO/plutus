@@ -60,39 +60,38 @@ module Plutus.V1.Ledger.Scripts(
     unitDatum,
     ) where
 
-import qualified Prelude                                  as Haskell
+import Prelude qualified as Haskell
 
-import           Codec.CBOR.Decoding                      (decodeBytes)
-import           Codec.Serialise                          (Serialise, decode, encode, serialise)
-import           Control.DeepSeq                          (NFData)
-import           Control.Monad.Except                     (MonadError, runExceptT, throwError)
-import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                               as JSON
-import qualified Data.Aeson.Extras                        as JSON
-import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Hashable                            (Hashable)
-import           Data.String
-import           Data.Text                                (Text)
-import qualified Flat
-import           GHC.Generics                             (Generic)
-import           Plutus.V1.Ledger.Bytes                   (LedgerBytes (..))
-import           Plutus.V1.Ledger.Orphans                 ()
-import qualified PlutusCore                               as PLC
-import qualified PlutusCore.Data                          as PLC
-import qualified PlutusCore.DeBruijn                      as PLC
-import qualified PlutusCore.Evaluation.Machine.ExBudget   as PLC
-import qualified PlutusCore.MkPlc                         as PLC
-import           PlutusTx                                 (CompiledCode, FromData (..), ToData (..),
-                                                           UnsafeFromData (..), getPlc, makeLift)
-import           PlutusTx.Builtins                        as Builtins
-import           PlutusTx.Builtins.Internal               as BI
-import           PlutusTx.Evaluation                      (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
-import           PlutusTx.Prelude
-import           Prettyprinter
-import           Prettyprinter.Extras
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import Codec.CBOR.Decoding (decodeBytes)
+import Codec.Serialise (Serialise, decode, encode, serialise)
+import Control.DeepSeq (NFData)
+import Control.Monad.Except (MonadError, runExceptT, throwError)
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import Data.Aeson qualified as JSON
+import Data.Aeson.Extras qualified as JSON
+import Data.ByteArray qualified as BA
+import Data.ByteString.Lazy qualified as BSL
+import Data.Hashable (Hashable)
+import Data.String
+import Data.Text (Text)
+import Flat qualified
+import GHC.Generics (Generic)
+import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
+import Plutus.V1.Ledger.Orphans ()
+import PlutusCore qualified as PLC
+import PlutusCore.Data qualified as PLC
+import PlutusCore.DeBruijn qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusTx (CompiledCode, FromData (..), ToData (..), UnsafeFromData (..), getPlc, makeLift)
+import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins.Internal as BI
+import PlutusTx.Evaluation (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import PlutusTx.Prelude
+import Prettyprinter
+import Prettyprinter.Extras
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }

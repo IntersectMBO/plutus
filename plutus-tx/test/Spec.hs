@@ -3,26 +3,26 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
-import qualified Codec.CBOR.FlatTerm as FlatTerm
-import           Codec.Serialise     (deserialiseOrFail, serialise)
-import qualified Codec.Serialise     as Serialise
-import           Control.Exception   (ErrorCall, catch)
-import qualified Data.ByteString     as BS
-import           Data.Either         (isLeft)
-import           Data.Word
-import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
-import qualified Hedgehog.Gen        as Gen
-import qualified Hedgehog.Range      as Range
-import           PlutusCore.Data     (Data (..))
-import           PlutusTx.List       (nub, nubBy)
-import           PlutusTx.Numeric    (negate)
-import           PlutusTx.Prelude    (dropByteString, takeByteString)
-import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (%))
-import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
-import           Prelude             hiding (Rational, negate, recip)
-import           Test.Tasty
-import           Test.Tasty.HUnit    (Assertion, testCase, (@?=))
-import           Test.Tasty.Hedgehog (testProperty)
+import Codec.CBOR.FlatTerm qualified as FlatTerm
+import Codec.Serialise (deserialiseOrFail, serialise)
+import Codec.Serialise qualified as Serialise
+import Control.Exception (ErrorCall, catch)
+import Data.ByteString qualified as BS
+import Data.Either (isLeft)
+import Data.Word
+import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import PlutusCore.Data (Data (..))
+import PlutusTx.List (nub, nubBy)
+import PlutusTx.Numeric (negate)
+import PlutusTx.Prelude (dropByteString, takeByteString)
+import PlutusTx.Ratio (Rational, denominator, numerator, recip, (%))
+import PlutusTx.Sqrt (Sqrt (..), isqrt, rsqrt)
+import Prelude hiding (Rational, negate, recip)
+import Test.Tasty
+import Test.Tasty.HUnit (Assertion, testCase, (@?=))
+import Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
 main = defaultMain tests

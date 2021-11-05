@@ -1,7 +1,7 @@
 module Solver where
 
-import           AlgTypes
-import qualified Data.Set as S
+import AlgTypes
+import Data.Set qualified as S
 
 -----------------------------------------------------
 -- Identifying Systems of Mutually Recursive Types --

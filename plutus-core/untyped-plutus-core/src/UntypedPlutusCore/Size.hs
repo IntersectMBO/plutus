@@ -6,10 +6,10 @@ module UntypedPlutusCore.Size
     , serialisedSize
     ) where
 
-import           UntypedPlutusCore.Core
+import UntypedPlutusCore.Core
 
-import qualified Data.ByteString        as BS
-import           Flat
+import Data.ByteString qualified as BS
+import Flat
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term name uni fun ann -> Integer

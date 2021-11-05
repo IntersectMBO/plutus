@@ -11,14 +11,14 @@ module PlutusCore.Size
     , serialisedSize
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
+import PlutusCore.Core
 
-import           Control.Lens
-import qualified Data.ByteString as BS
-import           Data.Monoid
-import           Flat            hiding (to)
+import Control.Lens
+import Data.ByteString qualified as BS
+import Data.Monoid
+import Flat hiding (to)
 
 newtype Size = Size
     { unSize :: Integer

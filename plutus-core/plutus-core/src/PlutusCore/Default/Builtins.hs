@@ -15,26 +15,26 @@
 
 module PlutusCore.Default.Builtins where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Data
-import           PlutusCore.Default.Universe
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Pretty
+import PlutusCore.Constant
+import PlutusCore.Data
+import PlutusCore.Default.Universe
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty
 
-import           Crypto
-import qualified Data.ByteString                                as BS
-import qualified Data.ByteString.Hash                           as Hash
-import           Data.Char
-import           Data.Ix
-import           Data.Text                                      (Text)
-import           Data.Text.Encoding                             (decodeUtf8', encodeUtf8)
-import           Flat                                           hiding (from, to)
-import           Flat.Decoder
-import           Flat.Encoder                                   as Flat
+import Crypto
+import Data.ByteString qualified as BS
+import Data.ByteString.Hash qualified as Hash
+import Data.Char
+import Data.Ix
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Flat hiding (from, to)
+import Flat.Decoder
+import Flat.Encoder as Flat
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?

@@ -10,16 +10,16 @@
 
 module PlutusCore.Examples.Data.Vec where
 
-import           PlutusCore.Core
-import           PlutusCore.Default.Builtins
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default.Builtins
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.Unit
 
-import           Universe
+import Universe
 
 -- |
 --

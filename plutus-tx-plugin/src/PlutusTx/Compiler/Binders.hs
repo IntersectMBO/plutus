@@ -4,17 +4,17 @@
 -- | Convenient functions for compiling binders.
 module PlutusTx.Compiler.Binders where
 
-import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Types
-import           PlutusTx.PIRTypes
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Types
+import PlutusTx.PIRTypes
 
-import qualified GhcPlugins              as GHC
+import GhcPlugins qualified as GHC
 
-import qualified PlutusIR                as PIR
+import PlutusIR qualified as PIR
 
-import           Control.Monad.Reader
+import Control.Monad.Reader
 
-import           Data.Traversable
+import Data.Traversable
 
 -- Binder helpers
 

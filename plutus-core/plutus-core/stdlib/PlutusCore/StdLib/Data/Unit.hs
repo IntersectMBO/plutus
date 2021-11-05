@@ -10,12 +10,12 @@ module PlutusCore.StdLib.Data.Unit
     , sequ
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Universe
+import Universe
 
 -- | '()' as a PLC type.
 unit :: uni `Includes` () => Type TyName uni ()

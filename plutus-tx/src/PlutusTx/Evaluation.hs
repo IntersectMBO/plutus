@@ -15,18 +15,18 @@ module PlutusTx.Evaluation
     )
 where
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-import           PlutusCore.Name
+import PlutusCore qualified as PLC
+import PlutusCore.Default
+import PlutusCore.Name
 
-import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore
+import UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
-import           Data.Text                                (Text)
+import Data.Text (Text)
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude                                  as Haskell
+import Prelude as Haskell
 
 -- | Evaluate a program in the CEK machine with the usual text dynamic builtins.
 evaluateCek

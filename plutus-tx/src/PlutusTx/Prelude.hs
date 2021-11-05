@@ -79,36 +79,35 @@ module PlutusTx.Prelude (
     toBuiltin
     ) where
 
-import           Data.String          (IsString (..))
-import           PlutusCore.Data      (Data (..))
-import           PlutusTx.Applicative as Applicative
-import           PlutusTx.Base        as Base
-import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString,
-                                       appendString, consByteString, decodeUtf8, emptyByteString, emptyString,
-                                       encodeUtf8, equalsByteString, equalsString, error, fromBuiltin,
-                                       greaterThanByteString, indexByteString, lengthOfByteString, lessThanByteString,
-                                       sha2_256, sha3_256, sliceByteString, toBuiltin, trace, verifySignature)
-import qualified PlutusTx.Builtins    as Builtins
-import           PlutusTx.Either      as Either
-import           PlutusTx.Enum        as Enum
-import           PlutusTx.Eq          as Eq
-import           PlutusTx.ErrorCodes
-import           PlutusTx.Foldable    as Foldable
-import           PlutusTx.Functor     as Functor
-import           PlutusTx.IsData
-import           PlutusTx.Lattice     as Lattice
-import           PlutusTx.List        as List hiding (foldr)
-import           PlutusTx.Maybe       as Maybe
-import           PlutusTx.Monoid      as Monoid
-import           PlutusTx.Numeric     as Numeric
-import           PlutusTx.Ord         as Ord
-import           PlutusTx.Ratio       as Ratio
-import           PlutusTx.Semigroup   as Semigroup
-import           PlutusTx.Trace       as Trace
-import           PlutusTx.Traversable as Traversable
+import Data.String (IsString (..))
+import PlutusCore.Data (Data (..))
+import PlutusTx.Applicative as Applicative
+import PlutusTx.Base as Base
+import PlutusTx.Bool as Bool
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
+                          consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
+                          equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
+                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace, verifySignature)
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Either as Either
+import PlutusTx.Enum as Enum
+import PlutusTx.Eq as Eq
+import PlutusTx.ErrorCodes
+import PlutusTx.Foldable as Foldable
+import PlutusTx.Functor as Functor
+import PlutusTx.IsData
+import PlutusTx.Lattice as Lattice
+import PlutusTx.List as List hiding (foldr)
+import PlutusTx.Maybe as Maybe
+import PlutusTx.Monoid as Monoid
+import PlutusTx.Numeric as Numeric
+import PlutusTx.Ord as Ord
+import PlutusTx.Ratio as Ratio
+import PlutusTx.Semigroup as Semigroup
+import PlutusTx.Trace as Trace
+import PlutusTx.Traversable as Traversable
 
-import qualified Prelude              as Haskell (return, (=<<), (>>), (>>=))
+import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}

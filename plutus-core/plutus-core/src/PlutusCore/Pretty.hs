@@ -58,13 +58,13 @@ module PlutusCore.Pretty
     , prettyConst
     ) where
 
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.ConfigName
-import           PlutusCore.Pretty.Default
-import           PlutusCore.Pretty.Plc
-import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Pretty.Readable
-import           PlutusCore.Pretty.Utils
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.Default
+import PlutusCore.Pretty.Plc
+import PlutusCore.Pretty.PrettyConst
+import PlutusCore.Pretty.Readable
+import PlutusCore.Pretty.Utils
 
-import           Text.Pretty
-import           Text.PrettyBy
+import Text.Pretty
+import Text.PrettyBy

@@ -9,11 +9,11 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
     )
 where
 
-import           PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudget
 
-import qualified Data.Text                              as Text
-import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax             (Lift)
+import Data.Text qualified as Text
+import Deriving.Aeson
+import Language.Haskell.TH.Syntax (Lift)
 
 
 -- | The prefix of the field names in the CekMachineCosts type, used for

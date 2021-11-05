@@ -29,13 +29,12 @@ import           Language.R                                     as R (R, SomeSEX
                                                                       runRegion, unsafeRunRegion, withEmbeddedR)
 import           Language.R.QQ                                  (r)
 
-import           Hedgehog                                       (Gen, Group (..), Property, PropertyName, PropertyT,
+import Hedgehog                                       (Gen, Group (..), Property, PropertyName, PropertyT,
                                                                  TestLimit, checkSequential, diff, forAll, property,
                                                                  withTests)
-import qualified Hedgehog.Gen                                   as Gen
-import qualified Hedgehog.Main                                  as HH (defaultMain)
-import qualified Hedgehog.Range                                 as Range
-
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Main qualified as HH (defaultMain)
+import Hedgehog.Range qualified as Range
 
 {- | This module is supposed to test that the R cost models for built-in functions
    defined in BuiltinCostModel.hs produce the same results as the Haskell

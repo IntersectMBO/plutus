@@ -28,27 +28,27 @@ module PlutusCore.Generators.NEAT.Spec
   , handleError
   ) where
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Generators.NEAT.Common
-import           PlutusCore.Generators.NEAT.Term
-import           PlutusCore.Normalize
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Generators.NEAT.Common
+import PlutusCore.Generators.NEAT.Term
+import PlutusCore.Normalize
+import PlutusCore.Pretty
 
-import qualified UntypedPlutusCore                        as U
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
+import UntypedPlutusCore qualified as U
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import           Control.Monad.Except
-import           Control.Search                           (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                             (Cool, toCool, (!=>))
-import           Data.Either
-import           Data.Maybe
-import qualified Data.Stream                              as Stream
-import qualified Data.Text                                as Text
-import           System.IO.Unsafe
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Text.Printf
+import Control.Monad.Except
+import Control.Search (Enumerable (..), Options (..), ctrex', search')
+import Data.Coolean (Cool, toCool, (!=>))
+import Data.Either
+import Data.Maybe
+import Data.Stream qualified as Stream
+import Data.Text qualified as Text
+import System.IO.Unsafe
+import Test.Tasty
+import Test.Tasty.HUnit
+import Text.Printf
 
 -- * Property-based tests
 

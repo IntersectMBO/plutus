@@ -14,22 +14,22 @@
 
 module Benchmarks.Nops (makeBenchmarks) where
 
-import           Common
-import           Generators                                      (randNwords)
+import Common
+import Generators (randNwords)
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel  hiding (BuiltinCostModel)
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Pretty
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Pretty
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.DeepSeq                                 (NFData)
-import           Criterion.Main
-import           Data.Char                                       (toLower)
-import           Data.Ix                                         (Ix)
-import           GHC.Generics                                    (Generic)
-import           System.Random                                   (StdGen)
+import Control.DeepSeq (NFData)
+import Criterion.Main
+import Data.Char (toLower)
+import Data.Ix (Ix)
+import GHC.Generics (Generic)
+import System.Random (StdGen)
 
 data NopFuns
     = Nop1
@@ -93,7 +93,7 @@ nopCostParameters = toMachineParameters $ CostModel defaultCekMachineCosts nopCo
    arguments.  We have checked this and there there was no dependence: let's
    leave open the possibility of doing it again in case anything changes.
 -}
-instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
+instance KnownBuiltinTypeIn uni Integer => ToBuiltinMeaning uni NopFuns where
     type CostingPart uni NopFuns = NopCostModel
     toBuiltinMeaning
         :: HasConstantIn uni term

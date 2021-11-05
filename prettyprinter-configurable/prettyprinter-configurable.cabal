@@ -13,23 +13,24 @@ category:            User Interfaces, Text
 build-type:          Custom
 extra-source-files:  README.md
 
-custom-setup
-    setup-depends:
-        base,
-        Cabal,
-        cabal-doctest
-
 common lang
     default-language: Haskell2010
     default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -Wnoncanonical-monoid-instances
                  -Wunused-packages
+
+custom-setup
+    setup-depends:
+        base,
+        Cabal,
+        cabal-doctest
 
 library
     import: lang

@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Data.Functor
-import           Distribution.Simple
-import           Distribution.Simple.Setup
-import           Distribution.Types.HookedBuildInfo
-import           Distribution.Types.LocalBuildInfo
-import           Distribution.Types.PackageDescription
-import           Turtle
+import Data.Functor
+import Distribution.Simple
+import Distribution.Simple.Setup
+import Distribution.Types.HookedBuildInfo
+import Distribution.Types.LocalBuildInfo
+import Distribution.Types.PackageDescription
+import Turtle
 
 main :: IO ()
 main = defaultMainWithHooks userhooks

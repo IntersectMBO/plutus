@@ -4,8 +4,8 @@
 
 module AlgTypes where
 
-import qualified Data.Set      as S
-import           Language.LBNF
+import Data.Set qualified as S
+import Language.LBNF
 
 -------------------------------------
 -- Parser for Algebraic Data Types --

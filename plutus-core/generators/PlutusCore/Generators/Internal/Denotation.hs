@@ -3,6 +3,7 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeOperators             #-}
 
 module PlutusCore.Generators.Internal.Denotation
@@ -15,17 +16,17 @@ module PlutusCore.Generators.Internal.Denotation
     , typedBuiltins
     ) where
 
-import           PlutusCore.Generators.Internal.Dependent
+import PlutusCore.Generators.Internal.Dependent
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Name
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Name
 
-import           Data.Dependent.Map                       (DMap)
-import qualified Data.Dependent.Map                       as DMap
-import           Data.Functor.Compose
-import           Data.Proxy
+import Data.Dependent.Map (DMap)
+import Data.Dependent.Map qualified as DMap
+import Data.Functor.Compose
+import Data.Proxy
 
 -- | Haskell denotation of a PLC object. An object can be a 'Builtin' or a variable for example.
 data Denotation term object res = forall args. Denotation
@@ -100,7 +101,7 @@ insertBuiltin
 insertBuiltin fun =
     case toBuiltinMeaning fun of
         BuiltinMeaning sch meta _ ->
-           case typeSchemeResult sch of
+           case typeSchemeResult @(Term TyName Name DefaultUni DefaultFun ()) sch of
                AsKnownType ->
                    insertDenotation $ Denotation fun (Builtin ()) meta sch
 

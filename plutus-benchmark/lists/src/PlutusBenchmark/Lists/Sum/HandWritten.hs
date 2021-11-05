@@ -2,13 +2,13 @@
 
 module PlutusBenchmark.Lists.Sum.HandWritten where
 
-import           PlutusBenchmark.Common           (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified PlutusCore.StdLib.Data.List      as BuiltinList
-import qualified PlutusCore.StdLib.Data.ScottList as ScottList
-import qualified PlutusTx                         as Tx
-import qualified PlutusTx.Builtins.Internal       as BI
-import qualified UntypedPlutusCore                as UPLC
+import PlutusCore.StdLib.Data.List qualified as BuiltinList
+import PlutusCore.StdLib.Data.ScottList qualified as ScottList
+import PlutusTx qualified as Tx
+import PlutusTx.Builtins.Internal qualified as BI
+import UntypedPlutusCore qualified as UPLC
 
 
 ---------------- Hand-written folds, using stuff from PlutusCore.StdLib.Data  ----------------

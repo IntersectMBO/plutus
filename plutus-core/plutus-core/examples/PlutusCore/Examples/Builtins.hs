@@ -16,24 +16,24 @@
 
 module PlutusCore.Examples.Builtins where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.ScottList        as Plc
+import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
-import           Control.Exception
-import           Data.Either
-import           Data.Hashable                           (Hashable)
-import qualified Data.Kind                               as GHC (Type)
-import           Data.Proxy
-import           Data.Tuple
-import           Data.Void
-import           GHC.Generics
-import           GHC.Ix
-import           Prettyprinter
+import Control.Exception
+import Data.Either
+import Data.Hashable (Hashable)
+import Data.Kind qualified as GHC (Type)
+import Data.Proxy
+import Data.Tuple
+import Data.Void
+import GHC.Generics
+import GHC.Ix
+import Prettyprinter
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -137,11 +137,17 @@ instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
+class    Ignore a
+instance Ignore a
+
 instance KnownTypeAst DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
-instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
+instance KnownTypeIn DefaultUni Void where
+    -- Values of type @Void@ (none of them) are not embedded as constants and so we don't need to
+    -- require anything from @term@.
+    type AssociateTerm DefaultUni Void = Ignore
     makeKnown _ = absurd
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 

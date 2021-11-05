@@ -4,11 +4,11 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusTx.Numeric (AdditiveSemigroup (..), AdditiveMonoid (..), AdditiveGroup (..), negate, Additive (..), MultiplicativeSemigroup (..), MultiplicativeMonoid (..), Multiplicative (..), Semiring, Ring, Module (..)) where
 
-import           Data.Semigroup     (Product (..), Sum (..))
-import           PlutusTx.Bool
-import           PlutusTx.Builtins
-import           PlutusTx.Monoid
-import           PlutusTx.Semigroup
+import Data.Semigroup (Product (..), Sum (..))
+import PlutusTx.Bool
+import PlutusTx.Builtins
+import PlutusTx.Monoid
+import PlutusTx.Semigroup
 
 infixl 7 *
 infixl 6 +, -

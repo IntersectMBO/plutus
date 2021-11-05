@@ -8,8 +8,8 @@ module UntypedPlutusCore.Core.Instance.Recursive
       TermF (..)
     ) where
 
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Type
 
-import           Data.Functor.Foldable.TH
+import Data.Functor.Foldable.TH
 
 $(makeBaseFunctor ''Term)

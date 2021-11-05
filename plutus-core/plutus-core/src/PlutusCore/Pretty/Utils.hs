@@ -4,12 +4,12 @@ module PlutusCore.Pretty.Utils
     ( prettyBytes
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import qualified Data.ByteString        as BS
-import qualified Data.Text              as T
-import           Numeric                (showHex)
-import           Prettyprinter.Internal
+import Data.ByteString qualified as BS
+import Data.Text qualified as T
+import Numeric (showHex)
+import Prettyprinter.Internal
 
 asBytes :: Word8 -> Doc ann
 asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty

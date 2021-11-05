@@ -6,14 +6,14 @@ module PlutusCore.Normalize
     , normalizeTypesInProgram
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-import           PlutusCore.Normalize.Internal
-import           PlutusCore.Quote
-import           PlutusCore.Rename
+import PlutusCore.Core
+import PlutusCore.Name
+import PlutusCore.Normalize.Internal
+import PlutusCore.Quote
+import PlutusCore.Rename
 
-import           Control.Monad                 ((>=>))
-import           Universe
+import Control.Monad ((>=>))
+import Universe
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.

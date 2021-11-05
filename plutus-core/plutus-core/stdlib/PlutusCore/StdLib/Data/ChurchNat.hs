@@ -8,10 +8,10 @@ module PlutusCore.StdLib.Data.ChurchNat
     , churchSucc
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
 -- | Church-encoded @Nat@ as a PLC type.
 --

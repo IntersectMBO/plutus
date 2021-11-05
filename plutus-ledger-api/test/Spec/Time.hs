@@ -3,15 +3,15 @@
 
 module Spec.Time where
 
-import           Data.Aeson            (decode, encode)
-import           Plutus.V1.Ledger.Time
+import Data.Aeson (decode, encode)
+import Plutus.V1.Ledger.Time
 
-import           Hedgehog              (Property, forAll, property)
-import qualified Hedgehog
-import qualified Hedgehog.Gen          as Gen
-import qualified Hedgehog.Range        as Range
-import           Test.Tasty            (TestTree, testGroup)
-import           Test.Tasty.Hedgehog   (testProperty)
+import Hedgehog (Property, forAll, property)
+import Hedgehog qualified
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Hedgehog (testProperty)
 
 invPropJson :: Property
 invPropJson = property $ do

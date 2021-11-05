@@ -5,15 +5,15 @@
 
 module UntypedPlutusCore.Core.Instance.Eq where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Type
 
-import           PlutusCore.Eq
-import           PlutusCore.Name
-import           PlutusCore.Rename.Monad
+import PlutusCore.Eq
+import PlutusCore.Name
+import PlutusCore.Rename.Monad
 
-import           Universe
+import Universe
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
             Eq (Term name uni fun ann) where

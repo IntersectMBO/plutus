@@ -14,14 +14,14 @@ module PlutusCore.Core.Instance.Eq
     , eqProgramM
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Type
-import           PlutusCore.Eq
-import           PlutusCore.Name
-import           PlutusCore.Rename.Monad
+import PlutusCore.Core.Type
+import PlutusCore.Eq
+import PlutusCore.Name
+import PlutusCore.Rename.Monad
 
-import           Universe
+import Universe
 
 -- See Note [Annotations and equality].
 

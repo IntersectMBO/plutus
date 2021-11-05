@@ -23,41 +23,41 @@ module PlutusTx.Lift.Class
     , LiftError (..)
     ) where
 
-import           PlutusTx.Lift.THUtils
+import PlutusTx.Lift.THUtils
 
-import           PlutusIR
-import           PlutusIR.Compiler.Definitions
-import           PlutusIR.Compiler.Names
-import           PlutusIR.MkPir
+import PlutusIR
+import PlutusIR.Compiler.Definitions
+import PlutusIR.Compiler.Names
+import PlutusIR.MkPir
 
-import qualified PlutusCore.Default            as PLC
-import qualified PlutusCore.MkPlc              as PLC
-import           PlutusCore.Quote
+import PlutusCore.Default qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Quote
 
-import           Control.Monad.Except          hiding (lift)
-import           Control.Monad.Reader          hiding (lift)
-import           Control.Monad.State           hiding (lift)
-import qualified Control.Monad.Trans           as Trans
+import Control.Monad.Except hiding (lift)
+import Control.Monad.Reader hiding (lift)
+import Control.Monad.State hiding (lift)
+import Control.Monad.Trans qualified as Trans
 
-import qualified Language.Haskell.TH           as TH
-import qualified Language.Haskell.TH.Datatype  as TH
-import qualified Language.Haskell.TH.Syntax    as TH
+import Language.Haskell.TH qualified as TH
+import Language.Haskell.TH.Datatype qualified as TH
+import Language.Haskell.TH.Syntax qualified as TH
 
-import qualified Data.Map                      as Map
-import qualified Data.Set                      as Set
+import Data.Map qualified as Map
+import Data.Set qualified as Set
 
-import qualified Control.Exception             as Prelude (Exception, throw)
-import           Data.Foldable
-import           Data.List                     (sortBy)
-import           Data.Maybe
-import           Data.Proxy
-import qualified Data.Text                     as T
-import           Data.Traversable
-import           ErrorCode
-import qualified Prettyprinter                 as PP
+import Control.Exception qualified as Prelude (Exception, throw)
+import Data.Foldable
+import Data.List (sortBy)
+import Data.Maybe
+import Data.Proxy
+import Data.Text qualified as T
+import Data.Traversable
+import ErrorCode
+import Prettyprinter qualified as PP
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude                       as Haskell
+import Prelude as Haskell
 
 {- Note [Compiling at TH time and runtime]
 We want to reuse PIR's machinery for defining datatypes. However, one cannot

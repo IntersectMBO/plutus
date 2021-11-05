@@ -1,12 +1,12 @@
 module Sum.Spec (tests) where
 
-import           Test.Tasty
-import           Test.Tasty.QuickCheck
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common                (Term, cekResultMatchesHaskellValue)
+import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
 
-import qualified PlutusBenchmark.Lists.Sum.Compiled    as Compiled
-import qualified PlutusBenchmark.Lists.Sum.HandWritten as HandWritten
+import PlutusBenchmark.Lists.Sum.Compiled qualified as Compiled
+import PlutusBenchmark.Lists.Sum.HandWritten qualified as HandWritten
 
 -- | Check that the various summation functions all give the same result as 'sum'
 

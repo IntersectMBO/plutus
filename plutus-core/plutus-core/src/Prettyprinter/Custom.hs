@@ -6,7 +6,7 @@ module Prettyprinter.Custom ( brackets'
                                         , sexp
                                         ) where
 
-import           Prettyprinter
+import Prettyprinter
 
 -- | An area bracketed by two delimiters. When on multiple lines the delimiters are not indented but the content is.
 section' :: Doc a -> Doc a -> Doc a -> Doc a

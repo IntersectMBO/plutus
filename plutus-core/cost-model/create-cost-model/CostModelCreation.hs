@@ -8,29 +8,28 @@
 
 module CostModelCreation where
 
-import qualified PlutusCore.DataFilePaths                       as DataFilePaths
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.DataFilePaths qualified as DataFilePaths
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExMemory
 
-import           Barbies
-import           Control.Applicative
-import           Control.Exception                              (TypeError (..))
-import           Control.Monad.Catch
-import qualified Data.ByteString.Hash                           as PlutusHash
-import qualified Data.ByteString.Lazy                           as BSL
-import           Data.Coerce
-import           Data.Csv
-import           Data.Either.Extra
-import           Data.Functor.Compose
-import           Data.Text                                      as T
-import qualified Data.Text.Encoding                             as T
-import           Data.Vector
-import           GHC.Generics
+import Barbies
+import Control.Applicative
+import Control.Exception (TypeError (..))
+import Control.Monad.Catch
+import Data.ByteString.Hash qualified as PlutusHash
+import Data.ByteString.Lazy qualified as BSL
+import Data.Coerce
+import Data.Csv
+import Data.Either.Extra
+import Data.Functor.Compose
+import Data.Text as T
+import Data.Text.Encoding qualified as T
+import Data.Vector
+import GHC.Generics
 
-import           H.Prelude                                      (MonadR, Region)
-import           Language.R                                     (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion,
-                                                                 withEmbeddedR)
-import           Language.R.QQ                                  (r)
+import H.Prelude (MonadR, Region)
+import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
+import Language.R.QQ (r)
 
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.

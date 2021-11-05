@@ -10,16 +10,16 @@
 
 module Plugin.Data.Spec where
 
-import           Common
-import           Lib
-import           PlcTestUtils
+import Common
+import Lib
+import PlcTestUtils
 
-import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude  as P
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Plugin
+import PlutusTx.Prelude qualified as P
 
-import           Data.Proxy
+import Data.Proxy
 
 datat :: TestNested
 datat = testNested "Data" [

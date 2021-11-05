@@ -7,11 +7,11 @@
 -- @Meaning@ module.
 module PlutusCore.Constant.Debug where
 
-import           PlutusCore.Constant.Meaning
-import           PlutusCore.Constant.Typed
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Name
+import PlutusCore.Constant.Meaning
+import PlutusCore.Constant.Typed
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Name
 
 type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 
@@ -46,8 +46,9 @@ enumerateDebug = id
 -- inferDebug False :: Bool
 -- >>> :t inferDebug $ Just 'a'
 -- <interactive>:1:1-21: error:
---     • There's no 'KnownType' instance for Maybe Char
---       Did you add a new built-in type and forget to provide a 'KnownType' instance for it?
+--     • No instance for (KnownPolytype
+--                          (ToBinds (Maybe Char)) TermDebug '[] (Maybe Char) (Maybe Char))
+--         arising from a use of ‘inferDebug’
 --     • In the expression: inferDebug $ Just 'a'
 -- >>> :t inferDebug $ \_ -> ()
 -- inferDebug $ \_ -> ()
@@ -59,7 +60,6 @@ inferDebug
     :: forall a binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
        , KnownPolytype binds TermDebug args res a, EnumerateFromTo 0 j TermDebug a
-       , KnownMonotype TermDebug args res a
        )
     => a -> a
 inferDebug = id

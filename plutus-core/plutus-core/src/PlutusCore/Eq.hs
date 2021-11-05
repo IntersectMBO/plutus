@@ -18,12 +18,12 @@ module PlutusCore.Eq
     , eqM
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
-import           PlutusCore.Rename.Monad
+import PlutusCore.Name
+import PlutusCore.Rename.Monad
 
-import           Control.Lens
+import Control.Lens
 
 {- Note [Modulo alpha]
 The implemented algorithm of checking equality modulo alpha works as follows

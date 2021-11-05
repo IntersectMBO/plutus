@@ -9,12 +9,12 @@ module PlutusCore.Examples.Data.Shad
     , runRecUnit
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Universe
+import Universe
 
 -- |
 --

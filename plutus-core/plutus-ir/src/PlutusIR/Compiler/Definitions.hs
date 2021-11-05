@@ -26,27 +26,27 @@ module PlutusIR.Compiler.Definitions (DefT
                                               , lookupConstructors
                                               , lookupDestructor) where
 
-import           PlutusIR
-import           PlutusIR.MkPir                       hiding (error)
+import PlutusIR
+import PlutusIR.MkPir hiding (error)
 
-import qualified PlutusCore.MkPlc                     as PLC
-import           PlutusCore.Quote
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Quote
 
-import           Control.Lens
-import           Control.Monad.Except
-import qualified Control.Monad.Morph                  as MM
-import           Control.Monad.Reader
-import           Control.Monad.State
+import Control.Lens
+import Control.Monad.Except
+import Control.Monad.Morph qualified as MM
+import Control.Monad.Reader
+import Control.Monad.State
 
-import qualified Algebra.Graph.AdjacencyMap           as AM
-import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM
-import qualified Algebra.Graph.NonEmpty.AdjacencyMap  as NAM
-import qualified Algebra.Graph.ToGraph                as Graph
+import Algebra.Graph.AdjacencyMap qualified as AM
+import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM
+import Algebra.Graph.NonEmpty.AdjacencyMap qualified as NAM
+import Algebra.Graph.ToGraph qualified as Graph
 
-import           Data.Foldable
-import qualified Data.Map                             as Map
-import           Data.Maybe
-import qualified Data.Set                             as Set
+import Data.Foldable
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Set qualified as Set
 
 -- | A map from keys to pairs of bindings and their dependencies (as a list of keys).
 type DefMap key def = Map.Map key (def, Set.Set key)

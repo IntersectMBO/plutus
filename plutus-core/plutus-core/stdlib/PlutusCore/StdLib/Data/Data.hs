@@ -9,19 +9,19 @@ module PlutusCore.StdLib.Data.Data
     , caseData
     ) where
 
-import           Prelude                        hiding (uncurry)
+import Prelude hiding (uncurry)
 
-import           PlutusCore.Core
-import           PlutusCore.Data
-import           PlutusCore.Default
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Data
+import PlutusCore.Default
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Data.ByteString                (ByteString)
-import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.Pair
-import           PlutusCore.StdLib.Data.Unit
+import Data.ByteString (ByteString)
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.Pair
+import PlutusCore.StdLib.Data.Unit
 
 -- | @Data@ as a built-in PLC type.
 dataTy :: uni `Contains` Data => Type TyName uni ()

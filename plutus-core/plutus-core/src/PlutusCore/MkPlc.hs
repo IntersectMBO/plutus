@@ -46,12 +46,12 @@ module PlutusCore.MkPlc
     , mkIterKindArrow
     ) where
 
-import           PlutusPrelude
-import           Prelude         hiding (error)
+import PlutusPrelude
+import Prelude hiding (error)
 
-import           PlutusCore.Core
+import PlutusCore.Core
 
-import           Universe
+import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term tyname name uni fun | term -> tyname name uni fun where

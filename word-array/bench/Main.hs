@@ -10,15 +10,15 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-import           Test.Tasty.Bench        (bench, bgroup, defaultMain, env, nf, nfIO)
+import Test.Tasty.Bench (bench, bgroup, defaultMain, env, nf, nfIO)
 
-import           Control.Monad.Primitive
-import           Data.Foldable           (for_)
-import           Data.Functor.Const
-import           Data.Monoid
-import           Data.Primitive
-import           Data.Word
-import           Data.Word64Array.Word8
+import Control.Monad.Primitive
+import Data.Foldable (for_)
+import Data.Functor.Const
+import Data.Monoid
+import Data.Primitive
+import Data.Word
+import Data.Word64Array.Word8
 
 main :: IO ()
 main = do

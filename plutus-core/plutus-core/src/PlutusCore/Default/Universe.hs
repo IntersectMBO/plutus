@@ -25,19 +25,19 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
-import           PlutusCore.Constant
-import           PlutusCore.Data
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Parsable
+import PlutusCore.Constant
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Parsable
 
-import           Control.Applicative
-import           Control.Monad
-import qualified Data.ByteString                         as BS
-import           Data.Foldable
-import           Data.Proxy
-import qualified Data.Text                               as Text
-import           Universe                                as Export
+import Control.Applicative
+import Control.Monad
+import Data.ByteString qualified as BS
+import Data.Foldable
+import Data.Proxy
+import Data.Text qualified as Text
+import Universe as Export
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -94,6 +94,7 @@ pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
 deriveGEq ''DefaultUni
+deriveGCompare ''DefaultUni
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
@@ -180,14 +181,14 @@ instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
 
-instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
-instance KnownBuiltinTypeIn DefaultUni term BS.ByteString => KnownTypeIn DefaultUni term BS.ByteString
-instance KnownBuiltinTypeIn DefaultUni term Text.Text     => KnownTypeIn DefaultUni term Text.Text
-instance KnownBuiltinTypeIn DefaultUni term ()            => KnownTypeIn DefaultUni term ()
-instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
-instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
+instance KnownBuiltinTypeAst DefaultUni Integer       => KnownTypeIn DefaultUni Integer
+instance KnownBuiltinTypeAst DefaultUni BS.ByteString => KnownTypeIn DefaultUni BS.ByteString
+instance KnownBuiltinTypeAst DefaultUni Text.Text     => KnownTypeIn DefaultUni Text.Text
+instance KnownBuiltinTypeAst DefaultUni ()            => KnownTypeIn DefaultUni ()
+instance KnownBuiltinTypeAst DefaultUni Bool          => KnownTypeIn DefaultUni Bool
+instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeIn DefaultUni [a]
+instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeIn DefaultUni (a, b)
+instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeIn DefaultUni Data
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
@@ -195,7 +196,7 @@ instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
-unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
+unlifting constants of type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
 if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
 internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
 being "internal".
@@ -205,7 +206,7 @@ instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+instance KnownTypeIn DefaultUni Int where
     makeKnown mayCause = makeKnown mayCause . toInteger
     readKnown mayCause term = do
         i :: Integer <- readKnown mayCause term

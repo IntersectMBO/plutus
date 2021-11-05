@@ -4,23 +4,23 @@
 -- | Functions for compiling PIR let terms.
 module PlutusIR.Compiler.Let (compileLets, LetKind(..)) where
 
-import           PlutusIR
-import           PlutusIR.Compiler.Datatype
-import           PlutusIR.Compiler.Definitions
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Compiler.Recursion
-import           PlutusIR.Compiler.Types
-import           PlutusIR.Error
-import qualified PlutusIR.MkPir                as PIR
+import PlutusIR
+import PlutusIR.Compiler.Datatype
+import PlutusIR.Compiler.Definitions
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Compiler.Recursion
+import PlutusIR.Compiler.Types
+import PlutusIR.Error
+import PlutusIR.MkPir qualified as PIR
 
-import           Control.Monad
-import           Control.Monad.Error.Lens
-import           Control.Monad.Trans
+import Control.Monad
+import Control.Monad.Error.Lens
+import Control.Monad.Trans
 
-import           Control.Lens                  hiding (Strict)
+import Control.Lens hiding (Strict)
 
-import           Data.List.NonEmpty            hiding (partition, reverse)
-import qualified Data.List.NonEmpty            as NE
+import Data.List.NonEmpty hiding (partition, reverse)
+import Data.List.NonEmpty qualified as NE
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the

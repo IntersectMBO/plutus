@@ -23,13 +23,13 @@ control this with the '--column' argument.
 
 module Main where
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Csv             as CSV
-import           Data.Foldable        (toList)
-import           Data.List            (intercalate)
-import qualified Data.Text            as T
-import qualified Data.Vector          as V
-import           Options.Applicative
+import Data.ByteString.Lazy qualified as BSL
+import Data.Csv qualified as CSV
+import Data.Foldable (toList)
+import Data.List (intercalate)
+import Data.Text qualified as T
+import Data.Vector qualified as V
+import Options.Applicative
 
 data StackFrame
   = MkStackFrame

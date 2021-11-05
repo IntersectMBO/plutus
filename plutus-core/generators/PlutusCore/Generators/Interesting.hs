@@ -21,28 +21,28 @@ module PlutusCore.Generators.Interesting
     , fromInterestingTermGens
     ) where
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Evaluation.Result
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Function  as Function
-import           PlutusCore.StdLib.Data.Nat
-import           PlutusCore.StdLib.Data.ScottList as ScottList
-import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.Function as Function
+import PlutusCore.StdLib.Data.Nat
+import PlutusCore.StdLib.Data.ScottList as ScottList
+import PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Meta
+import PlutusCore.StdLib.Type
 
-import           PlutusCore.Generators
+import PlutusCore.Generators
 
-import           Data.List                        (genericIndex)
-import           Hedgehog                         hiding (Size, Var)
-import qualified Hedgehog.Gen                     as Gen
-import qualified Hedgehog.Range                   as Range
+import Data.List (genericIndex)
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 
 -- | The type of terms-and-their-values generators.
 type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)

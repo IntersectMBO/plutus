@@ -1,10 +1,10 @@
 module TypeSpec where
 
-import           Common
-import           TestLib
+import Common
+import TestLib
 
-import           PlutusIR.Parser
-import           PlutusIR.Transform.Rename ()
+import PlutusIR.Parser
+import PlutusIR.Transform.Rename ()
 
 types :: TestNested
 types = testNested "types"

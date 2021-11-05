@@ -21,26 +21,26 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     )
 where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
-import           PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Evaluation.Machine.Exception
 
-import           Control.Lens                                      (ifoldMap)
-import           Control.Monad.Except
-import           Data.HashMap.Monoidal                             as HashMap
-import           Data.Hashable                                     (Hashable)
-import           Data.List                                         (intersperse)
-import qualified Data.Map.Strict                                   as Map
-import           Data.Primitive.PrimArray
-import           Data.STRef
-import           Data.SatInt
-import           Data.Semigroup.Generic
-import           Prettyprinter
-import           Text.PrettyBy                                     (IgnorePrettyConfig (..))
+import Control.Lens (ifoldMap)
+import Control.Monad.Except
+import Data.HashMap.Monoidal as HashMap
+import Data.Hashable (Hashable)
+import Data.List (intersperse)
+import Data.Map.Strict qualified as Map
+import Data.Primitive.PrimArray
+import Data.STRef
+import Data.SatInt
+import Data.Semigroup.Generic
+import Prettyprinter
+import Text.PrettyBy (IgnorePrettyConfig (..))
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 -- The value then gets added to the current state via @(<>)@.

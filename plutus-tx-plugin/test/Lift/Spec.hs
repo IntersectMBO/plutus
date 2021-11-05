@@ -7,15 +7,15 @@
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
-import           Common
-import           Lib                    ()
-import           PlcTestUtils
-import           Plugin.Data.Spec
-import           Plugin.Primitives.Spec
+import Common
+import Lib ()
+import PlcTestUtils
+import Plugin.Data.Spec
+import Plugin.Primitives.Spec
 
-import qualified PlutusTx.Builtins      as Builtins
-import           PlutusTx.Code
-import qualified PlutusTx.Lift          as Lift
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Lift qualified as Lift
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

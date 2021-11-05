@@ -5,16 +5,16 @@
 
 module PlutusCore.Check.Scoping where
 
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           Control.Monad.Except
-import           Data.Coerce
-import           Data.List.NonEmpty   (NonEmpty)
-import qualified Data.List.NonEmpty   as NonEmpty
-import           Data.Map.Strict      as Map
-import           Data.Maybe
-import           Data.Set             as Set
+import Control.Monad.Except
+import Data.Coerce
+import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Map.Strict as Map
+import Data.Maybe
+import Data.Set as Set
 
 {- Note [Example of a scoping check]
 Consider the following type:

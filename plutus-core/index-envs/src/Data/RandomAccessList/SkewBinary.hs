@@ -12,10 +12,10 @@ module Data.RandomAccessList.SkewBinary ( RAList(Cons,Nil)
                  , uncons
                  ) where
 
-import           Data.Bits  (unsafeShiftR)
-import qualified Data.List  as List (unfoldr)
-import           Data.Maybe
-import           GHC.Exts
+import Data.Bits (unsafeShiftR)
+import Data.List qualified as List (unfoldr)
+import Data.Maybe
+import GHC.Exts
 
 -- | βA complete binary tree.
 -- Note: the size of the tree is not stored/cached,

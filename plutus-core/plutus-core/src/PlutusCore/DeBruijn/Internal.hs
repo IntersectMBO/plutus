@@ -31,25 +31,25 @@ module PlutusCore.DeBruijn.Internal
     , deBruijnToTyName
     ) where
 
-import           PlutusCore.Name
-import           PlutusCore.Pretty
-import           PlutusCore.Quote
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusCore.Quote
 
-import           Control.Exception
-import           Control.Lens             hiding (Index, Level, index, ix)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Exception
+import Control.Lens hiding (Index, Level, index, ix)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Bimap               as BM
-import qualified Data.Text                as T
-import           Prettyprinter
+import Data.Bimap qualified as BM
+import Data.Text qualified as T
+import Prettyprinter
 
-import           Numeric.Natural
+import Numeric.Natural
 
-import           Control.DeepSeq          (NFData)
-import           ErrorCode
-import           GHC.Generics
+import Control.DeepSeq (NFData)
+import ErrorCode
+import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural

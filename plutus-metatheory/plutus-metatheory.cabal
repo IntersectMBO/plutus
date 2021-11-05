@@ -31,6 +31,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
     ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
 

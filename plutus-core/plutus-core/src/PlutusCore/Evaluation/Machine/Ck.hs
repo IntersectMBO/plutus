@@ -26,25 +26,25 @@ module PlutusCore.Evaluation.Machine.Ck
     , readKnownCk
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty                       (PrettyConfigPlc, PrettyConst)
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
+import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.ST
-import           Data.Array
-import           Data.DList                              (DList)
-import qualified Data.DList                              as DList
-import           Data.Proxy
-import           Data.STRef
-import           Data.Text                               (Text)
-import           Universe
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.ST
+import Data.Array
+import Data.DList (DList)
+import Data.DList qualified as DList
+import Data.Proxy
+import Data.STRef
+import Data.Text (Text)
+import Universe
 
 infix 4 |>, <|
 

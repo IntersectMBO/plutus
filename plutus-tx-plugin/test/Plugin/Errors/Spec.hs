@@ -9,20 +9,20 @@
 
 module Plugin.Errors.Spec where
 
-import           Common
-import           Lib                       ()
-import           PlcTestUtils
+import Common
+import Lib ()
+import PlcTestUtils
 
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Plugin
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Plugin
 
-import           Data.Proxy
-import           Data.String
+import Data.Proxy
+import Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
-import           GHC.Integer.GMP.Internals
+import GHC.Integer.GMP.Internals
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}

@@ -1,9 +1,9 @@
 module Opts where
 
-import           Data.Semigroup      ((<>))
-import qualified Data.Text           as T
-import qualified Data.Text.IO        as T
-import           Options.Applicative
+import Data.Semigroup ((<>))
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Options.Applicative
 
 data Input = FileInput T.Text | StdInput deriving (Show, Read)
 

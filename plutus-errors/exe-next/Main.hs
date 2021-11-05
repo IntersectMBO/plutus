@@ -2,9 +2,9 @@
 {-# LANGUAGE TemplateHaskell   #-}
 module Main where
 
-import           Errors
-import           Errors.TH.GenCodes
-import           Prettyprinter
+import Errors
+import Errors.TH.GenCodes
+import Prettyprinter
 
 -- | Executable to help developers by returning a currently-unused error code
 main :: IO ()

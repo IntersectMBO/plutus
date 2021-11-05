@@ -20,20 +20,20 @@ module Plutus.V1.Ledger.Slot(
     , width
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.Hashable             (Hashable)
-import           GHC.Generics              (Generic)
-import qualified Prelude                   as Haskell
-import           Prettyprinter             (Pretty (pretty), (<+>))
+import Codec.Serialise.Class (Serialise)
+import Control.DeepSeq (NFData)
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import Data.Hashable (Hashable)
+import GHC.Generics (Generic)
+import Prelude qualified as Haskell
+import Prettyprinter (Pretty (pretty), (<+>))
 
 
-import qualified PlutusTx                  as PlutusTx
-import           PlutusTx.Lift             (makeLift)
-import           PlutusTx.Prelude
+import PlutusTx qualified as PlutusTx
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude
 
-import           Plutus.V1.Ledger.Interval
+import Plutus.V1.Ledger.Interval
 
 {- HLINT ignore "Redundant if" -}
 

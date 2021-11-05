@@ -6,13 +6,13 @@ module PlutusTx.Ord (Ord(..), Ordering(..)) where
 We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type since they are the same.
 -}
 
-import                          PlutusTx.Bool      (Bool (..))
-import                qualified PlutusTx.Builtins  as Builtins
-import                          PlutusTx.Either    (Either (..))
-import                          PlutusTx.Eq
-import {-# SOURCE #-}           PlutusTx.Maybe     (Maybe (..))
-import                          PlutusTx.Semigroup ((<>))
-import                          Prelude            (Ordering (..))
+import PlutusTx.Bool (Bool (..))
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Either (Either (..))
+import PlutusTx.Eq
+import {-# SOURCE #-} PlutusTx.Maybe (Maybe (..))
+import PlutusTx.Semigroup ((<>))
+import Prelude (Ordering (..))
 
 {- HLINT ignore -}
 

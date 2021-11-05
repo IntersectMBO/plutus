@@ -70,12 +70,12 @@ module PlutusTx.Builtins (
                                 , toBuiltin
                                 ) where
 
-import           PlutusTx.Base              (const, uncurry)
-import           PlutusTx.Bool              (Bool (..))
-import           PlutusTx.Builtins.Class
-import           PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
-import qualified PlutusTx.Builtins.Internal as BI
-import           PlutusTx.Integer           (Integer)
+import PlutusTx.Base (const, uncurry)
+import PlutusTx.Bool (Bool (..))
+import PlutusTx.Builtins.Class
+import PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Integer (Integer)
 
 {-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.

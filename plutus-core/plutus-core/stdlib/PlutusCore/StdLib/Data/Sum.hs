@@ -8,12 +8,12 @@ module PlutusCore.StdLib.Data.Sum
     , right
     ) where
 
-import           Prelude          hiding (sum)
+import Prelude hiding (sum)
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
 -- | 'Either' as a PLC type.
 --

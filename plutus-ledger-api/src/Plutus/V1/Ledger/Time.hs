@@ -21,20 +21,19 @@ module Plutus.V1.Ledger.Time(
     , fromMilliSeconds
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey,
-                                            Value (Number))
-import           Data.Aeson.Types          (prependFailure, typeMismatch)
-import           Data.Hashable             (Hashable)
-import           Data.Scientific           (floatingOrInteger, scientific)
-import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Interval
-import qualified PlutusTx
-import           PlutusTx.Lift             (makeLift)
-import           PlutusTx.Prelude
-import qualified Prelude                   as Haskell
-import           Prettyprinter             (Pretty (pretty), (<+>))
+import Codec.Serialise.Class (Serialise)
+import Control.DeepSeq (NFData)
+import Data.Aeson (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, Value (Number))
+import Data.Aeson.Types (prependFailure, typeMismatch)
+import Data.Hashable (Hashable)
+import Data.Scientific (floatingOrInteger, scientific)
+import GHC.Generics (Generic)
+import Plutus.V1.Ledger.Interval
+import PlutusTx qualified
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude
+import Prelude qualified as Haskell
+import Prettyprinter (Pretty (pretty), (<+>))
 
 
 -- | This is a length of time, as measured by a number of milliseconds.

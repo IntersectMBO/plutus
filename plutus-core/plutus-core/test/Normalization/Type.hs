@@ -5,18 +5,18 @@ module Normalization.Type
     ( test_typeNormalization
     ) where
 
-import           PlutusCore
-import           PlutusCore.Generators.AST
-import           PlutusCore.MkPlc
-import           PlutusCore.Normalize
+import PlutusCore
+import PlutusCore.Generators.AST
+import PlutusCore.MkPlc
+import PlutusCore.Normalize
 
-import           Control.Monad.Morph        (hoist)
+import Control.Monad.Morph (hoist)
 
-import           Hedgehog
-import           Hedgehog.Internal.Property (forAllT)
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Hedgehog
+import Hedgehog.Internal.Property (forAllT)
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do

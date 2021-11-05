@@ -12,13 +12,13 @@ module PlutusCore.Lexer.Type
     , identifierStateFrom
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
+import PlutusCore.Name
 
-import           Control.Monad.State
-import qualified Data.Map            as M
-import qualified Data.Text           as T
+import Control.Monad.State
+import Data.Map qualified as M
+import Data.Text qualified as T
 
 -- | A keyword in Plutus Core. Some of these are only for UPLC or TPLC, but it's simplest to share
 -- the lexer, so we have a joint enumeration of them.

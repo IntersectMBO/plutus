@@ -8,13 +8,13 @@ module PlutusCore.StdLib.Meta
     , metaListToScottList
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
 
-import           PlutusCore.StdLib.Data.Nat       as Plc
-import           PlutusCore.StdLib.Data.ScottList
-import           PlutusCore.StdLib.Data.Sum
+import PlutusCore.StdLib.Data.Nat as Plc
+import PlutusCore.StdLib.Data.ScottList
+import PlutusCore.StdLib.Data.Sum
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
 metaIntegerToNat :: TermLike term TyName Name uni fun => Integer -> term ()
