@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
@@ -14,6 +15,7 @@ import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, pr
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore.Data (Data (..))
+import PlutusTx.Bool.TH (and_if, or_if)
 import PlutusTx.List (nub, nubBy)
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, takeByteString)
@@ -34,6 +36,7 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
+    , thBoolTests
     ]
 
 sqrtTests :: TestTree
@@ -258,4 +261,26 @@ nubTests = testGroup "nub"
   , testCase "[2, 1, 1] == [2, 1]" $ nub [2 :: Integer, 1, 1] @?= [2, 1]
   , testCase "[1, 1, 1] == [1]" $ nub [1 :: Integer, 1, 1] @?= [1]
   , testCase "[1, 2, 3, 4, 5] == [1, 2, 3, 4, 5]" $ nub [1 :: Integer, 2, 3, 4, 5] @?= [1, 2, 3, 4, 5]
+  ]
+
+thBoolTests :: TestTree
+thBoolTests = testGroup "TH bool"
+  [ andIfTests
+  , orIfTests
+  ]
+
+andIfTests :: TestTree
+andIfTests = testGroup "and_if"
+  [ testCase "[and_if| |] == True" $ [and_if| |] @?= True
+  , testCase "[and_if| True, True |] == True" $ [and_if| True, True |] @?= True
+  , testCase "[and_if| True, False |] == False" $ [and_if| True, False |] @?= False
+  , testCase "lazy: [and_if| False, error \"\"|] == False" $ [and_if| False, error "" |] @?= False
+  ]
+
+orIfTests :: TestTree
+orIfTests = testGroup "or_if"
+  [ testCase "[or_if| |] == False" $ [or_if|  |] @?= False
+  , testCase "[or_if| True, False |] == True" $ [or_if| True, False |] @?= True
+  , testCase "[or_if| False, False |] == True" $ [or_if| False, False |] @?= False
+  , testCase "lazy: [or_if| True, error \"\"|] == True" $ [or_if| True, error "" |] @?= True
   ]
