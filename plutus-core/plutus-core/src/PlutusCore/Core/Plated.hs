@@ -117,7 +117,12 @@ typeSubtypesM f ty0 = case ty0 of
     TyFun ann ty1 ty2    -> do
         ty1' <- f ty1
         ty2' <- f ty2
-        pure $ TyFun ann <$> ty1' <*> ty2'
+        pure $ case (ty1', ty2') of
+            (Just ty1', Just ty2') -> Just $ TyFun ann ty1' ty2
+            (Just ty1', Nothing)   -> Just $ TyFun ann ty1' ty2
+            (Nothing, Just ty2')   -> Just $ TyFun ann ty1 ty2'
+            _                      -> Nothing
+        -- pure $ TyFun ann <$> ty1' <*> ty2'
     TyIFix ann pat arg   -> do
         pat' <- f pat
         arg' <- f arg

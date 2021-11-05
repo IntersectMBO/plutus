@@ -31,17 +31,17 @@ main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence
-    [ prettyprinting
-    , parsing
-    , lets
-    , datatypes
-    , recursion
-    , serialization
-    , errors
-    , pure names
-    , transform
-    , types
-    , typeErrors
+    -- [ prettyprinting
+    -- , parsing
+    -- , lets
+    -- , datatypes
+    [ recursion
+    -- , serialization
+    -- , errors
+    -- , pure names
+    -- , transform
+    -- , types
+    -- , typeErrors
     ]
 
 prettyprinting :: TestNested
@@ -69,9 +69,9 @@ datatypes = testNested "datatypes"
 recursion :: TestNested
 recursion = testNested "recursion"
     [ goldenPlcFromPir term "even3"
-    , goldenEvalPir term "even3Eval"
-    , goldenPlcFromPir term "stupidZero"
-    , goldenPlcFromPir term "mutuallyRecursiveValues"
+    -- , goldenEvalPir term "even3Eval"
+    -- , goldenPlcFromPir term "stupidZero"
+    -- , goldenPlcFromPir term "mutuallyRecursiveValues"
     ]
 
 serialization :: TestNested

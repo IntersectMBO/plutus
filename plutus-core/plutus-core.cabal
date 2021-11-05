@@ -319,7 +319,8 @@ library
         unordered-containers -any,
         witherable -any,
         word-array -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        recover-rtti -any
 
 test-suite satint-test
   import: lang

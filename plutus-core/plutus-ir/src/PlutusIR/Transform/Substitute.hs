@@ -7,13 +7,14 @@ module PlutusIR.Transform.Substitute (
     , typeSubstTyNames
     , termSubstNames
     , termSubstTyNames
+    , typeSubstTyNames'
     , bindingSubstNames
     , bindingSubstTyNames
     ) where
 
 import           PlutusIR
 
-import           PlutusCore.Subst (substTyVar, typeSubstTyNames)
+import           PlutusCore.Subst (substTyVar, typeSubstTyNames, typeSubstTyNames')
 
 import           Control.Lens
 import           Control.Monad    (join)

@@ -20,6 +20,7 @@ module PlutusCore.Subst
     , tvTy
     , uniquesType
     , uniquesTerm
+    , typeSubstTyNames'
     ) where
 
 import           PlutusPrelude
@@ -30,6 +31,10 @@ import           Data.Set              as Set
 import           Data.Set.Lens         (setOf)
 import           PlutusCore.Core
 import           PlutusCore.Name
+
+import           Debug.RecoverRTTI
+import           Debug.Trace
+
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
@@ -75,7 +80,32 @@ typeSubstTyNamesM
     => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
     -> m (Maybe (Type tyname uni ann))
-typeSubstTyNamesM = mapMOf typeSubtypesM . substTyVarA
+typeSubstTyNamesM tynameF t =
+  transformMOf typeSubtypesM (\x -> trace ("x: " ++ anythingToString x) $ fmap join $ sequence $ fmap (substTyVarA tynameF) x) t
+-- mapMOf typeSubtypesM (substTyVarA tynameF) t
+
+{-# INLINE substTyVarA' #-}
+-- | Applicatively replace a type variable using the given function.
+substTyVarA'
+    :: Applicative f
+    => (tyname -> f (Maybe (Type tyname uni ann)))
+    -> Type tyname uni ann
+    -> f (Type tyname uni ann)
+substTyVarA' tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
+substTyVarA' _       ty                  = pure ty
+
+typeSubstTyNamesM'
+    :: Monad m
+    => (tyname -> m (Maybe (Type tyname uni ann)))
+    -> Type tyname uni ann
+    -> m (Type tyname uni ann)
+typeSubstTyNamesM' tynameF t = transformMOf typeSubtypes (\y -> trace ("y: " ++ anythingToString y) $ substTyVarA' tynameF y) t
+
+typeSubstTyNames'
+    :: (tyname -> Maybe (Type tyname uni ann))
+    -> Type tyname uni ann
+    -> (Type tyname uni ann)
+typeSubstTyNames' = purely typeSubstTyNamesM'
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
@@ -83,7 +113,7 @@ termSubstNamesM
     => (name -> m (Maybe (Term tyname name uni fun ann)))
     -> Term tyname name uni fun ann
     -> m (Maybe (Term tyname name uni fun ann))
-termSubstNamesM = mapMOf termSubtermsM . substVarA
+termSubstNamesM tynameF t = transformMOf termSubtermsM (\x -> fmap join $ sequence $ fmap (substVarA tynameF) x) t
 
 -- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNamesM
