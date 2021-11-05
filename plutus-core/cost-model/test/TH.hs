@@ -8,8 +8,8 @@
 module TH (genTest)
 where
 
-import           Data.Char           (toUpper)
-import           Language.Haskell.TH
+import Data.Char (toUpper)
+import Language.Haskell.TH
 
 toUpper1 :: String -> String
 toUpper1 []     = error "empty string in toUpper1"
