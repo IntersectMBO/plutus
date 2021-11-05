@@ -146,16 +146,16 @@ emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
 emb (Alg.Λ {B = B} t) = Dec.Λ (emb t)
-emb (Alg._·⋆_ {B = B} t A) =
+emb (Alg._·⋆_/_ {B = B} t A refl) =
     Dec.conv (emb[] A B) (emb t Dec.·⋆ embNf A)
 emb (Alg.wrap A B t) = Dec.wrap
   (embNf A)
   (embNf B)
   (Dec.conv (sym≡β (soundness-μ refl A B)) (emb t))
-emb (Alg.unwrap {A = A}{B} t) =
+emb (Alg.unwrap {A = A}{B} t refl) =
   Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
-emb (Alg.builtin b) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
+emb (Alg.builtin b / refl) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
 emb (Alg.error A) = Dec.error (embNf A)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
