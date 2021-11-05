@@ -34,12 +34,16 @@ Generating a cost model for CPU time involves a number of steps.
   `builtCostModel.json` are read and used by some Template Haskell code to
   construct Haskell functions which implement the cost models.
 
-*  To ensure consistency, `cabal test plutus-core:cost-model-test`
-  runs some QuickCheck tests to run the R models and the Haskell models and
-  checks that the results agree to a reasonable level of accuracy (one part in
-  10000, or one hundredth of one percent).  We do not expect the results to
-  agree precisely because the R models perform floating-point calculations
-  and the Haskell versions use 64-bit integers.
+* To ensure consistency, `cabal bench plutus-core:cost-model-test` runs some
+  QuickCheck tests to run the R models and the Haskell models and checks that
+  the results agree to a reasonable level of accuracy (one part in 100, or one
+  percent).  We do not expect the results to agree precisely because the R
+  models perform floating-point calculations and the Haskell versions use 64-bit
+  integers.  It seems that the tests hang very occasionally, perhaps because of
+  some unsafe operations intereacting with the R runtime, so these tests are
+  currently disguised as benchmarks to prevent them being run in CI. **The tests
+  should therefore be run manually whenever new cost models are added or the R
+  code is modified.**
 
 * (Not yet automated).  After the cost model for builtins has been generated we
   run some more benchmarks which consist of entire Plutus core programs making

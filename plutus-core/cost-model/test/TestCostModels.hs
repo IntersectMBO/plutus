@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -15,11 +16,12 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           CostModelCreation
+import           TH
 
 import           Control.Applicative                            (Const, getConst)
 import           Control.Monad.Morph                            (MFunctor, hoist, lift)
 import           Data.Coerce                                    (coerce)
-import           Data.Function                                  ((&))
+import           Data.String                                    (fromString)
 import           Unsafe.Coerce                                  (unsafeCoerce)
 
 import           H.Prelude                                      as H (MonadR, io)
@@ -27,8 +29,9 @@ import           Language.R                                     as R (R, SomeSEX
                                                                       runRegion, unsafeRunRegion, withEmbeddedR)
 import           Language.R.QQ                                  (r)
 
-import           Hedgehog                                       (Gen, Group (..), Property, PropertyT, TestLimit,
-                                                                 checkSequential, diff, forAll, property, withTests)
+import           Hedgehog                                       (Gen, Group (..), Property, PropertyName, PropertyT,
+                                                                 TestLimit, checkSequential, diff, forAll, property,
+                                                                 withTests)
 import qualified Hedgehog.Gen                                   as Gen
 import qualified Hedgehog.Main                                  as HH (defaultMain)
 import qualified Hedgehog.Range                                 as Range
@@ -70,8 +73,8 @@ type RModels s = BuiltinCostModelBase (Const (SomeSEXP s))
    pieces and we don't yet have corresponding piecewise R models, so we just
    restrict to the places where the piecewise models are interesting (they're
    typically constant elsewhere). -}
-data TestDomain =
-    Everywhere
+data TestDomain
+  = Everywhere
   | OnDiagonal
   | BelowDiagonal
 
@@ -84,104 +87,28 @@ x ~= y
           y' = fromIntegral y :: Double
           err = abs ((x'-y')/y')
 
-
--- Properties for individual builtins --
-
--- One argument --
-
-prop_sha2_256 :: RModels s -> Property
-prop_sha2_256 =
-    testPredictOne sha2_256 . paramSha2_256
-
-prop_sha3_256 :: RModels s -> Property
-prop_sha3_256 =
-    testPredictOne sha3_256 . paramSha3_256
-
-prop_blake2b :: RModels s -> Property
-prop_blake2b =
-    testPredictOne blake2b . paramBlake2b
-
--- Two arguments --
-
-prop_addInteger :: RModels s -> Property
-prop_addInteger =
-    testPredictTwo Everywhere addInteger . paramAddInteger
-
-prop_subtractInteger :: RModels s -> Property
-prop_subtractInteger =
-    testPredictTwo Everywhere subtractInteger . paramSubtractInteger
-
-prop_multiplyInteger :: RModels s -> Property
-prop_multiplyInteger =
-    testPredictTwo Everywhere multiplyInteger . paramMultiplyInteger
-
-prop_divideInteger :: RModels s -> Property
-prop_divideInteger =
-    testPredictTwo BelowDiagonal divideInteger . paramDivideInteger
-
-prop_quotientInteger :: RModels s -> Property
-prop_quotientInteger =
-    testPredictTwo BelowDiagonal quotientInteger . paramQuotientInteger
-
-prop_remainderInteger :: RModels s -> Property
-prop_remainderInteger =
-    testPredictTwo BelowDiagonal remainderInteger . paramRemainderInteger
-
-prop_modInteger :: RModels s -> Property
-prop_modInteger =
-    testPredictTwo BelowDiagonal modInteger . paramModInteger
-
-prop_lessThanInteger :: RModels s -> Property
-prop_lessThanInteger =
-    testPredictTwo Everywhere lessThanInteger . paramLessThanInteger
-
-prop_lessThanEqualsInteger :: RModels s -> Property
-prop_lessThanEqualsInteger =
-    testPredictTwo Everywhere lessThanEqualsInteger . paramLessThanEqualsInteger
-
-prop_equalsInteger :: RModels s -> Property
-prop_equalsInteger =
-    testPredictTwo Everywhere equalsInteger . paramEqualsInteger
-
-prop_appendByteString :: RModels s -> Property
-prop_appendByteString =
-    testPredictTwo Everywhere appendByteString . paramAppendByteString
-
-prop_equalsByteString :: RModels s -> Property
-prop_equalsByteString =
-    testPredictTwo OnDiagonal equalsByteString . paramEqualsByteString
-
-prop_lessThanByteString :: RModels s -> Property
-prop_lessThanByteString =
-    testPredictTwo Everywhere lessThanByteString . paramLessThanByteString
-
-prop_lessThanEqualsByteString :: RModels s -> Property
-prop_lessThanEqualsByteString =
-    testPredictTwo Everywhere lessThanEqualsByteString . paramLessThanEqualsByteString
-
--- Three arguments --
-
-prop_verifySignature :: RModels s -> Property
-prop_verifySignature =
-    testPredictThree verifySignature . paramVerifySignature
-
-prop_ifThenElse :: RModels s -> Property
-prop_ifThenElse =
-    testPredictThree ifThenElse . paramIfThenElse
-
-
--- Testing the properties --
-
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
--- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s
--- a)` to ensure no `R` types leave the scope. Additionally, it has an `NFData`
--- constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does away
--- with the first constraint. However, conjuring up a `NFData` constraint for
--- `PropertyT` is impossible, because internally, `PropertyT` constructs a `TreeT`
--- to hold all the branches for reduction. These branches will contain `(R s)`,
--- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for
--- `TreeT`. For now, this didn't crash yet.
+{- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s
+   a)` to ensure no `R` types leave the scope. Additionally, it has an `NFData`
+   constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does
+   away with the first constraint. However, conjuring up a `NFData` constraint
+   for `PropertyT` is impossible, because internally, `PropertyT` constructs a
+   `TreeT` to hold all the branches for reduction. These branches will contain
+   `(R s)`, which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData`
+   for `TreeT`. For now, this didn't crash yet.
+
+   Update: running the tests thousands of times, they did hang once or twice and
+   there were very occasional errors like "Error in `[.tbl_df`(x_in, vars$x$out)
+   : 'rho' must be an environment not promise: detected in C-level eval" and
+   "Error: attempt to apply non-function".  Also, if you try 'checkParallel'
+   instead of 'checkSequential' you very quickly get an error beginning "stack
+   imbalance in 'lazyLoadDBfetch". These errors are coming from R, but it's not
+   clear whether they're due to this code or to some problem elsewhere, and it's
+   not easy to test.  This code isn't critical, so we can get away with
+   occasional failures.  It's probably best not to have the tests enabled in CI
+   though and just run them manually when required.
+-}
 propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegion prop
   where
     unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
@@ -213,11 +140,12 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
   diff byR (~=) (predictH x)
 
 testPredictTwo
-    :: forall s a . TestDomain
-    -> (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
+    :: forall s a .
+       (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
     -> Const (SomeSEXP s) a
+    -> TestDomain
     -> Property
-testPredictTwo domain haskellModelFun modelR1 = propertyR $ do
+testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
   let modelR = getConst modelR1
   modelH <- lift $ haskellModelFun modelR
   let
@@ -249,13 +177,13 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
   modelH <- lift $ haskellModelFun modelR
   let
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
-    predictR x y _z =
+    predictR x y z =
       let
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
-        -- zD = fromInteger z :: Double
+        zD = fromIntegral z :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
@@ -265,34 +193,150 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
   diff byR (~=) (predictH x y z)
 
 
--- TODO: discover the properties automatically.  Hedgehog's $$(discover) doesn't
--- work because it expects to find Properties, but our prop_* functions have
--- type RModels s -> Property.  I think this'll require us to steal some stuff
--- from Hedgehog.Internal.TH.
+testPredictSix
+    :: (SomeSEXP s -> R s (CostingFun ModelSixArguments))
+    -> Const (SomeSEXP s) a
+    -> Property
+testPredictSix haskellModelFun modelR1 = propertyR $ do
+  let modelR = getConst modelR1
+  modelH <- lift $ haskellModelFun modelR
+  let
+    predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger
+             -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
+    predictR x y z u v  w =
+      let
+        xD = fromIntegral x :: Double
+        yD = fromIntegral y :: Double
+        zD = fromIntegral z :: Double
+        uD = fromIntegral u :: Double
+        vD = fromIntegral v :: Double
+        wD = fromIntegral w :: Double
+      in
+        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+                                     u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
+    predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
+    predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
+                                                     (ExMemory x) (ExMemory y) (ExMemory z) (ExMemory u) (ExMemory v) (ExMemory w)
+    sizeGen = (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
+  (x, y, z, u, v, w) <- forAll sizeGen
+  byR <- lift $ predictR x y z u v w
+  diff byR (>=) 0
+  diff byR (~=) (predictH x y z u v w)
+
+
+makeProp1
+    :: String
+    -> (SomeSEXP s -> R s (CostingFun ModelOneArgument))
+    -> (RModels s -> Const (SomeSEXP s) b)
+    -> RModels s
+    -> (PropertyName, Property)
+makeProp1 name fun param models =
+    (fromString name, testPredictOne fun (param models))
+
+makeProp2
+    :: String
+    -> (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
+    -> (RModels s -> Const (SomeSEXP s) b)
+    -> RModels s
+    -> TestDomain
+    -> (PropertyName, Property)
+makeProp2 name fun param models domain =
+    (fromString name, testPredictTwo fun (param models) domain)
+
+makeProp3
+    :: String
+    -> (SomeSEXP s -> R s (CostingFun ModelThreeArguments))
+    -> (RModels s -> Const (SomeSEXP s) b)
+    -> RModels s
+    -> (PropertyName, Property)
+makeProp3 name fun param models =
+    (fromString name, testPredictThree fun (param models))
+
+makeProp6
+    :: String
+    -> (SomeSEXP s -> R s (CostingFun ModelSixArguments))
+    -> (RModels s -> Const (SomeSEXP s) b)
+    -> RModels s
+    -> (PropertyName, Property)
+makeProp6 name fun param models =
+    (fromString name, testPredictSix fun (param models))
+
 main :: IO ()
 main =
     withEmbeddedR R.defaultConfig $ runRegion $ do
       models <- CostModelCreation.costModelsR
       H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
-          where tests models =
-                    -- models & p = p models; this is just to make the alignment neater
-                    [ ("addInteger",               models & prop_addInteger)
-                    , ("subtractInteger",          models & prop_subtractInteger)
-                    , ("multiplyInteger",          models & prop_multiplyInteger)
-                    , ("divideInteger",            models & prop_divideInteger)
-                    , ("quotientInteger",          models & prop_quotientInteger)
-                    , ("remainderInteger",         models & prop_remainderInteger)
-                    , ("modInteger",               models & prop_modInteger)
-                    , ("lessThanInteger",          models & prop_lessThanInteger)
-                    , ("lessThanEqualsInteger",    models & prop_lessThanEqualsInteger)
-                    , ("equalsInteger",            models & prop_equalsInteger)
-                    , ("equalsByteString",         models & prop_equalsByteString)
-                    , ("appendByteString",         models & prop_appendByteString)
-                    , ("lessThanByteString",       models & prop_lessThanByteString)
-                    , ("lessThanEqualsByteString", models & prop_lessThanEqualsByteString)
-                    , ("sha2_256",                 models & prop_sha2_256)
-                    , ("sha3_256",                 models & prop_sha3_256)
-                    , ("blake2b",                  models & prop_blake2b)
-                    , ("verifySignature",          models & prop_verifySignature)
-                    , ("ifThenElse",               models & prop_ifThenElse)
+          where tests models =  -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
+                    [ $(genTest 2 "addInteger")            Everywhere
+                    , $(genTest 2 "subtractInteger")       Everywhere
+                    , $(genTest 2 "multiplyInteger")       Everywhere
+                    , $(genTest 2 "divideInteger")         BelowDiagonal
+                    , $(genTest 2 "quotientInteger")       BelowDiagonal
+                    , $(genTest 2 "remainderInteger")      BelowDiagonal
+                    , $(genTest 2 "modInteger")            BelowDiagonal
+                    , $(genTest 2 "lessThanInteger")       Everywhere
+                    , $(genTest 2 "lessThanEqualsInteger") Everywhere
+                    , $(genTest 2 "equalsInteger")         Everywhere
+
+                    -- Bytestrings
+                    , $(genTest 2 "appendByteString")         Everywhere
+                    , $(genTest 2 "consByteString")           Everywhere
+                    , $(genTest 3 "sliceByteString")
+                    , $(genTest 1 "lengthOfByteString")
+                    , $(genTest 2 "indexByteString")          Everywhere
+                    , $(genTest 2 "equalsByteString")         OnDiagonal
+                    , $(genTest 2 "lessThanByteString")       Everywhere
+                    , $(genTest 2 "lessThanEqualsByteString") Everywhere
+
+                    -- Cryptography and hashes
+                    , $(genTest 1 "sha2_256")
+                    , $(genTest 1 "sha3_256")
+                    , $(genTest 1 "blake2b")
+                    , $(genTest 3 "verifySignature")
+
+                    -- Strings
+                    , $(genTest 2 "appendString") Everywhere
+                    , $(genTest 2 "equalsString") OnDiagonal
+                    , $(genTest 1 "encodeUtf8")
+                    , $(genTest 1 "decodeUtf8")
+
+                    -- Bool
+                    , $(genTest 3 "ifThenElse")
+
+                    -- Unit
+                    , $(genTest 2 "chooseUnit") Everywhere
+
+                    -- Tracing
+                    , $(genTest 2 "trace") Everywhere
+
+                    -- Pairs
+                    , $(genTest 1 "fstPair")
+                    , $(genTest 1 "sndPair")
+
+                    -- Lists
+                    , $(genTest 3 "chooseList")
+                    , $(genTest 2 "mkCons") Everywhere
+                    , $(genTest 1 "headList")
+                    , $(genTest 1 "tailList")
+                    , $(genTest 1 "nullList")
+
+                    -- Data
+                    , $(genTest 6 "chooseData")
+                    , $(genTest 2 "constrData") Everywhere
+                    , $(genTest 1 "mapData")
+                    , $(genTest 1 "listData")
+                    , $(genTest 1 "iData")
+                    , $(genTest 1 "bData")
+                    , $(genTest 1 "unConstrData")
+                    , $(genTest 1 "unMapData")
+                    , $(genTest 1 "unListData")
+                    , $(genTest 1 "unIData")
+                    , $(genTest 1 "unBData")
+                    , $(genTest 2 "equalsData") Everywhere
+
+                    -- Misc constructors
+                    , $(genTest 2 "mkPairData") Everywhere
+                    , $(genTest 1 "mkNilData")
+                    , $(genTest 1 "mkNilPairData")
                     ]
+
