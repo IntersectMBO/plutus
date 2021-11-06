@@ -26,8 +26,8 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Crypto
-import Data.ByteString qualified as BS
-import Data.ByteString.Hash qualified as Hash
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Hash as Hash
 import Data.Char
 import Data.Ix
 import Data.Text (Text)
@@ -269,7 +269,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
           fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
-              fromConstant $ someValueOf uniA x
+              fromConstant $ hiddenValueOf uniA x
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
             sndPlc
@@ -277,7 +277,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
           sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
-              fromConstant $ someValueOf uniB y
+              fromConstant $ hiddenValueOf uniB y
     -- Lists
     toBuiltinMeaning ChooseList =
         makeBuiltinMeaning
@@ -299,18 +299,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> SomeConstantOf uni [] '[a]
               -> EvaluationResult (Opaque term (SomeConstantOf uni [] '[a]))
           consPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+            (SomeConstant xOfUniA)
+            (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) =
                 -- Checking that the type of the constant is the same as the type of the elements
                 -- of the unlifted list. Note that there's no way we could enforce this statically
                 -- since in UPLC one can create an ill-typed program that attempts to prepend
                 -- a value of the wrong type to a list.
-                case uniA `geq` uniA' of
+                case extractValueOf uniA xOfUniA of
                     -- Should this rather be an 'UnliftingError'? For that we need
                     -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing   -> EvaluationFailure
-                    Just Refl ->
-                        EvaluationSuccess . fromConstant . someValueOf uniListA $ x : xs
+                    Nothing -> EvaluationFailure
+                    Just x  ->
+                        EvaluationSuccess . fromConstant . hiddenValueOf uniListA $ x : xs
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
             headPlc
@@ -319,7 +319,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
           headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) =
               case xs of
-                x : _ -> EvaluationSuccess . fromConstant $ someValueOf uniA x
+                x : _ -> EvaluationSuccess . fromConstant $ hiddenValueOf uniA x
                 _     -> EvaluationFailure
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
@@ -331,7 +331,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             => listA -> EvaluationResult (Opaque term listA)
           tailPlc (SomeConstantOfArg _ (SomeConstantOfRes uniListA xs)) =
               case xs of
-                _ : xs' -> EvaluationSuccess . fromConstant $ someValueOf uniListA xs'
+                _ : xs' -> EvaluationSuccess . fromConstant $ hiddenValueOf uniListA xs'
                 _       -> EvaluationFailure
     toBuiltinMeaning NullList =
         makeBuiltinMeaning

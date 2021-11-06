@@ -40,7 +40,7 @@ import Control.Monad.Reader
 import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
-import Data.DList qualified as DList
+import qualified Data.DList as DList
 import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
@@ -118,11 +118,11 @@ instance MonadEmitter (CkM uni fun s) where
 
 type instance UniOf (CkValue uni fun) = uni
 
-instance FromConstant (CkValue uni fun) where
-    fromConstant = VCon
+instance HasHiddenValueOf uni => FromConstant (CkValue uni fun) where
+    fromConstant = VCon . toSomeValueOf
 
-instance AsConstant (CkValue uni fun) where
-    asConstant _        (VCon val) = pure val
+instance HasHiddenValueOf uni => AsConstant (CkValue uni fun) where
+    asConstant _        (VCon val) = pure $ fromSomeValueOf val
     asConstant mayCause _          = throwNotAConstant mayCause
 
 data Frame uni fun

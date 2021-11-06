@@ -22,11 +22,11 @@ import PlutusPrelude
 
 import Control.Monad.RWS.Strict
 import Data.Aeson
-import Data.ByteString qualified as BS
+import qualified Data.ByteString as BS
 import Data.Proxy
 import Data.SatInt
-import Data.Text qualified as T
-import Data.Text.Foreign qualified as T (lengthWord16)
+import qualified Data.Text as T
+import qualified Data.Text.Foreign as T (lengthWord16)
 import GHC.Exts (Int (I#))
 import GHC.Integer
 import GHC.Integer.Logarithms

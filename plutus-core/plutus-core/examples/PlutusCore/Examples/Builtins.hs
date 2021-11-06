@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusCore.Examples.Builtins where
 
@@ -22,18 +23,19 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 
-import PlutusCore.StdLib.Data.ScottList qualified as Plc
+import qualified PlutusCore.StdLib.Data.ScottList as Plc
 
 import Control.Exception
 import Data.Either
 import Data.Hashable (Hashable)
-import Data.Kind qualified as GHC (Type)
+import qualified Data.Kind as GHC (Type)
 import Data.Proxy
 import Data.Tuple
 import Data.Void
 import GHC.Generics
 import GHC.Ix
 import Prettyprinter
+import Universe
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -245,25 +247,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         consPlc
             :: SomeConstant uni a
             -> SomeConstantOf uni [] '[a]
-            -> EvaluationResult (SomeConstantOf uni [] '[a])
+            -> EvaluationResult (Opaque term (SomeConstantOf uni [] '[a]))
         consPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
-                -- Checking that the type of the constant is the same as the type of the elements
-                -- of the unlifted list. Note that there's no way we could enforce this statically
-                -- since in UPLC one can create an ill-typed program that attempts to prepend
-                -- a value of the wrong type to a list.
-                case uniA `geq` uniA' of
-                    -- Should this rather be an 'UnliftingError'? For that we need
-                    -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing   -> EvaluationFailure
-                    Just Refl ->
-                        EvaluationSuccess . SomeConstantOfArg uniA $
-                            SomeConstantOfRes uniListA $ x : xs
+          (SomeConstant xOfUniA)
+          (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) =
+              -- Checking that the type of the constant is the same as the type of the elements
+              -- of the unlifted list. Note that there's no way we could enforce this statically
+              -- since in UPLC one can create an ill-typed program that attempts to prepend
+              -- a value of the wrong type to a list.
+              case extractValueOf uniA xOfUniA of
+                  -- Should this rather be an 'UnliftingError'? For that we need
+                  -- https://github.com/input-output-hk/plutus/pull/3035
+                  Nothing -> EvaluationFailure
+                  Just x  ->
+                      EvaluationSuccess . fromConstant . hiddenValueOf uniListA $ x : xs
 
     toBuiltinMeaning Comma = makeBuiltinMeaning commaPlc mempty where
         commaPlc :: SomeConstant uni a -> SomeConstant uni b -> SomeConstantOf uni (,) '[a, b]
-        commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
+        commaPlc
+                 (SomeConstant (toSomeValueOf -> Some (ValueOf uniA x)))
+                 (SomeConstant (toSomeValueOf -> Some (ValueOf uniB y))) =
             let uniPairAB = DefaultUniPair uniA uniB
             in SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes uniPairAB (x, y)))
 
@@ -274,8 +277,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             -> SomeConstantOf uni (,) '[a, b]
             -> EvaluationResult (SomeConstantOf uni (,) '[a, b])
         biconstPairPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstant (Some (ValueOf uniB y)))
+            (SomeConstant (toSomeValueOf -> Some (ValueOf uniA x)))
+            (SomeConstant (toSomeValueOf -> Some (ValueOf uniB y)))
             (SomeConstantOfArg uniA' (SomeConstantOfArg uniB' (SomeConstantOfRes uniPairAB _))) =
                 case (,) <$> (uniA `geq` uniA') <*> (uniB `geq` uniB') of
                     -- Should this rather be an 'UnliftingError'? For that we need

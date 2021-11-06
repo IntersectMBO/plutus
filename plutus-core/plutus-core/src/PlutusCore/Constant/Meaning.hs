@@ -8,6 +8,7 @@
 {-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
@@ -33,12 +34,13 @@ import PlutusCore.Name
 import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
-import Data.Kind qualified as GHC
+import qualified Data.Kind as GHC
 import Data.Proxy
 import Data.Some.GADT
 import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
+import Universe (HiddenValueOf)
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).
@@ -107,10 +109,25 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | Get the 'BuiltinMeaning' of a built-in function.
     toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term (CostingPart uni fun)
 
+newtype BogusTerm uni = BogusTerm
+    { unBogusTerm :: HiddenValueOf uni
+    }
+type instance UniOf (BogusTerm uni) = uni
+instance AsConstant   (BogusTerm uni) where asConstant _ = pure . unBogusTerm
+instance FromConstant (BogusTerm uni) where fromConstant = BogusTerm
+
+withTypeSchemeOfBuiltinFunction
+    :: ToBuiltinMeaning uni fun
+    => fun -> (forall args res. TypeScheme (BogusTerm uni) args res -> r) -> r
+withTypeSchemeOfBuiltinFunction fun k =
+    case toBuiltinMeaning @_ @_ @(BogusTerm _) fun of
+        BuiltinMeaning sch _ _ -> k sch
+
 -- | Get the type of a built-in function.
-typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
-typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
-    BuiltinMeaning sch _ _ -> typeSchemeToType sch
+typeOfBuiltinFunction
+  :: ToBuiltinMeaning uni fun
+  => fun -> Type TyName uni ()
+typeOfBuiltinFunction fun = withTypeSchemeOfBuiltinFunction fun typeSchemeToType
 
 -- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.

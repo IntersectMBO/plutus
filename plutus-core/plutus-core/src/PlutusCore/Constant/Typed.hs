@@ -66,12 +66,12 @@ import PlutusCore.Name
 import Control.Monad.Except
 import Data.Functor.Compose
 import Data.Functor.Const
-import Data.Kind qualified as GHC (Type)
+import qualified Data.Kind as GHC (Type)
 import Data.Proxy
 import Data.SOP.Constraint
-import Data.Some.GADT qualified as GADT
+import qualified Data.Some.GADT as GADT
 import Data.String
-import Data.Text qualified as Text
+import qualified Data.Text as Text
 import GHC.Ix
 import GHC.TypeLits
 import Universe
@@ -415,11 +415,11 @@ class AsConstant term where
     -- is not a 'Constant'.
     asConstant
         :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
-        => Maybe cause -> term -> m (Some (ValueOf (UniOf term)))
+        => Maybe cause -> term -> m (HiddenValueOf (UniOf term))
 
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+    fromConstant :: HiddenValueOf (UniOf term) -> term
 
 type instance UniOf (Opaque term rep) = UniOf term
 
@@ -435,12 +435,12 @@ newtype Opaque term (rep :: GHC.Type) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty, AsConstant, FromConstant)
 
-instance AsConstant (Term TyName Name uni fun ann) where
-    asConstant _        (Constant _ val) = pure val
+instance HasHiddenValueOf uni => AsConstant (Term TyName Name uni fun ann) where
+    asConstant _        (Constant _ val) = pure $ fromSomeValueOf val
     asConstant mayCause _                = throwNotAConstant mayCause
 
-instance FromConstant (Term tyname name uni fun ()) where
-    fromConstant = Constant ()
+instance HasHiddenValueOf uni => FromConstant (Term tyname name uni fun ()) where
+    fromConstant = Constant () . toSomeValueOf
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
 --
@@ -513,9 +513,9 @@ type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 -- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
 -- hence defining it as a class synonym.
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+class    (HasConstantIn uni term, HasHiddenValueOf uni, GShow uni, GEq uni, uni `Contains` a) =>
             KnownBuiltinTypeIn uni term a
-instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+instance (HasConstantIn uni term, HasHiddenValueOf uni, GShow uni, GEq uni, uni `Contains` a) =>
             KnownBuiltinTypeIn uni term a
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
@@ -545,7 +545,7 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown _ x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . hiddenValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
@@ -558,12 +558,12 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
            , KnownBuiltinType term a
            )
         => Maybe cause -> term -> m a
-    readKnown mayCause term = asConstant mayCause term >>= \case
-        Some (ValueOf uniAct x) -> do
-            let uniExp = knownUni @_ @uni @a
-            case uniAct `geq` uniExp of
-                Just Refl -> pure x
-                Nothing   -> do
+    readKnown mayCause term = asConstant mayCause term >>= \val -> do
+        let uniExp = knownUni @_ @uni @a
+        case extractValueOf uniExp val of
+            Just x  -> pure x
+            Nothing -> case toSomeValueOf val of
+                Some (ValueOf uniAct _) -> do
                     let err = fromString $ concat
                             [ "Type mismatch: "
                             , "expected: " ++ gshow uniExp
@@ -645,7 +645,7 @@ instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
 -- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
 -- @Opaque term rep@).
 newtype SomeConstant uni rep = SomeConstant
-    { unSomeConstant :: Some (ValueOf uni)
+    { unSomeConstant :: HiddenValueOf uni
     }
 
 instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant uni' rep) where
@@ -720,9 +720,9 @@ data ReadSomeConstantOf m uni f reps =
 
 instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownTypeIn uni term (SomeConstantOf uni f reps) where
-    makeKnown _ = pure . fromConstant . runSomeConstantOf
+    makeKnown _ = undefined -- pure . fromConstant . runSomeConstantOf
 
-    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
+    readKnown (mayCause :: Maybe cause) term = undefined {- asConstant mayCause term >>= \case
         Some (ValueOf uni xs) -> do
             let uniF = knownUni @_ @_ @f
                 err = fromString $ concat
@@ -748,7 +748,7 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
                                 pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
             case uniHead `geq` uniF of
                 Nothing   -> wrongType
-                Just Refl -> pure res
+                Just Refl -> pure res -}
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)

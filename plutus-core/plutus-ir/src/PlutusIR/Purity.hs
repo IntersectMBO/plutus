@@ -38,8 +38,7 @@ isSaturated
     => BuiltinApp tyname name uni fun a
     -> Maybe Bool
 isSaturated (BuiltinApp fun args) =
-    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) fun of
-        BuiltinMeaning sch _ _ -> saturatesScheme args sch
+    withTypeSchemeOfBuiltinFunction @uni fun $ saturatesScheme args
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
 asBuiltinApp :: Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)

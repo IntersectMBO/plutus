@@ -38,7 +38,8 @@ import Control.Monad.Except
 import Data.Array
 import Universe
 
-type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
+type Typecheckable uni fun =
+    (ToKind uni, HasUniApply uni, HasHiddenValueOf uni, ToBuiltinMeaning uni fun)
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.
