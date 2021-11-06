@@ -33,12 +33,12 @@ lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K 
   → M' ≅ M × A ≅ A' × B ≅ B'
 lem-·⋆' p p' X = {!X!}
 -}
-lem-·⋆'' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
+lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
   → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
   → ∀{C}(p : C ≡ B [ A ]Nf)(p' : C ≡ B' [ A' ]Nf)
   → M' _⊢_.·⋆ A' / p' ≡ M _⊢_.·⋆ A / p
-  → M' ≅ M × A ≅ A' × B ≅ B'
-lem-·⋆'' p .p refl = refl ,, refl ,, refl
+  → ∃ λ (p : K ≡ K') → M' ≅ M × A ≅ A' × B ≅ B'
+lem-·⋆ p .p refl = refl ,, refl ,, refl ,, refl
 
 {-
 lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
