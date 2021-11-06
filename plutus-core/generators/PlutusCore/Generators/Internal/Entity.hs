@@ -112,7 +112,7 @@ revealUnique (Name name uniq) =
 -- TODO: we can generate more types here.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: forall term m c uni. (uni ~ DefaultUni, HasConstantIn uni term, Monad m)
+    :: (uni ~ DefaultUni, HasConstantIn uni term, Monad m)
     => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer       AsKnownType
@@ -123,14 +123,14 @@ withTypedBuiltinGen k = Gen.choice
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: forall m c uni fun. (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
     -> (forall a. AsKnownType (Plain Term uni fun) a ->
             TermOf (Plain Term uni fun) (EvaluationResult (Plain Term uni fun)) ->
                 GenT m c)
     -> GenT m c
 withCheckedTermGen genTb k =
-    withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> do
+    withTypedBuiltinGen $ \akt@AsKnownType -> do
         termWithMetaValue <- genTb akt
         let termWithResult = unsafeTypeEvalCheck termWithMetaValue
         k akt termWithResult
@@ -210,7 +210,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
             -- A list of recursive generators.
             recursive = map proceed $ lookupInContext akt
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
-            lambdaApply = withTypedBuiltinGen @(Plain Term uni fun) $ \argKt@AsKnownType -> do
+            lambdaApply = withTypedBuiltinGen $ \argKt@AsKnownType -> do
                 -- Generate a name for the name representing the argument.
                 name <- lift $ revealUnique <$> freshName "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
@@ -231,8 +231,7 @@ genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: forall m c uni fun. (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+     :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
      => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
-withAnyTermLoose k =
-  withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> genTermLoose akt >>= k
+withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k
