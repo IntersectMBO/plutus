@@ -45,6 +45,19 @@ import Hedgehog.Range qualified as Range
    as CostingIntegers.  To deal with (A), we don't check for exact equality of
    the outputs but instead check that the R result and the Haskell result agreee
    to within a factor of 1/100 (one percent).
+-}
+
+{-
+   The tests here use Haskell costing functions (in costModelsR from
+   CreateCostModel.hs) which are loaded directly from R.  The costing functions
+   we use in practice are read from builtinCostModel.json, which contains
+   JSON-serialised versions of the Haskell costing functions.  Perhaps the tests
+   should be reading the Haskell costing functions from the JSON file as well;
+   there shouldn't really be any problem because the functions should be the
+   same as the ones we construct from R here (they're essentially the contents
+   of costModelsR converted to JSON), but it wouldn't do any harm to include any
+   possible loss of accuracy due to serialisation/deserialisation in the tests
+   as well.
 
 -}
 

@@ -445,6 +445,26 @@ verifySignature cpuModelR = do
   cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInX cpuModelR
   let memModel =  ModelThreeArgumentsConstantCost 10
   pure $ CostingFun cpuModel memModel
+  {- The CPU model is wrong here, but not in the way that it may appear to be.
+     We're reading a model for X but treating it as a function of Z.  This is
+     partially correct because the benchmark results only record data for the
+     message size, and so R has to treat it as an X value.  However, we should
+     really be modelling it as a function of Y, since that's the 'msg' parameter
+     of the verifySignature function.  So above it should say
+
+        ModelThreeArgumentsLinearInY <$> readModelLinearInX cpuModelR.
+
+     To recapitulate, R is supplying us with a reasonabe model for execution
+     time in terms of message size, but we're feeding that model constant inputs
+     (the size of the signature, 64 bytes/8 words) instead of the size of the
+     signature that we're verifying.  Luckily we can get away with this.  The
+     time taken to run verifySignature in fact appears to be effectively
+     constant, even for very large messages, possibly because the underlying C
+     code is very fast.  The Z-based cost function returns a constant cost since
+     the size of the third argument is constant; we should be using a Y-based
+     function instead, but that would give similar results and we're not
+     undercharging siginficantly.
+   -}
 
 
 ---------------- Strings ----------------

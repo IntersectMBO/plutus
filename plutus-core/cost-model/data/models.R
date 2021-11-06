@@ -401,7 +401,10 @@ modelFun <- function(path) {
     ## are of fixed size, so we only gather benchmarking data for different
     ## sizes of the second argument (the "message" being signed).  This can be
     ## very large, but the time appears to be kind of random, even up to size
-    ## 120000;
+    ## 120000.  This is somewhat confusing because the CSV file only contains
+    ## results for the x parameter but in fact it refers to the second parameter
+    ## of verifySignature.  To clarify things here we should probably record data
+    ## for all three parameter sizes even though the first and third are constant.
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
