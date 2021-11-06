@@ -72,7 +72,7 @@ import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array
 import Data.Hashable (Hashable)
-import Data.Kind qualified as GHC
+import qualified Data.Kind as GHC
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
@@ -184,7 +184,7 @@ instance Show (BuiltinRuntime (CekValue uni fun)) where
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun =
     -- This bang gave us a 1-2% speed-up at the time of writing.
-    VCon !(Some (ValueOf uni))
+    VCon !(SomeValueOf uni)
   | VDelay (Term Name uni fun ()) !(CekValEnv uni fun)
   | VLamAbs Name (Term Name uni fun ()) !(CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
@@ -202,7 +202,9 @@ data CekValue uni fun =
       (CekValEnv uni fun)    -- For discharging.
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
                                             -- Check the docs of 'BuiltinRuntime' for details.
-    deriving (Show)
+
+instance Show (CekValue uni fun) where
+    show = undefined
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
@@ -354,7 +356,7 @@ type CekEvaluationException uni fun =
     EvaluationException CekUserError (MachineError fun) (Term Name uni fun ())
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
-type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
+type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Pretty (SomeValueOf uni), HasSomeValueOf uni)
 
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
@@ -455,7 +457,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     VBuiltin _ term env _  -> dischargeCekValEnv env term
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (Closed uni, GShow uni, Pretty (SomeValueOf uni), HasSomeValueOf uni, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
@@ -481,7 +483,7 @@ data Context uni fun
     | NoFrame
     deriving (Show)
 
-toExMemory :: (Closed uni, uni `Everywhere` ExMemoryUsage) => CekValue uni fun -> ExMemory
+toExMemory :: (Closed uni, ExMemoryUsage (SomeValueOf uni)) => CekValue uni fun -> ExMemory
 toExMemory = \case
     VCon c      -> memoryUsage c
     VDelay {}   -> 1
@@ -550,7 +552,7 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
+    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, ExMemoryUsage (SomeValueOf uni))
     => Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
@@ -722,7 +724,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: ( ExMemoryUsage (SomeValueOf uni), Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

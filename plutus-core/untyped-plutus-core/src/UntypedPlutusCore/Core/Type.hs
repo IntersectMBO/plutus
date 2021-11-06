@@ -24,11 +24,13 @@ module UntypedPlutusCore.Core.Type
 import Data.Functor.Identity
 import PlutusPrelude
 
-import PlutusCore.Constant qualified as TPLC
-import PlutusCore.Core qualified as TPLC
+import qualified PlutusCore.Constant as TPLC
+import qualified PlutusCore.Core as TPLC
 import PlutusCore.MkPlc
-import PlutusCore.Name qualified as TPLC
+import qualified PlutusCore.Name as TPLC
 import Universe
+
+import Control.DeepSeq
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.
@@ -68,13 +70,17 @@ data Term name uni fun ann
     | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
     | Force !ann !(Term name uni fun ann)
     | Delay !ann !(Term name uni fun ann)
-    | Constant !ann !(Some (ValueOf uni))
+    | Constant !ann !(SomeValueOf uni)
     | Builtin !ann !fun
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+instance Show (Term name uni fun ann) where
+    show = undefined
+instance NFData (Term name uni fun ann) where
+    rnf = undefined
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
@@ -83,7 +89,7 @@ data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fu
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
-instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
+instance HasSomeValueOf uni => TermLike (Term name uni fun) TPLC.TyName name uni fun where
     var      = Var
     tyAbs    = \ann _ _ -> Delay ann
     lamAbs   = \ann name _ -> LamAbs ann name

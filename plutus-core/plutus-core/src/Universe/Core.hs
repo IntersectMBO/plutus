@@ -42,6 +42,14 @@ module Universe.Core
     , deriveGEq
     , deriveGCompare
     , (:~:)(..)
+
+    , SomeValueOf
+    , HasSomeValueOf (..)
+    , toSomeValue
+    , ShowSomeValueOf
+    , EqSomeValueOf
+    , HashableSomeValueOf
+    , NFDataSomeValueOf
     ) where
 
 import Control.Applicative
@@ -336,6 +344,40 @@ data Kinded uni ta where
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
 data ValueOf uni a = ValueOf !(uni (Esc a)) !a
+
+data family SomeValueOf :: (Type -> Type) -> Type
+
+class HasSomeValueOf uni where
+    toSomeValueOf :: uni (Esc a) -> a -> SomeValueOf uni
+    fromSomeValueOf :: uni (Esc a) -> SomeValueOf uni -> Maybe a
+    uniOf :: SomeValueOf uni -> SomeTypeIn uni
+
+class ShowSomeValueOf uni where
+    showSomeValueOf :: SomeValueOf uni -> String
+
+instance ShowSomeValueOf uni => Show (SomeValueOf uni) where
+    show = showSomeValueOf
+
+class EqSomeValueOf uni where
+    eqSomeValueOf :: SomeValueOf uni -> SomeValueOf uni -> Bool
+
+instance EqSomeValueOf uni => Eq (SomeValueOf uni) where
+    (==) = eqSomeValueOf
+
+class HashableSomeValueOf uni where
+    hashWithSaltSomeValueOf :: Int -> SomeValueOf uni -> Int
+
+instance HashableSomeValueOf uni => Hashable (SomeValueOf uni) where
+    hashWithSalt = hashWithSaltSomeValueOf
+
+class NFDataSomeValueOf uni where
+    rnfSomeValueOf :: SomeValueOf uni -> ()
+
+instance NFDataSomeValueOf uni => NFData (SomeValueOf uni) where
+    rnf = rnfSomeValueOf
+
+toSomeValue :: (HasSomeValueOf uni, uni `Includes` a) => a -> SomeValueOf uni
+toSomeValue = toSomeValueOf knownUni
 
 {- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:

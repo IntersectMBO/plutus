@@ -66,12 +66,12 @@ import PlutusCore.Name
 import Control.Monad.Except
 import Data.Functor.Compose
 import Data.Functor.Const
-import Data.Kind qualified as GHC (Type)
+import qualified Data.Kind as GHC (Type)
 import Data.Proxy
 import Data.SOP.Constraint
-import Data.Some.GADT qualified as GADT
+import qualified Data.Some.GADT as GADT
 import Data.String
-import Data.Text qualified as Text
+import qualified Data.Text as Text
 import GHC.Ix
 import GHC.TypeLits
 import Universe
@@ -415,11 +415,11 @@ class AsConstant term where
     -- is not a 'Constant'.
     asConstant
         :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
-        => Maybe cause -> term -> m (Some (ValueOf (UniOf term)))
+        => Maybe cause -> term -> m (SomeValueOf (UniOf term))
 
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+    fromConstant :: SomeValueOf (UniOf term) -> term
 
 type instance UniOf (Opaque term rep) = UniOf term
 
@@ -557,12 +557,13 @@ class KnownTypeAst uni a => KnownTypeIn uni a where
     default makeKnown
         :: ( MonadError (ErrorWithCause err cause) m
            , AssociateBuiltinType uni a term
+           , HasSomeValueOf uni
            )
         => Maybe cause -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown _ x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . toSomeValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
@@ -574,20 +575,32 @@ class KnownTypeAst uni a => KnownTypeIn uni a where
     default readKnown
         :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
            , AssociateBuiltinType uni a term
+           , HasSomeValueOf uni
            )
         => Maybe cause -> term -> m a
-    readKnown mayCause term = asConstant mayCause term >>= \case
-        Some (ValueOf uniAct x) -> do
-            let uniExp = knownUni @_ @uni @a
-            case uniAct `geq` uniExp of
-                Just Refl -> pure x
-                Nothing   -> do
-                    let err = fromString $ concat
-                            [ "Type mismatch: "
-                            , "expected: " ++ gshow uniExp
-                            , "; actual: " ++ gshow uniAct
-                            ]
-                    throwingWithCause _UnliftingError err mayCause
+    -- readKnown mayCause term = asConstant mayCause term >>= \case
+    --     Some (ValueOf uniAct x) -> do
+    --         let uniExp = knownUni @_ @uni @a
+    --         case uniAct `geq` uniExp of
+    --             Just Refl -> pure x
+    --             Nothing   -> do
+    --                 let err = fromString $ concat
+    --                         [ "Type mismatch: "
+    --                         , "expected: " ++ gshow uniExp
+    --                         , "; actual: " ++ gshow uniAct
+    --                         ]
+    --                 throwingWithCause _UnliftingError err mayCause
+    readKnown mayCause term = asConstant mayCause term >>= \val -> do
+        let uniExp = knownUni @_ @uni @a
+        case fromSomeValueOf uniExp val of
+            Just x  -> pure x
+            Nothing -> do
+                let err = fromString $ concat
+                        [ "Type mismatch: "
+                        , "expected: " ++ gshow uniExp
+                        , "; actual: " ++ show (uniOf val)
+                        ]
+                throwingWithCause _UnliftingError err mayCause
 
 -- | A constraint for \"@a@ is a 'KnownTypeIn' by means of only requiring a @term@ to have a
 -- @Constant@-like constructor for values of type @a@ to be liftable to / unliftable from @term@.
@@ -669,7 +682,7 @@ instance KnownTypeIn uni a => KnownTypeIn uni (Emitter a) where
 -- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
 -- @Opaque term rep@).
 newtype SomeConstant uni rep = SomeConstant
-    { unSomeConstant :: Some (ValueOf uni)
+    { unSomeConstant :: SomeValueOf uni
     }
 
 instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant uni' rep) where
@@ -719,8 +732,8 @@ data SomeConstantOf uni f reps where
         -> SomeConstantOf uni f (rep ': reps)
 
 -- | Extract the value stored in a 'SomeConstantOf'.
-runSomeConstantOf :: SomeConstantOf uni f reps -> Some (ValueOf uni)
-runSomeConstantOf (SomeConstantOfRes uniA x) = Some $ ValueOf uniA x
+runSomeConstantOf :: HasSomeValueOf uni => SomeConstantOf uni f reps -> SomeValueOf uni
+runSomeConstantOf (SomeConstantOfRes uniA x) = toSomeValueOf uniA x
 runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
 
 instance (uni ~ uni', uni `Contains` f, All (KnownTypeAst uni) reps) =>
@@ -743,36 +756,36 @@ data ReadSomeConstantOf m uni f reps =
 
 instance ( uni ~ uni', GShow uni, GEq uni, uni `Contains` f
          , All (KnownTypeAst uni) reps, HasUniApply uni
+         , HasSomeValueOf uni
          ) => KnownTypeIn uni (SomeConstantOf uni' f reps) where
     makeKnown _ = pure . fromConstant . runSomeConstantOf
 
-    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
-        Some (ValueOf uni xs) -> do
-            let uniF = knownUni @_ @_ @f
-                err = fromString $ concat
-                    [ "Type mismatch: "
-                    , "expected an application of: " ++ gshow uniF
-                    , "; but got the following type: " ++ gshow uni
-                    ]
-                wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
-                wrongType = throwingWithCause _UnliftingError err mayCause
-            -- In order to prove that the type of @xs@ is an application of @f@ we need to
-            -- peel all type applications off in the type of @xs@ until we get to the head and then
-            -- check that the head is indeed @f@. Each peeled type application becomes a
-            -- 'SomeConstantOfArg' in the final result.
-            ReadSomeConstantOf res uniHead <-
-                cparaM_SList @_ @(KnownTypeAst uni) @reps
-                    Proxy
-                    (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
-                    (\(ReadSomeConstantOf acc uniApp) ->
-                        matchUniApply
-                            uniApp
-                            wrongType
-                            (\uniApp' uniA ->
-                                pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
-            case uniHead `geq` uniF of
-                Nothing   -> wrongType
-                Just Refl -> pure res
+    readKnown (mayCause :: Maybe cause) term = undefined {- asConstant mayCause term >>= \val -> do
+          let uniF = knownUni @_ @_ @f
+              err = fromString $ concat
+                  [ "Type mismatch: "
+                  , "expected an application of: " ++ gshow uniF
+                  , "; but got the following type: " ++ gshow uni
+                  ]
+              wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
+              wrongType = throwingWithCause _UnliftingError err mayCause
+          -- In order to prove that the type of @xs@ is an application of @f@ we need to
+          -- peel all type applications off in the type of @xs@ until we get to the head and then
+          -- check that the head is indeed @f@. Each peeled type application becomes a
+          -- 'SomeConstantOfArg' in the final result.
+          ReadSomeConstantOf res uniHead <-
+              cparaM_SList @_ @(KnownTypeAst uni) @reps
+                  Proxy
+                  (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
+                  (\(ReadSomeConstantOf acc uniApp) ->
+                      matchUniApply
+                          uniApp
+                          wrongType
+                          (\uniApp' uniA ->
+                              pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
+          case uniHead `geq` uniF of
+              Nothing   -> wrongType
+              Just Refl -> pure res -}
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)

@@ -39,13 +39,13 @@ instance (HasUniques (Type tyname uni ann), GEq uni) => Eq (Type tyname uni ann)
 
 instance
         ( HasUniques (Term tyname name uni fun ann)
-        , GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun
+        , GEq uni, Closed uni, Eq (SomeValueOf uni), Eq fun
         ) => Eq (Term tyname name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
 
 instance
         ( HasUniques (Program tyname name uni fun ann)
-        , GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun
+        , GEq uni, Closed uni, Eq (SomeValueOf uni), Eq fun
         ) => Eq (Program tyname name uni fun ann) where
     prog1 == prog2 = runEqRename $ eqProgramM prog1 prog2
 
@@ -90,7 +90,7 @@ eqTypeM TyBuiltin{} _ = empty
 -- See Note [No catch-all].
 -- | Check equality of two 'Term's.
 eqTermM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun)
+    :: (GEq uni, Closed uni, Eq (SomeValueOf uni), Eq fun)
     => EqRenameOf ScopedRenaming (Term tyname name uni fun ann)
 eqTermM (LamAbs _ name1 ty1 body1) (LamAbs _ name2 ty2 body2) = do
     eqTypeM ty1 ty2
@@ -131,7 +131,7 @@ eqTermM Builtin{}  _ = empty
 
 -- | Check equality of two 'Program's.
 eqProgramM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun)
+    :: (GEq uni, Closed uni, Eq (SomeValueOf uni), Eq fun)
     => EqRenameOf ScopedRenaming (Program tyname name uni fun ann)
 eqProgramM (Program _ ver1 term1) (Program _ ver2 term2) = do
     guard $ ver1 == ver2

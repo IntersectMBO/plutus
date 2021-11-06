@@ -62,7 +62,7 @@ shad = runQuote $ do
 -- But that problem is already solved before type checking starts as we rename the program and that
 -- makes all binders uniques, so no variable capture is possible due to the outer and inner bindings
 -- being distinct.
-mkShad :: uni `Includes` Integer => Term TyName Name uni fun ()
+mkShad :: (HasSomeValueOf uni, uni `Includes` Integer) => Term TyName Name uni fun ()
 mkShad = runQuote $ do
     a     <- freshTyName "a"
     f     <- freshTyName "f"

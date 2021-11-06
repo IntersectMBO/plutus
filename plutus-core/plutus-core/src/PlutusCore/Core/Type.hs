@@ -1,3 +1,5 @@
+{-# LANGUAGE RankNTypes               #-}
+
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DeriveAnyClass           #-}
 {-# LANGUAGE DerivingVia              #-}
@@ -49,7 +51,7 @@ import PlutusCore.Name
 
 import Control.Lens
 import Data.Hashable
-import Data.Kind qualified as GHC
+import qualified Data.Kind as GHC
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe
@@ -82,7 +84,7 @@ data Term tyname name uni fun ann
     | TyAbs ann tyname (Kind ann) (Term tyname name uni fun ann)
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni fun ann)
     | Apply ann (Term tyname name uni fun ann) (Term tyname name uni fun ann)
-    | Constant ann (Some (ValueOf uni)) -- ^ a constant term
+    | Constant ann (SomeValueOf uni) -- ^ a constant term
     | Builtin ann fun
     | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni fun ann)

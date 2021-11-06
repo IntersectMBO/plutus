@@ -27,7 +27,7 @@ instance (PrettyClassic tyname, GShow uni, Pretty ann) => Pretty (Type tyname un
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , GShow uni, Closed uni, PrettySomeValueOf uni, HasSomeValueOf uni, Pretty fun
         , Pretty ann
         ) => Pretty (Term tyname name uni fun ann) where
     pretty = prettyClassicDef
@@ -35,7 +35,7 @@ instance
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , GShow uni, Closed uni, PrettySomeValueOf uni, HasSomeValueOf uni, Pretty fun
         , Pretty ann
         ) => Pretty (Program tyname name uni fun ann) where
     pretty = prettyClassicDef

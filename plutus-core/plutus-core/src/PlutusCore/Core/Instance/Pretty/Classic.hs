@@ -60,7 +60,7 @@ instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
 instance
         ( PrettyClassicBy configName tyname
         , PrettyClassicBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , GShow uni, Closed uni, PrettySomeValueOf uni, HasSomeValueOf uni, Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann) where
     prettyBy config = \case
@@ -76,7 +76,7 @@ instance
             brackets' (sep (consAnnIf config ann
                 [prettyBy config t1, prettyBy config t2]))
         Constant ann c ->
-            sexp "con" (consAnnIf config ann [prettyTypeOf c, pretty c])
+            sexp "con" (consAnnIf config ann [pretty $ uniOf c, pretty c])
         Builtin ann bi ->
             sexp "builtin" (consAnnIf config ann [pretty bi])
         TyInst ann t ty ->
@@ -89,9 +89,9 @@ instance
                 [prettyBy config ty1, prettyBy config ty2, prettyBy config t])
         Unwrap ann t ->
             sexp "unwrap" (consAnnIf config ann [prettyBy config t])
-      where
-        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
+      -- where
+      --   prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
+      --   prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun ann) where

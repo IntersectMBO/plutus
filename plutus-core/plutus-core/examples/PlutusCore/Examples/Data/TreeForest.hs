@@ -168,7 +168,7 @@ forestData = runQuote $ do
 --
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
-treeNode :: HasUniApply uni => Term TyName Name uni fun ()
+treeNode :: (HasUniApply uni, HasSomeValueOf uni) => Term TyName Name uni fun ()
 treeNode = runQuote $ normalizeTypesIn =<< do
     let RecursiveType _      wrapTree = treeData
         RecursiveType forest _        = forestData
@@ -196,7 +196,7 @@ treeNode = runQuote $ normalizeTypesIn =<< do
 --
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
-forestNil :: HasUniApply uni => Term TyName Name uni fun ()
+forestNil :: (HasUniApply uni, HasSomeValueOf uni) => Term TyName Name uni fun ()
 forestNil = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
@@ -220,7 +220,7 @@ forestNil = runQuote $ normalizeTypesIn =<< do
 --
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
-forestCons :: HasUniApply uni => Term TyName Name uni fun ()
+forestCons :: (HasUniApply uni, HasSomeValueOf uni) => Term TyName Name uni fun ()
 forestCons = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData

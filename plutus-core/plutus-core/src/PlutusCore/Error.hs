@@ -35,16 +35,17 @@ import PlutusCore.DeBruijn.Internal
 import PlutusCore.Lexer.Type
 import PlutusCore.Name
 import PlutusCore.Pretty
+import PlutusCore.Pretty.PrettyConst
 
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
-import Data.Text qualified as T
+import qualified Data.Text as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
 import Prettyprinter.Internal (Doc (Text))
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
-import Universe (Closed (Everywhere), GEq, GShow)
+import Universe (Closed, GEq, GShow, SomeValueOf)
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.
@@ -89,7 +90,7 @@ data NormCheckError tyname name uni fun ann
     deriving (Show, Functor, Generic, NFData)
 deriving instance
     ( HasUniques (Term tyname name uni fun ann)
-    , GEq uni, Closed uni, uni `Everywhere` Eq
+    , GEq uni, Closed uni, Eq (SomeValueOf uni)
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
 makeClassyPrisms ''NormCheckError
@@ -165,7 +166,7 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty fun, Pretty term) =>
+instance (GShow uni, Closed uni, PrettySomeValueOf uni,  Pretty ann, Pretty fun, Pretty term) =>
             PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config e@(KindMismatch ann ty k k')          =
         pretty (errorCode e) <> ":" <+>
@@ -191,7 +192,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
     prettyBy _ (UnknownBuiltinFunctionE ann fun) =
         "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
+instance (GShow uni, Closed uni, PrettySomeValueOf uni, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e

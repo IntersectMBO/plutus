@@ -54,12 +54,12 @@ import PlutusCore.Core
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
-class TermLike term tyname name uni fun | term -> tyname name uni fun where
+class HasSomeValueOf uni => TermLike term tyname name uni fun | term -> tyname name uni fun where
     var      :: ann -> name -> term ann
     tyAbs    :: ann -> tyname -> Kind ann -> term ann -> term ann
     lamAbs   :: ann -> name -> Type tyname uni ann -> term ann -> term ann
     apply    :: ann -> term ann -> term ann -> term ann
-    constant :: ann -> Some (ValueOf uni) -> term ann
+    constant :: ann -> SomeValueOf uni -> term ann
     builtin  :: ann -> fun -> term ann
     tyInst   :: ann -> term ann -> Type tyname uni ann -> term ann
     unwrap   :: ann -> term ann -> term ann
@@ -89,15 +89,15 @@ mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @_ @uni @a
 mkConstantOf
     :: forall a uni fun term tyname name ann. TermLike term tyname name uni fun
     => ann -> uni (Esc a) -> a -> term ann
-mkConstantOf ann uni = constant ann . someValueOf uni
+mkConstantOf ann uni = constant ann . toSomeValueOf uni
 
 -- | Embed a Haskell value (provided its type is in the universe) into a PLC term.
 mkConstant
     :: forall a uni fun term tyname name ann. (TermLike term tyname name uni fun, uni `Includes` a)
     => ann -> a -> term ann
-mkConstant ann = constant ann . someValue
+mkConstant ann = constant ann . toSomeValueOf knownUni
 
-instance TermLike (Term tyname name uni fun) tyname name uni fun where
+instance HasSomeValueOf uni => TermLike (Term tyname name uni fun) tyname name uni fun where
     var      = Var
     tyAbs    = TyAbs
     lamAbs   = LamAbs

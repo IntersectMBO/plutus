@@ -1,4 +1,4 @@
--- | The CK machine.
+ -- | The CK machine.
 
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -40,7 +40,7 @@ import Control.Monad.Reader
 import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
-import Data.DList qualified as DList
+import qualified Data.DList as DList
 import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
@@ -53,12 +53,14 @@ instance Show (BuiltinRuntime (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
 
 data CkValue uni fun =
-    VCon (Some (ValueOf uni))
+    VCon (SomeValueOf uni)
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
-    deriving (Show)
+
+instance Show (CkValue uni fun) where
+    show = undefined
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
@@ -86,7 +88,7 @@ data CkEnv uni fun s = CkEnv
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
     }
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (Closed uni, GShow uni, Pretty (SomeValueOf uni), HasSomeValueOf uni, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
@@ -339,7 +341,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 -- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
     :: ( GShow uni, Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
+       , Typeable uni, Typeable fun, Pretty (SomeValueOf uni), HasSomeValueOf uni
        , Pretty fun, Ix fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)
@@ -350,7 +352,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCkNoEmit
     :: ( GShow uni, Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
+       , Typeable uni, Typeable fun, Pretty (SomeValueOf uni), HasSomeValueOf uni
        , Pretty fun, Ix fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)

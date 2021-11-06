@@ -54,7 +54,7 @@ interListData = runQuote $ do
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ TyVar () r
 
-interNil :: Term TyName Name uni fun ()
+interNil :: HasSomeValueOf uni => Term TyName Name uni fun ()
 interNil = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a <- freshTyName "a"
@@ -72,7 +72,7 @@ interNil = runQuote $ do
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ Var () z
 
-interCons :: Term TyName Name uni fun ()
+interCons :: HasSomeValueOf uni => Term TyName Name uni fun ()
 interCons = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a  <- freshTyName "a"
@@ -100,7 +100,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: uni `Includes` () => Term TyName Name uni fun ()
+foldrInterList :: (HasSomeValueOf uni, uni `Includes` ()) => Term TyName Name uni fun ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName "a0"

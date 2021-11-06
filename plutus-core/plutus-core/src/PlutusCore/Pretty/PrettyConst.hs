@@ -16,12 +16,12 @@ module PlutusCore.Pretty.PrettyConst where
 import PlutusCore.Data
 
 import Codec.Serialise (serialise)
-import Data.ByteString qualified as BS
-import Data.ByteString.Lazy qualified as BSL
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import Data.Coerce
 import Data.Foldable (fold)
 import Data.Proxy
-import Data.Text qualified as T
+import qualified Data.Text as T
 import Data.Word (Word8)
 import Numeric (showHex)
 import Prettyprinter
@@ -117,6 +117,12 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
 
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
+
+class HasSomeValueOf uni => PrettySomeValueOf uni where
+    prettySomeValueOf :: SomeValueOf uni -> Doc ann
+
+instance PrettySomeValueOf uni => Pretty (SomeValueOf uni) where
+    pretty = prettySomeValueOf
 
 instance GShow uni => Pretty (SomeTypeIn uni) where
     pretty (SomeTypeIn uni) = pretty $ gshow uni
