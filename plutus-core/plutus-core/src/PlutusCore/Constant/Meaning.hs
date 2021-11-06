@@ -187,7 +187,7 @@ class KnownMonotype term args res a | args res -> a, a -> res where
 instance (res ~ res', KnownType term res) => KnownMonotype term '[] res res' where
     knownMonotype = TypeSchemeResult Proxy
 
--- | Every term-level argument becomes a 'TypeSchemeArrow'.
+-- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType term arg, KnownMonotype term args res a) =>
             KnownMonotype term (arg ': args) res (arg -> a) where
     knownMonotype = Proxy `TypeSchemeArrow` knownMonotype
@@ -332,6 +332,12 @@ makeBuiltinMeaning
     :: forall a term cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
        , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
+       -- This constraint is just to get through 'KnownPolytype' stuck on an unknown type straight
+       -- to the custom type error that we have in the @Typed@ module. Though, somehow, the error
+       -- gets triggered even without the constraint when this function in used, but I don't
+       -- understand how that is possible and it does not work when the function from the @Debug@
+       -- module is used. So we're just doing the right thing here and adding the constraint.
+       , KnownMonotype term args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)

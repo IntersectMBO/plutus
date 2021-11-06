@@ -3,7 +3,6 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeOperators             #-}
 
 module PlutusCore.Generators.Internal.Denotation
@@ -101,7 +100,7 @@ insertBuiltin
 insertBuiltin fun =
     case toBuiltinMeaning fun of
         BuiltinMeaning sch meta _ ->
-           case typeSchemeResult @(Term TyName Name DefaultUni DefaultFun ()) sch of
+           case typeSchemeResult sch of
                AsKnownType ->
                    insertDenotation $ Denotation fun (Builtin ()) meta sch
 
