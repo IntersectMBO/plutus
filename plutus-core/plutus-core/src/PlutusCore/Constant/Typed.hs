@@ -48,7 +48,7 @@ module PlutusCore.Constant.Typed
     , readKnownSelf
     , makeKnownOrFail
     , SomeConstant (..)
-    , SomeConstantOf (..)
+    , SomeConstantPoly (..)
     ) where
 
 import PlutusPrelude
@@ -64,7 +64,6 @@ import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 
 import Control.Monad.Except
-import Data.Functor.Compose
 import Data.Functor.Const
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
@@ -475,7 +474,7 @@ type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 type KnownBuiltinTypeAst = Contains
 
 class KnownTypeAst uni (a :: k) where
-    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantOf' has to be
+    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantPoly' has to be
     -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
     -- type variables in them just like monomorphic ones.
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
@@ -639,8 +638,8 @@ instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
 
--- | For unlifting from the 'Constant' constructor. For cases where we care about having a type tag
--- in the denotation of a builtin rather than full unlifting to a specific built-in type.
+-- | For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
+-- built-in type
 --
 -- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
 -- @Opaque term rep@).
@@ -658,51 +657,17 @@ instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
     makeKnown _ = pure . fromConstant . unSomeConstant
     readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
-{- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
-constants, the former is for unlifting constants of a specific polymorphic built-in type
-(the @f@ parameter).
-
-A @SomeConstantOf uni f reps@ is a value of existentially instantiated @f@. For instance,
-a @SomeConstantOf uni [] reps@ is a list of something (a list of integers or a list of lists
-of booleans etc). And a @SomeConstantOf uni (,) reps@ is a tuple of something.
-
-The @reps@ parameter serves two purposes: its main purpose is to specify how the argument
-types look on the PLC side (i.e. it's the same thing as with @Opaque term rep@), so that
-we can apply the type of built-in lists to a PLC type variable for example. The secondary
-purpose is ensuring type safety via indexing: a value of @SomeConstantOf uni f reps@ can be viewed
-as a proof that the amount of arguments @f@ expects and the length of @reps@ are the same number
-(we could go even further and compute the kind of @f@ from @reps@, but it doesn't seem like
-that would give us any more type safety while it certainly would be a more complex thing to do).
-
-The existential Haskell types @f@ is applied to are reified as type tags from @uni@.
-Note however that the correspondence between the Haskell types and the PLC ones from @reps@ is
-not demanded and this is by design: during evaluation (i.e. on the Haskell side of things)
-we always have concrete type tags, but at Plutus compile time an argument to @f@ can be
-a Plutus type variable and so we can't establish any connection between the type tag that
-we'll end up having at runtime and a Plutus type variable that we have at compile time.
-Which also implies that one can specify that a built-in function takes, say, a tuple of a type
-variable and a boolean, but in the actual denotation unlift to a tuple of a unit and an integer
-(boolean vs integer) and there won't be any Haskell type error for that, let alone a Plutus type
-error -- it'll be an evaluation failure, maybe even a delayed one.
-So be careful in the denotation of a builtin to unlift its arguments to what you promised to
-unlift them to in its type signature.
--}
-type SomeConstantOf :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
-data SomeConstantOf uni f reps where
-    SomeConstantOfRes :: uni (Esc b) -> b -> SomeConstantOf uni b '[]
-    SomeConstantOfArg
-        :: uni (Esc a)
-        -> SomeConstantOf uni (f a) reps
-        -> SomeConstantOf uni f (rep ': reps)
-
--- | Extract the value stored in a 'SomeConstantOf'.
-runSomeConstantOf :: SomeConstantOf uni f reps -> Some (ValueOf uni)
-runSomeConstantOf (SomeConstantOfRes uniA x) = Some $ ValueOf uniA x
-runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
+-- | For unlifting from the 'Constant' constructor when the stored value is of a polymorphic
+-- built-in type.
+--
+-- The @f@ is the built-in type and @reps@ are its arguments representing PLC types.
+newtype SomeConstantPoly uni f reps = SomeConstantPoly
+    { unSomeConstantPoly :: Some (ValueOf uni)
+    }
 
 instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
-            KnownTypeAst uni (SomeConstantOf uni' f reps) where
-    type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
+            KnownTypeAst uni (SomeConstantPoly uni' f reps) where
+    type ToBinds (SomeConstantPoly uni' f reps) = ListToBinds reps
 
     toTypeAst _ =
         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
@@ -712,43 +677,11 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
                 (\(_ :: Proxy (rep ': _reps')) rs -> toTypeAst (Proxy @rep) : rs)
                 []
 
--- | State needed during unlifting of a 'SomeConstantOf'.
-type ReadSomeConstantOf
-        :: forall k. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
-data ReadSomeConstantOf m uni f reps =
-    forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
-
-instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
-            KnownTypeIn uni term (SomeConstantOf uni f reps) where
-    makeKnown _ = pure . fromConstant . runSomeConstantOf
-
-    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
-        Some (ValueOf uni xs) -> do
-            let uniF = knownUni @_ @_ @f
-                err = fromString $ concat
-                    [ "Type mismatch: "
-                    , "expected an application of: " ++ gshow uniF
-                    , "; but got the following type: " ++ gshow uni
-                    ]
-                wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
-                wrongType = throwingWithCause _UnliftingError err mayCause
-            -- In order to prove that the type of @xs@ is an application of @f@ we need to
-            -- peel all type applications off in the type of @xs@ until we get to the head and then
-            -- check that the head is indeed @f@. Each peeled type application becomes a
-            -- 'SomeConstantOfArg' in the final result.
-            ReadSomeConstantOf res uniHead <-
-                cparaM_SList @_ @(KnownTypeAst uni) @reps
-                    Proxy
-                    (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
-                    (\(ReadSomeConstantOf acc uniApp) ->
-                        matchUniApply
-                            uniApp
-                            wrongType
-                            (\uniApp' uniA ->
-                                pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
-            case uniHead `geq` uniF of
-                Nothing   -> wrongType
-                Just Refl -> pure res
+instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
+         , HasConstantIn uni term
+         ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
+    makeKnown _ = pure . fromConstant . unSomeConstantPoly
+    readKnown mayCause = fmap SomeConstantPoly . asConstant mayCause
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)
@@ -853,19 +786,6 @@ instance TypeError NoConstraintsErrMsg => Monoid (Opaque term rep) where
     mempty = underTypeError
 
 -- Utils
-
--- | Like 'cpara_SList' but the folding function is monadic.
-cparaM_SList
-    :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
-    -> m (r xs)
-cparaM_SList p z f =
-    getCompose $ cpara_SList
-        p
-        (Compose $ pure z)
-        (\(Compose r) -> Compose $ r >>= f)
 
 -- | Like 'cpara_SList' but the folding function takes a 'Proxy' argument for the convenience of
 -- the caller.

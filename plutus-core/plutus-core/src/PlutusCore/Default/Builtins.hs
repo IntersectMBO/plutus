@@ -267,26 +267,29 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             fstPlc
             (runCostingFunOneArgument . paramFstPair)
         where
-          fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
-          fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
-              fromConstant $ someValueOf uniA x
+          fstPlc :: SomeConstantPoly uni (,) '[a, b] -> EvaluationResult (Opaque term a)
+          fstPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
+              DefaultUniPair uniA _ <- pure uniPairAB
+              pure . fromConstant . someValueOf uniA $ fst xy
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
             sndPlc
             (runCostingFunOneArgument . paramSndPair)
         where
-          sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
-          sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
-              fromConstant $ someValueOf uniB y
+          sndPlc :: SomeConstantPoly uni (,) '[a, b] -> EvaluationResult (Opaque term b)
+          sndPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
+              DefaultUniPair _ uniB <- pure uniPairAB
+              pure . fromConstant . someValueOf uniB $ snd xy
     -- Lists
     toBuiltinMeaning ChooseList =
         makeBuiltinMeaning
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)
         where
-          choosePlc :: SomeConstantOf uni [] '[a] -> b -> b -> b
-          choosePlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) a b =
-              case xs of
+          choosePlc :: SomeConstantPoly uni [] '[a] -> b -> b -> EvaluationResult b
+          choosePlc (SomeConstantPoly (Some (ValueOf uniListA xs))) a b = do
+            DefaultUniList _ <- pure uniListA
+            pure $ case xs of
                 []    -> a
                 _ : _ -> b
     toBuiltinMeaning MkCons =
@@ -296,50 +299,51 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           consPlc
               :: SomeConstant uni a
-              -> SomeConstantOf uni [] '[a]
-              -> EvaluationResult (Opaque term (SomeConstantOf uni [] '[a]))
+              -> SomeConstantPoly uni [] '[a]
+              -> EvaluationResult (Opaque term (SomeConstantPoly uni [] '[a]))
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+            (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+                DefaultUniList uniA' <- pure uniListA
                 -- Checking that the type of the constant is the same as the type of the elements
                 -- of the unlifted list. Note that there's no way we could enforce this statically
                 -- since in UPLC one can create an ill-typed program that attempts to prepend
                 -- a value of the wrong type to a list.
-                case uniA `geq` uniA' of
-                    -- Should this rather be an 'UnliftingError'? For that we need
-                    -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing   -> EvaluationFailure
-                    Just Refl ->
-                        EvaluationSuccess . fromConstant . someValueOf uniListA $ x : xs
+                -- Should that rather give us an 'UnliftingError'? For that we need
+                -- https://github.com/input-output-hk/plutus/pull/3035
+                Just Refl <- pure $ uniA `geq` uniA'
+                pure . fromConstant . someValueOf uniListA $ x : xs
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
             headPlc
             (runCostingFunOneArgument . paramHeadList)
         where
-          headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
-          headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) =
-              case xs of
-                x : _ -> EvaluationSuccess . fromConstant $ someValueOf uniA x
-                _     -> EvaluationFailure
+          headPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult (Opaque term a)
+          headPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+              DefaultUniList uniA <- pure uniListA
+              x : _ <- pure xs
+              pure . fromConstant $ someValueOf uniA x
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
             tailPlc
             (runCostingFunOneArgument . paramTailList)
         where
           tailPlc
-            :: listA ~ SomeConstantOf uni [] '[a]
+            :: listA ~ SomeConstantPoly uni [] '[a]
             => listA -> EvaluationResult (Opaque term listA)
-          tailPlc (SomeConstantOfArg _ (SomeConstantOfRes uniListA xs)) =
-              case xs of
-                _ : xs' -> EvaluationSuccess . fromConstant $ someValueOf uniListA xs'
-                _       -> EvaluationFailure
+          tailPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+              DefaultUniList _ <- pure uniListA
+              _ : xs' <- pure xs
+              pure . fromConstant $ someValueOf uniListA xs'
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
             nullPlc
             (runCostingFunOneArgument . paramNullList)
         where
-          nullPlc :: SomeConstantOf uni [] '[a] -> Bool
-          nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+          nullPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult Bool
+          nullPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+              DefaultUniList _ <- pure uniListA
+              pure $ null xs
 
     -- Data
     toBuiltinMeaning ChooseData =
