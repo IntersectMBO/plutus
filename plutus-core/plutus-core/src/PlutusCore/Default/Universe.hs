@@ -35,10 +35,10 @@ import PlutusCore.Parsable
 
 import Control.Applicative
 import Control.Monad
-import qualified Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Data.Foldable
 import Data.Proxy
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Universe as Export
 
 {- Note [PLC types and universes]

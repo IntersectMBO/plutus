@@ -24,15 +24,15 @@ module PlutusIR.Core.Type (
 import PlutusPrelude
 
 import PlutusCore (Kind, Name, TyName, Type (..))
-import qualified PlutusCore as PLC
+import PlutusCore qualified as PLC
 import PlutusCore.Constant (AsConstant (..), FromConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
-import qualified PlutusCore.Name as PLC
+import PlutusCore.Name qualified as PLC
 
 
-import qualified Data.Text as T
+import Data.Text qualified as T
 
 -- Datatypes
 

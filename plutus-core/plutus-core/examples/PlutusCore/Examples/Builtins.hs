@@ -24,12 +24,12 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.ScottList as Plc
+import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
 import Control.Exception
 import Data.Either
 import Data.Hashable (Hashable)
-import qualified Data.Kind as GHC (Type)
+import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Tuple
 import Data.Void

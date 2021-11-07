@@ -34,7 +34,7 @@ import PlutusCore.Name
 import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
-import qualified Data.Kind as GHC
+import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
 import Data.Type.Bool

@@ -72,7 +72,7 @@ import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array
 import Data.Hashable (Hashable)
-import qualified Data.Kind as GHC
+import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)

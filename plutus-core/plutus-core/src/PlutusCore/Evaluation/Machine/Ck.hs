@@ -40,7 +40,7 @@ import Control.Monad.Reader
 import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
-import qualified Data.DList as DList
+import Data.DList qualified as DList
 import Data.Proxy
 import Data.STRef
 import Data.Text (Text)

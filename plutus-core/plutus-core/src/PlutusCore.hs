@@ -146,7 +146,7 @@ module PlutusCore
 
 import PlutusPrelude
 
-import qualified PlutusCore.Check.Uniques as Uniques
+import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.Core
 import PlutusCore.DeBruijn
 import PlutusCore.Default
@@ -168,8 +168,8 @@ import PlutusCore.TypeCheck as TypeCheck
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Control.Monad.Except
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text as T
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text qualified as T
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
