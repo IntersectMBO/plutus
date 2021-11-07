@@ -18,19 +18,19 @@
 -- @Meaning@ module.
 module PlutusCore.Constant.Debug where
 
-import           PlutusCore.Constant.Meaning
-import           PlutusCore.Constant.Typed
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Name
+import PlutusCore.Constant.Meaning
+import PlutusCore.Constant.Typed
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Name
 
-import           Control.Monad.Except
-import           Data.Functor.Compose
-import qualified Data.Kind                               as GHC (Type)
-import           Data.Proxy
-import           Data.SOP.Constraint
-import           Data.String
+import Control.Monad.Except
+import Data.Functor.Compose
+import qualified Data.Kind as GHC (Type)
+import Data.Proxy
+import Data.SOP.Constraint
+import Data.String
 
 type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 
