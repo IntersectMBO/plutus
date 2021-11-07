@@ -4,27 +4,27 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
-import           Common
-import           Control.Lens                   hiding (argument, set', (<.>))
-import           Control.Monad.Trans.Except
-import           Control.Monad.Trans.Reader
-import qualified Data.ByteString                as BS
-import qualified Data.ByteString.Lazy.Char8     as BSL
-import           Data.Coerce
-import qualified Data.Csv                       as Csv
-import qualified Data.IntMap                    as IM
-import           Data.List                      (sortOn)
-import qualified Data.Text                      as T
-import           Flat                           (unflat)
-import           GHC.Generics
-import           Options.Applicative
-import           Parsers
-import qualified PlutusCore                     as PLC
-import           PlutusCore.Quote               (runQuoteT)
-import           PlutusIR                       as PIR
-import qualified PlutusIR.Analysis.RetainedSize as PIR
-import qualified PlutusIR.Compiler              as PIR
-import           PlutusIR.Core.Plated
+import Common
+import Control.Lens hiding (argument, set', (<.>))
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Reader
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy.Char8 qualified as BSL
+import Data.Coerce
+import Data.Csv qualified as Csv
+import Data.IntMap qualified as IM
+import Data.List (sortOn)
+import Data.Text qualified as T
+import Flat (unflat)
+import GHC.Generics
+import Options.Applicative
+import Parsers
+import PlutusCore qualified as PLC
+import PlutusCore.Quote (runQuoteT)
+import PlutusIR as PIR
+import PlutusIR.Analysis.RetainedSize qualified as PIR
+import PlutusIR.Compiler qualified as PIR
+import PlutusIR.Core.Plated
 
 data Command = Analyse AOpts
              | Compile COpts

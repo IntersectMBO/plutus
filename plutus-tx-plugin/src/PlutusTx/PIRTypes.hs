@@ -1,6 +1,6 @@
 module PlutusTx.PIRTypes where
 
-import qualified PlutusIR as PIR
+import PlutusIR qualified as PIR
 
 type PIRKind = PIR.Kind ()
 type PIRType uni = PIR.Type PIR.TyName uni ()

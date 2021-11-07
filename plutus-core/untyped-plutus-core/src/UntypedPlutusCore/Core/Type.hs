@@ -21,14 +21,14 @@ module UntypedPlutusCore.Core.Type
     , eraseProgram
     ) where
 
-import           Data.Functor.Identity
-import           PlutusPrelude
+import Data.Functor.Identity
+import PlutusPrelude
 
-import qualified PlutusCore.Constant   as TPLC
-import qualified PlutusCore.Core       as TPLC
-import           PlutusCore.MkPlc
-import qualified PlutusCore.Name       as TPLC
-import           Universe
+import PlutusCore.Constant qualified as TPLC
+import PlutusCore.Core qualified as TPLC
+import PlutusCore.MkPlc
+import PlutusCore.Name qualified as TPLC
+import Universe
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.

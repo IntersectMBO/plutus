@@ -17,7 +17,7 @@ module Text.Fixity
     , topRenderContext
     ) where
 
-import           Text.Fixity.Internal
+import Text.Fixity.Internal
 
 -- | Fractional precedence, so that it's always possible to squeeze an operator precedence between
 -- two existing precedences. Ranges over @[-20, 120]@. A normal operator should have a precedence

@@ -50,21 +50,21 @@ module Text.PrettyBy.Internal
     , PrettyAny (..)
     ) where
 
-import           Text.Pretty
+import Text.Pretty
 
-import           Data.Bifunctor
-import           Data.Coerce
-import           Data.Functor.Const
-import           Data.Functor.Identity
-import           Data.Int
-import           Data.List.NonEmpty    (NonEmpty (..))
-import           Data.Maybe
-import qualified Data.Text             as Strict
-import qualified Data.Text.Lazy        as Lazy
-import           Data.Void
-import           Data.Word
-import           GHC.Natural
-import           GHC.TypeLits
+import Data.Bifunctor
+import Data.Coerce
+import Data.Functor.Const
+import Data.Functor.Identity
+import Data.Int
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.Maybe
+import Data.Text qualified as Strict
+import Data.Text.Lazy qualified as Lazy
+import Data.Void
+import Data.Word
+import GHC.Natural
+import GHC.TypeLits
 
 -- ##########################
 -- ## The 'PrettyBy' class ##

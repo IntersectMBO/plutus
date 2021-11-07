@@ -7,20 +7,20 @@ run to completion. -}
 
 module Main where
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
-import           PlutusBenchmark.Common         (Term, cekResultMatchesHaskellValue)
+import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
 
-import qualified PlutusBenchmark.NoFib.Clausify as Clausify
-import qualified PlutusBenchmark.NoFib.Knights  as Knights
-import           PlutusBenchmark.NoFib.Prime    (Result (Composite, Prime))
-import qualified PlutusBenchmark.NoFib.Prime    as Prime
-import qualified PlutusBenchmark.NoFib.Queens   as Queens
+import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Knights qualified as Knights
+import PlutusBenchmark.NoFib.Prime (Result (Composite, Prime))
+import PlutusBenchmark.NoFib.Prime qualified as Prime
+import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-import           PlutusCore.Default
-import qualified PlutusTx                       as Tx
+import PlutusCore.Default
+import PlutusTx qualified as Tx
 
 
 -- Unit tests comparing PLC and Haskell computations on given inputs

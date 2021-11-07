@@ -13,8 +13,8 @@ module NewUntypedPlutusCore (
     , applyProgram
 ) where
 
-import qualified PlutusCore             as PLC
-import           UntypedPlutusCore.Core
+import PlutusCore qualified as PLC
+import UntypedPlutusCore.Core
 
 -- | Take one UPLC program and apply it to another.
 applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()

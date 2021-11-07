@@ -7,25 +7,25 @@
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
 module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
 
-import qualified PlutusCore               as PLC
-import qualified PlutusCore.Constant      as PLC
-import qualified PlutusCore.Name          as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Constant qualified as PLC
+import PlutusCore.Name qualified as PLC
 
-import           PlutusIR
-import qualified PlutusIR.Analysis.Usages as Usages
-import           PlutusIR.Purity
+import PlutusIR
+import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Purity
 
-import           Control.Lens             hiding (Strict)
-import           Control.Monad.Reader
-import           Control.Monad.State
+import Control.Lens hiding (Strict)
+import Control.Monad.Reader
+import Control.Monad.State
 
-import qualified Algebra.Graph.Class      as G
-import qualified Data.Map                 as Map
-import qualified Data.Set                 as Set
+import Algebra.Graph.Class qualified as G
+import Data.Map qualified as Map
+import Data.Set qualified as Set
 
-import qualified Data.List.NonEmpty       as NE
+import Data.List.NonEmpty qualified as NE
 
-import           Data.Foldable
+import Data.Foldable
 
 type DepCtx term = Node
 type StrictnessMap = Map.Map PLC.Unique Strictness

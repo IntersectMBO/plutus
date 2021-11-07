@@ -19,26 +19,26 @@
 
 module PlutusCore.Constant.Meaning where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant.Dynamic.Emit
-import           PlutusCore.Constant.Function
-import           PlutusCore.Constant.Kinded
-import           PlutusCore.Constant.Typed
-import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
+import PlutusCore.Constant.Dynamic.Emit
+import PlutusCore.Constant.Function
+import PlutusCore.Constant.Kinded
+import PlutusCore.Constant.Typed
+import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
 
-import           Control.Lens                            (ix, (^?))
-import           Control.Monad.Except
-import           Data.Array
-import qualified Data.Kind                               as GHC
-import           Data.Proxy
-import           Data.Some.GADT
-import           Data.Type.Bool
-import           Data.Type.Equality
-import           GHC.TypeLits
+import Control.Lens (ix, (^?))
+import Control.Monad.Except
+import Data.Array
+import Data.Kind qualified as GHC
+import Data.Proxy
+import Data.Some.GADT
+import Data.Type.Bool
+import Data.Type.Equality
+import GHC.TypeLits
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).

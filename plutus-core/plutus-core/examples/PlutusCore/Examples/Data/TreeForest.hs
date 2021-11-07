@@ -11,15 +11,15 @@ module PlutusCore.Examples.Data.TreeForest
     , forestCons
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Normalize
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Normalize
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Type
 
-import           Universe
+import Universe
 
 {- Note [Tree]
 Here we encode the following:

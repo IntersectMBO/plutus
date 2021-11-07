@@ -10,23 +10,23 @@
 {-# LANGUAGE ViewPatterns          #-}
 module PlutusTx.Code where
 
-import           PlutusTx.Lift.Instances ()
+import PlutusTx.Lift.Instances ()
 
-import qualified PlutusIR                as PIR
+import PlutusIR qualified as PIR
 
-import qualified PlutusCore              as PLC
-import qualified PlutusCore.Pretty       as PLC
-import qualified UntypedPlutusCore       as UPLC
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty qualified as PLC
+import UntypedPlutusCore qualified as UPLC
 
-import           Control.Exception
-import           Flat                    (Flat (..), unflat)
-import           Flat.Decoder            (DecodeException)
+import Control.Exception
+import Flat (Flat (..), unflat)
+import Flat.Decoder (DecodeException)
 
-import qualified Data.ByteString         as BS
-import qualified Data.ByteString.Lazy    as BSL
-import           ErrorCode
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import ErrorCode
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude                 as Haskell
+import Prelude as Haskell
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is

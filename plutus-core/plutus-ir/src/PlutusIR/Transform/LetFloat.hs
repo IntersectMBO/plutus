@@ -6,26 +6,26 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 module PlutusIR.Transform.LetFloat (floatTerm) where
 
-import           Control.Arrow           ((>>>))
-import           Control.Lens            hiding (Strict)
-import           Control.Monad.Reader
-import           Control.Monad.Writer
-import           Data.Coerce
-import           Data.Foldable
-import qualified Data.List.NonEmpty      as NE
-import qualified Data.Map                as M
-import qualified Data.Map.Monoidal       as MM
-import           Data.Semigroup.Foldable
-import           Data.Semigroup.Generic
-import qualified Data.Set                as S
-import           Data.Set.Lens           (setOf)
-import           GHC.Generics
-import qualified PlutusCore              as PLC
-import qualified PlutusCore.Constant     as PLC
-import qualified PlutusCore.Name         as PLC
-import           PlutusIR
-import           PlutusIR.Purity
-import           PlutusIR.Subst
+import Control.Arrow ((>>>))
+import Control.Lens hiding (Strict)
+import Control.Monad.Reader
+import Control.Monad.Writer
+import Data.Coerce
+import Data.Foldable
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as M
+import Data.Map.Monoidal qualified as MM
+import Data.Semigroup.Foldable
+import Data.Semigroup.Generic
+import Data.Set qualified as S
+import Data.Set.Lens (setOf)
+import GHC.Generics
+import PlutusCore qualified as PLC
+import PlutusCore.Constant qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusIR
+import PlutusIR.Purity
+import PlutusIR.Subst
 
 {- Note [Let Floating pass]
 

@@ -5,16 +5,16 @@ module UntypedPlutusCore.Check.Uniques
     , AsUniqueError (..)
     ) where
 
-import           UntypedPlutusCore.Analysis.Definitions
-import           UntypedPlutusCore.Core
+import UntypedPlutusCore.Analysis.Definitions
+import UntypedPlutusCore.Core
 
-import           PlutusCore.Error
-import           PlutusCore.Name
+import PlutusCore.Error
+import PlutusCore.Name
 
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
+import Control.Monad.Error.Lens
+import Control.Monad.Except
 
-import           Data.Foldable
+import Data.Foldable
 
 checkProgram
     :: (Ord ann,

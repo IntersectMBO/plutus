@@ -6,11 +6,11 @@
 {- | Merge sort implementation based on GHC's 'sort' function -}
 module PlutusBenchmark.Lists.Sort.GhcSort where
 
-import           PlutusBenchmark.Common               (Term, compiledCodeToTerm)
-import           PlutusBenchmark.Lists.Sort.MergeSort (mergeSortWorstCase)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
+import PlutusBenchmark.Lists.Sort.MergeSort (mergeSortWorstCase)
 
-import qualified PlutusTx                             as Tx
-import           PlutusTx.Prelude                     as Tx
+import PlutusTx qualified as Tx
+import PlutusTx.Prelude as Tx
 
 {- | GHC's 'sort' algorithm specialised to Integer.
    See https://hackage.haskell.org/package/base-4.15.0.0/docs/src/Data-OldList.html#sortBy

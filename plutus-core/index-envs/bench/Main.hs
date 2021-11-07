@@ -3,14 +3,14 @@
 {-# LANGUAGE TypeFamilies     #-}
 module Main where
 
-import           Criterion.Main
-import           Data.Semigroup
-import           System.Random
+import Criterion.Main
+import Data.Semigroup
+import System.Random
 
-import           Data.DeBruijnEnv
-import qualified Data.DeBruijnEnv                 as DBE
-import qualified Data.RAList                      as R
-import qualified Data.RandomAccessList.SkewBinary as B
+import Data.DeBruijnEnv
+import Data.DeBruijnEnv qualified as DBE
+import Data.RAList qualified as R
+import Data.RandomAccessList.SkewBinary qualified as B
 
 
 main :: IO ()

@@ -3,13 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module PlutusIR.Compiler.Lower where
 
-import           PlutusIR
-import           PlutusIR.Compiler.Types
-import           PlutusIR.Error
+import PlutusIR
+import PlutusIR.Compiler.Types
+import PlutusIR.Error
 
-import qualified PlutusCore               as PLC
+import PlutusCore qualified as PLC
 
-import           Control.Monad.Error.Lens
+import Control.Monad.Error.Lens
 
 -- | Turns a PIR 'Term' with no remaining PIR-specific features into a PLC 'PLC.Term' by simply
 -- translating the constructors across.

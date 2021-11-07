@@ -63,32 +63,32 @@ module Plutus.V1.Ledger.Tx(
     Address
     ) where
 
-import qualified Codec.CBOR.Write         as Write
-import           Codec.Serialise.Class    (Serialise, encode)
-import           Control.DeepSeq          (NFData)
-import           Control.Lens
-import           Data.Aeson               (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import qualified Data.ByteArray           as BA
-import           Data.Map                 (Map)
-import qualified Data.Map                 as Map
-import           Data.Maybe               (isJust)
-import qualified Data.Set                 as Set
-import           GHC.Generics             (Generic)
-import           Prettyprinter
+import Codec.CBOR.Write qualified as Write
+import Codec.Serialise.Class (Serialise, encode)
+import Control.DeepSeq (NFData)
+import Control.Lens
+import Data.Aeson (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
+import Data.ByteArray qualified as BA
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Maybe (isJust)
+import Data.Set qualified as Set
+import GHC.Generics (Generic)
+import Prettyprinter
 
-import qualified PlutusTx
-import qualified PlutusTx.Bool            as PlutusTx
-import qualified PlutusTx.Eq              as PlutusTx
-import           PlutusTx.Lattice
+import PlutusTx qualified
+import PlutusTx.Bool qualified as PlutusTx
+import PlutusTx.Eq qualified as PlutusTx
+import PlutusTx.Lattice
 
-import           Plutus.V1.Ledger.Address
-import           Plutus.V1.Ledger.Crypto
-import           Plutus.V1.Ledger.Orphans ()
-import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Slot
-import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value
-import qualified Plutus.V1.Ledger.Value   as V
+import Plutus.V1.Ledger.Address
+import Plutus.V1.Ledger.Crypto
+import Plutus.V1.Ledger.Orphans ()
+import Plutus.V1.Ledger.Scripts
+import Plutus.V1.Ledger.Slot
+import Plutus.V1.Ledger.TxId
+import Plutus.V1.Ledger.Value
+import Plutus.V1.Ledger.Value qualified as V
 
 {- Note [Serialisation and hashing]
 

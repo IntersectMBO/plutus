@@ -6,18 +6,18 @@
 {-# LANGUAGE TypeApplications      #-}
 module Raw where
 
-import           GHC.Natural
+import GHC.Natural
 
-import           Data.ByteString     as BS
-import qualified Data.Text           as T
-import           PlutusCore
-import           PlutusCore.Data
-import           PlutusCore.DeBruijn
-import           PlutusCore.Default
-import           PlutusCore.Parser
-import           PlutusCore.Pretty
+import Data.ByteString as BS
+import Data.Text qualified as T
+import PlutusCore
+import PlutusCore.Data
+import PlutusCore.DeBruijn
+import PlutusCore.Default
+import PlutusCore.Parser
+import PlutusCore.Pretty
 
-import           Data.Either
+import Data.Either
 
 data RType = RTyVar Integer
            | RTyFun RType RType

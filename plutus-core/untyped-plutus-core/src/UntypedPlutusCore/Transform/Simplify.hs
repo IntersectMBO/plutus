@@ -5,9 +5,9 @@ module UntypedPlutusCore.Transform.Simplify
     , simplifyProgram
     ) where
 
-import           UntypedPlutusCore.Core
+import UntypedPlutusCore.Core
 
-import           Control.Lens           (transformOf)
+import Control.Lens (transformOf)
 
 simplifyProgram :: Program name uni fun a -> Program name uni fun a
 simplifyProgram (Program a v t) = Program a v $ simplifyTerm t

@@ -2,10 +2,10 @@
 
 module Normalization.Check ( test_normalizationCheck ) where
 
-import           PlutusCore
-import           PlutusCore.Check.Normal
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import PlutusCore
+import PlutusCore.Check.Normal
+import Test.Tasty
+import Test.Tasty.HUnit
 
 -- test that [rec (lam dat (fun (type) (type)) [dat a])] is a type value
 test_applyToValue :: IO ()

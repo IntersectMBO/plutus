@@ -3,16 +3,16 @@
 
 module Spec.Interval where
 
-import           Data.List                 (sort)
-import           Hedgehog                  (Property, forAll, property)
-import qualified Hedgehog
-import qualified Hedgehog.Gen              as Gen
-import qualified Hedgehog.Range            as Range
-import qualified Plutus.V1.Ledger.Interval as Interval
-import           Plutus.V1.Ledger.Slot
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog       (testProperty)
+import Data.List (sort)
+import Hedgehog (Property, forAll, property)
+import Hedgehog qualified
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Plutus.V1.Ledger.Interval qualified as Interval
+import Plutus.V1.Ledger.Slot
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog (testProperty)
 
 alwaysIsNotEmpty :: TestTree
 alwaysIsNotEmpty =

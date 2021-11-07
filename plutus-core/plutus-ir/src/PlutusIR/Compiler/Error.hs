@@ -8,16 +8,16 @@
 {-# LANGUAGE UndecidableInstances   #-}
 module PlutusIR.Compiler.Error (Error (..), AsError (..)) where
 
-import qualified PlutusCore        as PLC
-import qualified PlutusCore.Pretty as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty qualified as PLC
 
-import           Control.Exception
-import           Control.Lens
+import Control.Exception
+import Control.Lens
 
-import qualified Data.Text         as T
-import           Data.Typeable
-import           Prettyprinter     ((<+>))
-import qualified Prettyprinter     as PP
+import Data.Text qualified as T
+import Data.Typeable
+import Prettyprinter ((<+>))
+import Prettyprinter qualified as PP
 
 data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation error.
                      | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.

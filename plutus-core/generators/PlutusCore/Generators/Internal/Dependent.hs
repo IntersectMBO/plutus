@@ -13,14 +13,14 @@ module PlutusCore.Generators.Internal.Dependent
     , proxyAsKnownType
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
+import PlutusCore.Constant
+import PlutusCore.Core
 
-import           Data.GADT.Compare
-import           Universe
-import           Unsafe.Coerce
+import Data.GADT.Compare
+import Universe
+import Unsafe.Coerce
 
 liftOrdering :: Ordering -> GOrdering a b
 liftOrdering LT = GLT

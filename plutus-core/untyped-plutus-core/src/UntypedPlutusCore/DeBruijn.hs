@@ -17,16 +17,16 @@ module UntypedPlutusCore.DeBruijn
     , unNameDeBruijn
     ) where
 
-import           PlutusCore.DeBruijn.Internal
+import PlutusCore.DeBruijn.Internal
 
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           UntypedPlutusCore.Core
+import PlutusCore.Name
+import PlutusCore.Quote
+import UntypedPlutusCore.Core
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Bimap                   as BM
+import Data.Bimap qualified as BM
 
 {- Note [Comparison with typed deBruijn conversion]
 This module is just a boring port of the typed version.

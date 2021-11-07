@@ -28,23 +28,23 @@ module PlutusCore.Error
     , throwingEither
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.DeBruijn.Internal
-import           PlutusCore.Lexer.Type
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Core
+import PlutusCore.DeBruijn.Internal
+import PlutusCore.Lexer.Type
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           Control.Lens                 hiding (use)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import qualified Data.Text                    as T
-import           ErrorCode
-import           Prettyprinter                (hardline, indent, squotes, (<+>))
-import           Prettyprinter.Internal       (Doc (Text))
-import           Text.Megaparsec.Pos          (SourcePos, sourcePosPretty)
-import           Universe                     (Closed (Everywhere), GEq, GShow)
+import Control.Lens hiding (use)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Data.Text qualified as T
+import ErrorCode
+import Prettyprinter (hardline, indent, squotes, (<+>))
+import Prettyprinter.Internal (Doc (Text))
+import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
+import Universe (Closed (Everywhere), GEq, GShow)
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.

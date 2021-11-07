@@ -31,23 +31,23 @@ module PlutusTx.Ratio(
     , reduce
     ) where
 
-import qualified PlutusTx.Bool       as P
-import qualified PlutusTx.Eq         as P
-import qualified PlutusTx.ErrorCodes as P
-import           PlutusTx.Integer    (Integer)
-import qualified PlutusTx.IsData     as P
-import qualified PlutusTx.Lift       as P
-import qualified PlutusTx.Numeric    as P
-import qualified PlutusTx.Ord        as P
-import qualified PlutusTx.Trace      as P
+import PlutusTx.Bool qualified as P
+import PlutusTx.Eq qualified as P
+import PlutusTx.ErrorCodes qualified as P
+import PlutusTx.Integer (Integer)
+import PlutusTx.IsData qualified as P
+import PlutusTx.Lift qualified as P
+import PlutusTx.Numeric qualified as P
+import PlutusTx.Ord qualified as P
+import PlutusTx.Trace qualified as P
 
-import qualified PlutusTx.Builtins   as Builtins
+import PlutusTx.Builtins qualified as Builtins
 
-import           Data.Aeson          (FromJSON, ToJSON)
-import           GHC.Generics        (Generic)
-import qualified GHC.Real            as Ratio
-import           Prelude             (Integral, Ord (..), Show (..), showParen, showString, (*))
-import qualified Prelude             as Haskell
+import Data.Aeson (FromJSON, ToJSON)
+import GHC.Generics (Generic)
+import GHC.Real qualified as Ratio
+import Prelude (Integral, Ord (..), Show (..), showParen, showString, (*))
+import Prelude qualified as Haskell
 
 data Ratio a = a :% a
     deriving stock (Haskell.Eq,Generic)

@@ -145,14 +145,14 @@ module PlutusCore.Evaluation.Machine.ExBudget
     )
 where
 
-import           PlutusPrelude                          hiding (toList)
+import PlutusPrelude hiding (toList)
 
-import           Data.Char                              (toLower)
-import           Data.Semigroup
-import           Deriving.Aeson
-import           Language.Haskell.TH.Lift               (Lift)
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           Prettyprinter
+import Data.Char (toLower)
+import Data.Semigroup
+import Deriving.Aeson
+import Language.Haskell.TH.Lift (Lift)
+import PlutusCore.Evaluation.Machine.ExMemory
+import Prettyprinter
 
 
 -- | This is used elsewhere to convert cost models into JSON objects where the

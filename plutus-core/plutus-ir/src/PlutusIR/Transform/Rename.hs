@@ -17,17 +17,17 @@ module PlutusIR.Transform.Rename
     , renameProgramM
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusIR
-import           PlutusIR.Mark
+import PlutusIR
+import PlutusIR.Mark
 
-import qualified PlutusCore                 as PLC
-import qualified PlutusCore.Name            as PLC
-import qualified PlutusCore.Rename.Internal as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusCore.Rename.Internal qualified as PLC
 
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Cont   (ContT (..))
+import Control.Monad.Reader
+import Control.Monad.Trans.Cont (ContT (..))
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring

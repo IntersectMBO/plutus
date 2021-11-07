@@ -15,18 +15,18 @@ module PlutusIR.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           PlutusCore                  (ToKind)
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import qualified PlutusCore.TypeCheck        as PLC
-import           PlutusIR
-import           PlutusIR.Error
-import           PlutusIR.Transform.Rename   ()
-import           PlutusIR.TypeCheck.Internal
+import PlutusCore (ToKind)
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.TypeCheck qualified as PLC
+import PlutusIR
+import PlutusIR.Error
+import PlutusIR.Transform.Rename ()
+import PlutusIR.TypeCheck.Internal
 
-import           Control.Monad.Except
-import           Data.Ix
-import           Universe
+import Control.Monad.Except
+import Data.Ix
+import Universe
 
 {- Note [Goal of PIR typechecker]
 

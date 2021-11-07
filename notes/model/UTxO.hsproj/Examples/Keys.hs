@@ -4,15 +4,15 @@
 module Examples.Keys
 where
 
-import           "cryptonite" Crypto.PubKey.ECC.ECDSA
-import           Crypto.PubKey.ECC.Generate
-import           Crypto.PubKey.ECC.Types
-import           "cryptonite" Crypto.Random
+import "cryptonite" Crypto.PubKey.ECC.ECDSA
+import Crypto.PubKey.ECC.Generate
+import Crypto.PubKey.ECC.Types
+import "cryptonite" Crypto.Random
 
-import           Data.Map                             (Map)
-import qualified Data.Map                             as Map
-import           Data.Set                             (Set)
-import qualified Data.Set                             as Set
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 
 
 myKeyPair1 :: KeyPair

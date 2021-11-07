@@ -24,23 +24,23 @@ module UntypedPlutusCore.NewParser
     , SourcePos
     ) where
 
-import           Prelude                         hiding (fail)
+import Prelude hiding (fail)
 
-import           Control.Monad.Except            ((<=<))
-import           Control.Monad.State             (StateT)
+import Control.Monad.Except ((<=<))
+import Control.Monad.State (StateT)
 
-import qualified NewUntypedPlutusCore            as UPLC
-import qualified PlutusCore                      as PLC
-import qualified PlutusCore.Parsable             as PLC
-import           PlutusPrelude                   (Pretty, through)
-import           Text.Megaparsec                 hiding (ParseError, State, parse)
-import           UntypedPlutusCore.Check.Uniques (checkProgram)
-import           UntypedPlutusCore.Rename        (Rename (rename))
+import NewUntypedPlutusCore qualified as UPLC
+import PlutusCore qualified as PLC
+import PlutusCore.Parsable qualified as PLC
+import PlutusPrelude (Pretty, through)
+import Text.Megaparsec hiding (ParseError, State, parse)
+import UntypedPlutusCore.Check.Uniques (checkProgram)
+import UntypedPlutusCore.Rename (Rename (rename))
 
-import           Data.ByteString.Lazy            (ByteString)
-import           Data.ByteString.Lazy.Internal   (unpackChars)
-import qualified Data.Text                       as T
-import           PlutusCore.ParserCommon
+import Data.ByteString.Lazy (ByteString)
+import Data.ByteString.Lazy.Internal (unpackChars)
+import Data.Text qualified as T
+import PlutusCore.ParserCommon
 
 -- Parsers for UPLC terms
 

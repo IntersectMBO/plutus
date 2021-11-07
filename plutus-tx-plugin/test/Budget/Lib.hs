@@ -9,20 +9,20 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 module Budget.Lib where
 
-import           Common
+import Common
 
-import qualified PlutusCore                               as PLC
-import qualified PlutusCore.Evaluation.Machine.ExBudget   as PLC
-import           PlutusTx.Code                            (CompiledCode, getPlc)
-import qualified PlutusTx.Evaluation                      as PlutusTx
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusTx.Code (CompiledCode, getPlc)
+import PlutusTx.Evaluation qualified as PlutusTx
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import           Control.Monad.Except                     (runExceptT)
-import qualified Control.Monad.Reader                     as Reader
-import qualified Data.Text                                as Text
-import           System.FilePath                          ((</>))
-import           Test.Tasty                               (TestName)
+import Control.Monad.Except (runExceptT)
+import Control.Monad.Reader qualified as Reader
+import Data.Text qualified as Text
+import System.FilePath ((</>))
+import Test.Tasty (TestName)
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do

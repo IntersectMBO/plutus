@@ -19,21 +19,21 @@ module PlutusCore.StdLib.Data.ScottList
     , product
     ) where
 
-import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
+import Prelude hiding (enumFromTo, map, product, reverse, sum)
 
-import           PlutusCore.Core
-import           PlutusCore.Default.Builtins
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default.Builtins
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Type
 
-import           Universe
+import Universe
 
 -- | @List@ as a PLC type.
 --

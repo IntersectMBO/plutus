@@ -5,32 +5,32 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module TransformSpec (transform) where
 
-import           Common
-import           PlcTestUtils
-import           TestLib
+import Common
+import PlcTestUtils
+import TestLib
 
-import           PlutusCore.Quote
+import PlutusCore.Quote
 
-import qualified PlutusCore                         as PLC
-import qualified PlutusCore.Pretty                  as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty qualified as PLC
 
-import qualified PlutusIR.Analysis.RetainedSize     as RetainedSize
-import           PlutusIR.Parser
-import qualified PlutusIR.Transform.Beta            as Beta
-import qualified PlutusIR.Transform.DeadCode        as DeadCode
-import qualified PlutusIR.Transform.Inline          as Inline
-import qualified PlutusIR.Transform.LetFloat        as LetFloat
-import qualified PlutusIR.Transform.LetMerge        as LetMerge
-import qualified PlutusIR.Transform.NonStrict       as NonStrict
-import qualified PlutusIR.Transform.RecSplit        as RecSplit
-import           PlutusIR.Transform.Rename          ()
-import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
-import qualified PlutusIR.Transform.Unwrap          as Unwrap
+import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Parser
+import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.Inline qualified as Inline
+import PlutusIR.Transform.LetFloat qualified as LetFloat
+import PlutusIR.Transform.LetMerge qualified as LetMerge
+import PlutusIR.Transform.NonStrict qualified as NonStrict
+import PlutusIR.Transform.RecSplit qualified as RecSplit
+import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
+import PlutusIR.Transform.Unwrap qualified as Unwrap
 
-import           Control.Monad
-import           PlutusIR.Error                     as PIR
-import           PlutusIR.TypeCheck                 as TC
-import           Text.Megaparsec.Pos
+import Control.Monad
+import PlutusIR.Error as PIR
+import PlutusIR.TypeCheck as TC
+import Text.Megaparsec.Pos
 
 
 transform :: TestNested

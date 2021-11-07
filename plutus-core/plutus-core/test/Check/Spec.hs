@@ -3,22 +3,22 @@
 {-# LANGUAGE TypeApplications  #-}
 module Check.Spec (tests) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore
-import qualified PlutusCore.Check.Normal   as Normal
-import qualified PlutusCore.Check.Uniques  as Uniques
-import qualified PlutusCore.Check.Value    as VR
-import           PlutusCore.Generators
-import           PlutusCore.Generators.AST
-import           PlutusCore.MkPlc
+import PlutusCore
+import PlutusCore.Check.Normal qualified as Normal
+import PlutusCore.Check.Uniques qualified as Uniques
+import PlutusCore.Check.Value qualified as VR
+import PlutusCore.Generators
+import PlutusCore.Generators.AST
+import PlutusCore.MkPlc
 
-import           Control.Monad.Except
-import           Data.Either
-import           Hedgehog                  hiding (Var)
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Control.Monad.Except
+import Data.Either
+import Hedgehog hiding (Var)
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 tests :: TestTree
 tests = testGroup "checks"

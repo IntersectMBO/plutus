@@ -3,21 +3,21 @@
 
 module Main (main) where
 
-import           Common
-import           Parsers
-import qualified PlutusCore                       as PLC
-import qualified PlutusCore.Evaluation.Machine.Ck as Ck
-import qualified PlutusCore.Pretty                as PP
+import Common
+import Parsers
+import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.Ck qualified as Ck
+import PlutusCore.Pretty qualified as PP
 
-import qualified UntypedPlutusCore                as UPLC (eraseProgram)
+import UntypedPlutusCore qualified as UPLC (eraseProgram)
 
-import           Data.Function                    ((&))
-import           Data.Functor                     (void)
-import qualified Data.Text.IO                     as T
+import Data.Function ((&))
+import Data.Functor (void)
+import Data.Text.IO qualified as T
 
-import           Control.DeepSeq                  (rnf)
-import           Options.Applicative
-import           System.Exit                      (exitSuccess)
+import Control.DeepSeq (rnf)
+import Options.Applicative
+import System.Exit (exitSuccess)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"

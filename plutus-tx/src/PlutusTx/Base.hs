@@ -1,7 +1,7 @@
 -- | Plutus Tx basic functions.
 module PlutusTx.Base (fst, snd, curry, uncurry, ($), flip, until, (.), const, id) where
 
-import           PlutusTx.Bool
+import PlutusTx.Bool
 
 {-# INLINABLE fst #-}
 -- | Plutus Tx version of 'Data.Tuple.fst'

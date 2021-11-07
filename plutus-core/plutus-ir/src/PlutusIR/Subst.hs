@@ -10,16 +10,16 @@ module PlutusIR.Subst
     , ftvTy
     ) where
 
-import qualified PlutusCore.Core.Type       as PLC
-import qualified PlutusCore.Name            as PLC
-import           PlutusCore.Subst           (ftvTy, uniquesType)
+import PlutusCore.Core.Type qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusCore.Subst (ftvTy, uniquesType)
 
-import           PlutusIR.Compiler.Datatype
-import           PlutusIR.Core
+import PlutusIR.Compiler.Datatype
+import PlutusIR.Core
 
-import           Control.Lens
-import           Data.Set                   as S hiding (foldr)
-import           Data.Set.Lens              (setOf)
+import Control.Lens
+import Data.Set as S hiding (foldr)
+import Data.Set.Lens (setOf)
 
 uniquesTerm
     :: PLC.HasUniques (Term tyname name uni fun ann)

@@ -3,22 +3,22 @@
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (noEmitter, logEmitter, logWithTimeEmitter, logWithBudgetEmitter) where
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           Control.Monad.ST.Unsafe                           (unsafeIOToST)
-import qualified Data.ByteString.Builder                           as BS
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Data.Csv                                          as CSV
-import qualified Data.Csv.Builder                                  as CSV
-import qualified Data.DList                                        as DList
-import           Data.Fixed
-import           Data.STRef                                        (modifySTRef, newSTRef, readSTRef)
-import qualified Data.Text                                         as T
-import qualified Data.Text.Encoding                                as T
-import           Data.Time.Clock
-import           Data.Time.Clock.POSIX
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
+import Control.Monad.ST.Unsafe (unsafeIOToST)
+import Data.ByteString.Builder qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.Csv qualified as CSV
+import Data.Csv.Builder qualified as CSV
+import Data.DList qualified as DList
+import Data.Fixed
+import Data.STRef (modifySTRef, newSTRef, readSTRef)
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
+import Data.Time.Clock
+import Data.Time.Clock.POSIX
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
 
 -- | No emitter.
 noEmitter :: EmitterMode uni fun

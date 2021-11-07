@@ -3,14 +3,14 @@
 
 module PlutusBenchmark.Lists.Sum.Compiled where
 
-import           PlutusBenchmark.Common     (Term, compiledCodeToTerm)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import qualified PlutusTx                   as Tx
-import qualified PlutusTx.Builtins          as B
-import qualified PlutusTx.Builtins.Internal as BI
-import           PlutusTx.Prelude           as Plutus
+import PlutusTx qualified as Tx
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Prelude as Plutus
 
-import           Prelude                    (($!))
+import Prelude (($!))
 
 
 ---------------- Folding over Scott lists ----------------

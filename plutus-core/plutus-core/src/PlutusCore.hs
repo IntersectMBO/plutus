@@ -141,32 +141,32 @@ module PlutusCore
     , CekMachineCosts (..)
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import qualified PlutusCore.Check.Uniques                                 as Uniques
-import           PlutusCore.Core
-import           PlutusCore.DeBruijn
-import           PlutusCore.Default
-import           PlutusCore.Error
-import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           PlutusCore.Flat                                          ()
-import           PlutusCore.Lexer
-import           PlutusCore.Lexer.Type
-import           PlutusCore.Name
-import           PlutusCore.Normalize
-import           PlutusCore.Parser
-import           PlutusCore.Pretty
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusCore.Size
-import           PlutusCore.TypeCheck                                     as TypeCheck
+import PlutusCore.Check.Uniques qualified as Uniques
+import PlutusCore.Core
+import PlutusCore.DeBruijn
+import PlutusCore.Default
+import PlutusCore.Error
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Flat ()
+import PlutusCore.Lexer
+import PlutusCore.Lexer.Type
+import PlutusCore.Name
+import PlutusCore.Normalize
+import PlutusCore.Parser
+import PlutusCore.Pretty
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.Size
+import PlutusCore.TypeCheck as TypeCheck
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
-import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                                     as BSL
-import qualified Data.Text                                                as T
+import Control.Monad.Except
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text qualified as T
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.

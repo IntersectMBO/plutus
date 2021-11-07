@@ -30,11 +30,11 @@ module PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.ConfigName
-import           PlutusCore.Pretty.Readable
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors

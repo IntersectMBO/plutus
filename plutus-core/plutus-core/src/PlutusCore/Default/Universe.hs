@@ -25,19 +25,19 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
-import           PlutusCore.Constant
-import           PlutusCore.Data
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Parsable
+import PlutusCore.Constant
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Parsable
 
-import           Control.Applicative
-import           Control.Monad
-import qualified Data.ByteString                         as BS
-import           Data.Foldable
-import           Data.Proxy
-import qualified Data.Text                               as Text
-import           Universe                                as Export
+import Control.Applicative
+import Control.Monad
+import Data.ByteString qualified as BS
+import Data.Foldable
+import Data.Proxy
+import Data.Text qualified as Text
+import Universe as Export
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -94,6 +94,7 @@ pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
 deriveGEq ''DefaultUni
+deriveGCompare ''DefaultUni
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any

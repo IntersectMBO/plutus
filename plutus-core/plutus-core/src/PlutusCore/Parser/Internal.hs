@@ -6,21 +6,21 @@
 
 module PlutusCore.Parser.Internal where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.Error
-import           PlutusCore.Lexer
-import           PlutusCore.Lexer.Type
-import           PlutusCore.Name
-import           PlutusCore.Parsable
+import PlutusCore.Core
+import PlutusCore.Error
+import PlutusCore.Lexer
+import PlutusCore.Lexer.Type
+import PlutusCore.Name
+import PlutusCore.Parsable
 
-import           Control.Monad.Except
-import           Universe
+import Control.Monad.Except
+import Universe
 
-import           Data.List             (find)
-import           Data.Proxy
-import qualified Data.Text             as T
+import Data.List (find)
+import Data.Proxy
+import Data.Text qualified as T
 
 --- The Parse monad ---
 

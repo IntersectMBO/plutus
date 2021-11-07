@@ -4,10 +4,10 @@
 
 module Main (main) where
 
-import           Test.Tasty
+import Test.Tasty
 
-import qualified Sort.Spec  as Sort
-import qualified Sum.Spec   as Sum
+import Sort.Spec qualified as Sort
+import Sum.Spec qualified as Sum
 
 allTests :: TestTree
 allTests =

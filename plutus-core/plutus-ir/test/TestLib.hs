@@ -11,30 +11,30 @@
 
 module TestLib where
 
-import           Common
-import           PlcTestUtils
-import           PlutusPrelude
+import Common
+import PlcTestUtils
+import PlutusPrelude
 
-import           Control.Exception
-import           Control.Lens         hiding (op, transform)
-import           Control.Monad.Except
-import           Control.Monad.Morph
-import           Control.Monad.Reader as Reader
+import Control.Exception
+import Control.Lens hiding (op, transform)
+import Control.Monad.Except
+import Control.Monad.Morph
+import Control.Monad.Reader as Reader
 
-import qualified PlutusCore           as PLC
-import           PlutusCore.Name
-import           PlutusCore.Pretty
-import qualified PlutusCore.Pretty    as PLC
-import           PlutusCore.Quote
-import           PlutusIR             as PIR
-import           PlutusIR.Compiler    as PIR
-import           PlutusIR.Parser      as Parser
-import           PlutusIR.TypeCheck
-import           System.FilePath      (joinPath, (</>))
-import qualified UntypedPlutusCore    as UPLC
+import PlutusCore qualified as PLC
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Quote
+import PlutusIR as PIR
+import PlutusIR.Compiler as PIR
+import PlutusIR.Parser as Parser
+import PlutusIR.TypeCheck
+import System.FilePath (joinPath, (</>))
+import UntypedPlutusCore qualified as UPLC
 
-import qualified Data.Text            as T
-import qualified Data.Text.IO         as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun

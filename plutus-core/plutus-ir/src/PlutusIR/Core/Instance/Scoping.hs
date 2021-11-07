@@ -6,16 +6,16 @@
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Scoping where
 
-import           PlutusIR.Core.Type
+import PlutusIR.Core.Type
 
-import           PlutusCore.Check.Scoping
-import           PlutusCore.MkPlc
-import           PlutusCore.Quote
+import PlutusCore.Check.Scoping
+import PlutusCore.MkPlc
+import PlutusCore.Quote
 
-import           Data.Foldable
-import           Data.List.NonEmpty       (NonEmpty (..), (<|))
-import qualified Data.List.NonEmpty       as NonEmpty
-import           Data.Traversable
+import Data.Foldable
+import Data.List.NonEmpty (NonEmpty (..), (<|))
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Traversable
 
 instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
     referenceVia reg tyname term = TyInst NotAName term $ TyVar (reg tyname) tyname

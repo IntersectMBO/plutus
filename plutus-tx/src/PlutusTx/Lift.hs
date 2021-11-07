@@ -15,37 +15,37 @@ module PlutusTx.Lift (
     typeCheckAgainst,
     typeCode) where
 
-import           PlutusTx.Code
-import           PlutusTx.Lift.Class             (makeLift)
-import qualified PlutusTx.Lift.Class             as Lift
-import           PlutusTx.Lift.Instances         ()
+import PlutusTx.Code
+import PlutusTx.Lift.Class (makeLift)
+import PlutusTx.Lift.Class qualified as Lift
+import PlutusTx.Lift.Instances ()
 
-import           Data.Bifunctor
-import           PlutusIR
-import qualified PlutusIR                        as PIR
-import           PlutusIR.Compiler
-import           PlutusIR.Compiler.Definitions
-import qualified PlutusIR.Error                  as PIR
-import qualified PlutusIR.MkPir                  as PIR
+import Data.Bifunctor
+import PlutusIR
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler
+import PlutusIR.Compiler.Definitions
+import PlutusIR.Error qualified as PIR
+import PlutusIR.MkPir qualified as PIR
 
-import qualified PlutusCore                      as PLC
-import           PlutusCore.Pretty               (PrettyConst)
-import           PlutusCore.Quote
-import qualified PlutusCore.StdLib.Data.Function as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty (PrettyConst)
+import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Function qualified as PLC
 
-import qualified UntypedPlutusCore               as UPLC
+import UntypedPlutusCore qualified as UPLC
 
-import           Control.Exception
-import           Control.Lens                    hiding (lifted)
-import           Control.Monad.Except            hiding (lift)
-import           Control.Monad.Reader            hiding (lift)
+import Control.Exception
+import Control.Lens hiding (lifted)
+import Control.Monad.Except hiding (lift)
+import Control.Monad.Reader hiding (lift)
 
-import           Data.Proxy
-import qualified Data.Typeable                   as GHC
-import           Prettyprinter
+import Data.Proxy
+import Data.Typeable qualified as GHC
+import Prettyprinter
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude                         as Haskell
+import Prelude as Haskell
 
 type PrettyPrintable uni fun = ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 

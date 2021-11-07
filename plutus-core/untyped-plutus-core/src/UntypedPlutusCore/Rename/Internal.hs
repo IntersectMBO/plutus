@@ -7,12 +7,12 @@ module UntypedPlutusCore.Rename.Internal
     , renameProgramM
     ) where
 
-import           UntypedPlutusCore.Core
+import UntypedPlutusCore.Core
 
-import           PlutusCore.Core         (HasUniques)
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           PlutusCore.Rename.Monad as Export
+import PlutusCore.Core (HasUniques)
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename.Monad as Export
 
 
 -- | Rename a 'Term' in the 'RenameM' monad.

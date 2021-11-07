@@ -28,10 +28,10 @@ module PlutusCore.Generators.NEAT.Type where
 
 
 
-import           Control.Enumerable
-import           Control.Monad.Except
-import           PlutusCore
-import           PlutusCore.Generators.NEAT.Common
+import Control.Enumerable
+import Control.Monad.Except
+import PlutusCore
+import PlutusCore.Generators.NEAT.Common
 
 newtype Neutral a = Neutral
   { unNeutral :: a

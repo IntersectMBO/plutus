@@ -4,10 +4,10 @@ module PlutusCore.Mark
     , markNonFreshProgram
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-import           PlutusCore.Quote
-import           PlutusCore.Subst
+import PlutusCore.Core
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Subst
 
 -- | Marks all the 'Unique's in a type as used, so they will not be generated in future. Useful if you
 -- have a type which was not generated in 'Quote'.

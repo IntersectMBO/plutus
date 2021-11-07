@@ -17,18 +17,18 @@ module PlutusCore.Generators.AST
     , mangleNames
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore
-import           PlutusCore.Subst
+import PlutusCore
+import PlutusCore.Subst
 
-import           Control.Monad.Morph   (hoist)
-import           Control.Monad.Reader
-import           Data.Set              (Set)
-import qualified Data.Set              as Set
-import           Hedgehog              hiding (Size, Var)
-import qualified Hedgehog.Internal.Gen as Gen
-import qualified Hedgehog.Range        as Range
+import Control.Monad.Morph (hoist)
+import Control.Monad.Reader
+import Data.Set (Set)
+import Data.Set qualified as Set
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Internal.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 
 simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
 simpleRecursive = Gen.recursive Gen.choice

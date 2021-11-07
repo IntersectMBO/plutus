@@ -8,27 +8,28 @@
 
 module CostModelCreation where
 
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.DataFilePaths qualified as DataFilePaths
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExMemory
 
-import           Barbies
-import           Control.Applicative
-import           Control.Exception                              (TypeError (..))
-import           Control.Monad.Catch
-import qualified Data.ByteString.Hash                           as PlutusHash
-import qualified Data.ByteString.Lazy                           as BSL
-import           Data.Coerce
-import           Data.Csv
-import           Data.Either.Extra
-import           Data.Functor.Compose
-import           Data.Text                                      as T
-import qualified Data.Text.Encoding                             as T
-import           Data.Vector
-import           GHC.Generics
+import Barbies
+import Control.Applicative
+import Control.Exception (TypeError (..))
+import Control.Monad.Catch
+import Data.ByteString.Hash qualified as PlutusHash
+import Data.ByteString.Lazy qualified as BSL
+import Data.Coerce
+import Data.Csv
+import Data.Either.Extra
+import Data.Functor.Compose
+import Data.Text as T
+import Data.Text.Encoding qualified as T
+import Data.Vector
+import GHC.Generics
 
-import           Foreign.R
-import           H.Prelude                                      (MonadR, Region, r)
-import           Language.R
+import H.Prelude (MonadR, Region)
+import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
+import Language.R.QQ (r)
 
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
@@ -96,17 +97,16 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkNilPairData            = "mkNilPairDataModel"
   }
 
+
 -- Loads the models from R
+-- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
 costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR = do
   list <- [r|
-    source("cost-model/data/models.R")
-    modelFun("cost-model/data/benching.csv")
+    source(DataFilePaths.modelFile_hs)
+    modelFun(DataFilePaths.benchingResultsFile_hs)
   |]
-  -- Unfortunately we can't use the paths defined in DataFilePaths inside [r|...].
-  -- The above code may not work on Windows because of that, but we only ever
-  -- want to run this on a Linux reference machine anyway.
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
   -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files

@@ -6,47 +6,47 @@
 
 module Common where
 
-import           PlutusPrelude                            (through)
+import PlutusPrelude (through)
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Check.Uniques                 as PLC (checkProgram)
-import           PlutusCore.Error                         (AsParseError, AsUniqueError, UniqueError)
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
-import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
-import qualified PlutusCore.Generators                    as Gen
-import qualified PlutusCore.Generators.Interesting        as Gen
-import qualified PlutusCore.Generators.Test               as Gen
-import qualified PlutusCore.Pretty                        as PP
-import           PlutusCore.Rename                        (rename)
-import qualified PlutusCore.StdLib.Data.Bool              as StdLib
-import qualified PlutusCore.StdLib.Data.ChurchNat         as StdLib
-import qualified PlutusCore.StdLib.Data.Integer           as StdLib
-import qualified PlutusCore.StdLib.Data.Unit              as StdLib
+import PlutusCore qualified as PLC
+import PlutusCore.Check.Uniques as PLC (checkProgram)
+import PlutusCore.Error (AsParseError, AsUniqueError, UniqueError)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Generators qualified as Gen
+import PlutusCore.Generators.Interesting qualified as Gen
+import PlutusCore.Generators.Test qualified as Gen
+import PlutusCore.Pretty qualified as PP
+import PlutusCore.Rename (rename)
+import PlutusCore.StdLib.Data.Bool qualified as StdLib
+import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
+import PlutusCore.StdLib.Data.Integer qualified as StdLib
+import PlutusCore.StdLib.Data.Unit qualified as StdLib
 
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Check.Uniques          as UPLC (checkProgram)
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-import qualified UntypedPlutusCore.Parser                 as UPLC (parseProgram)
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 
-import           Control.DeepSeq                          (NFData, rnf)
-import           Control.Monad.Except
-import           Data.Bifunctor                           (second)
-import qualified Data.ByteString.Lazy                     as BSL
-import           Data.Foldable                            (traverse_)
-import qualified Data.HashMap.Monoidal                    as H
-import           Data.List                                (nub)
-import qualified Data.List                                as List
-import qualified Data.Text                                as T
-import           Data.Text.Encoding                       (encodeUtf8)
-import qualified Data.Text.IO                             as T
-import           Data.Traversable                         (for)
-import           Flat                                     (Flat, flat, unflat)
-import           Prettyprinter                            (Doc, pretty, (<+>))
+import Control.DeepSeq (NFData, rnf)
+import Control.Monad.Except
+import Data.Bifunctor (second)
+import Data.ByteString.Lazy qualified as BSL
+import Data.Foldable (traverse_)
+import Data.HashMap.Monoidal qualified as H
+import Data.List (nub)
+import Data.List qualified as List
+import Data.Text qualified as T
+import Data.Text.Encoding (encodeUtf8)
+import Data.Text.IO qualified as T
+import Data.Traversable (for)
+import Flat (Flat, flat, unflat)
+import Prettyprinter (Doc, pretty, (<+>))
 
-import           System.CPUTime                           (getCPUTime)
-import           System.Exit                              (exitFailure, exitSuccess)
-import           System.Mem                               (performGC)
-import           Text.Printf                              (printf)
+import System.CPUTime (getCPUTime)
+import System.Exit (exitFailure, exitSuccess)
+import System.Mem (performGC)
+import Text.Printf (printf)
 
 ----------- Executable type class -----------
 -- currently we only have PLC and UPLC. PIR will be added later on.

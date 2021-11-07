@@ -1,21 +1,13 @@
 ---
 steps:
   - simple_align:
-      cases: true
-      top_level_patterns: true
-      records: true
+      cases: always
+      top_level_patterns: always
+      records: always
   - imports:
-      align: global
-      list_align: after_alias
-      pad_module_names: true
-      long_list_align: inline
-      empty_list_align: inherit
-      list_padding: 4
-      separate_lists: true
-      space_surround: false
+      align: none
+      post_qualify: true
   - language_pragmas:
-      style: vertical
-      align: true
       remove_redundant: false
 
   - trailing_whitespace: {}

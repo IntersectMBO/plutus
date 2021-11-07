@@ -10,17 +10,17 @@
 
 module UntypedPlutusCore.Core.Instance.Pretty.Classic () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Core.Type
 
-import           PlutusCore.Core.Instance.Pretty.Common ()
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.PrettyConst
+import PlutusCore.Core.Instance.Pretty.Common ()
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.PrettyConst
 
-import           Prettyprinter
-import           Prettyprinter.Custom
-import           Universe
+import Prettyprinter
+import Prettyprinter.Custom
+import Universe
 
 instance
         ( PrettyClassicBy configName name

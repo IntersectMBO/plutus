@@ -15,22 +15,22 @@ module PlutusCore.TypeCheck.Internal
   -- export all because a lot are used by the pir-typechecker
   where
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Error
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import qualified PlutusCore.Normalize.Internal as Norm
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusPrelude
+import PlutusCore.Constant
+import PlutusCore.Core
+import PlutusCore.Error
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Normalize.Internal qualified as Norm
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusPrelude
 
-import           Control.Lens
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Data.Array
-import           Universe
+import Control.Lens
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Array
+import Universe
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition

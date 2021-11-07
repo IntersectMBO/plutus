@@ -8,32 +8,32 @@ module Evaluation.Machines
     , test_tallying
     ) where
 
-import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.HOAS
-import           UntypedPlutusCore.Evaluation.Machine.Cek        as Cek
+import UntypedPlutusCore
+import UntypedPlutusCore.Evaluation.HOAS
+import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import qualified PlutusCore                                      as Plc
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.FsTree
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty
+import PlutusCore qualified as Plc
+import PlutusCore.Constant
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.FsTree
+import PlutusCore.Generators.Interesting
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
 
-import           PlutusCore.Examples.Builtins
-import qualified PlutusCore.StdLib.Data.Nat                      as Plc
-import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
+import PlutusCore.Examples.Builtins
+import PlutusCore.StdLib.Data.Nat qualified as Plc
+import PlutusCore.StdLib.Meta
+import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import           Common
-import           GHC.Ix
-import           Hedgehog                                        hiding (Size, Var, eval)
-import           Prettyprinter
-import           Prettyprinter.Render.Text
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Common
+import GHC.Ix
+import Hedgehog hiding (Size, Var, eval)
+import Prettyprinter
+import Prettyprinter.Render.Text
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 testMachine
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)

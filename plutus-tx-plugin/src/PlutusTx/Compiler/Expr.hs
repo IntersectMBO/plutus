@@ -11,46 +11,46 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import qualified PlutusTx.Builtins             as Builtins
-import           PlutusTx.Compiler.Binders
-import           PlutusTx.Compiler.Builtins
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Laziness
-import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Type
-import           PlutusTx.Compiler.Types
-import           PlutusTx.Compiler.Utils
-import           PlutusTx.PIRTypes
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Compiler.Binders
+import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Laziness
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Type
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import qualified PlutusTx.Builtins.Class       as Builtins
+import PlutusTx.Builtins.Class qualified as Builtins
 
-import qualified Class                         as GHC
-import qualified FV                            as GHC
-import qualified GhcPlugins                    as GHC
-import qualified MkId                          as GHC
-import qualified PrelNames                     as GHC
+import Class qualified as GHC
+import FV qualified as GHC
+import GhcPlugins qualified as GHC
+import MkId qualified as GHC
+import PrelNames qualified as GHC
 
-import qualified PlutusIR                      as PIR
-import qualified PlutusIR.Compiler.Definitions as PIR
-import           PlutusIR.Compiler.Names       (safeFreshName)
-import           PlutusIR.Core.Type            (Term (..))
-import qualified PlutusIR.MkPir                as PIR
-import qualified PlutusIR.Purity               as PIR
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Core.Type (Term (..))
+import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Purity qualified as PIR
 
-import qualified PlutusCore                    as PLC
-import qualified PlutusCore.MkPlc              as PLC
-import qualified PlutusCore.Pretty             as PP
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty qualified as PP
 
-import           Control.Monad.Reader          (MonadReader (ask))
+import Control.Monad.Reader (MonadReader (ask))
 
-import qualified Data.ByteString               as BS
-import           Data.List                     (elemIndex)
-import qualified Data.List.NonEmpty            as NE
-import qualified Data.Map                      as Map
-import qualified Data.Set                      as Set
-import qualified Data.Text                     as T
-import qualified Data.Text.Encoding            as TE
-import           Data.Traversable
+import Data.ByteString qualified as BS
+import Data.List (elemIndex)
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
+import Data.Set qualified as Set
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
+import Data.Traversable
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
