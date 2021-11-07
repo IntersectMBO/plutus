@@ -281,22 +281,22 @@ instance
 type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class HandleSpecialCases i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
--- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
--- @OVERLAPPABLE@ instance right above.
 -- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
 -- an 'Opaque' thing, but here we only want to instantiate the type representations.
 -- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
 -- a PLC type variable.
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term (Opaque term rep)
-    , HandleSpecialCases j k term (SomeConstantOf uni f reps)
-    ) => HandleSpecialCases i k term (SomeConstantOf uni f (rep ': reps))
 instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
         HandleSpecialCases i j term (SomeConstant uni rep)
 instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
         HandleSpecialCases i j term (EvaluationResult a)
 instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
         HandleSpecialCases i j term (Emitter a)
+-- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
+-- @OVERLAPPABLE@ instance above.
+instance {-# OVERLAPPING #-}
+    ( TrySpecializeAsVar i j term (Opaque term rep)
+    , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
+    ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
 
 -- | Instantiate an argument or result type.
 type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint

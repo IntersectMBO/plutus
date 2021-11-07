@@ -24,10 +24,10 @@ module UntypedPlutusCore.Core.Type
 import Data.Functor.Identity
 import PlutusPrelude
 
--- import qualified PlutusCore.Constant as TPLC
-import qualified PlutusCore.Core as TPLC
+import PlutusCore.Constant qualified as TPLC
+import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
-import qualified PlutusCore.Name as TPLC
+import PlutusCore.Name qualified as TPLC
 import Universe
 
 {- Note [Term constructor ordering and numbers]
@@ -95,12 +95,12 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
--- instance TPLC.AsConstant (Term name uni fun ann) where
---     asConstant _        (Constant _ val) = pure val
---     asConstant mayCause _                = TPLC.throwNotAConstant mayCause
+instance HasHiddenValueOf uni => TPLC.AsConstant (Term name uni fun ann) where
+    asConstant _        (Constant _ val) = pure $ fromSomeValueOf val
+    asConstant mayCause _                = TPLC.throwNotAConstant mayCause
 
--- instance TPLC.FromConstant (Term name uni fun ()) where
---     fromConstant = Constant ()
+instance HasHiddenValueOf uni => TPLC.FromConstant (Term name uni fun ()) where
+    fromConstant = Constant () . toSomeValueOf
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)

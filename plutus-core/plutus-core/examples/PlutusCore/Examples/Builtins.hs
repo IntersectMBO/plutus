@@ -19,6 +19,7 @@ module PlutusCore.Examples.Builtins where
 
 import PlutusCore
 import PlutusCore.Constant
+import PlutusCore.Constant.Debug
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
