@@ -65,12 +65,12 @@ import PlutusCore.Name
 
 import Control.Monad.Except
 import Data.Functor.Const
-import qualified Data.Kind as GHC (Type)
+import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.SOP.Constraint
-import qualified Data.Some.GADT as GADT
+import Data.Some.GADT qualified as GADT
 import Data.String
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import GHC.Ix
 import GHC.TypeLits
 import Universe
