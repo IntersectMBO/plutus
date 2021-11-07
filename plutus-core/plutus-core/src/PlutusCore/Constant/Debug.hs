@@ -27,7 +27,7 @@ import PlutusCore.Name
 
 import Control.Monad.Except
 import Data.Functor.Compose
-import qualified Data.Kind as GHC (Type)
+import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.SOP.Constraint
 import Data.String
