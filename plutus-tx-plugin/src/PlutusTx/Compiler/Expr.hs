@@ -798,10 +798,10 @@ coverageCompile originalExpr exprType src compiledTerm covT =
           headSymName = GHC.getName <$> headSymId
           isTrueOrFalse = case headSymId of
             Nothing -> False
-            Just id ->
+            Just headId ->
               or [ GHC.getName dc == con
                  | Just con <- [ GHC.getName <$> Map.lookup sym nameInfo | sym <- ['True, 'False] ]
-                 , GHC.DataConWorkId dc <- [GHC.idDetails id]
+                 , GHC.DataConWorkId dc <- [GHC.idDetails headId]
                  ]
       if tyHeadName /= bool || isTrueOrFalse
       then return compiledTerm
