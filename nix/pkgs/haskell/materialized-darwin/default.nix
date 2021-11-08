@@ -470,6 +470,7 @@
         base-deriving-via = ./.plan.nix/base-deriving-via.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-prelude = ./.plan.nix/cardano-prelude.nix;
+        plutus-doc = ./.plan.nix/plutus-doc.nix;
         plutus-ledger-api = ./.plan.nix/plutus-ledger-api.nix;
         orphans-deriving-via = ./.plan.nix/orphans-deriving-via.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
@@ -526,6 +527,9 @@
           "cardano-prelude" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "plutus-doc" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
+            };
           "plutus-ledger-api" = { flags = {}; };
           "orphans-deriving-via" = {
             flags = { "development" = lib.mkOverride 900 false; };
@@ -547,6 +551,7 @@
     ({ lib, ... }:
       {
         packages = {
+          "plutus-doc".components.exes."doc-doctests".planned = lib.mkOverride 900 true;
           "quickcheck-instances".components.library.planned = lib.mkOverride 900 true;
           "barbies".components.library.planned = lib.mkOverride 900 true;
           "quiet".components.library.planned = lib.mkOverride 900 true;
