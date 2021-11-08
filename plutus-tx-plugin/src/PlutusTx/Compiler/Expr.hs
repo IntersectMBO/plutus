@@ -794,16 +794,14 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       CompileContext {ccNameInfo=nameInfo} <- ask
       let bool = GHC.getName <$> Map.lookup ''Bool nameInfo -- TODO: This should always return a `Just` and it may be worthwhile to crash the compiler with an error if it doesn't
           tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
-          headSymName = GHC.getName <$> findHeadSymbol originalExpr
-          isTrueOrFalse = case headSymName of
+          headSymId = findHeadSymbol originalExpr
+          headSymName = GHC.getName <$> headSymId
+          isTrueOrFalse = case headSymId of
             Nothing -> False
-            -- We have to do it this convoluted way because GHC decides that
-            -- `nm` is a *variable* but `'True` and `'False` are data constructors and
-            -- they are not equal as names even if `originalExpr` is e.g. the expression `True`
-            Just nm ->
-              or [ GHC.getOccString nm == GHC.getOccString con
-                 | Just con <- [ GHC.getName <$> Map.lookup sym nameInfo | sym <- ['True, 'False] ] -- TODO: likewise to above these two should always both return `Just`
-                 , GHC.nameSpacesRelated (GHC.occNameSpace . GHC.getOccName $ nm) (GHC.occNameSpace . GHC.getOccName $ con)
+            Just id ->
+              or [ GHC.getName dc == con
+                 | Just con <- [ GHC.getName <$> Map.lookup sym nameInfo | sym <- ['True, 'False] ]
+                 , GHC.DataConWorkId dc <- [GHC.idDetails id]
                  ]
       if tyHeadName /= bool || isTrueOrFalse
       then return compiledTerm
