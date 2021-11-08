@@ -32,7 +32,6 @@ import FV qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
 import PrelNames qualified as GHC
-import SrcLoc qualified as GHC
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -53,7 +52,6 @@ import Data.ByteString qualified as BS
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
-import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE

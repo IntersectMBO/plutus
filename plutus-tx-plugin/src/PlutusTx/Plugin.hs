@@ -42,7 +42,7 @@ import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer hiding (All)
-import Flat (Flat, flat)
+import Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe

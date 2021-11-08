@@ -20,7 +20,6 @@ import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 
 import FamInstEnv qualified as GHC
-import FastString qualified as GHC
 import GhcPlugins qualified as GHC
 
 import Control.Monad.Except
@@ -28,14 +27,11 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 
 import Data.List.NonEmpty qualified as NE
-import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Language.Haskell.TH.Syntax qualified as TH
-
-import Prettyprinter
 
 type NameInfo = Map.Map TH.Name GHC.TyThing
 
