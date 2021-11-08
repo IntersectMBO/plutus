@@ -104,8 +104,8 @@ unveilDatatype dty (Datatype _ tn _ _ _) t =
   in trace ("original type: " ++ anythingToString t)
     -- $ trace ("tn: " ++ anythingToString tn)
     -- $ trace ("dty: " ++ anythingToString dty)
-    -- $ trace ("result1: " ++ anythingToString result1)
-    -- $ trace ("result2: " ++ anythingToString result2)
+    $ trace ("result1: " ++ anythingToString result1)
+    $ trace ("result2: " ++ anythingToString result2)
     $ result2 `seq` result1
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni fun a -> m TyName

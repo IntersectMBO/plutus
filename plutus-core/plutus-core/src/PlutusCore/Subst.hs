@@ -1,3 +1,5 @@
+{-# LANGUAGE ApplicativeDo       #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module PlutusCore.Subst
     ( substTyVarA
@@ -25,6 +27,7 @@ module PlutusCore.Subst
 
 import           PlutusPrelude
 
+import           Control.Applicative
 import           Control.Lens
 import           Data.Functor.Foldable (cata)
 import           Data.Set              as Set
@@ -76,13 +79,29 @@ substVar = purely substVarA
 -- | Naively monadically substitute type names (i.e. do not substitute binders).
 -- INLINE is important here because the function is too polymorphic (determined from profiling)
 typeSubstTyNamesM
-    :: Monad m
+    :: forall m tyname uni ann . Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
     -> m (Maybe (Type tyname uni ann))
 typeSubstTyNamesM tynameF t =
-  transformMOf typeSubtypesM (\x -> trace ("x: " ++ anythingToString x) $ fmap join $ sequence $ fmap (substTyVarA tynameF) x) t
--- mapMOf typeSubtypesM (substTyVarA tynameF) t
+  let
+    handle :: Type tyname uni ann -> (Type tyname uni ann -> m (Maybe (Type tyname uni ann))) -> Maybe (Type tyname uni ann) -> m (Maybe (Type tyname uni ann))
+    handle t' f = \case
+        Just x -> do
+            mfx <- f x
+            case mfx of
+                Just fx -> pure $ Just fx
+                -- return the type if no changes
+                Nothing -> pure $ Just x
+        Nothing -> pure $ Just t'
+  in
+  transformMOf' typeSubtypesM (\t' x -> handle t' (substTyVarA tynameF) x) t -- trace ("x: " ++ anythingToString x) $
+    -- mapMOf typeSubtypesM (\x -> trace ("x: " ++ anythingToString x) $ substTyVarA tynameF x) t
+
+transformMOf' :: Monad m => LensLike (WrappedMonad m) a b a b -> (a -> b -> m b) -> a -> m b
+transformMOf' l f = go where
+  go t = mapMOf l go t >>= f t
+{-# INLINE transformMOf' #-}
 
 {-# INLINE substTyVarA' #-}
 -- | Applicatively replace a type variable using the given function.
@@ -99,7 +118,7 @@ typeSubstTyNamesM'
     => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
     -> m (Type tyname uni ann)
-typeSubstTyNamesM' tynameF t = transformMOf typeSubtypes (\y -> trace ("y: " ++ anythingToString y) $ substTyVarA' tynameF y) t
+typeSubstTyNamesM' tynameF t = transformMOf typeSubtypes (\y -> trace ("y: " ++ anythingToString y) $ substTyVarA' tynameF y) t -- trace ("y: " ++ anythingToString y) $
 
 typeSubstTyNames'
     :: (tyname -> Maybe (Type tyname uni ann))

@@ -118,15 +118,19 @@ typeSubtypesM f ty0 = case ty0 of
         ty1' <- f ty1
         ty2' <- f ty2
         pure $ case (ty1', ty2') of
-            (Just ty1', Just ty2') -> Just $ TyFun ann ty1' ty2
-            (Just ty1', Nothing)   -> Just $ TyFun ann ty1' ty2
-            (Nothing, Just ty2')   -> Just $ TyFun ann ty1 ty2'
-            _                      -> Nothing
+            (Just ty1'', Just ty2'') -> Just $ TyFun ann ty1'' ty2''
+            (Just ty1'', Nothing)    -> Just $ TyFun ann ty1'' ty2
+            (Nothing, Just ty2'')    -> Just $ TyFun ann ty1 ty2''
+            _                        -> Nothing
         -- pure $ TyFun ann <$> ty1' <*> ty2'
     TyIFix ann pat arg   -> do
         pat' <- f pat
         arg' <- f arg
-        pure $ TyIFix ann <$> pat' <*> arg'
+        pure $ case (pat', arg') of
+            (Just pat'', Just arg'') -> Just $ TyIFix ann pat'' arg''
+            (Just pat'', Nothing)    -> Just $ TyIFix ann pat'' arg
+            (Nothing, Just arg'')    -> Just $ TyIFix ann pat arg''
+            _                        -> Nothing
     TyForall ann tn k ty -> do
         ty' <- f ty
         pure $ TyForall ann tn k <$> ty'
@@ -136,7 +140,11 @@ typeSubtypesM f ty0 = case ty0 of
     TyApp ann ty1 ty2    -> do
         ty1' <- f ty1
         ty2' <- f ty2
-        pure $ TyApp ann <$> ty1' <*> ty2'
+        pure $ case (ty1', ty2') of
+            (Just ty1'', Just ty2'') -> Just $ TyApp ann ty1'' ty2''
+            (Just ty1'', Nothing)    -> Just $ TyApp ann ty1'' ty2
+            (Nothing, Just ty2'')    -> Just $ TyApp ann ty1 ty2''
+            _                        -> Nothing
     TyBuiltin{}          -> pure $ Just ty0
     TyVar{}              -> pure $ Just ty0
 
