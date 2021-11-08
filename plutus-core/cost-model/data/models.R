@@ -397,7 +397,14 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    ## This appears to be kind of random, even up to size 120000
+    ## verifySignature in fact takes three arguments, but the first and third
+    ## are of fixed size, so we only gather benchmarking data for different
+    ## sizes of the second argument (the "message" being signed).  This can be
+    ## very large, but the time appears to be kind of random, even up to size
+    ## 120000.  This is somewhat confusing because the CSV file only contains
+    ## results for the x parameter but in fact it refers to the second parameter
+    ## of verifySignature.  To clarify things here we should probably record data
+    ## for all three parameter sizes even though the first and third are constant.
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
@@ -529,7 +536,6 @@ modelFun <- function(path) {
         m <- lm(f$Mean - min.t ~ I(f$x_mem - min.x) + 0)
         s <- coef(m)[1]  ## Not 2: we've used +0, so the intercept doesn't appear in the model
         v <- c(min.t-s*min.x, s) ## ie, f(x) = min.t +s(x-min.x)
-        names(v) <- c("(Intercept)", "x_mem")  ## Make it look like what the Haskell code's expecting.
         pr <- function(x) { v[1] + v[2]*x }  ## What this model predicts.
         errors = (f$Mean-pr(f$x))/f$Mean  ## Residuals as fraction of observed values.
         over = -errors[errors<0]   ## Overpredictions (observed value < prediction) - good, or at least acceptable.
@@ -538,8 +544,9 @@ modelFun <- function(path) {
             (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
         cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
             (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
-        m2 <- lm(Mean ~ x_mem, f)  ## A model with the expected structure
-        m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it
+        names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")  ## Make it look like what the Haskell code's expecting. The space after the comma is important.
+        m2 <- lm(Mean ~ pmin(x_mem, y_mem), data=f) ## A model with the structure expected by CostModelCreation.
+        m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it.
         adjustModel(m2,fname)
     }
 
