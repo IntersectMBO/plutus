@@ -26,12 +26,12 @@ import PlutusTx.PIRTypes
 import PlutusTx.Builtins.Class qualified as Builtins
 
 import Class qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
 import FV qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
 import PrelNames qualified as GHC
-import CoreSyn qualified as GHC
-import CostCentre qualified as GHC
 import SrcLoc qualified as GHC
 
 import PlutusIR qualified as PIR

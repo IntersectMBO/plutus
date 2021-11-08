@@ -6,20 +6,20 @@
 
 module Plugin.Coverage.Spec (coverage) where
 
-import           Control.Lens
+import Control.Lens
 
-import qualified Data.Map          as Map
-import           Data.Proxy
-import           Data.Set          (Set)
-import qualified Data.Set          as Set
-import           PlutusTx.Code
-import           PlutusTx.Coverage
-import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude  as P
-import           Prelude           as Haskell
+import Data.Map qualified as Map
+import Data.Proxy
+import Data.Set (Set)
+import Data.Set qualified as Set
+import PlutusTx.Code
+import PlutusTx.Coverage
+import PlutusTx.Plugin
+import PlutusTx.Prelude qualified as P
+import Prelude as Haskell
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
 coverage :: TestTree
 coverage = testGroup "Coverage" [ applicationHeads ]

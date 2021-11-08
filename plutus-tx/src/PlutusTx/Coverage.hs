@@ -27,27 +27,27 @@ module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , pprCoverageReport
                          ) where
 
-import           Control.Lens
+import Control.Lens
 
-import           Codec.Serialise
+import Codec.Serialise
 
-import           PlutusCore.Flat
+import PlutusCore.Flat
 
-import           Data.Foldable
-import           Data.Map             (Map)
-import qualified Data.Map             as Map
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
-import           Data.String
-import           Text.Read
+import Data.Foldable
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
+import Data.String
+import Text.Read
 
-import           Control.Monad.Writer
+import Control.Monad.Writer
 
-import           Prettyprinter
+import Prettyprinter
 
-import           Prelude
+import Prelude
 
-import           Flat                 hiding (to)
+import Flat hiding (to)
 
 {- Note [Coverage annotations]
    During compilation we can insert coverage annotations in `trace` calls in
