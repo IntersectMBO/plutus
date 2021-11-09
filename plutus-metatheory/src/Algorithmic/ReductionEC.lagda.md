@@ -1280,25 +1280,45 @@ lemVβ (V-IΠ b p q x) = lemBAppβ x
 lemVβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ,⋆ K ⊢ B} → ¬ (VALUE (Λ M ·⋆ A))
 lemVβ⋆ (V-I⇒ b p q x) = lemBAppβ⋆ x
 lemVβ⋆ (V-IΠ b p q x) = lemBAppβ⋆ x
+-}
 
-lemVE : ∀{A B} M (E : EC A B) → VALUE (E [ M ]ᴱ) → VALUE M
+postulate lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
+
+{-
+This currently triggers and agda bug:
+Panic: Pattern match failure in do expression at
+src/full/Agda/TypeChecking/Rules/LHS/Unify.hs:1313:7-14
+when checking that the pattern V-I⇒ b p q has type
+Value ((x ·r E) [ M ]ᴱ)
+
+lemVE M []             V = V
+lemVE M (x ·r E) (V-I⇒ b p q) = ?
+lemVE M (x ·r E) (V-IΠ b p q) = ?
+lemVE M (E l· x) (V-I⇒ b .(bubble p) (step p x₁ x₂)) = lemVE _ E (V-I⇒ b p x₁)
+lemVE M (E l· x) (V-IΠ b .(bubble p) (step p x₁ x₂)) = lemVE _ E (V-I⇒ b p x₁)
+lemVE M (E ·⋆ A / x)   V = {!!}
+lemVE M (wrap E)       V = {!!}
+lemVE M (unwrap E / x) V = {!!}
+{-
 lemVE M [] V = V
-lemVE M (E l· M') (V-I⇒ b .(bubble p) refl (step p x x₁)) =
-  lemVE _ E (V-I⇒ b p refl x)
-lemVE M (E l· M') (V-IΠ b .(bubble p) refl (step p x x₁)) =
-  lemVE _ E (V-I⇒ b p refl x)
-lemVE M (VM' ·r E) (V-I⇒ b .(bubble p) refl (step p x x₁)) =
-  lemVE _ E (Value2VALUE x₁)
-lemVE M (VM' ·r E) (V-IΠ b .(bubble p) refl (step p x x₁)) =
-  lemVE _ E (Value2VALUE x₁)
-lemVE M (E ·⋆ A) (V-I⇒ b .(bubble p) q (step⋆ p x)) =
+lemVE M (E l· M') (V-I⇒ b .(bubble p) (step p x x₁)) =
+  lemVE _ E (V-I⇒ b p x)
+lemVE M (E l· M') (V-IΠ b .(bubble p) (step p x x₁)) =
+  lemVE _ E (V-I⇒ b p x)
+lemVE M (VM' ·r E) (V-I⇒ b .(bubble p) (step p x x₁)) =
+  lemVE _ E x₁
+lemVE M (VM' ·r E) (V-IΠ b .(bubble p) (step p x x₁)) =
+  lemVE _ E x₁
+lemVE M (E ·⋆ A / refl) (V-I⇒ b .(bubble p) q (step⋆ p x)) =
   lemVE _ E (V-IΠ b p refl x)
-lemVE M (E ·⋆ A) (V-IΠ b .(bubble p) q (step⋆ p x)) =
+lemVE M (E ·⋆ A / refl) (V-IΠ b .(bubble p) q (step⋆ p x)) =
   lemVE _ E (V-IΠ b p refl x)
 lemVE M (wrap E) (V-wrap V) = lemVE _ E V
 lemVE M (unwrap E) (V-I⇒ b p q ())
 lemVE M (unwrap E) (V-IΠ b p q ())
-
+-}
+-}
+{-
 lemBE : ∀{A B} M (E : EC A B){as a az b}{p : az <>> (a ∷ as) ∈ arity b}
   → BApp b p (E [ M ]ᴱ) → VALUE M
 lemBE M [] {a = Term} q with bappTermLem _ M _ (BApp2BAPP q)
@@ -1423,7 +1443,8 @@ U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  ∃ (λ (q : X ≡ B') → [] ≡ substEq (λ X → EC X B') q E' × Λ L ·⋆ A / trans (sym q) p ≡ L')
 U·⋆1 eq [] refl q = refl ,, refl ,, refl
 U·⋆1 eq (E' ·⋆ A / r) p q with lem-·⋆ r eq p
-U·⋆1 {L = L} eq (E' ·⋆ A / r) {L'} p q | refl ,, Y ,, refl ,, refl with lemΛE'' E' Y
+U·⋆1 {L = L} eq (E' ·⋆ A / r) {L'} p q | refl ,, Y ,, refl ,, refl
+  with lemΛE'' E' Y
 U·⋆1 {_} {A} {L = L} eq (_·⋆_/_ {_} E' A r) {.(Λ L)} p (β ()) | refl ,, Y ,, refl ,, refl | refl ,, X ,, refl
 
 -- M is not a value, it has made a step
@@ -1454,25 +1475,25 @@ U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _ .eq)) U =
 U·⋆2 ¬VM eq (E ·⋆ A / .eq) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
 
-{-
--- BUILTIN
+
 U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X}
-      → X ≡ B [ A ]Nf →
+      → (p : X ≡ B [ A ]Nf) →
       (E' : EC X B')
       {L' : ∅ ⊢ B'} →
       Value M →
-      M _⊢_.·⋆ A ≅ (E' [ L' ]ᴱ) →
+      M _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ) →
       Redex L' →
       Σ
       (B [ A ]Nf ≡ B')
       (λ p₁ →
-         Σ
+         
          (substEq (EC (B [ A ]Nf)) p₁ []
-          ≅ E')
-         (λ x₁ → substEq (_⊢_ ∅) p₁ (M _⊢_.·⋆ A) ≅ L'))
-U·⋆3 eq [] _ refl q = refl ,, refl ,, refl
-U·⋆3 eq (E ·⋆ A) VM refl q = ⊥-elim (valredex (lemVE _ E (Value2VALUE VM)) q)
+          ≅ E') -- could make a closer homogeneous equation using p and p₁
+         × (M _⊢_.·⋆ A / sym p₁) ≡ L')
+U·⋆3 eq (E ·⋆ A / .eq) V refl q = ⊥-elim (valredex (lemVE _ E V) q)
+U·⋆3 refl [] V refl q = refl ,, refl ,, refl
 
+{-
 -- body of wrap made a step, it's not a value
 Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
  → X ≡ μ A B
