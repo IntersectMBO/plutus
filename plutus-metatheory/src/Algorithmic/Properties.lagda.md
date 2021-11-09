@@ -61,13 +61,14 @@ lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B
   → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
   → ⊥
 lem-·⋆unwrap ()
-
+-}
 lem-unwrap : ∀{K K'}{A}{A'}{B : ∅ ⊢Nf⋆ K}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}
-  → _⊢_.unwrap M ≅ _⊢_.unwrap M'
-  → A ≅ A' × B ≅ B' × M ≅ M'
-lem-unwrap refl = refl ,, refl ,, refl
-
+  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}{C}
+  → {p : C ≡ _}{q : C ≡ _}
+  → _⊢_.unwrap M p ≡ _⊢_.unwrap M' q
+  → K ≡ K' × A ≅ A' × B ≅ B' × M ≅ M'
+lem-unwrap refl = refl ,, refl ,, refl ,, refl
+{-
 inj⊢ : ∀{A A' : ∅ ⊢Nf⋆ *}{L : ∅ ⊢ A}{L' : ∅ ⊢ A'} → L ≅ L' → A ≡ A'
 inj⊢ refl = refl
 
