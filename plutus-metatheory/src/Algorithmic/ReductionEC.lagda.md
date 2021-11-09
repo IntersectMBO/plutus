@@ -1493,12 +1493,11 @@ U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X
 U·⋆3 eq (E ·⋆ A / .eq) V refl q = ⊥-elim (valredex (lemVE _ E V) q)
 U·⋆3 refl [] V refl q = refl ,, refl ,, refl
 
-{-
 -- body of wrap made a step, it's not a value
 Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
- → X ≡ μ A B
+ → (p : X ≡ μ A B)
  → (E' : EC X B') {L' : ∅ ⊢ B'} →
- _⊢_.wrap A B M ≅ E' [ L' ]ᴱ →
+ _⊢_.wrap A B M ≡ substEq (∅ ⊢_) p (E' [ L' ]ᴱ) →
  Redex L' →
  (U : {B' : ∅ ⊢Nf⋆ *}
       (E' : EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) B')
@@ -1525,9 +1524,13 @@ Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (w
  ∃
  (λ (p₁ : C ≡ B') →
     substEq (EC (μ A B)) p₁ (wrap E) ≅ E' × substEq (_⊢_ ∅) p₁ L ≅ L')
-Uwrap eq [] refl (β ()) U
-Uwrap eq (wrap E') refl q U with U E' refl q
+Uwrap refl (E l· x) () q U
+Uwrap refl (x ·r E) () q U
+Uwrap refl (E ·⋆ A / x) () q U
+Uwrap refl (wrap E) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
+Uwrap refl (unwrap E / x) () q U
+Uwrap refl [] refl (β ()) U
 
 -- the body of the unwrap, M, is not a value and made a step
 Uunwrap1 : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ μ A B}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
@@ -1553,7 +1556,7 @@ Uunwrap1 : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ μ A B}{L : ∅ ⊢ C}{E}{B'
 Uunwrap1 ¬VM eq [] refl (β (β-wrap VM)) U = ⊥-elim (¬VM (V-wrap VM))
 Uunwrap1 ¬VM eq (unwrap E') refl q U with U E' refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
-
+{-
 -- beta step
 Uunwrap2 : ∀{A}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{B' : ∅ ⊢Nf⋆ *}{X}
   → Value M
