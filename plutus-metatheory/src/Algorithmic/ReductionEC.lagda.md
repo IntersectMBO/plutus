@@ -1426,16 +1426,15 @@ U·⋆1 eq (E' ·⋆ A / r) p q with lem-·⋆ r eq p
 U·⋆1 {L = L} eq (E' ·⋆ A / r) {L'} p q | refl ,, Y ,, refl ,, refl with lemΛE'' E' Y
 U·⋆1 {_} {A} {L = L} eq (_·⋆_/_ {_} E' A r) {.(Λ L)} p (β ()) | refl ,, Y ,, refl ,, refl | refl ,, X ,, refl
 
-{-
 -- M is not a value, it has made a step
 U·⋆2 : ∀{K}{C}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{M : ∅ ⊢ Π B}{E : EC (Π B) C}{L : ∅ ⊢ C}{X}
  {B' : ∅ ⊢Nf⋆ *}
  → ¬ (Value M)
- → X ≡ B [ A ]Nf →
+ → (p : X ≡ B [ A ]Nf) →
  (E'
   : EC X B')
  {L' : ∅ ⊢ B'} →
- M _⊢_.·⋆ A ≅ (E' [ L' ]ᴱ) →
+ M _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ) →
  Redex L' →
  (U : {B' : ∅ ⊢Nf⋆ *} (E' : EC (Π B) B') {L' : ∅ ⊢ B'} →
       M ≡ (E' [ L' ]ᴱ) →
@@ -1445,15 +1444,17 @@ U·⋆2 : ∀{K}{C}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{M : ∅ ⊢ �
  ∃
  (λ (p₁ : C ≡ B') →
    substEq
-   (EC (B [ A ]Nf))
-   p₁ (E EC.·⋆ A)
-   ≅ E'
-   × substEq (_⊢_ ∅) p₁ L ≅ L')
-U·⋆2 ¬VM eq [] refl (β β-Λ) U = ⊥-elim (¬VM (V-Λ _))
-U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _)) U = ⊥-elim (¬VM (V-IΠ b p bt))
-U·⋆2 ¬VM eq (E ·⋆ A) refl q U with U E refl q
+   (EC X)
+   p₁ (E EC.·⋆ A / p)
+   ≡ E'
+   × substEq (_⊢_ ∅) p₁ L ≡ L')
+U·⋆2 ¬VM eq [] refl (β (β-Λ .eq)) U = ⊥-elim (¬VM (V-Λ _))
+U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _ .eq)) U =
+  ⊥-elim (¬VM (V-IΠ b p bt))
+U·⋆2 ¬VM eq (E ·⋆ A / .eq) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
 
+{-
 -- BUILTIN
 U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X}
       → X ≡ B [ A ]Nf →
