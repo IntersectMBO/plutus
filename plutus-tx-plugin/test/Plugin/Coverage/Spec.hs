@@ -48,9 +48,10 @@ boolOtherFunctionSimplifiesAway = plc (Proxy @"boolOtherFunctionSimplfiesAway") 
 boolQualifiedDisappears :: CompiledCode (() -> Bool)
 boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskell.True)
 
-coverage :: TestTree
+coverage :: TestNested
 coverage = testNested "Coverage"
-  [ pure [ mkTests "noBool" noBool Set.empty [25]
+  [ pure $ testGroup "Application heads and line coverage"
+         [ mkTests "noBool" noBool Set.empty [25]
          , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [28]
          , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"]) [31, 35, 36, 37]
          , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [43]
