@@ -806,15 +806,12 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       true <- getThing 'True
       false <- getThing 'False
       let tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
-          headSymId = findHeadSymbol originalExpr
-          headSymName = GHC.getName <$> headSymId
-          isTrueOrFalse = case headSymId of
-            Nothing -> False
-            Just headId ->
-              or [ GHC.getName dc == con
-                 | con <- [ GHC.getName c | c <- [true, false] ]
-                 , GHC.DataConWorkId dc <- [GHC.idDetails headId]
-                 ]
+          headSymName = GHC.getName <$> findHeadSymbol originalExpr
+          isTrueOrFalse = case originalExpr of
+            GHC.Var v | GHC.DataConWorkId dc <- GHC.idDetails v ->
+              GHC.getName dc `elem` [GHC.getName c | c <- [true, false]]
+            _ -> False
+
       if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
       then return compiledTerm
       -- Generate the code:
