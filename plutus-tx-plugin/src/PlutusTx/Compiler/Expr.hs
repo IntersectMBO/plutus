@@ -425,12 +425,22 @@ hoistExpr var t =
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
-                -- We could incur a dependency on unit for a number of reasons: we delayed,
-                -- or we used it for a lazy case expression. Rather than tear our hair out
-                -- trying to work out whether we do depend on it, just assume that we do.
-                -- This should get better when we push the laziness handling to PIR so we
-                -- can trust the source-level dependencies on unit.
-                let deps = Set.insert (GHC.getName GHC.unitTyCon) allFvs
+
+                -- HACK: Currently we add calls to 'traceBool' dynamically based on coverage
+                -- annotations, and as such they get missed by our dependency analysis. We can
+                -- fix this by making the dependency analysis more dynamic, and looking at what we
+                -- actually use, rather than relying on the set of free variables in the
+                -- original Core.
+                CompileContext {ccOpts=coverageOpts} <- ask
+                let anns = activeCoverageTypes coverageOpts
+                tbName <- GHC.getName <$> getThing 'traceBool
+                let addTb = if Set.member BooleanCoverage anns then Set.insert tbName else id
+                    -- We could incur a dependency on unit for a number of reasons: we delayed,
+                    -- or we used it for a lazy case expression. Rather than tear our hair out
+                    -- trying to work out whether we do depend on it, just assume that we do.
+                    -- This should get better when we push the laziness handling to PIR so we
+                    -- can trust the source-level dependencies on unit.
+                    deps = addTb $ Set.insert (GHC.getName GHC.unitTyCon) allFvs
 
                 PIR.defineTerm
                     lexName
