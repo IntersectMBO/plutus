@@ -523,6 +523,15 @@ traceInside varName lamName = go
    don't know where it is).
 -}
 
+{- Note [Boolean coverage]
+   It is useful (sometimes even critical) to know during testing which boolean
+   expressions have evaluated to true and false respectively. To track this we
+   introduce `traceBool "<expr evaluated to True>" "<expr evaluated to False>" expr`
+   around every non-constructor boolean typed expression `expr` with a known source location.
+   We also track specifically what the function at the head of the expression `expr` is
+   and add this as metadata (this is the function that returned true / false).
+-}
+
 compileExpr
     :: CompilingDefault uni fun m
     => GHC.CoreExpr -> m (PIRTerm uni fun)
@@ -790,6 +799,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       mkLazyTrace ty (T.pack . show $ ann) compiledTerm
 
     -- Add two boolean coverage annotations to tell us "this boolean has been True/False respectively"
+    -- see Note [Boolean coverage]
     BooleanCoverage -> do
       -- Check if the thing we are compiling is a boolean
       bool <- getThing ''Bool
