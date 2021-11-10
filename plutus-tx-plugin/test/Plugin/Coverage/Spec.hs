@@ -6,6 +6,9 @@
 
 module Plugin.Coverage.Spec (coverage) where
 
+import Lib
+import Common
+
 import Control.Lens
 
 import Data.Map qualified as Map
@@ -21,8 +24,11 @@ import Prelude as Haskell
 import Test.Tasty
 import Test.Tasty.HUnit
 
-coverage :: TestTree
-coverage = testGroup "Coverage" [ applicationHeads ]
+coverage :: TestNested
+coverage = testNested "Coverage" [
+      pure applicationHeads
+    , goldenPir "coverageCode" boolOtherFunction
+    ]
 
 applicationHeads :: TestTree
 applicationHeads = testGroup "Correct application heads"

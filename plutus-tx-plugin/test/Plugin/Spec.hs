@@ -22,5 +22,5 @@ tests = testNested "Plugin" [
   , errors
   , typeclasses
   , profiling
-  , pure coverage
+  , coverage
   ]
