@@ -118,32 +118,34 @@ compileTyCon tc
     | otherwise = do
 
     let tcName = GHC.getName tc
+        lexName = LexName tcName
     whenM (blackholed tcName) $ throwSd UnsupportedError $ "Recursive newtypes, use data:" GHC.<+> GHC.ppr tcName
-    maybeDef <- PIR.lookupType () (LexName tcName)
+    -- See Note [Dependency tracking]
+    modifyCurDeps (\d -> Set.insert lexName d)
+    maybeDef <- PIR.lookupType () lexName
     case maybeDef of
         Just ty -> pure ty
-        Nothing -> do
-            dcs <- getDataCons tc
-            usedTcs <- getUsedTcs tc
-            let deps = fmap GHC.getName usedTcs ++ fmap GHC.getName dcs
-
+        -- See Note [Dependency tracking]
+        Nothing -> withCurDef lexName $ do
             tvd <- compileTcTyVarFresh tc
-
             case GHC.unwrapNewTyCon_maybe tc of
                 Just (_, underlying, _) -> do
                     -- See Note [Coercions and newtypes]
                     -- See Note [Occurrences of recursive names]
+                    -- We do this for dependency tracking, we won't use it due to the blackholing
+                    PIR.defineType lexName (PIR.Def tvd (PIR.mkTyVar () tvd)) mempty
                     -- Type variables are in scope for the rhs of the alias
                     alias <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ blackhole (GHC.getName tc) $ compileTypeNorm underlying
-                    PIR.defineType (LexName tcName) (PIR.Def tvd alias) (Set.fromList $ LexName <$> deps)
-                    PIR.recordAlias @LexName @uni @fun @() (LexName tcName)
+                    PIR.modifyTypeDef lexName (const $ PIR.Def tvd alias)
+                    PIR.recordAlias @LexName @uni @fun @() lexName
                     pure alias
                 Nothing -> do
+                    dcs <- getDataCons tc
                     matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
 
                     -- See Note [Occurrences of recursive names]
                     let fakeDatatype = PIR.Datatype () tvd [] matchName []
-                    PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd fakeDatatype) Set.empty
+                    PIR.defineDatatype @_ @uni lexName (PIR.Def tvd fakeDatatype) Set.empty
 
                     -- Type variables are in scope for the rest of the definition
                     -- We remove 'RuntimeRep' type variables with 'dropRuntimeRepVars'
@@ -156,14 +158,8 @@ compileTyCon tc
 
                         let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-                        PIR.defineDatatype @_ @uni (LexName tcName) (PIR.Def tvd datatype) (Set.fromList $ LexName <$> deps)
+                        PIR.modifyDatatypeDef @_ @uni lexName (const $ PIR.Def tvd datatype)
                     pure $ PIR.mkTyVar () tvd
-
-getUsedTcs :: Compiling uni fun m => GHC.TyCon -> m [GHC.TyCon]
-getUsedTcs tc = do
-    dcs <- getDataCons tc
-    let usedTcs = GHC.unionManyUniqSets $ (\dc -> GHC.unionManyUniqSets $ GHC.tyConsOfType <$> GHC.dataConOrigArgTys dc) <$> dcs
-    pure $ GHC.nonDetEltsUniqSet usedTcs
 
 {- Note [Case expressions and laziness]
 PLC is strict, but users *do* expect that, e.g. they can write an if expression and have it be
