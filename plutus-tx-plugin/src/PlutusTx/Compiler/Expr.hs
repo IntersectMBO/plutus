@@ -791,19 +791,20 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     -- Add two boolean coverage annotations to tell us "this boolean has been True/False respectively"
     BooleanCoverage -> do
       -- Check if the thing we are compiling is a boolean
-      CompileContext {ccNameInfo=nameInfo} <- ask
-      let bool = GHC.getName <$> Map.lookup ''Bool nameInfo -- TODO: This should always return a `Just` and it may be worthwhile to crash the compiler with an error if it doesn't
-          tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
+      bool <- getThing ''Bool
+      true <- getThing 'True
+      false <- getThing 'False
+      let tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
           headSymId = findHeadSymbol originalExpr
           headSymName = GHC.getName <$> headSymId
           isTrueOrFalse = case headSymId of
             Nothing -> False
             Just headId ->
               or [ GHC.getName dc == con
-                 | Just con <- [ GHC.getName <$> Map.lookup sym nameInfo | sym <- ['True, 'False] ]
+                 | con <- [ GHC.getName c | c <- [true, false] ]
                  , GHC.DataConWorkId dc <- [GHC.idDetails headId]
                  ]
-      if tyHeadName /= bool || isTrueOrFalse
+      if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
       then return compiledTerm
       -- It is a boolean that's not `True` or `False`,
       -- generate the code:
