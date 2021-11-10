@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:coverage-all #-}
 {-# OPTIONS_GHC -g #-}
 
-module Plugin.Coverage.Spec (coverage) where
+module Plugin.Coverage.Spec {-(coverage)-} where
 
 import Lib
 import Common
@@ -23,31 +23,6 @@ import Prelude as Haskell
 
 import Test.Tasty
 import Test.Tasty.HUnit
-
-coverage :: TestNested
-coverage = testNested "Coverage" [
-      pure applicationHeads
-    , goldenPir "coverageCode" boolOtherFunction
-    ]
-
-applicationHeads :: TestTree
-applicationHeads = testGroup "Correct application heads"
-  [ applicationHeadsCorrect "noBool" noBool Set.empty
-  , applicationHeadsCorrect "boolTrueFalse" boolTrueFalse (Set.singleton "&&")
-  , applicationHeadsCorrect "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"])
-  , applicationHeadsCorrect "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="])
-  , applicationHeadsCorrect "boolQualifiedDisappears" boolQualifiedDisappears Set.empty
-  ]
-
-applicationHeadsCorrect :: String -> CompiledCode t -> Set String -> TestTree
-applicationHeadsCorrect nm cc heads = testCase nm (assertEqual "" heads headSymbols)
-  where
-    headSymbols :: Set String
-    headSymbols =
-      -- TODO: This should really use a prism instead of going to and from lists I guess
-      Set.fromList $ [ s
-                     | covMeta <- cc ^. to getCovIdx . coverageMetadata . to Map.elems
-                     , ApplicationHeadSymbol s <- Set.toList $ covMeta ^. metadataSet ]
 
 noBool :: CompiledCode (() -> ())
 noBool = plc (Proxy @"noBool") (\() -> ())
@@ -72,3 +47,33 @@ boolOtherFunctionSimplifiesAway = plc (Proxy @"boolOtherFunctionSimplfiesAway") 
 
 boolQualifiedDisappears :: CompiledCode (() -> Bool)
 boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskell.True)
+
+coverage :: TestTree
+coverage = testNested "Coverage"
+  [ pure [ mkTests "noBool" noBool Set.empty [25]
+         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [28]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"]) [31, 35, 36, 37]
+         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [43]
+         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [46]
+         ]
+ , goldenPir "coverageCode" boolOtherFunction ]
+
+mkTests :: String -> CompiledCode t -> Set String -> [Int] -> TestTree
+mkTests nm cc heads lines = testGroup nm [ applicationHeadsCorrect cc heads , linesInCoverageIndex cc lines ]
+
+applicationHeadsCorrect :: CompiledCode t -> Set String -> TestTree
+applicationHeadsCorrect cc heads = testCase "correct application heads" (assertEqual "" heads headSymbols)
+  where
+    headSymbols :: Set String
+    headSymbols =
+      -- TODO: This should really use a prism instead of going to and from lists I guess
+      Set.fromList $ [ s
+                     | covMeta <- cc ^. to getCovIdx . coverageMetadata . to Map.elems
+                     , ApplicationHeadSymbol s <- Set.toList $ covMeta ^. metadataSet ]
+
+linesInCoverageIndex :: CompiledCode t -> [Int] -> TestTree
+linesInCoverageIndex cc ls = testCase "correct line coverage" (assertBool ("Lines " ++ show ls ++ " are not covered by " ++ show covLineSpans) covered)
+  where
+    covered = all (\l -> any (\(s, e) -> s <= l && l <= e) covLineSpans) ls
+    covLineSpans = [ (covLoc ^. covLocStartLine, covLoc ^. covLocEndLine)
+                   | CoverLocation covLoc <- cc ^. to getCovIdx . coverageMetadata . to Map.keys ]
