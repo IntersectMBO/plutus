@@ -21,6 +21,7 @@ import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
+import PlutusTx.Trace
 
 import GhcPlugins qualified as GHC
 import Panic qualified as GHC
@@ -333,7 +334,7 @@ compileMarkedExpr locStr codeTy origE = do
     moduleName <- asks pcModuleName
     let moduleNameStr = GHC.showSDocForUser flags GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
-    nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True]
+    nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
     let ctx = CompileContext {
             ccOpts = CompileOptions {coProfile =poProfile opts , coCoverage = poCoverage opts },

@@ -24,6 +24,7 @@ import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Trace
 
 import Class qualified as GHC
 import CoreSyn qualified as GHC
@@ -806,40 +807,20 @@ coverageCompile originalExpr exprType src compiledTerm covT =
                  ]
       if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
       then return compiledTerm
-      -- It is a boolean that's not `True` or `False`,
-      -- generate the code:
+      -- Generate the code:
       -- ```
-      -- if compiledTerm
-      -- then trace (compiledTerm was true) True
-      -- else trace (compiledTerm was false) False
+      -- traceBool "<compiledTerm was true>" "<compiledTerm was false>" compiledTerm
       -- ```
       else do
-        cons <- case GHC.tyConAppTyCon_maybe exprType of
-          Just tc -> getDataCons tc
-          Nothing -> throwSd UnsupportedError $ "PANIC! This error should be unreachable in funtion coverageCompile"
-        (dcTrue, dcFalse) <- case cons of
-          [a, b] -> return (a, b)
-          _      -> throwSd UnsupportedError $ "PANIC! This error should be unreachable in funtion coverageCompile"
-
-        match <- getMatchInstantiated exprType
-        let matched = PIR.Apply () match compiledTerm
-
-        compiledType <- compileTypeNorm exprType
-        resultType <- delayType compiledType
-        let instantiated = PIR.TyInst () matched resultType
-
-        let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
-        fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
-        falseTerm <- compileExpr (GHC.mkConApp dcFalse [])
-        falseBranch <- delay $ mkTrace compiledType (T.pack . show $ fc) falseTerm
-
-        tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-        trueTerm <- compileExpr (GHC.mkConApp dcTrue [])
-        trueBranch <- delay $ mkTrace compiledType (T.pack . show $ tc) trueTerm
-        let branches = [trueBranch, falseBranch]
-
-        let applied = PIR.mkIterApp () instantiated branches
-        force applied
+        traceBoolThing <- getThing 'traceBool
+        case traceBoolThing of
+          GHC.AnId traceBoolId -> do
+            traceBoolCompiled <- compileExpr $ GHC.Var traceBoolId
+            let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
+            fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
+            tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ fc), PLC.mkConstant () (T.pack . show $ tc), compiledTerm]
+          _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
       findHeadSymbol (GHC.Var n)    = Just $ n
