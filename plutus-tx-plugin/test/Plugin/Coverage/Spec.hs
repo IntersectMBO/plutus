@@ -4,10 +4,10 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:coverage-all #-}
 {-# OPTIONS_GHC -g #-}
 
-module Plugin.Coverage.Spec {-(coverage)-} where
+module Plugin.Coverage.Spec (coverage) where
 
-import Lib
 import Common
+import Lib
 
 import Control.Lens
 
