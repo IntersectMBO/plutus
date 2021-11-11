@@ -1,11 +1,12 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
--- This ensures that we don't put *anything* about these functions into the interface
--- file, otherwise GHC can be clever about the ones that are always error, even though
--- they're NOINLINE!
-{-# OPTIONS_GHC -O0 #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
+
+-- We don't want builtins getting torn apart.
+{-# OPTIONS_GHC -fno-cpr-anal #-}
+
 -- | This module contains the special Haskell names that are used to map to builtin types or functions
 -- in Plutus Core.
 --
@@ -13,16 +14,18 @@
 module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
-import Control.DeepSeq (NFData)
+import Control.DeepSeq (NFData (..))
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
-import Data.Hashable (Hashable)
+import Data.Hashable (Hashable (..))
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
+import Data.Void (Void)
+import GHC.Exts (lazy)
 import GHC.Generics (Generic)
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Utils (mustBeReplaced)
@@ -61,9 +64,11 @@ for most of our functions it's not a *semantic* problem. Here, however,
 it is a problem. So we just expose the delayed version as the builtin.
 -}
 
-{-# NOINLINE error #-}
+-- We use GHC.Exts.lazy here so GHC can't see that the result is always bottom.
+-- I (David Feuer) don't really understand why this is needed, but it seems to
+-- be desired.
 error :: BuiltinUnit -> a
-error = mustBeReplaced "error"
+error (BuiltinUnit ()) = lazy (mustBeReplaced "error")
 
 {-
 BOOL
@@ -95,7 +100,9 @@ unitval = BuiltinUnit ()
 
 {-# NOINLINE chooseUnit #-}
 chooseUnit :: BuiltinUnit -> a -> a
-chooseUnit (BuiltinUnit ()) a = a
+-- For tracing purposes, this is defined like pseq; it's strict in the unit
+-- value but (analyzed as) lazy in the interesting value.
+chooseUnit (BuiltinUnit ()) a = lazy a
 
 {-
 INTEGER
@@ -147,14 +154,56 @@ equalsInteger = coerce ((==) @Integer)
 BYTESTRING
 -}
 
+{- Note [Silly sum types]
+
+GHC's worker/wrapper transformation and CPR analysis really like to tear
+product types apart. Usually, that's a good thing. But for our purposes, it's
+not. We want to see the actual `BuiltInByteString` or `BuiltInString`, not its
+constituent parts. So we turn these product types into sum types, by adding
+constructors that can never actually be applied. Turning off CPR analysis in
+this module and using `NOINLINE` where appropriate then seems to be sufficient
+to prevent that. Anyone changing this stuff should be careful to inspect the
+generated workers to make sure we're preserving everything we should.
+-}
+
 -- | An opaque type representing Plutus Core ByteStrings.
-newtype BuiltinByteString = BuiltinByteString ByteString
-  deriving stock (Generic)
-  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
-  deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+data BuiltinByteString
+  = BuiltinByteString {-# UNPACK #-} !ByteString
+  | NeverBS_ !Void
+  deriving stock (Generic, Haskell.Eq, Haskell.Ord)
+
+instance Haskell.Show BuiltinByteString where
+  showsPrec d (BuiltinByteString bs) = Haskell.showsPrec d bs
+
+instance Haskell.Semigroup BuiltinByteString where
+  BuiltinByteString bs1 <> BuiltinByteString bs2
+    = BuiltinByteString $ bs1 Haskell.<> bs2
+
+instance Haskell.Monoid BuiltinByteString where
+  mempty = BuiltinByteString Haskell.mempty
 
 instance Pretty BuiltinByteString where
     pretty = viaShow
+
+instance NFData BuiltinByteString where
+  rnf (BuiltinByteString bs) = rnf bs
+
+instance Hashable BuiltinByteString where
+  hashWithSalt s (BuiltinByteString bs) = hashWithSalt s bs
+
+instance BA.ByteArrayAccess BuiltinByteString where
+  length (BuiltinByteString bs) = BA.length bs
+  withByteArray (BuiltinByteString bs) = BA.withByteArray bs
+  copyByteArrayToPtr (BuiltinByteString bs) = BA.copyByteArrayToPtr bs
+
+instance Serialise BuiltinByteString where
+  encode (BuiltinByteString bs) = encode bs
+  decode = BuiltinByteString <$> decode
+
+instance BA.ByteArray BuiltinByteString where
+  allocRet n f = do
+    (a, bs) <- BA.allocRet n f
+    pure (a, BuiltinByteString bs)
 
 {-# NOINLINE appendByteString #-}
 appendByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
@@ -217,8 +266,13 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 STRING
 -}
 
-newtype BuiltinString = BuiltinString Text
-    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+data BuiltinString
+  = BuiltinString {-# UNPACK #-} !Text
+  | NeverS_ !Void
+    deriving stock (Haskell.Eq, Haskell.Ord)
+
+instance Haskell.Show BuiltinString where
+  showsPrec d (BuiltinString bs) = Haskell.showsPrec d bs
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
