@@ -534,7 +534,7 @@ traceInside varName lamName = go
 -}
 
 {- Note [Boolean coverage]
-   During testing it is useful (sometimes even critical) to know during which boolean
+   During testing it is useful (sometimes even critical) to know which boolean
    expressions have evaluated to true and false respectively. To track this we
    introduce `traceBool "<expr evaluated to True>" "<expr evaluated to False>" expr`
    around every non-constructor boolean typed expression `expr` with a known source location
