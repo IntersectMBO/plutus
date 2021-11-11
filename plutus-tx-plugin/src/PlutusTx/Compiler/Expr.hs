@@ -534,12 +534,18 @@ traceInside varName lamName = go
 -}
 
 {- Note [Boolean coverage]
-   It is useful (sometimes even critical) to know during testing which boolean
+   During testing it is useful (sometimes even critical) to know during which boolean
    expressions have evaluated to true and false respectively. To track this we
    introduce `traceBool "<expr evaluated to True>" "<expr evaluated to False>" expr`
-   around every non-constructor boolean typed expression `expr` with a known source location.
-   We also track specifically what the function at the head of the expression `expr` is
-   and add this as metadata (this is the function that returned true / false).
+   around every non-constructor boolean typed expression `expr` with a known source location
+   when boolean coverage is turned on.
+
+   The annotation `<expr evaluated to True>` is implemented by adding a `CoverBool location True`
+   coverage annotation with the head function in `expr` as metadata. This means that in an expression
+   like:
+   `foo x < bar y && all isGood xs`
+   We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a module
+   with coverage turned on).
 -}
 
 compileExpr

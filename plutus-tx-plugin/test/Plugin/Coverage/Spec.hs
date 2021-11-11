@@ -51,16 +51,16 @@ boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskel
 coverage :: TestNested
 coverage = testNested "Coverage"
   [ pure $ testGroup "Application heads and line coverage"
-         [ mkTests "noBool" noBool Set.empty [25]
-         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [28]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"]) [31, 35, 36, 37]
-         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [43]
-         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [46]
+         [ mkTests "noBool" noBool Set.empty [28]
+         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [31]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"]) [34, 38, 39, 40]
+         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [46]
+         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
          ]
  , goldenPir "coverageCode" boolOtherFunction ]
 
 mkTests :: String -> CompiledCode t -> Set String -> [Int] -> TestTree
-mkTests nm cc heads lines = testGroup nm [ applicationHeadsCorrect cc heads , linesInCoverageIndex cc lines ]
+mkTests nm cc heads ls = testGroup nm [ applicationHeadsCorrect cc heads , linesInCoverageIndex cc ls ]
 
 applicationHeadsCorrect :: CompiledCode t -> Set String -> TestTree
 applicationHeadsCorrect cc heads = testCase "correct application heads" (assertEqual "" heads headSymbols)
