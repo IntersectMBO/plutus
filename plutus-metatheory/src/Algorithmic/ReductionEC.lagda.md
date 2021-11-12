@@ -339,8 +339,6 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   _·r_ : {A B C : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → EC A C → EC B C
   _·⋆_/_ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}{X}
     → EC (Π B) C → (A : ∅ ⊢Nf⋆ K) → X ≡ B [ A ]Nf → EC X C
---  _·⋆_ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
---    → EC (Π B) C → (A : ∅ ⊢Nf⋆ K) → EC (B [ A ]Nf) C
   wrap : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}
     → EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) C
     → EC (μ A B) C
@@ -348,21 +346,6 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → EC (μ A B) C
     → X ≡ (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) 
     → EC X C
-
-{-
-data EC' : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
-  []   : {A : ∅ ⊢Nf⋆ *} → EC' A A
-  _l·_ : {A B C : ∅ ⊢Nf⋆ *} → EC' (A ⇒ B) C → ∅ ⊢ A → EC' B C
-  _·r_ : {A B C : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → EC' A C → EC' B C
-  _·⋆_~_ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}{X}
-    → EC' (Π B) C → (A : ∅ ⊢Nf⋆ K) → X ≡ B [ A ]Nf → EC' X C
-  wrap : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}
-    → EC' (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) C
-    → EC' (μ A B) C
-  unwrap : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}
-    → EC' (μ A B) C
-    → EC' (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) C
--}
 ```
 
 ```
@@ -1285,7 +1268,7 @@ lemVβ⋆ (V-IΠ b p q) = lemBAppβ⋆ q
 postulate lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
 
 {-
-This currently triggers and agda bug:
+This currently triggers an agda bug:
 Panic: Pattern match failure in do expression at
 src/full/Agda/TypeChecking/Rules/LHS/Unify.hs:1313:7-14
 when checking that the pattern V-I⇒ b p q has type
@@ -1369,6 +1352,7 @@ valred (V-I⇒ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-sbuiltin⋆ b t p bt 
 valred (V-IΠ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-sbuiltin⋆ b t p bt A r)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
+
 {-
 bapperr : ∀{A}{L : ∅ ⊢ A}{b az as}{p : az <>> as ∈ arity b}
   → Error L → BApp b p L → ⊥

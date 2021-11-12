@@ -47,9 +47,9 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 closeFrame : ∀{T H} → Frame T H → ∅ ⊢ H → ∅ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
-closeFrame (-·⋆ A)         t = _·⋆_ t A
+closeFrame (-·⋆ A)         t = t ·⋆ A / refl
 closeFrame wrap-           t = wrap _ _ t
-closeFrame unwrap-         t = unwrap t
+closeFrame unwrap-         t = unwrap t refl
 -- Plugging a term into a stack yields a term again
 
 closeStack : ∀{T H} → Stack T H → ∅ ⊢ H → ∅ ⊢ T
@@ -71,9 +71,9 @@ step : ∀{A} → State A → State A
 step (s ▻ ƛ L)                    = s ◅ V-ƛ L
 step (s ▻ (L · M))                = (s , -· M) ▻ L
 step (s ▻ Λ L)                    = s ◅ V-Λ L
-step (s ▻ (L ·⋆ A))               = (s , -·⋆ A) ▻ L
+step (s ▻ (L ·⋆ A / refl))        = (s , -·⋆ A) ▻ L
 step (s ▻ wrap A B L)             = (s , wrap-) ▻ L
-step (s ▻ unwrap L)               = (s , unwrap-) ▻ L
+step (s ▻ unwrap L refl)          = (s , unwrap-) ▻ L
 step (s ▻ con cn)                 = s ◅ V-con cn
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
@@ -82,15 +82,15 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
-step (s ▻ builtin b) = s ◅ ival b
+step (s ▻ (builtin b / refl))     = s ◅ ival b
 step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
   s ▻ BUILTIN' b (bubble p) (app p bt vu)
 step ((s , (V-I⇒ b {as' = _ ∷ as'} p bt ·-)) ◅ vu) =
   s ◅ V-I b (bubble p) (app p bt vu)
 step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p bt) =
-  s ▻ BUILTIN' b (bubble p) (app⋆ p bt)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = x ∷ as'} p bt) =
-  s ◅ V-I b (bubble p) (app⋆ p bt)
+  s ▻ BUILTIN' b (bubble p) (app⋆ p bt refl)
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = _ ∷ as'} p bt) =
+  s ◅ V-I b (bubble p) (app⋆ p bt refl)
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
@@ -106,7 +106,11 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
+
+
 import Algorithmic.CC as CC
+
+{-
 open import Relation.Binary.PropositionalEquality
 open import Data.Sum
 
@@ -251,3 +255,4 @@ lem◆ (step* refl p) = lem◆ p
 
 lem◆' : ∀ {A A'}{M : ∅ ⊢ A}(V : Value M) → ◆ A' -→s □ V → ⊥
 lem◆' V (step* refl p) = lem◆' V p
+-- -}

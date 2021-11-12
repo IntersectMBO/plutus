@@ -21,54 +21,54 @@ open import Data.Product renaming (_,_ to _,,_)
 dissect : ∀{A B}(E : EC A B) → A ≡ B ⊎ Σ (∅ ⊢Nf⋆ *) λ C → EC A C × Frame C B
 dissect []        = inj₁ refl
 dissect (E l· M') with dissect E
-... | inj₁ refl         = inj₂ (_ ,, [] ,, -· M')
+... | inj₁ refl           = inj₂ (_ ,, [] ,, -· M')
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, E' l· M' ,, F)
 dissect (VM ·r E) with dissect E
-... | inj₁ refl         = inj₂ (_ ,, [] ,, VM ·-)
+... | inj₁ refl           = inj₂ (_ ,, [] ,, VM ·-)
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, VM ·r E' ,, F)
-dissect (E ·⋆ A) with dissect E
-... | inj₁ refl         = inj₂ (_ ,, [] ,,  -·⋆ A)
-... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, E' ·⋆ A ,, F)
+dissect (E ·⋆ A / refl) with dissect E
+... | inj₁ refl           = inj₂ (_ ,, [] ,,  -·⋆ A)
+... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, E' ·⋆ A / refl ,, F)
 dissect (wrap E) with dissect E
-... | inj₁ refl         = inj₂ (_ ,, [] ,, wrap-)
+... | inj₁ refl           = inj₂ (_ ,, [] ,, wrap-)
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, wrap E' ,, F)
-dissect (unwrap E) with dissect E
-... | inj₁ refl         = inj₂ (_ ,, [] ,, unwrap-)
-... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, unwrap E' ,, F)
+dissect (unwrap E / refl) with dissect E
+... | inj₁ refl           = inj₂ (_ ,, [] ,, unwrap-)
+... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, unwrap E' / refl ,, F)
 
 dissect-inj₁ : ∀{A B}(E : EC A B)(p : A ≡ B) → dissect E ≡ inj₁ p
   → subst (λ A → EC A B) p E ≡ []
-dissect-inj₁ [] refl refl = refl
-dissect-inj₁ (E l· N) p q with dissect E
-dissect-inj₁ (E l· N) refl q | inj₁ ()
-dissect-inj₁ (VM ·r E) p q with dissect E
-dissect-inj₁ (VM ·r E) refl () | inj₁ refl
-dissect-inj₁ (E ·⋆ A) p q with dissect E
-dissect-inj₁ (E ·⋆ A) p () | inj₁ refl
-dissect-inj₁ (wrap E) p q with dissect E
-dissect-inj₁ (wrap E) p () | inj₁ refl
-dissect-inj₁ (unwrap E) p q with dissect E
-dissect-inj₁ (unwrap E) p () | inj₁ refl
+dissect-inj₁ []                refl refl = refl
+dissect-inj₁ (E l· N)          p    q with dissect E
+dissect-inj₁ (E l· N)          refl q | inj₁ ()
+dissect-inj₁ (VM ·r E)         p    q with dissect E
+dissect-inj₁ (VM ·r E)         refl () | inj₁ refl
+dissect-inj₁ (E ·⋆ A / refl)   p    q with dissect E
+dissect-inj₁ (E ·⋆ A / refl)   p    () | inj₁ refl
+dissect-inj₁ (wrap E)          p    q with dissect E
+dissect-inj₁ (wrap E)          p    () | inj₁ refl
+dissect-inj₁ (unwrap E / refl) p    q with dissect E
+dissect-inj₁ (unwrap E / refl) p    () | inj₁ refl
 
 compEC : ∀{A B C} → EC A B → EC B C → EC A C
-compEC []         E' = E'
-compEC (E  l· M') E' = compEC E E' l· M'
-compEC (VM ·r E)  E' = VM ·r compEC E E'
-compEC (E ·⋆ A)   E' = compEC E E' ·⋆ A
-compEC (wrap E)   E' = wrap (compEC E E')
-compEC (unwrap E) E' = unwrap (compEC E E')
+compEC []                E' = E'
+compEC (E  l· M')        E' = compEC E E' l· M'
+compEC (VM ·r E)         E' = VM ·r compEC E E'
+compEC (E ·⋆ A / refl)   E' = compEC E E' ·⋆ A / refl
+compEC (wrap E)          E' = wrap (compEC E E')
+compEC (unwrap E / refl) E' = unwrap (compEC E E') / refl
 
 extEC : ∀{A B C}(E : EC A B)(F : Frame B C) → EC A C
-extEC []         (-· M') = [] l· M'
-extEC []         (VM ·-) = VM ·r []
-extEC []         (-·⋆ A) = [] ·⋆ A
-extEC []         wrap-   = wrap []
-extEC []         unwrap- = unwrap []
-extEC (E l· M')  F       = extEC E F l· M'
-extEC (VM ·r E)  F       = VM ·r extEC E F
-extEC (E ·⋆ A)   F       = extEC E F ·⋆ A
-extEC (wrap E)   F       = wrap (extEC E F)
-extEC (unwrap E) F       = unwrap (extEC E F)
+extEC []                (-· M') = [] l· M'
+extEC []                (VM ·-) = VM ·r []
+extEC []                (-·⋆ A) = [] ·⋆ A / refl
+extEC []                wrap-   = wrap []
+extEC []                unwrap- = unwrap [] / refl
+extEC (E l· M')         F       = extEC E F l· M'
+extEC (VM ·r E)         F       = VM ·r extEC E F
+extEC (E ·⋆ A / refl)   F       = extEC E F ·⋆ A / refl
+extEC (wrap E)          F       = wrap (extEC E F)
+extEC (unwrap E / refl) F       = unwrap (extEC E F) / refl
 
 dissect-inj₂ : ∀{A B C}(E : EC A C)(E' : EC A B)(F : Frame B C)
   → dissect E ≡ inj₂ (_ ,, E' ,, F) → E ≡ extEC E' F
@@ -82,31 +82,32 @@ dissect-inj₂ (VM ·r E) .[] .(VM ·-) refl | inj₁ refl | I[ eq ] =
   cong (VM ·r_) ( dissect-inj₁ E refl eq)
 dissect-inj₂ (VM ·r E) .(VM ·r E') .F refl | inj₂ (_ ,, E' ,, F) | I[ eq ] =
   cong (VM ·r_) (dissect-inj₂ E E' F eq)
-dissect-inj₂ (E ·⋆ A) E' F p with dissect E | inspect dissect E
-dissect-inj₂ (E ·⋆ A) .[] .(-·⋆ A) refl | inj₁ refl | I[ eq ] =
-  cong (_·⋆ A) (dissect-inj₁ E refl eq)
-dissect-inj₂ (E ·⋆ A) .(E'' ·⋆ A) .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ] =
-  cong (_·⋆ A) (dissect-inj₂ E E'' F' eq)
+dissect-inj₂ (E ·⋆ A / refl) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (E ·⋆ A / refl) .[] .(-·⋆ A) refl | inj₁ refl | I[ eq ] =
+  cong (_·⋆ A / refl) (dissect-inj₁ E refl eq)
+dissect-inj₂ (E ·⋆ A / refl) .(E'' ·⋆ A / refl) .F' refl
+  | inj₂ (_ ,, E'' ,, F') | I[ eq ]
+  = cong (_·⋆ A / refl) (dissect-inj₂ E E'' F' eq)
 dissect-inj₂ (wrap E) E' F p with dissect E | inspect dissect E
 dissect-inj₂ (wrap E) .[] .wrap- refl | inj₁ refl | I[ eq ] =
   cong wrap (dissect-inj₁ E refl eq)
 dissect-inj₂ (wrap E) .(wrap E'') .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ] =
   cong wrap (dissect-inj₂ E E'' F' eq)
-
-dissect-inj₂ (unwrap E) E' F p with dissect E | inspect dissect E
-dissect-inj₂ (unwrap E) .[] .unwrap- refl | inj₁ refl | I[ eq ] =
-  cong unwrap (dissect-inj₁ E refl eq)
-dissect-inj₂ (unwrap E) .(unwrap E'') .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ]
-  = cong unwrap (dissect-inj₂ E E'' F' eq)
+dissect-inj₂ (unwrap E / refl) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (unwrap E / refl) .[] .unwrap- refl | inj₁ refl | I[ eq ] =
+  cong (λ E → unwrap E / refl) (dissect-inj₁ E refl eq)
+dissect-inj₂ (unwrap E / refl) .(unwrap E'' / refl) .F' refl
+  | inj₂ (_ ,, E'' ,, F') | I[ eq ]
+  = cong (λ E → unwrap E / refl) (dissect-inj₂ E E'' F' eq)
 
 
 compEC' : ∀{A B C} → EC A B → EC B C → EC A C
-compEC' E []          = E
-compEC' E (E' l· M')  = compEC' (extEC E (-· M')) E'
-compEC' E (VM ·r E')  = compEC' (extEC E (VM ·-)) E'
-compEC' E (E' ·⋆ A)   = compEC' (extEC E (-·⋆ A)) E'
-compEC' E (wrap E')   = compEC' (extEC E wrap-) E'
-compEC' E (unwrap E') = compEC' (extEC E unwrap-) E'
+compEC' E []                 = E
+compEC' E (E' l· M')         = compEC' (extEC E (-· M')) E'
+compEC' E (VM ·r E')         = compEC' (extEC E (VM ·-)) E'
+compEC' E (E' ·⋆ A / refl)   = compEC' (extEC E (-·⋆ A)) E'
+compEC' E (wrap E')          = compEC' (extEC E wrap-) E'
+compEC' E (unwrap E' / refl) = compEC' (extEC E unwrap-) E'
 
 postulate
   compEC-eq : ∀{A B C}(E : EC C B)(E' : EC B A) → compEC E E' ≡ compEC' E E'
@@ -116,39 +117,46 @@ compEC'-[] E = sym (compEC-eq [] E)
 
 compEC'-extEC : ∀{A B C D}(E : EC A B)(E' : EC B C)(F : Frame C D)
   → compEC' E (extEC E' F) ≡ extEC (compEC' E E') F
-compEC'-extEC E [] (-· N) = refl
-compEC'-extEC E [] (VM ·-) = refl
-compEC'-extEC E [] (-·⋆ A) = refl
-compEC'-extEC E [] wrap- = refl
-compEC'-extEC E [] unwrap- = refl
-compEC'-extEC E (E' l· N) F = compEC'-extEC (extEC E (-· N)) E' F
-compEC'-extEC E (VM ·r E') F = compEC'-extEC (extEC E (VM ·-)) E' F
-compEC'-extEC E (E' ·⋆ A) F = compEC'-extEC (extEC E (-·⋆ A)) E' F
-compEC'-extEC E (wrap E') F = compEC'-extEC (extEC E wrap-) E' F
-compEC'-extEC E (unwrap E') F = compEC'-extEC (extEC E unwrap-) E' F
+compEC'-extEC E []                 (-· N)  = refl
+compEC'-extEC E []                 (VM ·-) = refl
+compEC'-extEC E []                 (-·⋆ A) = refl
+compEC'-extEC E []                 wrap-   = refl
+compEC'-extEC E []                 unwrap- = refl
+compEC'-extEC E (E' l· N)          F       =
+  compEC'-extEC (extEC E (-· N)) E' F
+compEC'-extEC E (VM ·r E')         F       =
+  compEC'-extEC (extEC E (VM ·-)) E' F
+compEC'-extEC E (E' ·⋆ A / refl)   F       =
+  compEC'-extEC (extEC E (-·⋆ A)) E' F
+compEC'-extEC E (wrap E')          F       =
+  compEC'-extEC (extEC E wrap-) E' F
+compEC'-extEC E (unwrap E' / refl) F       =
+  compEC'-extEC (extEC E unwrap-) E' F
 
 extEC-[]ᴱ : ∀{A B C}(E : EC A B)(F : Frame B C)(M : ∅ ⊢ C) →
   extEC E F [ M ]ᴱ ≡ E [ F [ M ]ᶠ ]ᴱ
-extEC-[]ᴱ [] (-· N) M = refl
-extEC-[]ᴱ [] (VL ·-) M = refl
-extEC-[]ᴱ [] (-·⋆ A) M = refl
-extEC-[]ᴱ [] wrap- M = refl
-extEC-[]ᴱ [] unwrap- M = refl
-extEC-[]ᴱ (E l· N) F M = cong (_· N) (extEC-[]ᴱ E F M)
-extEC-[]ᴱ (VL ·r E) F M = cong (deval VL ·_) (extEC-[]ᴱ E F M)
-extEC-[]ᴱ (E ·⋆ A) F M = cong (_·⋆ A) (extEC-[]ᴱ E F M)
-extEC-[]ᴱ (wrap E) F M = cong (wrap _ _) (extEC-[]ᴱ E F M)
-extEC-[]ᴱ (unwrap E) F M = cong unwrap (extEC-[]ᴱ E F M)
+extEC-[]ᴱ []                (-· N)  M = refl
+extEC-[]ᴱ []                (VL ·-) M = refl
+extEC-[]ᴱ []                (-·⋆ A) M = refl
+extEC-[]ᴱ []                wrap-   M = refl
+extEC-[]ᴱ []                unwrap- M = refl
+extEC-[]ᴱ (E l· N)          F       M = cong (_· N) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (VL ·r E)         F       M = cong (deval VL ·_) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (E ·⋆ A / refl)   F       M = cong (_·⋆ A / refl) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (wrap E)          F       M = cong (wrap _ _) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (unwrap E / refl) F       M =
+  cong (λ M → unwrap M refl) (extEC-[]ᴱ E F M)
 
 -- 2nd functor law for []ᴱ
 compEC-[]ᴱ : ∀{A B C}(E : EC A B)(E' : EC B C)(L : ∅ ⊢ C)
   → E [ E' [ L ]ᴱ ]ᴱ ≡ compEC E E' [ L ]ᴱ
-compEC-[]ᴱ []         E' L = refl
-compEC-[]ᴱ (E l· M')  E' L = cong (_· M') (compEC-[]ᴱ E E' L)
-compEC-[]ᴱ (VM ·r E)  E' L = cong (deval VM ·_) (compEC-[]ᴱ E E' L)
-compEC-[]ᴱ (E ·⋆ A)   E' L = cong (_·⋆ A) (compEC-[]ᴱ E E' L)
-compEC-[]ᴱ (wrap E)   E' L = cong (wrap _ _) (compEC-[]ᴱ E E' L)
-compEC-[]ᴱ (unwrap E) E' L = cong unwrap (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ []                E' L = refl
+compEC-[]ᴱ (E l· M')         E' L = cong (_· M') (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (VM ·r E)         E' L = cong (deval VM ·_) (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (E ·⋆ A / refl)   E' L = cong (_·⋆ A / refl) (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (wrap E)          E' L = cong (wrap _ _) (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (unwrap E / refl) E' L =
+  cong (λ M → unwrap M refl) (compEC-[]ᴱ E E' L)
 ```
 
 # the machine
@@ -165,37 +173,38 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
        → (B ≡ A) ⊎ ∃ (λ C → EC B C × Frame C A)
        → State B
-stepV V (inj₁ refl)                 = □ V
-stepV V (inj₂ (_ ,, E ,, (-· N)))  = extEC E (V ·-) ▻ N
+stepV V (inj₁ refl) = □ V
+stepV V (inj₂ (_ ,, E ,, (-· N))) = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
 stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = []} p q ·-))) =
   E ▻ BUILTIN' b (bubble p) (step p q V)
 stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = a ∷ as'} p q ·-))) =
   E ◅ V-I b (bubble p) (step p q V)
-stepV V (inj₂ (_ ,, E ,, wrap-))   = E ◅ V-wrap V
+stepV V (inj₂ (_ ,, E ,, wrap-)) = E ◅ V-wrap V
 stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
 stepV (V-IΠ b {as' = []} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
-  E ▻ BUILTIN' b (bubble p) (step⋆ p q)
+  E ▻ BUILTIN' b (bubble p) (step⋆ p q refl)
 stepV (V-IΠ b {as' = a ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
-  E ◅ V-I b (bubble p) (step⋆ p q)
+  E ◅ V-I b (bubble p) (step⋆ p q refl)
 stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V
 
 stepT : ∀{A} → State A → State A
-stepT (E ▻ ƛ M)        = E ◅ V-ƛ M
-stepT (E ▻ (M · M'))   = extEC E (-· M') ▻ M
-stepT (E ▻ Λ M)        = E ◅ V-Λ M
-stepT (E ▻ (M ·⋆ A))   = extEC E (-·⋆ A) ▻ M
-stepT (E ▻ wrap A B M) = extEC E wrap- ▻ M
-stepT (E ▻ unwrap M)   = extEC E unwrap- ▻ M
-stepT (E ▻ con c)      = E ◅ V-con c
-stepT (E ▻ builtin b)  = E ◅ ival b
-stepT (E ▻ error A)    = ◆ A
-stepT (E ◅ V)          = stepV V (dissect E)
-stepT (□ V)            = □ V
-stepT (◆ A)            = ◆ A
+stepT (E ▻ ƛ M)                = E ◅ V-ƛ M
+stepT (E ▻ (M · M'))           = extEC E (-· M') ▻ M
+stepT (E ▻ Λ M)                = E ◅ V-Λ M
+stepT (E ▻ (M ·⋆ A / refl))    = extEC E (-·⋆ A) ▻ M
+stepT (E ▻ wrap A B M)         = extEC E wrap- ▻ M
+stepT (E ▻ unwrap M refl)      = extEC E unwrap- ▻ M
+stepT (E ▻ con c)              = E ◅ V-con c
+stepT (E ▻ (builtin b / refl)) = E ◅ ival b
+stepT (E ▻ error A)            = ◆ A
+stepT (E ◅ V)                  = stepV V (dissect E)
+stepT (□ V)                    = □ V
+stepT (◆ A)                    = ◆ A
 ```
 
 ```
+{-
 data _-→s_ {A : ∅ ⊢Nf⋆ *} : State A → State A → Set where
   base  : {s : State A} → s -→s s
   step* : {s s' s'' : State A}
@@ -1097,3 +1106,4 @@ thm1bV M W M' E refl N V (step* refl q) | inj₁ refl | I[ eq ] rewrite dissect-
 
 thm2b : ∀{A}(M N : ∅ ⊢ A)(V : Value N) → ([] ▻ M) -→s (□ V) → M —↠ N
 thm2b M N V p = thm1b M M [] refl N V p
+-- -}
