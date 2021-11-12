@@ -1436,7 +1436,8 @@ data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → RProgress M
 
 -- these lemmas are needed for the uniqueness cases of lemma51!
--- it might be cleaner to define each uniqueness case directly as a lemma
+-- it might be cleaner to define every uniqueness case directly as a lemma
+
 -- a beta⋆ reduction happened
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
@@ -1456,15 +1457,14 @@ U·⋆2 : ∀{K}{C}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{M : ∅ ⊢ �
  {B' : ∅ ⊢Nf⋆ *}
  → ¬ (Value M)
  → (p : X ≡ B [ A ]Nf) →
- (E'
-  : EC X B')
+ (E' : EC X B')
  {L' : ∅ ⊢ B'} →
  M _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ) →
  Redex L' →
  (U : {B' : ∅ ⊢Nf⋆ *} (E' : EC (Π B) B') {L' : ∅ ⊢ B'} →
       M ≡ (E' [ L' ]ᴱ) →
       Redex L' →
-      ∃ (λ (p₁ : C ≡ B') → substEq (EC (Π B)) p₁ E ≡ E' × substEq (_⊢_ ∅) p₁ L ≡ L'))
+      ∃ (λ (q : C ≡ B') → substEq (EC _) q E ≡ E' × substEq (_⊢_ ∅) q L ≡ L'))
  →
  ∃
  (λ (p₁ : C ≡ B') →
@@ -1487,54 +1487,33 @@ U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X
       Value M →
       M _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ) →
       Redex L' →
-      Σ
-      (X ≡ B')
-      (λ p₁ →
-         
-         (substEq (EC X) p₁ []
-          ≡ E')
-         × substEq (∅ ⊢_) p₁ (M _⊢_.·⋆ A / p) ≡ L')
+      ∃ λ (q : X ≡ B') → substEq (EC X) q [] ≡ E'
+         × substEq (∅ ⊢_) q (M _⊢_.·⋆ A / p) ≡ L'
 U·⋆3 eq (E ·⋆ A / .eq) V refl q = ⊥-elim (valredex (lemVE _ E V) q)
 U·⋆3 refl [] V refl q = refl ,, refl ,, refl
 
 -- body of wrap made a step, it's not a value
-Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
- → (p : X ≡ μ A B)
- → (E' : EC X B') {L' : ∅ ⊢ B'} →
- _⊢_.wrap A B M ≡ substEq (∅ ⊢_) p (E' [ L' ]ᴱ) →
+Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}
+ → (E' : EC (μ A B) B') {L' : ∅ ⊢ B'} →
+ _⊢_.wrap A B M ≡ E' [ L' ]ᴱ →
  Redex L' →
  (U : {B' : ∅ ⊢Nf⋆ *}
-      (E' : EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) B')
+      (E' : EC _ B')
       {L' : ∅ ⊢ B'} →
       M ≡ (E' [ L' ]ᴱ) →
       Redex L' →
-      ∃
-      (λ p₁ →
-         substEq
-         (EC
-          ((eval (embNf A) (λ x → reflect (` x)) ·V
-            inj₂
-            (λ ρ v →
-               μ
-               (reify
-                (eval (embNf (renNf S A))
-                 ((λ x → renVal ρ (reflect (` x))) ,,⋆ v)))
-               (reify v)))
-           ·V eval (embNf B) (λ x → reflect (` x))))
-         p₁ E
-         ≡ E'
-         × substEq (_⊢_ ∅) p₁ L ≡ L'))
+      ∃ (λ p → substEq (EC _) p E ≡ E' × substEq (_⊢_ ∅) p L ≡ L'))
  →
  ∃
  (λ (p₁ : C ≡ B') →
-    substEq (EC (μ A B)) p₁ (wrap E) ≅ E' × substEq (_⊢_ ∅) p₁ L ≅ L')
-Uwrap refl (E l· x) () q U
-Uwrap refl (x ·r E) () q U
-Uwrap refl (E ·⋆ A / x) () q U
-Uwrap refl (wrap E) refl q U with U E refl q
+    substEq (EC (μ A B)) p₁ (wrap E) ≡ E' × substEq (_⊢_ ∅) p₁ L ≡ L')
+Uwrap (E l· x) () q U
+Uwrap (x ·r E) () q U
+Uwrap (E ·⋆ A / x) () q U
+Uwrap (wrap E) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
-Uwrap refl (unwrap E / x) () q U
-Uwrap refl [] refl (β ()) U
+Uwrap (unwrap E / x) () q U
+Uwrap [] refl (β ()) U
 
 -- the body of the unwrap, M, is not a value and made a step
 Uunwrap1 : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ μ A B}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
@@ -1657,24 +1636,20 @@ rlemma51! (M ·⋆ A / x) | done (V-IΠ b {as' = x₁ ∷ as'} p q) =
   p
   (cong (_·⋆ A / x) q)
   λ E p q → U·⋆2 ¬VM x E p q U
-rlemma51! (wrap A B M) = {!!}
+rlemma51! (wrap A B M) with rlemma51! M
+... | step ¬VM E p q U = step
+  (λ {(V-wrap VM) → ¬VM VM})
+  (wrap E)
+  p
+  (cong (wrap A B) q)
+  λ E p' q' → Uwrap E p' q' U
+... | done VM = done (V-wrap VM)
 rlemma51! (unwrap M x) = {!!}
 rlemma51! (con c) = done (V-con c)
 rlemma51! (builtin b / x) = {!!}
 rlemma51! (error _) = {!!}
 
 {-
-rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = a ∷ as'} p x) =
-  done (V-I b (bubble p) (step⋆ p x))
-rlemma51! (wrap A B M) with rlemma51! M
-... | done VM = done (V-wrap VM)
-... | step ¬VM E p q U = step
-  (λ {(V-wrap VM) → ¬VM VM})
-  (wrap E)
-  p
-  (cong (wrap A B) q)
-  λ E p q → let X ,, Y ,, Y' = Uwrap refl E (≡-to-≅ p) q U in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
 rlemma51! (unwrap M) with rlemma51! M
 ... | step ¬VM E p q U = step
   (λ V → lemVunwrap (Value2VALUE V))
