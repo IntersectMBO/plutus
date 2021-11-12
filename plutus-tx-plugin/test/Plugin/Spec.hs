@@ -3,6 +3,7 @@ module Plugin.Spec where
 import Common
 
 import Plugin.Basic.Spec
+import Plugin.Coverage.Spec
 import Plugin.Data.Spec
 import Plugin.Errors.Spec
 import Plugin.Functions.Spec
@@ -21,4 +22,5 @@ tests = testNested "Plugin" [
   , errors
   , typeclasses
   , profiling
+  , coverage
   ]

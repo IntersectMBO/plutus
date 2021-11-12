@@ -20,11 +20,15 @@ import PlutusTx.Compiler.Names
 import PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
+import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Trace
 
 import Class qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
 import FV qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
@@ -41,8 +45,10 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 
+import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
 
+import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
@@ -419,12 +425,22 @@ hoistExpr var t =
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
-                -- We could incur a dependency on unit for a number of reasons: we delayed,
-                -- or we used it for a lazy case expression. Rather than tear our hair out
-                -- trying to work out whether we do depend on it, just assume that we do.
-                -- This should get better when we push the laziness handling to PIR so we
-                -- can trust the source-level dependencies on unit.
-                let deps = Set.insert (GHC.getName GHC.unitTyCon) allFvs
+
+                -- HACK: Currently we add calls to 'traceBool' dynamically based on coverage
+                -- annotations, and as such they get missed by our dependency analysis. We can
+                -- fix this by making the dependency analysis more dynamic, and looking at what we
+                -- actually use, rather than relying on the set of free variables in the
+                -- original Core.
+                CompileContext {ccOpts=coverageOpts} <- ask
+                let anns = activeCoverageTypes coverageOpts
+                tbName <- GHC.getName <$> getThing 'traceBool
+                let addTb = if Set.member BooleanCoverage anns then Set.insert tbName else id
+                    -- We could incur a dependency on unit for a number of reasons: we delayed,
+                    -- or we used it for a lazy case expression. Rather than tear our hair out
+                    -- trying to work out whether we do depend on it, just assume that we do.
+                    -- This should get better when we push the laziness handling to PIR so we
+                    -- can trust the source-level dependencies on unit.
+                    deps = addTb $ Set.insert (GHC.getName GHC.unitTyCon) allFvs
 
                 PIR.defineTerm
                     lexName
@@ -443,6 +459,18 @@ mkTrace ty str v =
         ()
         (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
         [PLC.mkConstant () str, v]
+
+-- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
+mkLazyTrace
+    :: CompilingDefault uni fun m
+    => PLC.Type PLC.TyName uni ()
+    -> T.Text
+    -> PIRTerm uni PLC.DefaultFun
+    -> m (PIRTerm uni fun)
+mkLazyTrace ty str v = do
+  delayedBody <- delay v
+  delayedType <- delayType ty
+  force $ mkTrace delayedType str delayedBody
 
 -- | Trace inside a term's lambda. I.e., turn
 -- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
@@ -476,12 +504,56 @@ traceInside varName lamName = go
 
 -- Expressions
 
+{- Note [Tracking coverage and lazyness]
+   When we insert a coverage annotation `a` that is meant to be collected when we execute
+   `a` we would like do something like `trace (show a) body`. However, we can't do this
+   because `body` may throw an exception and that would in turn cause `show a` never to be logged.
+   To get around this we instead generate the code `force (trace (show a) (delay body))` to
+   guarantee that the annotation `a` is logged before we execute `body`.
+-}
+
+{- Note [Tick-unfloating]
+   GHC likes to float ticks on case scrutinees. This screws with boolean
+   coverage (because the result of the case expression is not necessarily
+   boolean typed) so we un-float these ticks. Specifically, GHC will convert an
+   expression like:
+   ```
+   if <tick with source location of condition> condition
+   then trueCase
+   else falseCase
+   ```
+   into something equivalent to:
+   ```
+   <tick with source location of condition>
+   if condition
+   then trueCase
+   else falseCase
+   ```
+   which means that we don't get boolean coverage for `condition` as there is no tick around it (so we
+   don't know where it is).
+-}
+
+{- Note [Boolean coverage]
+   During testing it is useful (sometimes even critical) to know which boolean
+   expressions have evaluated to true and false respectively. To track this we
+   introduce `traceBool "<expr evaluated to True>" "<expr evaluated to False>" expr`
+   around every non-constructor boolean typed expression `expr` with a known source location
+   when boolean coverage is turned on.
+
+   The annotation `<expr evaluated to True>` is implemented by adding a `CoverBool location True`
+   coverage annotation with the head function in `expr` as metadata. This means that in an expression
+   like:
+   `foo x < bar y && all isGood xs`
+   We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a module
+   with coverage turned on).
+-}
+
 compileExpr
     :: CompilingDefault uni fun m
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
+    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -666,16 +738,121 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
+        -- See Note [Tick-unfloating]
+        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
+
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
-        GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ compileExpr body
+        -- See Note [What source locations to cover]
+        GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+              CompileContext {ccOpts=coverageOpts} <- ask
+              -- See Note [Coverage annotations]
+              let anns = Set.toList $ activeCoverageTypes coverageOpts
+              compiledBody <- compileExpr body
+              foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+
         -- ignore other annotations
         GHC.Tick _ body -> compileExpr body
         -- See Note [Coercions and newtypes]
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+{- Note [What source locations to cover]
+   We try to get as much coverage information as we can out of GHC. This means that
+   anything we find in the GHC Core code that hints at a source location will be
+   included as a coverage annotation. This has both advantages and disadvantages.
+   On the one hand "trying as hard as we can" gives us as much coverage information as
+   possible. On the other hand GHC can sometimes do tricky things like tick floating
+   (see Note [Tick-unfloating]) that will degrade the quality of the coverage information
+   we get. However, we have yet to find any evidence that GHC treats different ticks
+   differently with regards to tick floating.
+-}
+
+-- | Do your best to try to extract a source span from a tick
+-- See Note [What source locations to cover]
+getSourceSpan :: Maybe GHC.ModBreaks -> GHC.GenTickish pass -> Maybe GHC.RealSrcSpan
+getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
+getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
+  case cc of
+    GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp) -> Just sp
+    GHC.AllCafsCC _ (GHC.RealSrcSpan sp)    -> Just sp
+    _                                       -> Nothing
+getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
+  mb <- mmb
+  let arr = GHC.modBreaks_locs mb
+      range = Array.bounds arr
+  GHC.RealSrcSpan sp <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  return sp
+getSourceSpan _ _ = Nothing
+
+-- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
+toCovLoc :: GHC.RealSrcSpan -> CovLoc
+toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
+                     (GHC.srcSpanStartLine sp)
+                     (GHC.srcSpanEndLine sp)
+                     (GHC.srcSpanStartCol sp)
+                     (GHC.srcSpanEndCol sp)
+
+-- Here be dragons:
+-- See Note [Tracking coverage and lazyness]
+-- See Note [Coverage order]
+-- | Annotate a term for coverage
+coverageCompile :: CompilingDefault uni fun m
+                => GHC.CoreExpr -- ^ The original expression
+                -> GHC.Type -- ^ The type of the expression
+                -> GHC.RealSrcSpan -- ^ The source location of this expression
+                -> PIRTerm uni fun -- ^ The current term (this is what we add coverage tracking to)
+                -> CoverageType -- ^ The type of coverage to do next
+                -> m (PIRTerm uni fun)
+coverageCompile originalExpr exprType src compiledTerm covT =
+  case covT of
+    -- Add a location covereage annotation to tell us "we've executed this piece of code"
+    LocationCoverage -> do
+      ann <- addLocationToCoverageIndex (toCovLoc src)
+      ty <- compileTypeNorm exprType
+      mkLazyTrace ty (T.pack . show $ ann) compiledTerm
+
+    -- Add two boolean coverage annotations to tell us "this boolean has been True/False respectively"
+    -- see Note [Boolean coverage]
+    BooleanCoverage -> do
+      -- Check if the thing we are compiling is a boolean
+      bool <- getThing ''Bool
+      true <- getThing 'True
+      false <- getThing 'False
+      let tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
+          headSymName = GHC.getName <$> findHeadSymbol originalExpr
+          isTrueOrFalse = case originalExpr of
+            GHC.Var v | GHC.DataConWorkId dc <- GHC.idDetails v ->
+              GHC.getName dc `elem` [GHC.getName c | c <- [true, false]]
+            _ -> False
+
+      if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
+      then return compiledTerm
+      -- Generate the code:
+      -- ```
+      -- traceBool "<compiledTerm was true>" "<compiledTerm was false>" compiledTerm
+      -- ```
+      else do
+        traceBoolThing <- getThing 'traceBool
+        case traceBoolThing of
+          GHC.AnId traceBoolId -> do
+            traceBoolCompiled <- compileExpr $ GHC.Var traceBoolId
+            let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
+            fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
+            tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ fc), PLC.mkConstant () (T.pack . show $ tc), compiledTerm]
+          _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
+    where
+      findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
+      findHeadSymbol (GHC.Var n)    = Just $ n
+      findHeadSymbol (GHC.App t _)  = findHeadSymbol t
+      findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
+      findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
+      findHeadSymbol _              = Nothing
 
 compileExprWithDefs
     :: CompilingDefault uni fun m

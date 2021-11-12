@@ -43,10 +43,7 @@ import GhcPlugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Control.Monad.Reader
-
 import Data.ByteString qualified as BS
-import Data.Map qualified as Map
 import Data.Proxy
 import Data.Text (Text)
 
@@ -154,7 +151,7 @@ which handles these cases too.
 mkBuiltin :: fun -> PIR.Term tyname name uni fun ()
 mkBuiltin = PIR.Builtin ()
 
--- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
+-- | The 'TH.Name's for which 'NameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
@@ -236,15 +233,6 @@ builtinNames = [
     , 'Builtins.unsafeDataAsB
     , 'Builtins.unsafeDataAsI
     ]
-
--- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
--- failing if it is missing.
-getThing :: Compiling uni fun m => TH.Name -> m GHC.TyThing
-getThing name = do
-    CompileContext{ccBuiltinNameInfo=names} <- ask
-    case Map.lookup name names of
-        Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
-        Just thing -> pure thing
 
 defineBuiltinTerm :: Compiling uni fun m => TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm name term = do

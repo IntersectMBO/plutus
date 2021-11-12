@@ -12,19 +12,19 @@
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module PlutusIR.Compiler.Definitions (DefT
-                                              , MonadDefs (..)
-                                              , TermDefWithStrictness
-                                              , runDefT
-                                              , defineTerm
-                                              , defineType
-                                              , defineDatatype
-                                              , recordAlias
-                                              , lookupTerm
-                                              , lookupOrDefineTerm
-                                              , lookupType
-                                              , lookupOrDefineType
-                                              , lookupConstructors
-                                              , lookupDestructor) where
+                                     , MonadDefs (..)
+                                     , TermDefWithStrictness
+                                     , runDefT
+                                     , defineTerm
+                                     , defineType
+                                     , defineDatatype
+                                     , recordAlias
+                                     , lookupTerm
+                                     , lookupOrDefineTerm
+                                     , lookupType
+                                     , lookupOrDefineType
+                                     , lookupConstructors
+                                     , lookupDestructor) where
 
 import PlutusIR
 import PlutusIR.MkPir hiding (error)
@@ -37,6 +37,7 @@ import Control.Monad.Except
 import Control.Monad.Morph qualified as MM
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Writer
 
 import Algebra.Graph.AdjacencyMap qualified as AM
 import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM
@@ -66,7 +67,7 @@ data DefState key uni fun ann = DefState {
 makeLenses ''DefState
 
 newtype DefT key uni fun ann m a = DefT { unDefT :: StateT (DefState key uni fun ann) m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote)
+    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote, MonadWriter w)
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (DefT key uni fun ann m) where
