@@ -1260,29 +1260,27 @@ lemVunwrap :  ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
 lemVunwrap (V-I⇒ b p ())
 lemVunwrap (V-IΠ b p ())
 
-{-
-lemV·⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}
-  → ¬ (VALUE M) → ¬ (VALUE (M ·⋆ A))
-lemV·⋆ ¬VM (V-I⇒ b .(bubble p) q (step⋆ p x)) = ¬VM (V-IΠ b p refl x)
-lemV·⋆ ¬VM (V-IΠ b .(bubble p) q (step⋆ p x)) = ¬VM (V-IΠ b p refl x)
--}
+lemV·⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{C}{p : C ≡ B [ A ]Nf}
+  → ¬ (Value M) → ¬ (Value (M ·⋆ A / p))
+lemV·⋆ ¬VM (V-I⇒ b .(bubble p) (step⋆ p q r)) = ¬VM (V-IΠ b p q)
+lemV·⋆ ¬VM (V-IΠ b .(bubble p) (step⋆ p q r)) = ¬VM (V-IΠ b p q)
+
 lemBAppβ : ∀{A B}{b}{az as}{p : az <>> as ∈ arity b}{M : ∅ , A ⊢ B}{M'}
   → ¬ (BApp b p (ƛ M · M'))
 lemBAppβ (step p () x)
 
-{-
-lemBAppβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{b}{az as}{p : az <>> as ∈ arity b}{M : ∅ ,⋆ K ⊢ B} → ¬ (BApp b p (Λ M ·⋆ A))
-lemBAppβ⋆ (step⋆ p ())
--}
+lemBAppβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{b}{az as}{p : az <>> as ∈ arity b}{M : ∅ ,⋆ K ⊢ B}{C}{q : C ≡ B [ A ]Nf} → ¬ (BApp b p (Λ M ·⋆ A / q))
+lemBAppβ⋆ (step⋆ p () refl)
+
 lemVβ : ∀{A B}{M : ∅ , A ⊢ B}{M'} → ¬ (Value (ƛ M · M'))
 lemVβ (V-I⇒ b p q) = lemBAppβ q
 lemVβ (V-IΠ b p q) = lemBAppβ q
 
-{-
-lemVβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ,⋆ K ⊢ B} → ¬ (VALUE (Λ M ·⋆ A))
-lemVβ⋆ (V-I⇒ b p q x) = lemBAppβ⋆ x
-lemVβ⋆ (V-IΠ b p q x) = lemBAppβ⋆ x
--}
+lemVβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ,⋆ K ⊢ B}{C}{p : C ≡ B [ A ]Nf}
+  → ¬ (Value (Λ M ·⋆ A / p))
+lemVβ⋆ (V-I⇒ b p q) = lemBAppβ⋆ q
+lemVβ⋆ (V-IΠ b p q) = lemBAppβ⋆ q
+
 
 postulate lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
 
@@ -1437,6 +1435,8 @@ data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       -----------
     → RProgress M
 
+-- these lemmas are needed for the uniqueness cases of lemma51!
+-- it might be cleaner to define each uniqueness case directly as a lemma
 -- a beta⋆ reduction happened
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
@@ -1444,7 +1444,7 @@ U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  → (E' : EC X  B'){L' : ∅ ⊢ B'}
  → Λ L _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ)
  → Redex L' →
- ∃ (λ (q : X ≡ B') → [] ≡ substEq (λ X → EC X B') q E' × Λ L ·⋆ A / trans (sym q) p ≡ L')
+ ∃ (λ (q : X ≡ B') → substEq (EC _) q [] ≡ E' × substEq (∅ ⊢_) q (Λ L ·⋆ A / p) ≡ L')
 U·⋆1 eq [] refl q = refl ,, refl ,, refl
 U·⋆1 eq (E' ·⋆ A / r) p q with lem-·⋆ r eq p
 U·⋆1 {L = L} eq (E' ·⋆ A / r) {L'} p q | refl ,, Y ,, refl ,, refl
@@ -1488,12 +1488,12 @@ U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X
       M _⊢_.·⋆ A / p ≡ (E' [ L' ]ᴱ) →
       Redex L' →
       Σ
-      (B [ A ]Nf ≡ B')
+      (X ≡ B')
       (λ p₁ →
          
-         (substEq (EC (B [ A ]Nf)) p₁ []
-          ≅ E') -- could make a closer homogeneous equation using p and p₁
-         × (M _⊢_.·⋆ A / sym p₁) ≡ L')
+         (substEq (EC X) p₁ []
+          ≡ E')
+         × substEq (∅ ⊢_) p₁ (M _⊢_.·⋆ A / p) ≡ L')
 U·⋆3 eq (E ·⋆ A / .eq) V refl q = ⊥-elim (valredex (lemVE _ E V) q)
 U·⋆3 refl [] V refl q = refl ,, refl ,, refl
 
@@ -1636,7 +1636,27 @@ rlemma51! (M · N) | done (V-I⇒ b {as' = []}       p x) | done VN = step
 rlemma51! (M · N) | done (V-I⇒ b {as' = a' ∷ as'} p x) | done VN =
   done (V-I b (bubble p) (step p x VN))
 rlemma51! (Λ M) = done (V-Λ M)
-rlemma51! (M ·⋆ A / x) = {!!}
+rlemma51! (M ·⋆ A / x) with rlemma51! M
+... | done (V-Λ M) = step
+  lemVβ⋆
+  []
+  (β (β-Λ x))
+  refl
+  (U·⋆1 x)
+rlemma51! (M ·⋆ A / x) | done (V-IΠ b {as' = []} p q) = step
+  (λ V → valred V (β-sbuiltin⋆ b M p q A x))
+  []
+  (β (β-sbuiltin⋆ b M p q A x))
+  refl
+  λ E p' q' → U·⋆3 x E (V-IΠ b _ q) p' q'
+rlemma51! (M ·⋆ A / x) | done (V-IΠ b {as' = x₁ ∷ as'} p q) =
+  done (V-I b (bubble p) (step⋆ p q x))
+... | step ¬VM E p q U = step
+  (λ V → lemV·⋆ (λ V → ¬VM V) V)
+  (E ·⋆ A / x)
+  p
+  (cong (_·⋆ A / x) q)
+  λ E p q → U·⋆2 ¬VM x E p q U
 rlemma51! (wrap A B M) = {!!}
 rlemma51! (unwrap M x) = {!!}
 rlemma51! (con c) = done (V-con c)
@@ -1644,32 +1664,6 @@ rlemma51! (builtin b / x) = {!!}
 rlemma51! (error _) = {!!}
 
 {-
-rlemma51! (M · M') | done (V-I⇒ b {as' = a ∷ as'} p q) | done VM' =
-  done (V-I b (bubble p) (step p q VM'))
-rlemma51! (Λ M)        = done (V-Λ M)
-rlemma51! (M ·⋆ A)     with rlemma51! M
-... | done (V-Λ L)      = step
-  (λ V → lemVβ⋆ (Value2VALUE V))
-  []
-  (β β-Λ)
-  refl
-  λ E' p q → let X ,, Y ,, Y' = U·⋆1 refl E' (≡-to-≅ p) q in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
-... | step ¬VM E p q U = step
-  (λ V → lemV·⋆ (λ V → ¬VM (VALUE2Value V)) (Value2VALUE V))
-  (E ·⋆ A)
-  p
-  (cong (_·⋆ A) q)
-  λ E p q → let X ,, Y ,, Y' = U·⋆2 ¬VM refl E (≡-to-≅ p) q U in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
-rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = []} p x) = step
-  (λ V → valred (Value2VALUE V) (β-sbuiltin⋆ b M p x A))
-  []
-  (β (β-sbuiltin⋆ b M p x A))
-  refl
-  λ E p q → let X ,, Y ,, Y' = U·⋆3 refl E (V-IΠ b _ x) (≡-to-≅ p) q in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
-
 rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = a ∷ as'} p x) =
   done (V-I b (bubble p) (step⋆ p x))
 rlemma51! (wrap A B M) with rlemma51! M
