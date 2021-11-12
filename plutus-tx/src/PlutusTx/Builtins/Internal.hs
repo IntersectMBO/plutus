@@ -70,6 +70,7 @@ it is a problem. So we just expose the delayed version as the builtin.
 -- We use GHC.Exts.lazy here so GHC can't see that the result is always bottom.
 -- I (David Feuer) don't really understand why this is needed, but it seems to
 -- be desired.
+{-# NOINLINE error #-}
 error :: BuiltinUnit -> a
 error (BuiltinUnit ()) = lazy (mustBeReplaced "error")
 

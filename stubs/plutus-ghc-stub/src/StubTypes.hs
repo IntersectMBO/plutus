@@ -16,6 +16,7 @@ import Language.Haskell.TH qualified as TH
 
 data DynFlags    = DynFlags_
 type FamInstEnvs = (FamInstEnv, FamInstEnv)
+data Unique      = Unique_ deriving (Eq, Ord, Outputable, Data)
 data Name        = Name_ deriving (Eq, Ord, Outputable, Data)
 data OccName     = OccName_ deriving (Eq, Ord)
 data Module      = Module_ deriving (Eq, Ord)
@@ -677,6 +678,9 @@ charTyConName = undefined
 
 noinlineIdName :: Name
 noinlineIdName = undefined
+
+lazyIdKey :: Unique
+lazyIdKey = undefined
 
 nilDataCon :: DataCon
 nilDataCon = undefined

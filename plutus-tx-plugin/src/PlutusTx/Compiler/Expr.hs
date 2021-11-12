@@ -125,7 +125,10 @@ stringExprContent = \case
 -- in question we will strip this off anyway.
 strip :: GHC.CoreExpr -> GHC.CoreExpr
 strip = \case
-    GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
+    GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr
+      | GHC.getName n == GHC.noinlineIdName ||
+        GHC.hasKey n GHC.lazyIdKey
+      -> strip expr
     GHC.Tick _ expr                                                                     -> strip expr
     expr                                                                                -> expr
 
@@ -534,7 +537,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
         -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
         -- See Note [noinline hack]
-        GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
+        GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg
+          | GHC.getName n == GHC.noinlineIdName ||
+            GHC.hasKey n GHC.lazyIdKey -> compileExpr arg
 
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <call stack> <message>
