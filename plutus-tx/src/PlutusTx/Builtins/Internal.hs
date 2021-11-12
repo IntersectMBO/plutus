@@ -7,7 +7,9 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- We don't want builtins getting torn apart.
+-- We don't want builtins getting torn apart. Enabling CPR analysis does that,
+-- so we have to disable it. We leave worker/wrapper enabled, because that's
+-- needed to give good compiled code here for off-chain use.
 {-# OPTIONS_GHC -fno-cpr-anal #-}
 
 -- | This module contains the special Haskell names that are used to map to builtin types or functions
@@ -168,17 +170,36 @@ constructors that can never actually be applied. Turning off CPR analysis in
 this module and using `NOINLINE` where appropriate then seems to be sufficient
 to prevent that. Anyone changing this stuff should be careful to inspect the
 generated workers to make sure we're preserving everything we should.
+
+Note: because the Void field in the NeverBS_ and NeverS_ constructors is
+*strict*, GHC's pattern coverage checker recognizes that those constructors
+aren't needed for complete pattern matches.
 -}
 
 -- | An opaque type representing Plutus Core ByteStrings.
 data BuiltinByteString
+  -- See Note [Silly sum types]
+  -- This type *must* be defined in the same module as FakeBuiltinByteString.
+  -- See Note [Building a custom Generic instance] for an explanation of that.
   = BuiltinByteString {-# UNPACK #-} !ByteString
   | NeverBS_ !Void
   deriving stock (Haskell.Eq, Haskell.Ord)
   deriving anyclass (NFData, Hashable, Serialise)
 
--- This is used for a dirty hack to produce the `Generic` instance
--- we want.
+-- We define a custom Generic instance because we want any generic code working
+-- with `BuiltinByteString` to see it as a single-constructor type. Most
+-- importantly, any serialization should be done without a constructor tag.
+--
+-- See Note [Building a custom Generic instance]
+instance Generic BuiltinByteString where
+  type Rep BuiltinByteString = TwiddleBS (Rep FakeBuiltinByteString)
+  {-# INLINE to #-}
+  to (M1 (M1 (M1 (K1 bs)))) = BuiltinByteString bs
+  {-# INLINE from #-}
+  from (BuiltinByteString bs) = M1 (M1 (M1 (K1 bs)))
+
+-- See Note [Building a custom Generic instance]
+-- This type *must* be defined in the same module as BuiltinByteString.
 data FakeBuiltinByteString = FakeBuiltinByteString {-# UNPACK #-} !ByteString
   deriving stock Generic
 
@@ -190,15 +211,20 @@ type family TwiddleBS fake where
              (C1 ('MetaCons "BuiltinByteString" x y)
                z)
 
--- We define a custom Generic instance because we want any generic code working
--- with `BuiltinByteString` to see it as a single-constructor type. In
--- particular, any serialization should be done without a constructor tag.
-instance Generic BuiltinByteString where
-  type Rep BuiltinByteString = TwiddleBS (Rep FakeBuiltinByteString)
-  {-# INLINE to #-}
-  to (M1 (M1 (M1 (K1 bs)))) = BuiltinByteString bs
-  {-# INLINE from #-}
-  from (BuiltinByteString bs) = M1 (M1 (M1 (K1 bs)))
+{- Note [Building a custom Generic instance]
+
+It's really easy to write custom `to` and `from` methods for `Generic`.  The
+trickier part is getting the `Rep` right. The `Rep` includes metadata about
+strictness, unpacking, constructor names, record selectors, etc. Some aspects
+are difficult or impossible to get right manually, particularly the exact
+package name and the "decided strictness". So instead of building the `Rep`
+from scratch, we instead *edit* one that GHC builds us for a type,
+FakeBuiltinByteString, that lives in the same module and looks almost identical
+to the one we're trying to imitate. All we have to do is use a type family,
+TwiddleBS, to edit the FakeBuiltinByteString to replace its type name and
+constructor name with those of BuiltinByteString. All the other structural
+information and metadata are copied over unchanged.
+-}
 
 instance Haskell.Show BuiltinByteString where
   showsPrec d (BuiltinByteString bs) = Haskell.showsPrec d bs
@@ -285,6 +311,7 @@ STRING
 -}
 
 data BuiltinString
+  -- See Note [Silly sum types]
   = BuiltinString {-# UNPACK #-} !Text
   | NeverS_ !Void
     deriving stock (Haskell.Eq, Haskell.Ord)
