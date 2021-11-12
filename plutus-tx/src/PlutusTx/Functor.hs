@@ -6,7 +6,7 @@ import Data.Functor.Identity (Identity (..))
 
 import PlutusTx.Base
 import PlutusTx.Either (Either (..))
-import {-# SOURCE #-} PlutusTx.Maybe (Maybe (..))
+import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 
