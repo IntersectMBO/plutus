@@ -1526,16 +1526,10 @@ Uunwrap1 : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ μ A B}{L : ∅ ⊢ C}{E}{B'
   (U : {B' : ∅ ⊢Nf⋆ *} (E' : EC (μ A B) B') {L' : ∅ ⊢ B'} →
     M ≡ (E' [ L' ]ᴱ) →
     Redex L' →
-    ∃
-    (λ p₁ → substEq (EC (μ A B)) p₁ E ≡ E' × substEq (_⊢_ ∅) p₁ L ≡ L'))
+    ∃ (λ q → substEq (EC (μ A B)) q E ≡ E' × substEq (_⊢_ ∅) q L ≡ L'))
   →
-  ∃
-  (λ (p₁ : C ≡ B') →
-     substEq
-     (EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)))
-     p₁ (EC.unwrap E / refl)
-     ≅ E'
-     × substEq (_⊢_ ∅) p₁ L ≅ L')
+  ∃ (λ (q : C ≡ B') →
+    substEq (EC X) q (EC.unwrap E / p) ≡ E' × substEq (_⊢_ ∅) q L ≡ L')
 Uunwrap1 ¬VM eq [] refl (β (β-wrap x .eq)) U = ⊥-elim (¬VM (V-wrap x))
 Uunwrap1 ¬VM refl (unwrap E / refl) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
@@ -1544,18 +1538,12 @@ Uunwrap1 ¬VM refl (unwrap E / refl) refl q U with U E refl q
 Uunwrap2 : ∀{A}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{B' : ∅ ⊢Nf⋆ *}{X}
   → Value M
   → (p : X ≡ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) →
-  (E'
-   : EC X B')
+  (E' : EC X B')
   {L' : ∅ ⊢ B'} →
   _⊢_.unwrap (wrap A B M) p ≡ (E' [ L' ]ᴱ) →
   Redex L' →
-  ∃
-  (λ (p : _ ≡ B') →
-     substEq
-     (EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)))
-     p []
-     ≅ E'
-     × unwrap (wrap A B M) (sym p) ≅ L')
+  ∃ (λ (q : X ≡ B')
+    → substEq (EC X) q [] ≡ E' × substEq (∅ ⊢_) q (unwrap (wrap A B M) p) ≡ L')
 Uunwrap2 VM eq (unwrap E / x) p q with lem-unwrap p
 ... | refl ,, refl ,, refl ,, X4 =
   ⊥-elim (valredex (lemVE
@@ -1644,30 +1632,22 @@ rlemma51! (wrap A B M) with rlemma51! M
   (cong (wrap A B) q)
   λ E p' q' → Uwrap E p' q' U
 ... | done VM = done (V-wrap VM)
-rlemma51! (unwrap M x) = {!!}
-rlemma51! (con c) = done (V-con c)
-rlemma51! (builtin b / x) = {!!}
-rlemma51! (error _) = {!!}
-
-{-
-rlemma51! (unwrap M) with rlemma51! M
+rlemma51! (unwrap M x) with rlemma51! M
 ... | step ¬VM E p q U = step
-  (λ V → lemVunwrap (Value2VALUE V))
-  (unwrap E)
+  (λ V → lemVunwrap V)
+  (unwrap E / x)
   p
-  (cong unwrap q)
-  λ E p q → let X ,, Y ,, Y' = Uunwrap1 ¬VM refl E (≡-to-≅ p) q U in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
+  (cong (λ M → unwrap M x) q)
+  λ E p' q' → Uunwrap1 ¬VM x E p' q' U
 ... | done (V-wrap VM) = step
-  (λ V → valred (Value2VALUE V) (β-wrap VM))
+  (λ V → valred V (β-wrap VM x))
   []
-  (β (β-wrap VM))
+  (β (β-wrap VM x))
   refl
-  λ E p q → let X ,, Y ,, Y' = Uunwrap2 VM refl E (≡-to-≅ p) q in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
-rlemma51! (con c)      = done (V-con c)
-rlemma51! (builtin b)  = done (ival b)
-rlemma51! (error _)    = step
+  λ E p' q' → Uunwrap2 VM x E p' q'
+rlemma51! (con c) = done (V-con c)
+rlemma51! (builtin b / refl) = done (ival b)
+rlemma51! (error _) = step
   (valerr E-error)
   []
   err
@@ -1677,22 +1657,22 @@ rlemma51! (error _)    = step
 unique-EC : ∀{A B}(E E' : EC A B)(L : ∅ ⊢ B) → Redex L
   → E [ L ]ᴱ ≡ E' [ L ]ᴱ → E ≡ E'
 unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
-... | done VEL = ⊥-elim (valredex (lemVE L E (Value2VALUE VEL)) p)
+... | done VEL = ⊥-elim (valredex (lemVE L E VEL) p)
 ... | step ¬VEL E'' r r' U with U E' q p
 ... | refl ,, refl ,, refl with U E refl p
 ... | refl ,, refl ,, refl = refl
 
 notVAL : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→ N → ⊥
-notVAL V (ruleEC E p refl r) = valred (lemVE _ E (Value2VALUE V)) p
+notVAL V (ruleEC E p refl r) = valred (lemVE _ E V) p
 notVAL V (ruleErr E refl)    =
-  valerr E-error (VALUE2Value (lemVE _ E (Value2VALUE V)))
+  valerr E-error (lemVE _ E V)
 
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
 determinism {L = L} p q with rlemma51! L
 determinism {L = .(E [ _ ]ᴱ)} (ruleEC E p refl p') q | done VL =
-  ⊥-elim (valred (lemVE _ E (Value2VALUE VL)) p)
+  ⊥-elim (valred (lemVE _ E VL) p)
 determinism {L = L} (ruleErr E refl)      q | done VL =
-  ⊥-elim (valerr E-error (VALUE2Value (lemVE _ E (Value2VALUE VL))))
+  ⊥-elim (valerr E-error (lemVE _ E VL))
 determinism {L = L} (ruleEC E' p p' p'') q | step ¬VL E r r' U
   with U E' p' (β p)
 determinism {L = L} (ruleEC E p p' p'') (ruleEC E' q q' q'') | step ¬VL E (β r) r' U | refl ,, refl ,, refl with U E' q' (β q)
