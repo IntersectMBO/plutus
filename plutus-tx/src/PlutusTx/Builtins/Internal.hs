@@ -1,8 +1,11 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE ImportQualifiedPost  #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- We don't want builtins getting torn apart.
 {-# OPTIONS_GHC -fno-cpr-anal #-}
@@ -14,7 +17,7 @@
 module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
-import Control.DeepSeq (NFData (..))
+import Control.DeepSeq (NFData)
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
@@ -26,7 +29,7 @@ import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import Data.Void (Void)
 import GHC.Exts (lazy)
-import GHC.Generics (Generic)
+import GHC.Generics
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (Pretty (..), viaShow)
@@ -158,7 +161,7 @@ BYTESTRING
 
 GHC's worker/wrapper transformation and CPR analysis really like to tear
 product types apart. Usually, that's a good thing. But for our purposes, it's
-not. We want to see the actual `BuiltInByteString` or `BuiltInString`, not its
+not. We want to see the actual `BuiltinByteString` or `BuiltinString`, not its
 constituent parts. So we turn these product types into sum types, by adding
 constructors that can never actually be applied. Turning off CPR analysis in
 this module and using `NOINLINE` where appropriate then seems to be sufficient
@@ -170,7 +173,31 @@ generated workers to make sure we're preserving everything we should.
 data BuiltinByteString
   = BuiltinByteString {-# UNPACK #-} !ByteString
   | NeverBS_ !Void
-  deriving stock (Generic, Haskell.Eq, Haskell.Ord)
+  deriving stock (Haskell.Eq, Haskell.Ord)
+  deriving anyclass (NFData, Hashable, Serialise)
+
+-- This is used for a dirty hack to produce the `Generic` instance
+-- we want.
+data FakeBuiltinByteString = FakeBuiltinByteString {-# UNPACK #-} !ByteString
+  deriving stock Generic
+
+type family TwiddleBS fake where
+  TwiddleBS (D1 ('MetaData _type_name mod_name pkg_name newtypeness)
+             (C1 ('MetaCons _con_name x y)
+               z)) =
+           D1 ('MetaData "BuiltinByteString" mod_name pkg_name newtypeness)
+             (C1 ('MetaCons "BuiltinByteString" x y)
+               z)
+
+-- We define a custom Generic instance because we want any generic code working
+-- with `BuiltinByteString` to see it as a single-constructor type. In
+-- particular, any serialization should be done without a constructor tag.
+instance Generic BuiltinByteString where
+  type Rep BuiltinByteString = TwiddleBS (Rep FakeBuiltinByteString)
+  {-# INLINE to #-}
+  to (M1 (M1 (M1 (K1 bs)))) = BuiltinByteString bs
+  {-# INLINE from #-}
+  from (BuiltinByteString bs) = M1 (M1 (M1 (K1 bs)))
 
 instance Haskell.Show BuiltinByteString where
   showsPrec d (BuiltinByteString bs) = Haskell.showsPrec d bs
@@ -185,20 +212,10 @@ instance Haskell.Monoid BuiltinByteString where
 instance Pretty BuiltinByteString where
     pretty = viaShow
 
-instance NFData BuiltinByteString where
-  rnf (BuiltinByteString bs) = rnf bs
-
-instance Hashable BuiltinByteString where
-  hashWithSalt s (BuiltinByteString bs) = hashWithSalt s bs
-
 instance BA.ByteArrayAccess BuiltinByteString where
   length (BuiltinByteString bs) = BA.length bs
   withByteArray (BuiltinByteString bs) = BA.withByteArray bs
   copyByteArrayToPtr (BuiltinByteString bs) = BA.copyByteArrayToPtr bs
-
-instance Serialise BuiltinByteString where
-  encode (BuiltinByteString bs) = encode bs
-  decode = BuiltinByteString <$> decode
 
 instance BA.ByteArray BuiltinByteString where
   allocRet n f = do
