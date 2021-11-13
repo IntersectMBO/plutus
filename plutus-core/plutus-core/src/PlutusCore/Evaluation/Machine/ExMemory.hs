@@ -142,8 +142,8 @@ instance PrettyBy config ExCPU where
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
-    memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
+instance ExMemoryUsage (a, b) where
+    memoryUsage = mempty
 instance ExMemoryUsage SatInt where
     memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
 deriving newtype instance ExMemoryUsage ExMemory
@@ -195,12 +195,8 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 -- Memory usage for lists: let's just go for a naive traversal for now.
-instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = sizeList
-        where sizeList =
-                  \case
-                   []   -> 0
-                   x:xs -> memoryUsage x + sizeList xs
+instance ExMemoryUsage [a] where
+    memoryUsage = mempty
 
 {- Another naive traversal for size.  This accounts for the number of nodes in a
    Data object, and also the sizes of the contents of the nodes.  This is not
