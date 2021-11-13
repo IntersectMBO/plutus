@@ -178,7 +178,7 @@ instance KnownBuiltinTypeAst DefaultUni Text.Text     => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni ()            => KnownTypeAst DefaultUni ()
 instance KnownBuiltinTypeAst DefaultUni Bool          => KnownTypeAst DefaultUni Bool
 instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni [a]
-instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
+-- instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
 
 instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
@@ -187,12 +187,36 @@ instance KnownBuiltinTypeIn DefaultUni term Text.Text     => KnownTypeIn Default
 instance KnownBuiltinTypeIn DefaultUni term ()            => KnownTypeIn DefaultUni term ()
 instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn DefaultUni term Bool
 instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
+-- instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
-instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+-- instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+
+instance (KnownTypeAst DefaultUni a, KnownTypeAst DefaultUni b) =>
+            KnownTypeAst DefaultUni (a, b) where
+    toTypeAst = undefined
+
+instance (KnownTypeIn DefaultUni term a, KnownTypeIn DefaultUni term b, HasConstant term) =>
+            KnownTypeIn DefaultUni term (a, b) where
+    makeKnown mayCause (x, y) = do
+        makeKnown @_ @term Nothing x >>= asConstant Nothing >>= \(Some (ValueOf uniA x')) ->
+            makeKnown @_ @term Nothing y >>= asConstant Nothing >>= \(Some (ValueOf uniB y')) ->
+                pure . fromConstant $ someValueOf (DefaultUniPair uniA uniB) (x', y')
+
+    readKnown mayCause term = asConstant mayCause term >>= \case
+        Some (ValueOf uni p) -> case (uni, p) of
+            (DefaultUniPair uniA uniB, (x, y)) -> do
+                x' <- readKnown Nothing . fromConstant @term $ someValueOf uniA x
+                y' <- readKnown Nothing . fromConstant @term $ someValueOf uniB y
+                pure (x', y')
+            _ -> error "whatever"
+
+-- (Opaque Any rep, Opaque Any rep) ->
+
+asOfUni :: a -> uni (Esc a) -> a
+asOfUni = const
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when

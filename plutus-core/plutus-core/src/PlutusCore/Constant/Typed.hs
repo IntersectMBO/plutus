@@ -534,7 +534,8 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
+        :: ( MonadEmitter m
+           , MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
            )
         => Maybe cause -> a -> m term
     default makeKnown
@@ -608,7 +609,7 @@ instance (MonadError err m, AsEvaluationFailure err) =>
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 -- For example the monad can be simply 'EvaluationResult'.
 makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
+makeKnownOrFail = undefined -- unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
