@@ -250,7 +250,7 @@ test_IdBuiltinList =
             listOfInteger = mkTyBuiltin @_ @[Integer] ()
             term
                 = mkIterApp () (mkIterInst () (mapFun Left Builtin.foldrList) [integer, listOfInteger])
-                    [ tyInst () (builtin () $ Right Cons) integer
+                    [ tyInst () (builtin () $ Left MkCons) integer
                     , mkConstant @[Integer] () []
                     , xsTerm
                     ]
