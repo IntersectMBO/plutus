@@ -21,13 +21,11 @@ module PlutusCore.Constant.Meaning where
 
 import PlutusPrelude
 
-import PlutusCore.Constant.Dynamic.Emit
 import PlutusCore.Constant.Function
 import PlutusCore.Constant.Kinded
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 
 import Control.Lens (ix, (^?))
@@ -243,52 +241,88 @@ type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
-type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class TrySpecializeAsVar i j term a | i term a -> j
+type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
+class TrySpecializeAsVar i j f a | i f a -> j
 instance
-    ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
+    ( var ~ f (TyVarRep @k ('TyNameRep (GetName i) i))
     -- Try to unify @a@ with a freshly created @var@.
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
     -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
     , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j term a
+    ) => TrySpecializeAsVar i j f (a :: k)
 
--- | For looking under special-case types, for example the type of a constant or the type arguments
--- of a polymorphic built-in type get specialized as types representing PLC type variables,
--- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
--- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
--- (including @0@).
-type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class HandleSpecialCases i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
--- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
--- an 'Opaque' thing, but here we only want to instantiate the type representations.
--- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
--- a PLC type variable.
-instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
-        HandleSpecialCases i j term (SomeConstant uni rep)
-instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
-        HandleSpecialCases i j term (EvaluationResult a)
-instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
-        HandleSpecialCases i j term (Emitter a)
--- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
--- @OVERLAPPABLE@ instance above.
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term (Opaque term rep)
-    , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
-    ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
+-- -- | For looking under special-case types, for example the type of a constant or the type arguments
+-- -- of a polymorphic built-in type get specialized as types representing PLC type variables,
+-- -- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
+-- -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
+-- -- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
+-- -- (including @0@).
+-- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+-- class HandleSpecialCases i j term a | i term a -> j
+-- instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
+-- -- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
+-- -- an 'Opaque' thing, but here we only want to instantiate the type representations.
+-- -- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
+-- -- a PLC type variable.
+-- instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
+--         HandleSpecialCases i j term (SomeConstant uni rep)
+-- instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
+--         HandleSpecialCases i j term (EvaluationResult a)
+-- instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
+--         HandleSpecialCases i j term (Emitter a)
+-- -- -- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
+-- -- -- @OVERLAPPABLE@ instance above.
+-- -- instance {-# OVERLAPPING #-}
+-- --     ( TrySpecializeAsVar i j term (Opaque term rep)
+-- --     , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
+-- --     ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
 
--- | Instantiate an argument or result type.
-type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromToOne i j term a | i term a -> j
--- | First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
+-- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> [Anything] -> GHC.Constraint
+-- class HandleSpecialCases i j term as | i term as -> j
+-- instance i ~ j => HandleSpecialCases i j term '[]
+-- instance
+--     ( EnumerateFromToOne i j term a
+--     , HandleSpecialCases j k term as
+--     ) => HandleSpecialCases i k term ('Anything a ': as)
+
+-- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> [Anything] -> GHC.Constraint
+-- type family HandleSpecialCases i j term spine where
+--     HandleSpecialCases i j term '[]              = TypeError ('Text "The impossible happened")
+--     HandleSpecialCases i j term '[ 'Anything x ] = i ~ j  -- TrySpecializeAsVar i j term x
+--     HandleSpecialCases i j term ('Anything x ': xs) =
+
+type Id :: forall a. a -> a
+data family Id x
+
+type HandleSpecialCasesGo :: Nat -> Nat -> [Anything] -> GHC.Constraint
+class HandleSpecialCasesGo i j xs | i xs -> j
+instance i ~ j => HandleSpecialCasesGo i j '[]
 instance
-    ( TrySpecializeAsVar i j term a
-    , HandleSpecialCases j k term a
-    ) => EnumerateFromToOne i k term a
+    ( TrySpecializeAsVar i j Id (Id x)
+    , HandleSpecialCases j k x
+    , HandleSpecialCasesGo k l xs
+    ) => HandleSpecialCasesGo i l ('Anything x ': xs)
+
+type HandleSpecialCasesEnter :: Nat -> Nat -> [Anything] -> GHC.Constraint
+class HandleSpecialCasesEnter i j as | i as -> j
+instance (TypeError ('Text "The impossible happened"), i ~ j) => HandleSpecialCasesEnter i j '[]
+instance TrySpecializeAsVar i j Id (Id x) => HandleSpecialCasesEnter i j '[ 'Anything x ]
+instance HandleSpecialCasesGo i j (a0 ': a1 ': as) =>
+    HandleSpecialCasesEnter i j (a0 ': a1 ': as)
+
+type HandleSpecialCases :: forall k. Nat -> Nat -> k -> GHC.Constraint
+type HandleSpecialCases i j x = HandleSpecialCasesEnter i j (AsSpine x)
+
+-- -- | Instantiate an argument or result type.
+-- type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+-- class EnumerateFromToOne i j term a | i term a -> j
+-- -- | First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
+-- instance
+--     (
+--     ,
+--     ) => EnumerateFromToOne i k term a
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
@@ -300,11 +334,12 @@ instance
 -- trying to specialize its argument before recursing on it using this class.
 type EnumerateFromToRec :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromToRec i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromToRec i j term a
+instance {-# OVERLAPPABLE #-} HandleSpecialCases i j a => EnumerateFromToRec i j term a
 instance {-# OVERLAPPING #-}
-    ( EnumerateFromToOne i j term a
-    , EnumerateFromTo j k term b
-    ) => EnumerateFromToRec i k term (a -> b)
+    ( TrySpecializeAsVar i j (Opaque term) a
+    , HandleSpecialCases j k a
+    , EnumerateFromTo k l term b
+    ) => EnumerateFromToRec i l term (a -> b)
 
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
 -- first trying to specialize the whole type using 'EnumerateFromToOne' and then recursing on the
@@ -318,7 +353,8 @@ instance {-# OVERLAPPING #-}
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
 instance
-    ( EnumerateFromToOne i j term a
+    -- EnumerateFromToOne i j term a
+    ( TrySpecializeAsVar i j (Opaque term) a
     , EnumerateFromToRec j k term a
     ) => EnumerateFromTo i k term a
 

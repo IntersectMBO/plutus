@@ -21,7 +21,7 @@ module PlutusCore.Constant.Debug where
 import PlutusCore.Constant.Meaning
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
-import PlutusCore.Default
+import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
@@ -32,7 +32,8 @@ import Data.Proxy
 import Data.SOP.Constraint
 import Data.String
 
-type TermDebug = Term TyName Name DefaultUni DefaultFun ()
+data FunDebug
+type TermDebug = Term TyName Name DefaultUni FunDebug ()
 
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo'.
 -- This function only performs the enumeration and checks that the result does not have certain
@@ -57,6 +58,18 @@ type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 --       In the expression: enumerateDebug 42
 enumerateDebug :: forall a j. EnumerateFromTo 0 j TermDebug a => a -> a
 enumerateDebug = id
+
+-- >>> :t enumerateDebug (undefined :: SomeConstant uni (a, b) -> EvaluationResult (Opaque term a))
+
+-- <interactive>:1:1-45: error:
+--     • Reduction stack overflow; size = 201
+--       When simplifying the following type:
+--         Lookup 0 '["a", "b", "c", "d", "e", "f", "g", "h"]
+--       Use -freduction-depth=0 to disable this check
+--       (any upper bound you could choose might fail unpredictably with
+--        minor updates to GHC, so disabling the check is recommended if
+--        you're sure that type checking should terminate)
+--     • In the expression: enumerateDebug (\ b x y -> if b then x else y)
 
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
 -- possibe to construct a 'TypeScheme' out of the resulting type. Example usages:
@@ -124,64 +137,64 @@ runSomeConstantOf :: SomeConstantOf uni f reps -> Some (ValueOf uni)
 runSomeConstantOf (SomeConstantOfRes uniA x) = Some $ ValueOf uniA x
 runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
 
-instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
-            KnownTypeAst uni (SomeConstantOf uni' f reps) where
-    type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
+-- instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
+--             KnownTypeAst uni (SomeConstantOf uni' f reps) where
+--     type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
 
-    toTypeAst _ = toTypeAst $ Proxy @(SomeConstantPoly uni f reps)
+--     toTypeAst _ = toTypeAst $ Proxy @(SomeConstantPoly uni f reps)
 
--- | State needed during unlifting of a 'SomeConstantOf'.
-type ReadSomeConstantOf
-        :: forall k. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
-data ReadSomeConstantOf m uni f reps =
-    forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
+-- -- | State needed during unlifting of a 'SomeConstantOf'.
+-- type ReadSomeConstantOf
+--         :: forall k. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
+-- data ReadSomeConstantOf m uni f reps =
+--     forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
 
-instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
-            KnownTypeIn uni term (SomeConstantOf uni f reps) where
-    makeKnown _ = pure . fromConstant . runSomeConstantOf
+-- instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
+--             KnownTypeIn uni term (SomeConstantOf uni f reps) where
+--     makeKnown _ = pure . fromConstant . runSomeConstantOf
 
-    readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
-        Some (ValueOf uni xs) -> do
-            let uniF = knownUni @_ @_ @f
-                err = fromString $ concat
-                    [ "Type mismatch: "
-                    , "expected an application of: " ++ gshow uniF
-                    , "; but got the following type: " ++ gshow uni
-                    ]
-                wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
-                wrongType = throwingWithCause _UnliftingError err mayCause
-            -- In order to prove that the type of @xs@ is an application of @f@ we need to
-            -- peel all type applications off in the type of @xs@ until we get to the head and then
-            -- check that the head is indeed @f@. Each peeled type application becomes a
-            -- 'SomeConstantOfArg' in the final result.
-            ReadSomeConstantOf res uniHead <-
-                cparaM_SList @_ @(KnownTypeAst uni) @reps
-                    Proxy
-                    (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
-                    (\(ReadSomeConstantOf acc uniApp) ->
-                        matchUniApply
-                            uniApp
-                            wrongType
-                            (\uniApp' uniA ->
-                                pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
-            case uniHead `geq` uniF of
-                Nothing   -> wrongType
-                Just Refl -> pure res
+--     readKnown (mayCause :: Maybe cause) term = asConstant mayCause term >>= \case
+--         Some (ValueOf uni xs) -> do
+--             let uniF = knownUni @_ @_ @f
+--                 err = fromString $ concat
+--                     [ "Type mismatch: "
+--                     , "expected an application of: " ++ gshow uniF
+--                     , "; but got the following type: " ++ gshow uni
+--                     ]
+--                 wrongType :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err) => m a
+--                 wrongType = throwingWithCause _UnliftingError err mayCause
+--             -- In order to prove that the type of @xs@ is an application of @f@ we need to
+--             -- peel all type applications off in the type of @xs@ until we get to the head and then
+--             -- check that the head is indeed @f@. Each peeled type application becomes a
+--             -- 'SomeConstantOfArg' in the final result.
+--             ReadSomeConstantOf res uniHead <-
+--                 cparaM_SList @_ @(KnownTypeAst uni) @reps
+--                     Proxy
+--                     (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
+--                     (\(ReadSomeConstantOf acc uniApp) ->
+--                         matchUniApply
+--                             uniApp
+--                             wrongType
+--                             (\uniApp' uniA ->
+--                                 pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
+--             case uniHead `geq` uniF of
+--                 Nothing   -> wrongType
+--                 Just Refl -> pure res
 
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term (Opaque term rep)
-    , HandleSpecialCases j k term (SomeConstantOf uni f reps)
-    ) => HandleSpecialCases i k term (SomeConstantOf uni f (rep ': reps))
+-- instance {-# OVERLAPPING #-}
+--     ( TrySpecializeAsVar i j term (Opaque term rep)
+--     , HandleSpecialCases j k term (SomeConstantOf uni f reps)
+--     ) => HandleSpecialCases i k term (SomeConstantOf uni f (rep ': reps))
 
--- | Like 'cpara_SList' but the folding function is monadic.
-cparaM_SList
-    :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
-    -> m (r xs)
-cparaM_SList p z f =
-    getCompose $ cpara_SList
-        p
-        (Compose $ pure z)
-        (\(Compose r) -> Compose $ r >>= f)
+-- -- | Like 'cpara_SList' but the folding function is monadic.
+-- cparaM_SList
+--     :: forall k c (xs :: [k]) proxy r m. (All c xs, Monad m)
+--     => proxy c
+--     -> r '[]
+--     -> (forall y ys. (c y, All c ys) => r ys -> m (r (y ': ys)))
+--     -> m (r xs)
+-- cparaM_SList p z f =
+--     getCompose $ cpara_SList
+--         p
+--         (Compose $ pure z)
+--         (\(Compose r) -> Compose $ r >>= f)
