@@ -59,18 +59,6 @@ type TermDebug = Term TyName Name DefaultUni FunDebug ()
 enumerateDebug :: forall a j. EnumerateFromTo 0 j TermDebug a => a -> a
 enumerateDebug = id
 
--- >>> :t enumerateDebug (undefined :: SomeConstant uni (a, b) -> EvaluationResult (Opaque term a))
-
--- <interactive>:1:1-45: error:
---     • Reduction stack overflow; size = 201
---       When simplifying the following type:
---         Lookup 0 '["a", "b", "c", "d", "e", "f", "g", "h"]
---       Use -freduction-depth=0 to disable this check
---       (any upper bound you could choose might fail unpredictably with
---        minor updates to GHC, so disabling the check is recommended if
---        you're sure that type checking should terminate)
---     • In the expression: enumerateDebug (\ b x y -> if b then x else y)
-
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
 -- possibe to construct a 'TypeScheme' out of the resulting type. Example usages:
 --
@@ -137,11 +125,17 @@ runSomeConstantOf :: SomeConstantOf uni f reps -> Some (ValueOf uni)
 runSomeConstantOf (SomeConstantOfRes uniA x) = Some $ ValueOf uniA x
 runSomeConstantOf (SomeConstantOfArg _ svn)  = runSomeConstantOf svn
 
+-- type ApplyN :: forall k l. k -> [GHC.Type] -> l
+-- type family ApplyN f xs
+-- type instance ApplyN b '[]       = b
+-- type instance ApplyN f (x ': xs) = ApplyN (f x) xs
+
 -- instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 --             KnownTypeAst uni (SomeConstantOf uni' f reps) where
 --     type ToBinds (SomeConstantOf uni' f reps) = ListToBinds reps
+--     type AsSpineRev (SomeConstantOf uni' f reps) = AsSpineRev (ApplyN f reps)
 
---     toTypeAst _ = toTypeAst $ Proxy @(SomeConstantPoly uni f reps)
+--     toTypeAst _ = toTypeAst $ Proxy @(SomeConstant uni (ApplyN f reps))
 
 -- -- | State needed during unlifting of a 'SomeConstantOf'.
 -- type ReadSomeConstantOf

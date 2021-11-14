@@ -190,10 +190,6 @@ instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn Default
 instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
 
-instance KnownBuiltinTypeAst DefaultUni (,) => KnownTypeAst DefaultUni (,)
-instance KnownBuiltinTypeAst DefaultUni [] => KnownTypeAst DefaultUni []
-
-
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni

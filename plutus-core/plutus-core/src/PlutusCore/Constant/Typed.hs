@@ -37,7 +37,7 @@ module PlutusCore.Constant.Typed
     , HasConstant
     , HasConstantIn
     , KnownBuiltinTypeAst
-    , Anything (..)
+    , IsBuiltin
     , KnownTypeAst (..)
     , AsSpine
     , Merge
@@ -474,12 +474,13 @@ type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 -- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
 type KnownBuiltinTypeAst = Contains
 
-data Anything = forall a. Anything a
+type IsBuiltin :: forall a. Bool -> a -> GHC.Type
+data IsBuiltin b x
 
-type AsSpineRevDefault :: forall x. x -> [Anything]
+type AsSpineRevDefault :: forall a. a -> [GHC.Type]
 type family AsSpineRevDefault x where
-    AsSpineRevDefault (f x) = 'Anything x ': AsSpineRevDefault f
-    AsSpineRevDefault x     = '[ 'Anything x ]
+    AsSpineRevDefault (f x) = IsBuiltin 'False x ': AsSpineRevDefault f
+    AsSpineRevDefault x     = '[ IsBuiltin 'True x ]
 
 class KnownTypeAst uni (a :: k) where
     -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantPoly' has to be
@@ -490,7 +491,7 @@ class KnownTypeAst uni (a :: k) where
     type ToBinds (a :: k) :: [GADT.Some TyNameRep]
     type ToBinds _ = '[]
 
-    type AsSpineRev a :: [Anything]
+    type AsSpineRev a :: [GHC.Type]
     type AsSpineRev a = AsSpineRevDefault a
 
     -- | The type representing @a@ used on the PLC side.
@@ -503,7 +504,7 @@ type family ReverseGo as xs where
     ReverseGo as '[]       = as
     ReverseGo as (x ': xs) = ReverseGo (x ': as) xs
 
-type AsSpine :: forall k. k -> [Anything]
+type AsSpine :: forall k. k -> [GHC.Type]
 type AsSpine a = ReverseGo '[] (AsSpineRev a)
 
 -- | Delete all @x@s from a list.
@@ -628,11 +629,17 @@ instance (MonadError err m, AsEvaluationFailure err) =>
 makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
 makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
-instance KnownTypeAst uni x => KnownTypeAst uni ('Anything x) where
-    type ToBinds ('Anything x) = ToBinds x
-    type AsSpineRev ('Anything x) = AsSpine x
+instance KnownTypeAst uni x => KnownTypeAst uni (IsBuiltin 'False x) where
+    type ToBinds (IsBuiltin 'False x) = ToBinds x
+    type AsSpineRev (IsBuiltin 'False x) = AsSpineRev x
 
     toTypeAst _ = toTypeAst $ Proxy @x
+
+instance uni `Contains` x => KnownTypeAst uni (IsBuiltin 'True x) where
+    type ToBinds (IsBuiltin 'True x) = '[]
+    type AsSpineRev (IsBuiltin 'True x) = '[ IsBuiltin 'True x ]
+
+    toTypeAst _ = mkTyBuiltin @_ @x ()
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
@@ -674,9 +681,8 @@ newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
 
-instance ( uni ~ uni', AsSpine rep ~ (f ': args)
-         , KnownTypeAst uni f, All (KnownTypeAst uni) args
-         ) => KnownTypeAst uni (SomeConstant uni' rep) where
+instance (uni ~ uni', AsSpine rep ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
+            KnownTypeAst uni (SomeConstant uni' rep) where
     type ToBinds (SomeConstant _ rep) = ListToBinds (AsSpine rep)
     type AsSpineRev (SomeConstant _ rep) = AsSpineRev rep
 
@@ -693,40 +699,6 @@ instance (uni ~ uni', KnownTypeAst uni (SomeConstant uni rep), HasConstantIn uni
     makeKnown _ = pure . fromConstant . unSomeConstant
     readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
--- -- | For unlifting from the 'Constant' constructor when the stored value is of a polymorphic
--- -- built-in type.
--- --
--- -- The @f@ is the built-in type and @reps@ are its arguments representing PLC types.
--- newtype SomeConstantPoly uni f reps = SomeConstantPoly
---     { unSomeConstantPoly :: Some (ValueOf uni)
---     }
-
--- instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
---             KnownTypeAst uni (SomeConstantPoly uni' f reps) where
---     type ToBinds (SomeConstantPoly uni' f reps) = ListToBinds reps
-
---     toTypeAst _ =
---         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
---         mkIterTyApp () (mkTyBuiltin @_ @f ()) $
---             cfoldr_SList
---                 (Proxy @(All (KnownTypeAst uni) reps))
---                 (\(_ :: Proxy (rep ': _reps')) rs -> toTypeAst (Proxy @rep) : rs)
---                 []
-
--- instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
---          , HasConstantIn uni term
---          ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
---     makeKnown _ = pure . fromConstant . unSomeConstantPoly
---     readKnown mayCause = fmap SomeConstantPoly . asConstant mayCause
-
--- try unifying with 'Opaque'
--- then descend into the spine and
-
--- Opaque term (varA)
--- Opaque term (varF `TyAppRep` Bool)
--- Opaque term (varF `TyAppRep` varA)
--- Opaque term (Opaque term varA, Opaque term varB) `OR` Opaque term (varA, varB)
-
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)
     => Proxy ('TyNameRep text uniq) -> TyName
@@ -738,13 +710,13 @@ toTyNameAst _ =
 instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst uni (TyVarRep var) where
     type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
-    type AsSpineRev (TyVarRep var) = '[ 'Anything (TyVarRep var) ]
+    type AsSpineRev (TyVarRep var) = '[ IsBuiltin 'False (TyVarRep var) ]
 
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
     type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
-    type AsSpineRev (TyAppRep fun arg) = 'Anything arg ': AsSpineRev fun
+    type AsSpineRev (TyAppRep fun arg) = IsBuiltin 'False arg ': AsSpineRev fun
 
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
 
@@ -753,7 +725,7 @@ instance
         , KnownKind kind, KnownTypeAst uni a
         ) => KnownTypeAst uni (TyForallRep var a) where
     type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
-    type AsSpineRev (TyForallRep var a) = '[ 'Anything (TyForallRep var a) ]
+    type AsSpineRev (TyForallRep var a) = '[ IsBuiltin 'False (TyForallRep var a) ]
 
     toTypeAst _ =
         TyForall ()
@@ -762,7 +734,7 @@ instance
             (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
-    type ToBinds (Opaque _ rep) = ToBinds rep
+    type ToBinds (Opaque _ rep) = ListToBinds (AsSpine rep)
     type AsSpineRev (Opaque _ rep) = AsSpineRev rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep

@@ -253,76 +253,40 @@ instance
     , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j f (a :: k)
 
--- -- | For looking under special-case types, for example the type of a constant or the type arguments
--- -- of a polymorphic built-in type get specialized as types representing PLC type variables,
--- -- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
--- -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
--- -- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
--- -- (including @0@).
--- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
--- class HandleSpecialCases i j term a | i term a -> j
--- instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
--- -- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
--- -- an 'Opaque' thing, but here we only want to instantiate the type representations.
--- -- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
--- -- a PLC type variable.
--- instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
---         HandleSpecialCases i j term (SomeConstant uni rep)
--- instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
---         HandleSpecialCases i j term (EvaluationResult a)
--- instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
---         HandleSpecialCases i j term (Emitter a)
--- -- -- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
--- -- -- @OVERLAPPABLE@ instance above.
--- -- instance {-# OVERLAPPING #-}
--- --     ( TrySpecializeAsVar i j term (Opaque term rep)
--- --     , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
--- --     ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
-
--- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> [Anything] -> GHC.Constraint
--- class HandleSpecialCases i j term as | i term as -> j
--- instance i ~ j => HandleSpecialCases i j term '[]
--- instance
---     ( EnumerateFromToOne i j term a
---     , HandleSpecialCases j k term as
---     ) => HandleSpecialCases i k term ('Anything a ': as)
-
--- type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> [Anything] -> GHC.Constraint
--- type family HandleSpecialCases i j term spine where
---     HandleSpecialCases i j term '[]              = TypeError ('Text "The impossible happened")
---     HandleSpecialCases i j term '[ 'Anything x ] = i ~ j  -- TrySpecializeAsVar i j term x
---     HandleSpecialCases i j term ('Anything x ': xs) =
-
 type Id :: forall a. a -> a
 data family Id x
 
-type HandleSpecialCasesGo :: Nat -> Nat -> [Anything] -> GHC.Constraint
+-- TODO
+-- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
+-- an 'Opaque' thing, but here we only want to instantiate the type representations.
+
+-- | For looking under special-case types, for example the type of a constant or the type arguments
+-- of a polymorphic built-in type get specialized as types representing PLC type variables,
+-- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
+-- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
+-- (including @0@).
+
+type HandleSpecialCasesGo :: Nat -> Nat -> [GHC.Type] -> GHC.Constraint
 class HandleSpecialCasesGo i j xs | i xs -> j
 instance i ~ j => HandleSpecialCasesGo i j '[]
+instance HandleSpecialCasesGo i j xs => HandleSpecialCasesGo i j (IsBuiltin 'True x ': xs)
 instance
     ( TrySpecializeAsVar i j Id (Id x)
     , HandleSpecialCases j k x
     , HandleSpecialCasesGo k l xs
-    ) => HandleSpecialCasesGo i l ('Anything x ': xs)
+    ) => HandleSpecialCasesGo i l (IsBuiltin 'False x ': xs)
 
-type HandleSpecialCasesEnter :: Nat -> Nat -> [Anything] -> GHC.Constraint
+type HandleSpecialCasesEnter :: Nat -> Nat -> [GHC.Type] -> GHC.Constraint
 class HandleSpecialCasesEnter i j as | i as -> j
 instance (TypeError ('Text "The impossible happened"), i ~ j) => HandleSpecialCasesEnter i j '[]
-instance TrySpecializeAsVar i j Id (Id x) => HandleSpecialCasesEnter i j '[ 'Anything x ]
+instance i ~ j => HandleSpecialCasesEnter i j '[ IsBuiltin 'True x ]
+instance TrySpecializeAsVar i j Id (Id x) => HandleSpecialCasesEnter i j '[ IsBuiltin 'False x ]
 instance HandleSpecialCasesGo i j (a0 ': a1 ': as) =>
     HandleSpecialCasesEnter i j (a0 ': a1 ': as)
 
 type HandleSpecialCases :: forall k. Nat -> Nat -> k -> GHC.Constraint
 type HandleSpecialCases i j x = HandleSpecialCasesEnter i j (AsSpine x)
-
--- -- | Instantiate an argument or result type.
--- type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
--- class EnumerateFromToOne i j term a | i term a -> j
--- -- | First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
--- instance
---     (
---     ,
---     ) => EnumerateFromToOne i k term a
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
@@ -335,6 +299,7 @@ type HandleSpecialCases i j x = HandleSpecialCasesEnter i j (AsSpine x)
 type EnumerateFromToRec :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromToRec i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} HandleSpecialCases i j a => EnumerateFromToRec i j term a
+-- | TODO: First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
 instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j (Opaque term) a
     , HandleSpecialCases j k a
@@ -353,7 +318,6 @@ instance {-# OVERLAPPING #-}
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
 instance
-    -- EnumerateFromToOne i j term a
     ( TrySpecializeAsVar i j (Opaque term) a
     , EnumerateFromToRec j k term a
     ) => EnumerateFromTo i k term a

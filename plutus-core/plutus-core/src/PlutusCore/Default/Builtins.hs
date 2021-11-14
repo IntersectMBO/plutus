@@ -13,8 +13,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{-# OPTIONS_GHC -freduction-depth=1000 #-}
-
 module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
