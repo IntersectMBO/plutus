@@ -267,7 +267,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc
             :: SomeConstant uni (a, b)
-            -> EvaluationResult (SomeConstant uni (a, b))
+            -> EvaluationResult (SomeConstant uni (b, a))
         swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
             pure . SomeConstant $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
