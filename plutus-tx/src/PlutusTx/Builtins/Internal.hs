@@ -71,10 +71,11 @@ it is a problem. So we just expose the delayed version as the builtin.
 
 -- We use GHC.Exts.lazy here so GHC can't see that the result is always bottom.
 -- I (David Feuer) don't really understand why this is needed, but it seems to
--- be desired.
+-- be desired. We also don't allow this to be seen as strict in the unit,
+-- because that would lead to a worker-wrapper transformation of `error`.
 {-# NOINLINE error #-}
 error :: BuiltinUnit -> a
-error (BuiltinUnit ()) = lazy (mustBeReplaced "error")
+error u = lazy u `seq` lazy (mustBeReplaced "error")
 
 {-
 BOOL
@@ -106,9 +107,9 @@ unitval = BuiltinUnit ()
 
 {-# NOINLINE chooseUnit #-}
 chooseUnit :: BuiltinUnit -> a -> a
--- For tracing purposes, this is defined like pseq; it's strict in the unit
--- value but (analyzed as) lazy in the interesting value.
-chooseUnit (BuiltinUnit ()) a = lazy a
+-- We allow only arity analysis of this function. No
+-- demand analysis.
+chooseUnit u a = lazy u `seq` lazy a
 
 {-
 INTEGER
