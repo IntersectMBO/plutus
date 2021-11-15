@@ -97,23 +97,24 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
 
 - Prelude errors
 
-  - ``P0: PlutusTx.Enum.().succ: bad argument``
-  - ``P1: PlutusTx.Enum.().pred: bad argument``
-  - ``P2: PlutusTx.Enum.().toEnum: bad argument``
-  - ``P3: PlutusTx.Enum.Bool.succ: bad argument``
-  - ``P4: PlutusTx.Enum.Bool.pred: bad argument``
-  - ``P5: PlutusTx.Enum.Bool.toEnum: bad argument``
-  - ``P6: PlutusTx.Enum.Ordering.succ: bad argument``
-  - ``P7: PlutusTx.Enum.Ordering.pred: bad argument``
-  - ``P8: PlutusTx.Enum.Ordering.toEnum: bad argument``
-  - ``P9: PlutusTx.List.!!: negative index``
-  - ``Pa: PlutusTx.List.!!: index too large``
-  - ``Pb: PlutusTx.List.head: empty list``
-  - ``Pc: PlutusTx.List.tail: empty list``
-  - ``Pd: Check has failed``
-  - ``Pe: Ratio has zero denominator``
-  - ``Pf: round default defn: Bad value``
-  - ``Pg: unsafeFromBuiltinData: Void is not supported``
+  - ``PT1: TH Generation of Indexed Data Error``
+  - ``PT2: Void is not supported``
+  - ``PT3: Ratio number can't have a zero denominator``
+  - ``PT4: 'round' got an incorrect input``
+  - ``PT5: 'check' input is 'False'``
+  - ``PT6: PlutusTx.List.!!: negative index``
+  - ``PT7: PlutusTx.List.!!: index too large``
+  - ``PT8: PlutusTx.List.head: empty list``
+  - ``PT9: PlutusTx.List.tail: empty list``
+  - ``PT10: PlutusTx.Enum.().succ: bad argument``
+  - ``PT11: PlutusTx.Enum.().pred: bad argument``
+  - ``PT12: PlutusTx.Enum.().toEnum: bad argument``
+  - ``PT13: PlutusTx.Enum.Bool.succ: bad argument``
+  - ``PT14: PlutusTx.Enum.Bool.pred: bad argument``
+  - ``PT15: PlutusTx.Enum.Bool.toEnum: bad argument``
+  - ``PT16: PlutusTx.Enum.Ordering.succ: bad argument``
+  - ``PT17: PlutusTx.Enum.Ordering.pred: bad argument``
+  - ``PT18: PlutusTx.Enum.Ordering.toEnum: bad argument``
 
 - State machine errors
 
