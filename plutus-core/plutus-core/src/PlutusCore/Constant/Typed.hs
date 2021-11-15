@@ -479,15 +479,19 @@ type KnownBuiltinTypeAst = Contains
 -- type IsBuiltin :: forall a. Bool -> a -> GHC.Type
 -- data IsBuiltin b x
 
+-- | Requires a rep context and turns it into a type context.
 type BuiltinDone :: forall a. a -> GHC.Type
 data BuiltinDone x
 
+-- | Requires a type context and preserves it.
 type TypeInfer :: GHC.Type -> GHC.Type
 data TypeInfer a
 
+-- | Requires a rep context and turns it into a type context.
 type RepInfer :: forall a. a -> GHC.Type
 data RepInfer x
 
+-- | Requires a rep context and preserves it.
 type RepDone :: forall a. a -> GHC.Type
 data RepDone x
 
@@ -712,8 +716,7 @@ newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
 
-instance (uni ~ uni', AsSpine rep ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
-            KnownTypeAst uni (SomeConstant uni' rep) where
+instance KnownTypeAst uni (RepInfer rep) => KnownTypeAst uni (SomeConstant uni' rep) where
     type ToBinds (SomeConstant _ rep) = ListToBinds (AsSpine rep)
     type AsSpine (SomeConstant _ rep) = '[ RepInfer rep ]
     toTypeAst _ = toTypeAst $ Proxy @(RepInfer rep)
@@ -754,11 +757,10 @@ instance
             (runSingKind $ knownKind @kind)
             (toTypeAst $ Proxy @a)
 
-instance (uni ~ uni', AsSpine rep ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
-            KnownTypeAst uni (Opaque term rep) where
+instance KnownTypeAst uni (RepInfer rep) => KnownTypeAst uni (Opaque term rep) where
     type ToBinds (Opaque _ rep) = ListToBinds (AsSpine rep)
     type AsSpine (Opaque _ rep) = '[ RepInfer rep ]
-    toTypeAst _ = toTypeAst $ Proxy @(SomeConstant uni rep)
+    toTypeAst _ = toTypeAst $ Proxy @(RepInfer rep)
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni (Opaque term' rep)) =>
             KnownTypeIn uni term (Opaque term' rep) where

@@ -292,7 +292,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             pure $ case xs of
                 []    -> a
                 _ : _ -> b
-    toBuiltinMeaning MkCons = undefined
+    toBuiltinMeaning MkCons =
         makeBuiltinMeaning
             consPlc
             (runCostingFunTwoArguments . paramMkCons)
