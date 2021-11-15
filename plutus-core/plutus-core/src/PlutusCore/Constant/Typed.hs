@@ -476,9 +476,6 @@ type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 -- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
 type KnownBuiltinTypeAst = Contains
 
--- type IsBuiltin :: forall a. Bool -> a -> GHC.Type
--- data IsBuiltin b x
-
 -- | Requires a rep context and turns it into a type context.
 type BuiltinDone :: forall a. a -> GHC.Type
 data BuiltinDone x
