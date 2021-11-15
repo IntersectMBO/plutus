@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -52,6 +53,7 @@ import Data.ByteString qualified as BS
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
+import Data.Maybe (fromMaybe)
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
@@ -165,13 +167,14 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 compileAlt
     :: CompilingDefault uni fun m
     => Bool -- ^ Whether we must delay the alternative.
-    -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
+    -> Maybe (PIRTerm uni fun) -- ^ Compiled body of 'CoreAlt'
+    -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun)
-compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+compileAlt mustDelay (alt, vars, body) mCompiledBody instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
-        body' <- compileExpr body >>= maybeDelay mustDelay
+        body' <- compiledBody >>= maybeDelay mustDelay
         -- need to consume the args
         argTypes <- mapM compileTypeNorm instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
@@ -180,7 +183,9 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
+    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compiledBody >>= maybeDelay mustDelay)
+    where
+        compiledBody = fromMaybe (compileExpr body) (pure <$> mCompiledBody)
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -482,7 +487,6 @@ traceInside ::
 traceInside varName lamName = go
     where
         go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
-        -- when t = \x -> body, => \x -> traceInside body
             LamAbs () n t (traceInside varName lamName body cod)
         go LamAbs{} _ =
             error "traceInside: type mismatched. It should be a function type."
@@ -491,13 +495,11 @@ traceInside varName lamName = go
                 defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
                 displayName = T.pack $ PP.displayPlcDef varName
             in
-            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
                 PIR.Apply
                     ()
                     (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                        (PLC.TyFun () defaultUnitTy ty)
                         ("entering " <> displayName)
-                        -- \() -> trace @c "exiting f" e
                         (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
                     defaultUnit
 
@@ -711,10 +713,22 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 dcs <- getDataCons tc
 
                 -- See Note [Case expressions and laziness]
-                isPureAlt <- forM dcs $ \dc ->
-                    let (_, vars, body) = findAlt dc alts t
-                    in if null vars then PIR.isPure (const PIR.NonStrict) <$> compileExpr body else pure True
+                alternatives <- forM dcs $ \dc -> do
+                    let alt@(_, vars, body) = findAlt dc alts t
+                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                        -- matching on Maybe Int it is [Int] (crucially, not [a])
+                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                    mCompiledBody <- if null vars then Just <$> compileExpr body else pure Nothing
+                    return (alt, mCompiledBody, instArgTys)
+                isPureAlt <- forM alternatives $ \(_, mCompiledBody, _) ->
+                    pure $ case mCompiledBody of
+                        Just compiledBody -> PIR.isPure (const PIR.NonStrict) compiledBody
+                        -- if there is no a compiled body then 'vars' in 'alt' is empty
+                        Nothing           -> True
                 let lazyCase = not (and isPureAlt || length dcs == 1)
+
+                branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
+                    (compileAlt lazyCase alt mCompiledBody instArgTys)
 
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
@@ -723,13 +737,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
                 resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
-
-                branches <- forM dcs $ \dc ->
-                    let alt = findAlt dc alts t
-                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
-                        -- matching on Maybe Int it is [Int] (crucially, not [a])
-                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                    in compileAlt lazyCase instArgTys alt
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
