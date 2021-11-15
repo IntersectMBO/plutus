@@ -298,9 +298,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMkCons)
         where
           consPlc
-              :: SomeConstant uni a
-              -> SomeConstant uni [a]
-              -> EvaluationResult (Opaque term (SomeConstant uni [a]))
+              :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque term [a])
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniListA xs))) = do
@@ -328,9 +326,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             tailPlc
             (runCostingFunOneArgument . paramTailList)
         where
-          tailPlc
-            :: listA ~ SomeConstant uni [a]
-            => listA -> EvaluationResult (Opaque term listA)
+          tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque term [a])
           tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs

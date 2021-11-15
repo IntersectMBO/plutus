@@ -42,7 +42,6 @@ module PlutusCore.Constant.Typed
     , RepInfer
     , RepDone
     , KnownTypeAst (..)
-    , AsSpine
     , Merge
     , ListToBinds
     , KnownBuiltinTypeIn
@@ -492,13 +491,24 @@ data RepInfer x
 type RepDone :: forall a. a -> GHC.Type
 data RepDone x
 
-type AsSpineRevDefault :: forall a. a -> [GHC.Type]
-type family AsSpineRevDefault x where
-    AsSpineRevDefault (f x) = RepInfer x ': AsSpineRevDefault f
-    AsSpineRevDefault x     = '[ BuiltinDone x ]
+type ReverseGo :: forall a. [a] -> [a] -> [a]
+type family ReverseGo as xs where
+    ReverseGo as '[]       = as
+    ReverseGo as (x ': xs) = ReverseGo (x ': as) xs
+
+type Reverse :: forall a. [a] -> [a]
+type Reverse xs = ReverseGo '[] xs
+
+type BuiltinAppAsSpineRev :: forall a. a -> [GHC.Type]
+type family BuiltinAppAsSpineRev x where
+    BuiltinAppAsSpineRev (f x) = RepInfer x ': BuiltinAppAsSpineRev f
+    BuiltinAppAsSpineRev x     = '[ BuiltinDone x ]
+
+type BuiltinAppAsSpine :: forall a. a -> [GHC.Type]
+type BuiltinAppAsSpine a = Reverse (BuiltinAppAsSpineRev a)
 
 class KnownTypeAst uni (a :: k) where
-    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantPoly' has to be
+    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstant' has to be
     -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
     -- type variables in them just like monomorphic ones.
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
@@ -506,21 +516,13 @@ class KnownTypeAst uni (a :: k) where
     type ToBinds (a :: k) :: [GADT.Some TyNameRep]
     type ToBinds _ = '[]
 
-    type AsSpineRev a :: [GHC.Type]
-    type AsSpineRev a = AsSpineRevDefault a
+    type AsSpine a :: [GHC.Type]
+    type AsSpine a = BuiltinAppAsSpine a
 
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
     default toTypeAst :: KnownBuiltinTypeAst uni a => proxy a -> Type TyName uni ()
     toTypeAst _ = mkTyBuiltin @_ @a ()
-
-type ReverseGo :: forall a. [a] -> [a] -> [a]
-type family ReverseGo as xs where
-    ReverseGo as '[]       = as
-    ReverseGo as (x ': xs) = ReverseGo (x ': as) xs
-
-type AsSpine :: forall k. k -> [GHC.Type]
-type AsSpine a = ReverseGo '[] (AsSpineRev a)
 
 -- | Delete all @x@s from a list.
 type family Delete x xs :: [a] where
@@ -646,18 +648,13 @@ makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance uni `Contains` x => KnownTypeAst uni (BuiltinDone x) where
     type ToBinds (BuiltinDone _) = '[]
-    type AsSpineRev (BuiltinDone x) = TypeError ('Text "Not supposed to be called") -- '[ BuiltinDone x ]
+    type AsSpine (BuiltinDone x) = TypeError ('Text "Not supposed to be called")
     toTypeAst _ = mkTyBuiltin @_ @x ()
 
--- instance KnownTypeAst uni x => KnownTypeAst uni (RepInfer x) where
---     type ToBinds (RepInfer x) = ToBinds x
---     type AsSpineRev (RepInfer x) = AsSpineRev x -- TypeError ('Text "Not supposed to be called") -- '[ RepDone x ]
---     toTypeAst _ = toTypeAst $ Proxy @x
-
-
-instance (uni ~ uni', AsSpine x ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) => KnownTypeAst uni (RepInfer x) where
+instance (uni ~ uni', AsSpine x ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
+            KnownTypeAst uni (RepInfer x) where
     type ToBinds (RepInfer x) = ToBinds x
-    type AsSpineRev (RepInfer x) = TypeError ('Text "Not supposed to be called")
+    type AsSpine (RepInfer x) = TypeError ('Text "Not supposed to be called")
     toTypeAst _ =
         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
         mkIterTyApp () (toTypeAst $ Proxy @f) $
@@ -666,26 +663,20 @@ instance (uni ~ uni', AsSpine x ~ spine, spine ~ (f ': args), All (KnownTypeAst 
                 (\(_ :: Proxy (arg ': _args')) rs -> toTypeAst (Proxy @arg) : rs)
                 []
 
-
-
--- instance KnownTypeAst uni (SomeConstant uni x) => KnownTypeAst uni (RepInfer x) where
---     type ToBinds (RepInfer x) = ToBinds x
---     type AsSpineRev (RepInfer x) = TypeError ('Text "Not supposed to be called")
---     toTypeAst _ = toTypeAst $ Proxy @(SomeConstant uni x)
-
 instance KnownTypeAst uni x => KnownTypeAst uni (RepDone x) where
     type ToBinds (RepDone x) = ToBinds x
-    type AsSpineRev (RepDone x) = TypeError ('Text "Not supposed to be called")
+    type AsSpine (RepDone x) = TypeError ('Text "Not supposed to be called")
     toTypeAst _ = toTypeAst $ Proxy @x
 
 instance KnownTypeAst uni a => KnownTypeAst uni (TypeInfer a) where
     type ToBinds (TypeInfer a) = ToBinds a
-    type AsSpineRev (TypeInfer a) = TypeError ('Text "Not supposed to be called") -- AsSpineRev a
+    -- @AsSpine (TypeInfer a) = AsSpine a@ would kinda make sense, but we're not using that.
+    type AsSpine (TypeInfer a) = TypeError ('Text "Not supposed to be called")
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
-    type AsSpineRev (EvaluationResult a) = '[ TypeInfer a ]
+    type AsSpine (EvaluationResult a) = '[ TypeInfer a ]
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
@@ -704,7 +695,7 @@ instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     type ToBinds (Emitter a) = ToBinds a
-    type AsSpineRev (Emitter a) = '[ TypeInfer a ]
+    type AsSpine (Emitter a) = '[ TypeInfer a ]
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
@@ -721,23 +712,11 @@ newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
 
--- instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
---     type ToBinds (Opaque _ rep) = ListToBinds (AsSpine rep)
---     type AsSpineRev (Opaque _ rep) = AsSpineRev rep
-
---     toTypeAst _ = toTypeAst $ Proxy @rep
-
 instance (uni ~ uni', AsSpine rep ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
             KnownTypeAst uni (SomeConstant uni' rep) where
     type ToBinds (SomeConstant _ rep) = ListToBinds (AsSpine rep)
-    type AsSpineRev (SomeConstant _ rep) = '[ RepInfer rep ]
-    toTypeAst _ =
-        -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
-        mkIterTyApp () (toTypeAst $ Proxy @f) $
-            cfoldr_SList
-                (Proxy @(All (KnownTypeAst uni) args))
-                (\(_ :: Proxy (arg ': _args')) rs -> toTypeAst (Proxy @arg) : rs)
-                []
+    type AsSpine (SomeConstant _ rep) = '[ RepInfer rep ]
+    toTypeAst _ = toTypeAst $ Proxy @(RepInfer rep)
 
 instance (uni ~ uni', KnownTypeAst uni (SomeConstant uni rep), HasConstantIn uni term) =>
             KnownTypeIn uni term (SomeConstant uni' rep) where
@@ -755,12 +734,12 @@ toTyNameAst _ =
 instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst uni (TyVarRep var) where
     type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
-    type AsSpineRev (TyVarRep var) = '[ RepDone (TyVarRep var) ]
+    type AsSpine (TyVarRep var) = '[ RepDone (TyVarRep var) ]
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
     type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
-    type AsSpineRev (TyAppRep fun arg) = '[ RepInfer arg, RepInfer fun ]
+    type AsSpine (TyAppRep fun arg) = '[ RepInfer fun, RepInfer arg ]
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
 
 instance
@@ -768,7 +747,7 @@ instance
         , KnownKind kind, KnownTypeAst uni a
         ) => KnownTypeAst uni (TyForallRep var a) where
     type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
-    type AsSpineRev (TyForallRep var a) = '[ RepDone (TyForallRep var a) ]
+    type AsSpine (TyForallRep var a) = '[ RepDone (TyForallRep var a) ]
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
@@ -778,7 +757,7 @@ instance
 instance (uni ~ uni', AsSpine rep ~ spine, spine ~ (f ': args), All (KnownTypeAst uni) spine) =>
             KnownTypeAst uni (Opaque term rep) where
     type ToBinds (Opaque _ rep) = ListToBinds (AsSpine rep)
-    type AsSpineRev (Opaque _ rep) = '[ RepInfer rep ]
+    type AsSpine (Opaque _ rep) = '[ RepInfer rep ]
     toTypeAst _ = toTypeAst $ Proxy @(SomeConstant uni rep)
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni (Opaque term' rep)) =>

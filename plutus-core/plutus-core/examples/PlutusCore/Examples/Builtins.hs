@@ -135,7 +135,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     type ToBinds (PlcListRep a) = ToBinds a
-    type AsSpineRev (PlcListRep a) = '[ RepDone (PlcListRep a) ]
+    type AsSpine (PlcListRep a) = '[ RepDone (PlcListRep a) ]
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 

@@ -267,41 +267,30 @@ data family Id x
 -- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
 -- (including @0@).
 
-type HandleSpecialCasesGo :: Nat -> Nat -> GHC.Type -> [GHC.Type] -> GHC.Constraint
-class HandleSpecialCasesGo i j term xs | i term xs -> j
-instance i ~ j => HandleSpecialCasesGo i j term '[]
-instance HandleSpecialCasesGo i j term xs => HandleSpecialCasesGo i j term (BuiltinDone x ': xs)
-instance HandleSpecialCasesGo i j term xs => HandleSpecialCasesGo i j term (RepDone x ': xs)
+type HandleSpecialCase :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class HandleSpecialCase i j term instr | i term instr -> j
+instance i ~ j => HandleSpecialCase i j term (BuiltinDone x)
+-- TODO: write a test for that
+instance TrySpecializeAsVar i j Id (Id x) => HandleSpecialCase i j term (RepDone x)
 instance
-    ( EnumerateFromToOne i j term a
-    , HandleSpecialCasesGo j k term xs
-    ) => HandleSpecialCasesGo i k term (TypeInfer a ': xs)
+    ( TrySpecializeAsVar i j (Opaque term) a
+    , HandleSpecialCases j k term a
+    ) => HandleSpecialCase i k term (TypeInfer a)
 instance
     ( TrySpecializeAsVar i j Id (Id x)
     , HandleSpecialCases j k term x
-    , HandleSpecialCasesGo k l term xs
-    ) => HandleSpecialCasesGo i l term (RepInfer x ': xs)
+    ) => HandleSpecialCase i k term (RepInfer x)
 
--- type HandleSpecialCasesEnter :: Nat -> Nat -> GHC.Type -> [GHC.Type] -> GHC.Constraint
--- class HandleSpecialCasesEnter i j term as | i term as -> j
--- instance (TypeError ('Text "The impossible happened"), i ~ j) => HandleSpecialCasesEnter i j term '[]
--- instance i ~ j => HandleSpecialCasesEnter i j term '[ BuiltinHead x ]  -- TODO: Is this needed?
--- instance TrySpecializeAsVar i j Id (Id x) => HandleSpecialCasesEnter i j term '[ AnyRep x ]
--- instance HandleSpecialCasesGo i j term (a0 ': a1 ': as) =>
---     HandleSpecialCasesEnter i j term (a0 ': a1 ': as)
+type HandleSpecialCasesGo :: Nat -> Nat -> GHC.Type -> [GHC.Type] -> GHC.Constraint
+class HandleSpecialCasesGo i j term instrs | i term instrs -> j
+instance i ~ j => HandleSpecialCasesGo i j term '[]
+instance
+      ( HandleSpecialCase i j term instr
+      , HandleSpecialCasesGo j k term instrs
+      ) => HandleSpecialCasesGo i k term (instr ': instrs)
 
 type HandleSpecialCases :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
--- class HandleSpecialCases i j term x | i term x -> j
--- instance (TypeError ('ShowType '(x, AsSpine x)), i ~ j) => HandleSpecialCases i j term x
 type HandleSpecialCases i j term x = HandleSpecialCasesGo i j term (AsSpine x)
-
--- AnyRep (a, b)
--- AnyRep [BuiltinHead (,), AnyRep a, AnyRep b]
-
-
--- AnyRep [(,), a, b]
--- AnyRep [(,), (a, b), c]
--- AnyRep [(,), AnyRep [(,), a, b], c]
 
 -- EvaluationResult a
 -- '[AnyType a]
@@ -312,26 +301,6 @@ type HandleSpecialCases i j term x = HandleSpecialCasesGo i j term (AsSpine x)
 -- Opaque term ((a, b), c)
 -- '[AnyRep ((a, b), c)]
 -- '[BuiltinHead (,), AnyRep (a, b), AnyRep c]
-
-
-type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromToOne i j term a | i term a -> j
-instance
-    ( TrySpecializeAsVar i j (Opaque term) a
-    , HandleSpecialCases j k term a
-    ) => EnumerateFromToOne i k term a
-
-
--- EnumerateFromToOne
-    -- ( TrySpecializeAsVar i j (Opaque term) a
-    -- , HandleSpecialCases j k a
-    -- )
-
--- Opaque term Bool
--- Opaque term a
--- Opaque term (Bool, a)
-
--- EvaluationResult (Opaque term a)
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
@@ -346,9 +315,10 @@ class EnumerateFromToRec i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} HandleSpecialCases i j term a => EnumerateFromToRec i j term a
 -- | TODO: First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
 instance {-# OVERLAPPING #-}
-    ( EnumerateFromToOne i j term a
-    , EnumerateFromTo j k term b
-    ) => EnumerateFromToRec i k term (a -> b)
+    ( TrySpecializeAsVar i j (Opaque term) a
+    , HandleSpecialCases j k term a
+    , EnumerateFromTo k l term b
+    ) => EnumerateFromToRec i l term (a -> b)
 
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
 -- first trying to specialize the whole type using 'EnumerateFromToOne' and then recursing on the
