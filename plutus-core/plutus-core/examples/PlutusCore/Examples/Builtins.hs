@@ -89,6 +89,8 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 
     inRange (m, n) i = m <= i && i <= n
 
+-- TODO: UnsafeCoerce
+-- TODO: JoinOpaque
 -- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
@@ -133,6 +135,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     type ToBinds (PlcListRep a) = ToBinds a
+    type AsSpineRev (PlcListRep a) = '[ RepDone (PlcListRep a) ]
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
@@ -179,9 +182,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
-                => a -> a)
+            (Prelude.id :: ai ~ Opaque term (TyAppRep a Integer) => ai -> ai)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
@@ -244,40 +245,39 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         commaPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
-            -> SomeConstantPoly uni (,) '[a, b]
+            -> SomeConstant uni (a, b)
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
-            SomeConstantPoly $ someValueOf (DefaultUniPair uniA uniB) (x, y)
+            SomeConstant $ someValueOf (DefaultUniPair uniA uniB) (x, y)
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
-            -> SomeConstantPoly uni (,) '[a, b]
-            -> EvaluationResult (SomeConstantPoly uni (,) '[a, b])
+            -> SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (a, b))
         biconstPairPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniB y)))
-            (SomeConstantPoly (Some (ValueOf uniPairAB _))) = do
+            (SomeConstant (Some (ValueOf uniPairAB _))) = do
                 DefaultUniPair uniA' uniB' <- pure uniPairAB
                 Just Refl <- pure $ uniA `geq` uniA'
                 Just Refl <- pure $ uniB `geq` uniB'
-                pure . SomeConstantPoly $ someValueOf uniPairAB (x, y)
+                pure . SomeConstant $ someValueOf uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc
-            :: SomeConstantPoly uni (,) '[a, b]
-            -> EvaluationResult (SomeConstantPoly uni (,) '[b, a])
-        swapPlc (SomeConstantPoly (Some (ValueOf uniPairAB p))) = do
+            :: SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (a, b))
+        swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
-            pure . SomeConstantPoly $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
+            pure . SomeConstant $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
-            :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-            => SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[a, Bool]]
-            -> EvaluationResult (SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[Bool, a]])
-        swapElsPlc (SomeConstantPoly (Some (ValueOf uniList xs))) = do
+            :: SomeConstant uni [SomeConstant uni (a, Bool)]
+            -> EvaluationResult (SomeConstant uni [SomeConstant uni (Bool, a)])
+        swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
             let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
-            pure . SomeConstantPoly . someValueOf uniList' $ map swap xs
+            pure . SomeConstant . someValueOf uniList' $ map swap xs
