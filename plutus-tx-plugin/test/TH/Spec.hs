@@ -8,60 +8,26 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC   -g #-}
 
 module TH.Spec (tests) where
 
 import Common
 import Lib
-import PlcTestUtils
-import PlutusPrelude (view)
 
-import TH.TestTH
-
-import Prelude qualified as Haskell
+import PlutusCore.Pretty
 
 import PlutusTx
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Evaluation
 import PlutusTx.Prelude
 
+import Prelude qualified as Haskell
 
-import PlutusCore qualified as PLC
-import PlutusCore.Pretty
-import UntypedPlutusCore
-import UntypedPlutusCore qualified as UPLC
-
-import Control.Exception
-import Control.Lens.Combinators (_1)
-import Control.Monad.Except
-
-import Data.Text (Text)
-
-runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCek values = do
-     ps <- Haskell.traverse toUPlc values
-     let p = Haskell.foldl1 UPLC.applyProgram ps
-     either (throwError . SomeException) Haskell.pure $ evaluateCek p
-
-runPlcCekTrace ::
-     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-     [a] ->
-     ExceptT SomeException Haskell.IO ([Text], CekExTally PLC.DefaultFun, Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCekTrace values = do
-     ps <- Haskell.traverse toUPlc values
-     let p = Haskell.foldl1 UPLC.applyProgram ps
-     let (logOut, TallyingSt tally _, result) = evaluateCekTrace p
-     res <- either (throwError . SomeException) Haskell.pure result
-     Haskell.pure (logOut, tally, res)
-
-goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a] -> TestNested
-goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
-
-goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 Haskell.<$> (rethrow $ runPlcCekTrace values)
+import TH.TestTH
 
 tests :: TestNested
 tests = testNested "TH" [
@@ -102,10 +68,10 @@ tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])
 traceRepeatedly :: CompiledCode Integer
 traceRepeatedly = $$(compile
      [||
-               let i1 = trace "Making my first int" (1::Integer)
-                   i2 = trace "Making my second int" (2::Integer)
-                   i3 = trace "Adding them up" (i1 + i2)
-              in i3
+          let i1 = trace "Making my first int" (1::Integer)
+              i2 = trace "Making my second int" (2::Integer)
+              i3 = trace "Adding them up" (i1 + i2)
+          in i3
     ||])
 
 data SomeType = One Integer | Two | Three ()
