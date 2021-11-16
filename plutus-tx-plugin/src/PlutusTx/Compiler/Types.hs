@@ -37,8 +37,9 @@ type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions {
-      coProfile  :: ProfileOpts
-    , coCoverage :: CoverageOpts
+      coProfile     :: ProfileOpts
+    , coCoverage    :: CoverageOpts
+    , coRemoveTrace :: Bool
     }
 
 data CompileContext uni fun = CompileContext {
