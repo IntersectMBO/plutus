@@ -29,7 +29,6 @@ import PlutusTx.Trace
 import Class qualified as GHC
 import CoreSyn qualified as GHC
 import CostCentre qualified as GHC
-import FV qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
 import PrelNames qualified as GHC
@@ -363,7 +362,6 @@ TYPE 'GHC.Types.LiftedRep -> TYPE 'GHC.Types.LiftedRep -> TYPE ('GHC.Types.Tuple
 ```
 
 As Plutus has no different runtime representations, the overall strategy is consider `Type rep` to always be `Type LiftedRep`, which becomes `Type` on the Plutus side.
-on all levels and match any 'TYPE rep' to the usual Plutus type.
 
 To do this, we do the following:
 
@@ -389,64 +387,65 @@ and to compile the kind of '(#,#)' properly.
 
 -}
 
+{- Note [Dependency tracking]
+We use the PIR support for creating a whole bunch of definitions with dependencies between them, and then generating the code with them all
+in the right order. However, this requires us to know what the dependencies of a definition *are*.
+
+There are broadly two ways we could do this:
+1. Statically determine before compiling a term/type what it depends on (e.g. by looking at the free variables in the input Core).
+2. Dynamically track dependencies as we compile a term/type; whenever we see a reference to something, add it as a dependency.
+
+We used to do the former but we now do the latter. The reason for this is that we sometimes generate bits of code
+dynamically as we go. For example, the boolean coverage code *adds* some calls to 'traceBool' into the program. That means
+we need a dependency on 'traceBool' - but it wasn't there at the beginning, so a static approach won't work.
+
+The dynamic approach requires us to:
+1. Track the current definition.
+2. Ensure that the definition is tracked while we are recording things it may depend on (this may require creating a fake definition to begin with)
+3. Record dependencies when we find them.
+
+This typically means that we do a three-step process for a given definition:
+1. Create a definition with a fake body (this is often also needed for recursion, see Note [Occurrences of recursive names])
+2. Compile the real body (during which point dependencies are discovered and added to the fake definition).
+3. Modify the definition with the real body.
+-}
+
 hoistExpr
     :: CompilingDefault uni fun m
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
-hoistExpr var t =
-    let
-        name = GHC.getName var
+hoistExpr var t = do
+    let name = GHC.getName var
         lexName = LexName name
-    in withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-        maybeDef <- PIR.lookupTerm () lexName
-        case maybeDef of
-            Just term -> pure term
-            Nothing -> do
-                let fvs = GHC.getName <$> (GHC.fvVarList $ GHC.expr_fvs t)
-                let tcs = GHC.getName <$> (GHC.nonDetEltsUniqSet $ tyConsOfExpr t)
-                let allFvs = Set.fromList $ fvs ++ tcs
+    -- See Note [Dependency tracking]
+    modifyCurDeps (\d -> Set.insert lexName d)
+    maybeDef <- PIR.lookupTerm () lexName
+    case maybeDef of
+        Just term -> pure term
+        -- See Note [Dependency tracking]
+        Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
+            var' <- compileVarFresh var
+            -- See Note [Occurrences of recursive names]
+            PIR.defineTerm
+                lexName
+                (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
+                mempty
 
-                var' <- compileVarFresh var
-                -- See Note [Occurrences of recursive names]
-                PIR.defineTerm
-                    lexName
-                    (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
-                    mempty
+            CompileContext {ccOpts=profileOpts} <- ask
+            t' <-
+                if coProfile profileOpts==All then do
+                    let ty = PLC._varDeclType var'
+                        varName = PLC._varDeclName var'
+                    t'' <- compileExpr t
+                    thunk <- PLC.freshName "thunk"
+                    pure $
+                        traceInside varName thunk t'' ty
+                else compileExpr t
 
-                CompileContext {ccOpts=profileOpts} <- ask
-                t' <-
-                    if coProfile profileOpts==All then do
-                        let ty = PLC._varDeclType var'
-                            varName = PLC._varDeclName var'
-                        t'' <- compileExpr t
-                        thunk <- PLC.freshName "thunk"
-                        pure $
-                            traceInside varName thunk t'' ty
-                    else compileExpr t
+            -- See Note [Non-strict let-bindings]
+            let strict = PIR.isPure (const PIR.NonStrict) t'
 
-                -- See Note [Non-strict let-bindings]
-                let strict = PIR.isPure (const PIR.NonStrict) t'
-
-                -- HACK: Currently we add calls to 'traceBool' dynamically based on coverage
-                -- annotations, and as such they get missed by our dependency analysis. We can
-                -- fix this by making the dependency analysis more dynamic, and looking at what we
-                -- actually use, rather than relying on the set of free variables in the
-                -- original Core.
-                CompileContext {ccOpts=coverageOpts} <- ask
-                let anns = activeCoverageTypes coverageOpts
-                tbName <- GHC.getName <$> getThing 'traceBool
-                let addTb = if Set.member BooleanCoverage anns then Set.insert tbName else id
-                    -- We could incur a dependency on unit for a number of reasons: we delayed,
-                    -- or we used it for a lazy case expression. Rather than tear our hair out
-                    -- trying to work out whether we do depend on it, just assume that we do.
-                    -- This should get better when we push the laziness handling to PIR so we
-                    -- can trust the source-level dependencies on unit.
-                    deps = addTb $ Set.insert (GHC.getName GHC.unitTyCon) allFvs
-
-                PIR.defineTerm
-                    lexName
-                    (PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
-                    (Set.map LexName deps)
-                pure $ PIR.mkVar () var'
+            PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
+            pure $ PIR.mkVar () var'
 
 mkTrace
     :: (PLC.Contains uni T.Text)
@@ -648,7 +647,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             hoistExpr n rhs
         GHC.Var n -> do
             -- Defined names, including builtin names
-            maybeDef <- PIR.lookupTerm () (LexName $ GHC.getName n)
+            let lexName = LexName $ GHC.getName n
+            modifyCurDeps (\d -> Set.insert lexName d)
+            maybeDef <- PIR.lookupTerm () lexName
             case maybeDef of
                 Just term -> pure term
                 Nothing -> throwSd FreeVariableError $

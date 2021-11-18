@@ -12,19 +12,23 @@
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module PlutusIR.Compiler.Definitions (DefT
-                                     , MonadDefs (..)
-                                     , TermDefWithStrictness
-                                     , runDefT
-                                     , defineTerm
-                                     , defineType
-                                     , defineDatatype
-                                     , recordAlias
-                                     , lookupTerm
-                                     , lookupOrDefineTerm
-                                     , lookupType
-                                     , lookupOrDefineType
-                                     , lookupConstructors
-                                     , lookupDestructor) where
+                                              , MonadDefs (..)
+                                              , TermDefWithStrictness
+                                              , runDefT
+                                              , defineTerm
+                                              , modifyTermDef
+                                              , defineType
+                                              , modifyTypeDef
+                                              , defineDatatype
+                                              , modifyDatatypeDef
+                                              , modifyDeps
+                                              , recordAlias
+                                              , lookupTerm
+                                              , lookupOrDefineTerm
+                                              , lookupType
+                                              , lookupOrDefineType
+                                              , lookupConstructors
+                                              , lookupDestructor) where
 
 import PlutusIR
 import PlutusIR.MkPir hiding (error)
@@ -44,6 +48,7 @@ import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM
 import Algebra.Graph.NonEmpty.AdjacencyMap qualified as NAM
 import Algebra.Graph.ToGraph qualified as Graph
 
+import Data.Bifunctor (first, second)
 import Data.Foldable
 import Data.Map qualified as Map
 import Data.Maybe
@@ -53,7 +58,7 @@ import Data.Set qualified as Set
 type DefMap key def = Map.Map key (def, Set.Set key)
 
 mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
-mapDefs f = Map.map (\(def, deps) -> (f def, deps))
+mapDefs f = Map.map (first f)
 
 type TermDefWithStrictness uni fun ann =
     PLC.Def (VarDecl TyName Name uni fun ann) (Term TyName Name uni fun ann, Strictness)
@@ -130,13 +135,31 @@ instance MonadDefs key uni fun ann m => MonadDefs key uni fun ann (ReaderT r m)
 defineTerm :: MonadDefs key uni fun ann m => key -> TermDefWithStrictness uni fun ann -> Set.Set key -> m ()
 defineTerm name def deps = liftDef $ DefT $ modify $ over termDefs $ Map.insert name (def, deps)
 
+modifyTermDef :: MonadDefs key uni fun ann m => key -> (TermDefWithStrictness uni fun ann -> TermDefWithStrictness uni fun ann)-> m ()
+modifyTermDef name f = liftDef $ DefT $ modify $ over termDefs $ Map.adjust (first f) name
+
 defineType :: MonadDefs key uni fun ann m => key -> TypeDef TyName uni ann -> Set.Set key -> m ()
 defineType name def deps = liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
+
+modifyTypeDef :: MonadDefs key uni fun ann m => key -> (TypeDef TyName uni ann -> TypeDef TyName uni ann)-> m ()
+modifyTypeDef name f = liftDef $ DefT $ modify $ over typeDefs $ Map.adjust (first f) name
 
 defineDatatype
     :: forall key uni fun ann m . MonadDefs key uni fun ann m
     => key -> DatatypeDef TyName Name uni fun ann -> Set.Set key -> m ()
 defineDatatype name def deps = liftDef $ DefT $ modify $ over datatypeDefs $ Map.insert name (def, deps)
+
+modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni fun ann -> DatatypeDef TyName Name uni fun ann)-> m ()
+modifyDatatypeDef name f = liftDef $ DefT $ modify $ over datatypeDefs $ Map.adjust (first f) name
+
+-- | Modifies the dependency set of a key.
+modifyDeps :: MonadDefs key uni fun ann m => key -> (Set.Set key -> Set.Set key)-> m ()
+modifyDeps name f = liftDef $ DefT $ do
+    -- This is a little crude: we expect most keys will appear in only one map, so we just modify the
+    -- dependencies in all of them! That lets us just have one function.
+    modify $ over termDefs $ Map.adjust (second f) name
+    modify $ over typeDefs $ Map.adjust (second f) name
+    modify $ over datatypeDefs $ Map.adjust (second f) name
 
 recordAlias :: forall key uni fun ann m . MonadDefs key uni fun ann m => key -> m ()
 recordAlias name = liftDef @key @uni @fun @ann $ DefT $ modify $ over aliases (Set.insert name)

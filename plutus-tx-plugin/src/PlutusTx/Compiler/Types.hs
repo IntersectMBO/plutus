@@ -48,6 +48,7 @@ data CompileContext uni fun = CompileContext {
     ccNameInfo    :: NameInfo,
     ccScopes      :: ScopeStack uni fun,
     ccBlackholed  :: Set.Set GHC.Name,
+    ccCurDef      :: Maybe LexName,
     ccModBreaks   :: Maybe GHC.ModBreaks
     }
 
@@ -196,3 +197,13 @@ type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
 
 initialScopeStack :: ScopeStack uni fun
 initialScopeStack = pure $ Scope Map.empty Map.empty
+
+withCurDef :: Compiling uni fun m => LexName -> m a -> m a
+withCurDef name = local (\cc -> cc {ccCurDef=Just name})
+
+modifyCurDeps :: Compiling uni fun m => (Set.Set LexName -> Set.Set LexName) -> m ()
+modifyCurDeps f = do
+    cur <- asks ccCurDef
+    case cur of
+        Nothing -> pure ()
+        Just n  -> modifyDeps n f
