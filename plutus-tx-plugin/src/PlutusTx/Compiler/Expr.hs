@@ -136,7 +136,7 @@ strip = \case
     expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
+compileDataConRef :: CompilingDefault uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -601,8 +601,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
 
-        -- void# - values of type void get represented as error, since they should be unreachable
-        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
+        -- void# - Surprisingly, `Void#` is actually more like `Unit` than `Void`, so we represent it as such.
+        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> pure (PIR.mkConstant () ())
 
         -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
         -- See Note [noinline hack]
