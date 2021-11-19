@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2021-10-20T00:00:00Z
+index-state: 2021-11-18T00:00:00Z
 
 packages: doc
           plutus-benchmark
@@ -26,14 +26,6 @@ test-show-details: streaming
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
            size-based:template-haskell
-
-constraints:
-  -- big breaking change here, inline-r doens't have an upper bound
-  singletons < 3.0
-  -- bizarre issue: in earlier versions they define their own 'GEq', in newer
-  -- ones they reuse the one from 'some', but there isn't e.g. a proper version
-  -- constraint from dependent-sum-template (which is the library we actually use).
-  , dependent-sum > 0.6.2.0
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
