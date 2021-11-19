@@ -613,6 +613,7 @@
           "assoc".components.library.planned = lib.mkOverride 900 true;
           "statistics".components.library.planned = lib.mkOverride 900 true;
           "lifted-async".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.tests."traceToStacks-test".planned = lib.mkOverride 900 true;
           "ghc-heap".components.library.planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.exes."plc-agda".planned = lib.mkOverride 900 true;
           "plutus-errors".components.library.planned = lib.mkOverride 900 true;
