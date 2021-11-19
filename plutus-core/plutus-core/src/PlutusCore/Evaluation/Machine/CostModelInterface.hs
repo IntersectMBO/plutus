@@ -80,7 +80,7 @@ extractParams :: ToJSON a => a -> Maybe CostModelParams
 extractParams cm = case toJSON cm of
     Object o ->
         let
-            flattened = flattenObject "-" o
+            flattened = objToHm $ flattenObject "-" o
             usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
             -- ^ Only (the contents of) the "Just" values are retained in the output map.
             mapified = Map.fromList $ HM.toList usingCostingIntegers
@@ -95,12 +95,12 @@ applyParams cm params = case toJSON cm of
     Object o ->
         let
             usingScientific = fmap (Number . fromIntegral) params
-            flattened = fromHash $ flattenObject "-" o
+            flattened = fromHash $ objToHm $ flattenObject "-" o
         in do
             -- this is where the overwriting happens
             -- fail when key is in params (left) but not in the model (right)
             merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
-            let unflattened = unflattenObject "-" $ toHash merged
+            let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
             case fromJSON (Object unflattened) of
                 Success a -> Just a
                 Error _   -> Nothing
