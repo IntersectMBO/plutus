@@ -80,8 +80,3 @@ source-repository-package
   type: git
   location: https://github.com/input-output-hk/Win32-network
   tag: 3825d3abf75f83f406c1f7161883c438dac7277d
-
-source-repository-package
-  type: git
-  location: https://github.com/ak3n/debug-duration
-  tag: 1477c1b2d2578cdbe74dae8fa67ddb7197203155

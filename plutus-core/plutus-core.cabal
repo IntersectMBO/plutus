@@ -36,7 +36,7 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -Wnoncanonical-monoid-instances
-                 -Wunused-packages -fprof-auto
+                 -Wunused-packages
 
 library
     import: lang
@@ -494,7 +494,6 @@ executable pir
         prettyprinter -any,
         cassava -any,
         text -any
-    ghc-options: -prof -threaded -rtsopts -fprof-auto
 
 executable traceToStacks
     import: lang
