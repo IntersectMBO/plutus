@@ -308,10 +308,9 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
 
     -- Tracing
-    defineBuiltinTerm 'Builtins.trace $
-        -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
-        if coRemoveTrace compileOpts
-        then runQuote $ do
+    -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
+    traceTerm <- if coRemoveTrace compileOpts
+        then liftQuote $ do
             ta <- freshTyName "a"
             t <- freshName "t"
             a <- freshName "a"
@@ -321,7 +320,8 @@ defineBuiltinTerms = do
                     , PIR.VarDecl () a (PLC.TyVar () ta)
                     ]
                  $ PIR.Var () a
-        else mkBuiltin PLC.Trace
+        else pure (mkBuiltin PLC.Trace)
+    defineBuiltinTerm 'Builtins.trace traceTerm
 
     -- Pairs
     defineBuiltinTerm 'Builtins.fst $ mkBuiltin PLC.FstPair
