@@ -11,7 +11,7 @@ module Data.Aeson.Flatten
 import Data.Aeson
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap
-#endif 
+#endif
 import Data.HashMap.Strict qualified as HM
 import Data.Text qualified as Text
 
