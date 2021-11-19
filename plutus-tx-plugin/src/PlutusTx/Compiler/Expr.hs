@@ -726,11 +726,11 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                         Nothing           -> True
                 let lazyCase = not (and isPureAlt || length dcs == 1)
 
-                branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
-                    (compileAlt lazyCase alt mCompiledBody instArgTys)
-
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
+
+                branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
+                    (compileAlt lazyCase alt mCompiledBody instArgTys)
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
