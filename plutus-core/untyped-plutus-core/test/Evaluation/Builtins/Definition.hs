@@ -1,5 +1,6 @@
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -31,7 +32,9 @@ import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.Common
 
+import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Control.Exception
 import Data.ByteString (ByteString)
@@ -46,7 +49,8 @@ import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
 
 defaultCekParametersExt
-    :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
+    :: (uni ~ DefaultUni, fun ~ Either DefaultFun ExtensionFun)
+    => MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s)
 defaultCekParametersExt =
     toMachineParameters $ CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
 

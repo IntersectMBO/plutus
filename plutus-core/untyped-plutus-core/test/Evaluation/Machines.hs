@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 
@@ -11,6 +12,7 @@ module Evaluation.Machines
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.HOAS
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import PlutusCore qualified as Plc
 import PlutusCore.Constant
@@ -58,8 +60,8 @@ test_machines =
         ]
 
 testBudget
-    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
-    => BuiltinsRuntime fun (CekValue DefaultUni fun)
+    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun, uni ~ DefaultUni)
+    => (forall s. BuiltinsRuntime' fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> TestName
     -> Term Name DefaultUni fun ()
     -> TestNested
@@ -114,11 +116,16 @@ test_budget
     = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
-        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime ()) bunchOfIdNats
-        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
+        [ folder Plc.defaultBuiltinsRuntime' bunchOfFibs
+        , folder (toBuiltinsRuntime' ()) bunchOfIdNats
+        , folder Plc.defaultBuiltinsRuntime' bunchOfIfThenElseNats
         ]
   where
+    folder
+        :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun, uni ~ DefaultUni)
+        => (forall s. BuiltinsRuntime' fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
+        -> PlcFolderContents uni fun
+        -> [TestNested]
     folder runtime =
         foldPlcFolderContents
             testNested

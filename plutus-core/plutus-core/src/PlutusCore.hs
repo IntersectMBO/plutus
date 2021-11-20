@@ -131,6 +131,7 @@ module PlutusCore
     -- * Budgeting defaults
     , defaultBuiltinCostModel
     , defaultBuiltinsRuntime
+    , defaultBuiltinsRuntime'
     , defaultCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
