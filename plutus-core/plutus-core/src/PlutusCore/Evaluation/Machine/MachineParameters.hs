@@ -45,7 +45,7 @@ toMachineParameters ::
     , CostingPart uni fun ~ builtincosts
     , HasConstant term
     , ToBuiltinMeaning uni fun
-    , MonadEmitter m, MonadError (ErrorWithCause err cause) m
+    , MonadError (ErrorWithCause err cause) m
     , AsUnliftingError err, AsEvaluationFailure err
     )
     => CostModel machinecosts builtincosts

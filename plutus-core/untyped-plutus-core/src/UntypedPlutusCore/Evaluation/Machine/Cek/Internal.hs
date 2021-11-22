@@ -406,19 +406,6 @@ instance PrettyUni uni fun => MonadError (CekEvaluationException uni fun) (CekM 
         unsafeRunCekM :: CekM uni fun s a -> IO a
         unsafeRunCekM = unsafeSTToIO . unCekM
 
--- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
--- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
--- implicit params in instance contexts. As GHC's docs explain:
---
--- > Reason: exactly which implicit parameter you pick up depends on exactly where you invoke a
--- > function. But the "invocation" of instance declarations is done behind the scenes by the
--- > compiler, so it's hard to figure out exactly where it is done. The easiest thing is to outlaw
--- > the offending types.
-
--- TODO: screw it.
-instance MonadEmitter (CekM uni fun s) where
-    emit _ = pure ()
-
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
@@ -544,7 +531,7 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime' sch x cost) = case sch of
     TypeSchemeRuntimeResult mk -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        mk (Just term) x
+        mk ?cekEmitter (Just term) x
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 

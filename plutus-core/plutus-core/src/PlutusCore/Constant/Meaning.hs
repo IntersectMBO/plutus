@@ -38,6 +38,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
+import Data.Text (Text)
 import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
@@ -69,7 +70,7 @@ data BuiltinMeaning term cost =
 
 data TypeSchemeRuntime m cause term args res where
     TypeSchemeRuntimeResult
-        :: !(Maybe cause -> res -> m term)
+        :: !((Text -> m ()) -> Maybe cause -> res -> m term)
         -> TypeSchemeRuntime m cause term '[] res
     TypeSchemeRuntimeArrow
         :: !(Maybe cause -> term -> m arg)
@@ -81,7 +82,7 @@ data TypeSchemeRuntime m cause term args res where
 
 toTypeSchemeRuntime
     :: forall m term args res err cause.
-       ( MonadEmitter m, MonadError (ErrorWithCause err cause) m
+       ( MonadError (ErrorWithCause err cause) m
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => TypeScheme term args res
@@ -91,7 +92,7 @@ toTypeSchemeRuntime = go where
         :: TypeScheme term args' res
         -> TypeSchemeRuntime m cause term args' res
     go (TypeSchemeResult _) =
-        let mk :: Maybe cause -> res -> m term
+        let mk :: (Text -> m ()) -> Maybe cause -> res -> m term
             !mk = makeKnown
         in TypeSchemeRuntimeResult mk
     go (TypeSchemeArrow (_ :: Proxy arg) schB) =
@@ -151,7 +152,7 @@ newtype BuiltinsRuntime' fun m cause term = BuiltinsRuntime'
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime'
-    :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m
+    :: ( MonadError (ErrorWithCause err cause) m
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => cost -> BuiltinMeaning term cost -> BuiltinRuntime' m cause term
@@ -183,7 +184,7 @@ toBuiltinsRuntime cost =
 -- and a cost model.
 toBuiltinsRuntime'
     :: ( cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun
-       , MonadEmitter m, MonadError (ErrorWithCause err cause) m
+       , MonadError (ErrorWithCause err cause) m
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => cost -> BuiltinsRuntime' fun m cause term
