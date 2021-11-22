@@ -141,7 +141,7 @@ instance KnownTypeAst DefaultUni Void where
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
-    makeKnown _ = absurd
+    makeKnown _ _ = absurd
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
