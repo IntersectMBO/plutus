@@ -31,7 +31,7 @@ logEmitter = EmitterMode $ \_ -> do
     let emitter str = CekM $ modifySTRef logsRef (`DList.snoc` str)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
--- A wrapper around encoding a reocrd. `cassava` insists on including a trailing newline, which is
+-- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is
 -- annoying since we're recording the output line-by-line.
 encodeRecord :: CSV.ToRecord a => a -> T.Text
 encodeRecord a = T.stripEnd $ T.decodeUtf8 $ BSL.toStrict $ BS.toLazyByteString $ CSV.encodeRecord a

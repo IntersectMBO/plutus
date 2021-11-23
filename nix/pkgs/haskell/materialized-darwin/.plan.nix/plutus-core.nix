@@ -405,6 +405,7 @@
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
           buildable = true;
+          modules = [ "Common" ];
           hsSourceDirs = [ "executables/traceToStacks" ];
           mainPath = [ "Main.hs" ];
           };
@@ -516,6 +517,21 @@
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
+          };
+        "traceToStacks-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            ];
+          buildable = true;
+          modules = [ "Common" ];
+          hsSourceDirs = [ "executables/traceToStacks" ];
+          mainPath = [ "TestGetStacks.hs" ];
           };
         "index-envs-test" = {
           depends = [
