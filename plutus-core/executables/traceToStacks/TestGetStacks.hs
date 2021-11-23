@@ -1,72 +1,78 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Common
-import Data.Text (Text, singleton)
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
-toText :: Char -> Text
-toText = singleton
-
+-- | A list of @ProfileEvent@ simulating a function @x@ using 1 resource.
 xEvent :: [ProfileEvent]
 xEvent = [
-    MkProfileEvent 0 Enter (toText 'x'),
-    MkProfileEvent 1 Exit (toText 'x')
+    MkProfileEvent 0 Enter "x",
+    MkProfileEvent 1 Exit "x"
     ]
 
+-- | The list of @StackVal@ that corresponds to @xEvent@.
 xStackVal :: [StackVal]
-xStackVal = [MkStackVal [toText 'x'] 1]
+xStackVal = [MkStackVal [ "x"] 1]
 
+-- | A list of @ProfileEvent@ simulating function @x@ calling @y@ calling @z@.
 zInyInxEvent :: [ProfileEvent]
 zInyInxEvent = [
-    MkProfileEvent 0 Enter (toText 'x'),
-    MkProfileEvent 1 Enter (toText 'y'),
-    MkProfileEvent 10 Enter (toText 'z'),
-    MkProfileEvent 100 Exit (toText 'z'),
-    MkProfileEvent 1000 Exit (toText 'y'),
-    MkProfileEvent 10000 Exit (toText 'x')
+    MkProfileEvent 0 Enter "x",
+    MkProfileEvent 1 Enter "y",
+    MkProfileEvent 10 Enter "z",
+    MkProfileEvent 100 Exit "z",
+    MkProfileEvent 1000 Exit "y",
+    MkProfileEvent 10000 Exit "x"
     ]
 
+-- | The list of @StackVal@ that corresponds to @zInyInxEvent@.
 zInyInxStackVals :: [StackVal]
 zInyInxStackVals = [
-    MkStackVal [toText 'z', toText 'y', toText 'x'] 90,
-    MkStackVal [toText 'y', toText 'x'] 909,
-    MkStackVal [toText 'x'] 9001
+    MkStackVal [ "z",  "y",  "x"] 90,
+    MkStackVal [ "y",  "x"] 909,
+    MkStackVal [ "x"] 9001
     ]
 
+-- | A list of @ProfileEvent@ simulating function @x@ calling @y@ and @z@.
 yzInxEvent :: [ProfileEvent]
 yzInxEvent = [
-    MkProfileEvent 0 Enter (toText 'x'),
-    MkProfileEvent 1 Enter (toText 'y'),
-    MkProfileEvent 10 Exit (toText 'y'),
-    MkProfileEvent 100 Enter (toText 'z'),
-    MkProfileEvent 1000 Exit (toText 'z'),
-    MkProfileEvent 10000 Exit (toText 'x')
+    MkProfileEvent 0 Enter "x",
+    MkProfileEvent 1 Enter "y",
+    MkProfileEvent 10 Exit "y",
+    MkProfileEvent 100 Enter "z",
+    MkProfileEvent 1000 Exit "z",
+    MkProfileEvent 10000 Exit "x"
     ]
 
+-- | The list of @StackVal@ that corresponds to @yzInxEvent@.
 yzInxStackVals :: [StackVal]
 yzInxStackVals = [
-    MkStackVal [toText 'y', toText 'x'] 9,
-    MkStackVal [toText 'z', toText 'x'] 900,
-    MkStackVal [toText 'x'] 9091
+    MkStackVal [ "y",  "x"] 9,
+    MkStackVal [ "z",  "x"] 900,
+    MkStackVal [ "x"] 9091
     ]
 
+-- | A list of @ProfileEvent@ simulating a function @x@ calling @y@ and @z@, with @y@ calling @k@.
 kInyzInxEvent :: [ProfileEvent]
 kInyzInxEvent = [
-    MkProfileEvent 0 Enter (toText 'x'),
-    MkProfileEvent 1 Enter (toText 'y'),
-    MkProfileEvent 10 Enter (toText 'k'),
-    MkProfileEvent 100 Exit (toText 'k'),
-    MkProfileEvent 1000 Exit (toText 'y'),
-    MkProfileEvent 10000 Enter (toText 'z'),
-    MkProfileEvent 100000 Exit (toText 'z'),
-    MkProfileEvent 1000000 Exit (toText 'x')
+    MkProfileEvent 0 Enter "x",
+    MkProfileEvent 1 Enter "y",
+    MkProfileEvent 10 Enter "k",
+    MkProfileEvent 100 Exit "k",
+    MkProfileEvent 1000 Exit "y",
+    MkProfileEvent 10000 Enter "z",
+    MkProfileEvent 100000 Exit "z",
+    MkProfileEvent 1000000 Exit "x"
     ]
 
+-- | The list of @StackVal@ that corresponds to @kInyzInxEvent@.
 kInyzInxStackVals :: [StackVal]
 kInyzInxStackVals = [
-    MkStackVal [toText 'k', toText 'y', toText 'x'] 90,
-    MkStackVal [toText 'y', toText 'x'] 909,
-    MkStackVal [toText 'z', toText 'x'] 90000,
-    MkStackVal [toText 'x'] 909001
+    MkStackVal [ "k",  "y",  "x"] 90,
+    MkStackVal [ "y",  "x"] 909,
+    MkStackVal [ "z",  "x"] 90000,
+    MkStackVal [ "x"] 909001
     ]
 
 main :: IO ()
