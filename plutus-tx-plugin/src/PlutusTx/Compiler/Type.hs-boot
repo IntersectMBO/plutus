@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
 
 module PlutusTx.Compiler.Type where
 
@@ -7,7 +8,7 @@ import PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 
-compileTypeNorm :: Compiling uni fun m => GHC.Type -> m (PIRType uni)
-compileType :: Compiling uni fun m => GHC.Type -> m (PIRType uni)
+compileTypeNorm :: CompilingDefault uni fun m => GHC.Type -> m (PIRType uni)
+compileType :: CompilingDefault uni fun m => GHC.Type -> m (PIRType uni)
 
-getMatchInstantiated :: Compiling uni fun m => GHC.Type -> m (PIRTerm uni fun)
+getMatchInstantiated :: CompilingDefault uni fun m => GHC.Type -> m (PIRTerm uni fun)

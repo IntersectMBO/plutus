@@ -343,6 +343,7 @@ compileMarkedExpr locStr codeTy origE = do
             ccNameInfo = nameInfo,
             ccScopes = initialScopeStack,
             ccBlackholed = mempty,
+            ccCurDef = Nothing,
             ccModBreaks = modBreaks
             }
 

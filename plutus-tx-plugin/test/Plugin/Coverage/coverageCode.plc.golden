@@ -19,10 +19,10 @@
     )
     (termbind
       (strict)
-      (vardecl fail (fun (all a (type) a) [ Maybe Bool ]))
+      (vardecl fail (fun (con unit) [ Maybe Bool ]))
       (lam
         ds
-        (all a (type) a)
+        (con unit)
         {
           {
             [
@@ -410,14 +410,14 @@
                               }
                             )
                           ]
-                          (abs dead (type) [ fail (abs e (type) (error e)) ])
+                          (abs dead (type) [ fail (con unit ()) ])
                         ]
                         (all dead (type) dead)
                       }
                     )
                   )
                 ]
-                (abs dead (type) [ fail (abs e (type) (error e)) ])
+                (abs dead (type) [ fail (con unit ()) ])
               ]
               (all dead (type) dead)
             }

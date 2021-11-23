@@ -16,7 +16,6 @@ module PlutusTx.Compiler.Builtins (
     , defineBuiltinTerms
     , lookupBuiltinTerm
     , lookupBuiltinType
-    , errorTy
     , errorFunc) where
 
 import PlutusTx.Builtins.Class qualified as Builtins
@@ -234,7 +233,7 @@ builtinNames = [
     , 'Builtins.unsafeDataAsI
     ]
 
-defineBuiltinTerm :: Compiling uni fun m => TH.Name -> PIRTerm uni fun -> m ()
+defineBuiltinTerm :: CompilingDefault uni fun m => TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm name term = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
@@ -378,9 +377,3 @@ delayedErrorFunc = do
     t <- liftQuote (freshName "thunk")
     let ty = PLC.toTypeAst $ Proxy @()
     pure $ PIR.TyAbs () n (PIR.Type ()) $ PIR.LamAbs () t ty $ PIR.Error () (PIR.TyVar () n)
-
--- | The type 'forall a. a'.
-errorTy :: Compiling uni fun m => m (PIRType uni)
-errorTy = do
-    tyname <- safeFreshTyName "a"
-    pure $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
