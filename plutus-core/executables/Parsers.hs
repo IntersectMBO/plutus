@@ -71,6 +71,7 @@ outputformat = option (maybeReader formatReader)
   <> value Textual
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
+
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
 timing1 = flag NoTiming (Timing 100)

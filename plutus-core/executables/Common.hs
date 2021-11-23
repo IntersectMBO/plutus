@@ -355,7 +355,7 @@ writeFlat ::
 writeFlat outp flatMode prog = do
   flatProg <- case flatMode of
             Named         -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-            DeBruijn      -> typedDeBruijnNotSupportedError -- TODO, this should work but we don't have a program here :/
+            DeBruijn      -> serialiseDbProgramFlat (() <$ prog) -- typedDeBruijnNotSupportedError -- TODO, this should work but we don't have a program here :/
             NamedDeBruijn -> serialiseDbProgramFlat (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg

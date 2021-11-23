@@ -656,8 +656,8 @@ enterComputeCek = computeCek (toWordArray 0) where
                 returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
-    forceEvaluate !_ !_ val =
-        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
+    forceEvaluate !unbudgetedSteps !ctx val = returnCek unbudgetedSteps ctx val -- FIXME: Check this!!!
+--        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@

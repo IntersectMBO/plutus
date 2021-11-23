@@ -204,6 +204,36 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
                         None -> pure ()
                         _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
 
+
+isValue :: UPLC.Term name uni fun ann -> Bool
+isValue t =
+    case t of
+      UPLC.Apply    {} -> False
+      UPLC.Delay    {} -> False
+      UPLC.Var      {} -> True
+      UPLC.LamAbs   {} -> True
+      UPLC.Force    {} -> True
+      UPLC.Constant {} -> True
+      UPLC.Builtin  {} -> True
+      UPLC.Error    {} -> True
+
+
+shrink :: UPLC.Term name uni fun ann -> UPLC.Term name uni fun ann
+shrink t =
+    case t of
+      UPLC.Delay a t1    -> let t2 = shrink t1 in if isValue t2 then t2 else UPLC.Delay a t2
+      UPLC.LamAbs a x t1 -> UPLC.LamAbs a x (shrink t1)
+      UPLC.Apply a t1 t2 -> UPLC.Apply a (shrink t1) (shrink t2)
+      UPLC.Force a t1    -> UPLC.Force a (shrink t1)
+      UPLC.Var {}        -> t
+      UPLC.Constant {}   -> t
+      UPLC.Builtin {}    -> t
+      UPLC.Error {}      -> t
+
+shrinkProgram :: UPLC.Program name uni fun ann -> UPLC.Program name uni fun ann
+shrinkProgram (UPLC.Program a v t)  = UPLC.Program a v (shrink t)
+
+
 ----------------- Print examples -----------------------
 runUplcPrintExample ::
     ExampleOptions -> IO ()
@@ -221,7 +251,7 @@ runPrint (PrintOptions inp mode) =
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
-    writeProgram outp ofmt mode program
+    writeProgram outp ofmt mode (shrinkProgram program)
 
 runDumpModel :: IO ()
 runDumpModel = do
