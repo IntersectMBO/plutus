@@ -251,7 +251,7 @@ runPrint (PrintOptions inp mode) =
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
-    writeProgram outp ofmt mode (shrinkProgram program)
+    writeProgram outp ofmt mode program -- (shrinkProgram program)
 
 runDumpModel :: IO ()
 runDumpModel = do
