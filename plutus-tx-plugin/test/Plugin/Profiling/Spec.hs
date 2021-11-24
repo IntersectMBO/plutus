@@ -29,12 +29,13 @@ profiling = testNested "Profiling" [
   , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenPir "addInt" addIntTest
-  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
+  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
   -- ghc does the function application
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
+  , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   ]
 
 fact :: Integer -> Integer
@@ -88,3 +89,22 @@ swap (a,b) = (b,a)
 
 swapTest :: CompiledCode (Integer, Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))
+
+-- Two method typeclasses definitely get dictionaries, rather than just being passed as single functions
+class TwoMethods a where
+    methodA :: a -> a -> Integer
+    methodB :: a -> a -> Integer
+
+instance TwoMethods Integer where
+    {-# INLINABLE methodA #-}
+    methodA = Builtins.addInteger
+    {-# INLINABLE methodB #-}
+    methodB = Builtins.subtractInteger
+
+-- Make a function that uses the typeclass polymorphically to check that
+useTypeclass :: TwoMethods a => a -> a -> Integer
+useTypeclass a b = Builtins.addInteger (methodA a b) (methodB a b)
+
+-- Check that typeclass methods get traces
+typeclassTest :: CompiledCode (Integer -> Integer -> Integer)
+typeclassTest = plc (Proxy @"typeclass") (\(x::Integer) (y::Integer) -> useTypeclass x y)
