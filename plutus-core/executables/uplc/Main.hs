@@ -236,10 +236,13 @@ shrink t =
                             else UPLC.Delay a t2
       UPLC.LamAbs a x t1 -> UPLC.LamAbs a x (shrink t1)
       UPLC.Apply a t1 t2 -> UPLC.Apply a (shrink t1) (shrink t2)
-      UPLC.Force a t1    -> let t2 = shrink t1 in
-                            if cantCompute t2
-                            then t2
-                            else UPLC.Force a (shrink t1)
+      UPLC.Force a t1    -> UPLC.Force a (shrink t1)
+      {-
+         let t2 = shrink t1 in
+         if cantCompute t2
+         then t2
+         else UPLC.Force a t2
+       -}
       UPLC.Var {}        -> t
       UPLC.Constant {}   -> t
       UPLC.Builtin {}    -> t
