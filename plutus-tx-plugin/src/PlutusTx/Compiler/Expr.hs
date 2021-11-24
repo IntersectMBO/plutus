@@ -23,14 +23,13 @@ import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
-import PlutusTx.Trace
-
 import Class qualified as GHC
 import CoreSyn qualified as GHC
 import CostCentre qualified as GHC
 import GhcPlugins qualified as GHC
 import MkId qualified as GHC
+import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Trace
 import PrelNames qualified as GHC
 
 import PlutusIR qualified as PIR
@@ -53,7 +52,6 @@ import Data.Functor ((<&>))
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
-import Data.Maybe (fromMaybe)
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
@@ -163,27 +161,26 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
     Just alt -> alt
     Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
 
--- | Make the alternative for a given 'CoreAlt'.
+-- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
     :: CompilingDefault uni fun m
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed compiled bodies
+    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
 compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
-    GHC.DEFAULT   -> do
-        compiledBody <- compileExpr body
-        nonDelayed <- compileDefaultAlt compiledBody
-        delayed <- delay compiledBody >>= compileDefaultAlt
-        return (nonDelayed, delayed)
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> do
+    GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
+        b <- compileExpr body
+        delayed <- delay b
+        return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
+    GHC.DEFAULT   -> do
         compiledBody <- compileExpr body
-        nonDelayed <- mkIterLamAbsScoped vars (pure compiledBody)
-        delayed <- mkIterLamAbsScoped vars (delay compiledBody)
+        nonDelayed <- compileDefaultAlt compiledBody
+        delayed <- delay compiledBody >>= compileDefaultAlt
         return (nonDelayed, delayed)
     where
         compileDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
@@ -718,14 +715,16 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
+                match <- getMatchInstantiated scrutineeType
+                let matched = PIR.Apply () match scrutinee'
+
                 -- See Note [Case expressions and laziness]
                 alternatives <- forM dcs $ \dc -> do
-                    let alt@(_, vars, body) = findAlt dc alts t
+                    let alt = findAlt dc alts t
                         -- these are the instantiated type arguments, e.g. for the data constructor Just when
                         -- matching on Maybe Int it is [Int] (crucially, not [a])
                         instArgTys = GHC.dataConInstOrigArgTys dc argTys
                     (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
-                    -- mCompiledBody <- if null vars then Just <$> compileExpr body else pure Nothing
                     return (alt, nonDelayedAlt, delayedAlt)
                 isPureAlt <- forM alternatives $ \((_, vars, _), nonDelayed, _) ->
                     pure $ if null vars
@@ -733,12 +732,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                         else True
                 let lazyCase = not (and isPureAlt || length dcs == 1)
 
-                match <- getMatchInstantiated scrutineeType
-                let matched = PIR.Apply () match scrutinee'
-
-                -- branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
-                --     (compileAlt lazyCase alt mCompiledBody instArgTys)
-                let branches = alternatives <&> \(_, nonDelayedAlt, delayedAlt) -> if lazyCase then delayedAlt else nonDelayedAlt
+                let branches = alternatives <&> \(_, nonDelayedAlt, delayedAlt) ->
+                        if lazyCase then delayedAlt else nonDelayedAlt
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
