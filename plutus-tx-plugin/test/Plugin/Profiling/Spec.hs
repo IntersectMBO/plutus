@@ -32,6 +32,7 @@ profiling = testNested "Profiling" [
   , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  , goldenUEvalProfile "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
   , goldenPir "idCode" idTest
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
@@ -80,6 +81,13 @@ letInFunMoreArgTest =
     (\(x::Integer) (y::Integer) (z::Integer)
       -> let f n = Builtins.addInteger n 1 in
         Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y)))
+
+-- Try a recursive function so it definitely won't be inlined
+letRecInFunTest :: CompiledCode (Integer -> Integer)
+letRecInFunTest =
+  plc
+    (Proxy @"letRecInFun")
+    (\(x::Integer) -> let f n = if Builtins.equalsInteger n 0 then 0 else Builtins.addInteger 1 (f (Builtins.subtractInteger n 1)) in f x)
 
 idTest :: CompiledCode Integer
 idTest = plc (Proxy @"id") (id (id (1::Integer)))

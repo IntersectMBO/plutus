@@ -1,0 +1,20 @@
+[ entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering addInteger
+, exiting addInteger
+, entering addInteger
+, exiting addInteger
+, entering addInteger
+, exiting addInteger ]
