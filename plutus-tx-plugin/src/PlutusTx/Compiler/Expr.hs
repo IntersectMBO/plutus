@@ -22,6 +22,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
+import PlutusTx.PLCTypes (PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
@@ -430,22 +431,26 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                 mempty
 
-            CompileContext {ccOpts=compileOpts} <- ask
-            t' <-
-                if coProfile compileOpts==All then do
-                    let ty = PLC._varDeclType var'
-                        varName = PLC._varDeclName var'
-                    t'' <- compileExpr t
-                    thunk <- PLC.freshName "thunk"
-                    pure $
-                        traceInside varName thunk t'' ty
-                else compileExpr t
-
+            t' <- compileDefRhs var' t
             -- See Note [Non-strict let-bindings]
             let strict = PIR.isPure (const PIR.NonStrict) t'
 
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar () var'
+
+compileDefRhs :: CompilingDefault uni fun m => PLCVar uni fun -> GHC.CoreExpr -> m (PIRTerm uni fun)
+compileDefRhs var t = do
+    CompileContext {ccOpts=compileOpts} <- ask
+    let ty = PLC._varDeclType var
+        varName = PLC._varDeclName var
+        isFunction = case ty of { PLC.TyFun{} -> True; _ -> False }
+    -- Trace only if profiling is on *and* the thing being defined is a function
+    if coProfile profileOpts==All && isFunction
+    then do
+        t'' <- compileExpr t
+        thunk <- PLC.freshName "thunk"
+        pure $ traceInside varName thunk t'' ty
+    else compileExpr t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
