@@ -32,7 +32,7 @@ profiling = testNested "Profiling" [
   , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  -- ghc does the function application
+  , goldenPir "idCode" idTest
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
   , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
@@ -82,7 +82,7 @@ letInFunMoreArgTest =
         Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y)))
 
 idTest :: CompiledCode Integer
-idTest = plc (Proxy @"id") (id (1::Integer))
+idTest = plc (Proxy @"id") (id (id (1::Integer)))
 
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)

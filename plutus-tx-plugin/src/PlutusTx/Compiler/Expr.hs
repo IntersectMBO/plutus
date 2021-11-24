@@ -22,7 +22,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
-import PlutusTx.PLCTypes (PLCVar)
+import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
@@ -44,6 +44,7 @@ import PlutusIR.Purity qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
+import PlutusCore.Subst qualified as PLC
 
 import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
@@ -443,9 +444,9 @@ compileDefRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
     let ty = PLC._varDeclType var
         varName = PLC._varDeclName var
-        isFunction = case ty of { PLC.TyFun{} -> True; _ -> False }
+        isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
     -- Trace only if profiling is on *and* the thing being defined is a function
-    if coProfile profileOpts==All && isFunction
+    if coProfile profileOpts==All && isFunctionOrAbstraction
     then do
         t'' <- compileExpr t
         thunk <- PLC.freshName "thunk"
@@ -476,6 +477,24 @@ mkLazyTrace ty str v = do
   delayedType <- delayType ty
   force $ mkTrace delayedType str delayedBody
 
+{- Note [Profiling polymorphic functions]
+In order to profile polymorphic functions, we have to go under the type abstractions.
+But we also need the type of the final inner term in order to construct the correct
+invocations of 'trace'. At the moment we get this from the *type* of the term.
+
+But this goes wrong as soon as there are type variables involved!
+
+id :: forall a . a -> a
+id = /\a . \(x :: a) -> x -- The 'a' here is not the same as the 'a' in the type signature!
+
+The type of the term needs to use the type variables bound by the type abstractions,
+not the ones bound by the foralls in the type signature.
+
+We sort this out in a hacky way by continuing to use the type of the overall term, but
+constructing a substitution from the type-bound variables to the term-bound variables,
+and then applying that at the end. Not pleasant, but it works.
+-}
+
 -- | Trace inside a term's lambda. I.e., turn
 -- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
 traceInside ::
@@ -484,26 +503,38 @@ traceInside ::
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
     -> PLC.Type PIR.TyName PLC.DefaultUni ()
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-traceInside varName lamName = go
+traceInside varName lamName = go mempty
     where
-        go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+        go ::
+            Map.Map PLC.TyName (PLCType PLC.DefaultUni)
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+            -> PLCType PLC.DefaultUni
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+        go subst (LamAbs () n t body) (PLC.TyFun () _dom cod) =
         -- when t = \x -> body, => \x -> traceInside body
-            LamAbs () n t (traceInside varName lamName body cod)
-        go LamAbs{} _ =
-            error "traceInside: type mismatched. It should be a function type."
-        go e ty =
+            LamAbs () n t $ go subst body cod
+        go subst (TyAbs () tn1 k body) (PLC.TyForall () tn2 _k ty) =
+        -- when t = /\x -> body, => /\x -> traceInside body
+            -- See Note [Profiling polymorphic functions]
+            let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
+            in TyAbs () tn1 k $ go subst' body ty
+        go _ LamAbs{} _ = error "traceInside: type mismatched. Expected a function type."
+        go _ TyAbs{} _ = error "traceInside: type mismatched. Expected a quantified type."
+        go subst e ty =
             let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
                 defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
                 displayName = T.pack $ PP.displayPlcDef varName
+                -- See Note [Profiling polymorphic functions]
+                ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
             in
             --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
                 PIR.Apply
                     ()
                     (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                        (PLC.TyFun () defaultUnitTy ty') -- ()-> ty
                         ("entering " <> displayName)
                         -- \() -> trace @c "exiting f" e
-                        (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+                        (LamAbs () lamName defaultUnitTy (mkTrace ty' ("exiting "<>displayName) e)))
                     defaultUnit
 
 -- Expressions
