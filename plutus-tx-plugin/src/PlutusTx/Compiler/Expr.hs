@@ -49,6 +49,7 @@ import Control.Monad.Reader (MonadReader (ask))
 
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
+import Data.Functor ((<&>))
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -165,26 +166,32 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 -- | Make the alternative for a given 'CoreAlt'.
 compileAlt
     :: CompilingDefault uni fun m
-    => Bool -- ^ Whether we must delay the alternative.
-    -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> Maybe (PIRTerm uni fun) -- ^ Compiled body of 'CoreAlt'
+    => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> m (PIRTerm uni fun)
-compileAlt mustDelay (alt, vars, body) mCompiledBody instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed compiled bodies
+compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
-        body' <- compiledBody >>= maybeDelay mustDelay
-        -- need to consume the args
-        argTypes <- mapM compileTypeNorm instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
-        pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
+        compiledBody <- compileExpr body
+        nonDelayed <- compileDefaultAlt compiledBody
+        delayed <- delay compiledBody >>= compileDefaultAlt
+        return (nonDelayed, delayed)
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compiledBody >>= maybeDelay mustDelay)
+    GHC.DataAlt _ -> do
+        compiledBody <- compileExpr body
+        nonDelayed <- mkIterLamAbsScoped vars (pure compiledBody)
+        delayed <- mkIterLamAbsScoped vars (delay compiledBody)
+        return (nonDelayed, delayed)
     where
-        compiledBody = fromMaybe (compileExpr body) (pure <$> mCompiledBody)
+        compileDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        compileDefaultAlt body' = do
+            -- need to consume the args
+            argTypes <- mapM compileTypeNorm instArgTys
+            argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
+            pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -717,20 +724,21 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                         -- these are the instantiated type arguments, e.g. for the data constructor Just when
                         -- matching on Maybe Int it is [Int] (crucially, not [a])
                         instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                    mCompiledBody <- if null vars then Just <$> compileExpr body else pure Nothing
-                    return (alt, mCompiledBody, instArgTys)
-                isPureAlt <- forM alternatives $ \(_, mCompiledBody, _) ->
-                    pure $ case mCompiledBody of
-                        Just compiledBody -> PIR.isPure (const PIR.NonStrict) compiledBody
-                        -- if there is no a compiled body then 'vars' in 'alt' is empty
-                        Nothing           -> True
+                    (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
+                    -- mCompiledBody <- if null vars then Just <$> compileExpr body else pure Nothing
+                    return (alt, nonDelayedAlt, delayedAlt)
+                isPureAlt <- forM alternatives $ \((_, vars, _), nonDelayed, _) ->
+                    pure $ if null vars
+                        then PIR.isPure (const PIR.NonStrict) nonDelayed
+                        else True
                 let lazyCase = not (and isPureAlt || length dcs == 1)
 
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
 
-                branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
-                    (compileAlt lazyCase alt mCompiledBody instArgTys)
+                -- branches <- forM alternatives $ \(alt, mCompiledBody, instArgTys) ->
+                --     (compileAlt lazyCase alt mCompiledBody instArgTys)
+                let branches = alternatives <&> \(_, nonDelayedAlt, delayedAlt) -> if lazyCase then delayedAlt else nonDelayedAlt
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
