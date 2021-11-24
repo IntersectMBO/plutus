@@ -28,7 +28,7 @@ import Control.DeepSeq (NFData, rnf)
 import Data.Text qualified as T
 import Options.Applicative
 import System.Exit (exitFailure)
-import System.IO (hPrint, stderr)
+import System.IO (hPrint, hPutStrLn, stderr)
 import Text.Read (readMaybe)
 
 uplcHelpText :: String
@@ -205,26 +205,41 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
                         _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
 
 
-isValue :: UPLC.Term name uni fun ann -> Bool
-isValue t =
-    case t of
-      UPLC.Apply    {} -> False
-      UPLC.Delay    {} -> False
-      UPLC.Var      {} -> True
-      UPLC.LamAbs   {} -> True
-      UPLC.Force    {} -> True
-      UPLC.Constant {} -> True
-      UPLC.Builtin  {} -> True
-      UPLC.Error    {} -> True
+-- Experimental optimisation involving force/delay.
+
+body :: UPLC.Program name uni fun ann -> UPLC.Term name uni fun ann
+body (UPLC.Program _ _ t) = t
+
+-- Terms which can't compute, so delaying them does nothing.
+cantCompute :: UPLC.Term name uni fun ann -> Bool
+cantCompute =
+    \case
+     UPLC.Apply    {} -> False  -- Not quite true: could be a partially applied builtin.
+     UPLC.Force    {} -> False
+     UPLC.Error    {} -> False
+     UPLC.Delay    {} -> True
+     UPLC.Var      {} -> True
+     UPLC.LamAbs   {} -> True
+     UPLC.Constant {} -> True
+     UPLC.Builtin  {} -> True  -- Builtins must have at least one argument, so this can't perform any computation.
 
 
+-- Remove all applications of 'delay' to terms that can't compute;
+-- once we've done that, we can also make 'force' only work on terms that do compute.
+-- We also have to make 'force' work on arbitrary terms in the evaluator.
 shrink :: UPLC.Term name uni fun ann -> UPLC.Term name uni fun ann
 shrink t =
     case t of
-      UPLC.Delay a t1    -> let t2 = shrink t1 in if isValue t2 then t2 else UPLC.Delay a t2
+      UPLC.Delay a t1    -> let t2 = shrink t1 in
+                            if cantCompute t2
+                            then t2
+                            else UPLC.Delay a t2
       UPLC.LamAbs a x t1 -> UPLC.LamAbs a x (shrink t1)
       UPLC.Apply a t1 t2 -> UPLC.Apply a (shrink t1) (shrink t2)
-      UPLC.Force a t1    -> UPLC.Force a (shrink t1)
+      UPLC.Force a t1    -> let t2 = shrink t1 in
+                            if cantCompute t2
+                            then t2
+                            else UPLC.Force a (shrink t1)
       UPLC.Var {}        -> t
       UPLC.Constant {}   -> t
       UPLC.Builtin {}    -> t
@@ -233,6 +248,27 @@ shrink t =
 shrinkProgram :: UPLC.Program name uni fun ann -> UPLC.Program name uni fun ann
 shrinkProgram (UPLC.Program a v t)  = UPLC.Program a v (shrink t)
 
+numDelays :: UPLC.Term name uni fun ann -> Integer
+numDelays = \case
+      UPLC.Delay _ t     -> 1 + numDelays t
+      UPLC.LamAbs _ _ t  -> numDelays t
+      UPLC.Apply _ t1 t2 -> numDelays t1 + numDelays t2
+      UPLC.Force _ t     -> numDelays t
+      UPLC.Var {}        -> 0
+      UPLC.Constant {}   -> 0
+      UPLC.Builtin {}    -> 0
+      UPLC.Error {}      -> 0
+
+numForces :: UPLC.Term name uni fun ann -> Integer
+numForces = \case
+      UPLC.Delay _ t     -> numForces t
+      UPLC.LamAbs _ _ t  -> numForces t
+      UPLC.Apply _ t1 t2 -> numForces t1 + numForces t2
+      UPLC.Force _ t     -> 1 + numForces t
+      UPLC.Var {}        -> 0
+      UPLC.Constant {}   -> 0
+      UPLC.Builtin {}    -> 0
+      UPLC.Error {}      -> 0
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::
@@ -251,7 +287,19 @@ runPrint (PrintOptions inp mode) =
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
-    writeProgram outp ofmt mode program -- (shrinkProgram program)
+    let shrunk = shrinkProgram program
+        nd1 = numDelays $ body program
+        nd2 = numDelays $ body shrunk
+        nf1 = numForces $ body program
+        nf2 = numForces $ body shrunk
+    hPutStrLn stderr $
+                     "    " ++ show nd1
+                  ++ "    " ++ show nd2
+                  ++ "    " ++ show nf1
+                  ++ "    " ++ show nf2
+                  ++ "    " ++ (show $ UPLC.programSize program)
+                  ++ "    " ++ (show $ UPLC.programSize shrunk)
+    writeProgram outp ofmt mode shrunk
 
 runDumpModel :: IO ()
 runDumpModel = do
