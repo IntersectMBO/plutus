@@ -1,20 +1,28 @@
-[ entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
+[ entering f
 , entering equalsInteger
 , exiting equalsInteger
 , entering subtractInteger
 , exiting subtractInteger
+, entering f
 , entering equalsInteger
 , exiting equalsInteger
 , entering subtractInteger
 , exiting subtractInteger
+, entering f
 , entering equalsInteger
 , exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering f
+, entering equalsInteger
+, exiting equalsInteger
+, exiting f
 , entering addInteger
 , exiting addInteger
+, exiting f
 , entering addInteger
 , exiting addInteger
+, exiting f
 , entering addInteger
-, exiting addInteger ]
+, exiting addInteger
+, exiting f ]

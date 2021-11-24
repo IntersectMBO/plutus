@@ -432,26 +432,22 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                 mempty
 
-            t' <- compileDefRhs var' t
+            t' <- maybeProfileRhs var' =<< compileExpr t
             -- See Note [Non-strict let-bindings]
             let strict = PIR.isPure (const PIR.NonStrict) t'
 
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar () var'
 
-compileDefRhs :: CompilingDefault uni fun m => PLCVar uni fun -> GHC.CoreExpr -> m (PIRTerm uni fun)
-compileDefRhs var t = do
+maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
+    thunk <- PLC.freshName "thunk"
     let ty = PLC._varDeclType var
         varName = PLC._varDeclName var
         isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
     -- Trace only if profiling is on *and* the thing being defined is a function
-    if coProfile profileOpts==All && isFunctionOrAbstraction
-    then do
-        t'' <- compileExpr t
-        thunk <- PLC.freshName "thunk"
-        pure $ traceInside varName thunk t'' ty
-    else compileExpr t
+    pure $ if coProfile profileOpts==All && isFunctionOrAbstraction then traceInside varName thunk t ty else t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
@@ -704,24 +700,25 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- otherwise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
 
-        GHC.Let (GHC.NonRec b arg) body -> do
+        GHC.Let (GHC.NonRec b rhs) body -> do
             -- the binding is in scope for the body, but not for the arg
-            arg' <- compileExpr arg
+            rhs' <- compileExpr rhs
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure (const PIR.NonStrict) arg'
+            let strict = PIR.isPure (const PIR.NonStrict) rhs'
             withVarScoped b $ \v -> do
-                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                rhs'' <- maybeProfileRhs v rhs'
+                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs''
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
             withVarsScoped (fmap fst bs) $ \vars -> do
                 -- the bindings are scope in both the body and the args
                 -- TODO: this is a bit inelegant matching the vars back up
-                binds <- for (zip vars bs) $ \(v, (_, arg)) -> do
-                    arg' <- compileExpr arg
+                binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
+                    rhs' <- maybeProfileRhs v =<< compileExpr rhs
                     -- See Note [Non-strict let-bindings]
-                    let strict = PIR.isPure (const PIR.NonStrict) arg'
-                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                    let strict = PIR.isPure (const PIR.NonStrict) rhs'
+                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
 
