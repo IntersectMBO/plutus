@@ -42,6 +42,8 @@ import GhcPlugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
+import Control.Monad.Reader (MonadReader (ask))
+
 import Data.ByteString qualified as BS
 import Data.Proxy
 import Data.Text (Text)
@@ -254,6 +256,7 @@ defineBuiltinType name ty = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m => m ()
 defineBuiltinTerms = do
+    CompileContext {ccOpts=compileOpts} <- ask
 
     -- See Note [Builtin terms and values]
     -- Bool
@@ -302,8 +305,23 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.AppendString
     defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
     defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
-    defineBuiltinTerm 'Builtins.trace $ mkBuiltin PLC.Trace
     defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
+
+    -- Tracing
+    -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
+    traceTerm <- if coRemoveTrace compileOpts
+        then liftQuote $ do
+            ta <- freshTyName "a"
+            t <- freshName "t"
+            a <- freshName "a"
+            pure $ PIR.tyAbs () ta (PLC.Type ())
+                 $ PIR.mkIterLamAbs
+                    [ PIR.VarDecl () t (PIR.mkTyBuiltin @_ @Text ())
+                    , PIR.VarDecl () a (PLC.TyVar () ta)
+                    ]
+                 $ PIR.Var () a
+        else pure (mkBuiltin PLC.Trace)
+    defineBuiltinTerm 'Builtins.trace traceTerm
 
     -- Pairs
     defineBuiltinTerm 'Builtins.fst $ mkBuiltin PLC.FstPair

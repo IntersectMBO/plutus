@@ -8,6 +8,7 @@ import Plugin.Data.Spec
 import Plugin.Errors.Spec
 import Plugin.Functions.Spec
 import Plugin.Laziness.Spec
+import Plugin.NoTrace.Spec
 import Plugin.Primitives.Spec
 import Plugin.Profiling.Spec
 import Plugin.Typeclasses.Spec
@@ -19,6 +20,7 @@ tests = testNested "Plugin" [
   , datat
   , functions
   , laziness
+  , noTrace
   , errors
   , typeclasses
   , profiling

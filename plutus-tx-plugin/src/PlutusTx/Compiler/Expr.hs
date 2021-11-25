@@ -430,9 +430,9 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                 mempty
 
-            CompileContext {ccOpts=profileOpts} <- ask
+            CompileContext {ccOpts=compileOpts} <- ask
             t' <-
-                if coProfile profileOpts==All then do
+                if coProfile compileOpts==All then do
                     let ty = PLC._varDeclType var'
                         varName = PLC._varDeclName var'
                     t'' <- compileExpr t
