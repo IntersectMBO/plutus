@@ -210,6 +210,15 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
 body :: UPLC.Program name uni fun ann -> UPLC.Term name uni fun ann
 body (UPLC.Program _ _ t) = t
 
+isIteratedBuiltinApp :: UPLC.Term name uni fun ann -> Bool
+isIteratedBuiltinApp =
+    \case
+      UPLC.Apply _ t _ -> isIteratedBuiltinApp t
+      UPLC.Force _ t   -> isIteratedBuiltinApp t
+      UPLC.Builtin {}  -> True
+      _                -> False
+
+
 -- Terms which can't compute, so delaying them does nothing.
 isInert :: UPLC.Term name uni fun ann -> Bool
 isInert =
@@ -239,7 +248,9 @@ shrink t =
       UPLC.LamAbs a x t1 -> UPLC.LamAbs a x (shrink t1)
       UPLC.Apply a t1 t2 -> UPLC.Apply a (shrink t1) (shrink t2)
       UPLC.Force a t1    -> let t2 = shrink t1 in
-                            if isInert t2
+                            if isInert t2 && not (isIteratedBuiltinApp t2)
+                               -- The evaluator fails if we don't force partial builtin applications
+                               -- when expected.  We could ignore that too.
                             then t2
                             else UPLC.Force a t2
                              -- In the validators there are many occurences of variables being forced.
