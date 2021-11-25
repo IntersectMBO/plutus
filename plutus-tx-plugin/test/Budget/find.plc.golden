@@ -254,6 +254,31 @@
                 ]
               )
             )
+            (termbind
+              (strict)
+              (vardecl
+                fGeneric1TYPEFirst
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ (lam a (type) [ Maybe a ]) a ]
+                    [ (lam a (type) [ Maybe a ]) a ]
+                  )
+                )
+              )
+              (abs a (type) (lam x [ (lam a (type) [ Maybe a ]) a ] x))
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                getFirst
+                (all
+                  a (type) (fun [ (lam a (type) [ Maybe a ]) a ] [ Maybe a ])
+                )
+              )
+              fGeneric1TYPEFirst
+            )
             (datatypebind
               (datatype
                 (tyvardecl Bool (type))
@@ -354,7 +379,7 @@
                             )
                           ]
                         )
-                        (lam x [ t a ] [ g x ])
+                        (lam x [ t a ] [ { getFirst a } [ g x ] ])
                       )
                     )
                   )

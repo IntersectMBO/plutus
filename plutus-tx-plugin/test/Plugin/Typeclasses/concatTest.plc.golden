@@ -218,6 +218,29 @@
             (termbind
               (strict)
               (vardecl
+                appEndo
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ (lam a (type) (fun a a)) a ]
+                    [ (lam a (type) (fun a a)) a ]
+                  )
+                )
+              )
+              (abs a (type) (lam ds [ (lam a (type) (fun a a)) a ] ds))
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                appEndo
+                (all a (type) (fun [ (lam a (type) (fun a a)) a ] (fun a a)))
+              )
+              appEndo
+            )
+            (termbind
+              (strict)
+              (vardecl
                 build
                 (all
                   a
@@ -309,48 +332,57 @@
                               b
                               [
                                 [
+                                  { appEndo b }
                                   [
                                     [
-                                      {
+                                      [
                                         {
-                                          dFoldable
-                                          [ (lam a (type) (fun a a)) b ]
+                                          {
+                                            dFoldable
+                                            [ (lam a (type) (fun a a)) b ]
+                                          }
+                                          [ List a ]
                                         }
-                                        [ List a ]
-                                      }
-                                      { fMonoidEndo b }
-                                    ]
-                                    (lam
-                                      x
-                                      [ List a ]
+                                        { fMonoidEndo b }
+                                      ]
                                       (lam
-                                        y
-                                        b
-                                        [
+                                        x
+                                        [ List a ]
+                                        (lam
+                                          y
+                                          b
                                           [
                                             [
+                                              { appEndo b }
                                               [
-                                                {
-                                                  {
-                                                    fFoldableNil_cfoldMap
-                                                    [
-                                                      (lam a (type) (fun a a)) b
-                                                    ]
-                                                  }
-                                                  a
-                                                }
-                                                { fMonoidEndo b }
+                                                [
+                                                  [
+                                                    {
+                                                      {
+                                                        fFoldableNil_cfoldMap
+                                                        [
+                                                          (lam
+                                                            a (type) (fun a a)
+                                                          )
+                                                          b
+                                                        ]
+                                                      }
+                                                      a
+                                                    }
+                                                    { fMonoidEndo b }
+                                                  ]
+                                                  c
+                                                ]
+                                                x
                                               ]
-                                              c
                                             ]
-                                            x
+                                            y
                                           ]
-                                          y
-                                        ]
+                                        )
                                       )
-                                    )
+                                    ]
+                                    xs
                                   ]
-                                  xs
                                 ]
                                 n
                               ]

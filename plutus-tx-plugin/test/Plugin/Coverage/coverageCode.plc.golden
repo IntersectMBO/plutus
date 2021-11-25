@@ -145,12 +145,12 @@
               traceBool
               (con
                 string
-                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) False"
+                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) True"
               )
             ]
             (con
               string
-              "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) True"
+              "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) False"
             )
           ]
           {
@@ -174,12 +174,12 @@
                           traceBool
                           (con
                             string
-                            "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) False"
+                            "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) True"
                           )
                         ]
                         (con
                           string
-                          "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) True"
+                          "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) False"
                         )
                       ]
                       {
@@ -316,12 +316,12 @@
                                       traceBool
                                       (con
                                         string
-                                        "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) False"
+                                        "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) True"
                                       )
                                     ]
                                     (con
                                       string
-                                      "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) True"
+                                      "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) False"
                                     )
                                   ]
                                   {
