@@ -447,7 +447,7 @@ maybeProfileRhs var t = do
         varName = PLC._varDeclName var
         isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
     -- Trace only if profiling is on *and* the thing being defined is a function
-    pure $ if coProfile profileOpts==All && isFunctionOrAbstraction then traceInside varName thunk t ty else t
+    pure $ if coProfile compileOpts==All && isFunctionOrAbstraction then traceInside varName thunk t ty else t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
