@@ -211,42 +211,44 @@ body :: UPLC.Program name uni fun ann -> UPLC.Term name uni fun ann
 body (UPLC.Program _ _ t) = t
 
 -- Terms which can't compute, so delaying them does nothing.
-cantCompute :: UPLC.Term name uni fun ann -> Bool
-cantCompute =
+isInert :: UPLC.Term name uni fun ann -> Bool
+isInert =
     \case
      UPLC.Apply    {} -> False  -- Not quite true: could be a partially applied builtin.
      UPLC.Force    {} -> False
      UPLC.Error    {} -> False
+     UPLC.Var      {} -> False
      UPLC.Delay    {} -> True
-     UPLC.Var      {} -> True
      UPLC.LamAbs   {} -> True
      UPLC.Constant {} -> True
      UPLC.Builtin  {} -> True  -- Builtins must have at least one argument, so this can't perform any computation.
 
+-- force (delay (delay error)) should shrink to delay error, not error.
 
--- Remove all applications of 'delay' to terms that can't compute;
--- once we've done that, we can also make 'force' only work on terms that do compute.
+-- Remove all applications of 'delay' to terms that can't compute; once we've
+-- done that, we can also retain 'force' only for terms that do compute
+-- (although for the validation examples this doesn't appear to do anything).
 -- We also have to make 'force' work on arbitrary terms in the evaluator.
 shrink :: UPLC.Term name uni fun ann -> UPLC.Term name uni fun ann
 shrink t =
     case t of
       UPLC.Delay a t1    -> let t2 = shrink t1 in
-                            if cantCompute t2
+                            if isInert t2
                             then t2
                             else UPLC.Delay a t2
       UPLC.LamAbs a x t1 -> UPLC.LamAbs a x (shrink t1)
       UPLC.Apply a t1 t2 -> UPLC.Apply a (shrink t1) (shrink t2)
-      UPLC.Force a t1    -> UPLC.Force a (shrink t1)
-      {-
-         let t2 = shrink t1 in
-         if cantCompute t2
-         then t2
-         else UPLC.Force a t2
-       -}
-      UPLC.Var {}        -> t
+      UPLC.Force a t1    -> let t2 = shrink t1 in
+                            if isInert t2
+                            then t2
+                            else UPLC.Force a t2
+                             -- In the validators there are many occurences of variables being forced.
+                             -- It's non-trivial to decide statically what the variables point to, so
+                             -- we have to leave the 'force's in in case they're really needed.
+      UPLC.Var      {}   -> t
       UPLC.Constant {}   -> t
-      UPLC.Builtin {}    -> t
-      UPLC.Error {}      -> t
+      UPLC.Builtin  {}   -> t
+      UPLC.Error    {}   -> t
 
 shrinkProgram :: UPLC.Program name uni fun ann -> UPLC.Program name uni fun ann
 shrinkProgram (UPLC.Program a v t)  = UPLC.Program a v (shrink t)
