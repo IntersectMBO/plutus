@@ -232,8 +232,6 @@ isInert =
      UPLC.Constant {} -> True
      UPLC.Builtin  {} -> True  -- Builtins must have at least one argument, so this can't perform any computation.
 
--- force (delay (delay error)) should shrink to delay error, not error.
-
 -- Remove all applications of 'delay' to terms that can't compute; once we've
 -- done that, we can also retain 'force' only for terms that do compute
 -- (although for the validation examples this doesn't appear to do anything).
