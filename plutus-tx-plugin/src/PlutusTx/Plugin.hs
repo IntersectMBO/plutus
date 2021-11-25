@@ -79,6 +79,12 @@ data PluginOptions = PluginOptions {
     , poDoSimplifierRemoveDeadBindings :: Bool
     , poProfile                        :: ProfileOpts
     , poCoverage                       :: CoverageOpts
+
+    -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
+    -- Which effectively ignores the trace text.
+    -- TODO: when simpilers are enabled, we should reduce and inline a `\_ a -> a` call to just `a`.
+    -- Reducing `test/Plugin/NoTrace/traceComplex.plc.golden` is a good start.
+    , poRemoveTrace                    :: Bool
     }
 
 data PluginCtx = PluginCtx
@@ -167,6 +173,7 @@ parsePluginArgs args = do
                    [ l | l <- [minBound .. maxBound], elem' "coverage-all" ]
                 ++ [ LocationCoverage  | elem' "coverage-location"  ]
                 ++ [ BooleanCoverage  | elem' "coverage-boolean"  ]
+            , poRemoveTrace = elem' "remove-trace"
             }
     -- TODO: better parsing with failures
     pure opts
@@ -337,7 +344,7 @@ compileMarkedExpr locStr codeTy origE = do
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
     let ctx = CompileContext {
-            ccOpts = CompileOptions {coProfile =poProfile opts , coCoverage = poCoverage opts },
+            ccOpts = CompileOptions {coProfile=poProfile opts,coCoverage=poCoverage opts,coRemoveTrace=poRemoveTrace opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,

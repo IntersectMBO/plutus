@@ -107,7 +107,7 @@ newtype CoverageMetadata = CoverageMetadata { _metadataSet :: Set Metadata }
 makeLenses ''CoverageMetadata
 
 instance Pretty CoverageMetadata where
-  pretty = pretty . Set.toList . _metadataSet
+  pretty (CoverageMetadata s) = vsep . map pretty . Set.toList $ s
 
 -- | This type keeps track of all coverage annotations and where they have been inserted / what
 -- annotations are expected to be found when executing a piece of code.
@@ -156,8 +156,7 @@ coverageReportFromLogMsg = foldMap (CoverageReport . Set.singleton) . readMaybe
 pprCoverageReport :: CoverageIndex -> CoverageReport -> Doc ann
 pprCoverageReport covIdx report =
   vsep $ ["=========[COVERED]=========="] ++
-         [ d
-         | ann <- Set.toList $ (covIdx ^. coverageAnnotations) `Set.intersection` (report ^. coveredAnnotations)
-         , d <- [pretty ann] ++ [ nest 4 (pretty meta) | meta <- toList $ Map.lookup ann (_coverageMetadata covIdx)] ] ++
+         [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ Map.lookup ann (_coverageMetadata covIdx)))
+         | ann <- Set.toList $ (covIdx ^. coverageAnnotations) `Set.intersection` (report ^. coveredAnnotations) ] ++
          ["========[UNCOVERED]========="] ++
          (map pretty . Set.toList $ (covIdx ^. coverageAnnotations) Set.\\ (report ^. coveredAnnotations))

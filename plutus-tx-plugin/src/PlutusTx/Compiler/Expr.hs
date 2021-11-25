@@ -430,9 +430,9 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                 mempty
 
-            CompileContext {ccOpts=profileOpts} <- ask
+            CompileContext {ccOpts=compileOpts} <- ask
             t' <-
-                if coProfile profileOpts==All then do
+                if coProfile compileOpts==All then do
                     let ty = PLC._varDeclType var'
                         varName = PLC._varDeclName var'
                     t'' <- compileExpr t
@@ -843,7 +843,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
             let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
             fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
             tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ fc), PLC.mkConstant () (T.pack . show $ tc), compiledTerm]
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ tc), PLC.mkConstant () (T.pack . show $ fc), compiledTerm]
           _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
