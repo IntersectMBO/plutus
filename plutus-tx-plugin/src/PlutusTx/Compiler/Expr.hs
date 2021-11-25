@@ -843,7 +843,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
             let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
             fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
             tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ fc), PLC.mkConstant () (T.pack . show $ tc), compiledTerm]
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ tc), PLC.mkConstant () (T.pack . show $ fc), compiledTerm]
           _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
