@@ -110,7 +110,6 @@ stepper (suc n) st | ◆ A     = return (◆ A)
 
 import Algorithmic.CC as CC
 
-{-
 open import Relation.Binary.PropositionalEquality
 open import Data.Sum
 
@@ -164,15 +163,15 @@ thm64 (E CC.▻ ƛ M) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
 thm64 (E CC.▻ (M · N)) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E (-· N))) (thm64 _ E' p)
 thm64 (E CC.▻ Λ M) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
-thm64 (E CC.▻ (M ·⋆ A)) E' (CC.step* refl p) =
+thm64 (E CC.▻ (M ·⋆ A / refl)) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E (-·⋆ A))) (thm64 _ E' p)
 thm64 (E CC.▻ wrap A B M) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E wrap-)) (thm64 _ E' p)
-thm64 (E CC.▻ unwrap M) E' (CC.step* refl p) =
+thm64 (E CC.▻ unwrap M refl) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E unwrap-)) (thm64 _ E' p)
 thm64 (E CC.▻ con M) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
-thm64 (E CC.▻ builtin b) E' (CC.step* refl p) =
+thm64 (E CC.▻ (builtin b / refl)) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
 thm64 (E CC.▻ error _) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
 thm64 (E CC.◅ V) E' (CC.step* refl p) with CC.dissect E | inspect CC.dissect E
@@ -197,11 +196,11 @@ thm64b s .s base = CC.base
 thm64b (s ▻ ƛ M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ (M · M₁)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ Λ M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ (M ·⋆ A)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ (M ·⋆ A / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ wrap A B M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ unwrap M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ unwrap M refl) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ con c) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ builtin b) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ (builtin b / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ error _) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (ε ◅ V) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b ((s , (-· M)) ◅ V) s' (step* refl p) = CC.step*
@@ -239,7 +238,7 @@ thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
-test = ε ▻ (ƛ (con unit) · (builtin iData · con (integer (+ 0))))
+test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)
@@ -255,4 +254,5 @@ lem◆ (step* refl p) = lem◆ p
 
 lem◆' : ∀ {A A'}{M : ∅ ⊢ A}(V : Value M) → ◆ A' -→s □ V → ⊥
 lem◆' V (step* refl p) = lem◆' V p
--- -}
+
+
