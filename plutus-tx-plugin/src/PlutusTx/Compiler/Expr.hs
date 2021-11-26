@@ -11,6 +11,11 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import Class qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
+import GhcPlugins qualified as GHC
+import MkId qualified as GHC
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -26,12 +31,6 @@ import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
-
-import Class qualified as GHC
-import CoreSyn qualified as GHC
-import CostCentre qualified as GHC
-import GhcPlugins qualified as GHC
-import MkId qualified as GHC
 import PrelNames qualified as GHC
 
 import PlutusIR qualified as PIR
@@ -51,6 +50,7 @@ import Control.Monad.Reader (MonadReader (ask))
 
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
+import Data.Functor ((<&>))
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -163,26 +163,34 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
     Just alt -> alt
     Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
 
--- | Make the alternative for a given 'CoreAlt'.
+-- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
     :: CompilingDefault uni fun m
-    => Bool -- ^ Whether we must delay the alternative.
+    => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m (PIRTerm uni fun)
-compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
+compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
-    GHC.DEFAULT   -> do
-        body' <- compileExpr body >>= maybeDelay mustDelay
-        -- need to consume the args
-        argTypes <- mapM compileTypeNorm instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
-        pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
+    GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
+        b <- compileExpr body
+        delayed <- delay b
+        return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
+    GHC.DEFAULT   -> do
+        compiledBody <- compileExpr body
+        nonDelayed <- wrapDefaultAlt compiledBody
+        delayed <- delay compiledBody >>= wrapDefaultAlt
+        return (nonDelayed, delayed)
+    where
+        wrapDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        wrapDefaultAlt body' = do
+            -- need to consume the args
+            argTypes <- mapM compileTypeNorm instArgTys
+            argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
+            pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -516,10 +524,10 @@ entryExitTracingInside lamName displayName = go mempty
             -> PLCType PLC.DefaultUni
             -> PIRTerm PLC.DefaultUni PLC.DefaultFun
         go subst (LamAbs () n t body) (PLC.TyFun () _dom cod) =
-        -- when t = \x -> body, => \x -> traceInside body
+            -- when t = \x -> body, => \x -> traceInside body
             LamAbs () n t $ go subst body cod
         go subst (TyAbs () tn1 k body) (PLC.TyForall () tn2 _k ty) =
-        -- when t = /\x -> body, => /\x -> traceInside body
+            -- when t = /\x -> body, => /\x -> traceInside body
             -- See Note [Profiling polymorphic functions]
             let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
             in TyAbs () tn1 k $ go subst' body ty
@@ -761,26 +769,28 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
-                -- See Note [Case expressions and laziness]
-                isPureAlt <- forM dcs $ \dc ->
-                    let (_, vars, body) = findAlt dc alts t
-                    in if null vars then PIR.isPure (const PIR.NonStrict) <$> compileExpr body else pure True
-                let lazyCase = not (and isPureAlt || length dcs == 1)
-
+                -- it's important to instantiate the match before alts compilation
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
+
+                -- See Note [Case expressions and laziness]
+                compiledAlts <- forM dcs $ \dc -> do
+                    let alt = findAlt dc alts t
+                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                        -- matching on Maybe Int it is [Int] (crucially, not [a])
+                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                    (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
+                    return (nonDelayedAlt, delayedAlt)
+                let
+                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure (const PIR.NonStrict) nonDelayed
+                    lazyCase = not (and isPureAlt || length dcs == 1)
+                    branches = compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
+                        if lazyCase then delayedAlt else nonDelayedAlt
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
                 resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
-
-                branches <- forM dcs $ \dc ->
-                    let alt = findAlt dc alts t
-                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
-                        -- matching on Maybe Int it is [Int] (crucially, not [a])
-                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                    in compileAlt lazyCase instArgTys alt
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
@@ -894,7 +904,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
             let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
             fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
             tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ fc), PLC.mkConstant () (T.pack . show $ tc), compiledTerm]
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ tc), PLC.mkConstant () (T.pack . show $ fc), compiledTerm]
           _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
