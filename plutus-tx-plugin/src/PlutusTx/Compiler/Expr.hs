@@ -11,6 +11,11 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import Class qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
+import GhcPlugins qualified as GHC
+import MkId qualified as GHC
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -23,11 +28,6 @@ import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import Class qualified as GHC
-import CoreSyn qualified as GHC
-import CostCentre qualified as GHC
-import GhcPlugins qualified as GHC
-import MkId qualified as GHC
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
 import PrelNames qualified as GHC
