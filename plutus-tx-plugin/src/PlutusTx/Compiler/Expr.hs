@@ -179,12 +179,12 @@ compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating al
         return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
     GHC.DEFAULT   -> do
         compiledBody <- compileExpr body
-        nonDelayed <- compileDefaultAlt compiledBody
-        delayed <- delay compiledBody >>= compileDefaultAlt
+        nonDelayed <- wrapDefaultAlt compiledBody
+        delayed <- delay compiledBody >>= wrapDefaultAlt
         return (nonDelayed, delayed)
     where
-        compileDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
-        compileDefaultAlt body' = do
+        wrapDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        wrapDefaultAlt body' = do
             -- need to consume the args
             argTypes <- mapM compileTypeNorm instArgTys
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
@@ -490,6 +490,7 @@ traceInside ::
 traceInside varName lamName = go
     where
         go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+            -- when t = \x -> body, => \x -> traceInside body
             LamAbs () n t (traceInside varName lamName body cod)
         go LamAbs{} _ =
             error "traceInside: type mismatched. It should be a function type."
@@ -498,11 +499,13 @@ traceInside varName lamName = go
                 defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
                 displayName = T.pack $ PP.displayPlcDef varName
             in
+            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
                 PIR.Apply
                     ()
                     (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty)
+                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
                         ("entering " <> displayName)
+                        -- \() -> trace @c "exiting f" e
                         (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
                     defaultUnit
 
@@ -715,24 +718,22 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
+                -- it's important to instantiate the match before alts compilation
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
 
                 -- See Note [Case expressions and laziness]
-                alternatives <- forM dcs $ \dc -> do
+                compiledAlts <- forM dcs $ \dc -> do
                     let alt = findAlt dc alts t
                         -- these are the instantiated type arguments, e.g. for the data constructor Just when
                         -- matching on Maybe Int it is [Int] (crucially, not [a])
                         instArgTys = GHC.dataConInstOrigArgTys dc argTys
                     (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
-                    return (alt, nonDelayedAlt, delayedAlt)
-                isPureAlt <- forM alternatives $ \((_, vars, _), nonDelayed, _) ->
-                    pure $ if null vars
-                        then PIR.isPure (const PIR.NonStrict) nonDelayed
-                        else True
-                let lazyCase = not (and isPureAlt || length dcs == 1)
-
-                let branches = alternatives <&> \(_, nonDelayedAlt, delayedAlt) ->
+                    return (nonDelayedAlt, delayedAlt)
+                let
+                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure (const PIR.NonStrict) nonDelayed
+                    lazyCase = not (and isPureAlt || length dcs == 1)
+                    branches = compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
                         if lazyCase then delayedAlt else nonDelayedAlt
 
                 -- See Note [Scott encoding of datatypes]
