@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -40,6 +41,7 @@ monoData = testNested "monomorphic" [
   , goldenPir "monoConstructor" monoConstructor
   , goldenPir "monoConstructed" monoConstructed
   , goldenPir "monoCase" monoCase
+  , goldenPir "monoCaseStrict" monoCaseStrict
   , goldenUEval "monoConstDest" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "defaultCase" defaultCase
   , goldenPir "irrefutableMatch" irrefutableMatch
@@ -48,7 +50,7 @@ monoData = testNested "monomorphic" [
   , goldenPir "monoRecord" monoRecord
   , goldenPir "recordNewtype" recordNewtype
   , goldenPir "nonValueCase" nonValueCase
-  , goldenPir "strictPattern" strictPattern
+  , goldenPir "strictDataMatch" strictDataMatch
   , goldenPir "synonym" synonym
   ]
 
@@ -79,6 +81,10 @@ monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)
 monoCase :: CompiledCode (MyMonoData -> Integer)
 monoCase = plc (Proxy @"monoCase") (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
 
+-- Bang patterns on pattern-matches do nothing: it's already strict
+monoCaseStrict :: CompiledCode (MyMonoData -> Integer)
+monoCaseStrict = plc (Proxy @"monoCase") (\(x :: MyMonoData) -> case x of { Mono1 _ !b -> b;  Mono2 a -> a; Mono3 !a -> a })
+
 defaultCase :: CompiledCode (MyMonoData -> Integer)
 defaultCase = plc (Proxy @"defaultCase") (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
@@ -107,10 +113,11 @@ recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> x)
 nonValueCase :: CompiledCode (MyEnum -> Integer)
 nonValueCase = plc (Proxy @"nonValueCase") (\(x :: MyEnum) -> case x of { Enum1 -> 1::Integer ; Enum2 -> Builtins.error (); })
 
-data StrictPattern a = StrictPattern !a !a
+-- Bang patterns on data types do nothing: fields are already strict
+data StrictTy a = StrictTy !a !a
 
-strictPattern :: CompiledCode (StrictPattern Integer)
-strictPattern = plc (Proxy @"strictPattern") (StrictPattern 1 2)
+strictDataMatch :: CompiledCode (StrictTy Integer)
+strictDataMatch = plc (Proxy @"strictDataMatch") (StrictTy 1 2)
 
 type Synonym = Integer
 
