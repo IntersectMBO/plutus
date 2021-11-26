@@ -905,7 +905,6 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
-{-
 -- convert CK things to CEK things
 
 import Algorithmic.ReductionEC as Red
@@ -914,9 +913,9 @@ ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
 ck2cekBApp : ∀{b az as}{p : az <>> as ∈ arity b}{A}{L : ∅ ⊢ A}
   → Red.BApp b p L → BApp b p A
 
-ck2cekBApp Red.base = base
+ck2cekBApp (Red.base refl) = base
 ck2cekBApp (Red.step p x x₁) = app p (ck2cekBApp x) (ck2cekVal x₁)
-ck2cekBApp (Red.step⋆ p x) = app⋆ p (ck2cekBApp x) refl
+ck2cekBApp (Red.step⋆ p x refl) = app⋆ p (ck2cekBApp x) refl
 
 ck2cekVal (Red.V-ƛ M) = V-ƛ M []
 ck2cekVal (Red.V-Λ M) = V-Λ M []
@@ -951,9 +950,9 @@ cek2ckVal : ∀{A} → (V : Value A) → Red.Value (discharge V)
 
 cek2ckBApp : ∀{b az as}{p : az <>> as ∈ arity b}{A}
   → (vs : BApp b p A) → Red.BApp b p (dischargeB vs)
-cek2ckBApp base = Red.base
+cek2ckBApp base = Red.base refl
 cek2ckBApp (app p vs v) = Red.step p (cek2ckBApp vs) (cek2ckVal v)
-cek2ckBApp (app⋆ p vs refl) = Red.step⋆ p (cek2ckBApp vs)
+cek2ckBApp (app⋆ p vs refl) = Red.step⋆ p (cek2ckBApp vs) refl
 
 cek2ckVal (V-ƛ M ρ) = Red.V-ƛ _
 cek2ckVal (V-Λ M ρ) = Red.V-Λ _
@@ -969,7 +968,7 @@ cek2ckClos (L · M) ρ = cek2ckClos L ρ · cek2ckClos M ρ
 cek2ckClos (Λ L) ρ = Λ (dischargeBody⋆ L ρ)
 cek2ckClos (L ·⋆ A / refl) ρ = cek2ckClos L ρ ·⋆ A / refl
 cek2ckClos (wrap A B L) ρ = wrap A B (cek2ckClos L ρ)
-cek2ckClos (unwrap L) ρ = unwrap (cek2ckClos L ρ)
+cek2ckClos (unwrap L refl) ρ = unwrap (cek2ckClos L ρ) refl
 cek2ckClos (con c) ρ = con c
 cek2ckClos (builtin b / refl) ρ = builtin b / refl
 cek2ckClos (error _) ρ = error _
@@ -1019,7 +1018,7 @@ postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K
 
 postulate dischargeBody⋆-lem' : ∀{Γ K B A}(M : Γ ,⋆ K ⊢ B) ρ → dischargeBody⋆ M ρ [ A ]⋆ ≡ (cek2ckClos (M [ A ]⋆) ρ)
 
-postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BApp b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBApp x)) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
+postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BApp b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
 
 postulate dischargeB'-lem : ∀ {A}{C b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} (s : CK.Stack C _) → s CK.◅ Red.V-I b p (cek2ckBApp x) ≡ (s CK.◅ cek2ckVal (V-I b p x))
 
@@ -1040,11 +1039,11 @@ thm65a (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (look
 thm65a (s ; ρ ▻ ƛ L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ (L · M)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ Λ L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
-thm65a (s ; ρ ▻ (L ·⋆ A)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ (L ·⋆ A / refl)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
-thm65a (s ; ρ ▻ unwrap L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ unwrap L refl) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
-thm65a (s ; ρ ▻ builtin b) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
+thm65a (s ; ρ ▻ (builtin b / refl)) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
 thm65a (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (ε ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
@@ -1092,17 +1091,17 @@ postulate cek2ckClos-·lem : ∀{A B}{L : ∅ ⊢ A ⇒ B}{M : ∅ ⊢ A}{Γ}{ρ
 -- as ƛ is a value, it can be the result of a variable lookup
 postulate cek2ckClos-ƛlem : ∀{A B}{L : ∅ , A ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ A ⇒ B} → (p : ƛ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ ƛ L' × L ≡ dischargeBody L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : ƛ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-ƛ L) ≡ cek2ckVal (lookup x ρ)
 
-postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{Γ}{ρ : Env Γ}{N : Γ ⊢ B [ A ]Nf} → L ·⋆ A ≡ cek2ckClos N ρ → ∃ λ L' → N ≡ L' ·⋆ A × L ≡ cek2ckClos L' ρ
+postulate cek2ckClos-·⋆lem : ∀{K B}{L : ∅ ⊢ Π B}{A : ∅ ⊢Nf⋆ K}{Γ}{ρ : Env Γ}{N : Γ ⊢ B [ A ]Nf} → L ·⋆ A / refl ≡ cek2ckClos N ρ → ∃ λ L' → N ≡ L' ·⋆ A / refl × L ≡ cek2ckClos L' ρ
 
 postulate cek2ckClos-Λlem : ∀{K B}{L : ∅ ,⋆ K ⊢ B}{Γ}{ρ : Env Γ}{N : Γ ⊢ Π B} → (p : Λ L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ Λ L' × L ≡ dischargeBody⋆ L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ (p : Λ L ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.V-Λ L) ≡ cek2ckVal (lookup x ρ)
 
 postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}{N : Γ ⊢ μ A B} → (p : wrap A B L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ wrap A B L' × L ≡ cek2ckClos L' ρ) ⊎ ∃ λ x → N ≡ ` x × ∃ λ V → ∃ λ (q : V-wrap V ≡ lookup x ρ) → discharge V ≡ L × substEq Red.Value (cong discharge q) (Red.V-wrap (cek2ckVal V)) ≡ cek2ckVal (lookup x ρ)
 
-postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' × L ≡ cek2ckClos L' ρ)
+postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L refl ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' refl × L ≡ cek2ckClos L' ρ)
 
 postulate cek2ckClos-conlem : ∀{tc : TyCon ∅}(c : TermCon (con tc)){Γ}{M' : Γ ⊢ con tc}{ρ : Env Γ} → con c ≡ cek2ckClos M' ρ → M' ≡ con c ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
 
-postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ btype b}{ρ : Env Γ} → builtin b ≡ cek2ckClos M' ρ → (M' ≡ builtin b × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : builtin b ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
+postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ btype b}{ρ : Env Γ} → builtin b / refl ≡ cek2ckClos M' ρ → (M' ≡ builtin b / refl × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : builtin b / refl ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
 
 cek2ckStack-εlem : ∀{A}(s : Stack A A) → CK.ε ≡ cek2ckStack s → s ≡ ε
 cek2ckStack-εlem ε       p = refl
@@ -1171,7 +1170,7 @@ thm65b {M' = .(Λ L')} {ρ} {s'} refl q (CK.step* refl r) | inj₁ (L' ,, refl ,
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
 thm65b {M = Λ M} {s = s}{M' = N}{ρ}{s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y' ,, y'') with thm65bV p (trans (substLem Red.Value p y' _) y'') q r
 ... | V ,, r' ,, y ,, y' = V ,, step* refl r' ,, y ,, y'
-thm65b {M = M ·⋆ A} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
+thm65b {M = M ·⋆ A / refl} {s = s}{M' = N}{ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-·⋆lem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, y'
   with thm65b y' (cong (CK._, (Red.-·⋆ A)) q) r
@@ -1183,7 +1182,7 @@ thm65b {M = wrap A B M} {s = s}{M' = N}{ρ}{s' = s'} p refl r | inj₂ (x ,, ref
 thm65b {Γ = _} {wrap _ _ .(cek2ckClos V ρ)} {s = s} {M' = .(wrap _ _ V)} {ρ} {s' = s'} refl refl (CK.step* refl r) | inj₁ (V ,, refl ,, y) with thm65b refl refl r
 ... | x ,, y ,, z ,, z' = x ,, step* refl y ,, z ,, z'
 
-thm65b {M = unwrap M} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl r)
+thm65b {M = unwrap M refl} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl r)
   with cek2ckClos-unwraplem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, x2 with thm65b x2 (cong (CK._, Red.unwrap-) q) r
 ... | V' ,, r' ,, y1 ,, y2 = _ ,, step* refl r' ,, y1 ,, y2
@@ -1194,11 +1193,11 @@ thm65b {M = con c}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
 ... | inj₁ refl = _ ,, step* refl r' ,, x1 ,, x2
 ... | inj₂ (var ,, refl ,, y2) = _ ,, step* (cong (s' ◅_) (sym y2)) r' ,, x1 ,, x2
 
-thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
+thm65b {M = builtin b / refl} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-ibuiltinlem {M' = N}{ρ = ρ} p
-thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y2 ,, y3) with thm65bV y2 y3 q r
+thm65b {M = builtin b / refl} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₂ (x ,, refl ,, y2 ,, y3) with thm65bV y2 y3 q r
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
-thm65b {M = builtin b} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₁ (refl ,, x1 ,, x2)
+thm65b {M = builtin b / refl} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r) | inj₁ (refl ,, x1 ,, x2)
   with thm65bV x1 x2 q r
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
 
@@ -1259,4 +1258,3 @@ thm65bV {M = wrap _ _ M} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W
 ... | _ ,, x' ,, _ ,, y1
   with cek2ckFrame-unwrap-lem _ x3
 thm65bV {L = _} {.(wrap _ _ _)} {.(cek2ckStack s') CK., Red.unwrap- } {_} {Red.V-wrap W} {V-wrap W'} {.(s' , unwrap-)} p q r (CK.step* refl x) | s' ,, .unwrap- ,, refl ,, refl ,, x1 | _ ,, x' ,, _ ,, y1 | refl = _ ,, step* refl x' ,, _ ,, y1
--- -}
