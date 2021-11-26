@@ -442,12 +442,16 @@ hoistExpr var t = do
 maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
-    thunk <- PLC.freshName "thunk"
     let ty = PLC._varDeclType var
         varName = PLC._varDeclName var
+        displayName = T.pack $ PP.displayPlcDef varName
         isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
     -- Trace only if profiling is on *and* the thing being defined is a function
-    pure $ if coProfile compileOpts==All && isFunctionOrAbstraction then traceInside varName thunk t ty else t
+    if coProfile compileOpts==All && isFunctionOrAbstraction
+    then do
+        thunk <- PLC.freshName "thunk"
+        pure $ entryExitTracingInside thunk displayName t ty
+    else pure t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
@@ -489,17 +493,22 @@ not the ones bound by the foralls in the type signature.
 We sort this out in a hacky way by continuing to use the type of the overall term, but
 constructing a substitution from the type-bound variables to the term-bound variables,
 and then applying that at the end. Not pleasant, but it works.
+
+Note that creating a substitution with a map relies on globally unique names in types.
+But that's okay, because these are all types we've been creating just now in Quote, so
+we should have globally unique names
 -}
 
--- | Trace inside a term's lambda. I.e., turn
--- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
-traceInside ::
-    PLC.Name
-    -> PIR.Name
+-- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
+-- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
+-- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
+entryExitTracingInside ::
+    PIR.Name
+    -> T.Text
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
     -> PLC.Type PIR.TyName PLC.DefaultUni ()
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-traceInside varName lamName = go mempty
+entryExitTracingInside lamName displayName = go mempty
     where
         go ::
             Map.Map PLC.TyName (PLCType PLC.DefaultUni)
@@ -514,24 +523,33 @@ traceInside varName lamName = go mempty
             -- See Note [Profiling polymorphic functions]
             let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
             in TyAbs () tn1 k $ go subst' body ty
-        go _ LamAbs{} _ = error "traceInside: type mismatched. Expected a function type."
-        go _ TyAbs{} _ = error "traceInside: type mismatched. Expected a quantified type."
+        go _ LamAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a function type."
+        go _ TyAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a quantified type."
         go subst e ty =
-            let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
-                defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
-                displayName = T.pack $ PP.displayPlcDef varName
-                -- See Note [Profiling polymorphic functions]
-                ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
-            in
-            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
-                PIR.Apply
-                    ()
-                    (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty') -- ()-> ty
-                        ("entering " <> displayName)
-                        -- \() -> trace @c "exiting f" e
-                        (LamAbs () lamName defaultUnitTy (mkTrace ty' ("exiting "<>displayName) e)))
-                    defaultUnit
+            -- See Note [Profiling polymorphic functions]
+            let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
+            in entryExitTracing lamName displayName e ty'
+
+-- | Add tracing before entering and after exiting a term.
+entryExitTracing ::
+    PLC.Name
+    -> T.Text
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+    -> PLC.Type PLC.TyName PLC.DefaultUni ()
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+entryExitTracing lamName displayName e ty =
+    let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
+        defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
+    in
+    --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+        PIR.Apply
+            ()
+            (mkTrace
+                (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                ("entering " <> displayName)
+                -- \() -> trace @c "exiting f" e
+                (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+            defaultUnit
 
 -- Expressions
 
