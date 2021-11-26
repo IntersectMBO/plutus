@@ -27,6 +27,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
+import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
@@ -42,6 +43,7 @@ import PlutusIR.Purity qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
+import PlutusCore.Subst qualified as PLC
 
 import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
@@ -438,22 +440,26 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                 mempty
 
-            CompileContext {ccOpts=compileOpts} <- ask
-            t' <-
-                if coProfile compileOpts==All then do
-                    let ty = PLC._varDeclType var'
-                        varName = PLC._varDeclName var'
-                    t'' <- compileExpr t
-                    thunk <- PLC.freshName "thunk"
-                    pure $
-                        traceInside varName thunk t'' ty
-                else compileExpr t
-
+            t' <- maybeProfileRhs var' =<< compileExpr t
             -- See Note [Non-strict let-bindings]
             let strict = PIR.isPure (const PIR.NonStrict) t'
 
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar () var'
+
+maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs var t = do
+    CompileContext {ccOpts=compileOpts} <- ask
+    let ty = PLC._varDeclType var
+        varName = PLC._varDeclName var
+        displayName = T.pack $ PP.displayPlcDef varName
+        isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
+    -- Trace only if profiling is on *and* the thing being defined is a function
+    if coProfile compileOpts==All && isFunctionOrAbstraction
+    then do
+        thunk <- PLC.freshName "thunk"
+        pure $ entryExitTracingInside thunk displayName t ty
+    else pure t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
@@ -479,35 +485,79 @@ mkLazyTrace ty str v = do
   delayedType <- delayType ty
   force $ mkTrace delayedType str delayedBody
 
--- | Trace inside a term's lambda. I.e., turn
--- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
-traceInside ::
-    PLC.Name
-    -> PIR.Name
+{- Note [Profiling polymorphic functions]
+In order to profile polymorphic functions, we have to go under the type abstractions.
+But we also need the type of the final inner term in order to construct the correct
+invocations of 'trace'. At the moment we get this from the *type* of the term.
+
+But this goes wrong as soon as there are type variables involved!
+
+id :: forall a . a -> a
+id = /\a . \(x :: a) -> x -- The 'a' here is not the same as the 'a' in the type signature!
+
+The type of the term needs to use the type variables bound by the type abstractions,
+not the ones bound by the foralls in the type signature.
+
+We sort this out in a hacky way by continuing to use the type of the overall term, but
+constructing a substitution from the type-bound variables to the term-bound variables,
+and then applying that at the end. Not pleasant, but it works.
+
+Note that creating a substitution with a map relies on globally unique names in types.
+But that's okay, because these are all types we've been creating just now in Quote, so
+we should have globally unique names
+-}
+
+-- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
+-- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
+-- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
+entryExitTracingInside ::
+    PIR.Name
+    -> T.Text
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
     -> PLC.Type PIR.TyName PLC.DefaultUni ()
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-traceInside varName lamName = go
+entryExitTracingInside lamName displayName = go mempty
     where
-        go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+        go ::
+            Map.Map PLC.TyName (PLCType PLC.DefaultUni)
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+            -> PLCType PLC.DefaultUni
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+        go subst (LamAbs () n t body) (PLC.TyFun () _dom cod) =
             -- when t = \x -> body, => \x -> traceInside body
-            LamAbs () n t (traceInside varName lamName body cod)
-        go LamAbs{} _ =
-            error "traceInside: type mismatched. It should be a function type."
-        go e ty =
-            let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
-                defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
-                displayName = T.pack $ PP.displayPlcDef varName
-            in
-            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
-                PIR.Apply
-                    ()
-                    (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
-                        ("entering " <> displayName)
-                        -- \() -> trace @c "exiting f" e
-                        (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
-                    defaultUnit
+            LamAbs () n t $ go subst body cod
+        go subst (TyAbs () tn1 k body) (PLC.TyForall () tn2 _k ty) =
+            -- when t = /\x -> body, => /\x -> traceInside body
+            -- See Note [Profiling polymorphic functions]
+            let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
+            in TyAbs () tn1 k $ go subst' body ty
+        go _ LamAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a function type."
+        go _ TyAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a quantified type."
+        go subst e ty =
+            -- See Note [Profiling polymorphic functions]
+            let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
+            in entryExitTracing lamName displayName e ty'
+
+-- | Add tracing before entering and after exiting a term.
+entryExitTracing ::
+    PLC.Name
+    -> T.Text
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+    -> PLC.Type PLC.TyName PLC.DefaultUni ()
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+entryExitTracing lamName displayName e ty =
+    let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
+        defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
+    in
+    --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+        PIR.Apply
+            ()
+            (mkTrace
+                (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                ("entering " <> displayName)
+                -- \() -> trace @c "exiting f" e
+                (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+            defaultUnit
 
 -- Expressions
 
@@ -676,24 +726,25 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- otherwise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
 
-        GHC.Let (GHC.NonRec b arg) body -> do
+        GHC.Let (GHC.NonRec b rhs) body -> do
             -- the binding is in scope for the body, but not for the arg
-            arg' <- compileExpr arg
+            rhs' <- compileExpr rhs
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure (const PIR.NonStrict) arg'
+            let strict = PIR.isPure (const PIR.NonStrict) rhs'
             withVarScoped b $ \v -> do
-                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                rhs'' <- maybeProfileRhs v rhs'
+                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs''
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
             withVarsScoped (fmap fst bs) $ \vars -> do
                 -- the bindings are scope in both the body and the args
                 -- TODO: this is a bit inelegant matching the vars back up
-                binds <- for (zip vars bs) $ \(v, (_, arg)) -> do
-                    arg' <- compileExpr arg
+                binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
+                    rhs' <- maybeProfileRhs v =<< compileExpr rhs
                     -- See Note [Non-strict let-bindings]
-                    let strict = PIR.isPure (const PIR.NonStrict) arg'
-                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                    let strict = PIR.isPure (const PIR.NonStrict) rhs'
+                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
 

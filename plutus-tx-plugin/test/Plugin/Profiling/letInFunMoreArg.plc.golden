@@ -1,7 +1,11 @@
-[ entering addInteger
-, exiting addInteger
+[ entering f
 , entering addInteger
 , exiting addInteger
+, exiting f
+, entering f
+, entering addInteger
+, exiting addInteger
+, exiting f
 , entering addInteger
 , exiting addInteger
 , entering multiplyInteger
