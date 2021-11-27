@@ -1,11 +1,13 @@
 -- GHC doesn't like the definition of 'makeBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
+{-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE FunctionalDependencies    #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
 {-# LANGUAGE StandaloneKindSignatures  #-}
@@ -36,6 +38,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
+import Data.Text (Text)
 import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
@@ -64,6 +67,40 @@ data BuiltinMeaning term cost =
 -- Besides, for 'BuiltinRuntime' we want to have a concrete 'TypeScheme' anyway for performance
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
+
+data TypeSchemeRuntime m cause term args res where
+    TypeSchemeRuntimeResult
+        :: !((Text -> m ()) -> Maybe cause -> res -> m term)
+        -> TypeSchemeRuntime m cause term '[] res
+    TypeSchemeRuntimeArrow
+        :: !(Maybe cause -> term -> m arg)
+        -> !(TypeSchemeRuntime m cause term args res)
+        -> TypeSchemeRuntime m cause term (arg ': args) res
+    TypeSchemeRuntimeAll
+        :: !(TypeSchemeRuntime m cause term args res)
+        -> TypeSchemeRuntime m cause term args res
+
+toTypeSchemeRuntime
+    :: forall m term args res err cause.
+       ( MonadError (ErrorWithCause err cause) m
+       , AsUnliftingError err, AsEvaluationFailure err
+       )
+    => TypeScheme term args res
+    -> TypeSchemeRuntime m cause term args res
+toTypeSchemeRuntime = go where
+    go
+        :: TypeScheme term args' res
+        -> TypeSchemeRuntime m cause term args' res
+    go (TypeSchemeResult _) =
+        let mk :: (Text -> m ()) -> Maybe cause -> res -> m term
+            !mk = makeKnown
+        in TypeSchemeRuntimeResult mk
+    go (TypeSchemeArrow (_ :: Proxy arg) schB) =
+        let rk :: Maybe cause -> term -> m arg
+            !rk = readKnown
+        in TypeSchemeRuntimeArrow rk $ go schB
+    go (TypeSchemeAll _ schK) =
+        TypeSchemeRuntimeAll . go $ schK Proxy
 
 -- We tried instantiating 'BuiltinMeaning' on the fly and that was sloer than precaching
 -- 'BuiltinRuntime's.
@@ -99,6 +136,29 @@ newtype BuiltinsRuntime fun term = BuiltinsRuntime
 toBuiltinRuntime :: cost -> BuiltinMeaning term cost -> BuiltinRuntime term
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) = BuiltinRuntime sch f (exF cost)
 
+data BuiltinRuntime' m cause term =
+    forall args res. BuiltinRuntime'
+        (TypeSchemeRuntime m cause term args res)
+        (FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
+                             -- it's fully saturated before figuring out what it's going to cost.
+        (FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
+                             -- can put @undefined@ here. TODO: we should test if making this strict
+                             -- introduces any measurable speedup.
+
+-- | A 'BuiltinRuntime' for each builtin from a set of builtins.
+newtype BuiltinsRuntime' fun m cause term = BuiltinsRuntime'
+    { unBuiltinRuntime' :: Array fun (BuiltinRuntime' m cause term)
+    }
+
+-- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
+toBuiltinRuntime'
+    :: ( MonadError (ErrorWithCause err cause) m
+       , AsUnliftingError err, AsEvaluationFailure err
+       )
+    => cost -> BuiltinMeaning term cost -> BuiltinRuntime' m cause term
+toBuiltinRuntime' cost (BuiltinMeaning sch f exF) =
+    BuiltinRuntime' (toTypeSchemeRuntime sch) f (exF cost)
+
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
@@ -120,12 +180,32 @@ toBuiltinsRuntime
 toBuiltinsRuntime cost =
     BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
 
+-- | Calculate runtime info for all built-in functions given denotations of builtins
+-- and a cost model.
+toBuiltinsRuntime'
+    :: ( cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun
+       , MonadError (ErrorWithCause err cause) m
+       , AsUnliftingError err, AsEvaluationFailure err
+       )
+    => cost -> BuiltinsRuntime' fun m cause term
+toBuiltinsRuntime' cost =
+    BuiltinsRuntime' . tabulateArray $ toBuiltinRuntime' cost . toBuiltinMeaning
+
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
     :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun, Ix fun)
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
+    Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
+    Just bri -> pure bri
+
+-- | Look up the runtime info of a built-in function during evaluation.
+lookupBuiltin'
+    :: (MonadError (ErrorWithCause err cause) m, AsMachineError err fun, Ix fun)
+    => fun -> BuiltinsRuntime' fun m cause term -> m (BuiltinRuntime' m cause term)
+-- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
+lookupBuiltin' fun (BuiltinsRuntime' env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
 

@@ -4,6 +4,7 @@
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntime
+    , defaultBuiltinsRuntime'
     , defaultCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
@@ -24,7 +25,9 @@ import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget ()
 import PlutusCore.Evaluation.Machine.ExMemory ()
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Name
 
+import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
@@ -74,14 +77,23 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
-defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+defaultCekParameters
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
+    => MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s)
 defaultCekParameters = toMachineParameters defaultCekCostModel
 
-unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+unitCekParameters
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
+    => MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s)
 unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
+
+defaultBuiltinsRuntime'
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
+    => BuiltinsRuntime' DefaultFun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s)
+defaultBuiltinsRuntime' = toBuiltinsRuntime' defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
@@ -18,6 +19,7 @@ import PlutusCore.Name
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Control.Monad.Except
 import Data.Text (Text)
@@ -25,8 +27,8 @@ import Data.Text (Text)
 -- | Type check and evaluate a term.
 typecheckAnd
     :: (MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni)
-    => (params -> UPLC.Term Name uni fun () -> a)
-    -> params -> TPLC.Term TyName Name uni fun () -> m a
+    => ((forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s)) -> UPLC.Term Name uni fun () -> a)
+    -> (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s)) -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd action runtime term = TPLC.runQuoteT $ do
     tcConfig <- TPLC.getDefTypeCheckConfig ()
     _ <- TPLC.inferType tcConfig term
@@ -37,7 +39,7 @@ typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s))
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek = typecheckAnd $ unsafeEvaluateCek logEmitter
@@ -47,7 +49,7 @@ typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s))
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
@@ -58,7 +60,7 @@ typecheckReadKnownCek
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        , KnownType (UPLC.Term Name uni fun ()) a
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (UPLC.Term Name uni fun ()) (CekValue uni fun s))
     -> TPLC.Term TyName Name uni fun ()
     -> m (Either (CekEvaluationException uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

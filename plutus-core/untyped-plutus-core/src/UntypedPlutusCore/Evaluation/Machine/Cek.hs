@@ -1,6 +1,7 @@
 -- | The API to the CEK machine.
 
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
@@ -82,8 +83,8 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    :: (uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
@@ -98,7 +99,7 @@ unsafeRunCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
@@ -108,9 +109,9 @@ unsafeRunCekNoEmit params mode =
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: (uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun
+    -> (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
@@ -119,8 +120,8 @@ evaluateCek emitMode params term =
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    :: (uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
@@ -132,7 +133,7 @@ unsafeEvaluateCek
        , Ix fun, Pretty fun, Typeable fun
        )
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun
+    -> (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [Text])
 unsafeEvaluateCek emitTime params =
@@ -145,7 +146,7 @@ unsafeEvaluateCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEmit params
@@ -156,7 +157,7 @@ readKnownCek
        , KnownType (Term Name uni fun ()) a
        , Ix fun, PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => (forall s. MachineParameters CekMachineCosts fun (CekM uni fun s) (Term Name uni fun ()) (CekValue uni fun s))
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
 readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf
