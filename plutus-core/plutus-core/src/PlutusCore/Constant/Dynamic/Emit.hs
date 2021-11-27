@@ -1,27 +1,69 @@
 {-# LANGUAGE RankNTypes #-}
 
 module PlutusCore.Constant.Dynamic.Emit
-    ( Emitter (..)
-    , emitM
+    ( MonadEmitter (..)
+    , Emitter (..)
+    , NoEmitterT (..)
+    , WithEmitterT (..)
     ) where
 
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Identity
 import Data.Text (Text)
 
--- | A monad for logging that does not hardcode any concrete first-order encoding and instead packs
--- a @Monad m@ constraint and a @Text -> m ()@ argument internally, so that built-in functions that
--- do logging can work in any monad (for example, @CkM@ or @CekM@), for which there exists a
--- logging function.
+-- | A class for emitting 'Text's in a monadic context (basically, for logging).
+class Monad m => MonadEmitter m where
+    emit :: Text -> m ()
+
+-- | A concrete type implementing 'MonadEmitter'. Useful in signatures of built-in functions that
+-- do logging. We don't use any concrete first-order encoding and instead pack a @MonadEmitter m@
+-- constraint internally, so that built-in functions that do logging can work in any monad
+-- implementing 'MonadEmitter' (for example, @CkM@ or @CekM@).
 newtype Emitter a = Emitter
-    { unEmitter :: forall m. Monad m => (Text -> m ()) -> m a
+    { unEmitter :: forall m. MonadEmitter m => m a
     } deriving (Functor)
 
 -- newtype-deriving doesn't work with 'Emitter'.
 instance Applicative Emitter where
-    pure x = Emitter $ \_ -> pure x
-    Emitter f <*> Emitter a = Emitter $ \emit -> f emit <*> a emit
+    pure x = Emitter $ pure x
+    Emitter f <*> Emitter a = Emitter $ f <*> a
 
 instance Monad Emitter where
-    Emitter a >>= f = Emitter $ \emit -> a emit >>= \x -> unEmitter (f x) emit
+    Emitter a >>= f = Emitter $ a >>= unEmitter . f
 
-emitM :: Text -> Emitter ()
-emitM text = Emitter ($ text)
+instance MonadEmitter Emitter where
+    emit str = Emitter $ emit str
+
+-- | A newtype wrapper for providing a 'MonadEmitter' instance by directly providing the function.
+newtype WithEmitterT m a = WithEmitterT
+    { unWithEmitterT :: (Text -> m ()) -> m a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadError e, MonadState s
+        )
+      via
+        ReaderT (Text -> m ()) m
+
+instance Monad m => MonadEmitter (WithEmitterT m) where
+    emit s = WithEmitterT $ \e -> e s
+
+instance MonadTrans WithEmitterT where
+    lift a = WithEmitterT $ const a
+
+-- | A newtype wrapper for via-deriving a vacuous 'MonadEmitter' instance for a monad.
+newtype NoEmitterT m a = NoEmitterT
+    { unNoEmitterT :: m a
+    } deriving
+        ( Functor, Applicative, Monad
+        , MonadReader r, MonadError e, MonadState s
+        )
+      via
+        IdentityT m
+
+instance Monad m => MonadEmitter (NoEmitterT m) where
+    emit _ = pure ()
+
+instance (MonadEmitter m) => MonadEmitter (ExceptT e m) where
+    emit = lift . emit

@@ -207,7 +207,7 @@ instance KnownTypeAst DefaultUni Int where
 
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
-    makeKnown emit mayCause = makeKnown emit mayCause . toInteger
+    makeKnown mayCause = makeKnown mayCause . toInteger
     readKnown mayCause term = do
         i :: Integer <- readKnown mayCause term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $

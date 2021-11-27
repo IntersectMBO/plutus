@@ -115,6 +115,8 @@ newtype EvalM unique name uni fun ann a = EvalM
         ( Functor, Applicative, Monad
         , MonadError (HoasException fun (Value unique name uni fun ann))
         )
+      -- No logging for now.
+      deriving (MonadEmitter) via (NoEmitterT (EvalM unique name uni fun ann))
 
 makeClassyPrisms ''UserHoasError
 makeClassyPrisms ''InternalHoasError
@@ -208,7 +210,7 @@ evalBuiltinApp
 -- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
 -- 'makeKnown' never returns a non-value term.
 evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) =
-    makeKnown (\_ -> pure ()) Nothing x  -- No logging for now.
+    makeKnown Nothing x
 evalBuiltinApp ann getTerm runtime =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 

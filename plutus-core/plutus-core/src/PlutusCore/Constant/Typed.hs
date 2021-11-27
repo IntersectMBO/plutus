@@ -70,7 +70,6 @@ import Data.Proxy
 import Data.SOP.Constraint
 import Data.Some.GADT qualified as GADT
 import Data.String
-import Data.Text (Text)
 import Data.Text qualified as Text
 import GHC.Ix
 import GHC.TypeLits
@@ -534,18 +533,18 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
+        :: ( MonadEmitter m, MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
            )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        => Maybe cause -> a -> m term
     default makeKnown
         :: ( MonadError (ErrorWithCause err cause) m
            , KnownBuiltinType term a
            )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        => Maybe cause -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown _ _ x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
@@ -608,7 +607,7 @@ instance (MonadError err m, AsEvaluationFailure err) =>
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 -- For example the monad can be simply 'EvaluationResult'.
 makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownOrFail = unNoCauseT . makeKnown (\_ -> pure ()) Nothing
+makeKnownOrFail = unNoCauseT . unNoEmitterT . makeKnown Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
@@ -617,8 +616,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
             KnownTypeIn uni term (EvaluationResult a) where
-    makeKnown _    mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
-    makeKnown emit mayCause (EvaluationSuccess x) = makeKnown emit mayCause x
+    makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
+    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -635,7 +634,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
-    makeKnown emit mayCause (Emitter k) = k emit >>= makeKnown emit mayCause
+    makeKnown mayCause = unEmitter >=> makeKnown mayCause
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
 
@@ -655,7 +654,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (SomeConstant uni rep) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstant
+    makeKnown _ = pure . fromConstant . unSomeConstant
     readKnown mayCause = fmap SomeConstant . asConstant mayCause
 
 -- | For unlifting from the 'Constant' constructor when the stored value is of a polymorphic
@@ -681,7 +680,7 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
          , HasConstantIn uni term
          ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstantPoly
+    makeKnown _ = pure . fromConstant . unSomeConstantPoly
     readKnown mayCause = fmap SomeConstantPoly . asConstant mayCause
 
 toTyNameAst
@@ -722,7 +721,7 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (Opaque term' rep) where
-    makeKnown _ _ = pure . unOpaque
+    makeKnown _ = pure . unOpaque
     readKnown _ = pure . Opaque
 
 -- Custom type errors to guide the programmer adding a new built-in function.
