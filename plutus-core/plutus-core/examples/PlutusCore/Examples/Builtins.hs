@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusCore.Examples.Builtins where
 
@@ -34,6 +35,7 @@ import Data.Void
 import GHC.Generics
 import GHC.Ix
 import Prettyprinter
+import Universe
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -245,8 +247,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             :: SomeConstant uni a
             -> SomeConstant uni b
             -> SomeConstantPoly uni (,) '[a, b]
-        commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
-            SomeConstantPoly $ someValueOf (DefaultUniPair uniA uniB) (x, y)
+        commaPlc
+            (SomeConstant (toSomeValueOf -> (Some (ValueOf uniA x))))
+            (SomeConstant (toSomeValueOf -> (Some (ValueOf uniB y)))) =
+                SomeConstantPoly $ hiddenValueOf (DefaultUniPair uniA uniB) (x, y)
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc
@@ -255,21 +259,21 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             -> SomeConstantPoly uni (,) '[a, b]
             -> EvaluationResult (SomeConstantPoly uni (,) '[a, b])
         biconstPairPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstant (Some (ValueOf uniB y)))
-            (SomeConstantPoly (Some (ValueOf uniPairAB _))) = do
+            (SomeConstant (toSomeValueOf -> Some (ValueOf uniA x)))
+            (SomeConstant (toSomeValueOf -> Some (ValueOf uniB y)))
+            (SomeConstantPoly (toSomeValueOf -> Some (ValueOf uniPairAB _))) = do
                 DefaultUniPair uniA' uniB' <- pure uniPairAB
                 Just Refl <- pure $ uniA `geq` uniA'
                 Just Refl <- pure $ uniB `geq` uniB'
-                pure . SomeConstantPoly $ someValueOf uniPairAB (x, y)
+                pure . SomeConstantPoly $ hiddenValueOf uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc
             :: SomeConstantPoly uni (,) '[a, b]
             -> EvaluationResult (SomeConstantPoly uni (,) '[b, a])
-        swapPlc (SomeConstantPoly (Some (ValueOf uniPairAB p))) = do
+        swapPlc (SomeConstantPoly (toSomeValueOf -> Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
-            pure . SomeConstantPoly $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
+            pure . SomeConstantPoly $ hiddenValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
@@ -277,7 +281,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
             => SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[a, Bool]]
             -> EvaluationResult (SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[Bool, a]])
-        swapElsPlc (SomeConstantPoly (Some (ValueOf uniList xs))) = do
+        swapElsPlc (SomeConstantPoly (toSomeValueOf -> Some (ValueOf uniList xs))) = do
             DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
             let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
-            pure . SomeConstantPoly . someValueOf uniList' $ map swap xs
+            pure . SomeConstantPoly . hiddenValueOf uniList' $ map swap xs

@@ -22,11 +22,13 @@ module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
+    , HiddenValueOf (..)
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
 import PlutusCore.Constant
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Parsable
@@ -99,6 +101,62 @@ deriveGCompare ''DefaultUni
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
+
+data instance HiddenValueOf DefaultUni
+    = ValueOfDefaultUniInteger !Integer
+    | ValueOfDefaultUniByteString {-# UNPACK #-} !BS.ByteString
+    | ValueOfDefaultUniString {-# UNPACK #-} !Text.Text
+    | ValueOfDefaultUniUnit
+    | ValueOfDefaultUniBool !Bool
+    | forall a. ValueOfDefaultUniList !(DefaultUni (Esc a)) ![a]  -- TODO: doc on [HiddenValueOf DefaultUni]
+    | forall a b. ValueOfDefaultUniPair !(DefaultUni (Esc a)) !(DefaultUni (Esc b)) !(a, b)
+    | ValueOfDefaultUniData !Data
+
+instance HasHiddenValueOf DefaultUni where
+    hiddenValueOf DefaultUniInteger i = ValueOfDefaultUniInteger i
+    hiddenValueOf DefaultUniByteString bs = ValueOfDefaultUniByteString bs
+    hiddenValueOf DefaultUniString txt = ValueOfDefaultUniString txt
+    hiddenValueOf DefaultUniUnit () = ValueOfDefaultUniUnit
+    hiddenValueOf DefaultUniBool b = ValueOfDefaultUniBool b
+    hiddenValueOf (DefaultUniProtoList `DefaultUniApply` uniA) xs = ValueOfDefaultUniList uniA xs
+    hiddenValueOf (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) p =
+        ValueOfDefaultUniPair uniA uniB p
+    hiddenValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    hiddenValueOf DefaultUniData d = ValueOfDefaultUniData d
+
+    extractValueOf DefaultUniInteger (ValueOfDefaultUniInteger i) = Just i
+    extractValueOf DefaultUniByteString (ValueOfDefaultUniByteString bs) = Just bs
+    extractValueOf DefaultUniString (ValueOfDefaultUniString txt) = Just txt
+    extractValueOf DefaultUniUnit ValueOfDefaultUniUnit = Just ()
+    extractValueOf DefaultUniBool (ValueOfDefaultUniBool b) = Just b
+    extractValueOf (DefaultUniList uniA) (ValueOfDefaultUniList uniA' xs) = do
+        Refl <- uniA `geq` uniA'
+        Just xs
+    extractValueOf (DefaultUniPair uniA uniB) (ValueOfDefaultUniPair uniA' uniB' p) = do
+        Refl <- uniA `geq` uniA'
+        Refl <- uniB `geq` uniB'
+        Just p
+    extractValueOf DefaultUniData (ValueOfDefaultUniData d) = Just d
+    extractValueOf DefaultUniInteger _ = Nothing
+    extractValueOf DefaultUniByteString _ = Nothing
+    extractValueOf DefaultUniString _ = Nothing
+    extractValueOf DefaultUniUnit _ = Nothing
+    extractValueOf DefaultUniBool _ = Nothing
+    extractValueOf (DefaultUniProtoList `DefaultUniApply` _) _ = Nothing
+    extractValueOf (DefaultUniProtoPair `DefaultUniApply` _ `DefaultUniApply` _) _ = Nothing
+    extractValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    extractValueOf DefaultUniData _ = Nothing
+
+    toSomeValueOf (ValueOfDefaultUniInteger i)        = someValue i
+    toSomeValueOf (ValueOfDefaultUniByteString bs)    = someValue bs
+    toSomeValueOf (ValueOfDefaultUniString txt)       = someValue txt
+    toSomeValueOf ValueOfDefaultUniUnit               = someValue ()
+    toSomeValueOf (ValueOfDefaultUniBool b)           = someValue b
+    toSomeValueOf (ValueOfDefaultUniList uniA xs)     = someValueOf (DefaultUniList uniA) xs
+    toSomeValueOf (ValueOfDefaultUniPair uniA uniB p) = someValueOf (DefaultUniPair uniA uniB) p
+    toSomeValueOf (ValueOfDefaultUniData d)           = someValue d
 
 instance ToKind DefaultUni where
     toSingKind DefaultUniInteger        = knownKind
@@ -279,3 +337,17 @@ instance Closed DefaultUni where
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
     bring _ DefaultUniData r = r
+
+instance ExMemoryUsage (HiddenValueOf DefaultUni) where
+    memoryUsage (ValueOfDefaultUniInteger i)        = memoryUsage i
+    memoryUsage (ValueOfDefaultUniByteString bs)    = memoryUsage bs
+    memoryUsage (ValueOfDefaultUniString txt)       = memoryUsage txt
+    memoryUsage ValueOfDefaultUniUnit               = memoryUsage ()
+    memoryUsage (ValueOfDefaultUniBool b)           = memoryUsage b
+    -- Built-in functions like 'Cons' have linear complexity because of this line, since
+    -- 'memoryUsage' traverses the entire list to calculate how much memory it retains.
+    memoryUsage (ValueOfDefaultUniList uniA xs) =
+        bring (Proxy @ExMemoryUsage) uniA $ memoryUsage xs
+    memoryUsage (ValueOfDefaultUniPair uniA uniB p) =
+        bring (Proxy @ExMemoryUsage) uniA $ bring (Proxy @ExMemoryUsage) uniB $ memoryUsage p
+    memoryUsage (ValueOfDefaultUniData d) = memoryUsage d

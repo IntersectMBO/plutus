@@ -82,7 +82,7 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: (ExMemoryUsage (HiddenValueOf uni), Ix fun, PrettyUni uni fun, HasHiddenValueOf uni)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
@@ -95,8 +95,8 @@ runCekNoEmit params mode term =
 -- May throw a 'CekMachineException'.
 unsafeRunCekNoEmit
     :: ( GShow uni, Typeable uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , Closed uni, uni `Everywhere` PrettyConst, ExMemoryUsage (HiddenValueOf uni)
+       , Ix fun, Pretty fun, Typeable fun, HasHiddenValueOf uni
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
@@ -108,7 +108,7 @@ unsafeRunCekNoEmit params mode =
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: (ExMemoryUsage (HiddenValueOf uni), Ix fun, PrettyUni uni fun, HasHiddenValueOf uni)
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
@@ -119,7 +119,7 @@ evaluateCek emitMode params term =
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: (ExMemoryUsage (HiddenValueOf uni), Ix fun, PrettyUni uni fun, HasHiddenValueOf uni)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
@@ -128,8 +128,8 @@ evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, Typeable uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , Closed uni, uni `Everywhere` PrettyConst, ExMemoryUsage (HiddenValueOf uni)
+       , Ix fun, Pretty fun, Typeable fun, HasHiddenValueOf uni
        )
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
@@ -142,8 +142,8 @@ unsafeEvaluateCek emitTime params =
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
     :: ( GShow uni, Typeable uni
-       , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , Closed uni, uni `Everywhere` PrettyConst, ExMemoryUsage (HiddenValueOf uni)
+       , Ix fun, Pretty fun, Typeable fun, HasHiddenValueOf uni
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
@@ -152,9 +152,9 @@ unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEm
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
-    :: ( uni `Everywhere` ExMemoryUsage
+    :: ( ExMemoryUsage (HiddenValueOf uni)
        , KnownType (Term Name uni fun ()) a
-       , Ix fun, PrettyUni uni fun
+       , Ix fun, PrettyUni uni fun, HasHiddenValueOf uni
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()

@@ -42,6 +42,11 @@ module Universe.Core
     , deriveGEq
     , deriveGCompare
     , (:~:)(..)
+
+    , HiddenValueOf
+    , HasHiddenValueOf (..)
+    , fromSomeValueOf
+    , hiddenValue
     ) where
 
 import Control.Applicative
@@ -337,6 +342,17 @@ data Kinded uni ta where
 type ValueOf :: (Type -> Type) -> Type -> Type
 data ValueOf uni a = ValueOf !(uni (Esc a)) !a
 
+type HiddenValueOf :: (Type -> Type) -> Type
+data family HiddenValueOf uni
+
+class HasHiddenValueOf uni where
+    hiddenValueOf  :: uni (Esc a) -> a -> HiddenValueOf uni
+    extractValueOf :: uni (Esc a) -> HiddenValueOf uni -> Maybe a
+    toSomeValueOf  :: HiddenValueOf uni -> Some (ValueOf uni)
+
+fromSomeValueOf :: HasHiddenValueOf uni => Some (ValueOf uni) -> HiddenValueOf uni
+fromSomeValueOf (Some (ValueOf uni x)) = hiddenValueOf uni x
+
 {- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:
 
@@ -416,6 +432,10 @@ someValueOf uni = Some . ValueOf uni
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
+
+-- | Wrap a value into @HiddenValueOf uni@, provided its type is in the universe.
+hiddenValue :: forall a uni. (HasHiddenValueOf uni, uni `Includes` a) => a -> HiddenValueOf uni
+hiddenValue = hiddenValueOf knownUni
 
 -- | A monad to decode types from a universe in.
 -- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off

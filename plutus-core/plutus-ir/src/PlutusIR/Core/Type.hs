@@ -125,12 +125,12 @@ data Term tyname name uni fun a =
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance AsConstant (Term tyname name uni fun ann) where
-    asConstant _        (Constant _ val) = pure val
+instance PLC.HasHiddenValueOf uni => AsConstant (Term tyname name uni fun ann) where
+    asConstant _        (Constant _ val) = pure $ PLC.fromSomeValueOf val
     asConstant mayCause _                = throwNotAConstant mayCause
 
-instance FromConstant (Term tyname name uni fun ()) where
-    fromConstant = Constant ()
+instance PLC.HasHiddenValueOf uni => FromConstant (Term tyname name uni fun ()) where
+    fromConstant = Constant () . PLC.toSomeValueOf
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
     var      = Var

@@ -59,12 +59,12 @@ data HTerm m name uni fun ann
 
 type instance UniOf (HTerm m name uni fun ann) = uni
 
-instance AsConstant (HTerm m name uni fun ann) where
-    asConstant _        (HConstant _ val) = pure val
+instance HasHiddenValueOf uni => AsConstant (HTerm m name uni fun ann) where
+    asConstant _        (HConstant _ val) = pure $ fromSomeValueOf val
     asConstant mayCause _                 = throwNotAConstant mayCause
 
-instance FromConstant (HTerm m name uni fun ()) where
-    fromConstant = HConstant ()
+instance HasHiddenValueOf uni => FromConstant (HTerm m name uni fun ()) where
+    fromConstant = HConstant () . toSomeValueOf
 
 data UserHoasError
     = HoasEvaluationFailure

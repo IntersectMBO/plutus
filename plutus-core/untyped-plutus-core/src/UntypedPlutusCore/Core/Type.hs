@@ -95,12 +95,12 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
-instance TPLC.AsConstant (Term name uni fun ann) where
-    asConstant _        (Constant _ val) = pure val
+instance HasHiddenValueOf uni => TPLC.AsConstant (Term name uni fun ann) where
+    asConstant _        (Constant _ val) = pure $ fromSomeValueOf val
     asConstant mayCause _                = TPLC.throwNotAConstant mayCause
 
-instance TPLC.FromConstant (Term name uni fun ()) where
-    fromConstant = Constant ()
+instance HasHiddenValueOf uni => TPLC.FromConstant (Term name uni fun ()) where
+    fromConstant = Constant () . toSomeValueOf
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
