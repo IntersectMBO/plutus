@@ -288,7 +288,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           choosePlc :: SomeConstantPoly uni [] '[a] -> b -> b -> EvaluationResult b
           choosePlc (SomeConstantPoly val) a b = do
-            ValueOfDefaultUniList _ _ xs <- pure val
+            ValueOfDefaultUniList _ xs <- pure val
             pure $ case xs of
                 []    -> a
                 _ : _ -> b
@@ -305,7 +305,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (SomeConstant xOfUniA)
 --             (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) =
             (SomeConstantPoly val) = do
-                ValueOfDefaultUniList valOf uniA xs <- pure val
+                ValueOfDefaultUniList uniA xs <- pure val
                 -- Checking that the type of the constant is the same as the type of the elements
                 -- of the unlifted list. Note that there's no way we could enforce this statically
                 -- since in UPLC one can create an ill-typed program that attempts to prepend
@@ -315,7 +315,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     -- https://github.com/input-output-hk/plutus/pull/3035
                     Nothing -> EvaluationFailure
                     Just x  ->
-                        EvaluationSuccess . fromConstant . ValueOfDefaultUniList valOf uniA $ x : xs
+                        EvaluationSuccess . fromConstant . ValueOfDefaultUniList uniA $ x : xs
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
             headPlc
@@ -323,9 +323,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           headPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult (Opaque term a)
           headPlc (SomeConstantPoly val) = do
-              ValueOfDefaultUniList valOf _ xs <- pure val
+              ValueOfDefaultUniList uniA xs <- pure val
               x : _ <- pure xs
-              pure . fromConstant $ valOf x
+              pure . fromConstant $ hiddenValueOf uniA x
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
             tailPlc
@@ -335,9 +335,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             :: listA ~ SomeConstantPoly uni [] '[a]
             => listA -> EvaluationResult (Opaque term listA)
           tailPlc (SomeConstantPoly val) = do
-              ValueOfDefaultUniList valOf uniA xs <- pure val
+              ValueOfDefaultUniList uniA xs <- pure val
               _ : xs' <- pure xs
-              pure . fromConstant $ ValueOfDefaultUniList valOf uniA xs'
+              pure . fromConstant $ ValueOfDefaultUniList uniA xs'
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
             nullPlc
@@ -345,7 +345,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         where
           nullPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult Bool
           nullPlc (SomeConstantPoly val) = do
-              ValueOfDefaultUniList _ _ xs <- pure val
+              ValueOfDefaultUniList _ xs <- pure val
               pure $ null xs
 
     -- Data

@@ -111,31 +111,29 @@ data instance HiddenValueOf DefaultUni
     | ValueOfDefaultUniString {-# UNPACK #-} !Text.Text
     | ValueOfDefaultUniUnit
     | ValueOfDefaultUniBool !Bool
-    -- TODO: doc on [HiddenValueOf DefaultUni]
-    | forall a. ValueOfDefaultUniList !(a -> HiddenValueOf DefaultUni) !(DefaultUni (Esc a)) ![a]
+    | forall a. ValueOfDefaultUniList !(DefaultUni (Esc a)) ![a]  -- TODO: doc on [HiddenValueOf DefaultUni]
     | forall a b. ValueOfDefaultUniPair !(DefaultUni (Esc a)) !(DefaultUni (Esc b)) !(a, b)
     | ValueOfDefaultUniData !Data
 
 instance HasHiddenValueOf DefaultUni where
-    hiddenValueOf DefaultUniInteger = ValueOfDefaultUniInteger
-    hiddenValueOf DefaultUniByteString = ValueOfDefaultUniByteString
-    hiddenValueOf DefaultUniString = ValueOfDefaultUniString
-    hiddenValueOf DefaultUniUnit = const ValueOfDefaultUniUnit
-    hiddenValueOf DefaultUniBool = ValueOfDefaultUniBool
-    hiddenValueOf (DefaultUniProtoList `DefaultUniApply` uniA) =
-        ValueOfDefaultUniList (hiddenValueOf uniA) uniA
-    hiddenValueOf (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) =
-        ValueOfDefaultUniPair uniA uniB
-    hiddenValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) =
-        const $ noMoreTypeFunctions f
-    hiddenValueOf DefaultUniData = ValueOfDefaultUniData
+    hiddenValueOf DefaultUniInteger i = ValueOfDefaultUniInteger i
+    hiddenValueOf DefaultUniByteString bs = ValueOfDefaultUniByteString bs
+    hiddenValueOf DefaultUniString txt = ValueOfDefaultUniString txt
+    hiddenValueOf DefaultUniUnit () = ValueOfDefaultUniUnit
+    hiddenValueOf DefaultUniBool b = ValueOfDefaultUniBool b
+    hiddenValueOf (DefaultUniProtoList `DefaultUniApply` uniA) xs = ValueOfDefaultUniList uniA xs
+    hiddenValueOf (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) p =
+        ValueOfDefaultUniPair uniA uniB p
+    hiddenValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    hiddenValueOf DefaultUniData d = ValueOfDefaultUniData d
 
     extractValueOf DefaultUniInteger (ValueOfDefaultUniInteger i) = Just i
     extractValueOf DefaultUniByteString (ValueOfDefaultUniByteString bs) = Just bs
     extractValueOf DefaultUniString (ValueOfDefaultUniString txt) = Just txt
     extractValueOf DefaultUniUnit ValueOfDefaultUniUnit = Just ()
     extractValueOf DefaultUniBool (ValueOfDefaultUniBool b) = Just b
-    extractValueOf (DefaultUniList uniA) (ValueOfDefaultUniList _ uniA' xs) = do
+    extractValueOf (DefaultUniList uniA) (ValueOfDefaultUniList uniA' xs) = do
         Refl <- uniA `geq` uniA'
         Just xs
     extractValueOf (DefaultUniPair uniA uniB) (ValueOfDefaultUniPair uniA' uniB' p) = do
@@ -159,7 +157,7 @@ instance HasHiddenValueOf DefaultUni where
     toSomeValueOf (ValueOfDefaultUniString txt)       = someValue txt
     toSomeValueOf ValueOfDefaultUniUnit               = someValue ()
     toSomeValueOf (ValueOfDefaultUniBool b)           = someValue b
-    toSomeValueOf (ValueOfDefaultUniList _ uniA xs)   = someValueOf (DefaultUniList uniA) xs
+    toSomeValueOf (ValueOfDefaultUniList uniA xs)     = someValueOf (DefaultUniList uniA) xs
     toSomeValueOf (ValueOfDefaultUniPair uniA uniB p) = someValueOf (DefaultUniPair uniA uniB) p
     toSomeValueOf (ValueOfDefaultUniData d)           = someValue d
 
@@ -361,7 +359,7 @@ instance ExMemoryUsage (HiddenValueOf DefaultUni) where
     memoryUsage (ValueOfDefaultUniBool b)           = memoryUsage b
     -- Built-in functions like 'Cons' have linear complexity because of this line, since
     -- 'memoryUsage' traverses the entire list to calculate how much memory it retains.
-    memoryUsage (ValueOfDefaultUniList _ uniA xs) =
+    memoryUsage (ValueOfDefaultUniList uniA xs) =
         bring (Proxy @ExMemoryUsage) uniA $ memoryUsage xs
     memoryUsage (ValueOfDefaultUniPair uniA uniB p) =
         bring (Proxy @ExMemoryUsage) uniA $ bring (Proxy @ExMemoryUsage) uniB $ memoryUsage p
