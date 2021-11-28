@@ -358,7 +358,7 @@ type CekEvaluationException uni fun =
     EvaluationException CekUserError (MachineError fun) (Term Name uni fun ())
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
-type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
+type PrettyUni uni fun = (HasHiddenValueOf uni, GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Pretty (HiddenValueOf uni))
 
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
@@ -390,7 +390,7 @@ But in our case this is okay, because:
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: (PrettyUni uni fun, HasHiddenValueOf uni)
+    :: PrettyUni uni fun
     => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun
@@ -451,7 +451,7 @@ dischargeCekValEnv !valEnv =
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
 dischargeCekValue :: HasHiddenValueOf uni => CekValue uni fun -> Term Name uni fun ()
 dischargeCekValue = \case
-    VCon     val           -> Constant () $ toSomeValueOf val
+    VCon     val           -> Constant () val
     VDelay   body env      -> dischargeCekValEnv env $ Delay () body
     -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
     -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
@@ -461,7 +461,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     VBuiltin _ term env _  -> dischargeCekValEnv env term
 
-instance (HasHiddenValueOf uni, Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (HasHiddenValueOf uni, GShow uni, Pretty (HiddenValueOf uni), Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
@@ -506,7 +506,7 @@ tryError a = (Right <$> a) `catchError` (pure . Left)
 
 runCekM
     :: forall a cost uni fun.
-    (PrettyUni uni fun)
+    PrettyUni uni fun
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -532,7 +532,7 @@ extendEnv :: Name -> CekValue uni fun -> CekValEnv uni fun -> CekValEnv uni fun
 extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun s . (PrettyUni uni fun) => Name -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
+lookupVarName :: forall uni fun s . PrettyUni uni fun => Name -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName varEnv =
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -560,7 +560,7 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, HasHiddenValueOf uni, ExMemoryUsage (HiddenValueOf uni))
+    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, ExMemoryUsage (HiddenValueOf uni))
     => Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
@@ -585,7 +585,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         returnCek unbudgetedSteps' ctx val
     computeCek !unbudgetedSteps !ctx !_ (Constant _ val) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BConst unbudgetedSteps
-        returnCek unbudgetedSteps' ctx (VCon $ fromSomeValueOf val)
+        returnCek unbudgetedSteps' ctx (VCon val)
     computeCek !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
         returnCek unbudgetedSteps' ctx (VLamAbs name body env)
@@ -732,7 +732,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: (ExMemoryUsage (HiddenValueOf uni), Ix fun, PrettyUni uni fun, HasHiddenValueOf uni)
+    :: (ExMemoryUsage (HiddenValueOf uni), Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

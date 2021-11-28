@@ -45,7 +45,7 @@ import Universe
 -- It's not an unseen trick, here Kmett uses, for example: https://www.reddit.com/r/haskell/comments/j2q5p8/monthly_hask_anything_october_2020/g7zunsk/
 -- Except he hardcodes the monad to be 'IO' and we keep it general, which seems convenient.
 data HTerm m name uni fun ann
-    = HConstant ann (Some (ValueOf uni))
+    = HConstant ann (HiddenValueOf uni)
     | HBuiltin ann fun
     | HVar ann name
     | HLamAbs ann name (HTerm m name uni fun ann -> m (HTerm m name uni fun ann))
@@ -59,12 +59,12 @@ data HTerm m name uni fun ann
 
 type instance UniOf (HTerm m name uni fun ann) = uni
 
-instance HasHiddenValueOf uni => AsConstant (HTerm m name uni fun ann) where
-    asConstant _        (HConstant _ val) = pure $ fromSomeValueOf val
+instance AsConstant (HTerm m name uni fun ann) where
+    asConstant _        (HConstant _ val) = pure val
     asConstant mayCause _                 = throwNotAConstant mayCause
 
-instance HasHiddenValueOf uni => FromConstant (HTerm m name uni fun ()) where
-    fromConstant = HConstant () . toSomeValueOf
+instance FromConstant (HTerm m name uni fun ()) where
+    fromConstant = HConstant ()
 
 data UserHoasError
     = HoasEvaluationFailure

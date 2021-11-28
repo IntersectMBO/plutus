@@ -102,7 +102,7 @@ decodeTermTag = dBEBits8 termTagWidth
 
 encodeTerm
     :: forall name uni fun ann
-    . ( Closed uni
+    . ( Closed uni, HasHiddenValueOf uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
     , Flat fun
@@ -117,7 +117,7 @@ encodeTerm = \case
     Delay    ann t    -> encodeTermTag 1 <> encode ann <> encode t
     LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encode t
     Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encode t <> encode t'
-    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
+    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode (toSomeValueOf c)
     Force    ann t    -> encodeTermTag 5 <> encode ann <> encode t
     Error    ann      -> encodeTermTag 6 <> encode ann
     Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
@@ -126,7 +126,7 @@ data SizeLimit = NoLimit | Limit Integer
 
 decodeTerm
     :: forall name uni fun ann
-    . ( Closed uni
+    . ( Closed uni, HasHiddenValueOf uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
     , Flat fun
@@ -146,7 +146,7 @@ decodeTerm sizeLimit = go =<< decodeTermTag
 
               -- See Note [Deserialization size limits]
               posPre <- getCurPtr
-              con <- decode
+              con <- fromSomeValueOf <$> decode
               posPost <- getCurPtr
               let usedBytes = posPost `minusPtr` posPre
 
@@ -169,7 +169,7 @@ decodeTerm sizeLimit = go =<< decodeTermTag
 
 sizeTerm
     :: forall name uni fun ann
-    . ( Closed uni
+    . ( Closed uni, HasHiddenValueOf uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
     , Flat fun
@@ -185,7 +185,7 @@ sizeTerm tm sz = termTagWidth + sz + case tm of
     Delay    ann t    -> getSize ann + getSize t
     LamAbs   ann n t  -> getSize ann + getSize n + getSize t
     Apply    ann t t' -> getSize ann + getSize t + getSize t'
-    Constant ann c    -> getSize ann + getSize c
+    Constant ann c    -> getSize ann + getSize (toSomeValueOf c)
     Force    ann t    -> getSize ann + getSize t
     Error    ann      -> getSize ann
     Builtin  ann bn   -> getSize ann + getSize bn
@@ -194,7 +194,7 @@ sizeTerm tm sz = termTagWidth + sz + case tm of
 -- for constants.
 newtype WithSizeLimits (n :: Nat) a = WithSizeLimits a
 
-instance ( Closed uni
+instance ( Closed uni, HasHiddenValueOf uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
          , Flat fun
@@ -206,7 +206,7 @@ instance ( Closed uni
     decode = decodeTerm NoLimit
     size = sizeTerm
 
-instance ( Closed uni
+instance ( Closed uni, HasHiddenValueOf uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
          , Flat fun
@@ -219,7 +219,7 @@ instance ( Closed uni
     decode = WithSizeLimits <$> decodeTerm (Limit $ natVal $ Proxy @n)
     size (WithSizeLimits t) = sizeTerm t
 
-instance ( Closed uni
+instance ( Closed uni, HasHiddenValueOf uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
          , Flat fun
@@ -231,7 +231,7 @@ instance ( Closed uni
     decode = Program <$> decode <*> decode <*> decode
     size (Program a v t) n = n + getSize a + getSize v + getSize t
 
-instance ( Closed uni
+instance ( Closed uni, HasHiddenValueOf uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
          , Flat fun

@@ -94,7 +94,7 @@ Term : Var                                                 { $1 }
      | openParen   lam Name Term             closeParen    { LamAbs $2 $3 $4 }
      | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
      -- % = monadic action
-     | openParen   con builtintypeid literal closeParen    { % fmap (uncurry Constant) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4))}
+     | openParen   con builtintypeid literal closeParen    { % fmap (\(ann, val) -> Constant ann $ fromSomeValueOf val) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4))}
      | openParen   builtin builtinfnid       closeParen    { % fmap (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
      | openParen   errorTerm                 closeParen    { Error $2 }
      | openParen   force Term                closeParen    { Force $2 $3 }

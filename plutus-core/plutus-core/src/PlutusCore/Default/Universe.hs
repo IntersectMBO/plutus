@@ -17,6 +17,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
@@ -32,8 +33,10 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Parsable
+import PlutusCore.Pretty
 
 import Control.Applicative
+import Control.DeepSeq
 import Control.Monad
 import Data.ByteString qualified as BS
 import Data.Foldable
@@ -157,6 +160,16 @@ instance HasHiddenValueOf DefaultUni where
     toSomeValueOf (ValueOfDefaultUniList uniA xs)     = someValueOf (DefaultUniList uniA) xs
     toSomeValueOf (ValueOfDefaultUniPair uniA uniB p) = someValueOf (DefaultUniPair uniA uniB) p
     toSomeValueOf (ValueOfDefaultUniData d)           = someValue d
+
+instance Pretty (HiddenValueOf DefaultUni) where
+    pretty (toSomeValueOf -> Some (ValueOf uni x)) =
+        bring (Proxy @PrettyConst) uni $ prettyConst x
+
+instance Eq (HiddenValueOf DefaultUni) where
+    (toSomeValueOf -> val1) == (toSomeValueOf -> val2) = val1 == val2
+
+instance NFData (HiddenValueOf DefaultUni) where
+    rnf (toSomeValueOf -> val) = rnf val
 
 instance ToKind DefaultUni where
     toSingKind DefaultUniInteger        = knownKind

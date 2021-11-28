@@ -68,39 +68,47 @@ data Term name uni fun ann
     | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
     | Force !ann !(Term name uni fun ann)
     | Delay !ann !(Term name uni fun ann)
-    | Constant !ann !(Some (ValueOf uni))
+    | Constant !ann !(HiddenValueOf uni)
     | Builtin !ann !fun
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving instance (Show name, Show (HiddenValueOf uni), Show fun, Show ann) =>
+    Show (Term name uni fun ann)
+deriving instance (NFData name, NFData (HiddenValueOf uni), NFData fun, NFData ann) =>
+    NFData (Term name uni fun ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving instance (Show name, Show (HiddenValueOf uni), Show fun, Show ann) =>
+    Show (Program name uni fun ann)
+deriving instance (NFData name, NFData (HiddenValueOf uni), NFData fun, NFData ann) =>
+    NFData (Program name uni fun ann)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
-instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
+instance HasHiddenValueOf uni => TermLike (Term name uni fun) TPLC.TyName name uni fun where
     var      = Var
     tyAbs    = \ann _ _ -> Delay ann
     lamAbs   = \ann name _ -> LamAbs ann name
     apply    = Apply
-    constant = Constant
+    constant = \ann -> Constant ann . fromSomeValueOf
     builtin  = Builtin
     tyInst   = \ann term _ -> Force ann term
     unwrap   = const id
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
-instance HasHiddenValueOf uni => TPLC.AsConstant (Term name uni fun ann) where
-    asConstant _        (Constant _ val) = pure $ fromSomeValueOf val
+instance TPLC.AsConstant (Term name uni fun ann) where
+    asConstant _        (Constant _ val) = pure val
     asConstant mayCause _                = TPLC.throwNotAConstant mayCause
 
-instance HasHiddenValueOf uni => TPLC.FromConstant (Term name uni fun ()) where
-    fromConstant = Constant () . toSomeValueOf
+instance TPLC.FromConstant (Term name uni fun ()) where
+    fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
@@ -144,12 +152,12 @@ mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' an
 mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
 
 -- | Erase a Typed Plutus Core term to its untyped counterpart.
-erase :: TPLC.Term tyname name uni fun ann -> Term name uni fun ann
+erase :: HasHiddenValueOf uni => TPLC.Term tyname name uni fun ann -> Term name uni fun ann
 erase (TPLC.Var ann name)           = Var ann name
 erase (TPLC.TyAbs ann _ _ body)     = Delay ann (erase body)
 erase (TPLC.LamAbs ann name _ body) = LamAbs ann name (erase body)
 erase (TPLC.Apply ann fun arg)      = Apply ann (erase fun) (erase arg)
-erase (TPLC.Constant ann con)       = Constant ann con
+erase (TPLC.Constant ann con)       = Constant ann $ fromSomeValueOf con
 erase (TPLC.Builtin ann bn)         = Builtin ann bn
 erase (TPLC.TyInst ann term _)      = Force ann (erase term)
 erase (TPLC.Unwrap _ term)          = erase term
@@ -157,5 +165,7 @@ erase (TPLC.IWrap _ _ _ term)       = erase term
 erase (TPLC.Error ann _)            = Error ann
 
 -- | Erase a Typed Plutus Core Program to its untyped counterpart.
-eraseProgram :: TPLC.Program tyname name uni fun ann -> Program name uni fun ann
+eraseProgram
+    :: HasHiddenValueOf uni
+    => TPLC.Program tyname name uni fun ann -> Program name uni fun ann
 eraseProgram (TPLC.Program a v t) = Program a v $ erase t

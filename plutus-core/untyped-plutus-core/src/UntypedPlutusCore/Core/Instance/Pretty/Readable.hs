@@ -15,7 +15,6 @@ import PlutusPrelude
 import UntypedPlutusCore.Core.Type
 
 import PlutusCore.Core.Instance.Pretty.Common ()
-import PlutusCore.Pretty.PrettyConst
 import PlutusCore.Pretty.Readable
 
 import Prettyprinter
@@ -23,7 +22,7 @@ import Universe
 
 instance
         ( PrettyReadableBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty (HiddenValueOf uni), Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ val -> unitDocM $ pretty val

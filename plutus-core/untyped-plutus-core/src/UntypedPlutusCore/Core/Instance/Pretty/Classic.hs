@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module UntypedPlutusCore.Core.Instance.Pretty.Classic () where
 
@@ -16,7 +17,6 @@ import UntypedPlutusCore.Core.Type
 
 import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Pretty.Classic
-import PlutusCore.Pretty.PrettyConst
 
 import Prettyprinter
 import Prettyprinter.Custom
@@ -24,7 +24,7 @@ import Universe
 
 instance
         ( PrettyClassicBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , HasHiddenValueOf uni, GShow uni, Pretty (HiddenValueOf uni), Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
     prettyBy config = \case
@@ -50,8 +50,7 @@ instance
             sexp "force" (consAnnIf config ann
                 [prettyBy config term])
       where
-        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
+        prettyTypeOf (toSomeValueOf -> Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where

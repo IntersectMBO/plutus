@@ -16,6 +16,7 @@ module PlutusCore
     , SomeTypeIn (..)
     , Kinded (..)
     , ValueOf (..)
+    , HiddenValueOf
     , HasHiddenValueOf
     , fromSomeValueOf
     , toSomeValueOf

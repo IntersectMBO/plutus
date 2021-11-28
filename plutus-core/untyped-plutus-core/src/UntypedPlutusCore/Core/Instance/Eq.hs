@@ -15,13 +15,13 @@ import PlutusCore.Rename.Monad
 
 import Universe
 
-instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
+instance (GEq uni, Eq (HiddenValueOf uni), Eq fun, HasUnique name TermUnique) =>
             Eq (Term name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
 
 -- | Check equality of two 'Term's.
 eqTermM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique)
+    :: (GEq uni, Eq (HiddenValueOf uni), Eq fun, HasUnique name TermUnique)
     => Term name uni fun ann -> Term name uni fun ann -> EqRename (Renaming TermUnique)
 eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
