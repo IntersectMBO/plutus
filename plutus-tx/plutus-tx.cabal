@@ -37,6 +37,7 @@ library
     hs-source-dirs: src
     exposed-modules:
         PlutusTx
+        PlutusTx.Coverage
         PlutusTx.TH
         PlutusTx.Prelude
         PlutusTx.Evaluation

@@ -10,9 +10,7 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
 import PlutusTx.Eq
-import {-# SOURCE #-} PlutusTx.Maybe (Maybe (..))
-import PlutusTx.Semigroup ((<>))
-import Prelude (Ordering (..))
+import Prelude (Maybe (..), Ordering (..))
 
 {- HLINT ignore -}
 
@@ -85,7 +83,10 @@ instance Ord a => Ord [a] where
     compare []     []     = EQ
     compare []     (_:_)  = LT
     compare (_:_)  []     = GT
-    compare (x:xs) (y:ys) = compare x y <> compare xs ys
+    compare (x:xs) (y:ys) =
+        case compare x y of
+            EQ -> compare xs ys
+            c  -> c
 
 instance Ord Bool where
     {-# INLINABLE compare #-}
@@ -117,4 +118,7 @@ instance Ord () where
 
 instance (Ord a, Ord b) => Ord (a, b) where
     {-# INLINABLE compare #-}
-    compare (a, b) (a', b') = compare a a' <> compare b b'
+    compare (a, b) (a', b') =
+        case compare a a' of
+            EQ -> compare b b'
+            c  -> c

@@ -25,7 +25,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Crypto
+import Crypto (verifySignature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Char
@@ -259,7 +259,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Tracing
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emit @Emitter text)
+            (\text a -> a <$ emitM text)
             (runCostingFunTwoArguments . paramTrace)
     -- Pairs
     toBuiltinMeaning FstPair =

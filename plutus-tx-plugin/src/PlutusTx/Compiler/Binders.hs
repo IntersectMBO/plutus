@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 
 -- | Convenient functions for compiling binders.
 module PlutusTx.Compiler.Binders where
@@ -28,13 +29,13 @@ first.
 variable *last* (so it is on the outside, so will be first when applying).
 -}
 
-withVarScoped :: Compiling uni fun m => GHC.Var -> (PIR.VarDecl PIR.TyName PIR.Name uni fun () -> m a) -> m a
+withVarScoped :: CompilingDefault uni fun m => GHC.Var -> (PIR.VarDecl PIR.TyName PIR.Name uni fun () -> m a) -> m a
 withVarScoped v k = do
     let ghcName = GHC.getName v
     var <- compileVarFresh v
     local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
 
-withVarsScoped :: Compiling uni fun m => [GHC.Var] -> ([PIR.VarDecl PIR.TyName PIR.Name uni fun ()] -> m a) -> m a
+withVarsScoped :: CompilingDefault uni fun m => [GHC.Var] -> ([PIR.VarDecl PIR.TyName PIR.Name uni fun ()] -> m a) -> m a
 withVarsScoped vs k = do
     vars <- for vs $ \v -> do
         let name = GHC.getName v
@@ -58,10 +59,10 @@ withTyVarsScoped vs k = do
 
 -- | Builds a lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkLamAbsScoped :: Compiling uni fun m => GHC.Var -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
+mkLamAbsScoped :: CompilingDefault uni fun m => GHC.Var -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
 mkLamAbsScoped v body = withVarScoped v $ \(PIR.VarDecl _ n t) -> PIR.LamAbs () n t <$> body
 
-mkIterLamAbsScoped :: Compiling uni fun m => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
+mkIterLamAbsScoped :: CompilingDefault uni fun m => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
 mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
 
 -- | Builds a type abstraction, binding the given variable to a name that

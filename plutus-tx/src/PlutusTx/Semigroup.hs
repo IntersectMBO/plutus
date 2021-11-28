@@ -7,8 +7,8 @@ import PlutusTx.Base
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Functor
 import PlutusTx.List ((++))
-import {-# SOURCE #-} PlutusTx.Maybe
-import {-# SOURCE #-} PlutusTx.Ord (Ord (..), Ordering (..))
+import PlutusTx.Ord (Ord (..), Ordering (..))
+import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 

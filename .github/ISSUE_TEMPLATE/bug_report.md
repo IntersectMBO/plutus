@@ -42,7 +42,11 @@ A clear and concise description of what you expected to happen.
 
 ## Screenshots and attachments
 
-- If applicable, add screenshots, config files and/or logs to help explain the problem.
+If applicable, add screenshots, config files and/or logs to help explain the problem.
+
+## Describe the approach you would take to fix this 
+
+If you would like to work on this yourself (optional!), then let us know what approach you would take so we can advise you.
 
 ## Additional context
 

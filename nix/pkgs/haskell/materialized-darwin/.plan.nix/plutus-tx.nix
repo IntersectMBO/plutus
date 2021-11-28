@@ -58,6 +58,7 @@
           "PlutusTx/Lift/THUtils"
           "PlutusTx/Lift/Instances"
           "PlutusTx"
+          "PlutusTx/Coverage"
           "PlutusTx/TH"
           "PlutusTx/Prelude"
           "PlutusTx/Evaluation"

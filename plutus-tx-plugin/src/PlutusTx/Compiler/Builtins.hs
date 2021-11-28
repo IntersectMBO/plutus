@@ -16,7 +16,6 @@ module PlutusTx.Compiler.Builtins (
     , defineBuiltinTerms
     , lookupBuiltinTerm
     , lookupBuiltinType
-    , errorTy
     , errorFunc) where
 
 import PlutusTx.Builtins.Class qualified as Builtins
@@ -43,10 +42,9 @@ import GhcPlugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Control.Monad.Reader
+import Control.Monad.Reader (MonadReader (ask))
 
 import Data.ByteString qualified as BS
-import Data.Map qualified as Map
 import Data.Proxy
 import Data.Text (Text)
 
@@ -154,7 +152,7 @@ which handles these cases too.
 mkBuiltin :: fun -> PIR.Term tyname name uni fun ()
 mkBuiltin = PIR.Builtin ()
 
--- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
+-- | The 'TH.Name's for which 'NameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
@@ -237,16 +235,7 @@ builtinNames = [
     , 'Builtins.unsafeDataAsI
     ]
 
--- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
--- failing if it is missing.
-getThing :: Compiling uni fun m => TH.Name -> m GHC.TyThing
-getThing name = do
-    CompileContext{ccBuiltinNameInfo=names} <- ask
-    case Map.lookup name names of
-        Nothing    -> throwSd CompilationError $ "Missing builtin name:" GHC.<+> (GHC.text $ show name)
-        Just thing -> pure thing
-
-defineBuiltinTerm :: Compiling uni fun m => TH.Name -> PIRTerm uni fun -> m ()
+defineBuiltinTerm :: CompilingDefault uni fun m => TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm name term = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
@@ -267,6 +256,7 @@ defineBuiltinType name ty = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m => m ()
 defineBuiltinTerms = do
+    CompileContext {ccOpts=compileOpts} <- ask
 
     -- See Note [Builtin terms and values]
     -- Bool
@@ -315,8 +305,23 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.AppendString
     defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
     defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
-    defineBuiltinTerm 'Builtins.trace $ mkBuiltin PLC.Trace
     defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
+
+    -- Tracing
+    -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
+    traceTerm <- if coRemoveTrace compileOpts
+        then liftQuote $ do
+            ta <- freshTyName "a"
+            t <- freshName "t"
+            a <- freshName "a"
+            pure $ PIR.tyAbs () ta (PLC.Type ())
+                 $ PIR.mkIterLamAbs
+                    [ PIR.VarDecl () t (PIR.mkTyBuiltin @_ @Text ())
+                    , PIR.VarDecl () a (PLC.TyVar () ta)
+                    ]
+                 $ PIR.Var () a
+        else pure (mkBuiltin PLC.Trace)
+    defineBuiltinTerm 'Builtins.trace traceTerm
 
     -- Pairs
     defineBuiltinTerm 'Builtins.fst $ mkBuiltin PLC.FstPair
@@ -390,9 +395,3 @@ delayedErrorFunc = do
     t <- liftQuote (freshName "thunk")
     let ty = PLC.toTypeAst $ Proxy @()
     pure $ PIR.TyAbs () n (PIR.Type ()) $ PIR.LamAbs () t ty $ PIR.Error () (PIR.TyVar () n)
-
--- | The type 'forall a. a'.
-errorTy :: Compiling uni fun m => m (PIRType uni)
-errorTy = do
-    tyname <- safeFreshTyName "a"
-    pure $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)

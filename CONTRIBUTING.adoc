@@ -362,6 +362,28 @@ Read these blog posts for more good tips:
 - https://mtlynch.io/human-code-reviews-1/
 - https://mtlynch.io/human-code-reviews-2/
 
+== External contributors
+
+The Plutus team welcomes contributions from external contributors.
+However, it can be difficult for the Plutus team to quickly review contributions from people where we don't have an existing relationship.
+For that reason, we ask you to follow these additional guidelines (the rest of the document also applies!), which will make it easier for us to review your work, and therefore make the contributing process smoother for you.
+
+=== All changes must have an issue
+
+Make sure that any change you make has a corresponding GitHub issue.
+The issue should describe the problem and describe your proposed solutiion. 
+Before you start working on implementing it, you must get a comment from the Plutus team that the solution seems sensible.
+This functions as a light "design review" before you get too stuck into doing a PR.
+
+Reviewing the issue makes things easier for the Plutus team (it's easier to read an issue than a PR); and less frustrating for the contributor (it's nicer to get design feeback *before* you have done lots of work on the implementation).
+We can also offer advice on implementation, or let you know that we're already planning to fix the issue (or that there is a good reason not to!).
+
+=== Keep changes well-scoped
+
+Try to keep your PR focussed on one change.
+This is a pratice we try to follow generally, but especially for external contributions where reviews tend to be more laborious, it's good to keep things focussed.
+If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as such!
+
 == Supporting systems
 
 === Continuous integration

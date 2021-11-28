@@ -26,9 +26,9 @@ import PlutusTx.Builtins (Integer)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Eq (Eq, (==))
 import PlutusTx.ErrorCodes
-import {-# SOURCE #-} PlutusTx.Maybe (Maybe (..))
-import {-# SOURCE #-} PlutusTx.Ord ((<), (<=))
+import PlutusTx.Ord ((<), (<=))
 import PlutusTx.Trace (traceError)
+import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 
