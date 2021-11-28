@@ -104,8 +104,8 @@ noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 data instance HiddenValueOf DefaultUni
     = ValueOfDefaultUniInteger !Integer
-    | ValueOfDefaultUniByteString !BS.ByteString
-    | ValueOfDefaultUniString !Text.Text
+    | ValueOfDefaultUniByteString {-# UNPACK #-} !BS.ByteString
+    | ValueOfDefaultUniString {-# UNPACK #-} !Text.Text
     | ValueOfDefaultUniUnit
     | ValueOfDefaultUniBool !Bool
     | forall a. ValueOfDefaultUniList !(DefaultUni (Esc a)) ![a]  -- TODO: doc on [HiddenValueOf DefaultUni]
