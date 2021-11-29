@@ -27,7 +27,6 @@ module PlutusCore.Default.Universe
 
 import PlutusCore.Constant
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Parsable
 
@@ -207,11 +206,11 @@ instance KnownTypeAst DefaultUni Int where
 
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
-    makeKnown emit mayCause = makeKnown emit mayCause . toInteger
-    readKnown mayCause term = do
-        i :: Integer <- readKnown mayCause term
+    makeKnown evalFail emit = makeKnown evalFail emit . toInteger
+    readKnown throwVia term = do
+        i :: Integer <- readKnown throwVia term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () mayCause
+            throwVia _EvaluationFailure ()
         pure $ fromIntegral i
 
 {- Note [Stable encoding of tags]

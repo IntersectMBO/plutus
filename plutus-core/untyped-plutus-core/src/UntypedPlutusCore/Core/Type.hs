@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -26,6 +27,7 @@ import PlutusPrelude
 
 import PlutusCore.Constant qualified as TPLC
 import PlutusCore.Core qualified as TPLC
+import PlutusCore.Evaluation.Machine.Exception qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC
 import Universe
@@ -97,7 +99,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
 
 instance TPLC.AsConstant (Term name uni fun ann) where
     asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = TPLC.throwNotAConstant mayCause
+    asConstant throwVia _                = throwVia TPLC._UnliftingError "Not a constant"
 
 instance TPLC.FromConstant (Term name uni fun ()) where
     fromConstant = Constant ()

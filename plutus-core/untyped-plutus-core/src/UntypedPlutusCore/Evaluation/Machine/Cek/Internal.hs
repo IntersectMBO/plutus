@@ -466,7 +466,7 @@ instance FromConstant (CekValue uni fun) where
 
 instance AsConstant (CekValue uni fun) where
     asConstant _        (VCon val) = pure val
-    asConstant mayCause _          = throwNotAConstant mayCause
+    asConstant throwVia _          = throwVia _UnliftingError "Not a constant"
 
 {-|
 The context in which the machine operates.
@@ -683,7 +683,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
             TypeSchemeArrow _ schB -> do
-                x <- readKnown (Just argTerm) arg
+                x <- readKnown (\l t -> throwingWithCause l t $ Just argTerm) arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                 -- Maybe we could fuse the two?

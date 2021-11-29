@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusIR.Core.Type (
@@ -25,8 +26,9 @@ import PlutusPrelude
 
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (AsConstant (..), FromConstant (..), throwNotAConstant)
+import PlutusCore.Constant (AsConstant (..), FromConstant (..))
 import PlutusCore.Core (UniOf)
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
@@ -127,7 +129,7 @@ type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance AsConstant (Term tyname name uni fun ann) where
     asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = throwNotAConstant mayCause
+    asConstant throwVia _                = throwVia _UnliftingError "Not a constant"
 
 instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
