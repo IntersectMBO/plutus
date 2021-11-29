@@ -359,11 +359,7 @@ getProgram fmt inp =
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in Flat, so we have to make them up.
 
 
----------------- Serialise a program using Flat ----------------
-
---serialiseProgramFlat ::
---  (Flat a) => a -> BSL.ByteString
---serialiseProgramFlat p = BSL.fromStrict $ flat p
+---------------- Serialise a program using Flat and write it to a given output ----------------
 
 writeFlat ::
   (Executable a, Functor a) => Output -> AstNameType -> a b -> IO ()
