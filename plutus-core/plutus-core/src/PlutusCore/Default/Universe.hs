@@ -121,18 +121,19 @@ instance HasHiddenValueOf DefaultUni where
     hiddenValueOf DefaultUniString txt = ValueOfDefaultUniString txt
     hiddenValueOf DefaultUniUnit () = ValueOfDefaultUniUnit
     hiddenValueOf DefaultUniBool b = ValueOfDefaultUniBool b
+    hiddenValueOf DefaultUniData d = ValueOfDefaultUniData d
     hiddenValueOf (DefaultUniProtoList `DefaultUniApply` uniA) xs = ValueOfDefaultUniList uniA xs
     hiddenValueOf (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) p =
         ValueOfDefaultUniPair uniA uniB p
     hiddenValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
-    hiddenValueOf DefaultUniData d = ValueOfDefaultUniData d
 
     extractValueOf DefaultUniInteger (ValueOfDefaultUniInteger i) = Just i
     extractValueOf DefaultUniByteString (ValueOfDefaultUniByteString bs) = Just bs
     extractValueOf DefaultUniString (ValueOfDefaultUniString txt) = Just txt
     extractValueOf DefaultUniUnit ValueOfDefaultUniUnit = Just ()
     extractValueOf DefaultUniBool (ValueOfDefaultUniBool b) = Just b
+    extractValueOf DefaultUniData (ValueOfDefaultUniData d) = Just d
     extractValueOf (DefaultUniList uniA) (ValueOfDefaultUniList uniA' xs) = do
         Refl <- uniA `geq` uniA'
         Just xs
@@ -140,26 +141,25 @@ instance HasHiddenValueOf DefaultUni where
         Refl <- uniA `geq` uniA'
         Refl <- uniB `geq` uniB'
         Just p
-    extractValueOf DefaultUniData (ValueOfDefaultUniData d) = Just d
     extractValueOf DefaultUniInteger _ = Nothing
     extractValueOf DefaultUniByteString _ = Nothing
     extractValueOf DefaultUniString _ = Nothing
     extractValueOf DefaultUniUnit _ = Nothing
     extractValueOf DefaultUniBool _ = Nothing
+    extractValueOf DefaultUniData _ = Nothing
     extractValueOf (DefaultUniProtoList `DefaultUniApply` _) _ = Nothing
     extractValueOf (DefaultUniProtoPair `DefaultUniApply` _ `DefaultUniApply` _) _ = Nothing
     extractValueOf (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
-        noMoreTypeFunctions f
-    extractValueOf DefaultUniData _ = Nothing
+        Nothing `asTypeOf` noMoreTypeFunctions f
 
     toSomeValueOf (ValueOfDefaultUniInteger i)        = someValue i
     toSomeValueOf (ValueOfDefaultUniByteString bs)    = someValue bs
     toSomeValueOf (ValueOfDefaultUniString txt)       = someValue txt
     toSomeValueOf ValueOfDefaultUniUnit               = someValue ()
     toSomeValueOf (ValueOfDefaultUniBool b)           = someValue b
+    toSomeValueOf (ValueOfDefaultUniData d)           = someValue d
     toSomeValueOf (ValueOfDefaultUniList uniA xs)     = someValueOf (DefaultUniList uniA) xs
     toSomeValueOf (ValueOfDefaultUniPair uniA uniB p) = someValueOf (DefaultUniPair uniA uniB) p
-    toSomeValueOf (ValueOfDefaultUniData d)           = someValue d
 
 instance Pretty (HiddenValueOf DefaultUni) where
     pretty (toSomeValueOf -> Some (ValueOf uni x)) =
