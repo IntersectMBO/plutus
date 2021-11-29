@@ -20,19 +20,27 @@ open import Data.Empty
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢Nf⋆_ #-}
-{-# INJECTIVE _⊢_ #-}
 ```
 
 ## Some syntactic lemmas
 
 ```
+{-
 lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
   → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
-  → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
+  → ∀{C C'}(p : C ≡ B [ A ]Nf)(p' : C' ≡ B' [ A' ]Nf)
+  → M' _⊢_.·⋆ A' / p' ≅ M _⊢_.·⋆ A / p
   → M' ≅ M × A ≅ A' × B ≅ B'
-lem-·⋆' refl = refl ,, refl ,, refl
+lem-·⋆' p p' X = {!X!}
+-}
+lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
+  → ∀{C}(p : C ≡ B [ A ]Nf)(p' : C ≡ B' [ A' ]Nf)
+  → M' _⊢_.·⋆ A' / p' ≡ M _⊢_.·⋆ A / p
+  → ∃ λ (p : K ≡ K') → M' ≅ M × A ≅ A' × B ≅ B'
+lem-·⋆ p .p refl = refl ,, refl ,, refl ,, refl
 
+{-
 lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
   → (o : K ≡ K')
   → (p : subst (∅ ⊢Nf⋆_) o A ≡ A')
@@ -53,13 +61,14 @@ lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B
   → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
   → ⊥
 lem-·⋆unwrap ()
-
+-}
 lem-unwrap : ∀{K K'}{A}{A'}{B : ∅ ⊢Nf⋆ K}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}
-  → _⊢_.unwrap M ≅ _⊢_.unwrap M'
-  → A ≅ A' × B ≅ B' × M ≅ M'
-lem-unwrap refl = refl ,, refl ,, refl
-
+  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}{C}
+  → {p : C ≡ _}{q : C ≡ _}
+  → _⊢_.unwrap M p ≡ _⊢_.unwrap M' q
+  → K ≡ K' × A ≅ A' × B ≅ B' × M ≅ M'
+lem-unwrap refl = refl ,, refl ,, refl ,, refl
+{-
 inj⊢ : ∀{A A' : ∅ ⊢Nf⋆ *}{L : ∅ ⊢ A}{L' : ∅ ⊢ A'} → L ≅ L' → A ≡ A'
 inj⊢ refl = refl
 
@@ -69,3 +78,4 @@ lemΛ·⋆ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
   → Λ L ≅ (L' _⊢_.·⋆ A)
   → ⊥
 lemΛ·⋆ ()
+-- -}
