@@ -86,8 +86,8 @@ class Executable p where
 instance Executable PlcProg where
   parseProgram = PLC.parseProgram
   checkProgram = PLC.checkProgram
-  serialiseProgramFlat fmt p =
-      case fmt of
+  serialiseProgramFlat nameType p =
+      case nameType of
         Named         -> pure $ BSL.fromStrict $ flat p
         DeBruijn      -> typedDeBruijnNotSupportedError
         NamedDeBruijn -> typedDeBruijnNotSupportedError
@@ -97,8 +97,8 @@ instance Executable PlcProg where
 instance Executable UplcProg where
   parseProgram = UPLC.parseProgram
   checkProgram = UPLC.checkProgram
-  serialiseProgramFlat fmt p =
-      case fmt of
+  serialiseProgramFlat nameType p =
+      case nameType of
         Named         -> pure $ BSL.fromStrict $ flat p
         DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijn p
         NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijn p
