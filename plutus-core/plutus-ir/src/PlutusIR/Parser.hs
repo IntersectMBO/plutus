@@ -26,6 +26,7 @@ import Data.Text (Text)
 import PlutusCore (MonadQuote)
 import PlutusCore.Error (AsParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PIR pTerm.
 type PTerm = PIR.Term TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan
@@ -99,6 +100,14 @@ errorTerm :: Parametric
 errorTerm _tm = withSpan $ \sp ->
     inParens $ PIR.error sp <$> (symbol "error" *> pType)
 
+constrTerm :: Parametric
+constrTerm tm = withSpan $ \sp ->
+    inParens (PIR.constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many tm)
+
+caseTerm :: Parametric
+caseTerm tm = withSpan $ \sp ->
+    inParens (PIR.kase sp <$> (symbol "case" *> pType) <*> tm <*> many tm)
+
 letTerm :: Parser PTerm
 letTerm = withSpan $ \sp ->
     inParens $ Let sp <$> (symbol "let" *> recursivity) <*> NE.some (try binding) <*> pTerm
@@ -126,6 +135,8 @@ pTerm = leadingWhitespace go
         , errorTerm go
         , tyInstTerm go
         , appTerm go
+        , constrTerm go
+        , caseTerm go
         ]
 
 -- Note that PIR programs do not actually carry a version number

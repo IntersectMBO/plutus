@@ -19,7 +19,7 @@ import PlutusTx.IsData.Class
 import PlutusTx.Trace (traceError)
 
 -- We do not use qualified import because the whole module contains off-chain code
-import Prelude as Haskell
+import Prelude
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
@@ -136,6 +136,8 @@ unstableMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
 makeIsDataIndexed name indices = do
 
+    -- TODO: arguably this should fail on newtypes and get the user to derive the instances.
+    -- Probably too late now as existing instances are relied upon.
     info <- TH.reifyDatatype name
     let appliedType = TH.datatypeType info
 

@@ -1,7 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -75,3 +77,5 @@ stakingCredential (Address _ s) = s
 
 PlutusTx.makeIsDataIndexed ''Address [('Address,0)]
 PlutusTx.makeLift ''Address
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''Address

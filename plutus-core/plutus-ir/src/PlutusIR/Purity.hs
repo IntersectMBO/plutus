@@ -94,6 +94,7 @@ isPure ver varStrictness = go
             LamAbs {} -> True
             TyAbs {} -> True
             Constant {} -> True
+            -- Dubious?
             IWrap _ _ _ t -> go t
             -- A non-recursive `Let` is pure if all bindings are pure and the body is pure.
             -- A recursive `Let` may loop, so we consider it non-pure.
@@ -130,6 +131,9 @@ firstEffectfulTerm = goTerm
         TyInst _ t _ -> goTerm t
         IWrap _ _ _ t -> goTerm t
         Unwrap _ t -> goTerm t
+        Constr _ _ _ [] -> Nothing
+        Constr _ _ _ (t:_) -> goTerm t
+        Case _ _ t _ -> goTerm t
 
         t@Var{} -> Just t
         t@Error{} -> Just t

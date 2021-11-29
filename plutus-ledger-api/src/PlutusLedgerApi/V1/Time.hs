@@ -1,8 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- Otherwise we get a complaint about the 'fromIntegral' call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
@@ -21,7 +23,6 @@ import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Interval
 import PlutusTx qualified
-import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
 import Prettyprinter (Pretty (pretty), (<+>))
@@ -33,7 +34,9 @@ newtype DiffMilliSeconds = DiffMilliSeconds Integer
   deriving anyclass (NFData)
   deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
-makeLift ''DiffMilliSeconds
+PlutusTx.makeLift ''DiffMilliSeconds
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''DiffMilliSeconds
 
 -- | POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
 -- This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime`
@@ -43,7 +46,9 @@ newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
   deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral)
 
-makeLift ''POSIXTime
+PlutusTx.makeLift ''POSIXTime
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''POSIXTime
 
 instance Pretty POSIXTime where
   pretty (POSIXTime i) = "POSIXTime" <+> pretty i

@@ -145,6 +145,8 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
                 -- foo x y
                 in vsep $ [ prettyLet r binds | (r, binds) <- lets ] ++ [ prettyBot body ]
         Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
+        Constr{} -> unitDocM "constr"
+        Case{} -> unitDocM "case"
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where

@@ -8,7 +8,7 @@
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)

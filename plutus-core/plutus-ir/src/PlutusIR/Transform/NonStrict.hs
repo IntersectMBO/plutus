@@ -10,7 +10,6 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.Substitute
 
 import PlutusCore.Quote
-import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
 
 import Control.Lens hiding (Strict)
 import Control.Monad.State
@@ -81,13 +80,13 @@ strictifyBindingWithUnit = \case
         let ann = x'
 
         argName <- liftQuote $ freshName "arg"
-        -- TODO: These are created at every use site, we should bind them globally
-        let unit = ann <$ Unit.unit
-            unitval = ann <$ Unit.unitval
+        -- We use an empty product as our unit here
+        let unitTy = TySum ann [TyProd ann []]
+            unitval = Constr ann unitTy 0 []
             forced = Apply ann (Var ann name) unitval
 
         -- See Note [Compiling non-strict bindings]
         modify $ Map.insert name forced
 
-        pure $ TermBind x Strict (VarDecl x' name (TyFun ann unit ty)) (LamAbs ann argName unit rhs)
+        pure $ TermBind x Strict (VarDecl x' name (TyFun ann unitTy ty)) (LamAbs ann argName unitTy rhs)
     x -> pure x

@@ -23,8 +23,10 @@ import PlutusTx.TH (compile)
 -- This can be interesting to make sure that important optimizations fire, including
 -- ones that run on UPLC.
 tests :: TestNested
-tests = testNested "Optimization" [
-   goldenUPlc "maybeFun" maybeFun ]
+tests = testNested "Optimization"
+   [ goldenUPlc "maybeFun" maybeFun
+   , goldenUPlc "caseOfKnown" caseOfKnown
+   ]
 
 -- The point of this test is to check that matchers get eliminated unconditionally
 -- even if they're used more than once.
@@ -36,4 +38,12 @@ maybeFun = $$(compile
                  Just y' -> Just (x' `PlutusTx.addInteger` y')
                  Nothing -> Nothing
             Nothing -> Nothing
+   ||])
+
+-- Check that case of known constructor happens (in UPLC if not before)
+caseOfKnown :: CompiledCode Integer
+caseOfKnown = $$(compile
+   [|| case Just 1 of
+          Just x  -> x
+          Nothing -> 2
    ||])

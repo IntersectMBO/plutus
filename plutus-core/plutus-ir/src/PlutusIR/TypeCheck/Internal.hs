@@ -35,6 +35,7 @@ import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
 import PlutusCore.Error as PLC
+import PlutusCore.MkPlc (mkIterTyFun)
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 
@@ -44,6 +45,7 @@ import Control.Monad.Except
 -- on 'local'.
 import Control.Monad.Trans.Reader
 import Data.Foldable
+import Data.List.Extra ((!?))
 import Universe
 
 {- Note [PLC Typechecker code reuse]
@@ -218,6 +220,44 @@ inferTypeM (Unwrap ann term)        = do
 inferTypeM (Error ann ty)           = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
+
+inferTypeM t@(Constr ann ty i args) = do
+    vResTy <- normalizeTypeM $ void ty
+
+    -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
+    -- assert that we should have some types in the sum up to there, and then the known product type.
+    let expectedType = TySum () (replicate (i-1) dummyType ++ [TyProd () (replicate (length args) dummyType)])
+    case unNormalized vResTy of
+        TySum _ vSTys -> case vSTys !? i of
+            Just (TyProd _ pTys) -> case zipExact args pTys of
+                Just ps -> for_ ps $ \(arg, pTy) -> do
+                    argTy <- inferTypeM arg
+                    unless (unNormalized argTy == pTy) $ throwing _TypeError (TypeMismatch ann (void arg) pTy argTy)
+                Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+            _ -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+
+    pure vResTy
+
+inferTypeM (Case ann ty arg cases) = do
+    vResTy <- normalizeTypeM $ void ty
+    vArgTy <- inferTypeM arg
+
+    let expectedType = TySum () (replicate (length cases) dummyType)
+    case unNormalized vArgTy of
+        TySum _ sTys -> case zipExact cases sTys of
+            Just ps -> for_ ps $ \(c, sty) -> case sty of
+                TyProd _ pTys -> do
+                    cTy <- inferTypeM c
+
+                    let expectedCTy = mkIterTyFun () pTys (unNormalized vResTy)
+                    unless (unNormalized cTy == expectedCTy) $
+                        throwing _TypeError (TypeMismatch ann (void c) expectedCTy cTy)
+                _ -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+            Nothing -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+
+    pure vResTy
 -- ##############
 -- ## Port end ##
 -- ##############
@@ -390,7 +430,8 @@ withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
     withVar (_varDeclName vdecl) (void <$> vTy) k
 withVarsOfBinding r (DatatypeBind _ dt) k = do
     -- generate all the definitions
-    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs r (original dt)
+    -- Opts don't matter since the types are the same in all cases!
+    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs defaultDatatypeCompilationOpts r (original dt)
     -- ignore the generated rhs terms of constructors/destructor
     let structorDecls = PIR.defVar <$> destrDef:constrDefs
     foldr normRenameScope k structorDecls

@@ -160,6 +160,7 @@ library
     UntypedPlutusCore.Core.Zip
     UntypedPlutusCore.DeBruijn
     UntypedPlutusCore.Evaluation.Machine.Cek
+    UntypedPlutusCore.Evaluation.Machine.Cek.ArgQueue
     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
@@ -230,6 +231,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
@@ -296,6 +298,7 @@ library
     , time
     , transformers
     , unordered-containers
+    , vector
     , witherable
     , word-array                  ^>=1.1
 

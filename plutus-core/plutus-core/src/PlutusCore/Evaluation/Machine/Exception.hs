@@ -74,7 +74,9 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin !fun
+    | UnknownBuiltin fun
+    | NonConstrScrutinized
+    | MissingCaseBranch Int
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -200,6 +202,10 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
+    prettyBy _      NonConstrScrutinized =
+        "A non-constructor value was scrutinitzed in a case expression"
+    prettyBy _      (MissingCaseBranch i) =
+        "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
 
 instance
         ( HasPrettyDefaults config ~ 'True

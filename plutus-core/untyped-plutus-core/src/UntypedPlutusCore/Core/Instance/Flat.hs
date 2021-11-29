@@ -105,14 +105,16 @@ encodeTerm
     => Term name uni fun ann
     -> Encoding
 encodeTerm = \case
-    Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encodeTerm t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
-    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
-    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
-    Error    ann      -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    Var      ann n      -> encodeTermTag 0 <> encode ann <> encode n
+    Delay    ann t      -> encodeTermTag 1 <> encode ann <> encodeTerm t
+    LamAbs   ann n t    -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
+    Apply    ann t t'   -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
+    Constant ann c      -> encodeTermTag 4 <> encode ann <> encode c
+    Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
+    Error    ann        -> encodeTermTag 6 <> encode ann
+    Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
+    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
+    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encode arg <> encodeListWith encodeTerm cs
 
 decodeTerm
     :: forall name uni fun ann
@@ -143,6 +145,8 @@ decodeTerm builtinPred = go
             case builtinPred fun of
                 Nothing -> pure t
                 Just e  -> fail e
+        handleTerm 8 = Constr   <$> decode <*> decode <*> decodeListWith go
+        handleTerm 9 = Case    <$> decode <*> decode <*> decodeListWith go
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -158,14 +162,16 @@ sizeTerm
     -> NumBits
     -> NumBits
 sizeTerm tm sz = termTagWidth + sz + case tm of
-    Var      ann n    -> getSize ann + getSize n
-    Delay    ann t    -> getSize ann + getSize t
-    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
-    Apply    ann t t' -> getSize ann + getSize t + getSize t'
-    Constant ann c    -> getSize ann + getSize c
-    Force    ann t    -> getSize ann + getSize t
-    Error    ann      -> getSize ann
-    Builtin  ann bn   -> getSize ann + getSize bn
+    Var      ann n      -> getSize ann + getSize n
+    Delay    ann t      -> getSize ann + getSize t
+    LamAbs   ann n t    -> getSize ann + getSize n + getSize t
+    Apply    ann t t'   -> getSize ann + getSize t + getSize t'
+    Constant ann c      -> getSize ann + getSize c
+    Force    ann t      -> getSize ann + getSize t
+    Error    ann        -> getSize ann
+    Builtin  ann bn     -> getSize ann + getSize bn
+    Constr   ann i es   -> getSize ann + getSize i + getSize es
+    Case     ann arg cs -> getSize ann + getSize arg + getSize cs
 
 decodeProgram
     :: forall name uni fun ann

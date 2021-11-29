@@ -247,6 +247,8 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
         pure $ Var (registerFree name) name
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
+    establishScoping (Constr _ ty i es) = Constr NotAName <$> establishScoping ty <*> pure i <*> traverse establishScoping es
+    establishScoping (Case _ ty arg cs) = Case NotAName <$> establishScoping ty <*> establishScoping arg <*> traverse establishScoping cs
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
     establishScoping (Program _ term) = Program NotAName <$> establishScoping term
@@ -286,6 +288,8 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
+    collectScopeInfo (Constr _ ty _ es) = collectScopeInfo ty <> foldMap collectScopeInfo es
+    collectScopeInfo (Case _ ty arg cs) = collectScopeInfo ty <> collectScopeInfo arg <> foldMap collectScopeInfo cs
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
     collectScopeInfo (Program _ term) = collectScopeInfo term

@@ -49,6 +49,12 @@ builtinType = withSpan $ \sp -> inParens $ do
     SomeTypeIn (Kinded uni) <- (symbol "con" *> defaultUni)
     pure $ TyBuiltin sp (SomeTypeIn uni)
 
+prodType :: Parser PType
+prodType = withSpan $ \sp -> inParens $ TyProd sp <$> (symbol "prod" *> many pType)
+
+sumType :: Parser PType
+sumType = withSpan $ \sp -> inParens $ TySum sp <$> (symbol "sum" *> many pType)
+
 appType :: Parser PType
 appType = withSpan $ \sp -> inBrackets $ do
     fn   <- pType
@@ -71,6 +77,8 @@ pType = choice $ map try
     , lamType
     , appType
     , varType
+    , prodType
+    , sumType
     ]
 
 -- | Parser for built-in type applications.

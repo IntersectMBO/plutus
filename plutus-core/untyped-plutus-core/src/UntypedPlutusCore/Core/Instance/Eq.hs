@@ -16,6 +16,7 @@ import PlutusCore.Eq
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
 
+import Data.Foldable (for_)
 import Universe
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
@@ -70,6 +71,18 @@ eqTermM (Force ann1 term1) (Force ann2 term2) = do
     eqM ann1 ann2
     eqTermM term1 term2
 eqTermM (Error ann1) (Error ann2) = eqM ann1 ann2
+eqTermM (Constr ann1 i1 args1) (Constr ann2 i2 args2) = do
+    eqM ann1 ann2
+    eqM i1 i2
+    case zipExact args1 args2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+        Nothing -> empty
+eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
+    eqM ann1 ann2
+    eqTermM a1 a2
+    case zipExact cs1 cs2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+        Nothing -> empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
 eqTermM Var{}      _ = empty
@@ -78,3 +91,5 @@ eqTermM Apply{}    _ = empty
 eqTermM Delay{}    _ = empty
 eqTermM Force{}    _ = empty
 eqTermM Error{}    _ = empty
+eqTermM Constr{}    _ = empty
+eqTermM Case{}    _ = empty

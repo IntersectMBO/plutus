@@ -68,6 +68,8 @@ termMapNames f = go
             Apply ann t1 t2      -> Apply ann (go t1) (go t2)
             Delay ann t          -> Delay ann (go t)
             Force ann t          -> Force ann (go t)
+            Constr ann i es      -> Constr ann i (fmap go es)
+            Case ann arg cs      -> Case ann (go arg) (fmap go cs)
 
             Constant ann c       -> Constant ann c
             Builtin ann b        -> Builtin ann b

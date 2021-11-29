@@ -69,6 +69,8 @@ substTypeCustomGo nested fvs0 = go fvs0 Set.empty where
           where x' = freshenTyNameWith (fvs <> setOf ftvTy b) x
         TyBuiltin{} -> ty
         TyIFix _ a b -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
+        TyProd _ cs -> TyProd () (fmap (go fvs seen sub) cs)
+        TySum _ cs -> TySum () (fmap (go fvs seen sub) cs)
 
 -- CODE REVIEW: this function is a bit strange and I don't like it. Ideas welcome for how to
 -- do this better. It basically deals with the fact that we want to be careful when substituting

@@ -26,6 +26,7 @@ import PlutusCore.Quote (MonadQuote)
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
 import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PLC term.
 type PTerm = Term TyName Name DefaultUni DefaultFun SrcSpan
@@ -70,6 +71,14 @@ errorTerm :: Parser PTerm
 errorTerm = withSpan $ \sp ->
     inParens $ Error sp <$> (symbol "error" *> pType)
 
+constrTerm :: Parser PTerm
+constrTerm = withSpan $ \sp ->
+    inParens $ Constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many term
+
+caseTerm :: Parser PTerm
+caseTerm = withSpan $ \sp ->
+    inParens $ Case sp <$> (symbol "case" *> pType) <*> term <*> many term
+
 -- | Parser for all PLC terms.
 term :: Parser PTerm
 term = leadingWhitespace go
@@ -86,6 +95,8 @@ term = leadingWhitespace go
             , iwrapTerm
             , errorTerm
             , varTerm
+            , constrTerm
+            , caseTerm
             ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The

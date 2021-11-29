@@ -20,33 +20,30 @@
             )
           )
         )
-        (delay
-          (delay
-            (lam
-              case_GHC_Types_Nil_i0
-              (lam case_GHC_Types_Cons_i0 case_GHC_Types_Nil_i2)
-            )
-          )
-        )
+        (delay (constr 0))
       ]
-      (delay
-        (lam
-          arg_0_i0
+      (delay (lam arg_0_i0 (lam arg_1_i0 (constr 1 arg_0_i2 arg_1_i1))))
+    ]
+    (delay
+      (lam
+        x_i0
+        (delay
           (lam
-            arg_1_i0
-            (delay
-              (lam
-                case_GHC_Types_Nil_i0
+            case_GHC_Types_Nil_i0
+            (lam
+              case_GHC_Types_Cons_i0
+              (case
+                x_i3
+                case_GHC_Types_Nil_i2
                 (lam
-                  case_GHC_Types_Cons_i0
-                  [ [ case_GHC_Types_Cons_i1 arg_0_i4 ] arg_1_i3 ]
+                  arg2_i0
+                  (lam arg1_i0 [ [ case_GHC_Types_Cons_i3 arg2_i2 ] arg1_i1 ])
                 )
               )
             )
           )
         )
       )
-    ]
-    (delay (lam x_i0 x_i1))
+    )
   ]
 )

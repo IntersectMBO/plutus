@@ -24,6 +24,9 @@
 {-# LANGUAGE UndecidableInstances     #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -O2 #-}
+
+{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dppr-cols=200 -dumpdir /tmp/dumps #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
@@ -72,8 +75,10 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import UntypedPlutusCore.Evaluation.Machine.Cek.ArgQueue qualified as ArgQueue
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
+import Control.Lens (ix, (^?))
 import Control.Lens.Review
 import Control.Monad.Catch
 import Control.Monad.Except
@@ -84,8 +89,9 @@ import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Vector qualified as V
 import Data.Word
-import Data.Word64Array.Word8 hiding (Index)
+import Data.Word64Array.Word8 hiding (Index, toList)
 import Prettyprinter
 import Universe
 
@@ -194,6 +200,8 @@ but functions are not printable and hence we provide a dummy instance.
 instance Show (BuiltinRuntime (CekValue uni fun ann)) where
     show _ = "<builtin_runtime>"
 
+type Args = []
+
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
     -- This bang gave us a 1-2% speed-up at the time of writing.
@@ -221,6 +229,7 @@ data CekValue uni fun ann =
       !(BuiltinRuntime (CekValue uni fun ann))
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
+  | VConstr {-# UNPACK #-} !Int {-# UNPACK #-} !(Args (CekValue uni fun ann))
     deriving stock (Show)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
@@ -475,8 +484,8 @@ dischargeCekValEnv valEnv = go 0
   go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
   go !lamCnt =  \case
     LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word64  in
-        if lamCnt >= ix
+    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let idx = coerce ndbnIx :: Word64  in
+        if lamCnt >= idx
         -- the index n is less-than-or-equal than the number of lambdas we have descended
         -- this means that n points to a bound variable, so we don't discharge it.
         then var
@@ -486,7 +495,7 @@ dischargeCekValEnv valEnv = go 0
                -- var is in the env, discharge its value
                dischargeCekValue
                -- index relative to (as seen from the point of view of) the environment
-               (Env.indexOne valEnv $ ix - lamCnt)
+               (Env.indexOne valEnv $ idx - lamCnt)
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
     Delay ann term       -> Delay ann $ go lamCnt term
     Force ann term       -> Force ann $ go lamCnt term
@@ -508,6 +517,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
+    VConstr i es                         -> Constr () i (toList $ fmap dischargeCekValue es)
 
 instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
@@ -527,12 +537,15 @@ The context in which the machine operates.
 Morally, this is a stack of frames, but we use the "intrusive list" representation so that
 we can match on context and the top frame in a single, strict pattern match.
 -}
-data Context uni fun ann
-    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameForce !(Context uni fun ann)                                               -- ^ @(force _)@
+data Context uni fun ann s
+    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann s)                         -- ^ @[V _]@
+    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann s) -- ^ @[_ N]@
+    | FrameApplyValues {-# UNPACK #-} !(Args (CekValue uni fun ann)) !(Context uni fun ann s) -- ^ @[_ N]@
+    | FrameForce !(Context uni fun ann s)                                               -- ^ @(force _)@
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Int {-# UNPACK #-} !(ArgQueue.Acc Args (NTerm uni fun ann) (CekValue uni fun ann) s) !(Context uni fun ann s)
+    | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann s)
     | NoFrame
-    deriving stock (Show)
+    -- deriving stock (Show)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
@@ -541,6 +554,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VDelay {}   -> 1
         VLamAbs {}  -> 1
         VBuiltin {} -> 1
+        VConstr {}  -> 1
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
@@ -604,7 +618,7 @@ evalBuiltinApp fun term runtime = case runtime of
 enterComputeCek
     :: forall uni fun ann s
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-    => Context uni fun ann
+    => Context uni fun ann s
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
     -> CekM uni fun s (NTerm uni fun ())
@@ -617,7 +631,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
         :: WordArray
-        -> Context uni fun ann
+        -> Context uni fun ann s
         -> CekValEnv uni fun ann
         -> NTerm uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
@@ -654,6 +668,15 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
         throwing_ _EvaluationFailure
+    computeCek !unbudgetedSteps !ctx !env (Constr _ i es) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
+        acc <- CekM $ ArgQueue.newAcc es
+        case acc of
+            Left res        -> returnCek unbudgetedSteps ctx $ VConstr i res
+            Right (t, acc') -> computeCek unbudgetedSteps' (FrameConstr env i acc' ctx) env t
+    computeCek !unbudgetedSteps !ctx !env (Case _ arg cs) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
+        computeCek unbudgetedSteps' (FrameCases env cs ctx) env arg
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -666,7 +689,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -}
     returnCek
         :: WordArray
-        -> Context uni fun ann
+        -> Context uni fun ann s
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
     --- Instantiate all the free variable of the resulting term in case there are any.
@@ -683,6 +706,19 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
+    returnCek !unbudgetedSteps (FrameConstr env i acc ctx) e = do
+        r <- CekM $ ArgQueue.stepAcc acc e
+        case r of
+            Right (next, acc') -> computeCek unbudgetedSteps (FrameConstr env i acc' ctx) env next
+            Left done          -> returnCek unbudgetedSteps ctx $ VConstr i done
+    returnCek !unbudgetedSteps (FrameCases env cs ctx) e = case e of
+        (VConstr i args) -> case cs ^? ix i of
+            Just t  -> computeCek unbudgetedSteps (FrameApplyValues args ctx) env t
+            Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
+        _ -> throwingDischarged _MachineError NonConstrScrutinized e
+    returnCek !unbudgetedSteps (FrameApplyValues args ctx) fun = case ArgQueue.uncons args of
+        Just (arg, rest) -> applyEvaluate unbudgetedSteps (FrameApplyValues rest ctx) fun arg
+        Nothing          -> returnCek unbudgetedSteps ctx fun
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -692,7 +728,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- if v is anything else, fail.
     forceEvaluate
         :: WordArray
-        -> Context uni fun ann
+        -> Context uni fun ann s
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
@@ -722,9 +758,9 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- If v is anything else, fail.
     applyEvaluate
         :: WordArray
-        -> Context uni fun ann
-        -> CekValue uni fun ann   -- lhs of application
-        -> CekValue uni fun ann   -- rhs of application
+        -> Context uni fun ann s
+        -> CekValue uni fun ann  -- lhs of application
+        -> CekValue uni fun ann  -- rhs of application
         -> CekM uni fun s (NTerm uni fun ())
     applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
@@ -763,8 +799,8 @@ enterComputeCek = computeCek (toWordArray 0) where
         -- See Note [Structure of the step counter]
         -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
         -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
-        let !ix = fromIntegral $ fromEnum kind
-            !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
+        let !idx = fromIntegral $ fromEnum kind
+            !unbudgetedSteps' = overIndex 7 (+1) $ overIndex idx (+1) unbudgetedSteps
             !unbudgetedStepsTotal = readArray unbudgetedSteps' 7
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.

@@ -1,11 +1,13 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveDataTypeable   #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -60,7 +62,6 @@ import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
-import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.These (These (..))
@@ -368,7 +369,11 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
-makeLift ''CurrencySymbol
-makeLift ''TokenName
-makeLift ''AssetClass
-makeLift ''Value
+PlutusTx.makeLift ''CurrencySymbol
+PlutusTx.defaultMakeLiftU ''CurrencySymbol
+PlutusTx.makeLift ''TokenName
+PlutusTx.defaultMakeLiftU ''TokenName
+PlutusTx.makeLift ''AssetClass
+PlutusTx.defaultMakeLiftU ''AssetClass
+PlutusTx.makeLift ''Value
+PlutusTx.defaultMakeLiftU ''Value

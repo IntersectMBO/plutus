@@ -1,7 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -75,6 +77,11 @@ instance PlutusTx.Eq Credential where
     _ == _                                    = False
 
 PlutusTx.makeIsDataIndexed ''Credential [('PubKeyCredential,0), ('ScriptCredential,1)]
-PlutusTx.makeIsDataIndexed ''StakingCredential [('StakingHash,0), ('StakingPtr,1)]
 PlutusTx.makeLift ''Credential
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''Credential
+
 PlutusTx.makeLift ''StakingCredential
+PlutusTx.makeIsDataIndexed ''StakingCredential [('StakingHash,0), ('StakingPtr,1)]
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''StakingCredential

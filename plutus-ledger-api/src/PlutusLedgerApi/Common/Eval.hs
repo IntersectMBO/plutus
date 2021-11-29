@@ -17,12 +17,12 @@ module PlutusLedgerApi.Common.Eval
     , toMachineParameters
     , mkTermToEvaluate
     , assertWellFormedCostModelParams
+    , PlutusCoreTerm
     ) where
 
 import Control.Lens
 import PlutusCore
 import PlutusCore as ScriptPlutus (Version, defaultVersion)
-import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
@@ -43,6 +43,8 @@ import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
 import Prettyprinter
+
+type PlutusCoreTerm = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
@@ -91,14 +93,13 @@ mkTermToEvaluate
     => LedgerPlutusVersion -- ^ the ledger Plutus version of the script under execution.
     -> ProtocolVersion -- ^ which protocol version to run the operation in
     -> SerialisedScript -- ^ the script to evaluate in serialised form
-    -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
-    -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+    -> [PlutusCoreTerm] -- ^ the arguments that the script's underlying term will be applied to
+    -> m PlutusCoreTerm
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
     unless (v == ScriptPlutus.defaultVersion) $ throwError $ IncompatibleVersionError v
-    let termArgs = fmap (UPLC.mkConstant ()) args
-        appliedT = UPLC.mkIterApp () t termArgs
+    let appliedT = UPLC.mkIterApp () t args
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
@@ -148,7 +149,7 @@ evaluateScriptRestricting
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerialisedScript          -- ^ The script to evaluate
-    -> [Plutus.Data]          -- ^ The arguments to the script
+    -> [PlutusCoreTerm]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting lv pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
@@ -177,7 +178,7 @@ evaluateScriptCounting
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript          -- ^ The script to evaluate
-    -> [Plutus.Data]          -- ^ The arguments to the script
+    -> [PlutusCoreTerm]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args

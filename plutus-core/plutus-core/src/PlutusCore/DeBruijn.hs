@@ -136,6 +136,8 @@ deBruijnTyWithM h = go
         TyFun ann i o -> TyFun ann <$> go i <*> go o
         TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
         TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+        TyProd ann tys -> TyProd ann <$> traverse go tys
+        TySum ann tys -> TySum ann <$> traverse go tys
         -- boring non-recursive cases
         TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -144,6 +146,7 @@ deBruijnTermWithM
     => (Unique -> m Index)
     -> Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
+
 deBruijnTermWithM h = go
   where
     goT :: Type TyName uni ann -> m (Type NamedTyDeBruijn uni ann)
@@ -166,6 +169,8 @@ deBruijnTermWithM h = go
         Unwrap ann t -> Unwrap ann <$> go t
         IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
         Error ann ty -> Error ann <$> goT ty
+        Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
+        Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
@@ -197,6 +202,8 @@ unDeBruijnTyWithM h = go
       TyFun ann i o -> TyFun ann <$> go i <*> go o
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+      TyProd ann tys -> TyProd ann <$> traverse go tys
+      TySum ann tys -> TySum ann <$> traverse go tys
       -- boring non-recursive cases
       TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -232,6 +239,8 @@ unDeBruijnTermWithM h = go
         Unwrap ann t -> Unwrap ann <$> go t
         IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
         Error ann ty -> Error ann <$> goT ty
+        Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
+        Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn

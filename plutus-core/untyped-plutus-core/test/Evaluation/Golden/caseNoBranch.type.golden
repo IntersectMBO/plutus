@@ -1,0 +1,6 @@
+(Left Type mismatch at () in term
+  '(constr (sum (prod (con integer)) (prod (con string))) 0 (con integer 1))'.
+Expected type
+  '(sum )',
+found type
+  '(sum (prod (con integer)) (prod (con string)))')

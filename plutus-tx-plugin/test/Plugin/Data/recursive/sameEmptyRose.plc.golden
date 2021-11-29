@@ -134,40 +134,49 @@
                               )
                             )
                           )
-                          (lam
-                            arg_0_i0
-                            (delay
-                              (lam
-                                case_EmptyRose_i0 [ case_EmptyRose_i1 arg_0_i2 ]
+                          (lam arg_0_i0 (constr 0 arg_0_i1))
+                        ]
+                        (lam
+                          x_i0
+                          (delay
+                            (lam
+                              case_EmptyRose_i0
+                              (case
+                                x_i2 (lam arg1_i0 [ case_EmptyRose_i2 arg1_i1 ])
                               )
                             )
                           )
-                        ]
-                        (lam x_i0 x_i1)
+                        )
                       ]
                     )
                   )
                 )
               )
             )
-            (delay (delay (lam case_Nil_i0 (lam case_Cons_i0 case_Nil_i2))))
+            (delay (constr 0))
           ]
-          (delay
-            (lam
-              arg_0_i0
+          (delay (lam arg_0_i0 (lam arg_1_i0 (constr 1 arg_0_i2 arg_1_i1))))
+        ]
+        (delay
+          (lam
+            x_i0
+            (delay
               (lam
-                arg_1_i0
-                (delay
-                  (lam
-                    case_Nil_i0
-                    (lam case_Cons_i0 [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ])
+                case_Nil_i0
+                (lam
+                  case_Cons_i0
+                  (case
+                    x_i3
+                    case_Nil_i2
+                    (lam
+                      arg2_i0 (lam arg1_i0 [ [ case_Cons_i3 arg2_i2 ] arg1_i1 ])
+                    )
                   )
                 )
               )
             )
           )
-        ]
-        (delay (lam x_i0 x_i1))
+        )
       ]
     )
     (delay

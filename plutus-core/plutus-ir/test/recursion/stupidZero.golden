@@ -85,7 +85,7 @@
                                 (fun Nat_i7 Nat_i7)
                                 [
                                   [ { [ match_Nat_i4 x_i2 ] Nat_i7 } Zero_i6 ]
-                                  (lam pred_i0 Nat_i8 [ stupidZero_i2 pred_i1 ])
+                                  (lam p_i0 Nat_i8 [ stupidZero_i2 p_i1 ])
                                 ]
                               )
                               [ (unwrap s_i2) s_i2 ]
@@ -105,15 +105,7 @@
               (fun (fun (type) (type)) (type))
               (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
             )
-            (lam
-              Nat_i0
-              (type)
-              (all
-                out_Nat_i0
-                (type)
-                (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
-              )
-            )
+            (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
           )
         }
         (iwrap
@@ -122,47 +114,20 @@
             (fun (fun (type) (type)) (type))
             (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
           )
-          (lam
-            Nat_i0
-            (type)
-            (all
-              out_Nat_i0
-              (type)
-              (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
-            )
-          )
-          (abs
-            out_Nat_i0
-            (type)
-            (lam
-              case_Zero_i0
-              out_Nat_i2
-              (lam
-                case_Suc_i0
-                (fun
-                  (ifix
-                    (lam
-                      rec_i0
-                      (fun (fun (type) (type)) (type))
-                      (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
-                    )
-                    (lam
-                      Nat_i0
-                      (type)
-                      (all
-                        out_Nat_i0
-                        (type)
-                        (fun
-                          out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1)
-                        )
-                      )
-                    )
-                  )
-                  out_Nat_i3
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+          (constr
+            [
+              (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              (ifix
+                (lam
+                  rec_i0
+                  (fun (fun (type) (type)) (type))
+                  (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
                 )
-                case_Zero_i2
+                (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
               )
-            )
+            ]
+            0
           )
         )
       ]
@@ -174,15 +139,7 @@
             (fun (fun (type) (type)) (type))
             (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
           )
-          (lam
-            Nat_i0
-            (type)
-            (all
-              out_Nat_i0
-              (type)
-              (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
-            )
-          )
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
         )
         (iwrap
           (lam
@@ -190,47 +147,21 @@
             (fun (fun (type) (type)) (type))
             (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
           )
-          (lam
-            Nat_i0
-            (type)
-            (all
-              out_Nat_i0
-              (type)
-              (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
-            )
-          )
-          (abs
-            out_Nat_i0
-            (type)
-            (lam
-              case_Zero_i0
-              out_Nat_i2
-              (lam
-                case_Suc_i0
-                (fun
-                  (ifix
-                    (lam
-                      rec_i0
-                      (fun (fun (type) (type)) (type))
-                      (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
-                    )
-                    (lam
-                      Nat_i0
-                      (type)
-                      (all
-                        out_Nat_i0
-                        (type)
-                        (fun
-                          out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1)
-                        )
-                      )
-                    )
-                  )
-                  out_Nat_i3
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+          (constr
+            [
+              (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              (ifix
+                (lam
+                  rec_i0
+                  (fun (fun (type) (type)) (type))
+                  (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
                 )
-                [ case_Suc_i1 arg_0_i4 ]
+                (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
               )
-            )
+            ]
+            1
+            arg_0_i1
           )
         )
       )
@@ -243,17 +174,47 @@
           (fun (fun (type) (type)) (type))
           (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
         )
+        (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+      )
+      (abs
+        out_Nat_i0
+        (type)
         (lam
-          Nat_i0
-          (type)
-          (all
-            out_Nat_i0
-            (type)
-            (fun out_Nat_i1 (fun (fun Nat_i2 out_Nat_i1) out_Nat_i1))
+          case_Zero_i0
+          out_Nat_i2
+          (lam
+            case_Suc_i0
+            (fun
+              (ifix
+                (lam
+                  rec_i0
+                  (fun (fun (type) (type)) (type))
+                  (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+                )
+                (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              )
+              out_Nat_i3
+            )
+            (case
+              (unwrap x_i4)
+              out_Nat_i3
+              case_Zero_i2
+              (lam
+                arg1_i0
+                (ifix
+                  (lam
+                    rec_i0
+                    (fun (fun (type) (type)) (type))
+                    (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+                  )
+                  (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+                )
+                [ case_Suc_i2 arg1_i1 ]
+              )
+            )
           )
         )
       )
-      (unwrap x_i1)
     )
   ]
 )
