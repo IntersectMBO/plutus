@@ -526,8 +526,7 @@ f = Identity (\x -> x)
 -}
 
 -- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
--- @(\a -> \b -> body)@ into @\a -> \b -> entryExitTracing body@.
--- @(/\a -> /\b -> body)@ into @/\a -> /\b -> entryExitTracing body@.
+-- @(/\a -> \b -> body)@ into @/\a -> \b -> entryExitTracing body@.
 entryExitTracingInside ::
     PIR.Name
     -> T.Text
