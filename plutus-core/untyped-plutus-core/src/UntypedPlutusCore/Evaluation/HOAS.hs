@@ -208,7 +208,7 @@ evalBuiltinApp
 -- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
 -- 'makeKnown' never returns a non-value term.
 evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) =
-    makeKnown (\_ -> pure ()) Nothing x  -- No logging for now.
+    makeKnown (throwError evaluationFailure) (\_ -> pure ()) x  -- No logging for now.
 evalBuiltinApp ann getTerm runtime =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 

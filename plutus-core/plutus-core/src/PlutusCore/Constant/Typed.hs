@@ -534,14 +534,11 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
-           )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        :: Monad m
+        => (forall any. m any) -> (Text -> m ()) -> a -> m term
     default makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m
-           , KnownBuiltinType term a
-           )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        :: (Monad m, KnownBuiltinType term a)
+        => (forall any. m any) -> (Text -> m ()) -> a -> m term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
@@ -593,22 +590,10 @@ instance (forall term. KnownBuiltinTypeIn uni term a => KnownTypeIn uni term a) 
 -- (according to 'Everywhere') from the universe has a 'KnownTypeIn' instance.
 class uni `Everywhere` ImplementedKnownBuiltinTypeIn uni => TestTypesFromTheUniverseAreAllKnown uni
 
--- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
-newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
-    { unNoCauseT :: m a
-    } deriving newtype (Functor, Applicative, Monad)
-
-instance (MonadError err m, AsEvaluationFailure err) =>
-            MonadError (ErrorWithCause err term) (NoCauseT term m) where
-    throwError _ = NoCauseT $ throwError evaluationFailure
-    NoCauseT a `catchError` h =
-        NoCauseT $ a `catchError` \err ->
-            unNoCauseT . h $ ErrorWithCause err Nothing
-
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 -- For example the monad can be simply 'EvaluationResult'.
 makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownOrFail = unNoCauseT . makeKnown (\_ -> pure ()) Nothing
+makeKnownOrFail = makeKnown (throwError evaluationFailure) (\_ -> pure ())
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
@@ -617,8 +602,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
             KnownTypeIn uni term (EvaluationResult a) where
-    makeKnown _    mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
-    makeKnown emit mayCause (EvaluationSuccess x) = makeKnown emit mayCause x
+    makeKnown evalFail _    EvaluationFailure     = evalFail
+    makeKnown evalFail emit (EvaluationSuccess x) = makeKnown evalFail emit x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -635,7 +620,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     toTypeAst _ = toTypeAst $ Proxy @a
 
 instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
-    makeKnown emit mayCause (Emitter k) = k emit >>= makeKnown emit mayCause
+    makeKnown evalFail emit (Emitter k) = k emit >>= makeKnown evalFail emit
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift an 'Emitter'" mayCause
 

@@ -68,7 +68,7 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    TypeSchemeResult _ -> makeKnown emitCkM (Just term) x
+    TypeSchemeResult _ -> makeKnown (throwingWithCause _EvaluationFailure () $ Just term) emitCkM x
     _                  -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
