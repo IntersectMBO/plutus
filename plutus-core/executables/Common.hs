@@ -59,13 +59,13 @@ type PlcProg =
 type UplcProg =
   UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
 
-class Executable a where
+class Executable p where
 
   -- | Parse a program.
   parseProgram ::
     (AsParseError e PLC.AlexPosn, MonadError e m, PLC.MonadQuote m) =>
     BSL.ByteString ->
-      m (a PLC.AlexPosn)
+      m (p PLC.AlexPosn)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -73,27 +73,35 @@ class Executable a where
      (Ord ann, AsUniqueError e ann,
        MonadError e m)
     => (UniqueError ann -> Bool)
-    -> a ann
+    -> p ann
     -> m ()
 
   -- | Convert names to de Bruijn indices and then serialise
-  serialiseDbProgramFlat :: (Flat b, PP.Pretty b) => a b -> IO BSL.ByteString
+  serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
 
   -- | Read and deserialise a Flat-encoded UPLC AST
-  loadASTfromFlat :: AstNameType -> Input -> IO (a ())
+  loadASTfromFlat :: AstNameType -> Input -> IO (p ())
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
   parseProgram = PLC.parseProgram
   checkProgram = PLC.checkProgram
-  serialiseDbProgramFlat _ = typedDeBruijnNotSupportedError
+  serialiseProgramFlat fmt p =
+      case fmt of
+        Named         -> pure $ BSL.fromStrict $ flat p
+        DeBruijn      -> typedDeBruijnNotSupportedError
+        NamedDeBruijn -> typedDeBruijnNotSupportedError
   loadASTfromFlat = loadPlcASTfromFlat
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
   parseProgram = UPLC.parseProgram
   checkProgram = UPLC.checkProgram
-  serialiseDbProgramFlat p = BSL.fromStrict . flat <$> toDeBruijn p
+  serialiseProgramFlat fmt p =
+      case fmt of
+        Named         -> pure $ BSL.fromStrict $ flat p
+        DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijn p
+        NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijn p
   loadASTfromFlat = loadUplcASTfromFlat
 
 -- We don't support de Bruijn names for typed programs because we really only
@@ -109,6 +117,13 @@ toDeBruijn prog =
   case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
     Left e  -> errorWithoutStackTrace $ show e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
+
+-- | Convert an untyped program to one where the 'name' type is textual names with de Bruijn indices.
+toNamedDeBruijn :: UplcProg b -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun b)
+toNamedDeBruijn prog =
+  case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
+    Left e  -> errorWithoutStackTrace $ show e
+    Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn v ix) -> UPLC.NamedDeBruijn v ix) p
 
 
 ---------------- Printing budgets and costs ----------------
@@ -346,17 +361,14 @@ getProgram fmt inp =
 
 ---------------- Serialise a program using Flat ----------------
 
-serialiseProgramFlat ::
-  (Flat a) => a -> BSL.ByteString
-serialiseProgramFlat p = BSL.fromStrict $ flat p
+--serialiseProgramFlat ::
+--  (Flat a) => a -> BSL.ByteString
+--serialiseProgramFlat p = BSL.fromStrict $ flat p
 
 writeFlat ::
-  (Executable a, Functor a, Flat (a ())) => Output -> AstNameType -> a b -> IO ()
+  (Executable a, Functor a) => Output -> AstNameType -> a b -> IO ()
 writeFlat outp flatMode prog = do
-  flatProg <- case flatMode of
-            Named         -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-            DeBruijn      -> serialiseDbProgramFlat (() <$ prog)
-            NamedDeBruijn -> serialiseDbProgramFlat (() <$ prog)
+  flatProg <- serialiseProgramFlat flatMode (() <$ prog) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
     StdOutput       -> BSL.putStr flatProg
@@ -374,7 +386,6 @@ getPrintMethod = \case
 writeProgram ::
   (Executable a,
    Functor a,
-   Flat (a ()),
    PP.PrettyBy PP.PrettyConfigPlc (a b)) =>
    Output -> Format -> PrintMode -> a b -> IO ()
 writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
