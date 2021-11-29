@@ -507,9 +507,26 @@ But that's okay, because these are all types we've been creating just now in Quo
 we should have globally unique names
 -}
 
+{- Note [Term/type argument mismatches]
+Given a term t and its type ty we can process them in parallel popping off arguments/function types.
+
+But we can end up with a mismatch:
+- We run out of arguments at the term level e.g. because we see something like `(\x -> \y -> y) 1`,
+which is of function type but isn't a lambda until you reduce.
+- We run out of arguments at the type level e.g. because we see something like `(\a -> (a -> a)) b`,
+which is a function type but isn't a function type until you reduce.
+
+It's usually okay to stop at this point, since the remaining things usually aren't "proper" arguments.
+In the term case, it's a lambda computed by an application, which won't occur from a "proper" argument.
+In the type case, we only generate type lambdas for newtypes, which will block "proper" arguments anyway,
+i.e. it comes from something like this:
+
+f :: Identity (a -> a)
+f = Identity (\x -> x)
+-}
+
 -- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
--- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
--- @(\a -> /\b -> body)@ into @\a -> /\b -> entryExitTracing body@.
+-- @(/\a -> \b -> body)@ into @/\a -> \b -> entryExitTracing body@.
 entryExitTracingInside ::
     PIR.Name
     -> T.Text
@@ -524,15 +541,16 @@ entryExitTracingInside lamName displayName = go mempty
             -> PLCType PLC.DefaultUni
             -> PIRTerm PLC.DefaultUni PLC.DefaultFun
         go subst (LamAbs () n t body) (PLC.TyFun () _dom cod) =
-            -- when t = \x -> body, => \x -> traceInside body
+            -- when t = \x -> body, => \x -> entryExitTracingInside body
             LamAbs () n t $ go subst body cod
         go subst (TyAbs () tn1 k body) (PLC.TyForall () tn2 _k ty) =
-            -- when t = /\x -> body, => /\x -> traceInside body
+            -- when t = /\x -> body, => /\x -> entryExitTracingInside body
             -- See Note [Profiling polymorphic functions]
             let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
             in TyAbs () tn1 k $ go subst' body ty
-        go _ LamAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a function type."
-        go _ TyAbs{} _ = error "entryExitTracingInside: type mismatched. Expected a quantified type."
+        -- See Note [Term/type argument mismatches]
+        -- Even if there still look like there are arguments on the term or the type level, because we've hit
+        -- a mismatch we go ahead and insert our profiling traces here.
         go subst e ty =
             -- See Note [Profiling polymorphic functions]
             let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
@@ -870,7 +888,7 @@ coverageCompile :: CompilingDefault uni fun m
                 -> m (PIRTerm uni fun)
 coverageCompile originalExpr exprType src compiledTerm covT =
   case covT of
-    -- Add a location covereage annotation to tell us "we've executed this piece of code"
+    -- Add a location coverage annotation to tell us "we've executed this piece of code"
     LocationCoverage -> do
       ann <- addLocationToCoverageIndex (toCovLoc src)
       ty <- compileTypeNorm exprType
@@ -908,7 +926,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
           _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
-      findHeadSymbol (GHC.Var n)    = Just $ n
+      findHeadSymbol (GHC.Var n)    = Just n
       findHeadSymbol (GHC.App t _)  = findHeadSymbol t
       findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
       findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t

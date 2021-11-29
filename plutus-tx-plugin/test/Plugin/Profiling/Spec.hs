@@ -20,6 +20,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
 
+import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
 import Prelude
 
@@ -37,6 +38,8 @@ profiling = testNested "Profiling" [
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
   , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "argMismatch1" [toUPlc argMismatch1]
+  , goldenUEvalProfile "argMismatch2" [toUPlc argMismatch2]
   ]
 
 fact :: Integer -> Integer
@@ -116,3 +119,17 @@ useTypeclass a b = Builtins.addInteger (methodA a b) (methodB a b)
 -- Check that typeclass methods get traces
 typeclassTest :: CompiledCode (Integer -> Integer -> Integer)
 typeclassTest = plc (Proxy @"typeclass") (\(x::Integer) (y::Integer) -> useTypeclass x y)
+
+{-# INLINABLE newtypeFunction #-}
+newtypeFunction :: a -> Identity (a -> a)
+newtypeFunction _ = Identity (\a -> a)
+
+argMismatch1 :: CompiledCode Integer
+argMismatch1 = plc (Proxy @"argMismatch1") (runIdentity (newtypeFunction 1) 1)
+
+{-# INLINABLE obscuredFunction #-}
+obscuredFunction :: (a -> a -> a) -> a -> a -> a
+obscuredFunction f a = f a
+
+argMismatch2 :: CompiledCode Integer
+argMismatch2 = plc (Proxy @"argMismatch2") (obscuredFunction (\a _ -> a) 1 2)
