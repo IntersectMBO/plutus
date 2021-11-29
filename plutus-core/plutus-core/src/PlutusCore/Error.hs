@@ -55,7 +55,7 @@ throwingEither r e = case e of
 -- | An error encountered during parsing.
 data ParseError ann
     = LexErr String
-    | Unexpected (Token ann)
+    | Unexpected Token
     | UnknownBuiltinType ann T.Text
     | BuiltinTypeNotAStar ann T.Text
     | UnknownBuiltinFunction ann T.Text

@@ -74,7 +74,7 @@ off quotes or interpreting escape sequences: it's the responsibility of the
 parser for the relevant type to do these things.  Note that 'read' will often do
 the right thing.
 
-The final item above even allows the possiblity of parsing complex types such as
+The final item above even allows the possibility of parsing complex types such as
 tuples and lists as long as parentheses are not involved.  For example, (con
 tuple <1,2.3,"yes">) and (con intlist [1, 2, -7]) are accepted by the lexer, as
 is the somewhat improbable-looking (con intseq 12 4 55 -4).  Comment characters
@@ -111,7 +111,7 @@ $upper = [A-Z]
 
 -- A single quoted string, allowing escaped characters including \'.
 -- This says "Single quotes enclosing a sequence of either (a) printable
--- characters excluding ' and \ , or (b) a blackslash followed by
+-- characters excluding ' and \ , or (b) a backslash followed by
 -- any printable character (single quote included)"
 @sqs   = '  ( ($printable # ['\\])  | (\\$printable) )* '
 

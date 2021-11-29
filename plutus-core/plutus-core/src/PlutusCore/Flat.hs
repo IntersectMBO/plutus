@@ -326,8 +326,6 @@ instance ( Flat ann
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
 
-instance Flat a => Flat (Token a)
--- instance Flat AlexPosn
 instance Flat Keyword
 instance Flat Special
 

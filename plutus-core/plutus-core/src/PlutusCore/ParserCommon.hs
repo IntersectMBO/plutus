@@ -27,10 +27,8 @@ import Data.Proxy (Proxy (Proxy))
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
--- With the alex lexer @ann@ could be @AlexPosn@ or @SourcePos@.
--- We should un-generalize it when we know it can only be @SourcePos@.
-type Parser ann =
-    ParsecT (PLC.ParseError ann) T.Text (StateT ParserState PLC.Quote)
+type Parser =
+    ParsecT (PLC.ParseError SourcePos) T.Text (StateT ParserState PLC.Quote)
 
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 instance (Ord ann, Pretty ann) => ShowErrorComponent (PLC.ParseError ann) where
@@ -57,44 +55,44 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser SourcePos a -> String -> T.Text -> Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a
+parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a
 parse p file str = PLC.runQuote $ parseQuoted p file str
 
-parseQuoted :: Parser SourcePos a -> String -> T.Text -> PLC.Quote
+parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote
                    (Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
-whitespace :: Parser SourcePos ()
+whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
-lexeme :: Parser SourcePos a -> Parser SourcePos a
+lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
-symbol :: T.Text -> Parser SourcePos T.Text
+symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
 
-lparen :: Parser SourcePos T.Text
+lparen :: Parser T.Text
 lparen = symbol "("
-rparen :: Parser SourcePos T.Text
+rparen :: Parser T.Text
 rparen = symbol ")"
 
-lbracket :: Parser SourcePos T.Text
+lbracket :: Parser T.Text
 lbracket = symbol "["
-rbracket :: Parser SourcePos T.Text
+rbracket :: Parser T.Text
 rbracket = symbol "]"
 
-lbrace :: Parser SourcePos T.Text
+lbrace :: Parser T.Text
 lbrace = symbol "{"
-rbrace :: Parser SourcePos T.Text
+rbrace :: Parser T.Text
 rbrace = symbol "}"
 
-inParens :: Parser SourcePos a -> Parser SourcePos a
+inParens :: Parser a -> Parser a
 inParens = between lparen rparen
 
-inBrackets :: Parser SourcePos a -> Parser SourcePos a
+inBrackets :: Parser a -> Parser a
 inBrackets = between lbracket rbracket
 
-inBraces :: Parser SourcePos a-> Parser SourcePos a
+inBraces :: Parser a-> Parser a
 inBraces = between lbrace rbrace
 
 isIdentifierChar :: Char -> Bool
@@ -105,14 +103,14 @@ isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 -- getSourcePos is not cheap, don't call it on matching of every token.
 wordPos ::
     -- | The word to match
-    T.Text -> Parser SourcePos SourcePos
+    T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
-builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser SourcePos fun
+builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
     where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
-version :: Parser SourcePos (PLC.Version SourcePos)
+version :: Parser (PLC.Version SourcePos)
 version = lexeme $ do
     p <- getSourcePos
     x <- Lex.decimal
@@ -121,17 +119,17 @@ version = lexeme $ do
     void $ char '.'
     PLC.Version p x y <$> Lex.decimal
 
-name :: Parser SourcePos PLC.Name
+name :: Parser PLC.Name
 name = lexeme $ try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     PLC.Name str <$> intern str
 
-tyName :: Parser SourcePos PLC.TyName
+tyName :: Parser PLC.TyName
 tyName = PLC.TyName <$> name
 
 -- | Turn a parser that can succeed without consuming any input into one that fails in this case.
-enforce :: Parser SourcePos a -> Parser SourcePos a
+enforce :: Parser a -> Parser a
 enforce p = do
     (input, x) <- match p
     guard . not $ T.null input
@@ -146,7 +144,7 @@ enforce p = do
 -- Note that this also fails on @(con string \"yes (no)\")@ as well as @con unit ()@, so it really
 -- should be fixed somehow.
 -- (For @con unit ()@, @kwxm suggested replacing it with @unitval@ or @one@ or *)
-closedChunk :: Parser SourcePos T.Text
+closedChunk :: Parser T.Text
 closedChunk = T.pack <$> manyTill anySingle end where
     end = enforce whitespace <|> void (lookAhead $ char ')')
 
@@ -154,7 +152,7 @@ closedChunk = T.pack <$> manyTill anySingle end where
 builtinTypeTag
     :: forall uni.
     PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (PLC.SomeTypeIn (PLC.Kinded uni))
+    => Parser (PLC.SomeTypeIn (PLC.Kinded uni))
 builtinTypeTag = do
     uniText <- closedChunk
     case PLC.parse uniText of
@@ -177,7 +175,7 @@ constant
        ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
        , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        )
-    => Parser SourcePos (PLC.Some (PLC.ValueOf uni))
+    => Parser (PLC.Some (PLC.ValueOf uni))
 constant = do
     -- We use 'match' for remembering the textual representation of the parsed type tag,
     -- so that we can show it in the error message if the constant fails to parse.
