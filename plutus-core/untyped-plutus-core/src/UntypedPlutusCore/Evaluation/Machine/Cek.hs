@@ -159,5 +159,4 @@ readKnownCek
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek params =
-    evaluateCekNoEmit params >=> \res -> readKnown (\l t -> throwingWithCause l t $ Just res) res
+readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf

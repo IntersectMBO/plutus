@@ -61,7 +61,7 @@ type instance UniOf (HTerm m name uni fun ann) = uni
 
 instance AsConstant (HTerm m name uni fun ann) where
     asConstant _        (HConstant _ val) = pure val
-    asConstant throwVia _                 = throwVia _UnliftingError "Not a constant"
+    asConstant mayCause _                 = throwNotAConstant mayCause
 
 instance FromConstant (HTerm m name uni fun ()) where
     fromConstant = HConstant ()
@@ -227,7 +227,7 @@ evalFeedBuiltinApp
 evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch f _)) e =
     case (sch, e) of
         (TypeSchemeArrow _ schB, Just arg) -> do
-            x <- readKnown (\l t -> throwingWithCause l t Nothing) arg
+            x <- readKnown Nothing arg
             evalBuiltinApp
                 ann
                 (Apply ann <$> getTerm <*> fromValue arg)

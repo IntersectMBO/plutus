@@ -123,7 +123,7 @@ instance FromConstant (CkValue uni fun) where
 
 instance AsConstant (CkValue uni fun) where
     asConstant _        (VCon val) = pure val
-    asConstant throwVia _          = throwVia _UnliftingError "Not a constant"
+    asConstant mayCause _          = throwNotAConstant mayCause
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
@@ -302,7 +302,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
         TypeSchemeArrow _ schB -> do
-            x <- readKnown (\l t -> throwingWithCause l t $ Just argTerm) arg
+            x <- readKnown (Just argTerm) arg
             let noCosting = error "The CK machine does not support costing"
                 runtime' = BuiltinRuntime schB (f x) noCosting
             res <- evalBuiltinApp term' runtime'
@@ -364,5 +364,4 @@ readKnownCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
-readKnownCk runtime =
-    evaluateCkNoEmit runtime >=> \res -> readKnown (\l t -> throwingWithCause l t $ Just res) res
+readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnownSelf

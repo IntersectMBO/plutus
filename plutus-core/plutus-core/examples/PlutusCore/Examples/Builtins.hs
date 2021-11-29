@@ -142,7 +142,7 @@ instance KnownTypeAst DefaultUni Void where
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
     makeKnown _ _ = absurd
-    readKnown throwVia _ = throwVia _UnliftingError "Can't unlift a 'Void'"
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
