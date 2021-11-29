@@ -120,6 +120,8 @@ fixKind ctx ty k
     TyFun{} -> error "Internal error: unreachable clause."
     TyIFix{} -> error "Internal error: unreachable clause."
     TyForall{} -> error "Internal error: unreachable clause."
+    TyProd{} -> error "Internal error: unreachable clause."
+    TySum{} -> error "Internal error: unreachable clause."
   where origK = unsafeInferKind ctx ty
 
 -- | Shrink a well-kinded type in a context to new types, possibly with new kinds.
@@ -249,6 +251,9 @@ shrinkKindAndType ctx (k0, ty) =
         ]
       where
         kArg = unsafeInferKind ctx arg
+    -- TODO: shrink the list rather than going to empty list?
+    TyProd _ cs       -> [ (Type (), TyProd () []) ]
+    TySum  _ cs       -> [ (Type (), TySum () []) ]
 
 -- | Shrink a type in a context assuming that it is of kind *.
 shrinkType :: HasCallStack

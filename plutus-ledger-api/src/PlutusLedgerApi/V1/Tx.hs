@@ -1,10 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -157,9 +159,15 @@ pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v Nothing
 
 PlutusTx.makeLift ''TxId
 PlutusTx.makeIsDataIndexed ''TxId [('TxId,0)]
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''TxId
 
 PlutusTx.makeIsDataIndexed ''TxOut [('TxOut,0)]
 PlutusTx.makeLift ''TxOut
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''TxOut
 
 PlutusTx.makeIsDataIndexed ''TxOutRef [('TxOutRef,0)]
 PlutusTx.makeLift ''TxOutRef
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''TxOutRef

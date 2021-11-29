@@ -36,7 +36,9 @@ import Control.Monad.Except
 -- on 'local'.
 import Control.Monad.Trans.Reader
 import Data.Array
-import Universe
+import Data.Foldable (for_)
+import Data.List.Extra ((!?))
+import Universe (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -372,6 +374,13 @@ inferKindM (TyIFix ann pat arg)    = do
     checkKindM ann pat $ toPatFuncKind k
     pure $ Type ()
 
+inferKindM (TyProd ann tys)        = do
+    for_ tys $ \ty -> checkKindM ann ty (Type ())
+    pure $ Type ()
+inferKindM (TySum ann tys)        = do
+    for_ tys $ \ty -> checkKindM ann ty (Type ())
+    pure $ Type ()
+
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
     :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
@@ -508,6 +517,44 @@ inferTypeM (Unwrap ann term) = do
 inferTypeM (Error ann ty) = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
+
+inferTypeM t@(Constr ann ty i args) = do
+    vResTy <- normalizeTypeM $ void ty
+
+    -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
+    -- assert that we should have some types in the sum up to there, and then the known product type.
+    let expectedType = TySum () (replicate (i-1) dummyType ++ [TyProd () (replicate (length args) dummyType)])
+    case unNormalized vResTy of
+        TySum _ vSTys -> case vSTys !? i of
+            Just (TyProd _ pTys) -> case zipExact args pTys of
+                Just ps -> for_ ps $ \(arg, pTy) -> do
+                    argTy <- inferTypeM arg
+                    unless (unNormalized argTy == pTy) $ throwing _TypeError (TypeMismatch ann (void arg) pTy argTy)
+                Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+            _ -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void t) expectedType vResTy)
+
+    pure vResTy
+
+inferTypeM (Case ann ty arg cases) = do
+    vResTy <- normalizeTypeM $ void ty
+    vArgTy <- inferTypeM arg
+
+    let expectedType = TySum () (replicate (length cases) dummyType)
+    case unNormalized vArgTy of
+        TySum _ sTys -> case zipExact cases sTys of
+            Just ps -> for_ ps $ \(c, sty) -> case sty of
+                TyProd _ pTys -> do
+                    cTy <- inferTypeM c
+
+                    let expectedCTy = mkIterTyFun () pTys (unNormalized vResTy)
+                    unless (unNormalized cTy == expectedCTy) $
+                        throwing _TypeError (TypeMismatch ann (void c) expectedCTy cTy)
+                _ -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+            Nothing -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void arg) expectedType vArgTy)
+
+    pure vResTy
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.

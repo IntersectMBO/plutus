@@ -64,6 +64,8 @@ instance
         TyLam _ name kind body    ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
+        TyProd _ ts -> unitDocM mempty
+        TySum _ ts -> unitDocM mempty
 
 instance
         ( PrettyReadableBy configName tyname
@@ -96,6 +98,8 @@ instance
         Error _ ty             ->
             compoundDocM juxtFixity $ \prettyIn ->
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
+        Constr{} -> unitDocM "constr"
+        Case{} -> unitDocM "case"
 
 instance PrettyReadableBy configName (Term tyname name uni fun a) =>
         PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where

@@ -116,6 +116,7 @@ import PlutusLedgerApi.V2.ParamName
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
 import PlutusCore.Data qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
 
 -- | An alias to the language version this module exposes at runtime.
@@ -142,7 +143,8 @@ evaluateScriptCounting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting pv verbose ec script args =
+  Common.evaluateScriptCounting thisPlutusVersion pv verbose ec script (fmap (PLC.mkConstant ()) args)
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -158,4 +160,5 @@ evaluateScriptRestricting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting pv verbose ec budget script args =
+  Common.evaluateScriptRestricting thisPlutusVersion pv verbose ec budget script (fmap (PLC.mkConstant ()) args)

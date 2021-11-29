@@ -107,8 +107,9 @@ genType = simpleRecursive nonRecursive recursive where
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
+    prodGen = TyProd () <$> Gen.list (Range.linear 0 10) genType
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen]
+    recursive = [funGen, applyGen, prodGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())
@@ -121,7 +122,9 @@ genTerm = simpleRecursive nonRecursive recursive where
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+    constrGen = Constr () <$> genType <*> Gen.int (Range.linear 0 10) <*> Gen.list (Range.linear 0 10) genTerm
+    caseGen = Case () <$> genType <*> genTerm <*> Gen.list (Range.linear 0 10) genTerm
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, constrGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program TyName Name DefaultUni fun ())

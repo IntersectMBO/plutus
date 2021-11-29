@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -13,7 +15,6 @@ import Data.String
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx qualified
-import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import Prettyprinter
@@ -41,4 +42,7 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
         , Show           -- ^ using hex encoding
         , Pretty         -- ^ using hex encoding
         ) via LedgerBytes
-makeLift ''PubKeyHash
+
+PlutusTx.makeLift ''PubKeyHash
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''PubKeyHash

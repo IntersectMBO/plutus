@@ -1,0 +1,1 @@
+(Right (sum (prod (con integer)) (prod (con string))))

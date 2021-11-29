@@ -1,0 +1,6 @@
+(Left Type mismatch at () in term
+  '(con integer 1)'.
+Expected type
+  '(sum )',
+found type
+  '(con integer)')

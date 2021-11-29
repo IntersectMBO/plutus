@@ -83,6 +83,7 @@ isPure ver varStrictness = go
             LamAbs {} -> True
             TyAbs {} -> True
             Constant {} -> True
+            -- Dubious?
             IWrap _ _ _ t -> go t
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
@@ -112,6 +113,9 @@ firstEffectfulTerm = goTerm
         TyInst _ t _ -> goTerm t
         IWrap _ _ _ t -> goTerm t
         Unwrap _ t -> goTerm t
+        Constr _ _ _ [] -> Nothing
+        Constr _ _ _ (t:_) -> goTerm t
+        Case _ _ t _ -> goTerm t
 
         t@Var{} -> Just t
         t@Error{} -> Just t

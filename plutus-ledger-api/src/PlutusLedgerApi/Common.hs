@@ -17,6 +17,7 @@ module PlutusLedgerApi.Common
     -- reexport Data & ExBudget for convenience to upstream users
     , PlutusCore.Data (..)
     , PlutusCore.ExBudget (..)
+    , PlutusCoreTerm
 
       -- * Network's versioning
       {-| The network's behaviour (and plutus's by extension) can change via /hard forks/,

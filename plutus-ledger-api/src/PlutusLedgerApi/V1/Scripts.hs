@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -29,7 +31,8 @@ import Data.String
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
-import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
+import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..))
+import PlutusTx qualified
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI
 import PlutusTx.Prelude
@@ -121,12 +124,22 @@ newtype RedeemerHash =
 newtype Context = Context BuiltinData
     deriving newtype (Pretty, Haskell.Show)
 
-makeLift ''ScriptHash
+PlutusTx.makeLift ''ScriptHash
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''ScriptHash
 
-makeLift ''DatumHash
+PlutusTx.makeLift ''DatumHash
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''DatumHash
 
-makeLift ''RedeemerHash
+PlutusTx.makeLift ''RedeemerHash
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''RedeemerHash
 
-makeLift ''Datum
+PlutusTx.makeLift ''Datum
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''Datum
 
-makeLift ''Redeemer
+PlutusTx.makeLift ''Redeemer
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''Redeemer

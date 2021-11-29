@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -67,3 +69,5 @@ PlutusTx.makeIsDataIndexed
     , ('DCertMir,6)
     ]
 PlutusTx.makeLift ''DCert
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''DCert

@@ -278,16 +278,19 @@ firstEffectfulTerm = goTerm
     where
       goTerm = \case
 
-        Apply _ l _ -> goTerm l
-        Force _ t   -> goTerm t
+        Apply _ l _      -> goTerm l
+        Force _ t        -> goTerm t
+        Constr _ _ []    -> Nothing
+        Constr _ _ (t:_) -> goTerm t
+        Case _ t _       -> goTerm t
 
-        t@Var{}     -> Just t
-        t@Error{}   -> Just t
-        t@Builtin{} -> Just t
+        t@Var{}          -> Just t
+        t@Error{}        -> Just t
+        t@Builtin{}      -> Just t
 
-        LamAbs{}    -> Nothing
-        Constant{}  -> Nothing
-        Delay{}     -> Nothing
+        LamAbs{}         -> Nothing
+        Constant{}       -> Nothing
+        Delay{}          -> Nothing
 
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?
@@ -302,6 +305,13 @@ costIsAcceptable = \case
   LamAbs{}   -> True
 
   Apply{}    -> False
+  -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
+  -- the work for the elements at each use site.
+  Constr _ _ es  -> case es of
+      []  -> True
+      [e] -> costIsAcceptable e
+      _   -> False
+  Case{} -> False
 
   Force{}    -> True
   Delay{}    -> True
@@ -316,6 +326,13 @@ sizeIsAcceptable = \case
 
   -- See Note [Differences from PIR inliner] 4
   LamAbs{}   -> False
+
+  -- Inlining constructors of size 1 or 0 seems okay
+  Constr _ _ es  -> case es of
+      []  -> True
+      [e] -> sizeIsAcceptable e
+      _   -> False
+  Case{} -> False
 
   -- Constants can be big! We could check the size here and inline if they're
   -- small, but probably not worth it

@@ -10,6 +10,8 @@ import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
 import PlutusTx qualified as PlutusTx
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Code qualified as PlutusTx
+import PlutusTx.LiftU qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
@@ -82,3 +84,33 @@ mkCheckScriptContext2Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext2Code sc =
   let d = PlutusTx.toBuiltinData sc
   in $$(PlutusTx.compile [|| checkScriptContext2 ||]) `PlutusTx.applyCode` PlutusTx.liftCode d
+
+-- Same as checkScriptContext1, but passing the ScriptContext as a term using LiftU
+{-# INLINABLE checkScriptContext3 #-}
+checkScriptContext3 :: ScriptContext -> ()
+checkScriptContext3 (ScriptContext txi _) =
+  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  then ()
+  else PlutusTx.traceError "Odd number of outputs"
+
+mkCheckScriptContext3Code :: ScriptContext -> PlutusTx.CompiledCode ()
+mkCheckScriptContext3Code sc =
+  let d = PlutusTx.liftProgramDef sc
+  in $$(PlutusTx.compile [|| checkScriptContext3 ||])
+      `PlutusTx.applyCode` PlutusTx.DeserializedCode d Nothing mempty
+
+-- Same as checkScriptContext2, but passing the ScriptContext as a term using LiftU
+{-# INLINABLE checkScriptContext4 #-}
+checkScriptContext4 :: ScriptContext -> ()
+checkScriptContext4 sc =
+  case sc of
+    !_ ->
+      if 48*9900 PlutusTx.== (475200 :: Integer)
+      then ()
+      else PlutusTx.traceError "Got my sums wrong"
+
+mkCheckScriptContext4Code :: ScriptContext -> PlutusTx.CompiledCode ()
+mkCheckScriptContext4Code sc =
+  let d = PlutusTx.liftProgramDef sc
+  in $$(PlutusTx.compile [|| checkScriptContext4 ||])
+      `PlutusTx.applyCode` PlutusTx.DeserializedCode d Nothing mempty

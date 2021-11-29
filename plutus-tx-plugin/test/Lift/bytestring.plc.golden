@@ -13,15 +13,16 @@
           )
         )
       )
-      (lam
-        arg_0_i0
-        (delay
-          (lam
-            case_Lift_Spec_WrappedBS_i0 [ case_Lift_Spec_WrappedBS_i1 arg_0_i2 ]
-          )
+      (lam arg_0_i0 (constr 0 arg_0_i1))
+    ]
+    (lam
+      x_i0
+      (delay
+        (lam
+          case_Lift_Spec_WrappedBS_i0
+          (case x_i2 (lam arg1_i0 [ case_Lift_Spec_WrappedBS_i2 arg1_i1 ]))
         )
       )
-    ]
-    (lam x_i0 x_i1)
+    )
   ]
 )

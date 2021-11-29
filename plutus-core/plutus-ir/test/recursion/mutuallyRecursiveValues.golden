@@ -8,17 +8,8 @@
         (type)
         (fun
           (fun
-            (fun
-              (all a_i0 (type) (fun a_i1 a_i1))
-              (all a_i0 (type) (fun a_i1 a_i1))
-            )
-            (fun
-              (fun
-                (all a_i0 (type) (fun a_i1 a_i1))
-                (all a_i0 (type) (fun a_i1 a_i1))
-              )
-              r_i1
-            )
+            (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
+            (fun (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1))) r_i1)
           )
           r_i1
         )
@@ -26,38 +17,21 @@
       [
         (lam
           x_i0
-          (fun
-            (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))
-          )
+          (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
           [
             (lam
               y_i0
-              (fun
-                (all a_i0 (type) (fun a_i1 a_i1))
-                (all a_i0 (type) (fun a_i1 a_i1))
-              )
-              [ x_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
+              (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
+              [ x_i2 (constr (sum (prod )) 0) ]
             )
             [
-              {
-                tup_i2
-                (fun
-                  (all a_i0 (type) (fun a_i1 a_i1))
-                  (all a_i0 (type) (fun a_i1 a_i1))
-                )
-              }
+              { tup_i2 (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1))) }
               (lam
                 arg_0_i0
-                (fun
-                  (all a_i0 (type) (fun a_i1 a_i1))
-                  (all a_i0 (type) (fun a_i1 a_i1))
-                )
+                (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
                 (lam
                   arg_1_i0
-                  (fun
-                    (all a_i0 (type) (fun a_i1 a_i1))
-                    (all a_i0 (type) (fun a_i1 a_i1))
-                  )
+                  (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
                   arg_1_i1
                 )
               )
@@ -65,25 +39,13 @@
           ]
         )
         [
-          {
-            tup_i1
-            (fun
-              (all a_i0 (type) (fun a_i1 a_i1))
-              (all a_i0 (type) (fun a_i1 a_i1))
-            )
-          }
+          { tup_i1 (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1))) }
           (lam
             arg_0_i0
-            (fun
-              (all a_i0 (type) (fun a_i1 a_i1))
-              (all a_i0 (type) (fun a_i1 a_i1))
-            )
+            (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
             (lam
               arg_1_i0
-              (fun
-                (all a_i0 (type) (fun a_i1 a_i1))
-                (all a_i0 (type) (fun a_i1 a_i1))
-              )
+              (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
               arg_0_i2
             )
           )
@@ -359,11 +321,11 @@
                   )
                 )
               )
-              (all a_i0 (type) (fun a_i1 a_i1))
+              (sum (prod ))
             }
             (all a_i0 (type) (fun a_i1 a_i1))
           }
-          (all a_i0 (type) (fun a_i1 a_i1))
+          (sum (prod ))
         }
         (all a_i0 (type) (fun a_i1 a_i1))
       }
@@ -373,52 +335,30 @@
         (lam
           choose_i0
           (fun
-            (fun
-              (all a_i0 (type) (fun a_i1 a_i1))
-              (all a_i0 (type) (fun a_i1 a_i1))
-            )
-            (fun
-              (fun
-                (all a_i0 (type) (fun a_i1 a_i1))
-                (all a_i0 (type) (fun a_i1 a_i1))
-              )
-              Q_i2
-            )
+            (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
+            (fun (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1))) Q_i2)
           )
           (lam
             x_i0
-            (fun
-              (all a_i0 (type) (fun a_i1 a_i1))
-              (all a_i0 (type) (fun a_i1 a_i1))
-            )
+            (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
             (lam
               y_i0
-              (fun
-                (all a_i0 (type) (fun a_i1 a_i1))
-                (all a_i0 (type) (fun a_i1 a_i1))
-              )
+              (fun (sum (prod )) (all a_i0 (type) (fun a_i1 a_i1)))
               [
                 [
                   choose_i3
-                  (lam
-                    arg_i0
-                    (all a_i0 (type) (fun a_i1 a_i1))
-                    [ y_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
-                  )
+                  (lam arg_i0 (sum (prod )) [ y_i2 (constr (sum (prod )) 0) ])
                 ]
                 (lam
                   arg_i0
-                  (all a_i0 (type) (fun a_i1 a_i1))
+                  (sum (prod ))
                   (abs
                     a_i0
                     (type)
                     (lam
                       z_i0
                       a_i2
-                      [
-                        { [ x_i5 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ] a_i2 }
-                        z_i1
-                      ]
+                      [ { [ x_i5 (constr (sum (prod )) 0) ] a_i2 } z_i1 ]
                     )
                   )
                 )

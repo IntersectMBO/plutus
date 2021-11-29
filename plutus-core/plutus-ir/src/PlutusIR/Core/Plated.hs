@@ -122,6 +122,8 @@ termSubkinds f term0 = case term0 of
     Unwrap{}        -> pure term0
     Constant{}      -> pure term0
     Builtin{}       -> pure term0
+    Constr{}        -> pure term0
+    Case{}          -> pure term0
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
@@ -134,6 +136,8 @@ termSubterms f = \case
     TyInst x t ty     -> TyInst x <$> f t <*> pure ty
     IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
     Unwrap x t        -> Unwrap x <$> f t
+    Constr x ty i es  -> Constr x ty i <$> traverse f es
+    Case x ty arg cs  -> Case x ty <$> f arg <*> traverse f cs
     e@Error {}        -> pure e
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
@@ -152,6 +156,8 @@ termSubtypes f = \case
     TyInst x t ty     -> TyInst x t <$> f ty
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
     Error x ty        -> Error x <$> f ty
+    Constr x ty i es  -> Constr x <$> f ty <*> pure i <*> pure es
+    Case x ty arg cs  -> Case x <$> f ty <*> pure arg <*> pure cs
     t@TyAbs {}        -> pure t
     a@Apply {}        -> pure a
     u@Unwrap {}       -> pure u
@@ -186,6 +192,8 @@ termUniques f = \case
     e@Error{}         -> pure e
     i@IWrap{}         -> pure i
     u@Unwrap{}        -> pure u
+    p@Constr {}       -> pure p
+    p@Case {}         -> pure p
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
 termVars :: Traversal' (Term tyname name uni fun ann) name

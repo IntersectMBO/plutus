@@ -98,6 +98,7 @@ applyPass pass = runIf (_shouldRun pass) $ through check <=< \term -> do
 availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
+    -- TODO: proper option
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)

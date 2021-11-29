@@ -45,6 +45,10 @@ normalizeType = \case
     -- some of this stuff probably should be normalized (like tuples) but I don't know quite what to do
     t                      -> t
 
+-- | Convenience wrapper around 'normalizeType' and 'TH.resolveTypeSynonyms'.
+normalizeAndResolve :: TH.Type -> TH.Q TH.Type
+normalizeAndResolve ty = normalizeType <$> TH.resolveTypeSynonyms ty
+
 requireExtension :: TH.Extension -> TH.Q ()
 requireExtension ext = do
     enabled <- TH.isExtEnabled ext
@@ -63,3 +67,16 @@ isNewtype TH.DatatypeInfo{TH.datatypeVariant=variant} = case variant of
 -- | "Safe" wrapper around 'TH.listE' for typed TH.
 tyListE :: [TH.TExpQ a] -> TH.TExpQ [a]
 tyListE texps = TH.unsafeTExpCoerce [| $(TH.listE (fmap TH.unTypeQ texps)) |]
+
+{- Note [Closed constraints]
+There is no point adding constraints that are "closed", i.e. don't mention any of the
+instance type variables. These will either be satisfied by other instances in scope
+(in which case GHC will complain at you), or be unsatisfied in which case the user will
+get a useful error anyway.
+-}
+
+isClosedConstraint :: TH.Pred -> Bool
+isClosedConstraint = isClosedType
+
+isClosedType :: TH.Type -> Bool
+isClosedType = null . TH.freeVariables

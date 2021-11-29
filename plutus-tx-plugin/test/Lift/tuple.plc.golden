@@ -16,23 +16,26 @@
           )
         )
       )
+      (delay (delay (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))))
+    ]
+    (delay
       (delay
-        (delay
-          (lam
-            arg_0_i0
+        (lam
+          x_i0
+          (delay
             (lam
-              arg_1_i0
-              (delay
+              case_GHC_Tuple_Tuple2_i0
+              (case
+                x_i2
                 (lam
-                  case_GHC_Tuple_Tuple2_i0
-                  [ [ case_GHC_Tuple_Tuple2_i1 arg_0_i3 ] arg_1_i2 ]
+                  arg2_i0
+                  (lam arg1_i0 [ [ case_GHC_Tuple_Tuple2_i3 arg2_i2 ] arg1_i1 ])
                 )
               )
             )
           )
         )
       )
-    ]
-    (delay (delay (lam x_i0 x_i1)))
+    )
   ]
 )

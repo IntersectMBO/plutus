@@ -27,6 +27,7 @@ import Data.Text (Text)
 import PlutusCore (MonadQuote)
 import PlutusCore.Error (AsParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PIR pTerm.
 type PTerm = PIR.Term TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos
@@ -89,6 +90,12 @@ unwrapTerm tm = inParens $ PIR.unwrap <$> wordPos "unwrap" <*> tm
 errorTerm :: Parametric
 errorTerm _tm = inParens $ PIR.error <$> wordPos "error" <*> pType
 
+constrTerm :: Parametric
+constrTerm tm = inParens (PIR.constr <$> wordPos "constr" <*>pType <*> lexeme Lex.decimal <*>  many tm)
+
+caseTerm :: Parametric
+caseTerm tm = inParens (PIR.kase <$> wordPos "case" <*> pType <*> tm <*> many tm)
+
 letTerm
     :: Parser PTerm
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> pTerm
@@ -108,6 +115,8 @@ term' other = choice $ map try [
     , iwrapTerm self
     , builtinTerm self
     , unwrapTerm self
+    , constrTerm self
+    , caseTerm self
     , errorTerm self
     , inParens other
     , tyInstTerm self

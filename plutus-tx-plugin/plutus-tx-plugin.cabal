@@ -135,6 +135,7 @@ test-suite plutus-tx-tests
     IsData.Spec
     Lib
     Lift.Spec
+    LiftU.Spec
     Optimization.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec

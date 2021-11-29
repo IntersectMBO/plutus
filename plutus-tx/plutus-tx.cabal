@@ -66,7 +66,7 @@ library
     PlutusTx.IsData.Class
     PlutusTx.Lattice
     PlutusTx.Lift
-    PlutusTx.Lift.Class
+    PlutusTx.LiftU
     PlutusTx.List
     PlutusTx.Maybe
     PlutusTx.Monoid
@@ -88,9 +88,13 @@ library
   other-modules:
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
+    PlutusTx.Lift.Class
     PlutusTx.Lift.Instances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
+    PlutusTx.LiftU.Class
+    PlutusTx.LiftU.Instances
+    PlutusTx.LiftU.TH
 
   build-depends:
     , aeson

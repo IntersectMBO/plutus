@@ -102,6 +102,7 @@ import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.MkPlc qualified as PLC
 import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
@@ -162,7 +163,8 @@ evaluateScriptCounting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting pv verbose ec script args =
+  Common.evaluateScriptCounting thisPlutusVersion pv verbose ec script (fmap (PLC.mkConstant ()) args)
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -178,4 +180,5 @@ evaluateScriptRestricting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting pv verbose ec budget script args =
+  Common.evaluateScriptRestricting thisPlutusVersion pv verbose ec budget script (fmap (PLC.mkConstant ()) args)

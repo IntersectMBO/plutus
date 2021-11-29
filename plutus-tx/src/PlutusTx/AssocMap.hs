@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -42,10 +43,10 @@ module PlutusTx.AssocMap (
 import Control.DeepSeq (NFData)
 import Data.Data
 import GHC.Generics (Generic)
+import PlutusTx qualified
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
-import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
@@ -237,4 +238,5 @@ mapMaybe f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f v) xs
 mapMaybeWithKey :: (k -> a -> Maybe b) -> Map k a -> Map k b
 mapMaybeWithKey f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f k v) xs
 
-makeLift ''Map
+PlutusTx.makeLift ''Map
+PlutusTx.defaultMakeLiftU ''Map

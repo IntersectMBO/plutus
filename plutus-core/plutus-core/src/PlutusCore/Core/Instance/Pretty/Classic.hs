@@ -55,6 +55,10 @@ instance (PrettyClassicBy configName tyname, Pretty (SomeTypeIn uni), Pretty ann
         TyLam ann n k t    ->
             sexp "lam" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
+        TyProd ann tys    ->
+            sexp "prod" (consAnnIf config ann (fmap (prettyBy config) tys))
+        TySum ann tys    ->
+            sexp "sum" (consAnnIf config ann (fmap (prettyBy config) tys))
 
 instance
         ( PrettyClassicBy configName tyname
@@ -90,6 +94,12 @@ instance
                 [prettyBy config ty1, prettyBy config ty2, prettyBy config t])
         Unwrap ann t ->
             sexp "unwrap" (consAnnIf config ann [prettyBy config t])
+        Constr ann ty i es ->
+            sexp "constr" (consAnnIf config ann ([prettyBy config ty, pretty i ]
+                                                 ++ (fmap (prettyBy config) es)))
+        Case ann ty arg cs ->
+            sexp "case" (consAnnIf config ann ([prettyBy config arg, prettyBy config ty ]
+                                               ++ (fmap (prettyBy config) cs)))
       where
         prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni

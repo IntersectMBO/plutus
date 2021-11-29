@@ -27,7 +27,7 @@ import PlutusTx.Lift.THUtils
 import PlutusIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Compiler.Names
-import PlutusIR.MkPir
+import PlutusIR.MkPir hiding (constr)
 
 import PlutusCore.Default qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
@@ -181,14 +181,17 @@ getTyConDeps deps = Set.fromList $ mapMaybe typeableDep $ Set.toList deps
         typeableDep (TypeableDep (TH.ConT n)) = Just n
         typeableDep _                         = Nothing
 
+normAndResolve :: TH.Type -> THCompile TH.Type
+normAndResolve t = Trans.lift $ Trans.lift $ Trans.lift $ normalizeAndResolve t
+
 addTypeableDep :: TH.Type -> THCompile ()
 addTypeableDep ty = do
-    ty' <- normalizeAndResolve ty
+    ty' <- normAndResolve ty
     modify $ Set.insert $ TypeableDep ty'
 
 addLiftDep :: TH.Type -> THCompile ()
 addLiftDep ty = do
-    ty' <- normalizeAndResolve ty
+    ty' <- normAndResolve ty
     modify $ Set.insert $ LiftDep ty'
 
 -- Constraints
@@ -206,20 +209,6 @@ toConstraint uni = \case
     TypeableDep n -> typeablePir uni n
     LiftDep ty    -> liftPir uni ty
 
-{- Note [Closed constraints]
-There is no point adding constraints that are "closed", i.e. don't mention any of the
-instance type variables. These will either be satisfied by other instances in scope
-(in which case GHC will complain at you), or be unsatisfied in which case the user will
-get a useful error anyway.
--}
-
-isClosedConstraint :: TH.Pred -> Bool
-isClosedConstraint = null . TH.freeVariables
-
--- | Convenience wrapper around 'normalizeType' and 'TH.resolveTypeSynonyms'.
-normalizeAndResolve :: TH.Type -> THCompile TH.Type
-normalizeAndResolve ty = normalizeType <$> (Trans.lift $ Trans.lift $ Trans.lift $ TH.resolveTypeSynonyms ty)
-
 -- See Note [Ordering of constructors]
 sortedCons :: TH.DatatypeInfo -> [TH.ConstructorInfo]
 sortedCons TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeCons=cons} =
@@ -231,7 +220,7 @@ sortedCons TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeCons=cons} =
 tvNameAndKind :: TH.TyVarBndrUnit -> THCompile (TH.Name, Kind ())
 tvNameAndKind = \case
     TH.KindedTV name _ kind -> do
-        kind' <- (compileKind <=< normalizeAndResolve) kind
+        kind' <- (compileKind <=< normAndResolve) kind
         pure (name, kind')
     -- TODO: is this what PlainTV actually means? That it's of kind Type?
     TH.PlainTV name _ -> pure (name, Type ())
@@ -239,7 +228,7 @@ tvNameAndKind = \case
 tvNameAndKind :: TH.TyVarBndr -> THCompile (TH.Name, Kind ())
 tvNameAndKind = \case
     TH.KindedTV name kind -> do
-        kind' <- (compileKind <=< normalizeAndResolve) kind
+        kind' <- (compileKind <=< normAndResolve) kind
         pure (name, kind')
     -- TODO: is this what PlainTV actually means? That it's of kind Type?
     TH.PlainTV name -> pure (name, Type ())
@@ -319,7 +308,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
     then do
         -- Extract the unique field of the unique constructor
         argTy <- case cons of
-            [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> (compileType <=< normalizeAndResolve) argTy
+            [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> (compileType <=< normAndResolve) argTy
             _ -> throwError $ UserLiftError "Newtypes must have a single constructor with a single argument"
         deps <- gets getTyConDeps
         pure . TH.examineSplice $ [||
@@ -383,7 +372,7 @@ compileConstructorDecl
     :: TH.ConstructorInfo
     -> THCompile (TH.TExpQ CompileDeclFun)
 compileConstructorDecl TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
-    tyExprs <- traverse (compileType <=< normalizeAndResolve) argTys
+    tyExprs <- traverse (compileType <=< normAndResolve) argTys
     pure . TH.examineSplice $ [||
          let
              tyExprs' :: forall fun . [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
@@ -479,6 +468,10 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                   ||]
     pure $ TH.clause [pat] (TH.normalB $ TH.unTypeQ rhsExpr) []
 
+-- | Generate a 'Lift' instance.
+--
+-- Generates an instance pinned to the default values for @name@, @uni@, and @fun@, you may want to write a
+-- version by hand if this is a problem.
 makeLift :: TH.Name -> TH.Q [TH.Dec]
 makeLift name = do
     requireExtension TH.ScopedTypeVariables

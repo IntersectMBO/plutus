@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
@@ -41,7 +42,6 @@ import Prelude qualified as Haskell
 import Prettyprinter (Pretty (pretty), comma, (<+>))
 
 import PlutusTx qualified
-import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude
 
 {- | An interval of @a@s.
@@ -115,12 +115,19 @@ PlutusTx.makeIsDataIndexed ''UpperBound [('UpperBound,0)]
 PlutusTx.makeIsDataIndexed ''LowerBound [('LowerBound,0)]
 PlutusTx.makeIsDataIndexed ''Interval [('Interval,0)]
 
-makeLift ''Extended
-makeLift ''LowerBound
-makeLift ''UpperBound
-makeLift ''Interval
+PlutusTx.makeLift ''Extended
+PlutusTx.makeLift ''LowerBound
+PlutusTx.makeLift ''UpperBound
+PlutusTx.makeLift ''Interval
+
+-- See Note [Passing the ScriptContext as a term]
+PlutusTx.defaultMakeLiftU ''Extended
+PlutusTx.defaultMakeLiftU ''LowerBound
+PlutusTx.defaultMakeLiftU ''UpperBound
+PlutusTx.defaultMakeLiftU ''Interval
 
 instance Eq a => Eq (Extended a) where
+
     {-# INLINABLE (==) #-}
     NegInf   == NegInf   = True
     PosInf   == PosInf   = True

@@ -20,7 +20,7 @@ import PlutusCore.Pretty.PrettyConst
 
 import Prettyprinter
 import Prettyprinter.Custom
-import Universe
+import Universe (Closed (Everywhere), Some (..), SomeTypeIn (SomeTypeIn), ValueOf (..))
 
 instance
         ( PrettyClassicBy configName name
@@ -50,6 +50,10 @@ instance
         Force ann term ->
             sexp "force" (consAnnIf config ann
                 [prettyBy config term])
+        Constr ann i es ->
+            sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) es))
+        Case ann arg cs ->
+            sexp "case" (consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni

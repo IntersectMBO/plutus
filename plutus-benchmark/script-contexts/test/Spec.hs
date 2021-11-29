@@ -40,11 +40,39 @@ testCheckSc2 = testGroup "checkScriptContext2"
           mkCheckScriptContext2Code (mkScriptContext 20)
     ]
 
+testCheckSc3 :: TestTree
+testCheckSc3 = testGroup "checkScriptContext3"
+    [ testCase "succeed on 4" $ assertBool "evaluation failed" $ isEvaluationSuccess $
+        runTermCek $ compiledCodeToTerm $ mkCheckScriptContext3Code (mkScriptContext 4)
+    , testCase "fails on 5" $ assertBool "evaluation succeeded" $ isEvaluationFailure $
+        runTermCek $ compiledCodeToTerm $ mkCheckScriptContext3Code (mkScriptContext 5)
+    , Tx.fitsInto "checkScriptContext3 (size)" (mkCheckScriptContext3Code (mkScriptContext 1)) 300
+    , runTestNested $ Tx.goldenBudget "checkScriptContext3-4" $
+        mkCheckScriptContext3Code (mkScriptContext 4)
+    , runTestNested $ Tx.goldenBudget "checkScriptContext3-20" $
+        mkCheckScriptContext3Code (mkScriptContext 20)
+    ]
+
+testCheckSc4 :: TestTree
+testCheckSc4 = testGroup "checkScriptContext4"
+    [ testCase "succeed on 4" $ assertBool "evaluation failed" $ isEvaluationSuccess $
+          runTermCek $ compiledCodeToTerm $ mkCheckScriptContext4Code (mkScriptContext 4)
+    , testCase "succeed on 5" $ assertBool "evaluation failed" $ isEvaluationSuccess $
+          runTermCek $ compiledCodeToTerm $ mkCheckScriptContext4Code (mkScriptContext 5)
+    , Tx.fitsInto "checkScriptContext4 (size)" (mkCheckScriptContext4Code (mkScriptContext 1)) 100
+    , runTestNested $ Tx.goldenBudget "checkScriptContext4-4" $
+          mkCheckScriptContext4Code (mkScriptContext 4)
+    , runTestNested $ Tx.goldenBudget "checkScriptContext4-20" $
+          mkCheckScriptContext4Code (mkScriptContext 20)
+    ]
+
 allTests :: TestTree
 allTests =
   testGroup "plutus-benchmark script-contexts tests"
     [ testCheckSc1
     , testCheckSc2
+    , testCheckSc3
+    , testCheckSc4
     ]
 
 main :: IO ()

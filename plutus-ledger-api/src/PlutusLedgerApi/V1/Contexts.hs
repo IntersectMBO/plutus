@@ -1,10 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -265,10 +267,13 @@ spendsOutput p h i =
 
 makeLift ''TxInInfo
 makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
+-- See Note [Passing the ScriptContext as a term]
+defaultMakeLiftU ''TxInInfo
 
 makeLift ''TxInfo
 makeIsDataIndexed ''TxInfo [('TxInfo,0)]
-
+-- See Note [Passing the ScriptContext as a term]
+defaultMakeLiftU ''TxInfo
 
 makeLift ''ScriptPurpose
 makeIsDataIndexed ''ScriptPurpose
@@ -277,6 +282,10 @@ makeIsDataIndexed ''ScriptPurpose
     , ('Rewarding,2)
     , ('Certifying,3)
     ]
+-- See Note [Passing the ScriptContext as a term]
+defaultMakeLiftU ''ScriptPurpose
 
 makeLift ''ScriptContext
 makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
+-- See Note [Passing the ScriptContext as a term]
+defaultMakeLiftU ''ScriptContext

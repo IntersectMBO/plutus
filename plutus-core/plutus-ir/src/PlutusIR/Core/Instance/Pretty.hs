@@ -114,6 +114,12 @@ instance ( PLC.PrettyClassicBy configName tyname
         Unwrap ann t ->
             sexp "unwrap" (PLC.consAnnIf config ann
                 [prettyBy config t])
+        Constr ann ty i es ->
+            sexp "constr" (PLC.consAnnIf config ann
+                           (prettyBy config ty : pretty i : fmap (prettyBy config) es))
+        Case ann ty arg cs ->
+            sexp "case" (PLC.consAnnIf config ann
+                         (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: PLC.Pretty (PLC.SomeTypeIn t)  => PLC.Some (PLC.ValueOf t) -> Doc dann
         prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni

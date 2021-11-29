@@ -44,6 +44,12 @@ builtinType = inParens $ do
     SomeTypeIn (Kinded uni) <- defaultUni
     pure . TyBuiltin ann $ SomeTypeIn uni
 
+prodType :: Parser PType
+prodType = inParens $ TyProd <$> wordPos "prod" <*> many pType
+
+sumType :: Parser PType
+sumType = inParens $ TySum <$> wordPos "sum" <*> many pType
+
 appType :: Parser PType
 appType = inBrackets $ do
     pos  <- getSourcePos
@@ -67,6 +73,8 @@ pType = choice $ map try
     , lamType
     , appType
     , varType
+    , prodType
+    , sumType
     ]
 
 -- | Parser for built-in type applications.

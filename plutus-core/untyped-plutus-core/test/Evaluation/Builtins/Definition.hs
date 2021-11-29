@@ -13,7 +13,7 @@ module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
@@ -301,7 +301,7 @@ test_SwapEls =
             res = mkConstant @Integer @DefaultUni () $
                     foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
             el = mkTyBuiltin @_ @(Integer, Bool) ()
-            instProj proj = mkIterInst () (builtin () proj) [integer, bool]
+            instProj p = mkIterInst () (builtin () p) [integer, bool]
             fun = runQuote $ do
                     p <- freshName "p"
                     r <- freshName "r"
