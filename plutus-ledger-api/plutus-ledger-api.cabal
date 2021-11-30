@@ -59,6 +59,7 @@ library
 
         Plutus.V2.Ledger.Api
         Plutus.V2.Ledger.Contexts
+        Plutus.V2.Ledger.Value
     build-depends:
         base >=4.9 && <5,
         aeson -any,
