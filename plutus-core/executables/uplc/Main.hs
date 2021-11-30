@@ -7,6 +7,7 @@
 
 module Main (main) where
 
+
 import Common
 import Parsers
 import PlutusCore qualified as PLC
