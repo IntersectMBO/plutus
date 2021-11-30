@@ -267,11 +267,11 @@ getInput StdInput         = getContents
 
 -- | Read and parse a source program
 parseInput ::
-  (Executable a, PLC.Rename (a PLC.AlexPosn) ) =>
+  (Executable p, PLC.Rename (p PLC.AlexPosn) ) =>
   -- | The source program
   Input ->
   -- | The output is either a UPLC or PLC program with annotation
-  IO (a PLC.AlexPosn)
+  IO (p PLC.AlexPosn)
 parseInput inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
     -- parse the UPLC program
@@ -347,10 +347,10 @@ loadUplcASTfromFlat flatMode inp = do
 
 -- Read either a PLC file or a Flat file, depending on 'fmt'
 getProgram ::
-  (Executable a,
-   Functor a,
-   PLC.Rename (a PLC.AlexPosn)) =>
-  Format -> Input -> IO (a PLC.AlexPosn)
+  (Executable p,
+   Functor p,
+   PLC.Rename (p PLC.AlexPosn)) =>
+  Format -> Input -> IO (p PLC.AlexPosn)
 getProgram fmt inp =
     case fmt of
       Textual  -> parseInput inp
@@ -362,7 +362,7 @@ getProgram fmt inp =
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
 writeFlat ::
-  (Executable a, Functor a) => Output -> AstNameType -> a b -> IO ()
+  (Executable p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
   flatProg <- serialiseProgramFlat flatMode (() <$ prog) -- Change annotations to (): see Note [Annotation types].
   case outp of
@@ -380,10 +380,10 @@ getPrintMethod = \case
       ReadableDebug -> PP.prettyPlcReadableDebug
 
 writeProgram ::
-  (Executable a,
-   Functor a,
-   PP.PrettyBy PP.PrettyConfigPlc (a b)) =>
-   Output -> Format -> PrintMode -> a b -> IO ()
+  (Executable p,
+   Functor p,
+   PP.PrettyBy PP.PrettyConfigPlc (p ann)) =>
+   Output -> Format -> PrintMode -> p ann -> IO ()
 writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
