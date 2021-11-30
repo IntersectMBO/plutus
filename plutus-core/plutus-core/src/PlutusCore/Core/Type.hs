@@ -54,15 +54,10 @@ import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe
 
-{- Note [Annotations and equality]
-Equality of two things does not depend on their annotations.
-So don't use @deriving Eq@ for things with annotations.
--}
-
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Eq, Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -93,7 +88,7 @@ data Term tyname name uni fun ann
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Eq, Show, Functor, Generic, NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)

@@ -46,14 +46,6 @@ import Prettyprinter.Internal (Doc (Text))
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 import Universe (Closed (Everywhere), GEq, GShow)
 
-{- Note [Annotations and equality]
-Equality of two errors DOES DEPEND on their annotations.
-So feel free to use @deriving Eq@ for errors.
-This is because even though we do care about errors having an 'Eq' instance (which is required for
-example by tests that do checks like @resOrErr == Right res@), we don't care much about actually
-checking errors for equality and @deriving Eq@ saves us a lot of boilerplate.
--}
-
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
 throwingEither :: MonadError e m => AReview e t -> Either t a -> m a
 throwingEither r e = case e of
