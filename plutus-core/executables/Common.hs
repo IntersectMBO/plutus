@@ -112,14 +112,14 @@ typedDeBruijnNotSupportedError =
     errorWithoutStackTrace "De-Bruijn-named ASTs are not supported for typed Plutus Core"
 
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
-toDeBruijn :: UplcProg b -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun b)
+toDeBruijn :: UplcProg ann -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
 toDeBruijn prog =
   case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
     Left e  -> errorWithoutStackTrace $ show e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 -- | Convert an untyped program to one where the 'name' type is textual names with de Bruijn indices.
-toNamedDeBruijn :: UplcProg b -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun b)
+toNamedDeBruijn :: UplcProg ann -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
 toNamedDeBruijn prog =
   case runExcept @UPLC.FreeVariableError (UPLC.deBruijnProgram prog) of
     Left e  -> errorWithoutStackTrace $ show e
@@ -304,12 +304,12 @@ getBinaryInput (FileInput file) = BSL.readFile file
 -- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
-type UntypedProgramDeBruijn a = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
+type UntypedProgramDeBruijn ann = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- | Convert an untyped de-Bruijn-indexed program to one with standard names.
 -- We have nothing to base the names on, so every variable is named "v" (but
 -- with a Unique for disambiguation).  Again, we don't support typed programs.
-fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UplcProg a)
+fromDeBruijn :: UntypedProgramDeBruijn ann -> IO (UplcProg ann)
 fromDeBruijn prog = do
     case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram prog of
       Left e  -> errorWithoutStackTrace $ show e
@@ -388,7 +388,7 @@ writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
 writePrettyToFileOrStd ::
-  (PP.PrettyBy PP.PrettyConfigPlc (a b)) => Output -> PrintMode -> a b -> IO ()
+  (PP.PrettyBy PP.PrettyConfigPlc (p ann)) => Output -> PrintMode -> p ann -> IO ()
 writePrettyToFileOrStd outp mode prog = do
   let printMethod = getPrintMethod mode
   case outp of
