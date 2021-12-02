@@ -3,16 +3,20 @@
 {-# LANGUAGE TypeFamilies      #-}
 module PlutusCore.Lexer.Lexer where
 
-import PlutusCore.Lexer (AlexPosn)
-import PlutusCore.Lexer.Type as L (Token)
+import PlutusCore qualified as PLC
+import PlutusCore.Lexer.Type as LT
+import PlutusCore.ParserCommon as PLC (Parser)
 import PlutusPrelude (NonEmpty ((:|)), Pretty (pretty), Render (render))
 
 import Data.List qualified as DL
 import Data.List.NonEmpty qualified as NE
 import Data.Proxy (Proxy (..))
 import Data.Set qualified as Set
-import Data.Void (Void)
+import PlutusCore.Lexer.Type (Keyword (KwIFix, KwLam))
 import Text.Megaparsec
+import Text.Megaparsec.Byte
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer qualified as L
 
 {- Note [Keywords] This version of the lexer relaxes the syntax so that keywords
 (con, lam, ...) and built-in names can be re-used as variable names, reducing
@@ -33,6 +37,42 @@ input stream wins. If there are still several rules which match an equal
 number of characters, then the rule which appears earliest in the file wins."
 -}
 
+-- | Space consumer.
+sc :: Parser ()
+sc = L.space
+  space1
+  (L.skipLineComment "--")
+  (L.skipBlockComment "{-" "-}")
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
+
+symbol :: Text -> Parser Text
+symbol = L.symbol sc
+
+charLiteral :: Parser LiteralConst
+charLiteral = between (char '\'') (char '\'') L.charLiteral
+
+stringLiteral :: Parser LiteralConst
+stringLiteral = char '\"' *> takeWhileP L.charLiteral (char '\"')
+
+pKeyword :: Parser Keyword
+pScheme = choice
+  [ KwAbs <$ string "abs"
+  , KwLam <$ string "lam"
+  , KwIFix <$ string "ifix"
+  , KwFun <$ string "fun"
+  , KwAll <$ string "all"
+  , KwType <$ string "type"
+  , KwProgram <$ string "program"
+  , KwCon <$ string "con"
+  , KwIWrap <$ string "iwrap"
+  , KwBuiltin <$ string "builtin"
+  , KwUnwrap <$ string "unwrap"
+  , KwError <$ string "error"
+  , KwForce <$ string "force"
+  , KwDelay <$ string "delay"]
+
 
 data WithPos a = WithPos
   { startPos    :: SourcePos
@@ -43,7 +83,7 @@ data WithPos a = WithPos
 
 data TkStream = TkStream
   { tkStreamInput :: String -- for showing offending lines
-  , unTkStream    :: [WithPos (L.Token AlexPosn)]
+  , unTkStream    :: [WithPos LT.Token]
   }
 
 -- data KwStream = KwStream
@@ -52,8 +92,8 @@ data TkStream = TkStream
 --   }
 
 instance Stream TkStream where
-  type Token  TkStream = WithPos (L.Token AlexPosn)
-  type Tokens TkStream = [WithPos (L.Token AlexPosn)]
+  type Token  TkStream = WithPos LT.Token
+  type Tokens TkStream = [WithPos LT.Token]
 
   tokenToChunk Proxy x = [x]
   tokensToChunk Proxy xs = xs
@@ -79,7 +119,7 @@ instance Stream TkStream where
       Nothing  -> (x, TkStream str s')
       Just nex -> (x, TkStream (drop (tokensLength pxy nex) str) s')
 
-showToken :: L.Token AlexPosn -> String
+showToken :: LT.Token -> String
 showToken = render . pretty
 
 instance VisualStream TkStream where
@@ -123,14 +163,14 @@ instance TraversableStream TkStream where
 pxy :: Proxy TkStream
 pxy = Proxy
 
-type Parser = Parsec Void TkStream
+type Parser = Parsec (PLC.ParseError SourcePos) TkStream
 
-liftToken :: L.Token AlexPosn -> WithPos (L.Token AlexPosn)
+liftToken :: LT.Token -> WithPos LT.Token
 liftToken = WithPos pos pos 0
   where
     pos = initialPos ""
 
-pToken :: L.Token AlexPosn -> Parser (L.Token AlexPosn)
+pToken :: LT.Token -> Parser LT.Token
 pToken c = token test (Set.singleton . Tokens . nes . liftToken $ c)
   where
     test (WithPos _ _ _ x) =

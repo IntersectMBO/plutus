@@ -3,10 +3,7 @@
 
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module PlutusCore.Lexer ( alexMonadScan
