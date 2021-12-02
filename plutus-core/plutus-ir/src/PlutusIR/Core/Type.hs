@@ -63,7 +63,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- Bindings
 
 -- | Each multi-let-group has to be marked with its scoping:
--- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifer cannot refer to itself or later-introduced identifiers of the group.
+-- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec

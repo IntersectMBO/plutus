@@ -21,26 +21,22 @@ import PlutusPrelude
 import Prelude hiding (fail)
 
 
+import Control.Monad.Combinators.Expr
+import Control.Monad.Combinators.NonEmpty qualified as NE
 import PlutusCore qualified as PLC
 import PlutusCore.Parsable qualified as PLC
-import PlutusCore.ParserCommon
+import PlutusCore.Parser.ParserCommon
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
-import Control.Monad.Combinators.NonEmpty qualified as NE
-
+type PType = PLC.Type TyName DefaultUni DefaultFun
 
 recursivity :: Parser SourcePos Recursivity
 recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> return NonRec)
 
 strictness :: Parser SourcePos Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
-
-funType
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-funType = TyFun <$> wordPos "fun" <*> typ <*> typ
 
 allType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -52,32 +48,18 @@ lamType
     => Parser SourcePos (Type TyName uni SourcePos)
 lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
 
-ifixType
+pTyVar
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser SourcePos (Type TyName uni SourcePos)
-ifixType = TyIFix <$> wordPos "ifix" <*> typ <*> typ
+pTyVar = wordPos "con" >> pTyBuiltin
 
-conType
+pTyBuiltin
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser SourcePos (Type TyName uni SourcePos)
-conType = wordPos "con" >> builtinType
-
-builtinType
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-builtinType = do
+pTyBuiltin = do
     p <- getSourcePos
     PLC.SomeTypeIn (PLC.Kinded uni) <- builtinTypeTag
     pure . TyBuiltin p $ PLC.SomeTypeIn uni
-
-appType
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-appType = do
-    pos  <- getSourcePos
-    fn   <- typ
-    args <- some typ
-    pure $ foldl' (TyApp pos) fn args
 
 kind :: Parser SourcePos (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
@@ -91,6 +73,28 @@ typ
 typ = (tyName >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
+
+-- | Parser for @Type@. All constructors that have @Type@ as argument are @operators@.
+pType :: Parser SourcePos (Type TyName PLC.DefaultUni SourcePos)
+pType = choice
+  [ inParens pType
+  , pTyVar
+  , pTyBuiltin
+  ]
+
+operatorTable :: [[Operator (Parser SourcePos) PType]]
+operatorTable =
+  [ [ prefix "fun" TyFun
+    , binary "ifix" TyIFix
+    , binary "app" TyApp
+    ]
+  ]
+
+parseType = makeExprParser pType operatorTable
+
+prefix  name f = Prefix  (f <$ symbol name)
+binary :: Text -> (PType -> PType -> PType) -> Operator Parser PType
+binary  name f = Prefix  (f <$ symbol name)
 
 varDecl
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))

@@ -1,7 +1,6 @@
 -- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE PatternSynonyms    #-}
-{-# LANGUAGE TypeApplications   #-}
 
 module PlutusCore
     (
@@ -54,7 +53,7 @@ module PlutusCore
     , UniqueMap (..)
     , Normalized (..)
     , defaultVersion
-    , allKeywords
+    , toTerm
     , termAnn
     , typeAnn
     , tyVarDeclAnn
@@ -151,11 +150,8 @@ import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Flat ()
-import PlutusCore.Lexer
-import PlutusCore.Lexer.Type
 import PlutusCore.Name
 import PlutusCore.Normalize
-import PlutusCore.Parser
 import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusCore.Rename

@@ -4,14 +4,13 @@
 module PlutusCore.Parser.Type
     ( Keyword (..)
     , Token (..)
-    , allKeywords
     , IdentifierState
     , newIdentifier
     , emptyIdentifierState
     , identifierStateFrom
     ) where
 
-import PlutusPrelude
+import PlutusPrelude (Generic, NFData, Natural, Pretty (pretty))
 
 import PlutusCore.Name
 
@@ -147,10 +146,6 @@ instance Pretty Token where
     pretty (TkLiteralConst _ lit)    = pretty lit
     pretty (TkKeyword _ kw)          = pretty kw
     pretty EOF{}                     = mempty
-
--- | The list of all 'Keyword's.
-allKeywords :: [Keyword]
-allKeywords = [minBound .. maxBound]
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's. It is used during parsing.
