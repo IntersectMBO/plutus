@@ -191,11 +191,12 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Lexer.Type
         PlutusCore.InlineUtils
         PlutusCore.Parsable
         PlutusCore.Parser.Internal
-        PlutusCore.ParserCommon
+        PlutusCore.Parser.Lexer
+        PlutusCore.Parser.Type
+        PlutusCore.Parser.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName

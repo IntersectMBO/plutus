@@ -17,7 +17,7 @@ module PlutusCore.Lexer ( alexMonadScan
 import PlutusPrelude
 
 import PlutusCore.Error
-import PlutusCore.Lexer.Type
+import PlutusCore.Parser.Type
 import PlutusCore.Name
 
 import           Control.Monad.Except

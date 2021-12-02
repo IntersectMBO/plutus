@@ -32,8 +32,8 @@ import PlutusPrelude
 
 import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
-import PlutusCore.Lexer.Type
 import PlutusCore.Name
+import PlutusCore.Parser.Type
 import PlutusCore.Pretty
 
 import Control.Lens hiding (use)

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusCore.Lexer.Type
+module PlutusCore.Parser.Type
     ( Keyword (..)
     , Special (..)
     , Token (..)

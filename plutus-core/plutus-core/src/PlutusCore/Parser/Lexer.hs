@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TypeFamilies      #-}
-module PlutusCore.Lexer.Lexer where
+module PlutusCore.Parser.Lexer where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Lexer.Type as LT

@@ -40,7 +40,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
 import Data.Text qualified as T
-import PlutusCore.ParserCommon
+import PlutusCore.Parser.ParserCommon
 
 -- Parsers for UPLC terms
 

@@ -7,7 +7,7 @@
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 
-module PlutusCore.ParserCommon where
+module PlutusCore.Parser.ParserCommon where
 
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
