@@ -37,25 +37,6 @@ input stream wins. If there are still several rules which match an equal
 number of characters, then the rule which appears earliest in the file wins."
 -}
 
--- | Space consumer.
-sc :: Parser ()
-sc = L.space
-  space1
-  (L.skipLineComment "--")
-  (L.skipBlockComment "{-" "-}")
-
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
-
-symbol :: Text -> Parser Text
-symbol = L.symbol sc
-
-charLiteral :: Parser LiteralConst
-charLiteral = between (char '\'') (char '\'') L.charLiteral
-
-stringLiteral :: Parser LiteralConst
-stringLiteral = char '\"' *> takeWhileP L.charLiteral (char '\"')
-
 pKeyword :: Parser Keyword
 pScheme = choice
   [ KwAbs <$ string "abs"

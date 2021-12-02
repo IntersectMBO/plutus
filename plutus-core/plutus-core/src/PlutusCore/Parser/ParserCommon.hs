@@ -62,6 +62,13 @@ parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote
                    (Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
+charLiteral :: Parser LiteralConst
+charLiteral = between (char '\'') (char '\'') L.charLiteral
+
+stringLiteral :: Parser LiteralConst
+stringLiteral = char '\"' *> takeWhileP L.charLiteral (char '\"')
+
+-- | Space consumer.
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
