@@ -1,31 +1,40 @@
+{-# LANGUAGE AllowAmbiguousTypes       #-}
 {-# LANGUAGE BangPatterns              #-}
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE PartialTypeSignatures     #-}
 {-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeFamilies              #-}
 
 module Main (main) where
 
 import Common
 import Parsers
 import PlutusCore qualified as PLC
+import PlutusCore.Constant qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Pretty qualified as PP
 
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (asum)
 import Data.Functor (void)
-import Data.List (nub)
+import Data.List (intercalate, nub)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
+import Data.Proxy (Proxy (..))
+import Data.Text qualified as T
+import Text.Printf (printf)
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Text qualified as T
+import GHC.TypeLits (symbolVal)
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -52,6 +61,7 @@ data Command = Apply     ApplyOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
              | DumpModel
+             | PrintBuiltinTypes
 
 ---------------- Option parsers ----------------
 
@@ -147,6 +157,9 @@ plutusOpts = hsubparser (
     <> command "dump-model"
            (info (pure DumpModel)
             (progDesc "Dump the cost model parameters"))
+    <> command "print-builtin-types"
+           (info (pure PrintBuiltinTypes)
+            (progDesc "Print the types of the built-in functions"))
   )
 
 
@@ -228,13 +241,46 @@ runDumpModel = do
     let params = fromJust PLC.defaultCostModelParams
     BSL.putStr $ Aeson.encode params
 
+type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+
+type DefaultType = Either String (PLC.Type PLC.TyName PLC.DefaultUni ())
+type Signature = ([DefaultType], DefaultType )
+
+typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> [DefaultType] -> Signature
+typeSchemeToSignature (PLC.TypeSchemeResult pR) acc     = (acc, Right $ PLC.toTypeAst pR)
+typeSchemeToSignature (PLC.TypeSchemeArrow pA schB) acc  =
+    let acc' = acc ++ [Right $ PLC.toTypeAst pA]
+    in typeSchemeToSignature schB acc'
+typeSchemeToSignature (PLC.TypeSchemeAll proxy schK) acc = case proxy of
+    (_ :: Proxy '(text, uniq, kind)) ->
+        let text = T.pack $ symbolVal @text Proxy
+            acc' = acc ++ [Left $ T.unpack text]
+        in typeSchemeToSignature (schK Proxy) acc'
+
+signatureToString :: Signature -> String
+signatureToString (args, res) =
+                    "{ " ++ (intercalate ", " $ map pr args) ++ " } -> " ++ (pr res)
+                        where pr (Left tv)  = "forall " ++ tv
+                              pr (Right ty) = show $ PP.pretty ty
+
+tobs :: PLC.ToBuiltinMeaning PLC.DefaultUni PLC.DefaultFun => PLC.DefaultFun -> String
+tobs fun = case PLC.toBuiltinMeaning @_ @_ @(PLC.Term PLC.TyName PLC.Name _ _ ()) fun of
+    PLC.BuiltinMeaning sch _ _ -> signatureToString $ typeSchemeToSignature sch []
+
+
+runPrintBuiltinTypes :: IO ()
+runPrintBuiltinTypes = do
+  let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
+  mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (tobs x))) builtins
+
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts -> runApply        opts
-        Eval      opts -> runEval         opts
-        Example   opts -> runUplcPrintExample opts
-        Print     opts -> runPrint        opts
-        Convert   opts -> runConvert      opts
-        DumpModel      -> runDumpModel
+        Apply     opts    -> runApply        opts
+        Eval      opts    -> runEval         opts
+        Example   opts    -> runUplcPrintExample opts
+        Print     opts    -> runPrint        opts
+        Convert   opts    -> runConvert      opts
+        DumpModel         -> runDumpModel
+        PrintBuiltinTypes -> runPrintBuiltinTypes
