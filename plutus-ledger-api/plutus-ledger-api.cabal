@@ -91,12 +91,17 @@ test-suite plutus-ledger-api-test
     other-modules:
         Spec.Interval
         Spec.Time
+        Spec.Eval
     build-depends:
         base >=4.9 && <5,
+        mtl -any,
         aeson -any,
+        plutus-core -any,
         plutus-ledger-api -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
-        tasty-quickcheck -any
+        tasty-quickcheck -any,
+        bytestring -any,
+        serialise -any
