@@ -2,6 +2,7 @@
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -32,11 +33,11 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Parsable
 
 import Control.Applicative
-import Control.Monad
 import Data.ByteString qualified as BS
 import Data.Foldable
 import Data.Proxy
 import Data.Text qualified as Text
+import GHC.Exts
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -204,15 +205,20 @@ being "internal".
 
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
+    {-# INLINE toTypeAst #-}
 
 -- See Note [Int as Integer].
+-- See Note [Performance of KnownTypeIn instances]
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
     makeKnown emit mayCause = makeKnown emit mayCause . toInteger
-    readKnown mayCause term = do
-        i :: Integer <- readKnown mayCause term
-        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () mayCause
-        pure $ fromIntegral i
+    {-# INLINE makeKnown #-}
+
+    readKnown mayCause term =
+        readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
+            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
+                then pure $ fromIntegral i
+                else throwingWithCause _EvaluationFailure () mayCause
+    {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
