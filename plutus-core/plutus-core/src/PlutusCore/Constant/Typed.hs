@@ -2,6 +2,7 @@
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
+{-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DefaultSignatures        #-}
@@ -561,7 +562,7 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
            , KnownBuiltinType term a
            )
         => Maybe cause -> term -> m a
-    readKnown mayCause term = asConstant mayCause term >>= oneShot (\case
+    readKnown mayCause term = asConstant mayCause term >>= oneShot \case
         Some (ValueOf uniAct x) -> do
             let uniExp = knownUni @_ @uni @a
             case uniAct `geq` uniExp of
@@ -569,10 +570,10 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
                 Nothing   -> do
                     let err = fromString $ concat
                             [ "Type mismatch: "
-                            , "expected: " ++ oneShot gshow uniExp
+                            , "expected: " ++ gshow uniExp
                             , "; actual: " ++ gshow uniAct
                             ]
-                    throwingWithCause _UnliftingError err mayCause)
+                    throwingWithCause _UnliftingError err mayCause
     {-# INLINE readKnown #-}
 
 -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
