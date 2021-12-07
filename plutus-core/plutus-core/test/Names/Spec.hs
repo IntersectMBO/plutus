@@ -53,8 +53,7 @@ test_mangle = testProperty "equality does not survive mangling" . property $ do
 prop_equalityFor
     :: program ~ Program TyName Name DefaultUni DefaultFun ()
     => (program -> Quote program) -> Property
--- We have some tests that are supposed to fail, hence running up to 1000 tests to make sure they do.
-prop_equalityFor ren = withTests 1000 . property $ do
+prop_equalityFor ren = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     let progRen = runQuote $ ren prog
     Hedgehog.assert $ progRen == prog && prog == progRen

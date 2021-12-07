@@ -132,7 +132,6 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
--- We need to inline local functions, so that more efficient Core is generated.
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     -- Integers
@@ -272,7 +271,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           fstPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
               pure . fromConstant . someValueOf uniA $ fst xy
-          {-# INLINE fstPlc #-}
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
             sndPlc
@@ -282,7 +280,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           sndPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
               pure . fromConstant . someValueOf uniB $ snd xy
-          {-# INLINE sndPlc #-}
     -- Lists
     toBuiltinMeaning ChooseList =
         makeBuiltinMeaning
@@ -295,7 +292,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             pure $ case xs of
                 []    -> a
                 _ : _ -> b
-          {-# INLINE choosePlc #-}
     toBuiltinMeaning MkCons =
         makeBuiltinMeaning
             consPlc
@@ -317,7 +313,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- https://github.com/input-output-hk/plutus/pull/3035
                 Just Refl <- pure $ uniA `geq` uniA'
                 pure . fromConstant . someValueOf uniListA $ x : xs
-          {-# INLINE consPlc #-}
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
             headPlc
@@ -328,7 +323,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
               pure . fromConstant $ someValueOf uniA x
-          {-# INLINE headPlc #-}
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
             tailPlc
@@ -341,7 +335,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs
               pure . fromConstant $ someValueOf uniListA xs'
-          {-# INLINE tailPlc #-}
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
             nullPlc
@@ -351,7 +344,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           nullPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               pure $ null xs
-          {-# INLINE nullPlc #-}
 
     -- Data
     toBuiltinMeaning ChooseData =
