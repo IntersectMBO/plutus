@@ -32,81 +32,74 @@ import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 type PType = PLC.Type TyName DefaultUni DefaultFun
 
-recursivity :: Parser SourcePos Recursivity
+recursivity :: Parser  Recursivity
 recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> return NonRec)
 
-strictness :: Parser SourcePos Strictness
+strictness :: Parser  Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
-
-allType
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
-
-lamType
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
 
 pTyVar
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-pTyVar = wordPos "con" >> pTyBuiltin
+    => Parser  PType
+pTyVar = TyVar <$> wordPos "con" <*> tyName
 
-pTyBuiltin
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-pTyBuiltin = do
-    p <- getSourcePos
-    PLC.SomeTypeIn (PLC.Kinded uni) <- builtinTypeTag
-    pure . TyBuiltin p $ PLC.SomeTypeIn uni
+pTyBuiltin :: Parser PType
+pTyBuiltin = TyBuiltin <$> wordPos "con" <*> defaultUniType
 
-kind :: Parser SourcePos (Kind SourcePos)
+kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
     where
         typeKind = Type <$> wordPos "type"
         funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
 
-typ
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Type TyName uni SourcePos)
-typ = (tyName >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
-    <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
-    <|> inBrackets appType
+defaultUniType :: Parser (SomeTypeIn DefaultUni)
+defaultUniType = choice
+  [ inParens defaultUniType
+  , SomeTypeIn DefaultUniInteger <$ string "integer"
+  , SomeTypeIn DefaultUniByteString <$ string "bytestring"
+  , SomeTypeIn DefaultUniString <$ string "string"
+  , SomeTypeIn DefaultUniUnit <$ string "unit"
+  , SomeTypeIn DefaultUniBool <$ string "bool"
+  , SomeTypeIn DefaultUniProtoList <$ string "list"
+  , SomeTypeIn DefaultUniProtoPair <$ string "pair"
+  -- , SomeTypeIn DefaultUniApply <$ string "?" TODO need to make this an operator
+  , SomeTypeIn DefaultUniData <$ string "data" ]
 
 -- | Parser for @Type@. All constructors that have @Type@ as argument are @operators@.
-pType :: Parser SourcePos (Type TyName PLC.DefaultUni SourcePos)
+pType :: Parser  (Type TyName PLC.DefaultUni SourcePos)
 pType = choice
   [ inParens pType
   , pTyVar
   , pTyBuiltin
   ]
 
-operatorTable :: [[Operator (Parser SourcePos) PType]]
+operatorTable :: [[Operator Parser PType]]
 operatorTable =
-  [ [ prefix "fun" TyFun
+  [ [ binary "fun" TyFun
     , binary "ifix" TyIFix
     , binary "app" TyApp
+    , kindBinary "all" TyForall
+    , kindBinary "lam" TyLam
     ]
   ]
 
 parseType = makeExprParser pType operatorTable
 
-prefix  name f = Prefix  (f <$ symbol name)
-binary :: Text -> (PType -> PType -> PType) -> Operator Parser PType
-binary  name f = Prefix  (f <$ symbol name)
+binary :: Text -> (SourcePos -> PType -> PType -> PType) -> Operator Parser PType
+binary name f = Prefix  (f <$ symbol name)
+
+kindBinary :: Text -> (SourcePos -> TyName -> Kind SourcePos -> PType -> PType) -> Operator Parser PType
+kindBinary name f = Prefix (f <$ symbol name)
 
 varDecl
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (VarDecl TyName Name uni fun SourcePos)
+    => Parser  (VarDecl TyName Name uni fun SourcePos)
 varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
 
-tyVarDecl :: Parser SourcePos (TyVarDecl TyName SourcePos)
+tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
 
-datatype
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser SourcePos (Datatype TyName Name uni fun SourcePos)
+datatype :: Parser (Datatype TyName Name DefaultUni DefaultFun SourcePos)
 datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
@@ -114,11 +107,7 @@ datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> many varDecl
 
 binding
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (Binding TyName Name uni fun SourcePos)
+    :: Parser (Binding TyName Name DefaultUni DefaultFun SourcePos)
 binding = inParens $
     (try $ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
     <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
@@ -127,8 +116,8 @@ binding = inParens $
 -- A small type wrapper for parsers that are parametric in the type of term they parse
 type Parametric uni fun
     = forall term. PIR.TermLike term TyName Name uni fun
-    => Parser SourcePos (term SourcePos)
-    -> Parser SourcePos (term SourcePos)
+    => Parser  (term SourcePos)
+    -> Parser  (term SourcePos)
 
 absTerm :: Parametric uni fun
 absTerm tm = PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
@@ -155,12 +144,7 @@ unwrapTerm tm = PIR.unwrap <$> wordPos "unwrap" <*> tm
 errorTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 errorTerm _tm = PIR.error <$> wordPos "error" <*> typ
 
-letTerm
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (Term TyName Name uni fun SourcePos)
+letTerm :: Parser (Term TyName Name DefaultUni DefaultFun SourcePos)
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric uni fun
@@ -169,42 +153,9 @@ appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 tyInstTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
-term'
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parametric uni fun
-term' other = (name >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
-    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
-    <|> inBraces (tyInstTerm self)
-    <|> inBrackets (appTerm self)
-    where self = term' other
-
-term
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (Term TyName Name uni fun SourcePos)
-term = term' letTerm
-
-plcTerm
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (PLC.Term TyName Name uni fun SourcePos)
-plcTerm = term' empty
-
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
-program
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (Program TyName Name uni fun SourcePos)
+program :: Parser (Program TyName Name DefaultUni DefaultFun SourcePos)
 program = whitespace >> do
     prog <- inParens $ do
         p <- wordPos "program"
@@ -213,12 +164,7 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
-plcProgram
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       , Bounded fun, Enum fun, Pretty fun
-       )
-    => Parser SourcePos (PLC.Program TyName Name uni fun SourcePos)
+plcProgram :: Parser (PLC.Program TyName Name DefaultUni DefaultFun SourcePos)
 plcProgram = whitespace >> do
     prog <- inParens $ PLC.Program <$> wordPos "program" <*> version <*> plcTerm
     notFollowedBy anySingle

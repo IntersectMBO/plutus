@@ -10,9 +10,9 @@ import PlutusPrelude
 import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Lexer
-import PlutusCore.Lexer.Type
 import PlutusCore.Name
 import PlutusCore.Parsable
+import PlutusCore.Parser.Type
 
 import Control.Monad.Except
 import Universe

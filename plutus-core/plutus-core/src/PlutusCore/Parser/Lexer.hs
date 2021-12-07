@@ -4,15 +4,15 @@
 module PlutusCore.Parser.Lexer where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Lexer.Type as LT
-import PlutusCore.ParserCommon as PLC (Parser)
+import PlutusCore.Parser.ParserCommon as PLC (Parser)
+import PlutusCore.Parser.Type as LT
 import PlutusPrelude (NonEmpty ((:|)), Pretty (pretty), Render (render))
 
 import Data.List qualified as DL
 import Data.List.NonEmpty qualified as NE
 import Data.Proxy (Proxy (..))
 import Data.Set qualified as Set
-import PlutusCore.Lexer.Type (Keyword (KwIFix, KwLam))
+import PlutusCore.Parser.Type (Keyword (KwIFix, KwLam))
 import Text.Megaparsec
 import Text.Megaparsec.Byte
 import Text.Megaparsec.Char
