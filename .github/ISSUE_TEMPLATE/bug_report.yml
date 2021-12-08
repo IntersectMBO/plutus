@@ -1,0 +1,92 @@
+name: Bug Report
+description: Report a bug
+#title: ""
+labels: ["bug"]
+#assignees:
+#  -
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and specific description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+    validations:
+      required: true
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: Actual Result
+      description: What is the reproducible outcome?
+      placeholder: See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected Result
+      description: A clear and concise description of what you expected to happen.
+      placeholder: No errors observed.
+    validations:
+      required: true
+  - type: textarea
+    id: what-have-you-tried
+    attributes:
+      label: What have you tried to resolve this issue?
+      description: What steps have you taken to try and understand the issue? Context will enable us to help you faster, or, even better, will help you solve it yourself!
+    validations:
+      required: true
+  - type: checkboxes
+    id: checked-readme
+    attributes:
+      label: Checked our docs?
+      description: Have you looked over our [readme](https://github.com/input-output-hk/plutus-apps/blob/main/README.adoc), [documentation](https://plutus-apps.readthedocs.io/en/latest/), and [technical report](https://github.com/input-output-hk/plutus-apps/blob/main/README.adoc#specifications-and-design)?
+      options:
+        - label: Yes, I have looked in the the readme, plutus docs, and technical report for help on this issue.
+          required: true
+  - type: checkboxes
+    id: checked-stackexchange
+    attributes:
+      label: Checked Stack Exchange?
+      description: Have you tried searching on [cardano stackexchange](https://cardano.stackexchange.com/)?
+      options:
+        - label: Yes, I have searched Stack Exchange for this issue and it doesn't exist.
+          required: true
+        - label: I have considered raising this issue in Stack Exchange.
+          required: true
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System info
+      placeholder: |
+        OS: [e.g. Ubuntu]
+        Version: [e.g. 20.04]
+        Plutus: version or commit hash
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots-attachments
+    attributes:
+      label: Screenshots and attachments
+      description: |
+        If applicable, add screenshots, config files and/or logs to help explain the problem.
+        If the issue is related to the Plutus Playground, please include a link to a gist that reproduces the issue
+    validations:
+      required: false
+
