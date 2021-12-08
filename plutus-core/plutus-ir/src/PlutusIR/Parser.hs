@@ -30,17 +30,17 @@ import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
+-- | A @Type@ to be parsed. ATM the parser only works
+-- for types in the @DefaultUni@ with @DefaultFun@.
 type PType = PLC.Type TyName DefaultUni DefaultFun
 
-recursivity :: Parser  Recursivity
+recursivity :: Parser Recursivity
 recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> return NonRec)
 
-strictness :: Parser  Strictness
+strictness :: Parser Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
 
-pTyVar
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser  PType
+pTyVar :: Parser PType
 pTyVar = TyVar <$> wordPos "con" <*> tyName
 
 pTyBuiltin :: Parser PType
@@ -66,7 +66,7 @@ defaultUniType = choice
   , SomeTypeIn DefaultUniData <$ string "data" ]
 
 -- | Parser for @Type@. All constructors that have @Type@ as argument are @operators@.
-pType :: Parser  (Type TyName PLC.DefaultUni SourcePos)
+pType :: Parser PType
 pType = choice
   [ inParens pType
   , pTyVar
@@ -91,9 +91,7 @@ binary name f = Prefix  (f <$ symbol name)
 kindBinary :: Text -> (SourcePos -> TyName -> Kind SourcePos -> PType -> PType) -> Operator Parser PType
 kindBinary name f = Prefix (f <$ symbol name)
 
-varDecl
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser  (VarDecl TyName Name uni fun SourcePos)
+varDecl :: Parser (VarDecl TyName Name DefaultUni DefaultFun SourcePos)
 varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
@@ -113,44 +111,40 @@ binding = inParens $
     <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
     <|> (wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
--- A small type wrapper for parsers that are parametric in the type of term they parse
-type Parametric uni fun
-    = forall term. PIR.TermLike term TyName Name uni fun
+-- A small type wrapper for parsers that are parametric in the type of term(PIR/PLC) they parse
+type Parametric
+    = forall term. PIR.TermLike term TyName Name DefaultUni DefaultFun
     => Parser  (term SourcePos)
     -> Parser  (term SourcePos)
 
-absTerm :: Parametric uni fun
+absTerm :: Parametric
 absTerm tm = PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
 
-lamTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
+lamTerm :: Parametric
 lamTerm tm = PIR.lamAbs <$> wordPos "lam" <*> name <*> typ <*> tm
 
-conTerm
-    :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       )
-    => Parametric uni fun
+conTerm :: Parametric
 conTerm _tm = PIR.constant <$> wordPos "con" <*> constant
 
-iwrapTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
+iwrapTerm :: Parametric
 iwrapTerm tm = PIR.iWrap <$> wordPos "iwrap" <*> typ <*> typ <*> tm
 
-builtinTerm :: (Bounded fun, Enum fun, Pretty fun) => Parametric uni fun
+builtinTerm :: Parametric
 builtinTerm _term = PIR.builtin <$> wordPos "builtin" <*> builtinFunction
 
-unwrapTerm :: Parametric uni fun
+unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> wordPos "unwrap" <*> tm
 
-errorTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
+errorTerm :: Parametric
 errorTerm _tm = PIR.error <$> wordPos "error" <*> typ
 
 letTerm :: Parser (Term TyName Name DefaultUni DefaultFun SourcePos)
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> term
 
-appTerm :: Parametric uni fun
+appTerm :: Parametric
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 
-tyInstTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
+tyInstTerm :: Parametric
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 -- Note that PIR programs do not actually carry a version number
