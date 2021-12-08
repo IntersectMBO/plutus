@@ -43,7 +43,6 @@ module PlutusCore.Constant.Typed
     , ListToBinds
     , KnownBuiltinTypeIn
     , KnownBuiltinType
-    , readKnownConstant
     , KnownTypeIn (..)
     , KnownType
     , TestTypesFromTheUniverseAreAllKnown
@@ -74,7 +73,7 @@ import Data.Some.GADT qualified as GADT
 import Data.String
 import Data.Text (Text)
 import Data.Text qualified as Text
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (oneShot)
 import GHC.Ix
 import GHC.TypeLits
 import Universe
@@ -525,28 +524,6 @@ instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
--- See Note [Performance of KnownTypeIn instances]
--- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
-readKnownConstant
-    :: forall term a err cause m.
-       ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
-       , KnownBuiltinType term a
-       )
-    => Maybe cause -> term -> m a
-readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
-    Some (ValueOf uniAct x) -> do
-        let uniExp = knownUni @_ @(UniOf term) @a
-        case uniAct `geq` uniExp of
-            Just Refl -> pure x
-            Nothing   -> do
-                let err = fromString $ concat
-                        [ "Type mismatch: "
-                        , "expected: " ++ gshow uniExp
-                        , "; actual: " ++ gshow uniAct
-                        ]
-                throwingWithCause _UnliftingError err mayCause
-{-# INLINE readKnownConstant #-}
-
 -- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
 -- the latter breaks on @m a@ (and for brevity).
 -- | Haskell types known to exist on the PLC side.
@@ -585,7 +562,18 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
            , KnownBuiltinType term a
            )
         => Maybe cause -> term -> m a
-    readKnown = inline readKnownConstant
+    readKnown mayCause term = asConstant mayCause term >>= oneShot \case
+        Some (ValueOf uniAct x) -> do
+            let uniExp = knownUni @_ @uni @a
+            case uniAct `geq` uniExp of
+                Just Refl -> pure x
+                Nothing   -> do
+                    let err = fromString $ concat
+                            [ "Type mismatch: "
+                            , "expected: " ++ gshow uniExp
+                            , "; actual: " ++ gshow uniAct
+                            ]
+                    throwingWithCause _UnliftingError err mayCause
     {-# INLINE readKnown #-}
 
 -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
