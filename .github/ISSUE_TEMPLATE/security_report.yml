@@ -9,7 +9,8 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this security report.
-        Please check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+        Make sure you have read the security policy before filling this out. Depending on the issue, you may wish to email security@iohk.io instead.
+        Please also check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
   - type: textarea
     id: summary
     attributes:
