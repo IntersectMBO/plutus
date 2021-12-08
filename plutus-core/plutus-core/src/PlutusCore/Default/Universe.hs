@@ -19,6 +19,8 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+{-# OPTIONS_GHC -O2 #-}
+
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
