@@ -36,7 +36,6 @@ import Control.Applicative
 import Data.ByteString qualified as BS
 import Data.Foldable
 import Data.Proxy
-import Data.String
 import Data.Text qualified as Text
 import GHC.Exts (oneShot)
 import Universe as Export
@@ -212,21 +211,11 @@ instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
     makeKnown emit mayCause = makeKnown emit mayCause . toInteger
     {-# INLINE makeKnown #-}
 
-    readKnown mayCause term = asConstant mayCause term >>= oneShot \case
-        Some (ValueOf uniAct i) -> do
-            let uniExp = knownUni @_ @DefaultUni @Integer
-            case uniAct `geq` uniExp of
-                Just Refl ->
-                    if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
-                        then pure $ fromIntegral i
-                        else throwingWithCause _EvaluationFailure () mayCause
-                Nothing   -> do
-                    let err = fromString $ concat
-                            [ "Type mismatch: "
-                            , "expected: " ++ gshow uniExp
-                            , "; actual: " ++ gshow uniAct
-                            ]
-                    throwingWithCause _UnliftingError err mayCause
+    readKnown mayCause term =
+        readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
+            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
+                then pure $ fromIntegral i
+                else throwingWithCause _EvaluationFailure () mayCause
     {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]
