@@ -9,7 +9,7 @@ module PlutusIR.Parser
     , parse
     , parseQuoted
     , term
-    , typ
+    , pType
     , program
     , plcTerm
     , plcProgram
@@ -92,7 +92,7 @@ kindBinary :: Text -> (SourcePos -> TyName -> Kind SourcePos -> PType -> PType) 
 kindBinary name f = Prefix (f <$ symbol name)
 
 varDecl :: Parser (VarDecl TyName Name DefaultUni DefaultFun SourcePos)
-varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
+varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> pType
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
@@ -108,7 +108,7 @@ binding
     :: Parser (Binding TyName Name DefaultUni DefaultFun SourcePos)
 binding = inParens $
     (try $ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
-    <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
+    <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> pType)
     <|> (wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term(PIR/PLC) they parse
@@ -121,13 +121,13 @@ absTerm :: Parametric
 absTerm tm = PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
 
 lamTerm :: Parametric
-lamTerm tm = PIR.lamAbs <$> wordPos "lam" <*> name <*> typ <*> tm
+lamTerm tm = PIR.lamAbs <$> wordPos "lam" <*> name <*> pType <*> tm
 
 conTerm :: Parametric
 conTerm _tm = PIR.constant <$> wordPos "con" <*> constant
 
 iwrapTerm :: Parametric
-iwrapTerm tm = PIR.iWrap <$> wordPos "iwrap" <*> typ <*> typ <*> tm
+iwrapTerm tm = PIR.iWrap <$> wordPos "iwrap" <*> pType <*> pType <*> tm
 
 builtinTerm :: Parametric
 builtinTerm _term = PIR.builtin <$> wordPos "builtin" <*> builtinFunction
@@ -136,7 +136,7 @@ unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> wordPos "unwrap" <*> tm
 
 errorTerm :: Parametric
-errorTerm _tm = PIR.error <$> wordPos "error" <*> typ
+errorTerm _tm = PIR.error <$> wordPos "error" <*> pType
 
 letTerm :: Parser (Term TyName Name DefaultUni DefaultFun SourcePos)
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> term
@@ -145,7 +145,7 @@ appTerm :: Parametric
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 
 tyInstTerm :: Parametric
-tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
+tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some pType
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
