@@ -5,6 +5,11 @@ labels: ["security"]
 #assignees:
 #  -
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this security report.
+        Please check the existing issues, [Plutus Docs](https://plutus-apps.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
   - type: textarea
     id: summary
     attributes:
@@ -27,15 +32,6 @@ body:
         OS: [e.g. Ubuntu]
         Version: [e.g. 20.04]
         Plutus: version or commit hash
-    validations:
-      required: true
-  - type: textarea
-    id: screenshots-attachments
-    attributes:
-      label: Screenshots and attachments
-      description: |
-        If applicable, add screenshots, config files and/or logs to help explain the problem.
-        If the issue is related to the Plutus Playground, please include a link to a gist that reproduces the issue
     validations:
       required: false
 
