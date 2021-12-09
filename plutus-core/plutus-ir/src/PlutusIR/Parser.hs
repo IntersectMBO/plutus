@@ -2,7 +2,6 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module PlutusIR.Parser
     ( topSourcePos
@@ -17,17 +16,16 @@ module PlutusIR.Parser
     , SourcePos
     ) where
 
-import PlutusPrelude
-import Prelude hiding (fail)
-
-
-import Control.Monad.Combinators.Expr
-import Control.Monad.Combinators.NonEmpty qualified as NE
 import PlutusCore qualified as PLC
 import PlutusCore.Parsable qualified as PLC
 import PlutusCore.Parser.ParserCommon
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
+import PlutusPrelude
+import Prelude hiding (fail)
+
+import Control.Monad.Combinators.Expr
+import Control.Monad.Combinators.NonEmpty qualified as NE
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 -- | A @Type@ to be parsed. ATM the parser only works

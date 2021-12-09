@@ -1,5 +1,13 @@
-module UntypedPlutusCore
-    ( module Export
+module NewUntypedPlutusCore (
+    Term (..)
+    , Program (..)
+    , toTerm
+    , bindFunM
+    , bindFun
+    , mapFun
+    , termAnn
+    , erase
+    , eraseProgram
     , applyProgram
     , parseScoped
     , PLC.DefaultUni
@@ -21,29 +29,10 @@ import UntypedPlutusCore.Subst as Export
 
 
 import PlutusCore qualified as PLC
-import PlutusCore.Error qualified as PLC
-import PlutusPrelude (through)
-
-import Control.Monad.Except (MonadError, (<=<))
-import Data.ByteString.Lazy qualified as BSL
-
+import UntypedPlutusCore.Core
 
 -- | Take one UPLC program and apply it to another.
-applyProgram
-    :: Monoid a
-    => Program name uni fun a
-    -> Program name uni fun a
-    -> Program name uni fun a
-applyProgram (Program a1 _ t1) (Program a2 _ t2) = Program (a1 <> a2) (PLC.defaultVersion mempty) (Apply mempty t1 t2)
+applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
+applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
 
--- | Parse and rewrite so that names are globally unique, not just unique within
--- their scope.
-parseScoped
-    :: (PLC.AsParseError e PLC.AlexPosn,
-        PLC.AsUniqueError e PLC.AlexPosn,
-        MonadError e m,
-        PLC.MonadQuote m)
-    => BSL.ByteString
-    -> m (Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn)
--- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< Rename.rename <=< Parser.parseProgram
+
