@@ -8,6 +8,7 @@
 {-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE ViewPatterns              #-}
 
 module Main (main) where
 
@@ -236,42 +237,48 @@ runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
     writeProgram outp ofmt mode program
 
+
+---------------- Print the cost model parameters ----------------
+
 runDumpModel :: IO ()
 runDumpModel = do
     let params = fromJust PLC.defaultCostModelParams
     BSL.putStr $ Aeson.encode params
 
+
+---------------- Print the type signatures of the default builtins ----------------
+
+-- Some types to represent signatures of built-in functions
 type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+type PlcType = PLC.Type PLC.TyName PLC.DefaultUni ()
+data QVarOrType = QVar String | Type PlcType  -- Quantified type variable or actual type
 
-type DefaultType = Either String (PLC.Type PLC.TyName PLC.DefaultUni ())
-type Signature = ([DefaultType], DefaultType )
+data Signature = Signature [QVarOrType] PlcType  -- Argument types, return type
+instance Show Signature where
+    show (Signature args res) =
+        "{ " ++ (intercalate ", " $ map pr args) ++ " } -> " ++ (show $ PP.pretty res)
+            where pr (QVar tv) = "forall " ++ tv
+                  pr (Type ty) = show $ PP.pretty ty
 
-typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> [DefaultType] -> Signature
-typeSchemeToSignature (PLC.TypeSchemeResult pR) acc     = (acc, Right $ PLC.toTypeAst pR)
-typeSchemeToSignature (PLC.TypeSchemeArrow pA schB) acc  =
-    let acc' = acc ++ [Right $ PLC.toTypeAst pA]
-    in typeSchemeToSignature schB acc'
-typeSchemeToSignature (PLC.TypeSchemeAll proxy schK) acc = case proxy of
-    (_ :: Proxy '(text, uniq, kind)) ->
-        let text = T.pack $ symbolVal @text Proxy
-            acc' = acc ++ [Left $ T.unpack text]
-        in typeSchemeToSignature (schK Proxy) acc'
-
-signatureToString :: Signature -> String
-signatureToString (args, res) =
-                    "{ " ++ (intercalate ", " $ map pr args) ++ " } -> " ++ (pr res)
-                        where pr (Left tv)  = "forall " ++ tv
-                              pr (Right ty) = show $ PP.pretty ty
-
-tobs :: PLC.ToBuiltinMeaning PLC.DefaultUni PLC.DefaultFun => PLC.DefaultFun -> String
-tobs fun = case PLC.toBuiltinMeaning @_ @_ @(PLC.Term PLC.TyName PLC.Name _ _ ()) fun of
-    PLC.BuiltinMeaning sch _ _ -> signatureToString $ typeSchemeToSignature sch []
-
+typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
+typeSchemeToSignature = toSig []
+    where toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
+          toSig acc =
+              \case
+               PLC.TypeSchemeResult pR -> Signature acc (PLC.toTypeAst pR)
+               PLC.TypeSchemeArrow pA schB ->
+                   toSig (acc ++ [Type $ PLC.toTypeAst pA]) schB
+               PLC.TypeSchemeAll proxy schK ->
+                   case proxy of
+                     (_ :: Proxy '(text, uniq, kind)) ->
+                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
 
 runPrintBuiltinTypes :: IO ()
 runPrintBuiltinTypes = do
   let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
-  mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (tobs x))) builtins
+  mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
+      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+
 
 main :: IO ()
 main = do
