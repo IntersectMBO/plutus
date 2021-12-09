@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main where
 
+import DeBruijn.Spec (test_debruijn)
 import Evaluation.Builtins (test_builtins)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines
@@ -29,6 +30,7 @@ main = defaultMain $ testGroup "Untyped Plutus Core"
     , test_simplify
     , test_simplify
     , test_deserializingBigConstants
+    , test_debruijn
     ]
 
 test_deserializingBigConstants :: TestTree

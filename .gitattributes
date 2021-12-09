@@ -7,3 +7,5 @@ stubs/plutus-ghc-stub/** linguist-vendored=true
 # estimate.
 notes/**/*.html linguist-documentation
 doc/* linguist-documentation
+# don't do any newline conversion (taken from tasty-golden/silver hackage advice)
+*.golden	-text
