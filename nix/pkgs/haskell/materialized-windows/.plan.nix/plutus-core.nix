@@ -513,6 +513,7 @@
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
+            "DeBruijn/Spec"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

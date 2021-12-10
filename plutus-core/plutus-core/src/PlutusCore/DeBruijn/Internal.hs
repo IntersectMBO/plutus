@@ -15,10 +15,8 @@ module PlutusCore.DeBruijn.Internal
     , AsFreeVariableError (..)
     , Level (..)
     , Levels (..)
-    , ixToLevel
-    , levelToIndex
     , declareUnique
-    , declareIndex
+    , declareBinder
     , withScope
     , getIndex
     , getUnique
@@ -29,6 +27,7 @@ module PlutusCore.DeBruijn.Internal
     , tyNameToDeBruijn
     , deBruijnToName
     , deBruijnToTyName
+    , HasIndex (..)
     ) where
 
 import PlutusCore.Name
@@ -54,7 +53,7 @@ import GHC.Generics
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural
     deriving stock Generic
-    deriving newtype (Show, Num, Eq, Ord, Pretty)
+    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty)
     deriving anyclass NFData
 
 -- | A term name as a de Bruijn index.
@@ -134,29 +133,33 @@ We use a newtype to keep these separate, since getting it wrong will lead to ann
 -}
 
 -- | An absolute level in the program.
-newtype Level = Level Index deriving newtype (Eq, Ord, Num)
-data Levels = Levels Level (BM.Bimap Unique Level)
+newtype Level = Level Integer deriving newtype (Eq, Ord, Num)
 
--- | Compute the absolute 'Level' of a relative 'Index' relative to the current 'Level'.
-ixToLevel :: Level -> Index -> Level
-ixToLevel (Level current) ix = Level (current - ix)
-
--- | Compute the relative 'Index' of a absolute 'Level' relative to the current 'Level'.
-levelToIndex :: Level -> Level -> Index
-levelToIndex (Level current) (Level l) = current - l
+-- | During visiting the AST we hold a reader "state" of current level and a current scoping (levelMapping).
+-- Invariant-A: the current level is positive and greater than all levels in the levelMapping.
+-- Invariant-B: only positive levels are stored in the levelMapping.
+data Levels = Levels
+            { currentLevel :: Level
+            , levelMapping :: BM.Bimap Unique Level
+            }
 
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
     local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
 
--- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
-declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a
-declareIndex n act = do
+{-| Declares a new binder by assigning a fresh unique to the *current level*.
+Maintains invariant-B of 'Levels' (that only positive levels are stored),
+since current level is always positive (invariant-A).
+See NOTE: [DeBruijn indices of Binders]
+-}
+declareBinder :: (MonadReader Levels m, MonadQuote m) => m a -> m a
+declareBinder act = do
     newU <- freshUnique
-    local (\(Levels current ls) -> Levels current $ BM.insert newU (ixToLevel current (n ^. index)) ls) act
+    local (\(Levels current ls) -> Levels current $ BM.insert newU current ls) act
 
 -- | Enter a scope, incrementing the current 'Level' by one
+-- Maintains invariant-A (that the current level is positive).
 withScope :: MonadReader Levels m => m a -> m a
 withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 
@@ -183,8 +186,15 @@ getIndex :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Uni
 getIndex u = do
     Levels current ls <- ask
     case BM.lookup u ls of
-        Just ix -> pure $ levelToIndex current ix
-        Nothing -> throwing _FreeVariableError $ FreeUnique u
+        Just foundlvl -> pure $ levelToIx current foundlvl
+        Nothing       -> throwing _FreeVariableError $ FreeUnique u
+  where
+    -- Compute the relative 'Index' of a absolute 'Level' relative to the current 'Level'.
+    levelToIx :: Level -> Level -> Index
+    levelToIx (Level current) (Level foundLvl) =
+        -- Thanks to invariant-A, we can be sure that 'level >= foundLvl ', since foundLvl is in the levelMapping
+        -- and thus the computation 'current-foundLvl' is '>=0' and its conversion to Natural will not lead to arithmetic underflow.
+        fromIntegral $ current - foundLvl
 
 -- | Get the 'Unique' corresponding to a given 'Index'.
 getUnique :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Index -> m Unique
@@ -192,7 +202,16 @@ getUnique ix = do
     Levels current ls <- ask
     case BM.lookupR (ixToLevel current ix) ls of
         Just u  -> pure u
+        -- Because of invariant-B, the levelMapping contains only positive levels;
+        -- the lookup(negativeLvl) will fail by throwing a free variable error.
         Nothing -> throwing _FreeVariableError $ FreeIndex ix
+  where
+    -- Compute the absolute 'Level' of a relative 'Index' relative to the current 'Level'.
+    -- The index `ixAST` may be malformed or point to a free variable because it comes straight from the AST;
+    -- in such a case, this function may return a negative level.
+    ixToLevel :: Level -> Index -> Level
+    ixToLevel (Level current) ixAST = Level (current - fromIntegral ixAST)
+
 
 unNameDeBruijn
     :: NamedDeBruijn -> DeBruijn
