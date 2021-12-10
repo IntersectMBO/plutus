@@ -1,41 +1,26 @@
-{-# LANGUAGE AllowAmbiguousTypes       #-}
 {-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PartialTypeSignatures     #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE ViewPatterns              #-}
 
 module Main (main) where
 
 import Common
 import Parsers
 import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Pretty qualified as PP
 
-import Data.Aeson qualified as Aeson
-import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (asum)
 import Data.Functor (void)
-import Data.List (intercalate, nub)
+import Data.List (nub)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromJust)
-import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
-import Text.Printf (printf)
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
-import GHC.TypeLits (symbolVal)
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -238,47 +223,7 @@ runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     writeProgram outp ofmt mode program
 
 
----------------- Print the cost model parameters ----------------
-
-runDumpModel :: IO ()
-runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
-    BSL.putStr $ Aeson.encode params
-
-
----------------- Print the type signatures of the default builtins ----------------
-
--- Some types to represent signatures of built-in functions
-type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-type PlcType = PLC.Type PLC.TyName PLC.DefaultUni ()
-data QVarOrType = QVar String | Type PlcType  -- Quantified type variable or actual type
-
-data Signature = Signature [QVarOrType] PlcType  -- Argument types, return type
-instance Show Signature where
-    show (Signature args res) =
-        "{ " ++ (intercalate ", " $ map pr args) ++ " } -> " ++ (show $ PP.pretty res)
-            where pr (QVar tv) = "forall " ++ tv
-                  pr (Type ty) = show $ PP.pretty ty
-
-typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
-typeSchemeToSignature = toSig []
-    where toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
-          toSig acc =
-              \case
-               PLC.TypeSchemeResult pR -> Signature acc (PLC.toTypeAst pR)
-               PLC.TypeSchemeArrow pA schB ->
-                   toSig (acc ++ [Type $ PLC.toTypeAst pA]) schB
-               PLC.TypeSchemeAll proxy schK ->
-                   case proxy of
-                     (_ :: Proxy '(text, uniq, kind)) ->
-                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
-
-runPrintBuiltinTypes :: IO ()
-runPrintBuiltinTypes = do
-  let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
-  mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
-      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
-
+---------------- Driver ----------------
 
 main :: IO ()
 main = do

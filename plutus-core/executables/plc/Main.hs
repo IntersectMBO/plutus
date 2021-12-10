@@ -38,6 +38,8 @@ data Command = Apply     ApplyOptions
              | Example   ExampleOptions
              | Erase     EraseOptions
              | Eval      EvalOptions
+             | DumpModel
+             | PrintBuiltinTypes
 
 ---------------- Option parsers ----------------
 
@@ -87,6 +89,12 @@ plutusOpts = hsubparser (
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
+    <> command "dump-model"
+           (info (pure DumpModel)
+            (progDesc "Dump the cost model parameters"))
+    <> command "print-builtin-types"
+           (info (pure PrintBuiltinTypes)
+            (progDesc "Print the types of the built-in functions"))
   )
 
 ---------------- Script application ----------------
@@ -161,14 +169,17 @@ runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------
+
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts -> runApply        opts
-        Typecheck opts -> runTypecheck    opts
-        Eval      opts -> runEval         opts
-        Example   opts -> runPlcPrintExample opts
-        Erase     opts -> runErase        opts
-        Print     opts -> runPrint        opts
-        Convert   opts -> runConvert      opts
+        Apply     opts    -> runApply        opts
+        Typecheck opts    -> runTypecheck    opts
+        Eval      opts    -> runEval         opts
+        Example   opts    -> runPlcPrintExample opts
+        Erase     opts    -> runErase        opts
+        Print     opts    -> runPrint        opts
+        Convert   opts    -> runConvert      opts
+        DumpModel         -> runDumpModel
+        PrintBuiltinTypes -> runPrintBuiltinTypes

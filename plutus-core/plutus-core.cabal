@@ -438,6 +438,7 @@ executable plc
         Parsers
     build-depends:
         plutus-core -any,
+        aeson -any,
         base <5,
         bytestring -any,
         deepseq -any,
