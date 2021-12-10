@@ -481,6 +481,7 @@ executable pir
         Parsers
     build-depends:
         plutus-core -any,
+        aeson -any,
         base <5,
         bytestring -any,
         flat -any,
