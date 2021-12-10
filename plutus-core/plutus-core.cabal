@@ -191,7 +191,6 @@ library
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.InlineUtils
         PlutusCore.Parsable
-        PlutusCore.Parser.Internal
         PlutusCore.Parser.Type
         PlutusCore.Parser.ParserCommon
         PlutusCore.Pretty.Classic

@@ -9,7 +9,6 @@ module PlutusCore
     , parseTerm
     , parseType
     , parseScoped
-    , topAlexPosn
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
@@ -75,7 +74,7 @@ module PlutusCore
     , deBruijnTerm
     , unDeBruijnTerm
     -- * Lexer
-    , AlexPosn (..)
+    , SourcePos
     -- * Formatting
     , format
     , formatDoc
@@ -163,13 +162,18 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
+import Text.Megaparsec (SourcePos, initialPos)
+
+
+topSourcePos :: SourcePos
+topSourcePos = initialPos "top"
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
 fileType = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni DefaultFun AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni DefaultFun SourcePos -> T.Text
         prettyErr = displayPlcDef
 
 -- | Given a file, display
@@ -178,39 +182,36 @@ fileType = fmap (either prettyErr id . printType) . BSL.readFile
 fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni DefaultFun AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni DefaultFun SourcePos -> T.Text
         prettyErr = displayBy cfg
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
-        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun AlexPosn,
+    :: (AsUniqueError e SourcePos,
+        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
 printType bs = runQuoteT $ T.pack . show . pretty <$> do
     scoped <- parseScoped bs
-    config <- getDefTypeCheckConfig topAlexPosn
+    config <- getDefTypeCheckConfig topSourcePos
     inferTypeOfProgram config scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
+    :: (AsUniqueError e SourcePos,
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
-    -> m (Program TyName Name DefaultUni DefaultFun AlexPosn)
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
-        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun AlexPosn,
+    :: (AsUniqueError e SourcePos,
+        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni DefaultFun
@@ -229,16 +230,16 @@ typecheckPipeline
 typecheckPipeline = inferTypeOfProgram
 
 parseProgramDef
-    :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m)
-    => BSL.ByteString -> m (Program TyName Name DefaultUni DefaultFun AlexPosn)
+    :: (MonadError e m, MonadQuote m)
+    => BSL.ByteString -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgramDef = parseProgram
 
-formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
+formatDoc :: (MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
 formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgramDef)
 
 format
-    :: (AsParseError e AlexPosn, MonadError e m)
+    :: (MonadError e m)
     => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 -- don't use parseScoped since we don't bother running sanity checks when we format
 format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)

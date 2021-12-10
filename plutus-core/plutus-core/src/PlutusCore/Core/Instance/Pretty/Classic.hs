@@ -52,7 +52,7 @@ instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
             sexp "all" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
         TyBuiltin ann n    ->
-            sexp "con" (consAnnIf config ann [pretty n])
+            sexp "builtinType" (consAnnIf config ann [pretty n])
         TyLam ann n k t    ->
             sexp "lam" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])

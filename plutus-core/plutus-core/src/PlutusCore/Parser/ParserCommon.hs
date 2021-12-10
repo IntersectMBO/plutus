@@ -23,19 +23,15 @@ import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
 import Data.Proxy (Proxy (Proxy))
 
-
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
 type Parser =
-    ParsecT (PLC.ParseError SourcePos) T.Text (StateT ParserState PLC.Quote)
+    ParsecT PLC.ParseError T.Text (StateT ParserState PLC.Quote)
 
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 instance (Ord ann, Pretty ann) => ShowErrorComponent (PLC.ParseError ann) where
     showErrorComponent err = show $ pretty err
-
-topSourcePos :: SourcePos
-topSourcePos = initialPos "top"
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -55,18 +51,12 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a
+parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text PLC.ParseError) a
 parse p file str = PLC.runQuote $ parseQuoted p file str
 
 parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote
-                   (Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a)
+                   (Either (ParseErrorBundle T.Text PLC.ParseError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
-
-charLiteral :: Parser LiteralConst
-charLiteral = between (char '\'') (char '\'') L.charLiteral
-
-stringLiteral :: Parser LiteralConst
-stringLiteral = char '\"' *> takeWhileP L.charLiteral (char '\"')
 
 -- | Space consumer.
 whitespace :: Parser ()
@@ -142,61 +132,17 @@ enforce p = do
     guard . not $ T.null input
     pure x
 
--- | Consume a chunk of text and either stop on whitespace (and consume it) or on a \')\' (without
--- consuming it). We need this for collecting a @Text@ to pass it to 'PLC.parse' in order to
--- parse a built-in type or a constant. This is neither efficient (because of @manyTill anySingle@),
--- nor future-proof (what if some future built-in type has parens in its syntax?). A good way of
--- resolving this would be to turn 'PLC.parse' into a proper parser rather than just a function
--- from @Text@ - this will happen as SCP-2251 gets done.
--- Note that this also fails on @(con string \"yes (no)\")@ as well as @con unit ()@, so it really
--- should be fixed somehow.
--- (For @con unit ()@, @kwxm suggested replacing it with @unitval@ or @one@ or *)
-closedChunk :: Parser T.Text
-closedChunk = T.pack <$> manyTill anySingle end where
-    end = enforce whitespace <|> void (lookAhead $ char ')')
+-- | Parser for integer constants.
+consInt :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+consInt = lexeme Lex.decimal
 
--- | Parse a type tag by feeding the output of 'closedChunk' to 'PLC.parse'.
-builtinTypeTag
-    :: forall uni.
-    PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser (PLC.SomeTypeIn (PLC.Kinded uni))
-builtinTypeTag = do
-    uniText <- closedChunk
-    case PLC.parse uniText of
-        Nothing  -> do
-            ann <- wordPos uniText
-            customFailure $ PLC.UnknownBuiltinType ann uniText
-        Just uni -> pure uni
-
--- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
--- Uses 'PLC.parse' under the hood for both types and constants.
--- @kwxm: this'll have problems with some built-in constants like strings and characters.
--- The existing parser has special cases involving complicated regular expressions
--- to deal with those (see Lexer.x), but things got more complicated recently when
--- @effectfully added built-in lists and pairs that can have other constants
--- nested inside them...We're probably still going to need special parsers
--- for things like quoted strings that can contain escape sequences.
--- @thealmarty will hopefully deal with these in SCP-2251.
-constant
-    :: forall uni.
-       ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       )
-    => Parser (PLC.Some (PLC.ValueOf uni))
-constant = do
-    -- We use 'match' for remembering the textual representation of the parsed type tag,
-    -- so that we can show it in the error message if the constant fails to parse.
-    (uniText, PLC.SomeTypeIn (PLC.Kinded uni)) <- match builtinTypeTag
-    -- See Note [Decoding universes].
-    case PLC.checkStar @uni uni of
-        Nothing -> do
-            ann <- wordPos uniText
-            customFailure $ PLC.BuiltinTypeNotAStar ann uniText
-        Just PLC.Refl -> do
-            conText <- closedChunk
-            case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
-                Nothing  -> do
-                    ann <- wordPos uniText
-                    customFailure $ PLC.InvalidBuiltinConstant ann uniText conText
-                Just con -> pure . PLC.Some $ PLC.ValueOf uni con
+-- TODO case of defaultuni type then use the type specific parser
+constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+constant = choice
+    [ inParens constant
+    , consInt
+    , between (char '\'') (char '\'') Lex.charLiteral -- single quoted char
+    , char '\"' *> takeWhileP Lex.charLiteral (char '\"') -- double quoted string
+    -- TODO add unit, list, pair
+    ]
 
