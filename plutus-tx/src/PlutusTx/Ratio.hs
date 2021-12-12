@@ -4,65 +4,337 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module PlutusTx.Ratio(
-    Ratio
-    , Rational
+    -- * Type
+    Rational
+    -- * Construction
     , (%)
     , fromInteger
+    , ratio
+    -- * Other functionality
     , numerator
     , denominator
     , round
     , truncate
     , properFraction
     , recip
+    , abs
+    , negate
     , half
     , fromGHC
     , toGHC
-    -- * Misc.
-    , divMod
-    , quotRem
-    , gcd
-    , abs
-    , reduce
     ) where
 
 import PlutusTx.Bool qualified as P
 import PlutusTx.Eq qualified as P
-import PlutusTx.ErrorCodes qualified as P
+-- import PlutusTx.ErrorCodes qualified as P
 import PlutusTx.Integer (Integer)
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
-import PlutusTx.Trace qualified as P
+-- import PlutusTx.Trace qualified as P
+import PlutusTx.Base qualified as P
+import PlutusTx.Maybe qualified as P
 
 import PlutusTx.Builtins qualified as Builtins
 
-import Data.Aeson (FromJSON, ToJSON)
-import GHC.Generics (Generic)
+import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
 import GHC.Real qualified as Ratio
-import Prelude (Integral, Ord (..), Show (..), showParen, showString, (*))
+import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
 
-data Ratio a = a :% a
-    deriving stock (Haskell.Eq,Generic)
-    deriving anyclass (ToJSON, FromJSON)
+-- | Represents an arbitrary-precision ratio.
+--
+-- @since 0.2.0.0
+data Rational = Rational Integer Integer
+  deriving stock (
+    -- | @since 0.2.0.0
+    Haskell.Eq,
+    -- | @since 0.2.0.0
+    Show
+    )
 
-instance  Show a => Show (Ratio a) where
-    -- Adapted from Data.Ratio in the base library
-    showsPrec p r = showParen (p > ratioPrec) Haskell.$
-                    showString "(" Haskell..
-                    showsPrec ratioPrec1 (numerator r) Haskell..
-                    showString " % " Haskell..
-                    showsPrec ratioPrec1 (denominator r) Haskell..
-                    showString ")"
-       where ratioPrec = 7  -- This refers to the operator precedence level of %
-             ratioPrec1 = ratioPrec Haskell.+ 1
+-- | @since 0.2.0.0
+instance P.Eq Rational where
+  {-# INLINEABLE (==) #-}
+  Rational n d == Rational n' d' = n P.== n' P.&& d P.== d'
+
+-- | @since 0.2.0.0
+instance P.Ord Rational where
+  {-# INLINEABLE compare #-}
+  compare (Rational n d) (Rational n' d') = P.compare (n P.* d') (n' P.* d)
+  {-# INLINEABLE (<=) #-}
+  Rational n d <= Rational n' d' = (n P.* d') P.<= (n' P.* d)
+  {-# INLINEABLE (>=) #-}
+  Rational n d >= Rational n' d' = (n P.* d') P.>= (n' P.* d)
+  {-# INLINEABLE (<) #-}
+  Rational n d < Rational n' d' = (n P.* d') P.< (n' P.* d)
+  {-# INLINEABLE (>) #-}
+  Rational n d > Rational n' d' = (n P.* d') P.> (n' P.* d)
+
+-- | @since 0.2.0.0
+instance Ord Rational where
+  compare (Rational n d) (Rational n' d') = compare (n * d') (n' * d)
+  Rational n d <= Rational n' d' = (n * d') <= (n' * d)
+  Rational n d >= Rational n' d' = (n * d') >= (n' * d)
+  Rational n d < Rational n' d' = (n * d') < (n' * d)
+  Rational n d > Rational n' d' = (n * d') > (n' * d)
+
+-- | @since 0.2.0.0
+instance P.AdditiveSemigroup Rational where
+  {-# INLINEABLE (+) #-}
+  Rational n d + Rational n' d' =
+    let newNum = (n P.* d') P.+ (n' P.* d)
+        newDen = d P.* d'
+        gcd' = euclid newNum newDen
+     in Rational (newNum `Builtins.quotientInteger` gcd')
+                 (newDen `Builtins.quotientInteger` gcd')
+
+-- | @since 0.2.0.0
+instance P.AdditiveMonoid Rational where
+  {-# INLINEABLE zero #-}
+  zero = Rational P.zero P.one
+
+-- | @since 0.2.0.0
+instance P.AdditiveGroup Rational where
+  {-# INLINEABLE (-) #-}
+  Rational n d - Rational n' d' =
+    let newNum = (n P.* d') P.- (n' P.* d)
+        newDen = d P.* d'
+        gcd' = euclid newNum newDen
+     in Rational (newNum `Builtins.quotientInteger` gcd')
+                 (newDen `Builtins.quotientInteger` gcd')
+
+-- | @since 0.2.0.0
+instance P.MultiplicativeSemigroup Rational where
+  {-# INLINEABLE (*) #-}
+  Rational n d * Rational n' d' =
+    let newNum = n P.* n'
+        newDen = d P.* d'
+        gcd' = euclid newNum newDen
+     in Rational (newNum `Builtins.quotientInteger` gcd')
+                 (newDen `Builtins.quotientInteger` gcd')
+
+-- | @since 0.2.0.0
+instance P.MultiplicativeMonoid Rational where
+  {-# INLINEABLE one #-}
+  one = Rational P.one P.one
+
+-- | @since 0.2.0.0
+instance P.ToData Rational where
+  {-# INLINEABLE toBuiltinData #-}
+  toBuiltinData (Rational n d) = P.toBuiltinData (n, d)
+
+-- | @since 0.2.0.0
+instance P.FromData Rational where
+  {-# INLINEABLE fromBuiltinData #-}
+  fromBuiltinData dat = case P.fromBuiltinData dat of
+    P.Nothing -> P.Nothing
+    P.Just (n, d) -> if d P.== P.zero
+                     then Builtins.error ()
+                     else P.Just (n % d)
+
+-- | @since 0.2.0.0
+instance P.UnsafeFromData Rational where
+  {-# INLINEABLE unsafeFromBuiltinData #-}
+  unsafeFromBuiltinData dat = case P.unsafeFromBuiltinData dat of
+    (n, d) -> if d P.== P.zero
+              then Builtins.error ()
+              else n % d
+
+-- | @since 0.2.0.0
+instance ToJSON Rational where
+  toJSON (Rational n d) =
+    object
+      [ ("numerator", toJSON n)
+      , ("denominator", toJSON d)
+      ]
+
+-- | @since 0.2.0.0
+instance FromJSON Rational where
+  parseJSON = withObject "Rational" Haskell.$ \obj -> do
+    n <- obj .: "numerator"
+    d <- obj .: "denominator"
+    if d Haskell.== 0
+      then Haskell.fail "Zero denominator is invalid."
+      else Haskell.pure (n % d)
+
+-- | Makes a 'Rational' from a numerator and a denominator.
+--
+-- = Important note
+--
+-- If given a zero denominator, this function will error. If you don't mind a
+-- size increase, and care about safety, use 'ratio' instead.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE (%) #-}
+(%) :: Integer -> Integer -> Rational
+n % d
+  | d P.== P.zero = Builtins.error ()
+  | d P.< P.zero = P.negate n % P.negate d
+  | P.True =
+    let gcd' = euclid n d
+     in Rational (n `Builtins.quotientInteger` gcd')
+                 (d `Builtins.quotientInteger` gcd')
+
+infixl 7 %
+
+-- | Safely constructs a 'Rational' from a numerator and a denominator. Returns
+-- 'Nothing' if given a zero denominator.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE ratio #-}
+ratio :: Integer -> Integer -> P.Maybe Rational
+ratio n d
+  | d P.== P.zero = P.Nothing
+  | d P.< P.zero = P.Just (P.negate n % P.negate d)
+  | P.True =
+    let gcd' = euclid n d
+     in P.Just P..
+        Rational (n `Builtins.quotientInteger` gcd') P.$
+        d `Builtins.quotientInteger` gcd'
+
+-- | Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
+-- work on-chain.
+--
+-- @since 0.2.0.0
+toGHC :: Rational -> Ratio.Rational
+toGHC (Rational n d) = n Ratio.% d
+
+-- | Returns the (possibly reduced) numerator of its argument.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE numerator #-}
+numerator :: Rational -> Integer
+numerator (Rational n _) = n
+
+-- | Returns the (possibly reduced) denominator of its argument. This will
+-- always be greater than 1, although the type does not describe this.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE denominator #-}
+denominator :: Rational -> Integer
+denominator (Rational _ d) = d
+
+-- | 0.5
+--
+-- @since 0.2.0.0
+{-# INLINEABLE half #-}
+half :: Rational
+half = Rational 1 2
+
+-- | Converts an 'Integer' into the equivalent 'Rational'.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE fromInteger #-}
+fromInteger :: Integer -> Rational
+fromInteger num = Rational num P.one
+
+-- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
+--
+-- @since 0.2.0.0
+fromGHC :: Ratio.Rational -> Rational
+fromGHC r = Ratio.numerator r % Ratio.denominator r
+
+-- | Produces the additive inverse of its argument.
+--
+-- = Note
+--
+-- This is specialized for 'Rational'; use this instead of the generic version
+-- of this function, as it is significantly smaller on-chain.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE negate #-}
+negate :: Rational -> Rational
+negate (Rational n d) = Rational (P.negate n) d
+
+-- | Returns the absolute value of its argument.
+--
+-- = Note
+--
+-- This is specialized for 'Rational'; use this instead of the generic version
+-- of this function, as it is significantly smaller on-chain.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE abs #-}
+abs :: Rational -> Rational
+abs rat@(Rational n d)
+  | n P.< P.zero = Rational (P.negate n) d
+  | P.True = rat
+
+-- | @'properFraction' r@ returns the pair @(n, f)@, such that all of the
+-- following hold:
+--
+-- * @'fromInteger' n 'P.+' f = r@;
+-- * @n@ and @f@ both have the same sign as @r@; and
+-- * @'abs' f 'P.<' 'P.one'@.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE properFraction #-}
+properFraction :: Rational -> (Integer, Rational)
+properFraction (Rational n d) =
+  (n `Builtins.quotientInteger` d,
+   Rational (n `Builtins.remainderInteger` d) d)
+
+-- | Gives the reciprocal of the argument; specifically, for @r 'P./='
+-- 'P.zero'@, @r 'P.*' 'recip' r = 'P.one'@.
+--
+-- = Important note
+--
+-- The reciprocal of zero is mathematically undefined; thus, @'recip' 'P.zero'@
+-- will error. Use with care.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE recip #-}
+recip :: Rational -> Rational
+recip (Rational n d)
+  | n P.== P.zero = Builtins.error ()
+  | n P.< P.zero = Rational (P.negate d) (P.negate n)
+  | P.True = Rational d n
+
+-- | Returns the whole-number part of its argument, dropping any leftover
+-- fractional part. More precisely, @'truncate' r = n@ where @(n, _) =
+-- 'properFraction' r@, but is much more efficient.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE truncate #-}
+truncate :: Rational -> Integer
+truncate (Rational n d) = n `Builtins.quotientInteger` d
+
+-- | @'round' r@ returns the nearest 'Integer' value to @r@. If @r@ is
+-- equidistant between two values, the even value will be given.
+--
+-- @since 0.2.0.0
+{-# INLINEABLE round #-}
+round :: Rational -> Integer
+round x =
+  let (n, r) = properFraction x
+      m = if r P.< P.zero then n P.- P.one else n P.+ P.one
+      flag = abs r P.- half
+   in if
+          | flag P.< P.zero -> n
+          | flag P.== P.zero -> if Builtins.modInteger n 2 P.== P.zero
+                                then n
+                                else m
+          | P.True -> m
+
+-- Helpers
+
+-- Euclid's algorithm
+{-# INLINEABLE euclid #-}
+euclid :: Integer -> Integer -> Integer
+euclid x y
+  | y P.== P.zero = x
+  | P.True = euclid y (x `Builtins.modInteger` y)
+
+P.makeLift ''Rational
 
 {- HLINT ignore -}
 
@@ -147,179 +419,3 @@ see Raymond T. Boute, "The Euclidean definition of the functions div and mod",
 ACM Transactions on Programming Languages and Systems, April 1992.  (PDF at
 https://core.ac.uk/download/pdf/187613369.pdf)
 -}
-
-
-type Rational = Ratio Integer
-
-instance  (Integral a)  => Ord (Ratio a)  where
-    (x:%y) <= (x':%y')  =  x * y' <= x' * y
-    (x:%y) <  (x':%y')  =  x * y' <  x' * y
-
-instance P.Eq a => P.Eq (Ratio a) where
-    {-# INLINABLE (==) #-}
-    (n1 :% d1) == (n2 :% d2) = n1 P.== n2 P.&& d1 P.== d2
-
-instance P.AdditiveSemigroup (Ratio Integer) where
-    {-# INLINABLE (+) #-}
-    (x :% y) + (x' :% y') = reduce ((x P.* y') P.+ (x' P.* y)) (y P.* y')
-
-instance P.AdditiveMonoid (Ratio Integer) where
-    {-# INLINABLE zero #-}
-    zero = P.zero :% P.one
-
-instance P.AdditiveGroup (Ratio Integer) where
-    {-# INLINABLE (-) #-}
-    (x :% y) - (x' :% y') = reduce ((x P.* y') P.- (x' P.* y)) (y P.* y')
-
-instance P.MultiplicativeSemigroup (Ratio Integer) where
-    {-# INLINABLE (*) #-}
-    (x :% y) * (x' :% y') = reduce (x P.* x') (y P.* y')
-
-instance P.MultiplicativeMonoid (Ratio Integer) where
-    {-# INLINABLE one #-}
-    one = 1 :% 1
-
-instance P.Ord (Ratio Integer) where
-    {-# INLINABLE (<=) #-}
-    (x :% y) <= (x' :% y') = x P.* y' P.<= (x' P.* y)
-
-infixl 7 %
-{-# INLINABLE (%) #-}
--- | Forms the ratio of two integral numbers.
-(%) :: Integer -> Integer -> Ratio Integer
-x % y = reduce (x P.* signum y) (abs y)
-
-{-# INLINABLE recip #-}
--- | Reciprocal fraction
-recip :: Ratio Integer -> Ratio Integer
-recip (x :% y) = reduce n d
-    where (n :% d) = ((y P.* signum x) :% abs x)
-
-{-# INLINABLE fromInteger #-}
--- | Convert an 'Interger' to a 'Rational'
-fromInteger :: Integer -> Ratio Integer
-fromInteger n = n :% 1
-
--- | Convert a 'Data.Ratio.Rational' to a
---   Plutus-compatible 'PlutusTx.Ratio.Rational'
-fromGHC :: Ratio.Rational -> Ratio Integer
-fromGHC (n Ratio.:% d) = n :% d
-
--- | Convert a 'PlutusTx.Ratio.Rational' to a
---   'Data.Ratio.Rational'
-toGHC :: Rational -> Ratio.Rational
-toGHC (n :% d) = n Ratio.:% d
-
-{-# INLINABLE numerator #-}
--- | Extract the numerator of the ratio in reduced form: the numerator and denominator have no common factor and the denominator is positive.
-numerator :: Ratio a -> a
-numerator (n :% _) = n
-
-{-# INLINABLE denominator #-}
--- | Extract the denominator of the ratio in reduced form: the numerator and denominator have no common factor and the denominator is positive.
-denominator :: Ratio a -> a
-denominator (_ :% d) = d
-
-{-# INLINABLE gcd #-}
--- From GHC.Real
--- | @'gcd' x y@ is the non-negative factor of both @x@ and @y@ of which
--- every common factor of @x@ and @y@ is also a factor; for example
--- @'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@.
-gcd :: Integer -> Integer -> Integer
-gcd a b = gcd' (abs a) (abs b) where
-    gcd' a' b'
-        | b' P.== P.zero = a'
-        | P.True           = gcd' b' (a' `Builtins.remainderInteger` b')
-
-{-# INLINABLE truncate #-}
--- | truncate @x@ returns the integer nearest @x@ between zero and @x@
-truncate :: Ratio Integer -> Integer
-truncate r = let (m, _ :: Rational) = properFraction r in m
-
-{-# INLINABLE properFraction #-}
--- From GHC.Real
--- | The function 'properFraction' takes a real fractional number @x@
--- and returns a pair @(n,f)@ such that @x = n+f@, and:
---
--- * @n@ is an integral number with the same sign as @x@; and
---
--- * @f@ is a fraction with the same type and sign as @x@,
---   and with absolute value less than @1@.
---
--- The default definitions of the 'ceiling', 'floor', 'truncate'
--- and 'round' functions are in terms of 'properFraction'.
-properFraction :: Ratio Integer -> (Integer, Ratio Integer)
-properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
-
-{-# INLINABLE divMod #-}
--- TODO. This is doing twice as much work as it needs to: the Plutus Core
--- builtins 'divideInteger' and 'modInteger' are implemented as the Haskell
--- 'div' and 'mod' operations, which in turn are impemented as fst . divMod and
--- snd . divMod, so we're calling Haskell's 'divMod' twice and throwing away
--- useful information.  We could fix his by exposing 'divMod' as a PLC builtin,
--- but that would require us to implement pairs as built-in types along with
--- built-in introduction and elimination functions.  This would be non-trivial.
--- | Simultaneous div and mod.
-divMod :: Integer -> Integer -> (Integer, Integer)
-divMod x y = ( x `Builtins.divideInteger` y, x `Builtins.modInteger` y)
-
-{-# INLINABLE quotRem #-}
--- TODO.  Provide a Plutus Core built-in function for this: see the comment for
--- 'divMod'.
--- | Simultaneous quot and rem.
-quotRem :: Integer -> Integer -> (Integer, Integer)
-quotRem x y = ( x `Builtins.quotientInteger` y, x `Builtins.remainderInteger` y)
-
-{-# INLINABLE half #-}
--- | 0.5
-half :: Ratio Integer
-half = 1 :% 2
-
-{-# INLINABLE reduce #-}
--- | From GHC.Real
--- | 'reduce' is a subsidiary function used only in this module.
--- It normalises a ratio by dividing both numerator and denominator by
--- their greatest common divisor.
-reduce :: Integer -> Integer -> Ratio Integer
-reduce x y
-    | y P.== 0 = P.traceError P.ratioHasZeroDenominatorError
-    | P.True     =
-        let d = gcd x y in
-        (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
-
-{-# INLINABLE abs #-}
-abs :: (P.Ord n, P.AdditiveGroup n) => n -> n
-abs x = if x P.< P.zero then P.negate x else x
-
-{-# INLINABLE signumR #-}
-signumR :: Rational -> Rational
-signumR (n :% d) = signum (n P.* d) :% 1
-
-{-# INLINABLE signum #-}
-signum :: Integer -> Integer
-signum r =
-    if r P.== 0
-    then P.zero
-    else if r P.> 0
-         then P.one
-         else P.negate P.one
-
-{-# INLINABLE even #-}
-even :: Integer -> P.Bool
-even x = (x `Builtins.remainderInteger` 2) P.== P.zero
-
-{-# INLINABLE round #-}
--- | From GHC.Real
--- | @round x@ returns the nearest integer to @x@; the even integer if @x@ is equidistant between two integers
-round :: Ratio Integer -> Integer
-round x
-    | sig P.== P.negate P.one = n
-    | sig P.== P.zero         = if even n then n else m
-    | sig P.== P.one          = m
-    | P.otherwise               = P.traceError P.roundDefaultDefnError
-    where (n, r) = properFraction x
-          m      = if r P.< P.zero then n P.- P.one else n P.+ P.one
-          sig    = signumR (abs r P.- half)
-
-P.makeLift ''Ratio
-P.makeIsDataIndexed ''Ratio [('(:%),0)]

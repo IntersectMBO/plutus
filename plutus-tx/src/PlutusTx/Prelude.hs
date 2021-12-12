@@ -71,8 +71,6 @@ module PlutusTx.Prelude (
     (%),
     fromInteger,
     round,
-    divMod,
-    quotRem,
     -- * Data
     BuiltinData,
     fromBuiltin,
