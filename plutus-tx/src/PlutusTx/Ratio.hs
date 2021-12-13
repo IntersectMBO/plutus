@@ -29,17 +29,21 @@ module PlutusTx.Ratio(
     , half
     , fromGHC
     , toGHC
+    , reduce
+    , gcd
     ) where
 
 import PlutusTx.Base qualified as P
 import PlutusTx.Bool qualified as P
 import PlutusTx.Eq qualified as P
+import PlutusTx.ErrorCodes qualified as P
 import PlutusTx.Integer (Integer)
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift qualified as P
 import PlutusTx.Maybe qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
+import PlutusTx.Trace qualified as P
 
 import PlutusTx.Builtins qualified as Builtins
 
@@ -277,6 +281,30 @@ round x =
                                 then n
                                 else m
           | P.True -> m
+
+-- From GHC.Real
+-- | @'gcd' x y@ is the non-negative factor of both @x@ and @y@ of which
+-- every common factor of @x@ and @y@ is also a factor; for example
+-- @'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@.
+{-# INLINABLE gcd #-}
+gcd :: Integer -> Integer -> Integer
+gcd a b = gcd' (P.abs a) (P.abs b) where
+    gcd' a' b'
+        | b' P.== P.zero = a'
+        | P.True         = gcd' b' (a' `Builtins.remainderInteger` b')
+
+-- | From GHC.Real
+-- | 'reduce' is a subsidiary function used only in this module.
+-- It normalises a ratio by dividing both numerator and denominator by
+-- their greatest common divisor.
+{-# INLINABLE reduce #-}
+reduce :: Integer -> Integer -> Rational
+reduce x y
+    | y P.== 0 = P.traceError P.ratioHasZeroDenominatorError
+    | P.True     =
+        let d = gcd x y in
+          Rational (x `Builtins.quotientInteger` d)
+                   (y `Builtins.quotientInteger` d)
 
 -- Helpers
 
