@@ -31,17 +31,15 @@ module PlutusTx.Ratio(
     , toGHC
     ) where
 
+import PlutusTx.Base qualified as P
 import PlutusTx.Bool qualified as P
 import PlutusTx.Eq qualified as P
--- import PlutusTx.ErrorCodes qualified as P
 import PlutusTx.Integer (Integer)
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift qualified as P
+import PlutusTx.Maybe qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
--- import PlutusTx.Trace qualified as P
-import PlutusTx.Base qualified as P
-import PlutusTx.Maybe qualified as P
 
 import PlutusTx.Builtins qualified as Builtins
 
@@ -51,22 +49,16 @@ import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
 
 -- | Represents an arbitrary-precision ratio.
---
--- @since 0.2.0.0
 data Rational = Rational Integer Integer
   deriving stock (
-    -- | @since 0.2.0.0
     Haskell.Eq,
-    -- | @since 0.2.0.0
     Show
     )
 
--- | @since 0.2.0.0
 instance P.Eq Rational where
   {-# INLINEABLE (==) #-}
   Rational n d == Rational n' d' = n P.== n' P.&& d P.== d'
 
--- | @since 0.2.0.0
 instance P.Ord Rational where
   {-# INLINEABLE compare #-}
   compare (Rational n d) (Rational n' d') = P.compare (n P.* d') (n' P.* d)
@@ -79,7 +71,6 @@ instance P.Ord Rational where
   {-# INLINEABLE (>) #-}
   Rational n d > Rational n' d' = (n P.* d') P.> (n' P.* d)
 
--- | @since 0.2.0.0
 instance Ord Rational where
   compare (Rational n d) (Rational n' d') = compare (n * d') (n' * d)
   Rational n d <= Rational n' d' = (n * d') <= (n' * d)
@@ -87,7 +78,6 @@ instance Ord Rational where
   Rational n d < Rational n' d' = (n * d') < (n' * d)
   Rational n d > Rational n' d' = (n * d') > (n' * d)
 
--- | @since 0.2.0.0
 instance P.AdditiveSemigroup Rational where
   {-# INLINEABLE (+) #-}
   Rational n d + Rational n' d' =
@@ -97,12 +87,10 @@ instance P.AdditiveSemigroup Rational where
      in Rational (newNum `Builtins.quotientInteger` gcd')
                  (newDen `Builtins.quotientInteger` gcd')
 
--- | @since 0.2.0.0
 instance P.AdditiveMonoid Rational where
   {-# INLINEABLE zero #-}
   zero = Rational P.zero P.one
 
--- | @since 0.2.0.0
 instance P.AdditiveGroup Rational where
   {-# INLINEABLE (-) #-}
   Rational n d - Rational n' d' =
@@ -112,7 +100,6 @@ instance P.AdditiveGroup Rational where
      in Rational (newNum `Builtins.quotientInteger` gcd')
                  (newDen `Builtins.quotientInteger` gcd')
 
--- | @since 0.2.0.0
 instance P.MultiplicativeSemigroup Rational where
   {-# INLINEABLE (*) #-}
   Rational n d * Rational n' d' =
@@ -122,17 +109,14 @@ instance P.MultiplicativeSemigroup Rational where
      in Rational (newNum `Builtins.quotientInteger` gcd')
                  (newDen `Builtins.quotientInteger` gcd')
 
--- | @since 0.2.0.0
 instance P.MultiplicativeMonoid Rational where
   {-# INLINEABLE one #-}
   one = Rational P.one P.one
 
--- | @since 0.2.0.0
 instance P.ToData Rational where
   {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (Rational n d) = P.toBuiltinData (n, d)
 
--- | @since 0.2.0.0
 instance P.FromData Rational where
   {-# INLINEABLE fromBuiltinData #-}
   fromBuiltinData dat = case P.fromBuiltinData dat of
@@ -141,7 +125,6 @@ instance P.FromData Rational where
                      then Builtins.error ()
                      else P.Just (n % d)
 
--- | @since 0.2.0.0
 instance P.UnsafeFromData Rational where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData dat = case P.unsafeFromBuiltinData dat of
@@ -149,7 +132,6 @@ instance P.UnsafeFromData Rational where
               then Builtins.error ()
               else n % d
 
--- | @since 0.2.0.0
 instance ToJSON Rational where
   toJSON (Rational n d) =
     object
@@ -157,7 +139,6 @@ instance ToJSON Rational where
       , ("denominator", toJSON d)
       ]
 
--- | @since 0.2.0.0
 instance FromJSON Rational where
   parseJSON = withObject "Rational" Haskell.$ \obj -> do
     n <- obj .: "numerator"
@@ -172,8 +153,6 @@ instance FromJSON Rational where
 --
 -- If given a zero denominator, this function will error. If you don't mind a
 -- size increase, and care about safety, use 'ratio' instead.
---
--- @since 0.2.0.0
 {-# INLINEABLE (%) #-}
 (%) :: Integer -> Integer -> Rational
 n % d
@@ -188,8 +167,6 @@ infixl 7 %
 
 -- | Safely constructs a 'Rational' from a numerator and a denominator. Returns
 -- 'Nothing' if given a zero denominator.
---
--- @since 0.2.0.0
 {-# INLINEABLE ratio #-}
 ratio :: Integer -> Integer -> P.Maybe Rational
 ratio n d
@@ -203,43 +180,31 @@ ratio n d
 
 -- | Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
 -- work on-chain.
---
--- @since 0.2.0.0
 toGHC :: Rational -> Ratio.Rational
 toGHC (Rational n d) = n Ratio.% d
 
 -- | Returns the (possibly reduced) numerator of its argument.
---
--- @since 0.2.0.0
 {-# INLINEABLE numerator #-}
 numerator :: Rational -> Integer
 numerator (Rational n _) = n
 
 -- | Returns the (possibly reduced) denominator of its argument. This will
 -- always be greater than 1, although the type does not describe this.
---
--- @since 0.2.0.0
 {-# INLINEABLE denominator #-}
 denominator :: Rational -> Integer
 denominator (Rational _ d) = d
 
 -- | 0.5
---
--- @since 0.2.0.0
 {-# INLINEABLE half #-}
 half :: Rational
 half = Rational 1 2
 
 -- | Converts an 'Integer' into the equivalent 'Rational'.
---
--- @since 0.2.0.0
 {-# INLINEABLE fromInteger #-}
 fromInteger :: Integer -> Rational
 fromInteger num = Rational num P.one
 
 -- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
---
--- @since 0.2.0.0
 fromGHC :: Ratio.Rational -> Rational
 fromGHC r = Ratio.numerator r % Ratio.denominator r
 
@@ -249,8 +214,6 @@ fromGHC r = Ratio.numerator r % Ratio.denominator r
 --
 -- This is specialized for 'Rational'; use this instead of the generic version
 -- of this function, as it is significantly smaller on-chain.
---
--- @since 0.2.0.0
 {-# INLINEABLE negate #-}
 negate :: Rational -> Rational
 negate (Rational n d) = Rational (P.negate n) d
@@ -261,8 +224,6 @@ negate (Rational n d) = Rational (P.negate n) d
 --
 -- This is specialized for 'Rational'; use this instead of the generic version
 -- of this function, as it is significantly smaller on-chain.
---
--- @since 0.2.0.0
 {-# INLINEABLE abs #-}
 abs :: Rational -> Rational
 abs rat@(Rational n d)
@@ -275,8 +236,6 @@ abs rat@(Rational n d)
 -- * @'fromInteger' n 'P.+' f = r@;
 -- * @n@ and @f@ both have the same sign as @r@; and
 -- * @'abs' f 'P.<' 'P.one'@.
---
--- @since 0.2.0.0
 {-# INLINEABLE properFraction #-}
 properFraction :: Rational -> (Integer, Rational)
 properFraction (Rational n d) =
@@ -290,8 +249,6 @@ properFraction (Rational n d) =
 --
 -- The reciprocal of zero is mathematically undefined; thus, @'recip' 'P.zero'@
 -- will error. Use with care.
---
--- @since 0.2.0.0
 {-# INLINEABLE recip #-}
 recip :: Rational -> Rational
 recip (Rational n d)
@@ -302,16 +259,12 @@ recip (Rational n d)
 -- | Returns the whole-number part of its argument, dropping any leftover
 -- fractional part. More precisely, @'truncate' r = n@ where @(n, _) =
 -- 'properFraction' r@, but is much more efficient.
---
--- @since 0.2.0.0
 {-# INLINEABLE truncate #-}
 truncate :: Rational -> Integer
 truncate (Rational n d) = n `Builtins.quotientInteger` d
 
 -- | @'round' r@ returns the nearest 'Integer' value to @r@. If @r@ is
 -- equidistant between two values, the even value will be given.
---
--- @since 0.2.0.0
 {-# INLINEABLE round #-}
 round :: Rational -> Integer
 round x =

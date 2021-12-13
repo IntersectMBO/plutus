@@ -147,32 +147,17 @@ instance MultiplicativeMonoid a => Monoid (Product a) where
     {-# INLINABLE mempty #-}
     mempty = Product one
 
--- TODO. This is doing twice as much work as it needs to: the Plutus Core
--- builtins 'divideInteger' and 'modInteger' are implemented as the Haskell
--- 'div' and 'mod' operations, which in turn are impemented as fst . divMod and
--- snd . divMod, so we're calling Haskell's 'divMod' twice and throwing away
--- useful information.  We could fix his by exposing 'divMod' as a PLC builtin,
--- but that would require us to implement pairs as built-in types along with
--- built-in introduction and elimination functions.  This would be non-trivial.
 -- | Simultaneous div and mod.
---
--- @since 0.2.0.0
 {-# INLINABLE divMod #-}
 divMod :: Integer -> Integer -> (Integer, Integer)
 divMod x y = ( x `divideInteger` y, x `modInteger` y)
 
--- TODO.  Provide a Plutus Core built-in function for this: see the comment for
--- 'divMod'.
 -- | Simultaneous quot and rem.
---
--- @since 0.2.0.0
 {-# INLINABLE quotRem #-}
 quotRem :: Integer -> Integer -> (Integer, Integer)
 quotRem x y = ( x `quotientInteger` y, x `remainderInteger` y)
 
 -- | Absolute value for any 'AdditiveGroup'.
---
--- @since 0.2.0.0
 {-# INLINABLE abs #-}
 abs :: (Ord n, AdditiveGroup n) => n -> n
 abs x = if x < zero then negate x else x
