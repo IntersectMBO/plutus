@@ -148,18 +148,18 @@ ren-erase ρ⋆ ρ (Λ t)            = cong
   delay
   (trans (ren-erase (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ) t)
          (U.ren-cong (ext⋆-erase ρ⋆ ρ) (erase t)))
-ren-erase ρ⋆ ρ (_·⋆_ {B = B} t A) = trans
-  (conv⊢-erase (sym (ren[]Nf ρ⋆ B A)) (A.ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A))
+ren-erase ρ⋆ ρ (_·⋆_/_ {B = B} t A refl) = trans
+  (conv⊢-erase (sym (ren[]Nf ρ⋆ B A)) (A.ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A / refl ))
   (cong force (ren-erase ρ⋆ ρ t))
 ren-erase ρ⋆ ρ (wrap A B t)  = trans
   (conv⊢-erase (ren-nf-μ ρ⋆ A B) (A.ren ρ⋆ ρ t))
   (ren-erase ρ⋆ ρ t)
-ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t) = trans
-  (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t)))
+ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t refl) = trans
+  (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t) refl))
   (ren-erase ρ⋆ ρ t)
 ren-erase ρ⋆ ρ (con c)            = cong con (renTermCon-erase ρ⋆ ρ c)
-ren-erase ρ⋆ ρ (builtin b)        =
- sym (lem-erase refl (btype-ren b ρ⋆) (builtin b))
+ren-erase ρ⋆ ρ (builtin b / refl)        =
+ sym (lem-erase refl (btype-ren b ρ⋆) (builtin b / refl))
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 
@@ -232,16 +232,16 @@ sub-erase σ⋆ σ (Λ {B = B} t) = cong
   (trans (conv⊢-erase (sub-nf-Π σ⋆ B) (A.sub (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t))
          (trans (sub-erase (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t)
                 (U.sub-cong (exts⋆-erase σ⋆ σ {B = Π B}) (erase t))))
-sub-erase σ⋆ σ (_·⋆_ {B = B} t A) = trans (conv⊢-erase (sym (sub[]Nf' σ⋆ A B)) (A.sub σ⋆ σ t ·⋆ subNf σ⋆ A)) (cong force (sub-erase σ⋆ σ t))
+sub-erase σ⋆ σ (_·⋆_/_ {B = B} t A refl) = trans (conv⊢-erase (sym (sub[]Nf' σ⋆ A B)) (A.sub σ⋆ σ t ·⋆ subNf σ⋆ A / refl)) (cong force (sub-erase σ⋆ σ t))
 sub-erase σ⋆ σ (wrap A B t) = trans
   (conv⊢-erase (sub-nf-μ σ⋆ A B) (A.sub σ⋆ σ t))
   (sub-erase σ⋆ σ t)
-sub-erase σ⋆ σ (unwrap {A = A}{B} t) = trans
-  (conv⊢-erase (sym (sub-nf-μ σ⋆ A B)) (unwrap (A.sub σ⋆ σ t)))
+sub-erase σ⋆ σ (unwrap {A = A}{B} t refl) = trans
+  (conv⊢-erase (sym (sub-nf-μ σ⋆ A B)) (unwrap (A.sub σ⋆ σ t) refl))
   (sub-erase σ⋆ σ t)
 sub-erase σ⋆ σ (con c) = cong con (subTermCon-erase σ⋆ σ c)
-sub-erase σ⋆ σ (builtin b) =
- sym (lem-erase refl (btype-sub b σ⋆) (builtin b))
+sub-erase σ⋆ σ (builtin b / refl) =
+ sym (lem-erase refl (btype-sub b σ⋆) (builtin b / refl))
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
