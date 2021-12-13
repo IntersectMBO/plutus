@@ -29,10 +29,19 @@ import PlutusCore.Core
 import PlutusCore.Name
 import PlutusCore.Quote
 
+import Control.Lens hiding (Index, index)
 import Control.Monad.Except
 import Control.Monad.Reader
 
 import Data.Bimap qualified as BM
+
+{- NOTE: [DeBruijn indices of Binders]
+In a debruijnijfied Term AST, the Binders have a debruijn index
+at their the spefiic AST location.
+During *undebruijnification* we ignore such binders' indices because they are meaningless,
+and instead use the convention that such introduced binders have
+a fixed debruijn index '0' at their introduction.
+-}
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'NamedTyDeBruijn's.
 deBruijnTy
@@ -128,12 +137,16 @@ unDeBruijnTyM = \case
     -- variable case
     TyVar ann n -> TyVar ann <$> deBruijnToTyName n
     -- binder cases
-    TyForall ann tn k ty -> declareIndex tn $ do
-        tn' <- deBruijnToTyName tn
-        withScope $ TyForall ann tn' k <$> unDeBruijnTyM ty
-    TyLam ann tn k ty -> declareIndex tn $ do
-        tn' <- deBruijnToTyName tn
-        withScope $ TyLam ann tn' k <$> unDeBruijnTyM ty
+    TyForall ann tn k ty ->
+        -- See NOTE: [DeBruijn indices of Binders]
+        declareBinder $ do
+            tn' <- deBruijnToTyName $ set index 0 tn
+            withScope $ TyForall ann tn' k <$> unDeBruijnTyM ty
+    TyLam ann tn k ty ->
+        -- See NOTE: [DeBruijn indices of Binders]
+        declareBinder $ do
+            tn' <- deBruijnToTyName $ set index 0 tn
+            withScope $ TyLam ann tn' k <$> unDeBruijnTyM ty
     -- boring recursive cases
     TyFun ann i o -> TyFun ann <$> unDeBruijnTyM i <*> unDeBruijnTyM o
     TyApp ann fun arg -> TyApp ann <$> unDeBruijnTyM fun <*> unDeBruijnTyM arg
@@ -149,12 +162,16 @@ unDeBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> deBruijnToName n
     -- binder cases
-    TyAbs ann tn k t -> declareIndex tn $ do
-        tn' <- deBruijnToTyName tn
-        withScope $ TyAbs ann tn' k <$> unDeBruijnTermM t
-    LamAbs ann n ty t -> declareIndex n $ do
-        n' <- deBruijnToName n
-        withScope $ LamAbs ann n' <$> unDeBruijnTyM ty <*> unDeBruijnTermM t
+    TyAbs ann tn k t ->
+        -- See NOTE: [DeBruijn indices of Binders]
+        declareBinder $ do
+            tn' <- deBruijnToTyName $ set index 0 tn
+            withScope $ TyAbs ann tn' k <$> unDeBruijnTermM t
+    LamAbs ann n ty t ->
+        -- See NOTE: [DeBruijn indices of Binders]
+        declareBinder $ do
+            n' <- deBruijnToName $ set index 0 n
+            withScope $ LamAbs ann n' <$> unDeBruijnTyM ty <*> unDeBruijnTermM t
     -- boring recursive cases
     Apply ann t1 t2 -> Apply ann <$> unDeBruijnTermM t1 <*> unDeBruijnTermM t2
     TyInst ann t ty -> TyInst ann <$> unDeBruijnTermM t <*> unDeBruijnTyM ty

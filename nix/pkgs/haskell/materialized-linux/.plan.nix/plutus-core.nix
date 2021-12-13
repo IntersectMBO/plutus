@@ -291,7 +291,6 @@
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"
-          "UntypedPlutusCore/Evaluation/HOAS"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
@@ -514,6 +513,7 @@
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
+            "DeBruijn/Spec"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

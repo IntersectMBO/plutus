@@ -63,11 +63,11 @@ erase (` α)                = ` (eraseVar α)
 erase (ƛ t)                = ƛ (erase t) 
 erase (t · u)              = erase t · erase u
 erase (Λ t)                = delay (erase t)
-erase (_·⋆_ t A)           = force (erase t)
+erase (t ·⋆ A / refl)      = force (erase t)
 erase (wrap A B t)         = erase t
-erase (unwrap t)           = erase t
+erase (unwrap t refl)      = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (builtin b)          = builtin b
+erase (builtin b / refl)     = builtin b
 erase (error A)            = error
 \end{code}
 
@@ -253,7 +253,7 @@ same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
          (lem-force (lenLemma Γ) (erase (nfType t))))
   (cong (subst _⊢ (lenLemma Γ))
         (trans (cong force (lem-erase' (lemΠ B) (nfType t)))
-        (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A))))
+        (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A / refl))))
 same {Γ = Γ} (D.wrap A B t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (stability-μ A B) (nfType t)))
@@ -261,7 +261,7 @@ same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
   (same t)
   (cong
     (subst _⊢ (lenLemma Γ))
-    (lem-erase' (sym (stability-μ A B)) (unwrap (nfType t)))) 
+    (lem-erase' (sym (stability-μ A B)) (unwrap (nfType t) refl))) 
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
@@ -271,7 +271,7 @@ same {Γ = Γ} (D.con tcn) = trans
 
 same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
-  (lem-erase refl (btype-lem b) (builtin b)))
+  (lem-erase refl (btype-lem b) (builtin b / refl)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
 open import Algorithmic.Soundness
@@ -318,14 +318,14 @@ same' {Γ = Γ} (t · u) = trans
 same' {Γ = Γ} (Λ t) =  trans
   (cong delay (same' t))
   (lem-delay (same'Len Γ) (D.erase (emb t)))
-same' {Γ = Γ} (t ·⋆ A)   = trans
+same' {Γ = Γ} (t ·⋆ A / refl)   = trans
   (cong force (same' t))
   (lem-force (same'Len Γ) (D.erase (emb t)))
 same' {Γ = Γ} (wrap A B t)   = same' t
-same' {Γ = Γ} (unwrap t) = same' t
+same' {Γ = Γ} (unwrap t refl) = same' t
 same' {Γ = Γ} (con x) = trans
   (cong con (same'TC {Γ = Γ} x))
   (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
-same' {Γ = Γ} (builtin b) = lembuiltin b (same'Len Γ)
+same' {Γ = Γ} (builtin b / refl) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

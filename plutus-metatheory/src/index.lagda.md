@@ -133,6 +133,7 @@ import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.Erasure.Reduction
+import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEKV
 

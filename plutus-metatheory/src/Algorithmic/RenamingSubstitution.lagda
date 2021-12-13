@@ -79,20 +79,20 @@ ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)    = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
 ren ρ⋆ ρ (Λ N)    = Λ (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
-ren ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
+ren ρ⋆ ρ (_·⋆_/_ {B = B} t A refl) = conv⊢
   refl
   (sym (ren[]Nf ρ⋆ B A))
-  (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)
+  (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A / refl)
 ren ρ⋆ ρ (wrap A B M) = wrap
   (renNf ρ⋆ A)
   (renNf ρ⋆ B)
   (conv⊢ refl (ren-nf-μ ρ⋆ A B) (ren ρ⋆ ρ M))
-ren ρ⋆ ρ (unwrap {A = A}{B} M) = conv⊢
+ren ρ⋆ ρ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (ren-nf-μ ρ⋆ A B))
-  (unwrap (ren ρ⋆ ρ M)) 
+  (unwrap (ren ρ⋆ ρ M) refl) 
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
-ren ρ⋆ ρ (builtin b) = conv⊢ refl (btype-ren b ρ⋆) (builtin b)
+ren ρ⋆ ρ (builtin b / refl) = conv⊢ refl (btype-ren b ρ⋆) (builtin b / refl)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 \end{code}
 
@@ -168,20 +168,20 @@ sub σ⋆ σ (ƛ N)                     = ƛ (sub σ⋆ (exts σ⋆ σ) N)
 sub σ⋆ σ (L · M)                   = sub σ⋆ σ L · sub σ⋆ σ M
 sub σ⋆ σ (Λ {B = B} N) =
   Λ (conv⊢ refl (sub-nf-Π σ⋆ B) (sub (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
-sub σ⋆ σ (_·⋆_ {B = B} L M) = conv⊢
+sub σ⋆ σ (_·⋆_/_ {B = B} L M refl) = conv⊢
   refl
   (sym (sub[]Nf' σ⋆ M B))
-  (sub σ⋆ σ L ·⋆ subNf σ⋆ M)
+  (sub σ⋆ σ L ·⋆ subNf σ⋆ M / refl)
 sub σ⋆ σ (wrap A B M) = wrap
   (subNf σ⋆ A)
   (subNf σ⋆ B)
   (conv⊢ refl (sub-nf-μ σ⋆ A B) (sub σ⋆ σ M))
-sub σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
+sub σ⋆ σ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (sub-nf-μ σ⋆ A B))
-  (unwrap (sub σ⋆ σ M))
+  (unwrap (sub σ⋆ σ M) refl)
 sub σ⋆ σ (con c) = con (subTermCon σ⋆ c)
-sub σ⋆ σ (builtin b) = conv⊢ refl (btype-sub b σ⋆) (builtin b)
+sub σ⋆ σ (builtin b / refl) = conv⊢ refl (btype-sub b σ⋆) (builtin b / refl)
 sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 \end{code}
 

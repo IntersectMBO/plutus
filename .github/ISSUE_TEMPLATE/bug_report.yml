@@ -1,0 +1,65 @@
+name: Bug Report
+description: Report a bug
+#title: ""
+labels: ["bug"]
+#assignees:
+#  -
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+        Please check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: |
+        A clear and specific description of what the bug is.
+        If applicable, add screenshots, config files and/or logs to help explain the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+    validations:
+      required: true
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: Actual Result
+      description: What is the reproducible outcome?
+      placeholder: See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected Result
+      description: A clear and concise description of what you expected to happen.
+      placeholder: No errors observed.
+    validations:
+      required: true
+  - type: textarea
+    id: fix-it-yourself
+    attributes:
+      label: Describe the approach you would take to fix this 
+      description: If you would like to work on this yourself (optional!), then let us know what approach you would take so we can advise you.
+    validations:
+      required: false
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System info
+      placeholder: |
+        OS: [e.g. Ubuntu]
+        Version: [e.g. 20.04]
+        Plutus: version or commit hash
+    validations:
+      required: true
+
