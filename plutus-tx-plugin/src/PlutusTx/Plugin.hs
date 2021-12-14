@@ -26,7 +26,7 @@ import PlutusTx.Trace
 import Finder qualified as GHC
 import GhcPlugins qualified as GHC
 import LoadIface qualified as GHC
-import OccName qualified as GHC
+import OccName qualified as GHCO
 import Panic qualified as GHC
 import TcRnMonad qualified as GHC
 
