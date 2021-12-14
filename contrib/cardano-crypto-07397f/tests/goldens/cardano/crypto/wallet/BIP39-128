@@ -1,0 +1,357 @@
+# Test Vector 1
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "45b1a75fe3119e13c6f60ab9ba674b42f946fdc558e07c83dfa0751c2eba69c79331bd8a4a975662b23628a438a0eba76367e44c12ca91b39ec59063f860f10d"
+xPriv = "6065a956b1b34145c4416fdc3ba3276801850e91a77a31a7be782463288aea5360ba6e25b1a02157fb69c5d1d7b96c4619736e545447069a6a6f0ba90844bc8e64b20fa082b3143d6b5eed42c6ef63f99599d0888afe060620abc1b319935fe1739f4b3caca4c9ad4fcd4bdc2ef42c8601af8d6946999ef85ef6ae84f66e72eb"
+xPub = "64b20fa082b3143d6b5eed42c6ef63f99599d0888afe060620abc1b319935fe1739f4b3caca4c9ad4fcd4bdc2ef42c8601af8d6946999ef85ef6ae84f66e72eb"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 2
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "f2c9171782e7df7665126ac545ae53b05964b0160536efdb545e2460dbbec2b19ec6b338b8f1bf4dfee94360ed024b115e37b1d7e6f3f9ae4beb79539428560f"
+xPriv = "e7d27516538403a53a8b041656a3f570909df641a0ab811fe7d87c9ba02a830c794a2c54ad8b525b781773c87d38cbf4197636bc427a9d551368286fe4c294a495bb82ffd5707716bc65170ab4e8dafeed90fbe0ce9258713b7751e962d931df6755cb82e892d6614c007a5efbceb21d95a5244e269d0e206b48b9a495390b03"
+xPub = "95bb82ffd5707716bc65170ab4e8dafeed90fbe0ce9258713b7751e962d931df6755cb82e892d6614c007a5efbceb21d95a5244e269d0e206b48b9a495390b03"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 3
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "2ba1439ae648a7e8da7c9ab1ee6da94fd4ebe37abd0978306e8fba2afa8f111a88a993dbf008bedae9167f4f68409e4c9ddaf02cba12418447b1848907ad800f"
+xPriv = "9b5a3d9a4c60bcd49bb64b72c082b164314d0f61d842f2575fd1d4fb30a28a0cb093e376f41eb7bf80abcd0073a52455d25b5d21815bc758e5f6f81536aedebb79fc8154554b97e4c56ef2f9dbb4c1421ff19509688931a1e964bda5dec0f19f47a242713bd18608231147c066b6083bfc1e9066fec9f621844c84fed6228a34"
+xPub = "79fc8154554b97e4c56ef2f9dbb4c1421ff19509688931a1e964bda5dec0f19f47a242713bd18608231147c066b6083bfc1e9066fec9f621844c84fed6228a34"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 4
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "0cd34f84e0d2fcb1800bdb0e869b9041349955ced66aedbe6bda187ebe8d36a62a05b39647e92fcc42aa7a7368174240afba08b8c81f981a22f942d6bd781602"
+xPriv = "52e0c98aa600cfdcd1ff28fcda5227ed87063f4a98547a78b771052cf102b40c6c18d9f8075b1a6a1833540607479bd58b7beb8a83d2bb01ca7ae02452a25803dc907c7c06e6314eedd9e18c9f6c6f9cc4e205fb1c70da608234c319f1f7b0d6d6798491b9fa4612370ae5ef3c623a0b6872f3ad8f26970885fa67c83bdc425e"
+xPub = "dc907c7c06e6314eedd9e18c9f6c6f9cc4e205fb1c70da608234c319f1f7b0d6d6798491b9fa4612370ae5ef3c623a0b6872f3ad8f26970885fa67c83bdc425e"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 5
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "e41f73db2f8d2896a687802b2be76b7cabb73dfbb4891494883a0cbd9bbb9e5f9d3e14d2d0b06c6674333508496db660936737c0efd9511514147dac79fa4905"
+xPriv = "11fd6462a3a92b35c22703f6f1c124ddcf36b7c2b09cc2784f320e1cfa12ec04c2785803c61c46aeca192a1bb1b7b20a8c4cc7fa01db57fc5d1d8a5473402352839775a41876e328986aa26168958bba1176e67819b357eea84afceab8b1db784169a2a32e3618a903e930bd1a713033a38f92389093408394e29ac37a1752ea"
+xPub = "839775a41876e328986aa26168958bba1176e67819b357eea84afceab8b1db784169a2a32e3618a903e930bd1a713033a38f92389093408394e29ac37a1752ea"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 6
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "631015357cee3051116b4c2ff4d1c5beb13b6e5023635aa1eeb0563cadf0d4fbc10bd5e31b4a4220c67875558c41b5cc0328104ae39cc7ff20ff0c2bda598906"
+xPriv = "5b1e5cad02274ba461f4708d8598d3497faf8fe3e894a379573aa6ac3a03e505ba179d2e3c67aabb486c48d16002b51ad32eab434c738a1550962313b07098cd75eb8d197ec8627c85af88e66aa1e49065dd8ac98ed8991db52ece01635dfb763ae9c99a5925cba2dcf121baf3a0254f3dea23c129f9eb70a8a7e8897c5199ba"
+xPub = "75eb8d197ec8627c85af88e66aa1e49065dd8ac98ed8991db52ece01635dfb763ae9c99a5925cba2dcf121baf3a0254f3dea23c129f9eb70a8a7e8897c5199ba"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 7
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "1de1d275428ba9491a433cd473cd076c027f61e7a8b5391df9dea5cb4bc88d8a57b095906a30b13e68259851a8dd3f57b6f0ffa37a5d3ffc171240f2d404f901"
+xPriv = "624b47150f58dfa44284fbc63c9f99b9b79f808c4955a461f0e2be44eb0be50d097aa006d694b165ef37cf23562e5967c96e49255d2f20faae478dee83aa5b020588589cd9b51dfc028cf225674069cbe52e0e70deb02dc45b79b26ee3548b0015c450b86dd7dd83b31951d9ee03eb1a7925161d817bd517c69cf09e3671f1ca"
+xPub = "0588589cd9b51dfc028cf225674069cbe52e0e70deb02dc45b79b26ee3548b0015c450b86dd7dd83b31951d9ee03eb1a7925161d817bd517c69cf09e3671f1ca"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 8
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "0659b4a437645ac5e4636f12092262777a97d34379a80c233cbabfe8015addb493c297dcb47309413db5507c2d6870cad19e8e13bbd96bb5d333c1b8de3d390d"
+xPriv = "6802ad6bef3df647df4d1d70e47243ce996da560aa7c35525286b5f33f8aea53969cf5c72e1116f12541ef2174e9fa6d0ef55953b4a2cdc001fd31338367cab05ce717275763d4280340b17c226647e0ca2ae354bf12302ecdab4f68d60f75bd9074ab37060f8a3083016e6f3755de58016f209f6a7103d63b1f80c53f99db99"
+xPub = "5ce717275763d4280340b17c226647e0ca2ae354bf12302ecdab4f68d60f75bd9074ab37060f8a3083016e6f3755de58016f209f6a7103d63b1f80c53f99db99"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 9
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "39bb12b667f2578662ff667d9bbb910cddc62c4915359f85aa6d068756ef0e4b63f2122211586311f86949a04cc50afbdcbd58a9ebb7ffc53da40f4f509cff0b"
+xPriv = "38fd98b0d02aaad10fd5cac9ca49538893650217874c628f6bed04f12d8aea5335f265a96086cc1582a0218a26afaa396d7eb942925b591a5c3b6b197da7f6976973f1cc551b572afa1bd1b4b3aab0b634276529f36fda6f07019591077f5fa1f5a9712fc11766a3fdd89df7689f4e891ee6402ce62c2592069cd12609c8a91c"
+xPub = "6973f1cc551b572afa1bd1b4b3aab0b634276529f36fda6f07019591077f5fa1f5a9712fc11766a3fdd89df7689f4e891ee6402ce62c2592069cd12609c8a91c"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 10
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "b5dbdd0b91f9054129e0cf415f51b9967e9933c1833e908a95413479b8f339ea3a93f9f9e31dc9ac0c561a371d63859fc4ba01ec0e1fe8e455cca6963f440d01"
+xPriv = "28053701c7f8ecb7008433ce3d2b704e1e187ab7433c621c2e48f034358aea53caa94d26385382a932746c71a6c3f5a8f7a6dd287257bc20b63442ac47ac223ae3120d182378d4a083f42f90a9c4ba0272bd0a6329e3896ab1948cfda9b904203c000b503f844fe3ec22c6c65bcdc4cb45aaba98a5cafc05ab25b04360494213"
+xPub = "e3120d182378d4a083f42f90a9c4ba0272bd0a6329e3896ab1948cfda9b904203c000b503f844fe3ec22c6c65bcdc4cb45aaba98a5cafc05ab25b04360494213"
+data_to_sign = "Data"
+path = [ 2147483648
+       , 2147483649
+       , 24
+       , 2000
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 11
+TestVector
+seed = "58202ed4c71d91bc68c7b50feeb5bc7a785fe884dd0aeddce029df3d612cd3680fd3"
+signature = "3583fc0d18f419170407f88ac7c704c94e30d11d698326831a402be741a4b6ec5c464efc39acd2213a433fd24fcb212199812aeee91a2aecd9043cd4d7bf980a"
+xPriv = "f886d53c974c2dbed823411dced93bc2ff486fe16be30ab44748a3f3358aea5348470cf985d8712428a5896fbd79f9c913e8eb2e886801709afb17454061c198355637f1249e0bb6c4540972898362f247d9f2b9f4ab75de0d94ed8800514a1b758643705fea51bfe9316d8d6cd1315b414fe7ab2515949cb88accc5eccb96e4"
+xPub = "355637f1249e0bb6c4540972898362f247d9f2b9f4ab75de0d94ed8800514a1b758643705fea51bfe9316d8d6cd1315b414fe7ab2515949cb88accc5eccb96e4"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 24
+       , 2147485648
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 12
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "03d0746017d2493fe4f1b30841e49d08539ff29f867ff90df1c4a3109c031c93de49a1304be67497f03a8a6f8005a558319ea76842575df34bbe93943fc6980a"
+xPriv = "08a14df748e477a69d21c97c56db151fc19e2521f31dd0ac5360f269e5b6ea46daeb991f2d2128e2525415c56a07f4366baa26c1e48572a5e073934b6de35fbc9a1d04808b4c0682816961cf666e82a7fd35949658aba5354c517eccf12aacb4affbc325d9027c0f2d9f925b1dcf6c12bf5c1dd08904474066a4f2c00db56173"
+xPub = "9a1d04808b4c0682816961cf666e82a7fd35949658aba5354c517eccf12aacb4affbc325d9027c0f2d9f925b1dcf6c12bf5c1dd08904474066a4f2c00db56173"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 13
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "d10d20b28210780f2abd6709b7db85979b77d5142235f6e3caa519dc0b8f428412802fe0ddc5d6a1a29ff114b5a6ce1e4b1fb154be0cd8116226558f64fe440d"
+xPriv = "1c22307ca55fcbed09182e118feda21ce1165e499ba6608d4c193b3a76df220f35821b4cd8daf5e8cd36365ac4b726c6543b489b50cc9176d65637fa032f2a17633d0c12d8e5fa76558e412a6dd90d42f9d24d3ebb067b9873d88dcc34d2d3d34bb502e64b74675c6989ab23a6ec0c5cfb4abe8372f1c76f0ddcfa8ba38194ce"
+xPub = "633d0c12d8e5fa76558e412a6dd90d42f9d24d3ebb067b9873d88dcc34d2d3d34bb502e64b74675c6989ab23a6ec0c5cfb4abe8372f1c76f0ddcfa8ba38194ce"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 14
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "03d0746017d2493fe4f1b30841e49d08539ff29f867ff90df1c4a3109c031c93de49a1304be67497f03a8a6f8005a558319ea76842575df34bbe93943fc6980a"
+xPriv = "08a14df748e477a69d21c97c56db151fc19e2521f31dd0ac5360f269e5b6ea46daeb991f2d2128e2525415c56a07f4366baa26c1e48572a5e073934b6de35fbc9a1d04808b4c0682816961cf666e82a7fd35949658aba5354c517eccf12aacb4affbc325d9027c0f2d9f925b1dcf6c12bf5c1dd08904474066a4f2c00db56173"
+xPub = "9a1d04808b4c0682816961cf666e82a7fd35949658aba5354c517eccf12aacb4affbc325d9027c0f2d9f925b1dcf6c12bf5c1dd08904474066a4f2c00db56173"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 15
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "f606547a54e19c3155d6644f326ef0ea601575dabf589079cc29fa3e40f969fa5294f06f0e96367c5f3cc5420ef2b513edde8e7dfb46464befd5bc4bbf869600"
+xPriv = "4d5ed5dce09e2f76f14f7438f8dea565112fe6e1ab26e82434619a724d573307df1a0a5c9c3f035e48eecee96eb975c9f13ca13fffce0fa8f9994fea3a92f30e47f51471e170768e1438b4c50c7f5e94e51b6401a57babe4fa11e10441e4c4fd76b78dc28ee04a316aab9c51d15ddfb10771551010b0605f43498de272e0fa19"
+xPub = "47f51471e170768e1438b4c50c7f5e94e51b6401a57babe4fa11e10441e4c4fd76b78dc28ee04a316aab9c51d15ddfb10771551010b0605f43498de272e0fa19"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 16
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "09b8cd5ea5991d140640a457ff9adbf8387c98be79a43243657de85f6cbffcf83bf9507fa01704f8575f1dbb2c1565b2d812cacc50c7fcc6c9193f7943801506"
+xPriv = "7beeeb7b129977fd2aa898caa6d460ccf06e468a7bcf48de4c191b4bbe4fab07045b2df387d49207a0b4e03146eb3cf0f4ef4cc70623035ca44179eae7c5f8d228d9a007879d93df8f13a8dc24415d79558fc398ca106b3695a9432876502adbd2f3ae1f666df03f5ecd0fbe7eecefc1862f9696a3513b50e025bcd0678b1e6c"
+xPub = "28d9a007879d93df8f13a8dc24415d79558fc398ca106b3695a9432876502adbd2f3ae1f666df03f5ecd0fbe7eecefc1862f9696a3513b50e025bcd0678b1e6c"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 17
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "2bf3e95e122b0040c208d35542584d3fd7ac34b75e5bf0ac1e797f6d9f91dc16476f3e4e78ff7f4a06c99f853baee1d4845f2fcc0576233e18981ff2a429e004"
+xPriv = "eda6899eb4f6c1dde5bbb331cf991f90d8e73e03fc2f99569521b3eb4ee093086ecd64424931ac8005a968a13cdb2892bee1d7e144b5b6d617fe4c3680ff0d8bb353c46b95555ea4e88e5c40ae3c20c72aa74fa8dc3950e36f4cd4d50fac878bc3a266e06cce8dc18685739edbebf787ee98adf443148ff4dcc2aabdd220220d"
+xPub = "b353c46b95555ea4e88e5c40ae3c20c72aa74fa8dc3950e36f4cd4d50fac878bc3a266e06cce8dc18685739edbebf787ee98adf443148ff4dcc2aabdd220220d"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 18
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "f5e4df4cc17a4e6c96d23d6885d0693a10797c95395edae1f33fc77b010386362c8974a997aa9a0282171a7a0dc8a964d8129316f6b675f923e0c85f532ed70b"
+xPriv = "f38fe6bc785935f6f11a95bcc2769aee2850af73dc60617715721b8c0f512c0967ffc3f29e070e180361ec06ffc3083cafa7bd754a2d43f7aab239532a7ee6cf8aae16314ed23f70580120d198e32b6841ff6169be50446307e3eee1e6bf22f8b184fc11b569477793e853eb1e17814e930f405ceca8f69a3fea5055a578b8c7"
+xPub = "8aae16314ed23f70580120d198e32b6841ff6169be50446307e3eee1e6bf22f8b184fc11b569477793e853eb1e17814e930f405ceca8f69a3fea5055a578b8c7"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 19
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "8c6e2b42de5935e8252d39bb6b1747b77829dbfe233ef9699e47a3094b943f7fa2abcf98f24ce6f0fee22340c45f8fbb204010faeb1483a2bd3f757d1152bc07"
+xPriv = "71c06333acfb18deedd9ae3e963b2df5a8502fec9cc921706e32f4c4f709ed01ceb616651f6a875e5f8801b7b70227545c9f7390673eeef6dc7782725cca38050067fa64d52f77f11a6feaab90a2aee114e40acbab6e194983a34f7ce99eb86827ce60f9bb8fd8f0bbdc558a06a50228755bfcba240108c26dcb67a192878dfc"
+xPub = "0067fa64d52f77f11a6feaab90a2aee114e40acbab6e194983a34f7ce99eb86827ce60f9bb8fd8f0bbdc558a06a50228755bfcba240108c26dcb67a192878dfc"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 20
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "9bdde03baf031ddb88829a090030b516faaf6c93450effe303fbb6a9faa39488678110333c0acef85db5e05cc6c954b5539d33889e2175fc280de7e8bc516808"
+xPriv = "488f34840bba516f7920f91676b8681d0dd833b4ce14468e0810b255f9b6ea4601eccef768a79859f824a1d3c3e35e131184e2940c3fca9a4c9b307741f65363148605be54585773b44ba87e79265149ae444c4cc37cb1f8db8c08482fba293bff77c08d37471c1d4cedd3fae2642c009324d9712492efc74dedab09c9bf973c"
+xPub = "148605be54585773b44ba87e79265149ae444c4cc37cb1f8db8c08482fba293bff77c08d37471c1d4cedd3fae2642c009324d9712492efc74dedab09c9bf973c"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 21
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "5a2c35a9edbabf1fa35fd29e9881bdb14f0111af10f6fea9c9a9b5d571f6d58d23a66f193a2ff3c47b35866bffc5e3fe2da2d43c6409d766f7fd287a6101010d"
+xPriv = "d064dcf1449d9c3e47f5b422680343561989035bf2e4e23fc34cb61fedb6ea46a3071959013af95aaecf78a7a2e1b9838bbbc4864d6a8a2295243782078345cdaaaca5e7adc69a03ef1f5c017ed02879e8ca871df028461ed9bf19fb8fa15038b40c44dfd9be08591b62be7f9991c85f812d8196927f3c824d9fcb17d275089e"
+xPub = "aaaca5e7adc69a03ef1f5c017ed02879e8ca871df028461ed9bf19fb8fa15038b40c44dfd9be08591b62be7f9991c85f812d8196927f3c824d9fcb17d275089e"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 22
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "19365dd2adffba6cb7910b980db18a000e20a6a6ea10b7ba0d082deff618c0c522bfd1b1df5faf0f36379b17f3dff37b3e730849f05f4e6333d149887d783909"
+xPriv = "d89c0b09df149c4578a24c3fad64c7425d01f0683137e2bc24e8b05bf6b6ea46b9db6229fef8102b63cdcc7e331fa91827cb2f079b605696aee678fb8df80e8b98bcf394fc33f5d0a6e135c1c934c69c327bc3c91dd02db3f2ef2c805bbaab10342fe9b5b3bb154321d526f5c80538324bb67964817ccc0cea227a495025b007"
+xPub = "98bcf394fc33f5d0a6e135c1c934c69c327bc3c91dd02db3f2ef2c805bbaab10342fe9b5b3bb154321d526f5c80538324bb67964817ccc0cea227a495025b007"
+data_to_sign = "Data"
+path = [ 2147483648
+       , 2147483649
+       , 24
+       , 2000
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+
+# Test Vector 23
+TestVector
+seed = "ba0673722574cef9051d8b0a588ca53c"
+signature = "d3298a19164436f6b8e60457e855b3d7c8d9d573df4e7f15f4320d6c575a39220d10d6f49d89a07b602412f826b7b08a599e8d52f9cd20b63732a10008be0c0c"
+xPriv = "0836be29b8e761fd6b00a50ab650c39d096c9c2854624f71d55869e4f8b6ea4626ca499156d9e97f6ec3bed2c874d57c667849d37d12ddd9329cd981f265126969689ec2932ea4cd8b5ea6d73cf2a5b4f4fe0163bd29f66c933da0aaf939c43ec3651f3edfebe5232025f0f1b189f607a9eb83fed1c265a34df7037226b4f8e4"
+xPub = "69689ec2932ea4cd8b5ea6d73cf2a5b4f4fe0163bd29f66c933da0aaf939c43ec3651f3edfebe5232025f0f1b189f607a9eb83fed1c265a34df7037226b4f8e4"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 24
+       , 2147485648
+       ]
+derivation_scheme = "derivation-scheme2"
+master_key_generation = "pbkdf"
+passphrase = ""
+words = "ring crime symptom enough erupt lady behave ramp apart settle citizen junk"
+

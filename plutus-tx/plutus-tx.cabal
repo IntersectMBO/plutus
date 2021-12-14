@@ -100,7 +100,7 @@ library
 
 test-suite plutus-tx-test
     import: lang
-    if(impl(ghcjs) || os(windows))
+    if(os(windows))
         buildable: False
     type: exitcode-stdio-1.0
     main-is: Spec.hs

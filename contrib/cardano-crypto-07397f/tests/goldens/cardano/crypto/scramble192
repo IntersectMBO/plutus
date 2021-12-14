@@ -1,0 +1,6 @@
+# Test Vector 1
+TestVector
+input = "enlist bacon notice kitten idle fragile debate bread nose love human bicycle eternal sketch cancel aware damp area"
+iv = "0000000000000000"
+passphrase = ""
+shielded_input = "abandon abandon abandon abandon abandon about digital usage arrow can bicycle water raise aisle exercise coil skill topple uphold usage parade ramp clarify top"

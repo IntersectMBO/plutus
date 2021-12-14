@@ -78,7 +78,8 @@ let
       allow-newer: hls-stylish-haskell-plugin:stylish-haskell
     '';
     src = sources.haskell-language-server;
-    inherit compiler-nix-name index-state checkMaterialization;
+    inherit compiler-nix-name checkMaterialization;
+    index-state = "2021-11-01T00:00:00Z";
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
     sha256map = {
       "https://github.com/hsyl20/ghc-api-compat"."8fee87eac97a538dbe81ff1ab18cff10f2f9fa15" = "16bibb7f3s2sxdvdy2mq6w1nj1lc8zhms54lwmj17ijhvjys29vg";

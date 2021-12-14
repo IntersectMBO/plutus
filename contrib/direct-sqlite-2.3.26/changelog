@@ -1,0 +1,178 @@
+v2.3.26:
+	* Add support for GHC 8.8 and Stackage LTS 15+
+
+v2.3.25:
+	* Upgrade embedded sqlite library to 3.28.0.
+
+v2.3.24:
+	* Upgrade embedded sqlite3 library to 3.24.0.
+	* Add faster `stepNoCB` function for statements that don't callback to Haskell functions.
+	* Use faster "unsafe" FFI calls for the following functions:
+	  reset, blobOpen, blobClose, blobReopen, blobRead, blobWrite, backupStep, errcode, errmsg
+	  as they are frequently used and don't callback to Haskell functions.
+	* Use faster Haskell memory allocator in blobRead function.
+
+v2.3.23:
+	* Add Semigroup instance to support GHC 8.4.1 (thanks @gwils)
+	* Build clean up for Android support (thanks @kmicklas)
+
+v2.3.22:
+	* Update sqlite to 3.22.0
+
+v2.3.21
+	* Update sqlite to 3.20.1
+	* Add -DSQLITE_ENABLE_FTS5 to build options
+
+v2.3.20
+	* Enable use of usleep (thanks @dbdbdb)
+	* Add sqlite3.h and sqlite3ext.h to install-includes (thanks @duog)
+
+v2.3.19
+	* Upgrade embedded sqlite3 library to 3.15.2.
+
+v2.3.18
+	* Upgrade embedded sqlite3 library to 3.15.0.
+
+	* Fix regressions in the test suite that were either introduced by changes
+	  in GHC 8 and/or stuff we missed in previous releases.
+
+v2.3.17
+	* Use a randomly created temp file for test database when running
+	unit tests instead of a hardcoded file under 'dist/'.  Hopefully
+	fixes https://github.com/IreneKnapp/direct-sqlite/issues/60
+
+v2.3.16
+	* Add an Eq instance for SQLError
+
+v2.3.15
+	* Add support for the online backup API
+
+	* Add support for incremental blob I/O
+
+	* Add support for zeroblobs
+
+	* Add support for enabling/disabling the shared cache mode
+
+	* Add low-level bindings to sqlite3_wal_hook
+
+	* Add function for retrieving the db handle from a custom function
+	  context.
+
+	* Add bindings for sqlite3_errcode
+
+	* Improve Travis CI coverage to cover more GHC versions (GHC 7.4 and higher)
+
+	* Big thanks to Mario Titas and Marcin Tolysz for the above!
+
+v2.3.14
+	* Add custom functions, aggregates and collations.
+
+	* Upgrade the bundled SQLite3 library to 3.8.5.
+
+	* Add bindings for controlling whether extension loading is
+	  enabled or disabled.
+
+	* Bump text and bytestring versions (actually, risking it and
+	  removing upper bounds)
+
+v2.3.13
+	* Add support for named parameters to queries.  Split this changelog into
+	  a separate file (preserving its history).
+
+v2.3.12
+	* Upgrade bundled SQLite3 to 3.8.4.1.
+
+v2.3.11
+
+	* Add support for URI filenames, and default to having them
+	  on. Among other things, this enables using in-memory databases.
+
+v2.3.10
+
+	* Add support for compiling the bundled SQLite3 with URI filename
+	  support. Specifying flags that would have affected the bundled
+	  SQLite3 no longer causes build failure if the "systemlib" flag
+	  is specified.
+
+v2.3.9
+
+	* Update bounds on the requirement on the "text" library.
+
+v2.3.8
+
+	* Upgrade bundled SQLite3 to 3.8.1.
+
+v2.3.7
+
+	* Fix a test failure related to 64-bit math on column indices.
+
+v2.3.6
+
+	* Re-apply the stat64 hack after upgrade to the bundled
+SQLite3.  Oops!
+
+v2.3.5
+
+	* Add support to compile bundled SQLite3 with full-text
+	  search.  Upgrade bundled SQLite3 to 3.7.17.
+
+v2.3.4
+
+	* Work around a linker error on some systems; add column-name
+	  reporting.
+
+v2.3.3.1
+
+	* Upgrade bundled SQLite3 to 3.7.15.2.
+
+v2.3.3
+
+	* Add trace support, as a feature for debugging.
+
+v2.3.2
+
+	* Add execPrint, execWithCallback, and interruptibly functions.
+	  Add bindings for sqlite3_last_insert_rowid and sqlite3_changes.
+	  Change the Show instance of the Utf8 newtype to better match the
+	  IsString instance.
+
+v2.3.1
+
+	* Upgrade the bundled SQLite3 to 3.7.15.  Add bindings for
+	  sqlite3_interrupt.  Export Int rather than CInt.
+
+v2.3
+
+	* Mark some FFI calls "unsafe", for a substantial performance
+	  benefit.
+
+v2.2.1
+
+	* Bump down text library version to match with the latest Haskell
+	  Platform.
+
+v2.2
+
+	* Actually does what version 2.1 claimed to, since the author made
+	  a mistake with git.
+
+v2.1
+
+	* Improves handling of invalid UTF-8 and changes error handling to
+	  be more complete.  It also adds a build flag to build against the
+	  system sqlite instead of the bundled one, optionally
+	  (disabled by default).
+
+v2.0
+
+	* Uses Text for strings instead of String.
+
+v1.1.0.1
+
+	* Switches to the Faction packaging system and makes
+	  no other changes.
+
+v1.1
+
+	* Adds the SQLite amalgamation file (version 3.7.5) to the
+	  project, so that there are no external dependencies.

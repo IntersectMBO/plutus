@@ -1,0 +1,7 @@
+# Test Vector 1
+TestVector
+input = "divide noodle violin same primary foam owner humor orbit cattle mountain desk sample arrest sadness gospel mystery scale hard onion jeans"
+iv = "00000000"
+passphrase = ""
+shielded_input = "abandon abandon abandon kid exercise icon ivory advice recall absent mimic various crater annual bomb digital field drama company truck oak earn banner gas"
+

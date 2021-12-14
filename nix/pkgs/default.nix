@@ -4,6 +4,9 @@
 , config ? { }
 , sources
 , enableHaskellProfiling
+, topLevelPkgs
+, ghcjsPluginPkgs ? null
+, cabalProjectLocal ? null
 }:
 let
   inherit (pkgs) stdenv;
@@ -18,6 +21,8 @@ let
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
     inherit (pkgs.evalPackages) writeShellScript;
+
+    inherit topLevelPkgs ghcjsPluginPkgs cabalProjectLocal;
   };
 
   #
@@ -99,6 +104,8 @@ let
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system windows)
     $(nix-build default.nix -A plutus.haskell.project.projectCross.mingwW64.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+    $(nix-build ci.nix -A ghcjs.haskell.library.plutus-core.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+    $(nix-build ci.nix -A ghcjs.haskell.library.plutus-core.project.buildProject.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
 
     # This updates the sha files for the extra packages
     $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
@@ -151,4 +158,9 @@ in
   inherit plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;
+
+  cabal-plan = pkgs.haskell-nix.tool "ghc8105" "cabal-plan" {
+    index-state = pkgs.haskell-nix.internalHackageIndexState;
+    version = "0.7.2.0";
+  };
 }

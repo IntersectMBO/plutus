@@ -1,0 +1,105 @@
+# Test Vector 1
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "29ceec8280884ea3693ee06bd4a3da3d38e18fc75f4f43f294566778bff47ddebc1bffdd393be36ff2d82880cad5bffa123d5f3da5f08cd955390ed4347bcf05"
+xPriv = "c030438bbab6fd7d109ecf39816db6a2a0f1841c0c5b4add7f223e3dcc4e4f5135a6fab21c44ac8563eedb663b5b5b712ed5f2cdf209c31e7c2c489afc7a660bac2774dc6d6c7e8c8e7cdf787c0c3404302857b00f4dc2537fe350a220d880b296911ef923cddd33261367dc03a10769b93b6c38fecff12d0b9f82d34307ac9f"
+xPub = "ac2774dc6d6c7e8c8e7cdf787c0c3404302857b00f4dc2537fe350a220d880b296911ef923cddd33261367dc03a10769b93b6c38fecff12d0b9f82d34307ac9f"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 2
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "510a7fc2836c8e741d9fa307d8585dad8747631d72daf3f9895cbf762ee8194e9f5d046761b9a92c2f7fc44e19e60cfe7be63f99ab6b41284055fdb5235fd80b"
+xPriv = "970d66b337bfc24501068a0329fc1b838012955c5ccb5a7d40abaec5945f270a7fde638a9bfee941b4f37ba2261b4add349476656f5bafe43f0bcd13841190398ef02de1e54a56e00f7b025ca36597e8b93263ee992d9997f16984bfb16d680aee5bc77e39eeb07a3ec2ac2085a9b6ac69a835434420bf9a0df9c99f7eddc7c5"
+xPub = "8ef02de1e54a56e00f7b025ca36597e8b93263ee992d9997f16984bfb16d680aee5bc77e39eeb07a3ec2ac2085a9b6ac69a835434420bf9a0df9c99f7eddc7c5"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 3
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "0041d2d36ec713e9405857a2d8b1bdb5f97c5f210184e64307847deb0173f16f0e3d8691d6c9a74ddb27e5ce5f8cdfced65d1c94a0107d4bb17f201419c3e70f"
+xPriv = "30922edcdc85376db3402e0b4f1037ed37dad594740b3bf6af82d6858c3f1802a8d3462c63bdb8aab85316c55d1462911cdf1564c8e837ee59cfd07a0ce9a5d2d59881c586f3b758c0fcc64c23fc68a9b77040426581ee2c63fd548f43f70f85651d62c2451ecbec523fcd7d2d6273c15a6a13b597a4e3ba5e35af2e7d8231f5"
+xPub = "d59881c586f3b758c0fcc64c23fc68a9b77040426581ee2c63fd548f43f70f85651d62c2451ecbec523fcd7d2d6273c15a6a13b597a4e3ba5e35af2e7d8231f5"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 4
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "3dec522a2be0f953c723b8a679566c3fbda1d05996362c44f3d7af03efac7d518eeb06604a42a9c3ccb3fa6472a3afdf5b42379d194ebe2af566c71a1e9a7804"
+xPriv = "85560b52eb095ebebcf4dae53319e669785365ad4494338600dc76f6acc7a7025bc99e1eb9b6873052bb8d35adb0259877c5dd047effaa5580777eec540bad1c2e6a46246caa09fceafcc101bcaba5bb3d46300520407967b458f1f1aa70608c7f27a372f21dc4b9c1345538f71aa187503e2e2e81ec77c30e080104b5bac5b7"
+xPub = "2e6a46246caa09fceafcc101bcaba5bb3d46300520407967b458f1f1aa70608c7f27a372f21dc4b9c1345538f71aa187503e2e2e81ec77c30e080104b5bac5b7"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 5
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "52ec50e1a922839147b80c98d7e702adf7a2089ea63dc54135394a7f19f532387300d545dc437ac48f1f9db2eb265e603c5b4f68a42f1338ef4c31a35d76a50d"
+xPriv = "477f8834f527781e4788bdc4b44e9ce5409455860db5db66d164270f5d90a003eb4ce9d9af3b080ec4db403a516ad4054a2a31f7e5dfe294aa77b408c3a23767076429e606fef642b4ca39cde70c08cb291d5b1b24b5ec3ebb2e5c3988e6aba4e60cbd5b06d8507563e09877c54c2ed1390c75e2060d1004b67e4cc4bb8a68ed"
+xPub = "076429e606fef642b4ca39cde70c08cb291d5b1b24b5ec3ebb2e5c3988e6aba4e60cbd5b06d8507563e09877c54c2ed1390c75e2060d1004b67e4cc4bb8a68ed"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 6
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "99a992016f7aabccfd2dd4b4aec9981f0ea7b80d31518877f6fcb5779b43ca7e767c728bcd73524a5c36255f8f789b2c68e3cffb24157a3dcc2e2e441fb6060f"
+xPriv = "b46cd0595d722f6ef32e71e05ea253fc001d16679ec52b7fd9ec2fe7f580f10383b12718fae9b10218a958c37687fe12c62034aa8d7157ad5c723fb3fc3c5b7e963da5d7a4f934d8a1be3f0bc49fce67b91e9e5975bdefa78d9c5cf10bcd15259d9bd30ab389ba72f2ca9f7077297f8841f36218cf74c95406fa8f845a9f7b1a"
+xPub = "963da5d7a4f934d8a1be3f0bc49fce67b91e9e5975bdefa78d9c5cf10bcd15259d9bd30ab389ba72f2ca9f7077297f8841f36218cf74c95406fa8f845a9f7b1a"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+
+# Test Vector 7
+TestVector
+seed = "58202fe7c783606f16671ed90f14dfb6c95f77d6030105db88c7cab474ce5d64b5e7"
+signature = "bbc97f2e119e88ce2ccbac77d7c0971fa11cf7a2e80651c8232ac2fa02792412f3764708a752a2de4e30eb7145ac1734741e3e4a1b118a487d7d7eba5e30d10e"
+xPriv = "589622bfc91d5b9dcf5de684773cc8e2a8bdce37ff458ce791b500386661aa0cd73f40b8075528c7710c1732ed19df72b9d4a1fc270abcac2431cda897d01606c53189741522d026edcc6ba6622b3ed95340267f2908791c0ab14a1a70af6546d47874c89a2e542214127840d852e475d3ba7328e06f09addf5ae3a276bdd391"
+xPub = "c53189741522d026edcc6ba6622b3ed95340267f2908791c0ab14a1a70af6546d47874c89a2e542214127840d852e475d3ba7328e06f09addf5ae3a276bdd391"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mail hundred home absorb logic ride grocery scale south awful wool wish energy idle cook jeans ball rocket"
+

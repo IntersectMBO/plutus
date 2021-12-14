@@ -1,0 +1,115 @@
+cabal-version: >= 1.10
+name:          clock
+version:       0.8.2
+stability:     stable
+synopsis:      High-resolution clock functions: monotonic, realtime, cputime.
+description:   A package for convenient access to high-resolution clock and
+               timer functions of different operating systems via a unified API.
+               .
+               POSIX code and surface API was developed by Cetin Sert in 2009.
+               .
+               Windows code was contributed by Eugene Kirpichov in 2010.
+               .
+               FreeBSD code was contributed by Finn Espen Gundersen on 2013-10-14.
+               .
+               OS X code was contributed by Gerolf Seitz on 2013-10-15.
+               .
+               Derived @Generic@, @Typeable@ and other instances for @Clock@ and @TimeSpec@ was contributed by Mathieu Boespflug on 2014-09-17.
+               .
+               Corrected dependency listing for @GHC < 7.6@ was contributed by Brian McKenna on 2014-09-30.
+               .
+               Windows code corrected by Dimitri Sabadie on 2015-02-09.
+               .
+               Added @timeSpecAsNanoSecs@ as observed widely-used by Chris Done on 2015-01-06, exported correctly on 2015-04-20.
+               .
+               Imported Control.Applicative operators correctly for Haskell Platform on Windows on 2015-04-21.
+               .
+               Unit tests and instance fixes by Christian Burger on 2015-06-25.
+               .
+               Removal of fromInteger : Integer -> TimeSpec by Cetin Sert on 2015-12-15.
+               .
+               New Linux-specific Clocks: MonotonicRaw, Boottime, MonotonicCoarse, RealtimeCoarse by Cetin Sert on 2015-12-15.
+               .
+               Reintroduction fromInteger : Integer -> TimeSpec by Cetin Sert on 2016-04-05.
+               .
+               Fixes for older Linux build failures introduced by new Linux-specific clocks by Mario Longobardi on 2016-04-18.
+               .
+               Refreshment release in 2019-04 after numerous contributions.
+               .
+               Refactoring for Windows, Mac implementation consistence by Alexander Vershilov on 2021-01-16.
+               .
+               [Version Scheme]
+               Major-@/R/@-ewrite . New-@/F/@-unctionality . @/I/@-mprovementAndBugFixes . @/P/@-ackagingOnly
+               .
+               * @PackagingOnly@ changes are made for quality assurance reasons.
+
+copyright:     Copyright © Cetin Sert 2009-2016, Eugene Kirpichov 2010, Finn Espen Gundersen 2013, Gerolf Seitz 2013, Mathieu Boespflug 2014 2015, Chris Done 2015, Dimitri Sabadie 2015, Christian Burger 2015, Mario Longobardi 2016, Alexander Vershilov 2021.
+license:       BSD3
+license-file:  LICENSE
+author:        Cetin Sert <cetin@sert.works>, Corsis Research
+maintainer:    Cetin Sert <cetin@sert.works>, Corsis Research
+homepage:      https://github.com/corsis/clock
+bug-reports:   https://github.com/corsis/clock/issues
+category:      System
+build-type:    Simple
+tested-with: GHC==8.10.3, GHC==8.8.4, GHC==8.6.5
+
+
+source-repository head
+    type:      git
+    location:  git://github.com/corsis/clock.git
+
+
+flag llvm
+    description: compile via LLVM
+    default    : False
+
+
+library
+    default-language: Haskell2010
+    if impl (ghc < 7.6)
+      build-depends:       base >= 4.4 && <= 5, ghc-prim
+    build-depends:       base >= 2 && <= 5
+    exposed-modules:     System.Clock
+    default-extensions:          DeriveGeneric
+                         DeriveDataTypeable
+                         ForeignFunctionInterface
+                         ScopedTypeVariables
+                         ViewPatterns
+    if os(windows)
+      c-sources:         cbits/hs_clock_win32.c
+    include-dirs:        cbits
+    ghc-options:         -O3 -Wall
+
+    if flag(llvm)
+      ghc-options:       -fllvm -optlo-O3
+
+    if os(ghcjs)
+      js-sources: jsbits/gettime.js
+
+test-suite test
+    default-language: Haskell2010
+    type:
+      exitcode-stdio-1.0
+    hs-source-dirs:
+      tests
+    main-is:
+      test.hs
+    build-depends:
+        base >= 4 && < 5
+      , tasty >= 0.10
+      , tasty-quickcheck
+      , clock
+
+benchmark benchmarks
+    default-language: Haskell2010
+    type:
+      exitcode-stdio-1.0
+    hs-source-dirs:
+      bench
+    main-is:
+      benchmarks.hs
+    build-depends:
+        base >= 4 && < 5
+      , criterion
+      , clock

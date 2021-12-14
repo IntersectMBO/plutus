@@ -1,0 +1,105 @@
+# Test Vector 1
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "09bc3f2cc032f57bab4fbff643dfd3104e9d318b52fd4c2910e2e57764eb7256a99dc8cc928b21042d0d8af158c037eb1c84ccb03b5e2c8aaa5cb2b06f540c07"
+xPriv = "38ba8c9201f4c6f80697048b25eb601c9203df55342d98e2c0cebba04e253647dad1284240ecf93e4387339c27ffb349f49bde5cd7e5d29893b6fec28f5ce15a91a8823ef68a6bd7b11530746eeac1cd0c5a286d0e3ae1d092e146a9afd93ab562e9d459c41cc83905780c88a504eb34daa1cf427cd81d0b4d1b5712a616f72e"
+xPub = "91a8823ef68a6bd7b11530746eeac1cd0c5a286d0e3ae1d092e146a9afd93ab562e9d459c41cc83905780c88a504eb34daa1cf427cd81d0b4d1b5712a616f72e"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 2
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "467a72f2cc866e7a7b7b948b78350f26e086681d9a63bcf58f95d71557d06ead6a0132c770cda8354069a156a02eb9289b3d14cc6c63fb6f9ddc7a5e40ae6407"
+xPriv = "602baefb4693c4f8144168cbf094d9553afc5726ada53883613f1499479e2e00b5906754649d4d0b6a55667d2ea8d79cdba157ce41e69630710c13444fd257a766fcbb90aec12c69994ccfa2af7d2ef855fb280bac263a85c7b7cf7aa3f4895955f4ecfa0eb6610ce227929c2f6db62ae9e449cd4f619105d7222382560b0d81"
+xPub = "66fcbb90aec12c69994ccfa2af7d2ef855fb280bac263a85c7b7cf7aa3f4895955f4ecfa0eb6610ce227929c2f6db62ae9e449cd4f619105d7222382560b0d81"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 3
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "4133d1d9ab83fd3832e5336d83767f50bba5bb6cd8e1ed2d89f199e57d47d353edcdaff4623f95750330667c1f70b7e2d3011cd3bf17c919e5d8902c0ab6c708"
+xPriv = "5c4cc02f23d65f6f30df6c80e9650d9b88fc876eecddd062c1f61329a7ed0e00b0215eed55c2a5bd48719cd748a247440a249cc28d0355ca753f6fe2891ea5e7c3bc2a476022a19401408b1646f6f356b7f24d83938c57cecf2b95beecb6d0e6e92c03cc0af84477449667fb6e1d4fe5a74ff97dbd66245105e595fdb41da41f"
+xPub = "c3bc2a476022a19401408b1646f6f356b7f24d83938c57cecf2b95beecb6d0e6e92c03cc0af84477449667fb6e1d4fe5a74ff97dbd66245105e595fdb41da41f"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 4
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "984dc765ca702cc26b15c3b7760ed7bc056291641fb5a341918f753ec6d2e31dedebc012958613c4ddc9fce06e7cad0e439483466ddf6e4b7d976b6dfdbf9605"
+xPriv = "5c547730f60eb3f0139ee24f2e46deca6264c856d53589235260ac19780ebf0853485224aa6ff70062117f57d4abe475358d41d551d74098f5fc8378166e0352532d18e61388fd7f2574ca6ceaff820a60823dd59381845fdbee78fc8355a5b81eb94da79ed20c3c4264f3b9c341acca527602d0b014f64fcb91de8569d5505e"
+xPub = "532d18e61388fd7f2574ca6ceaff820a60823dd59381845fdbee78fc8355a5b81eb94da79ed20c3c4264f3b9c341acca527602d0b014f64fcb91de8569d5505e"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 5
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "190e9c4546c88afb4f1d9770737525416acfa4e2cef32e7216f93b94773072fc8f3c829be129568b2544f1dd6b8b405390797522cdd17627d74356d965c22d0e"
+xPriv = "802d42757ac2e68708444794b73873f0415d113fa60622341a11254ab89637014a8b6f3653cd88d8f1180c1e959f6efdb89c7bf8cbff8c042834898a890ffa69825db423264cc776b362c2c1652cb1bf89c45dddd1cdef8fe142d05e1bdfc554da19d958460f49db98b36bc382622dd4056744f30c61c8e6bca50cfe4cff1cbf"
+xPub = "825db423264cc776b362c2c1652cb1bf89c45dddd1cdef8fe142d05e1bdfc554da19d958460f49db98b36bc382622dd4056744f30c61c8e6bca50cfe4cff1cbf"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 6
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "ecaa8b1ac65504c56daf26c3132bf8b6acbdb82053364d75345ef25ae8350230d299fb4765c0c21112ab9bac561ea21adc397c32b2e1598d95bae09f9730dd02"
+xPriv = "2cc72c9a96659a37edc2f4b0000308e6398ee18f5e3722547a39fddaf8ee270a60e96fe7eb99469c623e9d59a65de78320b6fb1f2586761d0a2424b1c1707beb535241885ebacb5876084350776b0eee86a72d38bf818cef276637f87e4b1fba9a710162f63053e2bff5b5dbaddfb8f362fc38b6d40b7c33090cf5adfb033fc5"
+xPub = "535241885ebacb5876084350776b0eee86a72d38bf818cef276637f87e4b1fba9a710162f63053e2bff5b5dbaddfb8f362fc38b6d40b7c33090cf5adfb033fc5"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+
+# Test Vector 7
+TestVector
+seed = "5820b68689741608e8cae87dd58117875426988d61f0599c7299fcfd57989b871d48"
+signature = "4da284a7d292a3797f6c94cf13e8f23f1c1ebbcc30dba92b8ad60a9a1cba6faf4d4213d1de5ed1099be06ec7fc6758a1b70bfe602429b744a7202ea958256007"
+xPriv = "b270fb787727633f569bb15bf60863d5c1ce19c8debff21c5b4a1d03890f10037d8b3ac1a8b9d7b0d988ed759e9a2165fe922e9737e8d01a79a2a45e84ffdae7a97810fba59c48e7058bce4900c6c5f7d7066b34505cda58ceafa05dac9c8f39659c50de01c26f1c02db7ded996d3feb897bad7a3ba68eaf5c428f46728db01a"
+xPub = "a97810fba59c48e7058bce4900c6c5f7d7066b34505cda58ceafa05dac9c8f39659c50de01c26f1c02db7ded996d3feb897bad7a3ba68eaf5c428f46728db01a"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "satisfy issue lottery twice mimic sword select raw twin ball harsh wide chat machine keep"
+

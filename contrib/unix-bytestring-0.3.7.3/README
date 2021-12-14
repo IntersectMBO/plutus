@@ -1,0 +1,90 @@
+unix-bytestring
+===============
+
+In general, this is a simple package and should be easy to install.
+You must have hsc2hs installed in order to compile the package (but
+then you probably already do). With the cabal-install program you
+can just do:
+
+    $> cabal install unix-bytestring
+
+Or if you don't have cabal-install, then you can use the Cabal library:
+
+    $> runhaskell Setup.hs configure
+    $> runhaskell Setup.hs build
+    $> runhaskell Setup.hs test
+    $> runhaskell Setup.hs haddock --hyperlink-source
+    $> runhaskell Setup.hs copy
+    $> runhaskell Setup.hs register
+
+The test step is optional and currently does nothing. The Haddock
+step is also optional.
+
+
+FFI Problems
+============
+
+The unix-bytestring package uses standard POSIX header files
+<sys/types.h>, <sys/uio.h>, and <unistd.h>. If Cabal has difficulty
+finding these files or reports another error, be sure your include
+path variables are correct. If the problem persists, contact the
+maintainer.
+
+
+Building for GHC (6.8 and above)
+================================
+
+Nothing special to mention. 
+
+
+Building for Hugs (September 2006)
+==================================
+
+I haven't actually compiled this for Hugs because I don't have a
+new enough version of Cabal for it, but I don't forsee any difficulties.
+If you do compile this for Hugs, let the maintainer know how it
+went.
+
+When compiling for Hugs, see the following bugs for Cabal's interaction
+with ffihugs. These bugs do not currently affect this package, but
+this notice is here in case they affect future versions. For more
+details and a minimal regression suite, see:
+
+    <http://community.haskell.org/~wren/cabal-ffihugstest/>
+
+
+(1) <http://hackage.haskell.org/trac/hackage/ticket/526>
+Options in hugs-options aren't passed through to ffihugs, most
+importantly -98 and +o are the ones we'd like to pass. For enabling
+the +o flag Hugs-Sept06 does not honor:
+    pragma    {-# LANGUAGE OverlappingInstances #-}
+    pragma    {-# OPTIONS_HUGS +o #-}
+    cabal     extensions: OverlappingInstances
+And the -98 flag has similar issues. Therefore this is a real
+problem.
+
+Immediate solution: The options set in hugs-options should be passed
+to ffihugs as well. As of Cabal 1.6 they are not passed (verified
+by Duncan Coutts). The two programs accept all the same options,
+so this is valid.
+
+Ideal solution: Based on the extensions field, Cabal should
+automatically determine whether -98 and +o need to be enabled (for
+both hugs and ffihugs).
+
+
+(2) <http://hackage.haskell.org/trac/hackage/ticket/527>
+If CPP is being used in conjunction with FFI, then cpp/cpphs is not
+called before ffihugs is called. Thus, users must pass an -F flag
+to ffihugs in order to declare a code filter (and must pass all
+cpp-options to -F manually). For example:
+
+    --ffihugs-option=-F'cpp -P -traditional -D__HUGS__ -D__BLAH__'
+
+This requires duplicating the build specifications, which defeats
+the point of Cabal. Also it leads to tricky issues about ensuring
+the proper level of quoting/escaping. (e.g. using the plural,
+--ffihugs-options=..., breaks it. Wrapping the -F'cpp...' in double
+quotes breaks it.)
+
+----------------------------------------------------------- fin.

@@ -10,6 +10,5 @@ Use the following snippet:
 
 .package.cabal
 ----
-if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin
+build-depends: plutus-tx-plugin
 ----

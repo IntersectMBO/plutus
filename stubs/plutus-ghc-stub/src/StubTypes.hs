@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFunctor      #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE KindSignatures     #-}
 module StubTypes where
 
@@ -16,7 +17,7 @@ import Language.Haskell.TH qualified as TH
 
 data DynFlags    = DynFlags_
 type FamInstEnvs = (FamInstEnv, FamInstEnv)
-data Name        = Name_ deriving (Eq, Ord, Outputable, Data)
+data Name        = Name_ deriving (Eq, Ord, Data)
 data OccName     = OccName_ deriving (Eq, Ord)
 data Module      = Module_ deriving (Eq, Ord)
 data UnitId      = UnitId_
@@ -31,41 +32,41 @@ data GhcException
   | ProgramError String
   | PprProgramError String SDoc
   deriving (Show, Exception.Exception)
-data ModuleName  = ModuleName_ deriving (Eq, Ord, Data, Outputable)
+data ModuleName  = ModuleName_ deriving (Eq, Ord, Data)
 data SDoc        = SDoc_ deriving Show
 data HsParsedModule = HsParsedModule_
 data HsGroup a   = HsGroup_
 data Phase       = Phase_
 data Coercion  = Coercion_ deriving Data
-data Type      = Type_ deriving (Data, Outputable)
+data Type      = Type_ deriving (Data)
 type Kind      = Type
 type TyVar = Var
-data TyCoBinder = TyCoBinder_ deriving (Data, Outputable)
-data SrcSpan = SrcSpan_ deriving (Eq, Ord, Data, Outputable)
-data RealSrcSpan = RealSrcSpan_ deriving (Data, Outputable)
+data TyCoBinder = TyCoBinder_ deriving (Data)
+data SrcSpan = SrcSpan_ deriving (Eq, Ord, Data)
+data RealSrcSpan = RealSrcSpan_ deriving (Data)
 data Tickish a =
     SourceNote { sourceSpan :: RealSrcSpan -- ^ Source covered
                , sourceName :: String      -- ^ Name for source location
     }
                deriving Data
-data Var       = Var_ deriving (Eq, Data, Outputable)
+data Var       = Var_ deriving (Eq, Data)
 type Id = Var
-data Fingerprint = Fingerprint_ deriving Outputable
+data Fingerprint = Fingerprint_
 data PrintUnqualified = PrintUnqualified_
-data TyCon = TyCon_ deriving (Eq, Outputable)
+data TyCon = TyCon_ deriving (Eq)
 data IdDetails = ClassOpId Class
                | DataConWorkId DataCon
                | PrimOpId PrimOp
-               deriving Outputable
-data IdUnfolding = IdUnfolding_ deriving Outputable
-data Unfolding = Unfolding_ deriving Outputable
+
+data IdUnfolding = IdUnfolding_
+data Unfolding = Unfolding_
 data FunctionOrData = IsFunction | IsData
-    deriving (Eq, Ord, Data, Outputable)
+    deriving (Eq, Ord, Data)
 data FV = FV_
 data Class = Class_
 data NameSpace = NameSpace_
 data HscEnv = HscEnv { hsc_dflags :: DynFlags }
-data RdrName = RdrName_
+data RdrName = Unqual OccName
 data Messages = Messages_
 
 data Literal
@@ -125,7 +126,7 @@ data AlgTyConRhs =
            | TupleTyCon { data_con :: DataCon }
            | SumTyCon { data_cons :: [DataCon] }
            | NewTyCon { data_con :: DataCon }
-data DataCon = DataCon_ deriving (Eq, Data, Outputable)
+data DataCon = DataCon_ deriving (Eq, Data)
 data Role = Representational
 data CoAxiom (a :: BranchFlag) = CoAxiom_
 data BranchFlag = BFBranched | BFUnbranched
@@ -141,7 +142,7 @@ data PrimOp = IntAddOp
             | IntLtOp
             | IntLeOp
             | IntEqOp
-    deriving (Eq, Ord, Enum, Outputable)
+    deriving (Eq, Ord, Enum)
 
 data Expr b
     = Var   Id
@@ -154,7 +155,7 @@ data Expr b
     | Tick  (Tickish Id) (Expr b)
     | Type  Type
     | Coercion Coercion
-    deriving (Data, Outputable)
+    deriving (Data)
 
 data Bind b
     = NonRec b (Expr b)
@@ -170,7 +171,7 @@ data AltCon
                         -- See Note [Literal alternatives]
 
     | DEFAULT           -- ^ Trivial alternative: @case e of { _ -> ... }@
-        deriving (Data, Outputable)
+        deriving (Data)
 
 type CoreExpr = Expr CoreBndr
 type CoreBndr = Var
@@ -221,7 +222,7 @@ data SimplMode             -- See comments in SimplMonad
         , sm_inline     :: Bool     -- Whether inlining is enabled
         , sm_case_case  :: Bool     -- Whether case-of-case is enabled
         , sm_eta_expand :: Bool     -- Whether eta-expansion is enabled
-        } deriving Outputable
+        }
 
 data CompilerPhase
     = Phase PhaseNum
@@ -290,6 +291,8 @@ instance Monad StubM
 
 newtype Hsc a       = Hsc_ (StubM a) deriving (Functor, Applicative, Monad)
 newtype CoreM a     = CoreM_ (StubM a) deriving (Functor, Applicative, Monad)
+class Monad m => HasDynFlags m
+instance HasDynFlags CoreM
 instance MonadIO CoreM where
     liftIO = undefined
 -- type CoreM a = IO a
@@ -336,6 +339,7 @@ class Outputable a where
     pprPrec :: Rational -> a -> SDoc
     ppr = pprPrec 0
     pprPrec _  _ = SDoc_
+instance Outputable a
 
 occName :: Name -> OccName
 occName _ = OccName_
@@ -655,7 +659,7 @@ getPackageFamInstEnv :: CoreM PackageFamInstEnv
 getPackageFamInstEnv = return FamInstEnv_
 
 mkUnqual :: NameSpace -> FastString -> RdrName
-mkUnqual _ _ = RdrName_
+mkUnqual _ _ = undefined
 
 bindsOnlyPass :: (CoreProgram -> CoreM CoreProgram) -> ModGuts -> CoreM ModGuts
 bindsOnlyPass _ mg = return mg
@@ -692,3 +696,14 @@ showSDocUnsafe _ = undefined
 
 dropRuntimeRepArgs :: [Type] -> [Type]
 dropRuntimeRepArgs _ = []
+
+lookupOccEnv = undefined
+pickGREs = undefined
+rdrNameOcc = undefined
+pprNameSpace = undefined
+occNameSpace = undefined
+occNameFS = undefined
+greOccName = undefined
+getUnique = undefined
+mkOccName = undefined
+unpackFS = undefined

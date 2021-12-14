@@ -13,7 +13,7 @@ let
   systems = filterSystems supportedSystems;
   crossSystems =
     let pkgs = (import ./default.nix { }).pkgs;
-    in { inherit (pkgs.lib.systems.examples) mingwW64; };
+    in { inherit (pkgs.lib.systems.examples) ghcjs mingwW64; };
 
   # Collects haskell derivations and builds an attrset:
   #
@@ -61,6 +61,7 @@ let
           platformString =
             if crossSystem == null then system
             else if crossSystem.config == "x86_64-w64-mingw32" then "x86_64-windows"
+            else if crossSystem.config == "js-unknown-ghcjs" then "js-ghcjs"
             else crossSystem.config;
           isBuildable = platformFilterGeneric pkgs platformString;
           filterCross = x:

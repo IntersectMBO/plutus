@@ -1,0 +1,47 @@
+TestVector
+words = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon agent"
+passphrase = "TREZOR"
+entropy = "000000000000000000000000000000000000000000000000"
+seed = "035895f2f481b1b0f01fcf8c289c794660b289981a78f8106447707fdd9666ca06da5a9a565181599b79f53b844d8a71dd9f439c52a3d7b3e8a79c906ac845fa"
+
+TestVector
+words = "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will"
+passphrase = "TREZOR"
+entropy = "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"
+seed = "f2b94508732bcbacbcc020faefecfc89feafa6649a5491b8c952cede496c214a0c7b3c392d168748f2d4a612bada0753b52a1c7ac53c1e93abd5c6320b9e95dd"
+
+TestVector
+words = "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always"
+passphrase = "TREZOR"
+entropy = "808080808080808080808080808080808080808080808080"
+seed = "107d7c02a5aa6f38c58083ff74f04c607c2d2c0ecc55501dadd72d025b751bc27fe913ffb796f841c49b1d33b610cf0e91d3aa239027f5e99fe4ce9e5088cd65"
+
+TestVector
+words = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
+passphrase = "TREZOR"
+entropy = "ffffffffffffffffffffffffffffffffffffffffffffffff"
+seed = "0cd6e5d827bb62eb8fc1e262254223817fd068a74b5b449cc2f667c3f1f985a76379b43348d952e2265b4cd129090758b3e3c2c49103b5051aac2eaeb890a528"
+
+TestVector
+words = "gravity machine north sort system female filter attitude volume fold club stay feature office ecology stable narrow fog"
+passphrase = "TREZOR"
+entropy = "6610b25967cdcca9d59875f5cb50b0ea75433311869e930b"
+seed = "628c3827a8823298ee685db84f55caa34b5cc195a778e52d45f59bcf75aba68e4d7590e101dc414bc1bbd5737666fbbef35d1f1903953b66624f910feef245ac"
+
+TestVector
+words = "horn tenant knee talent sponsor spell gate clip pulse soap slush warm silver nephew swap uncle crack brave"
+passphrase = "TREZOR"
+entropy = "6d9be1ee6ebd27a258115aad99b7317b9c8d28b6d76431c3"
+seed = "fd579828af3da1d32544ce4db5c73d53fc8acc4ddb1e3b251a31179cdb71e853c56d2fcb11aed39898ce6c34b10b5382772db8796e52837b54468aeb312cfc3d"
+
+TestVector
+words = "light rule cinnamon wrap drastic word pride squirrel upgrade then income fatal apart sustain crack supply proud access"
+passphrase = "TREZOR"
+entropy = "8197a4a47f0425faeaa69deebc05ca29c0a5b5cc76ceacc0"
+seed = "4cbdff1ca2db800fd61cae72a57475fdc6bab03e441fd63f96dabd1f183ef5b782925f00105f318309a7e9c3ea6967c7801e46c8a58082674c860a37b93eda02"
+
+TestVector
+words = "scissors invite lock maple supreme raw rapid void congress muscle digital elegant little brisk hair mango congress clump"
+passphrase = "TREZOR"
+entropy = "c10ec20dc3cd9f652c7fac2f1230f7a3c828389a14392f05"
+seed = "7b4a10be9d98e6cba265566db7f136718e1398c71cb581e1b2f464cac1ceedf4f3e274dc270003c670ad8d02c4558b2f8e39edea2775c9e232c7cb798b069e88"

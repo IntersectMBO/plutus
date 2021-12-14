@@ -1,0 +1,47 @@
+TestVector
+words = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+passphrase = "TREZOR"
+entropy = "00000000000000000000000000000000"
+seed = "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04"
+
+TestVector
+words = "legal winner thank year wave sausage worth useful legal winner thank yellow"
+passphrase = "TREZOR"
+entropy = "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"
+seed = "2e8905819b8723fe2c1d161860e5ee1830318dbf49a83bd451cfb8440c28bd6fa457fe1296106559a3c80937a1c1069be3a3a5bd381ee6260e8d9739fce1f607"
+
+TestVector
+words = "letter advice cage absurd amount doctor acoustic avoid letter advice cage above"
+passphrase = "TREZOR"
+entropy = "80808080808080808080808080808080"
+seed = "d71de856f81a8acc65e6fc851a38d4d7ec216fd0796d0a6827a3ad6ed5511a30fa280f12eb2e47ed2ac03b5c462a0358d18d69fe4f985ec81778c1b370b652a8"
+
+TestVector
+words = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+passphrase = "TREZOR"
+entropy = "ffffffffffffffffffffffffffffffff"
+seed = "ac27495480225222079d7be181583751e86f571027b0497b5b5d11218e0a8a13332572917f0f8e5a589620c6f15b11c61dee327651a14c34e18231052e48c069"
+
+TestVector
+words = "ozone drill grab fiber curtain grace pudding thank cruise elder eight picnic"
+passphrase = "TREZOR"
+entropy = "9e885d952ad362caeb4efe34a8e91bd2"
+seed = "274ddc525802f7c828d8ef7ddbcdc5304e87ac3535913611fbbfa986d0c9e5476c91689f9c8a54fd55bd38606aa6a8595ad213d4c9c9f9aca3fb217069a41028"
+
+TestVector
+words = "scheme spot photo card baby mountain device kick cradle pact join borrow"
+passphrase = "TREZOR"
+entropy = "c0ba5a8e914111210f2bd131f3d5e08d"
+seed = "ea725895aaae8d4c1cf682c1bfd2d358d52ed9f0f0591131b559e2724bb234fca05aa9c02c57407e04ee9dc3b454aa63fbff483a8b11de949624b9f1831a9612"
+
+TestVector
+words = "cat swing flag economy stadium alone churn speed unique patch report train"
+passphrase = "TREZOR"
+entropy = "23db8160a31d3e0dca3688ed941adbf3"
+seed = "deb5f45449e615feff5640f2e49f933ff51895de3b4381832b3139941c57b59205a42480c52175b6efcffaa58a2503887c1e8b363a707256bdd2b587b46541f5"
+
+TestVector
+words = "vessel ladder alter error federal sibling chat ability sun glass valve picture"
+passphrase = "TREZOR"
+entropy = "f30f8c1da665478f49b001d94c5fc452"
+seed = "2aaa9242daafcee6aa9d7269f17d4efe271e1b9a529178d7dc139cd18747090bf9d60295d0ce74309a78852a9caadf0af48aae1c6253839624076224374bc63f"

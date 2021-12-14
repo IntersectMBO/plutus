@@ -26,7 +26,12 @@
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = ".";
       dataFiles = [];
-      extraSrcFiles = [ "README.md" ];
+      extraSrcFiles = [
+        "README.md"
+        "jsbits/libsodium.c"
+        "jsbits/libsodium.js"
+        "jsbits/wrappers.js.pp"
+        ];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
@@ -99,6 +104,10 @@
           "Cardano/Crypto/Libsodium/UnsafeC"
           "Cardano/Foreign"
           ];
+        jsSources = (pkgs.lib).optionals (compiler.isGhcjs && true || system.isGhcjs) [
+          "jsbits/libsodium.js"
+          "jsbits/wrappers.js.pp"
+          ];
         hsSourceDirs = [ "src" ];
         };
       tests = {
@@ -117,11 +126,11 @@
       };
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "2";
+      url = "1";
       rev = "minimal";
       sha256 = "";
       }) // {
-      url = "2";
+      url = "1";
       rev = "minimal";
       sha256 = "";
       };

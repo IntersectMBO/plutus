@@ -1,0 +1,20 @@
+# Test Vector 1
+TestVector
+input = "legal winner thank year wave sausage worth useful legal winner thank yellow"
+iv = "0000000000000000"
+passphrase = ""
+shielded_input = "abandon abandon abandon abandon abandon about twelve early chronic curtain ancient judge pond style twin spread asthma enable"
+
+# Test Vector 2
+TestVector
+input = "fold parrot feature figure stay blanket woman grain huge orphan key exile"
+iv = "0001020304050607"
+passphrase = "Cardano Ada"
+shielded_input = "abandon amount liar amount expire advance afraid evil author zero dumb elite cover few mirror goat remain vapor"
+
+# Test Vector 3
+TestVector
+input = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+iv = "2a2a2a2a2a2a2a2a"
+passphrase = "This is a very long passphrase. This is a very long passphrase. This is a very long passphrase. This is a very long passphrase."
+shielded_input = "clay eyebrow melody february pencil betray build cart insane great coconut champion ancient catch provide horn merit cinnamon"

@@ -26,11 +26,11 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus;
+  inherit (packages) pkgs plutus ghcjsPluginPkgs;
   inherit (plutus) haskell;
 in
 rec {
-  inherit pkgs plutus;
+  inherit pkgs plutus ghcjsPluginPkgs;
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;

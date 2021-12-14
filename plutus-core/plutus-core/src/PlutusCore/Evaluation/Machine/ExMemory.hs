@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# OPTIONS_GHC -Wno-identities    #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
 ( CostingInteger
@@ -107,11 +108,11 @@ fallback to the slower (but safe) 'Integer'.
 -- See Note [Integer types for costing]
 -- See also Note [Budgeting units] in ExBudget.hs
 type CostingInteger =
-#if WORD_SIZE_IN_BITS < 64
-    Integer
-#else
+-- #if WORD_SIZE_IN_BITS < 64
+--     Integer
+-- #else
     SatInt
-#endif
+-- #endif
 
 
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])

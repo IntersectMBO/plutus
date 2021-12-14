@@ -1,0 +1,6 @@
+# Test Vector 1
+TestVector
+input = "harbor lion symptom between random lake unveil hire hammer celery refuse taxi artist gorilla bitter"
+iv = "0000000000000000"
+passphrase = ""
+shielded_input = "abandon abandon abandon abandon abandon about razor peasant celery only ball input trumpet success region post party slam uncle few ill"

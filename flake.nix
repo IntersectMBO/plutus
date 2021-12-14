@@ -13,7 +13,7 @@
       flake = false;
     };
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
+      url = "github:input-output-hk/haskell.nix/angerman/fix-ghcjs/";
       flake = false;
     };
     cardano-repo-tool = {

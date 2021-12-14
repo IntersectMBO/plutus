@@ -1,0 +1,105 @@
+# Test Vector 1
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "6139dcc98e4117663accd5fcd950d5608cd0dc03079f0319d8dc1e5fa9a5c82b56b30485dc1baab6ca940c049520a1b4ed3eb123a1834008c06b72379efe6a03"
+xPriv = "a0f52ce470a95c587f83b6757cef6b4227047a8f02bcf90a386a76e3b595e949a981d415703b0d0fc5a73f838ad28d0f8356d2d9cb2564032247cc4ee15905ae1a8d0e80801d0a08e039219ef5f4de823e3affae8a31eba67d4374add6d785558d94b99503c76f34f98523524b1302d018a1532e314c9b23e3a63e99081121cb"
+xPub = "1a8d0e80801d0a08e039219ef5f4de823e3affae8a31eba67d4374add6d785558d94b99503c76f34f98523524b1302d018a1532e314c9b23e3a63e99081121cb"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 2
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "0fabbc593af96cca1fc7dd8229597350efa8d49c633803cfc3929230b6026907134c2e823be42f588dd1fd0e6469f6735e7884ce936076a95920a7fa1ec3c009"
+xPriv = "6fbb69cc2ab115609dc4dbbf0690b1f3e65c52a8a22c7a5ba8fa366c4ed6890a32e86698c6a1549d4c099610aad0ab0f735738a4f84ea2f949731e64366f8ee222f34531de90bbfb8b61d2e342dfaabf829e779a47d2cc83cdf1ca0006b7cb6bb6fe420ec30e0f98f4ce483124a217bc21c903767e1043c37bbd0ccfcd002d4c"
+xPub = "22f34531de90bbfb8b61d2e342dfaabf829e779a47d2cc83cdf1ca0006b7cb6bb6fe420ec30e0f98f4ce483124a217bc21c903767e1043c37bbd0ccfcd002d4c"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 3
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "2867a2e6dd7acb26fbe80be2deef2efe3f507ebda0d0cdccd4d0b9ca7a0f52e99b9feaf034cc09b40a6976d532c75aee73390f19c79279f8e9530ee0bc81d400"
+xPriv = "c5a27c11397c84b0631af208663abba01775129082541afba87a160c468ef209848279216010e1bbbd7e83c2ffa6cde219126c32c2ca11cdc16ee32eb161e5e3a18eb4ac5baa7b60e1fb8a2ba1701a7afac81891397f0a16cddc86ad7eca3944fc4994d1ce6d4ad5028d1091f69f9a7b36e82a69a75dd7091218f5859a5cae6d"
+xPub = "a18eb4ac5baa7b60e1fb8a2ba1701a7afac81891397f0a16cddc86ad7eca3944fc4994d1ce6d4ad5028d1091f69f9a7b36e82a69a75dd7091218f5859a5cae6d"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 4
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "c28f2b29c339ae42c0ec57fc222f93096828f53799ac1d18c3b4bb638d33e63da2c7bb02f1044bbd9ef4fbf4269c2894854a6b7930611a3d0d0d6fc8d039b005"
+xPriv = "7460f1a95a540d20698b3eabe00319126f15a3285385fa6b504b577c46cff20ad47522bb83e2fa7b69112b7380d1045c417daaceed135a22e526f60916614d10b27001803e33f16b014d0d1d07cef16aea713289abc050dd1030989374351e372b97ad14860630a15b8fc6465578e53019d828c5614927ea9df4564a11ff255d"
+xPub = "b27001803e33f16b014d0d1d07cef16aea713289abc050dd1030989374351e372b97ad14860630a15b8fc6465578e53019d828c5614927ea9df4564a11ff255d"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 5
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "18da694ef1596bfc3dac4001f6a88fa04a0bcef9e03eeee0ae781ecef019c1d1f125de76b3ddc9e95d43a892d3184e15d283af528d9f72c993913b7d857df703"
+xPriv = "d19568976ad764c03472c1f652675838972d13392b5ee3b400945f8c5627630b9b4b35ae88a84759b1807e27ae761970349df720be87cd6ecf25d3a0fa63a58c1886551ac047acfb65c2ac0f34afb16b4c05680a2fe70a3ea55603ca19ccca7748cf8d195a5949835e9f89fe79d1c3baceb3fd8c9736d85e8a7cce38da29ec1d"
+xPub = "1886551ac047acfb65c2ac0f34afb16b4c05680a2fe70a3ea55603ca19ccca7748cf8d195a5949835e9f89fe79d1c3baceb3fd8c9736d85e8a7cce38da29ec1d"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 6
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "5c0ec3320a7c462cda09b1bd2171afec4bcc2077d45814ed81f1fb11589a48e56d5219a8db9ca728d8d499b59e34b9f5c036c3a0c252101d7143f72c2919ec0d"
+xPriv = "46ebb714421235c838f9e4726da2efc69e9d5b99a38ea335c9d40f8507684304f321cfd6159f9d6912cc92d414be5121f3698737a04ba61769503f69be30c496cc858a2176844d09c07c4c22aebdf47aaccefcf277913ea74838da327a1e3be1407261165b46fb78555a2edfe4bdc871a36e293ff13041ec56387d1c65627ff0"
+xPub = "cc858a2176844d09c07c4c22aebdf47aaccefcf277913ea74838da327a1e3be1407261165b46fb78555a2edfe4bdc871a36e293ff13041ec56387d1c65627ff0"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+
+# Test Vector 7
+TestVector
+seed = "5820111333e0e2fecb64a89e194702e401fa89b7e38dddc6550fdca89ca891842e54"
+signature = "cc0837d7c7a639c690997857e7feccd7d8af05956a58baea4f834151a3283c8c45a6852276e3abf2500f03a8e7cac218aab6b2de540cd8f831f54fe8e43c1e07"
+xPriv = "8e0c3a35bfa13a8816db781be11bb818073e3c5aa4264c2652f5dfad57887304263afb701fdeaefebec5c3ff3cedd880a25d3d4ed1970462cd6dcfa9638a60bdfe35802791c31911ed248c2702243de07c874c6329cb6ef8ffa1585509b66e9305ea6619eb04d5c63e74959dc844c236c98a9d626ed94773d7036278c6176511"
+xPub = "fe35802791c31911ed248c2702243de07c874c6329cb6ef8ffa1585509b66e9305ea6619eb04d5c63e74959dc844c236c98a9d626ed94773d7036278c6176511"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "borrow oil pizza bench loan sand obvious copy chat split relief lazy search finish begin swift crack scale identify wild once"
+

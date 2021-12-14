@@ -1,0 +1,105 @@
+# Test Vector 1
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "37220ae833ee19baeced3e56f05989df0662891c82c691d3f7a7eaea25fb85a68390f672f8b0d292b6d12e0643309e0be16e9ad2d17dbfe549022d8dbdfafc0b"
+xPriv = "a81384c81ccc2514602aa8d5f9bc96557211ae2e54b064f98efd5017cc08584473ab9aebb9bb4c899b4ac3854919c3394cb3cd38125791d246164d1ad54bc0456ac5551e7644fc0e3bf7c2e1d9187737c235c2991cf72bc7c56c9f989b2c450d903b986d483a1ac8a82db5a33f07fbbc8ff15cbb497a290e098f8866719428c9"
+xPub = "6ac5551e7644fc0e3bf7c2e1d9187737c235c2991cf72bc7c56c9f989b2c450d903b986d483a1ac8a82db5a33f07fbbc8ff15cbb497a290e098f8866719428c9"
+data_to_sign = "Hello World"
+path = []
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 2
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "9bc97bad365ecaed7c27f22bc3e13103464affae4d0e487e4c4aa99e4089b7b4635d886a23ef2fce6f355807c85cf9da81f7777e1a5c1fa7d840148242c25d0b"
+xPriv = "472867b839151a4499ea725799cc141e9a99566fec804532b7ada9e7441108059d5a86cc4a261ec7cd5d4a3c5286c47241932833925f267b6eb9c1237b879a99d884eb1283e73533564a2aea444f2d59d048bb3856937512d1e00080f11d590f2cae2fc16bd8a2293b5beea25d4af86908caa8fed800c80b2199c43dd1bcf337"
+xPub = "d884eb1283e73533564a2aea444f2d59d048bb3856937512d1e00080f11d590f2cae2fc16bd8a2293b5beea25d4af86908caa8fed800c80b2199c43dd1bcf337"
+data_to_sign = "Hello World"
+path = [ 2147483648 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 3
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "9678719584c9c3517b706bc9a6cee0891d1eef5f4eb9cfbb580f66bf57367bc860937fd9c8fe39bef7fb9d1284b6dd898f9cd036d974957503c8a57d1ce5ab0e"
+xPriv = "7db83bc6dcee7dbc53119b117cb8b6ab12b2ee4e7cd0ac098fdda927ccc82805f523df3f85f5807a26a9b160cbec2edde77a8e1d89f335cbc850b18c24f726220771b6dfdaf7d4ca531c45538c8b1d5d9d86df1d954e9464bd9ec1ee81ed5279536382113f0651184f1bcd18f95b54622d06cd218965e25574ffc32a54fa99bd"
+xPub = "0771b6dfdaf7d4ca531c45538c8b1d5d9d86df1d954e9464bd9ec1ee81ed5279536382113f0651184f1bcd18f95b54622d06cd218965e25574ffc32a54fa99bd"
+data_to_sign = "Hello World"
+path = [ 2147483649 ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 4
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "86e1ca7e3d96531442f414bb47a85790ca8c46a4471496bb74555464e5f95aa11050e6a4a265c0b95594cdfb23ab6a7a06a8d6517374b5d6afd094f6e53c5400"
+xPriv = "2c25bfc5d9ef311c9dd9fd921b38eca419cac6478511660248ce39e8acf9900d48cd9bc2ed0c36be208519600ff4cf675d230887ff5f08b26040a4a413c7b5996df0931376b4adbeec594d6c5052844d2f448888df3c35c930a10285d4fbfa22619cabb7543df75a5b600cfb7a494ddf73d5493b1da017a41b6b30c269ad350a"
+xPub = "6df0931376b4adbeec594d6c5052844d2f448888df3c35c930a10285d4fbfa22619cabb7543df75a5b600cfb7a494ddf73d5493b1da017a41b6b30c269ad350a"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 5
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "d3bbbea34ebb2ba69630bb1832c291d53a05a92efa79d4ffa98a29b3e4e1698d2dcf45cb21ac43b8f19fc14a9c0dd13213b94ab195d6592d079163c2dc435504"
+xPriv = "a1525ff3b97a591ca9d8d88625a30bc301cbc6c7a5e9a612106fc2b0056ae105bd05be7c1c5d844f192970e6d6573154bb213bd4d4ebe4e51858778fb8b45175b4445407c802cd9429c9cd781088e27f2ab84413f2c3cab980e433558e1ae5190ade1b2d687525db6ea1ff5387a1f650886a134b4a0d731dd5341a14ebd375a1"
+xPub = "b4445407c802cd9429c9cd781088e27f2ab84413f2c3cab980e433558e1ae5190ade1b2d687525db6ea1ff5387a1f650886a134b4a0d731dd5341a14ebd375a1"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 6
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "b9561639fa85fd981d663cf45939cd0ff3a7f7837f62ec7bfd7676d6b70b724c09d3f1a4cd0b01a8ec73a8122b0eb5e192fc09d001214e4fac0ee722baef1705"
+xPriv = "b67fcf50129d31947d57144207e70261790b17b8a601a70281a7727976c2290eaf13ae75fc353664c152dc941c5d3db41570998a8333e26cdf30d48408012240761255eae7f8554c4d9a2f0352cd59fc55988790cea8dc079ec67315f0c8c89802d721fe227a00c6208ad7ddea09e654aba41f2ccfc572ea68c3684ae00e6c57"
+xPub = "761255eae7f8554c4d9a2f0352cd59fc55988790cea8dc079ec67315f0c8c89802d721fe227a00c6208ad7ddea09e654aba41f2ccfc572ea68c3684ae00e6c57"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+
+# Test Vector 7
+TestVector
+seed = "58202700a8833d2bc8b0c9292dda6a00448a4d19e004a846f24c233a9fe1fde15696"
+signature = "3e45b7e2e62005ab1033e071fc1a57ebd83a7cbc04ab043fb0145d5e41043389b2207a68f7c3265e181e98098ff5a3f9b433b33df69e2e927617abf5d5416504"
+xPriv = "f3c4e64e2248e13b39de4736b1aaf26651f4a7c8d699c76a119863724f13da0e8f576bdf906f869cc2c60697e367a15809a1f7201519fb70e62ee59a6906e1a8e966d6f582f3a4c0d7f0a4aab65bda450c6dbf80664e63a465050633b7a396f004256dada671f7c583b79db54cc3fed0575e4880a2addce65ae62dfc9518bafc"
+xPub = "e966d6f582f3a4c0d7f0a4aab65bda450c6dbf80664e63a465050633b7a396f004256dada671f7c583b79db54cc3fed0575e4880a2addce65ae62dfc9518bafc"
+data_to_sign = "Hello World"
+path = [ 2147483648
+       , 2147483649
+       , 2147483650
+       , 2147483650
+       , 3147483648
+       ]
+derivation_scheme = "derivation-scheme1"
+master_key_generation = "retry-old"
+passphrase = ""
+words = "mouse logic say gym hip jaguar country lake black hood program acoustic sunny cram capital brush office wage winter rapid calm metal veteran history"
+

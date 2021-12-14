@@ -1,0 +1,151 @@
+name:                cardano-crypto
+version:             1.1.1
+synopsis:            Cryptography primitives for cardano
+description:
+homepage:            https://github.com/input-output-hk/cardano-crypto#readme
+license:             MIT
+license-file:        LICENSE
+author:              Vincent Hanquez
+maintainer:          contact@typed.io
+copyright:           2016-2021 IOHK
+category:            Crypto
+build-type:          Simple
+extra-source-files:  README.md
+                     cbits/*.h
+                     cbits/ed25519/*.h
+                     jsbits/emscripten/build.sh
+                     jsbits/emscripten/crc32.js
+                     jsbits/emscripten/crypto-cbits.pre.js
+                     jsbits/emscripten/crypto-cbits.post.js
+                     jsbits/emscripten/crypto-wrappers.js
+                     jsbits/emscripten/extern.js
+cabal-version:       >=1.10
+
+flag golden-tests
+  description:       compile the golden tests and run them
+  default:           False
+  manual:            True
+
+flag golden-tests-exe
+  description:       compile the golden test binary allowing to generate pretty markdown output
+  default:           False
+  manual:            True
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Cardano.Crypto.Wallet
+                       Cardano.Crypto.Wallet.Encrypted
+                       Cardano.Crypto.Wallet.Types
+                       Cardano.Crypto.Wallet.Pure
+                       Cardano.Crypto.Encoding.BIP39
+                       Cardano.Crypto.Encoding.Seed
+                       Crypto.Math.Edwards25519
+                       Crypto.Math.Bits
+                       Crypto.Math.Bytes
+                       Crypto.Math.NatMath
+                       Crypto.ECC.Ed25519Donna
+                       Crypto.ECC.Ed25519BIP32
+                       Crypto.Encoding.BIP39
+                       Crypto.Encoding.BIP39.Dictionary
+                       Crypto.Encoding.BIP39.English
+                       Cardano.Internal.Compat
+  build-depends:       base >= 4.7 && < 5
+                     , memory
+                     , deepseq
+                     , bytestring
+                     , basement
+                     , foundation
+                     , cryptonite >= 0.22
+                     , hashable
+                     , integer-gmp
+  default-language:    Haskell2010
+  C-sources:           cbits/ed25519/ed25519.c
+                       cbits/encrypted_sign.c
+  include-dirs:        cbits/ed25519 cbits
+  default-extensions:  GeneralizedNewtypeDeriving
+  ghc-options:         -Wall
+  cc-options:          -Wall -Wno-unused-function
+  if impl(ghc >= 8.6)
+    default-extensions: NoStarIsType
+  if os(ghcjs)
+    js-sources: jsbits/cardano-crypto.js
+
+test-suite cardano-crypto-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:       Test.Crypto
+                       Test.Crypto.Encoding
+                       Test.Crypto.Encoding.BIP39
+                       Test.Cardano
+                       Test.Cardano.Crypto
+                       Test.Cardano.Crypto.Encoding
+                       Test.Cardano.Crypto.Encoding.Seed
+                       Utils
+  build-depends:       base
+                     , bytestring
+                     , memory
+                     , cryptonite
+                     , cardano-crypto
+                     , basement
+                     , foundation
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+test-suite cardano-crypto-golden-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             GoldenTest.hs
+  other-modules:       Test.Orphans
+  build-depends:       base
+                     , basement
+                     , foundation
+                     , memory
+                     , bytestring
+                     , cryptonite
+                     , cardano-crypto
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:  NoImplicitPrelude
+  default-language:    Haskell2010
+  if flag(golden-tests)
+    build-depends:     inspector
+    buildable:         True
+  else
+    buildable:         False
+
+executable golden-tests
+  hs-source-dirs:      test
+  main-is:             GoldenTest.hs
+  other-modules:       Test.Orphans
+  if flag(golden-tests-exe)
+    build-depends:     inspector
+    buildable:         True
+  else
+    buildable:         False
+  build-depends:       base
+                     , basement
+                     , foundation
+                     , memory
+                     , bytestring
+                     , cryptonite
+                     , cardano-crypto
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:  NoImplicitPrelude
+  default-language:    Haskell2010
+
+benchmark cardano-crypto-bench
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      benchs
+  Main-is:             Bench.hs
+  build-depends:       base
+                     , bytestring
+                     , memory
+                     , cryptonite
+                     , cardano-crypto
+                     , gauge
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/input-output-hk/cardano-crypto

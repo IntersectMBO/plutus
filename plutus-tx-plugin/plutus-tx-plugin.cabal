@@ -38,8 +38,18 @@ flag use-ghc-stub
     default: False
     manual: True
 
+flag ghcjs-plugin
+  description: build the plugin for GHCJS instead of GHC
+  default:     True
+  manual:      False
+
 library
     import: lang
+    -- For ghcjs (where we have some hope of this to work), we use a rather
+    -- peculiar hack.  We pretend this package exists.  So most of ghcjs is
+    -- trivially happy, but then when it's loaded, we'll swap it out for the
+    -- natively (e.g. not cross compiled like ghcjs results) package, such that
+    -- ghcjs can load the plugin and execute it natively.
     hs-source-dirs: src
     exposed-modules:
         PlutusTx.Plugin
@@ -76,13 +86,14 @@ library
         build-depends: plutus-ghc-stub
         ghc-options: -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
     else
-        build-depends: ghc >=8.10 && <9
+        if flag(ghcjs-plugin)
+            build-depends: ghcjs >=8.10.5 && <9
+        else
+            build-depends: ghc >=8.10 && <9
 
 
 test-suite plutus-tx-tests
     import: lang
-    if flag(use-ghc-stub)
-        buildable: False
     type: exitcode-stdio-1.0
     hs-source-dirs: test
     main-is: Spec.hs

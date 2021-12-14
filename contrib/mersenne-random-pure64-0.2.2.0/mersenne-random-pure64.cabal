@@ -1,0 +1,65 @@
+name:            mersenne-random-pure64
+version:         0.2.2.0
+x-revision: 1
+homepage:        http://code.haskell.org/~dons/code/mersenne-random-pure64/
+synopsis:        Generate high quality pseudorandom numbers purely using a Mersenne Twister
+description:
+    The Mersenne twister is a pseudorandom number generator developed by
+    Makoto Matsumoto and Takuji Nishimura that is based on a matrix linear
+    recurrence over a finite binary field. It provides for fast generation
+    of very high quality pseudorandom numbers. The source for the C code
+    can be found here:
+    .
+    <http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt64.html>
+    .
+    This library provides a purely functional binding to the 64 bit
+    classic mersenne twister, along with instances of RandomGen, so the
+    generator can be used with System.Random. The generator should
+    typically be a few times faster than the default StdGen (but a tad
+    slower than the impure 'mersenne-random' library based on SIMD
+    instructions and destructive state updates.
+    .
+category:        Math, System
+license:         BSD3
+license-file:    LICENSE
+copyright:       (c) 2008. Don Stewart <dons00@gmail.com>
+author:          Don Stewart
+maintainer:      Don Stewart <dons00@gmail.com>
+cabal-version:   >= 1.6.0
+build-type:      Simple
+tested-with:     GHC == 7.6.2, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1
+
+source-repository head
+  type: git
+  location: git://github.com/bgamari/mersenne-random-pure64
+
+flag small_base
+  description: Build with new smaller base library
+  default:     False
+
+library
+    exposed-modules: System.Random.Mersenne.Pure64
+                     System.Random.Mersenne.Pure64.Base
+                     System.Random.Mersenne.Pure64.MTBlock
+                     System.Random.Mersenne.Pure64.Internal
+    extensions:      CPP, ForeignFunctionInterface
+
+    if flag(small_base)
+        build-depends: base  < 3
+    else
+        build-depends: base >= 3 && < 6, time >= 1.3, random
+
+    cc-options:
+        -O3 -finline-functions -fomit-frame-pointer
+        -fno-strict-aliasing
+
+    ghc-options:     -Wall -O2 -fexcess-precision
+
+    c-sources:        cbits/mt19937-64.c
+                      cbits/mt19937-64-unsafe.c
+                      cbits/mt19937-64-block.c
+    include-dirs:     include
+    includes:
+    install-includes: mt19937-64.h
+                      mt19937-64-unsafe.h
+                      mt19937-64-block.h

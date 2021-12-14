@@ -29,7 +29,14 @@ let
       shellcheck = pkgs.shellcheck;
     };
     hooks = {
-      stylish-haskell.enable = true;
+      stylish-haskell = {
+        enable = true;
+        excludes = [
+          "contrib/.*"
+          "stubs/cardano-api-stub/.*"
+          "stubs/iohk-monitoring-stub/.*"
+        ];
+      };
       nixpkgs-fmt = {
         enable = true;
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
@@ -37,7 +44,10 @@ let
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
         excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
-      shellcheck.enable = true;
+      shellcheck = {
+        enable = true;
+        excludes = [ "nix/overlays/gnu-config/config.guess" ];
+      };
       png-optimization = {
         enable = true;
         name = "png-optimization";

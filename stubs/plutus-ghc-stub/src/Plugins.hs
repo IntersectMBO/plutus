@@ -96,11 +96,6 @@ lpModuleName = moduleName . mi_module . lpModule
 
 data PluginRecompile = ForceRecompile | NoForceRecompile | MaybeRecompile Fingerprint
 
-instance Outputable PluginRecompile where
-  ppr ForceRecompile      = text "ForceRecompile"
-  ppr NoForceRecompile    = text "NoForceRecompile"
-  ppr (MaybeRecompile fp) = text "MaybeRecompile" <+> ppr fp
-
 instance Semigroup PluginRecompile where
   ForceRecompile <> _                     = ForceRecompile
   NoForceRecompile <> r                   = r

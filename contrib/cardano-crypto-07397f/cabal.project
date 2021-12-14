@@ -1,0 +1,12 @@
+packages: .
+
+package cardano-crypto
+  flags: +golden-tests +golden-tests-exe
+
+source-repository-package
+  type: git
+  location: https://github.com/primetype/inspector
+
+package inspector
+  -- This package uses bang patterns without enabling them
+  ghc-options: -XBangPatterns

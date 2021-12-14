@@ -49,7 +49,7 @@ library
       prettyprinter >=1.1.0.1,
       plutus-core -any,
       plutus-tx -any,
-      plutus-tx-plugin
+      plutus-tx-plugin -any
 
 executable plutus-errors-next
   import: lang

@@ -1,0 +1,315 @@
+name:                foundation
+version:             0.0.26.1
+synopsis:            Alternative prelude with batteries and no dependencies
+description:
+    A custom prelude with no dependencies apart from base.
+    .
+    This package has the following goals:
+    .
+    * provide a base like sets of modules that provide a consistent set of features and bugfixes across multiple versions of GHC (unlike base).
+    .
+    * provide a better and more efficient prelude than base's prelude.
+    .
+    * be self-sufficient: no external dependencies apart from base.
+    .
+    * provide better data-types: packed unicode string by default, arrays.
+    .
+    * Better numerical classes that better represent mathematical thing (No more all-in-one Num).
+    .
+    * Better I/O system with less Lazy IO
+    .
+    * Usual partial functions distinguished through type system
+license:             BSD3
+license-file:        LICENSE
+copyright:           2015-2017 Vincent Hanquez <vincent@snarc.org>, 2017- Foundation Maintainers
+author:              Vincent Hanquez <vincent@snarc.org>
+maintainer:          vincent@snarc.org
+category:            foundation
+build-type:          Simple
+homepage:            https://github.com/haskell-foundation/foundation
+bug-reports:         https://github.com/haskell-foundation/foundation/issues
+cabal-version:       1.18
+extra-source-files:  cbits/*.h
+
+source-repository head
+  type: git
+  location: https://github.com/haskell-foundation/foundation
+  subdir: foundation
+
+flag experimental
+  description:       Enable building experimental features, known as highly unstable or without good support cross-platform
+  default:           False
+  manual:            True
+
+flag bench-all
+  description:       Add some comparaison benchmarks against other haskell libraries
+  default:           False
+  manual:            True
+
+flag minimal-deps
+  description:       Build fully with minimal deps (no criterion, no quickcheck, no doctest)
+  default:           False
+  manual:            True
+
+flag bounds-check
+  description:       Add extra friendly boundary check for unsafe array operations
+  default:           False
+  manual:            True
+
+flag doctest
+  description:       Build doctest on demand only
+  default:           False
+  manual:            True
+
+flag linktest
+  description:       Run linking test
+  default:           False
+  manual:            True
+
+library
+  exposed-modules:   Foundation
+                     Foundation.Numerical
+                     Foundation.Array
+                     Foundation.Array.Internal
+                     Foundation.Bits
+                     Foundation.Class.Bifunctor
+                     Foundation.Class.Storable
+                     Foundation.Conduit
+                     Foundation.Conduit.Textual
+                     Foundation.Exception
+                     Foundation.Format.CSV
+                     Foundation.String
+                     Foundation.String.Read
+                     Foundation.String.Builder
+                     Foundation.IO
+                     Foundation.IO.FileMap
+                     Foundation.IO.Terminal
+                     Foundation.VFS
+                     Foundation.VFS.Path
+                     Foundation.VFS.FilePath
+                     Foundation.VFS.URI
+                     Foundation.Math.Trigonometry
+                     Foundation.Hashing
+                     Foundation.Foreign
+                     Foundation.Collection
+                     Foundation.Primitive
+                     Foundation.List.DList
+                     Foundation.List.ListN
+                     Foundation.Monad
+                     Foundation.Monad.Except
+                     Foundation.Monad.Reader
+                     Foundation.Monad.State
+                     Foundation.Network.IPv4
+                     Foundation.Network.IPv6
+                     Foundation.System.Info
+                     Foundation.Strict
+                     Foundation.Parser
+                     Foundation.Random
+                     Foundation.Check
+                     Foundation.Check.Main
+                     Foundation.Timing
+                     Foundation.Timing.Main
+                     Foundation.Time.Types
+                     Foundation.Time.Bindings
+                     Foundation.Time.StopWatch
+                     Foundation.Tuple.Nth
+                     Foundation.UUID
+                     Foundation.System.Entropy
+                     Foundation.System.Bindings
+  other-modules:
+                     Foundation.Tuple
+                     Foundation.Hashing.FNV
+                     Foundation.Hashing.SipHash
+                     Foundation.Hashing.Hasher
+                     Foundation.Hashing.Hashable
+                     Foundation.Check.Gen
+                     Foundation.Check.Print
+                     Foundation.Check.Arbitrary
+                     Foundation.Check.Property
+                     Foundation.Check.Config
+                     Foundation.Check.Types
+                     Foundation.Collection.Buildable
+                     Foundation.Collection.List
+                     Foundation.Collection.Element
+                     Foundation.Collection.InnerFunctor
+                     Foundation.Collection.Collection
+                     Foundation.Collection.Copy
+                     Foundation.Collection.Sequential
+                     Foundation.Collection.Keyed
+                     Foundation.Collection.Indexed
+                     Foundation.Collection.Foldable
+                     Foundation.Collection.Mutable
+                     Foundation.Collection.Zippable
+                     Foundation.Collection.Mappable
+                     Foundation.Conduit.Internal
+                     Foundation.Format.CSV.Types
+                     Foundation.Format.CSV.Builder
+                     Foundation.Format.CSV.Parser
+                     Foundation.Numerical.Floating
+                     Foundation.IO.File
+                     Foundation.Monad.MonadIO
+                     Foundation.Monad.Exception
+                     Foundation.Monad.Transformer
+                     Foundation.Monad.Identity
+                     Foundation.Monad.Base
+                     Foundation.Random.Class
+                     Foundation.Random.DRG
+                     Foundation.Random.ChaChaDRG
+                     Foundation.Random.XorShift
+                     Foundation.Array.Chunked.Unboxed
+                     Foundation.Array.Bitmap
+                     Foundation.Foreign.Alloc
+                     Foundation.Foreign.MemoryMap
+                     Foundation.Foreign.MemoryMap.Types
+                     Foundation.Partial
+                     -- Foundation.Time.Bindings
+                     Foundation.System.Entropy.Common
+                     Foundation.System.Bindings.Network
+                     Foundation.System.Bindings.Time
+                     Foundation.System.Bindings.Hs
+
+  include-dirs:      cbits
+  c-sources:         cbits/foundation_random.c
+                     cbits/foundation_network.c
+                     cbits/foundation_time.c
+                     cbits/foundation_utf8.c
+
+  if flag(experimental)
+    exposed-modules: Foundation.Network.HostName
+  if os(windows)
+    exposed-modules: Foundation.System.Bindings.Windows
+    other-modules:   Foundation.Foreign.MemoryMap.Windows
+                     Foundation.System.Entropy.Windows
+  else
+    exposed-modules: Foundation.System.Bindings.Posix
+                     Foundation.System.Bindings.PosixDef
+    other-modules:   Foundation.Foreign.MemoryMap.Posix
+                     Foundation.System.Entropy.Unix
+  if os(linux)
+    exposed-modules: Foundation.System.Bindings.Linux
+  if os(osx)
+    exposed-modules: Foundation.System.Bindings.Macos
+
+  if os(ghcjs)
+    js-sources: jsbits/foundation.js
+
+  default-extensions: NoImplicitPrelude
+                      RebindableSyntax
+                      TypeFamilies
+                      BangPatterns
+                      DeriveDataTypeable
+
+  if impl(ghc < 8.0)
+    buildable: False
+  else
+    build-depends:   base
+                   , ghc-prim
+    if os(windows)
+      build-depends: Win32
+      if arch(i386)
+        extra-libraries: gcc
+
+  build-depends: basement == 0.0.12
+
+  -- FIXME add suport for armel mipsel
+  --  CPP-options: -DARCH_IS_LITTLE_ENDIAN
+  -- FIXME add support for powerpc powerpc64 armeb mipseb
+  --  CPP-options: -DARCH_IS_BIG_ENDIAN
+  if (arch(i386) || arch(x86_64))
+    cpp-options: -DARCH_IS_LITTLE_ENDIAN
+  else
+    cpp-options: -DARCH_IS_UNKNOWN_ENDIAN
+  ghc-options:       -Wall -fwarn-tabs
+  default-language:  Haskell2010
+  if impl(ghc >= 8.0)
+    ghc-options:     -Wno-redundant-constraints
+  if flag(bounds-check)
+    cpp-options: -DFOUNDATION_BOUNDS_CHECK
+
+test-suite check-foundation
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  main-is:           Checks.hs
+  other-modules:     Test.Checks.Property.Collection
+                     Test.Foundation.Random
+                     Test.Foundation.Misc
+                     Test.Foundation.Conduit
+                     Test.Foundation.Primitive.BlockN
+                     Test.Foundation.Storable
+                     Test.Foundation.Number
+                     Test.Foundation.String.Base64
+                     Test.Foundation.String
+                     Test.Foundation.Bits
+                     Test.Basement
+                     Test.Basement.UTF8
+                     Test.Data.Network
+                     Test.Data.List
+                     Test.Foundation.Network.IPv4
+                     Test.Foundation.Network.IPv6
+                     Test.Foundation.Format
+                     Test.Foundation.Format.CSV
+  default-extensions: NoImplicitPrelude
+                      RebindableSyntax
+                      OverloadedStrings
+  build-depends:     base > 0 && < 1000
+                   , basement
+                   , foundation
+  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures
+  default-language:  Haskell2010
+  if impl(ghc >= 8.0)
+    ghc-options:     -Wno-redundant-constraints
+
+test-suite foundation-link
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  default-language:  Haskell2010
+  main-is:           Scripts/Link.hs
+  default-extensions: NoImplicitPrelude
+                      RebindableSyntax
+  if flag(linktest)
+    build-depends:     base > 0 && < 1000
+                     , foundation
+                     , template-haskell
+    buildable:     True
+  else
+    buildable:     False
+
+test-suite doctest
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  default-language:  Haskell2010
+  main-is:           DocTest.hs
+  default-extensions: NoImplicitPrelude
+                      RebindableSyntax
+  if flag(minimal-deps)
+    -- TODO: for no, force unbuildable anyway
+    buildable:       False
+  else
+    if flag(doctest)
+      build-depends:     base
+                       , doctest >= 0.9
+      buildable:     True
+    else
+      buildable:     False
+
+Benchmark bench
+  main-is:           Main.hs
+  other-modules:     BenchUtil.Common
+                     BenchUtil.RefData
+                     Sys
+                     LargeWords
+                     Fake.ByteString
+                     Fake.Text
+                     Fake.Vector
+  hs-source-dirs:    benchs
+  default-language:  Haskell2010
+  type:              exitcode-stdio-1.0
+  default-extensions: NoImplicitPrelude
+                      BangPatterns
+  if flag(minimal-deps) || impl(ghc < 7.10)
+    buildable: False
+  else
+    build-depends:     base, gauge, basement, foundation
+    if flag(bench-all)
+      cpp-options:     -DBENCH_ALL
+      build-depends:   text, attoparsec, vector, bytestring

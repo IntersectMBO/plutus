@@ -1,0 +1,26 @@
+# compiler supported and their equivalent LTS
+compiler: ghc-8.0 lts-9.21
+compiler: ghc-8.2 lts-10.6
+compiler: ghc-8.4-exe ghc-8.4
+compiler: ghc-8.4 ghc-8.4
+
+option: goldentests flag=cardano-crypto:golden-tests gitdep=inspector
+option: exe flag=cardano-crypto:golden-tests-exe
+option: gaugedep extradep=gauge-0.2.1
+
+# builds
+build: ghc-8.0
+build: ghc-8.2 goldentests gaugedep extradep=basement-0.0.7 extradep=foundation-0.0.20 extradep=memory-0.14.16
+build: ghc-8.4-exe goldentests exe extradep=basement-0.0.7 extradep=cryptonite-0.25 extradep=cryptonite-openssl-0.6 extradep=foundation-0.0.20 extradep=hashable-1.2.7.0 extradep=memory-0.14.15 allow-newer gaugedep extradep=vector-0.12.0.1 extradep=primitive-0.6.3.0
+build: ghc-8.4 goldentests extradep=basement-0.0.7 extradep=cryptonite-0.25 extradep=cryptonite-openssl-0.6 extradep=foundation-0.0.20 extradep=hashable-1.2.7.0 extradep=memory-0.14.15 allow-newer gaugedep extradep=vector-0.12.0.1 extradep=primitive-0.6.3.0
+
+# packages
+package: '.'
+
+# deps:
+gitdep: inspector https://github.com/primetype/inspector 964558881210bf1f9387b51ab05057b1290d1d71
+
+# extra builds
+hlint: allowed-failure
+weeder: allowed-failure
+coverall: false

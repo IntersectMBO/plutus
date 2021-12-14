@@ -1,0 +1,12 @@
+*.o
+*.hi
+*.tix
+*.mix
+*~
+.stack-work
+dist
+.dir-locals.el
+cabal.project.local
+dist-newstyle/
+
+tests/**/*.md

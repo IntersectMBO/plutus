@@ -11,7 +11,7 @@
     flags = { golden-tests = false; golden-tests-exe = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "cardano-crypto"; version = "1.1.0"; };
+      identifier = { name = "cardano-crypto"; version = "1.1.1"; };
       license = "MIT";
       copyright = "2016-2021 IOHK";
       maintainer = "contact@typed.io";
@@ -26,7 +26,17 @@
       licenseFiles = [ "LICENSE" ];
       dataDir = ".";
       dataFiles = [];
-      extraSrcFiles = [ "README.md" "cbits/*.h" "cbits/ed25519/*.h" ];
+      extraSrcFiles = [
+        "README.md"
+        "cbits/*.h"
+        "cbits/ed25519/*.h"
+        "jsbits/emscripten/build.sh"
+        "jsbits/emscripten/crc32.js"
+        "jsbits/emscripten/crypto-cbits.pre.js"
+        "jsbits/emscripten/crypto-cbits.post.js"
+        "jsbits/emscripten/crypto-wrappers.js"
+        "jsbits/emscripten/extern.js"
+        ];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
@@ -63,6 +73,7 @@
           "Cardano/Internal/Compat"
           ];
         cSources = [ "cbits/ed25519/ed25519.c" "cbits/encrypted_sign.c" ];
+        jsSources = (pkgs.lib).optional (system.isGhcjs) "jsbits/cardano-crypto.js";
         hsSourceDirs = [ "src" ];
         includeDirs = [ "cbits/ed25519" "cbits" ];
         };
@@ -139,14 +150,4 @@
           };
         };
       };
-    } // {
-    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "1";
-      rev = "minimal";
-      sha256 = "";
-      }) // {
-      url = "1";
-      rev = "minimal";
-      sha256 = "";
-      };
-    }
+    } // rec { src = (pkgs.lib).mkDefault ../contrib/cardano-crypto-07397f; }
