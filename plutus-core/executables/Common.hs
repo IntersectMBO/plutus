@@ -609,7 +609,7 @@ instance Show Signature where
                   showMultiTyApp =
                       \case
                         []     -> "<empty type application>"   -- Should never happen
-                        op:tys -> showTy op ++ " (" ++ intercalate ", " (map showTy tys) ++ ")"
+                        op:tys -> showTy op ++ "(" ++ intercalate ", " (map showTy tys) ++ ")"
 
 typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
 typeSchemeToSignature = toSig []
