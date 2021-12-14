@@ -334,6 +334,7 @@
         "plc" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
@@ -374,6 +375,7 @@
         "pir" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
