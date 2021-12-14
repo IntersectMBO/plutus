@@ -624,8 +624,8 @@ typeSchemeToSignature = toSig []
                      (_ :: Proxy '(text, uniq, kind)) ->
                          toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
 
-runPrintBuiltinTypes :: IO ()
-runPrintBuiltinTypes = do
+runPrintBuiltinSignatures :: IO ()
+runPrintBuiltinSignatures = do
   let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
   mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
       where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch

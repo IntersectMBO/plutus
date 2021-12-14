@@ -39,7 +39,7 @@ data Command = Apply     ApplyOptions
              | Erase     EraseOptions
              | Eval      EvalOptions
              | DumpModel
-             | PrintBuiltinTypes
+             | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
 
@@ -92,9 +92,9 @@ plutusOpts = hsubparser (
     <> command "dump-model"
            (info (pure DumpModel)
             (progDesc "Dump the cost model parameters"))
-    <> command "print-builtin-types"
-           (info (pure PrintBuiltinTypes)
-            (progDesc "Print the types of the built-in functions"))
+    <> command "print-builtin-signatures"
+           (info (pure PrintBuiltinSignatures)
+            (progDesc "Print the signatures of the built-in functions"))
   )
 
 ---------------- Script application ----------------
@@ -174,12 +174,12 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts    -> runApply        opts
-        Typecheck opts    -> runTypecheck    opts
-        Eval      opts    -> runEval         opts
-        Example   opts    -> runPlcPrintExample opts
-        Erase     opts    -> runErase        opts
-        Print     opts    -> runPrint        opts
-        Convert   opts    -> runConvert      opts
-        DumpModel         -> runDumpModel
-        PrintBuiltinTypes -> runPrintBuiltinTypes
+        Apply     opts         -> runApply        opts
+        Typecheck opts         -> runTypecheck    opts
+        Eval      opts         -> runEval         opts
+        Example   opts         -> runPlcPrintExample opts
+        Erase     opts         -> runErase        opts
+        Print     opts         -> runPrint        opts
+        Convert   opts         -> runConvert      opts
+        DumpModel              -> runDumpModel
+        PrintBuiltinSignatures -> runPrintBuiltinSignatures
