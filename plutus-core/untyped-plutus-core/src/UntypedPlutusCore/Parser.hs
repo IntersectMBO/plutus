@@ -45,8 +45,7 @@ import PlutusCore.Parser.ParserCommon
 conTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 conTerm = inParens $ UPLC.Constant <$> wordPos "con" <*> constant
 
-builtinTerm :: (Bounded fun, Enum fun, Pretty fun)
-    => Parser (UPLC.Term PLC.Name uni fun SourcePos)
+builtinTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 builtinTerm = inParens $ UPLC.Builtin <$> wordPos "builtin" <*> builtinFunction
 
 varTerm :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
@@ -121,7 +120,10 @@ parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: ByteString
+parseScoped ::
+    (PLC.MonadQuote (Either (ParseErrorBundle T.Text PLC.ParseError)),
+    PLC.AsUniqueError (ParseErrorBundle T.Text PLC.ParseError) SourcePos)
+    => ByteString
     -> Either (ParseErrorBundle T.Text PLC.ParseError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram

@@ -1,9 +1,8 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 
@@ -13,7 +12,6 @@ import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
 import PlutusCore qualified as PLC
-import PlutusCore.Parsable qualified as PLC
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse)
 import Text.Megaparsec.Char (char, letterChar, space1, string)
@@ -21,7 +19,7 @@ import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
-import Data.Proxy (Proxy (Proxy))
+import Universe.Core (someValue)
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
@@ -103,7 +101,7 @@ wordPos ::
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
-builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
+builtinFunction :: Parser PLC.DefaultFun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
     where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
@@ -133,16 +131,56 @@ enforce p = do
     pure x
 
 -- | Parser for integer constants.
-consInt :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-consInt = lexeme Lex.decimal
+conInt :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conInt = lexeme Lex.decimal
 
--- TODO case of defaultuni type then use the type specific parser
-constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-constant = choice
-    [ inParens constant
-    , consInt
-    , between (char '\'') (char '\'') Lex.charLiteral -- single quoted char
-    , char '\"' *> takeWhileP Lex.charLiteral (char '\"') -- double quoted string
-    -- TODO add unit, list, pair
+-- | Parser for single quoted char.
+conChar :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conChar = do
+    con <- between (char '\'') (char '\'') Lex.charLiteral
+    pure $ someValue con
+
+-- | Parser for double quoted string.
+conText :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conText = do
+    con <- char '\"' *> manyTill Lex.charLiteral (char '\"')
+    pure $ someValue $ pack con
+
+-- | Parser for unit.
+conUnit :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conUnit = someValue () <$ symbol "unit"
+
+-- | Parser for bool.
+conBool :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conBool = choose
+    [ someValue True <$ symbol "True"
+    , someValue False <$ symbol "False"
     ]
 
+--TODO fix these:
+conPair :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conPair = someValue (,) <$ symbol "pair"
+conList :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conList = someValue [] <$ symbol "list"
+conData :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conData = someValue Data <$ symbol "data"
+
+constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+constant = choose
+    [ inParens constant
+    , conInt
+    , conChar
+    , conText
+    , conUnit
+    , conBool
+    , conPair
+    , conList
+    , conData]
+
+-- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
+constantTerm :: Parser (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+constantTerm = do
+    p <- WordPos "con"
+    _conTy <- defaultUniType -- TODO: do case of for each ty?
+    con <- constant
+    pure $ Constant p con
