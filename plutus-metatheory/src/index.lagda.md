@@ -40,7 +40,7 @@ sound and an executable that is intended to be compiled into Haskell.
 
 The type level language is similar to simply-typed lambda-calculus
 with the addition of constants for forall, μ, and builtin
-contants. The [`Type`](Type.html) module containts kinds, contexts and
+constants. The [`Type`](Type.html) module contains kinds, contexts and
 types. Types are intrinsically scoped and kinded and variables are
 represented using De Bruijn indices. Parallel renaming and
 substitution are implemented in the
