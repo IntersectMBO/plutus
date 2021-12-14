@@ -47,6 +47,7 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+          (hsPkgs."array" or (errorHandler.buildDepError "array"))
           ] ++ (if flags.use-ghc-stub
           then [
             (hsPkgs."plutus-ghc-stub" or (errorHandler.buildDepError "plutus-ghc-stub"))
@@ -88,10 +89,12 @@
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             ];
           buildable = true;
           modules = [
@@ -109,6 +112,7 @@
             "Plugin/Profiling/Spec"
             "Plugin/Typeclasses/Spec"
             "Plugin/Typeclasses/Lib"
+            "Plugin/Coverage/Spec"
             "Plugin/Lib"
             "StdLib/Spec"
             "TH/Spec"

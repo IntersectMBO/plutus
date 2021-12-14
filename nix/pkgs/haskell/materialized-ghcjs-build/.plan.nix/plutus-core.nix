@@ -111,6 +111,7 @@
         modules = [
           "PlutusCore/Analysis/Definitions"
           "PlutusCore/Constant/Function"
+          "PlutusCore/Constant/Kinded"
           "PlutusCore/Constant/Meaning"
           "PlutusCore/Constant/Typed"
           "PlutusCore/Core/Instance"
@@ -597,11 +598,12 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
           buildable = true;
-          modules = [ "CostModelCreation" ];
+          modules = [ "TH" "CostModelCreation" ];
           hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
           };
         "index-envs-bench" = {

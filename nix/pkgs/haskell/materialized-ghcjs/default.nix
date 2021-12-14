@@ -449,6 +449,7 @@
         cardano-crypto-praos = ./.plan.nix/cardano-crypto-praos.nix;
         cardano-binary-test = ./.plan.nix/cardano-binary-test.nix;
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
+        plutus-doc = ./.plan.nix/plutus-doc.nix;
         mersenne-random-pure64 = ./.plan.nix/mersenne-random-pure64.nix;
         plutus-metatheory = ./.plan.nix/plutus-metatheory.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
@@ -556,6 +557,9 @@
               "golden-tests-exe" = lib.mkOverride 900 false;
               "golden-tests" = lib.mkOverride 900 false;
               };
+            };
+          "plutus-doc" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "mersenne-random-pure64" = {
             flags = { "small_base" = lib.mkOverride 900 false; };
