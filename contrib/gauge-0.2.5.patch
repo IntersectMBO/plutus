@@ -1,0 +1,92 @@
+diff --git b/gauge.cabal a/gauge.cabal
+index ea45caabf..22d783776 100644
+--- b/gauge.cabal
++++ a/gauge.cabal
+@@ -89,14 +89,17 @@ library
+   hs-source-dirs: . statistics mwc-random math-functions
+
+   include-Dirs: cbits
+-  c-sources: cbits/cycles.c
++  if !os(ghcjs)
++    c-sources: cbits/cycles.c
+   if os(darwin)
+     c-sources: cbits/time-osx.c
+   else {
+     if os(windows)
+       c-sources: cbits/time-windows.c
+-    else
+-      c-sources: cbits/time-posix.c
++    else {
++      if !os(ghcjs)
++        c-sources: cbits/time-posix.c
++    }
+   }
+
+   other-modules:
+@@ -118,36 +121,36 @@ library
+   if flag(analysis) && !impl(ghcjs)
+       cpp-options: -DHAVE_ANALYSIS
+
+-test-suite sanity
+-  type:                 exitcode-stdio-1.0
+-  hs-source-dirs:       tests
+-  main-is:              Sanity.hs
+-  default-language:     Haskell2010
+-  ghc-options:          -O2 -Wall -rtsopts
+-
+-  build-depends:
+-    base > 0 && < 1000,
+-    bytestring,
+-    gauge,
+-    basement,
+-    foundation
+-
+-test-suite cleanup
+-  type:                 exitcode-stdio-1.0
+-  hs-source-dirs:       tests
+-  default-language:     Haskell2010
+-  main-is:              Cleanup.hs
+-
+-  ghc-options:
+-    -Wall -threaded     -O0 -rtsopts
+-
+-  build-depends:
+-    base > 0 && < 1000,
+-    bytestring,
+-    gauge,
+-    deepseq,
+-    directory,
+-    foundation
++-- test-suite sanity
++--   type:                 exitcode-stdio-1.0
++--   hs-source-dirs:       tests
++--   main-is:              Sanity.hs
++--   default-language:     Haskell2010
++--   ghc-options:          -O2 -Wall -rtsopts
++
++--   build-depends:
++--     base > 0 && < 1000,
++--     bytestring,
++--     gauge,
++--     basement,
++--     foundation
++
++-- test-suite cleanup
++--   type:                 exitcode-stdio-1.0
++--   hs-source-dirs:       tests
++--   default-language:     Haskell2010
++--   main-is:              Cleanup.hs
++
++--   ghc-options:
++--     -Wall -threaded     -O0 -rtsopts
++
++--   build-depends:
++--     base > 0 && < 1000,
++--     bytestring,
++--     gauge,
++--     deepseq,
++--     directory,
++--     foundation
+
+ benchmark self
+   type:                 exitcode-stdio-1.0

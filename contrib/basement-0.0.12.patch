@@ -1,0 +1,19 @@
+diff --git b/basement.cabal a/basement.cabal
+index 72125e015..b7670c3ee 100644
+--- b/basement.cabal
++++ a/basement.cabal
+@@ -160,3 +160,5 @@ library
+   c-sources:         cbits/foundation_mem.c
+   if impl(ghc < 8.2)
+     c-sources:       cbits/basement_rts.c
++  if os(ghcjs)
++    js-sources: jsbits/basement.js
+diff --git b/jsbits/basement.js a/jsbits/basement.js
+new file mode 100644
+index 000000000..3d9172147
+--- /dev/null
++++ a/jsbits/basement.js
+@@ -0,0 +1,3 @@
++function h$_foundation_memcmp(s1, o1, off1, s2, o2, off2, n) {
++    h$memcmp(s1, o1 + off2, s2, o2 + off2, n);
++}

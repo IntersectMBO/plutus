@@ -1,0 +1,13 @@
+diff --git b/unix-compat.cabal a/unix-compat.cabal
+index 7c59b9fd7..b77275eda 100644
+--- b/unix-compat.cabal
++++ a/unix-compat.cabal
+@@ -68,6 +68,7 @@ Library
+     include-dirs: include
+     includes: HsUnixCompat.h
+     install-includes: HsUnixCompat.h
+-    c-sources: cbits/HsUnixCompat.c
++    if !os(ghcjs)
++      c-sources: cbits/HsUnixCompat.c
+     if os(solaris)
+       cc-options: -DSOLARIS

@@ -1,0 +1,30 @@
+diff --git b/beam-sqlite.cabal a/beam-sqlite.cabal
+index 5aaf602a8..43fb3ac06 100644
+--- b/beam-sqlite.cabal
++++ a/beam-sqlite.cabal
+@@ -1,3 +1,4 @@
++cabal-version:       2.2
+ name:                beam-sqlite
+ version:             0.5.0.0
+ synopsis:            Beam driver for SQLite
+@@ -11,11 +12,10 @@ author:              Travis Athougies
+ maintainer:          travis@athougies.net
+ copyright:           (C) 2017-2018 Travis Athougies
+ category:            Database
+-build-type:          Simple
+ extra-source-files:  README.md
+ extra-doc-files:     ChangeLog.md
+ bug-reports:          https://github.com/haskell-beam/beam/issues
+-cabal-version:       1.18
++build-type:          Simple
+
+ library
+   exposed-modules:    Database.Beam.Sqlite
+@@ -51,7 +51,7 @@ library
+   if os(windows)
+     cpp-options:      -DWINDOWS
+     build-depends:    Win32         >=2.4 && <2.8
+-  if os(freebsd) || os(netbsd) || os(openbsd) || os(darwin) || os(linux) || os(solaris) || os(android)
++  if os(freebsd) || os(netbsd) || os(openbsd) || os(darwin) || os(linux) || os(solaris) || os(android) || os(ghcjs)
+     cpp-options:      -DUNIX
+     build-depends:    unix          >=2.0 && <2.8

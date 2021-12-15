@@ -1,0 +1,104 @@
+diff --git b/foundation.cabal a/foundation.cabal
+index 224c61308..ef25e37f8 100644
+--- b/foundation.cabal
++++ a/foundation.cabal
+@@ -1,3 +1,4 @@
++cabal-version:       2.0
+ name:                foundation
+ version:             0.0.26.1
+ synopsis:            Alternative prelude with batteries and no dependencies
+@@ -28,7 +29,6 @@ category:            foundation
+ build-type:          Simple
+ homepage:            https://github.com/haskell-foundation/foundation
+ bug-reports:         https://github.com/haskell-foundation/foundation/issues
+-cabal-version:       1.18
+ extra-source-files:  cbits/*.h
+
+ source-repository head
+@@ -190,13 +190,17 @@ library
+   if os(osx)
+     exposed-modules: Foundation.System.Bindings.Macos
+
++  if os(ghcjs)
++    js-sources: jsbits/bindings.js
++    extra-bundled-libraries: EMCCfoundation EMCCfoundation.exported
++
+   default-extensions: NoImplicitPrelude
+                       RebindableSyntax
+                       TypeFamilies
+                       BangPatterns
+                       DeriveDataTypeable
+
+-  if impl(ghc < 8.0)
++  if impl(ghc < 8.0)
+     buildable: False
+   else
+     build-depends:   base
+diff --git b/jsbits/bindings.js a/jsbits/bindings.js
+new file mode 100644
+index 000000000..fc51a85fe
+--- /dev/null
++++ a/jsbits/bindings.js
+@@ -0,0 +1,61 @@
++
++// EMCC:EXPORTED_FUNCTIONS _malloc _free
++// EMCC:EXPORTED_FUNCTIONS _foundation_rngV1_generate
++
++function h$foundation_sysrandom_linux(buf_d, buf_o, size) {
++    return -19; // ENODEV; foundation returns the same for non-linux hosts.
++}
++
++// c_rngv1_generate :: Ptr Word8 -- new key
++// -> Ptr Word8 -- destination
++// -> Ptr Word8 -- current key
++// -> CountOf Word8 -- number of bytes to generate
++// -> IO Word32
++//
++// int foundation_rngV1_generate(uint8_t newkey[CHACHA_KEY_SIZE], uint8_t *dst, uint8_t key[CHACHA_KEY_SIZE], FsCountOf bytes)
++//
++// #define CHACHA_KEY_SIZE 3
++
++function h$copyToHeap(buf_d, buf_o, tgt, len) {
++    if(len === 0) return;
++    var u8 = buf_d.u8;
++    for(var i=0;i<len;i++) {
++        HEAPU8[tgt+i] = u8[buf_o+i];
++    }
++}
++
++function h$copyFromHeap(src, buf_d, buf_o, len) {
++    var u8 = buf_d.u8;
++    for(var i=0;i<len;i++) {
++        u8[buf_o+i] = HEAPU8[src+i];
++    }
++}
++
++function h$withCBuffer(str_d, str_o, len, cont) {
++    var str = _malloc(len);
++    if(str_d !== null) h$copyToHeap(str_d, str_o, str, len);
++    var ret = cont(str);
++    _free(str);
++    return ret;
++}
++
++function h$withOutBuffer(ptr_d, ptr_o, len, cont) {
++    var ptr = _malloc(len);
++    h$copyToHeap(ptr_d, ptr_o, ptr, len);
++    var ret = cont(ptr);
++    h$copyFromHeap(ptr, ptr_d, ptr_o, len);
++    _free(ptr);
++    return ret;
++  }
++
++
++var CHACHA_KEY_SIZE = 32;
++function h$foundation_rngV1_generate(newkey_d, newkey_o, dst_d, dst_o, key_d, key_o, dst_len) {
++    return h$withCBuffer(newkey_d, newkey_o, CHACHA_KEY_SIZE, function(newkey) {
++        return h$withOutBuffer(dst_d, dst_o, dst_len, function(dst) {
++            return h$withCBuffer(key_d, key_o, CHACHA_KEY_SIZE, function(key) {
++                return _foundation_rngV1_generate(newkey, dst, key, dst_len);
++            });
++        });
++    });
++}
+\ No newline at end of file

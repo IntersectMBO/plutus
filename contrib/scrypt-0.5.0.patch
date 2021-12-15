@@ -1,0 +1,14 @@
+diff --git b/scrypt.cabal a/scrypt.cabal
+index b327d667b..c04d7e77b 100644
+--- b/scrypt.cabal
++++ a/scrypt.cabal
+@@ -45,7 +45,8 @@ library
+     ghc-options: -Wall
+     ghc-prof-options: -auto-all
+
+-    c-sources: cbits/crypto_scrypt-sse.c, cbits/sha256.c
++    if !os(ghcjs)
++        c-sources: cbits/crypto_scrypt-sse.c, cbits/sha256.c
+     cc-options: -msse2
+     include-dirs: cbits
+     includes: crypto_scrypt.h

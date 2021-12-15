@@ -1,0 +1,112 @@
+diff --git b/lzma.cabal a/lzma.cabal
+index f53d00f67..e4432b1f1 100644
+--- b/lzma.cabal
++++ a/lzma.cabal
+@@ -55,9 +55,11 @@ library
+     build-depends:     lzma-clib
+   else
+     includes:          lzma.h
+-    extra-libraries:   lzma
++    if !os(ghcjs)
++      extra-libraries:   lzma
+
+-  c-sources:           cbits/lzma_wrapper.c
++  if !os(ghcjs)
++    c-sources:           cbits/lzma_wrapper.c
+
+   ghc-options:         -Wall
+
+@@ -79,5 +81,6 @@ test-suite lzma-tests
+                      , tasty                      >= 0.10     && <1.3
+                      , tasty-hunit                >= 0.9      && <0.11
+                      , tasty-quickcheck           >= 0.8.3.2  && <0.11
++                     , time
+
+   ghc-options:         -Wall -threaded
+diff --git b/src/Codec/Compression/Lzma.hs a/src/Codec/Compression/Lzma.hs
+index c0a090783..c59f4c4a5 100644
+--- b/src/Codec/Compression/Lzma.hs
++++ a/src/Codec/Compression/Lzma.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE BangPatterns #-}
+
+ -- |
+@@ -20,6 +21,7 @@ module Codec.Compression.Lzma
+     , compressWith
+     , decompressWith
+
++#if 0
+       -- * Monadic incremental (de)compression API
+       --
+       -- | See <http://hackage.haskell.org/package/zlib-0.6.1.1/docs/Codec-Compression-Zlib-Internal.html#g:2 zlib's incremental API documentation> for more information.
+@@ -34,6 +36,7 @@ module Codec.Compression.Lzma
+     , decompressIO
+     , decompressST
+     , LzmaRet(..)
++#endif
+
+       -- * Parameters
+       -- ** Compression parameters
+@@ -81,27 +84,7 @@ decompress = decompressWith defaultDecompressParams
+ --
+ -- > decompressWith defaultDecompressParams { decompress... = ... }
+ decompressWith :: DecompressParams -> BSL.ByteString -> BSL.ByteString
+-decompressWith parms input = runST (decompress' input)
+-  where
+-    decompress' :: BSL.ByteString -> ST s BSL.ByteString
+-    decompress' ibs0 = loop ibs0 =<< decompressST parms
+-      where
+-        loop BSL.Empty  (DecompressStreamEnd rest)
+-          | BS.null rest = return BSL.Empty
+-          | otherwise = fail "Codec.Compression.Lzma.decompressWith: trailing data"
+-        loop (BSL.Chunk _ _) (DecompressStreamEnd _) =
+-            fail "Codec.Compression.Lzma.decompressWith: trailing data"
+-        loop _ (DecompressStreamError e) =
+-            fail ("Codec.Compression.Lzma.decompressWith: decoding error " ++ show e)
+-        loop BSL.Empty (DecompressInputRequired supply) =
+-            loop BSL.Empty =<< supply BS.empty
+-        loop (BSL.Chunk c bs') (DecompressInputRequired supply) =
+-            loop bs' =<< supply c
+-        loop ibs (DecompressOutputAvailable oc next) = do
+-            obs <- loop ibs =<< next
+-            return (BSL.chunk oc obs)
+-
+-{-# NOINLINE decompressWith #-}
++decompressWith _ = id
+
+ ----------------------------------------------------------------------------
+ ----------------------------------------------------------------------------
+@@ -115,23 +98,9 @@ compress = compressWith defaultCompressParams
+ --
+ -- > compressWith defaultCompressParams { compress... = ... }
+ compressWith :: CompressParams -> BSL.ByteString -> BSL.ByteString
+-compressWith parms input = runST (compress' input)
+-  where
+-    compress' :: BSL.ByteString -> ST s BSL.ByteString
+-    compress' ibs0 = loop ibs0 =<< compressST parms
+-      where
+-        loop BSL.Empty  CompressStreamEnd =
+-            return BSL.Empty
+-        loop (BSL.Chunk _ _) CompressStreamEnd =
+-            fail "Codec.Compression.Lzma.compressWith: the impossible happened"
+-        loop BSL.Empty (CompressInputRequired _ supply) =
+-            loop BSL.Empty =<< supply BS.empty
+-        loop (BSL.Chunk c bs') (CompressInputRequired _ supply) =
+-            loop bs' =<< supply c
+-        loop ibs (CompressOutputAvailable oc next) = do
+-            obs <- loop ibs =<< next
+-            return (BSL.chunk oc obs)
+-{-# NOINLINE compressWith #-}
++compressWith _ = id
++
++#if 0
+
+ --------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------
+@@ -398,3 +367,5 @@ withChunk emptyChunk nemptyChunk chunk
+ -- | See <https://github.com/haskell/zlib/issues/7>
+ noDuplicateST :: ST.Strict.ST s ()
+ noDuplicateST = unsafeIOToST noDuplicate
++
++#endif

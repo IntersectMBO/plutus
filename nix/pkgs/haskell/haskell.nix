@@ -48,10 +48,11 @@ let
     inherit checkMaterialization;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
-      "https://github.com/input-output-hk/cardano-base"."dac2841472c444c6fe867ce39ff00d3f9cdb3623" = "10ajqw8z23ijnw8v6j6bg8q3w01pfvqg2l1khlcgpkbm31m0hnhz";
-      "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
+      "https://github.com/input-output-hk/cardano-base"."506180d2627994c5d947f92f00aaa345d722776f" = "0z9s2mvhsjz2h2fk8mzpqyy7f7y68njw64zc29hzrgfrm0mj7nzj";
+      "https://github.com/input-output-hk/cardano-crypto.git"."1fff72e39e690676d4156a56858c6b72e1f0bff9" = "06kahs46z842xndq3sgcrqyvmgvs05rnflbq76599pfnb2vspy2q";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
+      "https://github.com/hamishmack/foundation.git"."656db6d6f5d860fab6895247da42cf8895ab9c6c" = "1q12mhjj47bpaj9zy8c85qa0sj58q0kz776pqj8nfzx7bi7b7ngx";
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
@@ -73,7 +74,6 @@ let
         stubs/cardano-api-stub
         stubs/iohk-monitoring-stub
         stubs/plutus-ghc-stub
-        contrib/*
       package plutus-tx-plugin
         flags: +use-ghc-stub
       package prettyprinter-configurable
@@ -83,6 +83,9 @@ let
       package clock
         tests: False
         benchmarks: False
+
+      package cryptohash-sha256
+        flags: -use-cbits
 
       allow-newer:
              stm:base
@@ -97,12 +100,13 @@ let
            , snap-core:attoparsec
            , websockets:attoparsec
            , jsaddle:base64-bytestring
+           -- no idea why ouroboros-consensus-byron restricts to <.28
+           , ouroboros-consensus-byron:cryptonite
+
     '' + lib.optionalString (topLevelPkgs.stdenv.hostPlatform.isGhcjs && !pkgs.stdenv.hostPlatform.isGhcjs) ''
       packages:
         ${topLevelPkgs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.project.configured-src}
-        contrib/double-conversion-2.0.2.0
-        contrib/lzma-0.0.0.3
-        contrib/cardano-crypto-07397f
+
 
       allow-newer: ghcjs:base16-bytestring
                  , ghcjs:aeson
@@ -115,6 +119,9 @@ let
                  , ghcjs-base:aeson
                  , servant-foreign:lens
                  , servant-client:http-client
+                 -- no idea why ouroboros-consensus-byron restricts to <.28
+                 , ouroboros-consensus-byron:cryptonite
+
       constraints: plutus-tx-plugin +ghcjs-plugin,
                    ghci +ghci
 
@@ -126,9 +133,6 @@ let
 
       -- The following is needed because Nix is doing something crazy.
       package byron-spec-ledger
-        tests: False
-
-      package marlowe
         tests: False
 
       package plutus-doc
@@ -255,6 +259,43 @@ let
               )
             else __trace "nativePlutus is null" [ ];
 
+          # Applying this globally is wrong. we should apply this only to ghcjs, but
+          # it also needs to be applied to the plutus-tx plugin, so we can actually
+          # load it into ghcjs, otherwise we'll choke on the c++ dependency, which
+          # brings in R_X86_64_TLSLD (20) relocation.
+          # double-conversion.patches = [ ../../../contrib/double-conversion-2.0.2.0.patch ];
+
+          basement.patches = [ ../../../contrib/basement-0.0.12.patch ];
+          beam-sqlite.patches = [ ../../../contrib/beam-sqlite-0.5.0.0.patch ];
+          clock.patches = [ ../../../contrib/clock-0.8.2.patch ];
+          cryptonite.patches = [ ../../../contrib/cryptonite-0.29.patch ];
+          digest.patches = [ ../../../contrib/digest-0.0.1.2.patch ];
+          direct-sqlite.patches = [ ../../../contrib/direct-sqlite-2.3.26.patch ];
+          double-conversion.patches = [ ../../../contrib/double-conversion-2.0.2.0.patch ];
+          foundation.patches = [ ../../../contrib/foundation-0.0.26.1.patch ];
+          gauge.patches = [ ../../../contrib/gauge-0.2.5.patch ];
+          lzma.patches = [ ../../../contrib/lzma-0.0.0.3.patch ];
+          mersenne-random-pure64.patches = [ ../../../contrib/mersenne-random-pure64-0.2.2.0.patch ];
+          network.patches = [
+            ({ version, revision }: (if version == "3.1.2.1" then ../../../contrib/network-3.1.2.1.patch else null))
+            ({ version, revision }: (if version == "3.1.2.5" then ../../../contrib/network-3.1.2.5.patch else null))
+          ];
+          network.postUnpack = ''
+            export patchFlags="--binary -p1"
+          '';
+
+          network-info.patches = [ ../../../contrib/network-info-0.2.0.10.patch ];
+          network-info.postUnpack = ''
+            export patchFlags="--binary -p1"
+          '';
+          scrypt.patches = [ ../../../contrib/scrypt-0.5.0.patch ];
+          terminal-size.patches = [ ../../../contrib/terminal-size-0.3.2.1.patch ];
+          unix-bytestring.patches = [ ../../../contrib/unix-bytestring-0.3.7.3.patch ];
+          unix-compat.patches = [ ../../../contrib/unix-compat-0.5.3.patch ];
+          unix-compat.postUnpack = ''
+            export patchFlags="--binary -p1"
+          '';
+
           Cabal.patches = [ ../../patches/cabal.patch ];
 
           # Packages we just don't want docs for
@@ -349,32 +390,70 @@ let
               '';
               CC = "emcc";
             });
+            emzlib = pkgs.zlib.overrideAttrs (attrs: {
+              # makeFlags in nixpks zlib derivation depends on stdenv.cc.targetPrefix, which we don't have :(
+
+              makeFlags = "PREFIX=js-unknown-ghcjs-";
+              # We need the same patching as macOS
+              postPatch = ''
+                substituteInPlace configure \
+                  --replace '/usr/bin/libtool' 'emar' \
+                  --replace 'AR="libtool"' 'AR="emar"' \
+                  --replace 'ARFLAGS="-o"' 'ARFLAGS="-r"'
+              '';
+
+              nativeBuildInputs = (attrs.nativeBuildInputs or [ ]) ++ (with pkgs.buildPackages.buildPackages; [ emscripten python2 ]);
+
+              CC = "emcc";
+              AR = "emar";
+
+              # prevent it from passing `-lc`, which emcc doesn't like.
+              LDSHAREDLIBC = "";
+            });
           in
           {
             cardano-wallet-core.components.library.build-tools = [ pkgs.buildPackages.buildPackages.gitReallyMinimal ];
+            # this should be static! And build with emscripten, see libsodium-vrf above.
             lzma.components.library.libs = lib.mkForce [ pkgs.buildPackages.lzma ];
             cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
             cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
-            cardano-crypto-class.components.library.build-tools = with pkgs.buildPackages.buildPackages; [ emscripten python2 ];
-            cardano-crypto-class.components.library.preConfigure = ''
-              ls -l
-              emcc $(js-unknown-ghcjs-pkg-config --libs --cflags libsodium) jsbits/libsodium.c -o jsbits/libsodium.js -s WASM=0 \
-                -s "EXTRA_EXPORTED_RUNTIME_METHODS=['printErr']" \
-                -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_crypto_generichash_blake2b', '_crypto_generichash_blake2b_final', '_crypto_generichash_blake2b_init', '_crypto_generichash_blake2b_update', '_crypto_hash_sha256', '_crypto_hash_sha256_final', '_crypto_hash_sha256_init', '_crypto_hash_sha256_update', '_crypto_sign_ed25519_detached', '_crypto_sign_ed25519_seed_keypair', '_crypto_sign_ed25519_sk_to_pk', '_crypto_sign_ed25519_sk_to_seed', '_crypto_sign_ed25519_verify_detached', '_sodium_compare', '_sodium_free', '_sodium_init', '_sodium_malloc', '_sodium_memzero']"
-            '';
+            digest.components.library.libs = lib.mkForce [ emzlib ];
             plutus-core.ghcOptions = [ "-Wno-unused-packages" ];
             iohk-monitoring.ghcOptions = [ "-Wno-deprecations" ]; # TODO find alternative fo libyaml
             plutus-pab.components.tests.psgenerator.buildable = false;
-            cryptonite.components.library.preConfigure = runEmscripten;
-            cardano-crypto.components.library.preConfigure = runEmscripten;
-            direct-sqlite.components.library.preConfigure = runEmscripten;
-            ghcjs-c-interop.components.library.preConfigure = runEmscripten;
+
+            # basement.patches = [ ../../../contrib/basement-0.0.12.patch ];
+            # beam-sqlite.patches = [ ../../../contrib/beam-sqlite-0.5.0.0.patch ];
+            # clock.patches = [ ../../../contrib/clock-0.8.2.patch ];
+            # cryptonite.patches = [ ../../../contrib/cryptonite-0.29.patch ];
+            # digest.patches = [ ../../../contrib/digest-0.0.1.2.patch ];
+            # direct-sqlite.patches = [ ../../../contrib/direct-sqlite-2.3.26.patch ];
+            # double-conversion.patches = [ ../../../contrib/double-conversion-2.0.2.0.patch ];
+            # foundation.patches = [ ../../../contrib/foundation-0.0.26.1.patch ];
+            # gauge.patches = [ ../../../contrib/gauge-0.2.5.patch ];
+            # lzma.patches = [ ../../../contrib/lzma-0.0.0.3.patch ];
+            # mersenne-random-pure64.patches = [ ../../../contrib/mersenne-random-pure64-0.2.2.0.patch ];
+            # network.patches = [ ../../../contrib/network-3.1.2.1.patch ];
+            # network.postUnpack = ''
+            #   export patchFlags="--binary -p1"
+            # '';
+
+            # network-info.patches = [ ../../../contrib/network-info-0.2.0.10.patch ];
+            # network-info.postUnpack = ''
+            #   export patchFlags="--binary -p1"
+            # '';
+            # scrypt.patches = [ ../../../contrib/scrypt-0.5.0.patch ];
+            # terminal-size.patches = [ ../../../contrib/terminal-size-0.3.2.1.patch ];
+            # unix-bytestring.patches = [ ../../../contrib/unix-bytestring-0.3.7.3.patch ];
+            # unix-compat.patches = [ ../../../contrib/unix-compat-0.5.3.patch ];
           };
       })
-    ] ++ lib.optional enableHaskellProfiling {
-      enableLibraryProfiling = true;
-      enableExecutableProfiling = true;
-    };
+    ] ++ lib.optional
+      enableHaskellProfiling
+      {
+        enableLibraryProfiling = true;
+        enableExecutableProfiling = true;
+      };
   });
 
 in

@@ -49,6 +49,7 @@ data Tickish a =
                , sourceName :: String      -- ^ Name for source location
     }
                deriving Data
+data GenTickish a = GenTickish_
 data Var       = Var_ deriving (Eq, Data)
 type Id = Var
 data Fingerprint = Fingerprint_

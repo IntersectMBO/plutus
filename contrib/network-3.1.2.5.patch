@@ -1,0 +1,21 @@
+diff --git a/config.sub b/config.sub
+index d74fb6d..d4f35df 100644
+--- a/config.sub
++++ b/config.sub
+@@ -1748,7 +1748,7 @@ case $os in
+ 	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+-	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr*)
++	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* | ghcjs*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff --git a/include/alignment.h b/include/alignment.h
+index 787fe4a..e5778c7 100644
+--- a/include/alignment.h
++++ b/include/alignment.h
+@@ -1,3 +1,2 @@
+ #if __GLASGOW_HASKELL__ < 711
+-#define hsc_alignment(t ) hsc_printf ( "%lu", (unsigned long)offsetof(struct {char x__; t(y__); }, y__));
+ #endif

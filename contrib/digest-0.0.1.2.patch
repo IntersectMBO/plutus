@@ -1,0 +1,77 @@
+diff --git b/Test.hs a/Test.hs
+new file mode 100644
+index 000000000..456818923
+--- /dev/null
++++ a/Test.hs
+@@ -0,0 +1,5 @@
++import Data.Digest.CRC32
++
++main :: IO ()
++main = do
++    print $ crc32 [1,2,3,4,5]
+\ No newline at end of file
+diff --git b/digest.cabal a/digest.cabal
+@@ -45,3 +45,20 @@ library
+     extra-libraries: z
+   else
+     build-depends: zlib
++
++  if os(ghcjs)
++    js-sources: jsbits/bindings.js
++
++test-suite test
++  type:               exitcode-stdio-1.0
++  main-is:            trivial.hs
++  hs-source-dirs:     testing
++  default-language:   Haskell2010
++  build-depends:      base
++                    , bytestring
++                    , digest
++
++executable trivial
++  main-is:       Test.hs
++  build-depends: digest -any
++               , base
+diff --git b/jsbits/bindings.js a/jsbits/bindings.js
+new file mode 100644
+index 000000000..783592c90
+--- /dev/null
++++ a/jsbits/bindings.js
+@@ -0,0 +1,36 @@
++// EMCC:EXPORTED_FUNCTIONS _malloc _free
++// EMCC:EXPORTED_FUNCTIONS _adler32 _crc32
++function h$copyToHeap(buf_d, buf_o, tgt, len) {
++    if(len === 0) return;
++    var u8 = buf_d.u8;
++    for(var i=0;i<len;i++) {
++        HEAPU8[tgt+i] = u8[buf_o+i];
++    }
++}
++
++function h$copyFromHeap(src, buf_d, buf_o, len) {
++    var u8 = buf_d.u8;
++    for(var i=0;i<len;i++) {
++        u8[buf_o+i] = HEAPU8[src+i];
++    }
++}
++
++function h$withCBuffer(str_d, str_o, len, cont) {
++    var str = _malloc(len);
++    if(str_d !== null) h$copyToHeap(str_d, str_o, str, len);
++    var ret = cont(str);
++    _free(str);
++    return ret;
++}
++
++function h$adler32(adler, buf_d, buf_o, buf_len) {
++    return h$withCBuffer(buf_d, buf_o, buf_len, function(buf) {
++        return _adler32(adler, buf, buf_len);
++    });
++}
++
++function h$crc32(crc, buf_d, buf_o, buf_len) {
++    return h$withCBuffer(buf_d, buf_o, buf_len, function(buf) {
++        return _crc32(crc, buf, buf_len);
++    });
++}
+\ No newline at end of file

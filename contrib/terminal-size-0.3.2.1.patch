@@ -1,0 +1,14 @@
+diff --git b/src/System/Console/Terminal/Posix.hsc a/src/System/Console/Terminal/Posix.hsc
+index 33f958565..455e3aeb4 100644
+--- b/src/System/Console/Terminal/Posix.hsc
++++ a/src/System/Console/Terminal/Posix.hsc
+@@ -20,10 +20,6 @@ import System.Posix.Types (Fd(Fd))
+ #include <sys/ioctl.h>
+ #include <unistd.h>
+
+-
+-#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+-
+-
+ -- Interesting part of @struct winsize@
+ data CWin = CWin CUShort CUShort

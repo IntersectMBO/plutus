@@ -983,5 +983,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault ../../ycdh1fs3bms17v3mwvsvya8j3jlp85l5-configured-ghcjs-src;
+    src = (pkgs.lib).mkDefault ../../jp00bbbmvkx16n79bh9y2j2ixksd0flc-configured-ghcjs-src;
     }

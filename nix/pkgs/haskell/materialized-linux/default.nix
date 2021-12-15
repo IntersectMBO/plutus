@@ -71,8 +71,6 @@
         "math-functions".flags.system-expm1 = true;
         "math-functions".flags.system-erf = true;
         "Stream".revision = (((hackage."Stream")."0.4.7.2").revisions).default;
-        "gauge".revision = (((hackage."gauge")."0.2.5").revisions).default;
-        "gauge".flags.analysis = true;
         "system-filepath".revision = (((hackage."system-filepath")."0.4.14").revisions).default;
         "ral".revision = (((hackage."ral")."0.1").revisions).default;
         "ral".flags.distributive = true;
@@ -180,13 +178,6 @@
         "contravariant".flags.statevar = true;
         "protolude".revision = (((hackage."protolude")."0.3.0").revisions).default;
         "protolude".flags.dev = false;
-        "foundation".revision = (((hackage."foundation")."0.0.26.1").revisions).default;
-        "foundation".flags.doctest = false;
-        "foundation".flags.minimal-deps = false;
-        "foundation".flags.linktest = false;
-        "foundation".flags.bounds-check = false;
-        "foundation".flags.bench-all = false;
-        "foundation".flags.experimental = false;
         "base-orphans".revision = (((hackage."base-orphans")."0.8.4").revisions).default;
         "lazysmallcheck".revision = (((hackage."lazysmallcheck")."0.6").revisions).default;
         "extra".revision = (((hackage."extra")."1.7.9").revisions).default;
@@ -460,6 +451,7 @@
         plutus-core = ./.plan.nix/plutus-core.nix;
         plutus-ledger-api = ./.plan.nix/plutus-ledger-api.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
+        foundation = ./.plan.nix/foundation.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         base-deriving-via = ./.plan.nix/base-deriving-via.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
@@ -497,6 +489,16 @@
           "plutus-core" = { flags = {}; };
           "plutus-ledger-api" = { flags = {}; };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
+          "foundation" = {
+            flags = {
+              "doctest" = lib.mkOverride 900 false;
+              "minimal-deps" = lib.mkOverride 900 false;
+              "linktest" = lib.mkOverride 900 false;
+              "bounds-check" = lib.mkOverride 900 false;
+              "bench-all" = lib.mkOverride 900 false;
+              "experimental" = lib.mkOverride 900 false;
+              };
+            };
           "cardano-prelude-test" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
@@ -651,7 +653,6 @@
           "witherable".components.library.planned = lib.mkOverride 900 true;
           "plutus-core".components.sublibs."index-envs".planned = lib.mkOverride 900 true;
           "stm".components.library.planned = lib.mkOverride 900 true;
-          "cardano-crypto".components.tests."cardano-crypto-test".planned = lib.mkOverride 900 true;
           "composition-prelude".components.library.planned = lib.mkOverride 900 true;
           "aeson-pretty".components.library.planned = lib.mkOverride 900 true;
           "th-lift".components.library.planned = lib.mkOverride 900 true;
@@ -710,7 +711,6 @@
           "quickcheck-instances".components.library.planned = lib.mkOverride 900 true;
           "doctest".components.exes."doctest".planned = lib.mkOverride 900 true;
           "ordered-containers".components.library.planned = lib.mkOverride 900 true;
-          "gauge".components.library.planned = lib.mkOverride 900 true;
           "dependent-sum-template".components.library.planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.exes."plc-agda".planned = lib.mkOverride 900 true;
           "filemanip".components.library.planned = lib.mkOverride 900 true;
@@ -826,7 +826,6 @@
           "ghc-paths".components.library.planned = lib.mkOverride 900 true;
           "transformers-compat".components.library.planned = lib.mkOverride 900 true;
           "integer-gmp".components.library.planned = lib.mkOverride 900 true;
-          "cardano-crypto".components.benchmarks."cardano-crypto-bench".planned = lib.mkOverride 900 true;
           "streaming-commons".components.library.planned = lib.mkOverride 900 true;
           "cmdargs".components.library.planned = lib.mkOverride 900 true;
           "StateVar".components.library.planned = lib.mkOverride 900 true;

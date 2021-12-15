@@ -1,0 +1,12 @@
+diff --git b/mersenne-random-pure64.cabal a/mersenne-random-pure64.cabal
+index ac92f5ba1..0ef96a0f8 100644
+--- b/mersenne-random-pure64.cabal
++++ a/mersenne-random-pure64.cabal
+@@ -51,7 +51,7 @@ library
+
+     cc-options:
+         -O3 -finline-functions -fomit-frame-pointer
+-        -fno-strict-aliasing --param max-inline-insns-single=1800
++        -fno-strict-aliasing
+
+     ghc-options:     -Wall -O2 -fexcess-precision

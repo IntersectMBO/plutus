@@ -1,0 +1,39 @@
+diff --git b/src/System/Posix/IO/ByteString.hsc a/src/System/Posix/IO/ByteString.hsc
+index cca0d51de..eac3a24ae 100644
+--- b/src/System/Posix/IO/ByteString.hsc
++++ a/src/System/Posix/IO/ByteString.hsc
+@@ -773,8 +773,8 @@ mode2Int SeekFromEnd  = (#const SEEK_END)
+ -- /Since: 0.3.5/
+ fdSeek :: Fd -> SeekMode -> FileOffset -> IO FileOffset
+ fdSeek fd mode off =
+-    C.throwErrnoIfMinus1 "fdSeek"
+-        $ Base.c_lseek (fromIntegral fd) off (mode2Int mode)
++    fmap fromIntegral $ C.throwErrnoIfMinus1 "fdSeek"
++        $ Base.c_lseek (fromIntegral fd) (fromIntegral off) (mode2Int mode)
+
+
+ -- | Repositions the offset of the file descriptor according to the
+@@ -785,8 +785,8 @@ fdSeek fd mode off =
+ -- /Since: 0.3.5/
+ tryFdSeek :: Fd -> SeekMode -> FileOffset -> IO (Either C.Errno FileOffset)
+ tryFdSeek fd mode off =
+-    eitherErrnoIfMinus1
+-        $ Base.c_lseek (fromIntegral fd) off (mode2Int mode)
++    fmap (fmap fromIntegral) $ eitherErrnoIfMinus1
++        $ Base.c_lseek (fromIntegral fd) (fromIntegral off) (mode2Int mode)
+
+ ----------------------------------------------------------------
+ ----------------------------------------------------------- fin.
+diff --git b/src/System/Posix/Types/Iovec.hsc a/src/System/Posix/Types/Iovec.hsc
+index 2753e3fe4..2ccfb8890 100644
+--- b/src/System/Posix/Types/Iovec.hsc
++++ a/src/System/Posix/Types/Iovec.hsc
+@@ -64,8 +64,5 @@ data CIovec = CIovec
+     , iov_len  :: {-# UNPACK #-} !CSize       -- size_t
+     }
+
+-#let alignment t = \
+-    "%lu", (unsigned long) offsetof(struct {char x__; t (y__); }, y__)
+-
+ instance Storable CIovec where
+     alignment _ = #{alignment struct iovec}
