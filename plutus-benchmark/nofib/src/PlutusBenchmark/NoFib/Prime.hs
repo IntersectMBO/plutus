@@ -29,8 +29,7 @@ import Prelude qualified as Haskell
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins (divideInteger, modInteger)
-import PlutusTx.Prelude as Tx hiding (divMod, even)
-import PlutusTx.Ratio (divMod)
+import PlutusTx.Prelude as Tx hiding (even)
 
 ---------------- Extras ----------------
 
