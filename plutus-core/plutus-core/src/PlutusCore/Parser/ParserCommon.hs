@@ -8,12 +8,13 @@
 
 module PlutusCore.Parser.ParserCommon where
 
+import Data.ByteString.Char8 (singleton)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
 import PlutusCore qualified as PLC
 import PlutusPrelude
-import Text.Megaparsec hiding (ParseError, State, parse)
+import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1, string)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -28,8 +29,6 @@ type Parser =
     ParsecT PLC.ParseError T.Text (StateT ParserState PLC.Quote)
 
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
-instance (Ord ann, Pretty ann) => ShowErrorComponent (PLC.ParseError ann) where
-    showErrorComponent err = show $ pretty err
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -66,10 +65,66 @@ lexeme = Lex.lexeme whitespace
 symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
 
-lparen :: Parser T.Text
-lparen = symbol "("
-rparen :: Parser T.Text
-rparen = symbol ")"
+-- | A PLC @Type@ to be parsed. ATM the parser only works
+-- for types in the @DefaultUni@ with @DefaultFun@.
+type PType = PLC.Type PLC.TyName PLC.DefaultUni SourcePos
+
+varType :: Parser PType
+varType = PLC.TyVar <$> getSourcePos <*> tyName
+
+funType :: Parser PType
+funType = PLC.TyFun <$> wordPos "fun" <*> typ <*> typ
+
+allType :: Parser PType
+allType = PLC.TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
+
+lamType :: Parser PType
+lamType = PLC.TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
+
+ifixType :: Parser PType
+ifixType = PLC.TyIFix <$> wordPos "ifix" <*> typ <*> typ
+
+builtinType :: Parser PType
+builtinType = PLC.TyBuiltin <$> wordPos "con" <*> defaultUniType
+
+appType :: Parser PType
+appType = do
+    pos  <- getSourcePos
+    fn   <- typ
+    args <- some typ
+    pure $ foldl' (PLC.TyApp pos) fn args
+
+kind :: Parser (PLC.Kind SourcePos)
+kind = inParens (typeKind <|> funKind)
+    where
+        typeKind = PLC.Type <$> wordPos "type"
+        funKind  = PLC.KindArrow <$> wordPos "fun" <*> kind <*> kind
+
+-- | Parser for @PType@.
+typ :: Parser PType
+typ = choice
+    [inParens typ
+    , varType
+    , funType
+    , ifixType
+    , allType
+    , builtinType
+    , lamType
+    , inBrackets appType
+    ]
+
+defaultUniType :: Parser (PLC.SomeTypeIn PLC.DefaultUni)
+defaultUniType = choice
+  [ inParens defaultUniType
+  , PLC.SomeTypeIn PLC.DefaultUniInteger <$ symbol "integer"
+  , PLC.SomeTypeIn PLC.DefaultUniByteString <$ symbol "bytestring"
+  , PLC.SomeTypeIn PLC.DefaultUniString <$ symbol "symbol"
+  , PLC.SomeTypeIn PLC.DefaultUniUnit <$ symbol "unit"
+  , PLC.SomeTypeIn PLC.DefaultUniBool <$ symbol "bool"
+  , PLC.SomeTypeIn PLC.DefaultUniProtoList <$ symbol "list"
+  , PLC.SomeTypeIn PLC.DefaultUniProtoPair <$ symbol "pair"
+  -- , PLC.SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
+  , PLC.SomeTypeIn PLC.DefaultUniData <$ symbol "data" ]
 
 lbracket :: Parser T.Text
 lbracket = symbol "["
@@ -82,7 +137,7 @@ rbrace :: Parser T.Text
 rbrace = symbol "}"
 
 inParens :: Parser a -> Parser a
-inParens = between lparen rparen
+inParens = between (symbol "(") (symbol ")")
 
 inBrackets :: Parser a -> Parser a
 inBrackets = between lbracket rbracket
@@ -132,19 +187,21 @@ enforce p = do
 
 -- | Parser for integer constants.
 conInt :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-conInt = lexeme Lex.decimal
+conInt = do
+    con::Integer <- lexeme Lex.decimal
+    pure $ someValue con
 
 -- | Parser for single quoted char.
 conChar :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
 conChar = do
     con <- between (char '\'') (char '\'') Lex.charLiteral
-    pure $ someValue con
+    pure $ someValue $ singleton con
 
 -- | Parser for double quoted string.
 conText :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
 conText = do
     con <- char '\"' *> manyTill Lex.charLiteral (char '\"')
-    pure $ someValue $ pack con
+    pure $ someValue $ T.pack con
 
 -- | Parser for unit.
 conUnit :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
@@ -152,35 +209,36 @@ conUnit = someValue () <$ symbol "unit"
 
 -- | Parser for bool.
 conBool :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-conBool = choose
+conBool = choice
     [ someValue True <$ symbol "True"
     , someValue False <$ symbol "False"
     ]
 
---TODO fix these:
-conPair :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-conPair = someValue (,) <$ symbol "pair"
-conList :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-conList = someValue [] <$ symbol "list"
-conData :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-conData = someValue Data <$ symbol "data"
+--TODO fix these (add parsing of constant after symbol?):
+-- conPair :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conPair = someValue (,) <$ symbol "pair"
+-- conList :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conList = someValue [] <$ symbol "list"
+-- conData :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conData = someValue Data? <$ symbol "data"
 
 constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-constant = choose
+constant = choice
     [ inParens constant
     , conInt
     , conChar
     , conText
     , conUnit
     , conBool
-    , conPair
-    , conList
-    , conData]
+    -- , conPair
+    -- , conList
+    -- , conData
+    ]
 
 -- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
 constantTerm :: Parser (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 constantTerm = do
-    p <- WordPos "con"
+    p <- wordPos "con"
     _conTy <- defaultUniType -- TODO: do case of for each ty?
     con <- constant
-    pure $ Constant p con
+    pure $ PLC.Constant p con

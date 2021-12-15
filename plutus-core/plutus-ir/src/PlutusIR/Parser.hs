@@ -21,9 +21,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
 import Prelude hiding (fail)
 
-import Control.Monad.Combinators.Expr
 import Control.Monad.Combinators.NonEmpty qualified as NE
-import Data.Text (Text)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 recursivity :: Parser Recursivity
@@ -31,68 +29,6 @@ recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> 
 
 strictness :: Parser Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
-
--- TODO move these to parser common
--- | A PLC @Type@ to be parsed. ATM the parser only works
--- for types in the @DefaultUni@ with @DefaultFun@.
-type PType = PLC.Type TyName PLC.DefaultUni SourcePos
-
-varType :: Parser PType
-varType = TyVar <$> getSourcePos <*> tyName
-
-funType :: Parser PType
-funType = TyFun <$> wordPos "fun" <*> typ <*> typ
-
-allType :: Parser PType
-allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
-
-lamType :: Parser PType
-lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
-
-ifixType :: Parser PType
-ifixType = TyIFix <$> wordPos "ifix" <*> typ <*> typ
-
-builtinType :: Parser PType
-builtinType = TyBuiltin <$> wordPos "builtinType" <*> defaultUniType
-
-appType :: Parser PType
-appType = do
-    pos  <- getSourcePos
-    fn   <- typ
-    args <- some typ
-    pure $ foldl' (TyApp pos) fn args
-
-kind :: Parser (Kind SourcePos)
-kind = inParens (typeKind <|> funKind)
-    where
-        typeKind = Type <$> wordPos "type"
-        funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
-
--- | Parser for @PType@.
-typ :: Parser PType
-typ = choice
-    [inParens typ
-    , varType
-    , funType
-    , ifixType
-    , allType
-    , builtinType
-    , lamType
-    , inBrackets appType
-    ]
-
-defaultUniType :: Parser (PLC.SomeTypeIn PLC.DefaultUni)
-defaultUniType = choice
-  [ inParens defaultUniType
-  , PLC.SomeTypeIn PLC.DefaultUniInteger <$ symbol "integer"
-  , PLC.SomeTypeIn PLC.DefaultUniByteString <$ symbol "bytestring"
-  , PLC.SomeTypeIn PLC.DefaultUniString <$ symbol "symbol"
-  , PLC.SomeTypeIn PLC.DefaultUniUnit <$ symbol "unit"
-  , PLC.SomeTypeIn PLC.DefaultUniBool <$ symbol "bool"
-  , PLC.SomeTypeIn PLC.DefaultUniProtoList <$ symbol "list"
-  , PLC.SomeTypeIn PLC.DefaultUniProtoPair <$ symbol "pair"
-  -- , PLC.SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
-  , PLC.SomeTypeIn PLC.DefaultUniData <$ symbol "data" ]
 
 varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
