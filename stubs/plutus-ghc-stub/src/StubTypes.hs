@@ -4,24 +4,34 @@
 {-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies       #-}
 module StubTypes where
 
 import Control.Exception qualified as Exception
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
+import Data.Array (Array)
 import Data.ByteString
 import Data.Data (Data)
 import Data.Functor.Identity
+import Data.IntMap (IntMap)
 import Data.String (IsString (..))
+import Foreign.ForeignPtr (ForeignPtr (..))
 import Language.Haskell.TH qualified as TH
 
 data DynFlags    = DynFlags_
 type FamInstEnvs = (FamInstEnv, FamInstEnv)
 data Name        = Name_ deriving (Eq, Ord, Data)
 data OccName     = OccName_ deriving (Eq, Ord)
-data Module      = Module_ deriving (Eq, Ord)
+data Module      = Module_ deriving (Eq, Ord, Data)
 data UnitId      = UnitId_
-data TyThing     = TyThing_
+data ConLike     = ConLike_
+data TyThing
+  = AnId     Id
+  | AConLike ConLike
+  | ATyCon   TyCon       -- TyCons and classes; see Note [ATyCon for classes]
+  | ACoAxiom (CoAxiom Branched)
 data ModSummary  = ModSummary_
 data TcGblEnv    = TcGblEnv_
 data LHsExpr a   = LHsExpr_
@@ -42,15 +52,96 @@ data Type      = Type_ deriving (Data)
 type Kind      = Type
 type TyVar = Var
 data TyCoBinder = TyCoBinder_ deriving (Data)
-data SrcSpan = SrcSpan_ deriving (Eq, Ord, Data)
-data RealSrcSpan = RealSrcSpan_ deriving (Data)
-data Tickish a =
-    SourceNote { sourceSpan :: RealSrcSpan -- ^ Source covered
-               , sourceName :: String      -- ^ Name for source location
+data RealSrcSpan
+  = RealSrcSpan'
+        { srcSpanFile  :: !FastString,
+          srcSpanSLine :: {-# UNPACK #-} !Int,
+          srcSpanSCol  :: {-# UNPACK #-} !Int,
+          srcSpanELine :: {-# UNPACK #-} !Int,
+          srcSpanECol  :: {-# UNPACK #-} !Int
+        }
+  deriving (Eq, Ord, Data)
+data SrcSpan =
+    RealSrcSpan !RealSrcSpan
+  | UnhelpfulSpan !FastString deriving (Eq, Ord, Data)
+data CCFlavour = CCFlavour_ deriving (Eq, Ord, Data)
+data CcName = CcName_ deriving (Eq, Ord, Data)
+data CostCentre
+  = NormalCC {
+                cc_flavour :: CCFlavour,
+                 -- ^ Two cost centres may have the same name and
+                 -- module but different SrcSpans, so we need a way to
+                 -- distinguish them easily and give them different
+                 -- object-code labels.  So every CostCentre has an
+                 -- associated flavour that indicates how it was
+                 -- generated, and flavours that allow multiple instances
+                 -- of the same name and module have a deterministic 0-based
+                 -- index.
+                cc_name    :: CcName,      -- ^ Name of the cost centre itself
+                cc_mod     :: Module,      -- ^ Name of module defining this CC.
+                cc_loc     :: SrcSpan
     }
-               deriving Data
-data GenTickish a = GenTickish_
-data Var       = Var_ deriving (Eq, Data)
+
+  | AllCafsCC {
+                cc_mod :: Module,      -- Name of module defining this CC.
+                cc_loc :: SrcSpan
+    } deriving (Eq, Ord, Data)
+
+data NoExtField = NoExtField deriving (Eq, Ord, Data)
+
+data TickishPass
+  = TickishCore
+  | TickishStg
+  | TickishCmm
+
+type family XBreakpoint (pass :: TickishPass)
+type instance XBreakpoint 'TickishCore = NoExtField
+-- | Keep track of the type of breakpoints in STG, for GHCi
+type instance XBreakpoint 'TickishStg  = Type
+type instance XBreakpoint 'TickishCmm  = NoExtField
+
+type family XTickishId (pass :: TickishPass)
+type instance XTickishId 'TickishCore = Id
+type instance XTickishId 'TickishStg = Id
+type instance XTickishId 'TickishCmm = NoExtField
+
+type CoreTickish = GenTickish 'TickishCore
+type StgTickish = GenTickish 'TickishStg
+-- | Tickish in Cmm context (annotations only)
+type CmmTickish = GenTickish 'TickishCmm
+data GenTickish pass =
+    ProfNote {
+      profNoteCC    :: CostCentre, -- ^ the cost centre
+      profNoteCount :: !Bool,      -- ^ bump the entry count?
+      profNoteScope :: !Bool       -- ^ scopes over the enclosed expression
+                                   -- (i.e. not just a tick)
+    }
+  | HpcTick {
+      tickModule :: Module,
+      tickId     :: !Int
+    }
+  | Breakpoint
+    { breakpointExt :: XBreakpoint pass
+    , breakpointId  :: !Int
+    , breakpointFVs :: [XTickishId pass]
+    }
+  | SourceNote
+    { sourceSpan :: RealSrcSpan -- ^ Source covered
+    , sourceName :: String      -- ^ Name for source location
+                                --   (uses same names as CCs)
+    }
+
+deriving instance Eq (GenTickish 'TickishCore)
+deriving instance Ord (GenTickish 'TickishCore)
+deriving instance Data (GenTickish 'TickishCore)
+
+deriving instance Data (GenTickish 'TickishStg)
+
+deriving instance Eq (GenTickish 'TickishCmm)
+deriving instance Ord (GenTickish 'TickishCmm)
+deriving instance Data (GenTickish 'TickishCmm)
+
+data Var       = Var_ deriving (Eq, Ord, Data)
 type Id = Var
 data Fingerprint = Fingerprint_
 data PrintUnqualified = PrintUnqualified_
@@ -69,6 +160,27 @@ data NameSpace = NameSpace_
 data HscEnv = HscEnv { hsc_dflags :: DynFlags }
 data RdrName = Unqual OccName
 data Messages = Messages_
+newtype ForeignRef a = ForeignRef (ForeignPtr ())
+data BreakArray = BreakArray_
+type BreakIndex = Int
+data RemotePtr a = RemotePtr_
+data CgBreakInfo = CgBreakInfo_
+data ModBreaks
+   = ModBreaks
+   { modBreaks_flags     :: ForeignRef BreakArray
+        -- ^ The array of flags, one per breakpoint,
+        -- indicating which breakpoints are enabled.
+   , modBreaks_locs      :: !(Array BreakIndex SrcSpan)
+        -- ^ An array giving the source span of each breakpoint.
+   , modBreaks_vars      :: !(Array BreakIndex [OccName])
+        -- ^ An array giving the names of the free variables at each breakpoint.
+   , modBreaks_decls     :: !(Array BreakIndex [String])
+        -- ^ An array giving the names of the declarations enclosing each breakpoint.
+   , modBreaks_ccs       :: !(Array BreakIndex (RemotePtr CostCentre))
+        -- ^ Array pointing to cost centre for each breakpoint
+   , modBreaks_breakInfo :: IntMap CgBreakInfo
+        -- ^ info about each breakpoint from the bytecode generator
+   }
 
 data Literal
     =     ------------------
@@ -131,6 +243,7 @@ data DataCon = DataCon_ deriving (Eq, Data)
 data Role = Representational
 data CoAxiom (a :: BranchFlag) = CoAxiom_
 data BranchFlag = BFBranched | BFUnbranched
+type Branched = 'BFBranched
 type Unbranched = 'BFUnbranched
 
 data PrimOp = IntAddOp
@@ -146,17 +259,18 @@ data PrimOp = IntAddOp
     deriving (Eq, Ord, Enum)
 
 data Expr b
-    = Var   Id
-    | Lit   Literal
-    | App   (Expr b) (Arg b)
-    | Lam   b (Expr b)
-    | Let   (Bind b) (Expr b)
-    | Case  (Expr b) b Type [Alt b]       -- See #case_invariants#
-    | Cast  (Expr b) Coercion
-    | Tick  (Tickish Id) (Expr b)
-    | Type  Type
-    | Coercion Coercion
-    deriving (Data)
+  = Var   Id
+  | Lit   Literal
+  | App   (Expr b) (Arg b)
+  | Lam   b (Expr b)
+  | Let   (Bind b) (Expr b)
+  | Case  (Expr b) b Type [Alt b]   -- See Note [Case expression invariants]
+                                    -- and Note [Why does Case have a 'Type' field?]
+  | Cast  (Expr b) Coercion
+  | Tick  CoreTickish (Expr b)
+  | Type  Type
+  | Coercion Coercion
+  deriving Data
 
 data Bind b
     = NonRec b (Expr b)
@@ -607,7 +721,7 @@ showPpr :: DynFlags -> a -> String
 showPpr _ _ = ""
 
 lookupThing :: Monad m => Name -> m TyThing
-lookupThing _ = return TyThing_
+lookupThing _ = undefined
 
 mkTyConTy :: TyCon -> Type
 mkTyConTy _ = Type_
@@ -622,7 +736,7 @@ mkModuleName :: String -> ModuleName
 mkModuleName _ = ModuleName_
 
 noSrcSpan :: SrcSpan
-noSrcSpan = SrcSpan_
+noSrcSpan = undefined
 
 throwGhcExceptionIO :: GhcException -> IO a
 throwGhcExceptionIO = Exception.throwIO
@@ -708,3 +822,10 @@ greOccName = undefined
 getUnique = undefined
 mkOccName = undefined
 unpackFS = undefined
+exprType  = undefined
+srcSpanStartLine = undefined
+srcSpanEndLine = undefined
+srcSpanStartCol = undefined
+srcSpanEndCol = undefined
+mg_modBreaks = undefined
+

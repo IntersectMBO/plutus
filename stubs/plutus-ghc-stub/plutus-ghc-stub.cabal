@@ -27,7 +27,9 @@ Library
 
     Build-Depends: base,
                    ghc-boot,
+                   array -any,
                    bytestring -any,
+                   containers -any,
                    template-haskell -any
 
     hs-source-dirs:
@@ -51,6 +53,7 @@ Library
         MkId
         PrelNames
         TcRnMonad
+        CostCentre
 
     Other-Modules:
         StubTypes
