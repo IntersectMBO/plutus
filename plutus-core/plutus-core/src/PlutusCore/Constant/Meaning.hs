@@ -6,7 +6,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE FunctionalDependencies    #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
 {-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
@@ -65,7 +64,7 @@ data BuiltinMeaning term cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
--- We tried instantiating 'BuiltinMeaning' on the fly and that was sloer than precaching
+-- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
 -- 'BuiltinRuntime's.
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the

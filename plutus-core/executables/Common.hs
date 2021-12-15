@@ -1,8 +1,11 @@
 {-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Common where
 
@@ -10,12 +13,14 @@ import PlutusPrelude (through)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
+import PlutusCore.Constant qualified as PLC
 import PlutusCore.Error (AsParseError, AsUniqueError, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
 import PlutusCore.Generators.Test qualified as Gen
+import PlutusCore.Normalize (normalizeType)
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Rename (rename)
 import PlutusCore.StdLib.Data.Bool qualified as StdLib
@@ -30,17 +35,21 @@ import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 
 import Control.DeepSeq (NFData, rnf)
 import Control.Monad.Except
+import Data.Aeson qualified as Aeson
 import Data.Bifunctor (second)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
-import Data.List (nub)
+import Data.List (intercalate, nub)
 import Data.List qualified as List
+import Data.Maybe (fromJust)
+import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as T
 import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
+import GHC.TypeLits (symbolVal)
 import Prettyprinter (Doc, pretty, (<+>))
 
 import System.CPUTime (getCPUTime)
@@ -559,3 +568,66 @@ runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
     T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
         Just ex -> PP.render $ prettyExample ex
+
+
+---------------- Print the cost model parameters ----------------
+
+runDumpModel :: IO ()
+runDumpModel = do
+    let params = fromJust PLC.defaultCostModelParams
+    BSL.putStr $ Aeson.encode params
+
+
+---------------- Print the type signatures of the default builtins ----------------
+
+-- Some types to represent signatures of built-in functions
+type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+type PlcType = PLC.Type PLC.TyName PLC.DefaultUni ()
+data QVarOrType = QVar String | Type PlcType  -- Quantified type variable or actual type
+
+data Signature = Signature [QVarOrType] PlcType  -- Argument types, return type
+instance Show Signature where
+    show (Signature args res) =
+        "[ " ++ (intercalate ", " $ map showQT args) ++ " ] -> " ++ showTy (normTy res)
+            where showQT =
+                      \case
+                       QVar tv -> "forall " ++ tv
+                       Type ty -> showTy (normTy ty)
+                  normTy :: PlcType -> PlcType
+                  normTy ty = PLC.runQuote $ PLC.unNormalized <$> normalizeType ty
+                  showTy ty =
+                      case ty of
+                        PLC.TyBuiltin _ t -> show $ PP.pretty t
+                        PLC.TyApp {}      -> showMultiTyApp $ unwrapTyApp ty
+                        _                 -> show $ PP.pretty ty
+                  unwrapTyApp ty =
+                      case ty of
+                        PLC.TyApp _ t1 t2 -> (unwrapTyApp t1) ++ [t2]
+                        -- Assumes iterated built-in type applications all associate to the left;
+                        -- if not, we'll just get some odd formatting.
+                        _                 -> [ty]
+                  showMultiTyApp =
+                      \case
+                        []     -> "<empty type application>"   -- Should never happen
+                        op:tys -> showTy op ++ "(" ++ intercalate ", " (map showTy tys) ++ ")"
+
+typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
+typeSchemeToSignature = toSig []
+    where toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
+          toSig acc =
+              \case
+               PLC.TypeSchemeResult pR -> Signature acc (PLC.toTypeAst pR)
+               PLC.TypeSchemeArrow pA schB ->
+                   toSig (acc ++ [Type $ PLC.toTypeAst pA]) schB
+               PLC.TypeSchemeAll proxy schK ->
+                   case proxy of
+                     (_ :: Proxy '(text, uniq, kind)) ->
+                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
+
+runPrintBuiltinSignatures :: IO ()
+runPrintBuiltinSignatures = do
+  let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
+  mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
+      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+
+
