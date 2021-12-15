@@ -29,8 +29,7 @@
       extraSrcFiles = [
         "README.md"
         "jsbits/libsodium.c"
-        "jsbits/libsodium.js"
-        "jsbits/wrappers.js.pp"
+        "jsbits/bindings.js.pp"
         ];
       extraTmpFiles = [];
       extraDocFiles = [];
@@ -104,10 +103,7 @@
           "Cardano/Crypto/Libsodium/UnsafeC"
           "Cardano/Foreign"
           ];
-        jsSources = (pkgs.lib).optionals (compiler.isGhcjs && true || system.isGhcjs) [
-          "jsbits/libsodium.js"
-          "jsbits/wrappers.js.pp"
-          ];
+        jsSources = (pkgs.lib).optional (compiler.isGhcjs && true || system.isGhcjs) "jsbits/bindings.js.pp";
         hsSourceDirs = [ "src" ];
         };
       tests = {
@@ -126,11 +122,11 @@
       };
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "1";
+      url = "2";
       rev = "minimal";
       sha256 = "";
       }) // {
-      url = "1";
+      url = "2";
       rev = "minimal";
       sha256 = "";
       };
