@@ -69,8 +69,8 @@ instance P.Eq MyMonoData where
     (Mono3 i1) == (Mono3 i2)       = i1 P.== i2
     _ == _                         = False
 
-monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
-monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> x)
+monoDataType :: CompiledCode (MyMonoData -> Integer)
+monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
 monoConstructor = plc (Proxy @"monConstructor") Mono1
@@ -101,13 +101,13 @@ instance P.Eq MyMonoRecord where
     {-# INLINABLE (==) #-}
     (MyMonoRecord i1 j1) == (MyMonoRecord i2 j2) = i1 P.== i2 && j1 P.== j2
 
-monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
-monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> x)
+monoRecord :: CompiledCode (MyMonoRecord -> Integer)
+monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> case x of { MyMonoRecord i _ -> i; })
 
 data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
 
-recordNewtype :: CompiledCode (RecordNewtype -> RecordNewtype)
-recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> x)
+recordNewtype :: CompiledCode (RecordNewtype -> Integer)
+recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> case x of { RecordNewtype (MyNewtype i) -> i; })
 
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Integer)
@@ -139,8 +139,8 @@ instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
     (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
     _ == _                         = False
 
-polyDataType :: CompiledCode (MyPolyData Integer Integer -> MyPolyData Integer Integer)
-polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> x)
+polyDataType :: CompiledCode (MyPolyData Integer Integer -> Integer)
+polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> case x of { Poly2 i -> i; _ -> 1; })
 
 polyConstructed :: CompiledCode (MyPolyData Integer Integer)
 polyConstructed = plc (Proxy @"polyConstructed") (Poly1 (1::Integer) (2::Integer))
@@ -185,8 +185,8 @@ nestedNewtypeMatch = plc (Proxy @"nestedNewtypeMatch") (\(MyNewtype2 (MyNewtype 
 
 newtype ParamNewtype a = ParamNewtype (Maybe a)
 
-paramNewtype :: CompiledCode (ParamNewtype Integer -> ParamNewtype Integer)
-paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> x)
+paramNewtype :: CompiledCode (ParamNewtype Integer -> Integer)
+paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> case x of { ParamNewtype (Just i) -> i; _ -> 1 })
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursive" [

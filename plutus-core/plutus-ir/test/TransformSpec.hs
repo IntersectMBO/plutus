@@ -176,6 +176,7 @@ deadCode =
     , "nestedBindingsIndirect"
     , "recBindingSimple"
     , "recBindingComplex"
+    , "pruneDatatype"
     ]
 
 retainedSize :: TestNested
