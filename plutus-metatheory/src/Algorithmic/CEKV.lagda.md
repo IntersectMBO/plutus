@@ -100,15 +100,15 @@ data Error : ∅ ⊢Nf⋆ * → Set where
 
 discharge : ∀{A} → Value A → ∅ ⊢ A
 
-env2ren : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
-env2ren (ρ ∷ V) Z     = conv⊢ refl (sym (subNf-id _)) (discharge V)
-env2ren (ρ ∷ C)                   (S x) = env2ren ρ x
+env2sub : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
+env2sub (ρ ∷ V) Z     = conv⊢ refl (sym (subNf-id _)) (discharge V)
+env2sub (ρ ∷ C)                   (S x) = env2sub ρ x
 
 dischargeBody : ∀{Γ A B} → Γ , A ⊢ B → Env Γ → ∅ , A ⊢ B
 dischargeBody M ρ = conv⊢
   (cong (∅ ,_) (subNf-id _))
   (subNf-id _)
-  (sub (ne ∘ `) (exts (ne ∘ `) (env2ren ρ)) M)
+  (sub (ne ∘ `) (exts (ne ∘ `) (env2sub ρ)) M)
 
 dischargeBody⋆ : ∀{Γ K A} → Γ ,⋆ K ⊢ A → Env Γ → ∅ ,⋆ K ⊢ A
 dischargeBody⋆ {A = A} M ρ = conv⊢
@@ -120,7 +120,9 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
       (λ{ Z → refl; (S α) → refl})
       A)
     (subNf-id A))
-  (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2ren ρ)) M)
+  (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2sub ρ)) M)
+
+
 
 dischargeB : ∀{b A}{az}{as}{p : az <>> as ∈ arity b} → BApp b p A → ∅ ⊢ A
 dischargeB {b = b} base = builtin b / refl
@@ -962,6 +964,7 @@ cek2ckVal (V-I⇒ b p x) = Red.V-I⇒ b p (cek2ckBApp x)
 cek2ckVal (V-IΠ b p x) = Red.V-IΠ b p (cek2ckBApp x)
 
 cek2ckClos : ∀{A Γ} → Γ ⊢ A → Env Γ → ∅ ⊢ A
+-- cek2ckClos L ρ = conv⊢ refl (subNf-id _) (sub (ne ∘ `) (env2sub ρ) L)
 cek2ckClos (` x) ρ = discharge (lookup x ρ)
 cek2ckClos (ƛ L) ρ = ƛ (dischargeBody L ρ)
 cek2ckClos (L · M) ρ = cek2ckClos L ρ · cek2ckClos M ρ
@@ -1008,15 +1011,40 @@ step** (step* x p) q = step* x (step** p q)
 
 postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
 
-postulate dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _) ρ V → (s CK.▻ (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ])) ≡ (s CK.▻ cek2ckClos M (ρ ∷ V))
-
 postulate dischargeBody-lem' : ∀{B}{Γ}{C}(M : Γ , C ⊢ B) ρ V → (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ]) ≡ cek2ckClos M (ρ ∷ V)
+
+{- proof sketch for dischargeBody-lem'
+
+-- type level stuff omitted for simplicity below
+
+dischargeBody M ρ [ discharge (cek2ckVal V) ]
+= { def dischargeBody }
+sub (exts (env2sub ρ)) M [ discharge (cek2ckVal V) ] 
+= { def of [_] }
+sub (sub-cons ` (discharge (cek2ckVal V)))
+    (sub (exts (env2sub ρ)) (discharge (cek2ckVal V)))
+    M
+= { sub-comp (lemma required) }
+sub (sub (sub-cons ` (discharge (cek2ckVal V))) ∘ (exts (env2sub ρ)))
+    M
+= { ? }
+sub (sub-cons (env2sub ρ) (discharge (cek2ckVal V))) M
+= { ? }
+sub (env2sub (ρ ∷ V)) M
+= { lemma required }
+cek2ckClos M (ρ ∷ V)
+
+-}
+
+dischargeBody-lem : ∀{A B}{Γ}{C}{s : CK.Stack A B}(M : Γ , C ⊢ _) ρ V → (s CK.▻ (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ])) ≡ (s CK.▻ cek2ckClos M (ρ ∷ V))
+dischargeBody-lem M ρ V = cong (_ CK.▻_) (dischargeBody-lem' M ρ V)
 
 postulate discharge-lem : ∀{A}(V : Value A) → Red.deval (cek2ckVal V) ≡ discharge V
 
-postulate dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
-
 postulate dischargeBody⋆-lem' : ∀{Γ K B A}(M : Γ ,⋆ K ⊢ B) ρ → dischargeBody⋆ M ρ [ A ]⋆ ≡ (cek2ckClos (M [ A ]⋆) ρ)
+
+dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
+dischargeBody⋆-lem M ρ = cong (_ CK.▻_) (dischargeBody⋆-lem' M ρ)
 
 postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BApp b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
 
@@ -1025,8 +1053,6 @@ postulate dischargeB'-lem : ∀ {A}{C b}{as a as'}{p : as <>> a ∷ as' ∈ arit
 postulate dischargeB-lem' : ∀ {A}{b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} → dischargeB x ≡ discharge (V-I b p x)
 
 postulate dischargeB-lem'' : ∀ {A}{b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} → substEq Red.Value dischargeB-lem' (Red.V-I b p (cek2ckBApp x)) ≡ cek2ckVal (V-I b p x)
-
-
 
 -- assuming that buitins work the same way for CEK and red/CK
 
@@ -1258,3 +1284,4 @@ thm65bV {M = wrap _ _ M} {.(cek2ckStack s') CK., Red.unwrap- } {W = Red.V-wrap W
 ... | _ ,, x' ,, _ ,, y1
   with cek2ckFrame-unwrap-lem _ x3
 thm65bV {L = _} {.(wrap _ _ _)} {.(cek2ckStack s') CK., Red.unwrap- } {_} {Red.V-wrap W} {V-wrap W'} {.(s' , unwrap-)} p q r (CK.step* refl x) | s' ,, .unwrap- ,, refl ,, refl ,, x1 | _ ,, x' ,, _ ,, y1 | refl = _ ,, step* refl x' ,, _ ,, y1
+-- -}
