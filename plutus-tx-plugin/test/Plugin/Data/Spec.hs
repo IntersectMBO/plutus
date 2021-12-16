@@ -69,6 +69,7 @@ instance P.Eq MyMonoData where
     (Mono3 i1) == (Mono3 i2)       = i1 P.== i2
     _ == _                         = False
 
+-- pattern match to avoid type getting simplified away
 monoDataType :: CompiledCode (MyMonoData -> Integer)
 monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
@@ -101,11 +102,13 @@ instance P.Eq MyMonoRecord where
     {-# INLINABLE (==) #-}
     (MyMonoRecord i1 j1) == (MyMonoRecord i2 j2) = i1 P.== i2 && j1 P.== j2
 
+-- pattern match to avoid type getting simplified away
 monoRecord :: CompiledCode (MyMonoRecord -> Integer)
 monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> case x of { MyMonoRecord i _ -> i; })
 
 data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
 
+-- pattern match to avoid type getting simplified away
 recordNewtype :: CompiledCode (RecordNewtype -> Integer)
 recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> case x of { RecordNewtype (MyNewtype i) -> i; })
 
@@ -139,6 +142,7 @@ instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
     (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
     _ == _                         = False
 
+-- pattern match to avoid type getting simplified away
 polyDataType :: CompiledCode (MyPolyData Integer Integer -> Integer)
 polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> case x of { Poly2 i -> i; _ -> 1; })
 
@@ -185,6 +189,7 @@ nestedNewtypeMatch = plc (Proxy @"nestedNewtypeMatch") (\(MyNewtype2 (MyNewtype 
 
 newtype ParamNewtype a = ParamNewtype (Maybe a)
 
+-- pattern match to avoid type getting simplified away
 paramNewtype :: CompiledCode (ParamNewtype Integer -> Integer)
 paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> case x of { ParamNewtype (Just i) -> i; _ -> 1 })
 
