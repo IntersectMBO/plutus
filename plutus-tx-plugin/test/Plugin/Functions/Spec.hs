@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -40,6 +41,8 @@ recursiveFunctions = testNested "recursive" [
     , goldenPir "even" evenMutual
     , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
     , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    , goldenPir "strictLength" strictLength
+    , goldenPir "lazyLength" lazyLength
   ]
 
 fib :: CompiledCode (Integer -> Integer)
@@ -67,6 +70,24 @@ evenMutual = plc (Proxy @"evenMutual") (
         odd :: Integer -> Bool
         odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
     in even)
+
+lengthStrict :: [a] -> Integer
+lengthStrict l = go 0 l
+  where
+    go !acc []      = acc
+    go !acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+
+lengthLazy :: [a] -> Integer
+lengthLazy l = go 0 l
+  where
+    go acc []      = acc
+    go acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+
+strictLength :: CompiledCode ([Integer] -> Integer)
+strictLength = plc (Proxy @"strictLength") (lengthStrict @Integer)
+
+lazyLength :: CompiledCode ([Integer] -> Integer)
+lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
 
 unfoldings :: TestNested
 unfoldings = testNested "unfoldings" [

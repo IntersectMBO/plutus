@@ -1,0 +1,163 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Maybe (fun (type) (type)))
+        (tyvardecl a (type))
+        Maybe_match
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+      )
+    )
+    [
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl x [ Maybe (con integer) ])
+          [ { Just (con integer) } (con integer 1) ]
+        )
+        (lam
+          y
+          [ Maybe (con integer) ]
+          [
+            (let
+              (nonrec)
+              (termbind
+                (strict)
+                (vardecl ds [ Maybe (fun (con integer) (con integer)) ])
+                [
+                  [
+                    [
+                      {
+                        (abs
+                          b
+                          (type)
+                          (lam
+                            dFunctor
+                            [
+                              (lam
+                                f
+                                (fun (type) (type))
+                                (all
+                                  a
+                                  (type)
+                                  (all
+                                    b
+                                    (type)
+                                    (fun (fun a b) (fun [ f a ] [ f b ]))
+                                  )
+                                )
+                              )
+                              Maybe
+                            ]
+                            (lam
+                              f
+                              (fun (con integer) b)
+                              (lam
+                                fa
+                                [ Maybe (con integer) ]
+                                [ [ { { dFunctor (con integer) } b } f ] fa ]
+                              )
+                            )
+                          )
+                        )
+                        (fun (con integer) (con integer))
+                      }
+                      (abs
+                        a
+                        (type)
+                        (abs
+                          b
+                          (type)
+                          (lam
+                            f
+                            (fun a b)
+                            (lam
+                              ds
+                              [ Maybe a ]
+                              {
+                                [
+                                  [
+                                    {
+                                      [ { Maybe_match a } ds ]
+                                      (all dead (type) [ Maybe b ])
+                                    }
+                                    (lam
+                                      a
+                                      a
+                                      (abs dead (type) [ { Just b } [ f a ] ])
+                                    )
+                                  ]
+                                  (abs dead (type) { Nothing b })
+                                ]
+                                (all dead (type) dead)
+                              }
+                            )
+                          )
+                        )
+                      )
+                    ]
+                    (lam
+                      x
+                      (con integer)
+                      (lam y (con integer) [ [ (builtin addInteger) x ] y ])
+                    )
+                  ]
+                  x
+                ]
+              )
+              (lam
+                ds
+                [ Maybe (con integer) ]
+                {
+                  [
+                    [
+                      {
+                        [ { Maybe_match (fun (con integer) (con integer)) } ds ]
+                        (all dead (type) [ Maybe (con integer) ])
+                      }
+                      (lam
+                        ipv
+                        (fun (con integer) (con integer))
+                        (abs
+                          dead
+                          (type)
+                          {
+                            [
+                              [
+                                {
+                                  [ { Maybe_match (con integer) } ds ]
+                                  (all dead (type) [ Maybe (con integer) ])
+                                }
+                                (lam
+                                  ipv
+                                  (con integer)
+                                  (abs
+                                    dead
+                                    (type)
+                                    [ { Just (con integer) } [ ipv ipv ] ]
+                                  )
+                                )
+                              ]
+                              (abs dead (type) { Nothing (con integer) })
+                            ]
+                            (all dead (type) dead)
+                          }
+                        )
+                      )
+                    ]
+                    (abs dead (type) { Nothing (con integer) })
+                  ]
+                  (all dead (type) dead)
+                }
+              )
+            )
+            y
+          ]
+        )
+      )
+      [ { Just (con integer) } (con integer 2) ]
+    ]
+  )
+)

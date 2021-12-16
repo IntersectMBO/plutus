@@ -17,6 +17,7 @@ import PlcTestUtils
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Prelude as P
 
 import Data.Proxy
 
@@ -34,6 +35,9 @@ basic = testNested "Basic" [
   , goldenPir "ifOpt" ifOpt
   -- should fail
   , goldenUEval "ifOptEval" [ifOpt]
+  , goldenPir "monadicDo" monadicDo
+  , goldenPir "patternMatchDo" patternMatchDo
+  , goldenUPlcCatch "patternMatchFailure" patternMatchFailure
   ]
 
 monoId :: CompiledCode (Integer -> Integer)
@@ -63,3 +67,27 @@ strictLetRec = plc (Proxy @"strictLetRec") (\(x::Integer) (y::Integer) -> let !z
 
 ifOpt :: CompiledCode Integer
 ifOpt = plc (Proxy @"ifOpt") (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)
+
+-- TODO: It's pretty questionable that this works at all! It's actually using 'Monad' from 'base',
+-- since that's what 'do' notation is hard-coded to use, and it just happens that it's all inlinable
+-- enough to work...
+-- Test what basic do-notation looks like (should just be a bunch of calls to '>>=')
+monadicDo :: CompiledCode (Maybe Integer -> Maybe Integer -> Maybe Integer)
+monadicDo = plc (Proxy @"monadicDo") (\(x :: Maybe Integer) (y:: Maybe Integer) -> do
+    x' <- x
+    y' <- y
+    P.pure (x' `Builtins.addInteger` y'))
+
+-- Irrefutable match in a do block
+patternMatchDo :: CompiledCode (Maybe (Integer, Integer) -> Maybe Integer -> Maybe Integer)
+patternMatchDo = plc (Proxy @"patternMatchDo") (\(x :: Maybe (Integer, Integer)) (y:: Maybe Integer) -> do
+    (x1, x2) <- x
+    y' <- y
+    P.pure (x1 `Builtins.addInteger` x2 `Builtins.addInteger` y'))
+
+-- Should fail, since it'll call 'MonadFail.fail' with a String, which won't work
+patternMatchFailure :: CompiledCode (Maybe (Maybe Integer) -> Maybe Integer -> Maybe Integer)
+patternMatchFailure = plc (Proxy @"patternMatchFailure") (\(x :: Maybe (Maybe Integer)) (y:: Maybe Integer) -> do
+    Just x' <- x
+    y' <- y
+    P.pure (x' `Builtins.addInteger` y'))
