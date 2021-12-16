@@ -122,6 +122,13 @@ instance P.MultiplicativeMonoid Rational where
   {-# INLINEABLE one #-}
   one = Rational P.one P.one
 
+instance P.Module Integer Rational where
+  {-# INLINEABLE scale #-}
+  scale i (Rational n d) = let newNum = i P.* n
+                               gcd' = euclid newNum d in
+    Rational (newNum `Builtins.quotientInteger` gcd')
+             (d `Builtins.quotientInteger` gcd')
+
 instance P.ToData Rational where
   {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (Rational n d) = P.toBuiltinData (n, d)
