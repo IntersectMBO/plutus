@@ -27,9 +27,9 @@ module PlutusTx.List (
 import PlutusTx.Bool (Bool (..), otherwise, (||))
 import PlutusTx.Builtins (Integer)
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Eq (Eq, (==), (/=))
+import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
-import PlutusTx.Ord ((<), (<=), Ord, Ordering(..), compare)
+import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
 import PlutusTx.Trace (traceError)
 import Prelude (Maybe (..))
 
