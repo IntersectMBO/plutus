@@ -8,7 +8,7 @@ module PlutusBenchmark.Lists.Sort.InsertionSort where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
-import PlutusTx.Prelude as Tx
+import PlutusTx.Prelude as Tx hiding (sort)
 
 {-# INLINABLE insertionSort #-}
 insertionSort :: [Integer] -> [Integer]
