@@ -33,6 +33,8 @@ type Parser ann =
     ParsecT (PLC.ParseError ann) T.Text (StateT ParserState PLC.Quote)
 
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
+instance (Ord ann, Pretty ann) => ShowErrorComponent (PLC.ParseError ann) where
+    showErrorComponent err = show $ pretty err
 
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"

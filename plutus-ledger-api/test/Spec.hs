@@ -10,6 +10,7 @@ import Data.Maybe
 import Data.Word (Word8)
 import Plutus.V1.Ledger.Api
 import Plutus.V1.Ledger.Examples
+import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.Time qualified
 
@@ -73,4 +74,5 @@ tests = testGroup "plutus-ledger-api" [
     , saltedFunction
     , Spec.Interval.tests
     , Spec.Time.tests
+    , Spec.Eval.tests
     ]

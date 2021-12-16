@@ -73,7 +73,7 @@ import PlutusTx qualified as PlutusTx
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
-import PlutusTx.Prelude as PlutusTx
+import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.These
 import Prettyprinter
 import Prettyprinter.Extras
