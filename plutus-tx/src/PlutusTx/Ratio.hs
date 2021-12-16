@@ -136,6 +136,7 @@ instance P.UnsafeFromData Rational where
               then Builtins.error ()
               else n % d
 
+-- | This mimics the behaviour of Aeson's instance for 'GHC.Rational'.
 instance ToJSON Rational where
   toJSON (Rational n d) =
     object
@@ -143,13 +144,14 @@ instance ToJSON Rational where
       , ("denominator", toJSON d)
       ]
 
+-- | This mimics the behaviour of Aeson's instance for 'GHC.Rational'.
 instance FromJSON Rational where
   parseJSON = withObject "Rational" Haskell.$ \obj -> do
     n <- obj .: "numerator"
     d <- obj .: "denominator"
-    if d Haskell.== 0
-      then Haskell.fail "Zero denominator is invalid."
-      else Haskell.pure (n % d)
+    case ratio n d of
+      Haskell.Nothing -> Haskell.fail "Zero denominator is invalid."
+      Haskell.Just r  -> Haskell.pure r
 
 -- | Makes a 'Rational' from a numerator and a denominator.
 --
@@ -293,10 +295,9 @@ gcd a b = gcd' (P.abs a) (P.abs b) where
         | b' P.== P.zero = a'
         | P.True         = gcd' b' (a' `Builtins.remainderInteger` b')
 
--- | From GHC.Real
--- | 'reduce' is a subsidiary function used only in this module.
--- It normalises a ratio by dividing both numerator and denominator by
--- their greatest common divisor.
+-- From GHC.Real
+-- | Given a numerator and denominator, produces a 'Rational' by dividing both
+-- numerator and denominator by their greatest common divisor.
 {-# INLINABLE reduce #-}
 reduce :: Integer -> Integer -> Rational
 reduce x y
