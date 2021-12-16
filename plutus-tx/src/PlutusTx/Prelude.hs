@@ -68,7 +68,8 @@ module PlutusTx.Prelude (
     verifySignature,
     -- * Rational numbers
     Rational,
-    (%),
+    unsafeRatio,
+    ratio,
     fromInteger,
     round,
     -- * Data

@@ -14,7 +14,7 @@ module PlutusTx.Ratio(
     -- * Type
     Rational
     -- * Construction
-    , (%)
+    , unsafeRatio
     , fromInteger
     , ratio
     -- * Other functionality
@@ -132,7 +132,8 @@ instance P.ToData Rational where
 -- 2. The numerator and denominator are coprime.
 --
 -- For invariant 1, fromBuiltinData yields Nothing on violation, while
--- unsafeFromData calls error. Invariant 2 is kept maintained by use of %.
+-- unsafeFromData calls error. Invariant 2 is kept maintained by use of
+-- unsafeRatio.
 
 instance P.FromData Rational where
   {-# INLINEABLE fromBuiltinData #-}
@@ -140,14 +141,14 @@ instance P.FromData Rational where
     P.Nothing -> P.Nothing
     P.Just (n, d) -> if d P.== P.zero
                      then Builtins.error ()
-                     else P.Just (n % d)
+                     else P.Just (unsafeRatio n d)
 
 instance P.UnsafeFromData Rational where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData dat = case P.unsafeFromBuiltinData dat of
     (n, d) -> if d P.== P.zero
               then Builtins.error ()
-              else n % d
+              else unsafeRatio n d
 
 -- | This mimics the behaviour of Aeson's instance for 'GHC.Rational'.
 instance ToJSON Rational where
@@ -172,17 +173,15 @@ instance FromJSON Rational where
 --
 -- If given a zero denominator, this function will error. If you don't mind a
 -- size increase, and care about safety, use 'ratio' instead.
-{-# INLINEABLE (%) #-}
-(%) :: Integer -> Integer -> Rational
-n % d
+{-# INLINEABLE unsafeRatio #-}
+unsafeRatio :: Integer -> Integer -> Rational
+unsafeRatio n d
   | d P.== P.zero = Builtins.error ()
-  | d P.< P.zero = P.negate n % P.negate d
+  | d P.< P.zero = unsafeRatio (P.negate n) (P.negate d)
   | P.True =
     let gcd' = euclid n d
      in Rational (n `Builtins.quotientInteger` gcd')
                  (d `Builtins.quotientInteger` gcd')
-
-infixl 7 %
 
 -- | Safely constructs a 'Rational' from a numerator and a denominator. Returns
 -- 'Nothing' if given a zero denominator.
@@ -190,7 +189,7 @@ infixl 7 %
 ratio :: Integer -> Integer -> P.Maybe Rational
 ratio n d
   | d P.== P.zero = P.Nothing
-  | d P.< P.zero = P.Just (P.negate n % P.negate d)
+  | d P.< P.zero = P.Just (unsafeRatio (P.negate n) (P.negate d))
   | P.True =
     let gcd' = euclid n d
      in P.Just P..
@@ -225,7 +224,7 @@ fromInteger num = Rational num P.one
 
 -- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
 fromGHC :: Ratio.Rational -> Rational
-fromGHC r = Ratio.numerator r % Ratio.denominator r
+fromGHC r = unsafeRatio (Ratio.numerator r) (Ratio.denominator r)
 
 -- | Produces the additive inverse of its argument.
 --
@@ -335,16 +334,12 @@ P.makeLift ''Rational
 
 {- Note [Ratio]
 
-The implementation of 'Ratio' and related functions (most importantly
-'round' and Num/Ord instances) is the same as that found in 'GHC.Real',
-specialised to `Integer`.
-
 An important invariant is that the denominator is always positive. This is
 enforced by
 
-* Construction of 'Rational' numbers with '%' (the constructor of 'Ratio' is
-  not exposed)
-* Using `reduce` after every 'Num' operation
+* Construction of 'Rational' numbers with 'unsafeRational' (the constructor
+  of 'Rational' is not exposed)
+* Normalizing after every numeric operation.
 
 The 'StdLib.Spec' module has some property tests that check the behaviour of
 'round', 'truncate', '>=', etc. against that of their counterparts in

@@ -78,7 +78,7 @@ testDivMod = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ divMod n1 n2
-    plutusResult <- tryHard $ Ratio.divMod n1 n2
+    plutusResult <- tryHard $ PlutusTx.divMod n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -88,7 +88,7 @@ testQuotRem = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ quotRem n1 n2
-    plutusResult <- tryHard $ Ratio.quotRem n1 n2
+    plutusResult <- tryHard $ PlutusTx.quotRem n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
