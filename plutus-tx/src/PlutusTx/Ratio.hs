@@ -59,6 +59,11 @@ data Rational = Rational Integer Integer
     Show
     )
 
+-- We maintain two invariants for Rational:
+--
+-- 1. The denominator is greater than zero.
+-- 2. The numerator and denominator are coprime.
+
 instance P.Eq Rational where
   {-# INLINEABLE (==) #-}
   Rational n d == Rational n' d' = n P.== n' P.&& d P.== d'
@@ -120,6 +125,14 @@ instance P.MultiplicativeMonoid Rational where
 instance P.ToData Rational where
   {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (Rational n d) = P.toBuiltinData (n, d)
+
+-- These instances ensure that the following invariants don't break:
+--
+-- 1. The denominator is greater than 0; and
+-- 2. The numerator and denominator are coprime.
+--
+-- For invariant 1, fromBuiltinData yields Nothing on violation, while
+-- unsafeFromData calls error. Invariant 2 is kept maintained by use of %.
 
 instance P.FromData Rational where
   {-# INLINEABLE fromBuiltinData #-}
