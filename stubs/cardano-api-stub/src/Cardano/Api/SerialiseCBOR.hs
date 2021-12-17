@@ -8,14 +8,14 @@ module Cardano.Api.SerialiseCBOR
   , ToCBOR(..)
   ) where
 
-import           Prelude
+import Prelude
 
-import           Data.ByteString          (ByteString)
+import Data.ByteString (ByteString)
 
-import           Cardano.Binary           (FromCBOR, ToCBOR)
-import qualified Cardano.Binary           as CBOR
+import Cardano.Binary (FromCBOR, ToCBOR)
+import Cardano.Binary qualified as CBOR
 
-import           Cardano.Api.HasTypeProxy
+import Cardano.Api.HasTypeProxy
 
 
 class HasTypeProxy a => SerialiseAsCBOR a where

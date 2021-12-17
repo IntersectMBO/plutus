@@ -16,6 +16,6 @@ where
 --  SerialiseAsCBOR,
 --  TextEnvelopeType (TextEnvelopeType)
 
-import           Cardano.Api.HasTypeProxy
-import           Cardano.Api.SerialiseCBOR
-import           Cardano.Api.SerialiseTextEnvelope
+import Cardano.Api.HasTypeProxy
+import Cardano.Api.SerialiseCBOR
+import Cardano.Api.SerialiseTextEnvelope

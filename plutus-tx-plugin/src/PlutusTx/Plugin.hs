@@ -11,7 +11,7 @@
 module PlutusTx.Plugin
     ( plugin
     , plc
-    -- the following symbols *must* be exported 
+    -- the following symbols *must* be exported
     -- for plugins to work under cross compilation.
     , mkCompiledCode
     )

@@ -8,8 +8,8 @@ module Cardano.Api.HasTypeProxy
   , FromSomeType(..)
   ) where
 
-import           Data.Kind  (Constraint, Type)
-import           Data.Proxy (Proxy (..))
+import Data.Kind (Constraint, Type)
+import Data.Proxy (Proxy (..))
 
 
 class HasTypeProxy t where
