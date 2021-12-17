@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE TypeOperators       #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 

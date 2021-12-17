@@ -73,16 +73,16 @@ varType :: Parser PType
 varType = PLC.TyVar <$> getSourcePos <*> tyName
 
 funType :: Parser PType
-funType = PLC.TyFun <$> wordPos "fun" <*> typ <*> typ
+funType = PLC.TyFun <$> wordPos "fun" <*> pType <*> pType
 
 allType :: Parser PType
-allType = PLC.TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
+allType = PLC.TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
 
 lamType :: Parser PType
-lamType = PLC.TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
+lamType = PLC.TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
 
 ifixType :: Parser PType
-ifixType = PLC.TyIFix <$> wordPos "ifix" <*> typ <*> typ
+ifixType = PLC.TyIFix <$> wordPos "ifix" <*> pType <*> pType
 
 builtinType :: Parser PType
 builtinType = PLC.TyBuiltin <$> wordPos "con" <*> defaultUniType
@@ -90,8 +90,8 @@ builtinType = PLC.TyBuiltin <$> wordPos "con" <*> defaultUniType
 appType :: Parser PType
 appType = do
     pos  <- getSourcePos
-    fn   <- typ
-    args <- some typ
+    fn   <- pType
+    args <- some pType
     pure $ foldl' (PLC.TyApp pos) fn args
 
 kind :: Parser (PLC.Kind SourcePos)
@@ -101,9 +101,9 @@ kind = inParens (typeKind <|> funKind)
         funKind  = PLC.KindArrow <$> wordPos "fun" <*> kind <*> kind
 
 -- | Parser for @PType@.
-typ :: Parser PType
-typ = choice
-    [inParens typ
+pType :: Parser PType
+pType = choice
+    [inParens pType
     , varType
     , funType
     , ifixType
