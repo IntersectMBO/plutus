@@ -104,6 +104,7 @@ let
            -- no idea why ouroboros-consensus-byron restricts to <.28
            , ouroboros-consensus-byron:cryptonite
 
+      constraints: cborg < 0.2.6.0
     '' + lib.optionalString (topLevelPkgs.stdenv.hostPlatform.isGhcjs && !pkgs.stdenv.hostPlatform.isGhcjs) ''
       packages:
         ${topLevelPkgs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.project.configured-src}
