@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 
 -- | Functions for compiling GHC names into Plutus Core names.
 module PlutusTx.Compiler.Names where
@@ -50,7 +51,7 @@ getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: Compiling uni fun m => GHC.Var -> m (PLCVar uni fun)
+compileVarFresh :: CompilingDefault uni fun m => GHC.Var -> m (PLCVar uni fun)
 compileVarFresh v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v

@@ -15,6 +15,7 @@ module UntypedPlutusCore.DeBruijn
     , unDeBruijnTerm
     , unDeBruijnProgram
     , unNameDeBruijn
+    , fakeNameDeBruijn
     ) where
 
 import PlutusCore.DeBruijn.Internal
@@ -23,6 +24,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
 
+import Control.Lens hiding (Index, index)
 import Control.Monad.Except
 import Control.Monad.Reader
 
@@ -84,9 +86,11 @@ unDeBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> deBruijnToName n
     -- binder cases
-    LamAbs ann n t -> declareIndex n $ do
-        n' <- deBruijnToName n
-        withScope $ LamAbs ann n' <$> unDeBruijnTermM t
+    LamAbs ann n t ->
+        -- See NOTE: [DeBruijn indices of Binders]
+        declareBinder $ do
+            n' <- deBruijnToName $ set index 0 n
+            withScope $ LamAbs ann n' <$> unDeBruijnTermM t
     -- boring recursive cases
     Apply ann t1 t2 -> Apply ann <$> unDeBruijnTermM t1 <*> unDeBruijnTermM t2
     Delay ann t -> Delay ann <$> unDeBruijnTermM t

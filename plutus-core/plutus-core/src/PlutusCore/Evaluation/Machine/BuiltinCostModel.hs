@@ -3,11 +3,12 @@
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE StrictData           #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-{-# LANGUAGE StrictData           #-}
+{-# OPTIONS_GHC -O0           #-}
 
 module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel

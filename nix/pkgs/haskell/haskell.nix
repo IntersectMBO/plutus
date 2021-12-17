@@ -49,7 +49,7 @@ let
     # checkMaterialization = true;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
-      "https://github.com/input-output-hk/cardano-base"."506180d2627994c5d947f92f00aaa345d722776f" = "0z9s2mvhsjz2h2fk8mzpqyy7f7y68njw64zc29hzrgfrm0mj7nzj";
+      "https://github.com/input-output-hk/cardano-base"."e75ae9830d624a1e02400b5d7a4b96cbdc852e9b" = "sha256-zrlKzxcPwy7DggIsw4wlaMJC+q9M9CA3DMsCFoUqe78=";
       "https://github.com/input-output-hk/cardano-crypto.git"."1fff72e39e690676d4156a56858c6b72e1f0bff9" = "06kahs46z842xndq3sgcrqyvmgvs05rnflbq76599pfnb2vspy2q";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";

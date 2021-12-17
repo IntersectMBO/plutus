@@ -47,9 +47,9 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 closeFrame : ∀{T H} → Frame T H → ∅ ⊢ H → ∅ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
-closeFrame (-·⋆ A)         t = _·⋆_ t A
+closeFrame (-·⋆ A)         t = t ·⋆ A / refl
 closeFrame wrap-           t = wrap _ _ t
-closeFrame unwrap-         t = unwrap t
+closeFrame unwrap-         t = unwrap t refl
 -- Plugging a term into a stack yields a term again
 
 closeStack : ∀{T H} → Stack T H → ∅ ⊢ H → ∅ ⊢ T
@@ -71,9 +71,9 @@ step : ∀{A} → State A → State A
 step (s ▻ ƛ L)                    = s ◅ V-ƛ L
 step (s ▻ (L · M))                = (s , -· M) ▻ L
 step (s ▻ Λ L)                    = s ◅ V-Λ L
-step (s ▻ (L ·⋆ A))               = (s , -·⋆ A) ▻ L
+step (s ▻ (L ·⋆ A / refl))        = (s , -·⋆ A) ▻ L
 step (s ▻ wrap A B L)             = (s , wrap-) ▻ L
-step (s ▻ unwrap L)               = (s , unwrap-) ▻ L
+step (s ▻ unwrap L refl)          = (s , unwrap-) ▻ L
 step (s ▻ con cn)                 = s ◅ V-con cn
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
@@ -82,15 +82,15 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
-step (s ▻ builtin b) = s ◅ ival b
+step (s ▻ (builtin b / refl))     = s ◅ ival b
 step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
   s ▻ BUILTIN' b (bubble p) (app p bt vu)
 step ((s , (V-I⇒ b {as' = _ ∷ as'} p bt ·-)) ◅ vu) =
   s ◅ V-I b (bubble p) (app p bt vu)
 step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p bt) =
-  s ▻ BUILTIN' b (bubble p) (app⋆ p bt)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = x ∷ as'} p bt) =
-  s ◅ V-I b (bubble p) (app⋆ p bt)
+  s ▻ BUILTIN' b (bubble p) (app⋆ p bt refl)
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = _ ∷ as'} p bt) =
+  s ◅ V-I b (bubble p) (app⋆ p bt refl)
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
@@ -106,7 +106,10 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
+
+
 import Algorithmic.CC as CC
+
 open import Relation.Binary.PropositionalEquality
 open import Data.Sum
 
@@ -160,15 +163,15 @@ thm64 (E CC.▻ ƛ M) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
 thm64 (E CC.▻ (M · N)) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E (-· N))) (thm64 _ E' p)
 thm64 (E CC.▻ Λ M) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
-thm64 (E CC.▻ (M ·⋆ A)) E' (CC.step* refl p) =
+thm64 (E CC.▻ (M ·⋆ A / refl)) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E (-·⋆ A))) (thm64 _ E' p)
 thm64 (E CC.▻ wrap A B M) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E wrap-)) (thm64 _ E' p)
-thm64 (E CC.▻ unwrap M) E' (CC.step* refl p) =
+thm64 (E CC.▻ unwrap M refl) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E unwrap-)) (thm64 _ E' p)
 thm64 (E CC.▻ con M) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
-thm64 (E CC.▻ builtin b) E' (CC.step* refl p) =
+thm64 (E CC.▻ (builtin b / refl)) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
 thm64 (E CC.▻ error _) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
 thm64 (E CC.◅ V) E' (CC.step* refl p) with CC.dissect E | inspect CC.dissect E
@@ -193,11 +196,11 @@ thm64b s .s base = CC.base
 thm64b (s ▻ ƛ M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ (M · M₁)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ Λ M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ (M ·⋆ A)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ (M ·⋆ A / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ wrap A B M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ unwrap M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ unwrap M refl) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ con c) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ builtin b) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ (builtin b / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ error _) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (ε ◅ V) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b ((s , (-· M)) ◅ V) s' (step* refl p) = CC.step*
@@ -235,7 +238,7 @@ thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
-test = ε ▻ (ƛ (con unit) · (builtin iData · con (integer (+ 0))))
+test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)
@@ -251,3 +254,5 @@ lem◆ (step* refl p) = lem◆ p
 
 lem◆' : ∀ {A A'}{M : ∅ ⊢ A}(V : Value M) → ◆ A' -→s □ V → ⊥
 lem◆' V (step* refl p) = lem◆' V p
+
+

@@ -108,6 +108,7 @@ test-suite plutus-tx-tests
         Plugin.Errors.Spec
         Plugin.Functions.Spec
         Plugin.Laziness.Spec
+        Plugin.NoTrace.Spec
         Plugin.Primitives.Spec
         Plugin.Profiling.Spec
         Plugin.Typeclasses.Spec
@@ -139,5 +140,4 @@ test-suite plutus-tx-tests
         ghc-prim -any,
         containers -any
     -- NOTE: -g makes the plugin give better errors
-    -- NOTE: we disable the simplifier as it simplifies away some tests
-    ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
+    ghc-options: -g

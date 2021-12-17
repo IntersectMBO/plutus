@@ -2,8 +2,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PartialTypeSignatures     #-}
-{-# LANGUAGE RankNTypes                #-}
 
 module Main (main) where
 
@@ -13,19 +11,16 @@ import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import Data.Aeson qualified as Aeson
-import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (asum)
 import Data.Functor (void)
 import Data.List (nub)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromJust)
+import Data.Text qualified as T
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Text qualified as T
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -52,6 +47,7 @@ data Command = Apply     ApplyOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
              | DumpModel
+             | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
 
@@ -147,6 +143,9 @@ plutusOpts = hsubparser (
     <> command "dump-model"
            (info (pure DumpModel)
             (progDesc "Dump the cost model parameters"))
+    <> command "print-builtin-signatures"
+           (info (pure PrintBuiltinSignatures)
+            (progDesc "Print the signatures of the built-in functions"))
   )
 
 
@@ -223,18 +222,17 @@ runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
     writeProgram outp ofmt mode program
 
-runDumpModel :: IO ()
-runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
-    BSL.putStr $ Aeson.encode params
+
+---------------- Driver ----------------
 
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts -> runApply        opts
-        Eval      opts -> runEval         opts
-        Example   opts -> runUplcPrintExample opts
-        Print     opts -> runPrint        opts
-        Convert   opts -> runConvert      opts
-        DumpModel      -> runDumpModel
+        Apply     opts         -> runApply        opts
+        Eval      opts         -> runEval         opts
+        Example   opts         -> runUplcPrintExample opts
+        Print     opts         -> runPrint        opts
+        Convert   opts         -> runConvert      opts
+        DumpModel              -> runDumpModel
+        PrintBuiltinSignatures -> runPrintBuiltinSignatures

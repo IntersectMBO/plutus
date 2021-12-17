@@ -99,11 +99,11 @@ extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
 extricate (Λ {K = K} t) = Λ K (extricate t)
-extricate {Φ}{Γ} (_·⋆_ t A) = extricate t ScopedTm.·⋆ extricateNf⋆ A
+extricate {Φ}{Γ} (t ·⋆ A / refl) = extricate t ScopedTm.·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
-extricate (unwrap t) = unwrap (extricate t)
+extricate (unwrap t refl) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate (builtin b) = builtin b
+extricate (builtin b / refl) = builtin b
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

@@ -9,7 +9,6 @@ module Evaluation.Machines
     ) where
 
 import UntypedPlutusCore
-import UntypedPlutusCore.Evaluation.HOAS
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import PlutusCore qualified as Plc
@@ -54,7 +53,6 @@ test_machines :: TestTree
 test_machines =
     testGroup "machines"
         [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testBudget

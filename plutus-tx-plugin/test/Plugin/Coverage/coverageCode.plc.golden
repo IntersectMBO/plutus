@@ -19,10 +19,10 @@
     )
     (termbind
       (strict)
-      (vardecl fail (fun (all a (type) a) [ Maybe Bool ]))
+      (vardecl fail (fun (con unit) [ Maybe Bool ]))
       (lam
         ds
-        (all a (type) a)
+        (con unit)
         {
           {
             [
@@ -145,12 +145,12 @@
               traceBool
               (con
                 string
-                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) False"
+                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) True"
               )
             ]
             (con
               string
-              "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) True"
+              "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 1, _covLocEndCol = 32}) False"
             )
           ]
           {
@@ -174,12 +174,12 @@
                           traceBool
                           (con
                             string
-                            "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) False"
+                            "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) True"
                           )
                         ]
                         (con
                           string
-                          "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) True"
+                          "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 43, _covLocEndLine = 43, _covLocStartCol = 14, _covLocEndCol = 24}) False"
                         )
                       ]
                       {
@@ -316,12 +316,12 @@
                                       traceBool
                                       (con
                                         string
-                                        "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) False"
+                                        "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) True"
                                       )
                                     ]
                                     (con
                                       string
-                                      "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) True"
+                                      "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 39, _covLocEndLine = 39, _covLocStartCol = 12, _covLocEndCol = 22}) False"
                                     )
                                   ]
                                   {
@@ -410,14 +410,14 @@
                               }
                             )
                           ]
-                          (abs dead (type) [ fail (abs e (type) (error e)) ])
+                          (abs dead (type) [ fail (con unit ()) ])
                         ]
                         (all dead (type) dead)
                       }
                     )
                   )
                 ]
-                (abs dead (type) [ fail (abs e (type) (error e)) ])
+                (abs dead (type) [ fail (con unit ()) ])
               ]
               (all dead (type) dead)
             }

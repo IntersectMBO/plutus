@@ -147,7 +147,6 @@ library
 
         UntypedPlutusCore
         UntypedPlutusCore.DeBruijn
-        UntypedPlutusCore.Evaluation.HOAS
         UntypedPlutusCore.Evaluation.Machine.Cek
         UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
@@ -415,6 +414,7 @@ test-suite untyped-plutus-core-test
         Evaluation.Golden
         Evaluation.Machines
         Transform.Simplify
+        DeBruijn.Spec
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -438,6 +438,7 @@ executable plc
         Parsers
     build-depends:
         plutus-core -any,
+        aeson -any,
         base <5,
         bytestring -any,
         deepseq -any,
@@ -480,6 +481,7 @@ executable pir
         Parsers
     build-depends:
         plutus-core -any,
+        aeson -any,
         base <5,
         bytestring -any,
         flat -any,
@@ -499,12 +501,32 @@ executable traceToStacks
     import: lang
     main-is: Main.hs
     hs-source-dirs: executables/traceToStacks
+    other-modules:
+        Common
     build-depends:
         base >=4.9 && <5,
         cassava -any,
         integer-gmp -any,
         bytestring -any,
         optparse-applicative -any,
+        text -any,
+        vector -any,
+
+-- Tests for functions called by @traceToStacks@.
+test-suite traceToStacks-test
+    import: lang
+    type: exitcode-stdio-1.0
+    hs-source-dirs: executables/traceToStacks
+    default-language: Haskell2010
+    main-is: TestGetStacks.hs
+    other-modules:
+        Common
+    build-depends:
+        base -any,
+        bytestring -any,
+        cassava -any,
+        tasty -any,
+        tasty-hunit -any,
         text -any,
         vector -any,
 
