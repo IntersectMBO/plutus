@@ -45,8 +45,8 @@ let
       else if pkgs.stdenv.hostPlatform.isWindows then ./materialized-windows
       else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
-    inherit checkMaterialization;
-    # checkMaterialization = true;
+    # inherit checkMaterialization;
+    checkMaterialization = true;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
       "https://github.com/input-output-hk/cardano-base"."e75ae9830d624a1e02400b5d7a4b96cbdc852e9b" = "sha256-zrlKzxcPwy7DggIsw4wlaMJC+q9M9CA3DMsCFoUqe78=";
