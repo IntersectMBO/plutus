@@ -1097,12 +1097,6 @@ lem□ : ∀{A}(W V : Value A) → □ W -→s □ V → W ≡ V
 lem□ W .W base = refl
 lem□ W V (step* refl p) = lem□ W V p
 
-postulate discharge-lem' : ∀{A}{M : ∅ ⊢ A}(V : Red.Value M) → M ≡ discharge (ck2cekVal V)
-
-postulate inv-lem : ∀{A}{M : ∅ ⊢ A}(x₁ : Red.Value M)
-                  → (p : M ≡ discharge (ck2cekVal x₁))
-                  → substEq Red.Value p x₁ ≡ cek2ckVal (ck2cekVal x₁)
-
 -- the below lemmas/assumptions consider the case that where M is a
 --  variable in M' == clos M ρ, but I am not sure if these cases ever
 --  occur when the CEK machine is in value mode. This may be overkill
