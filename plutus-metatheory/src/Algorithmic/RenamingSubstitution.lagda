@@ -281,9 +281,20 @@ extˢ-id : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}(x : Γ , A ∋ B)
 extˢ-id Z     = refl
 extˢ-id (S x) = refl
 
+extˢ-comp : ∀ {Φ Γ Δ Θ}{A B : Φ ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(x : Γ , B ∋ A)
+  → extˢ (ρ ∘ ρ') x ≡ extˢ ρ (extˢ ρ' x)
+extˢ-comp Z     = refl
+extˢ-comp (S x) = refl
+
 extˢ⋆-id : ∀ {Φ Γ}{K}{A : Φ ,⋆ K ⊢Nf⋆ *}(x : Γ ,⋆ K ∋ A)
   → extˢ⋆ id x ≡ x
 extˢ⋆-id (T x) = refl
+
+extˢ⋆-comp : ∀ {Φ Γ Δ Θ}{K}{A : Φ ,⋆ K ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(x : Γ ,⋆ K ∋ A)
+  → extˢ⋆ (ρ ∘ ρ') x ≡ extˢ⋆ ρ (extˢ⋆ ρ' x)
+extˢ⋆-comp (T x) = refl
 
 extˢ-cong : ∀{Φ}{Γ Δ : Ctx Φ}{ρ ρ' : Renˢ Γ Δ}
           → (∀{A}(x : Γ ∋ A) → ρ x ≡ ρ' x)
@@ -328,4 +339,18 @@ renˢ-id (unwrap M p) = cong (λ M → unwrap M p) (renˢ-id M)
 renˢ-id (con c) = refl
 renˢ-id (builtin b / p) = refl
 renˢ-id (error _) = refl
+
+renˢ-comp : ∀ {Φ Γ Δ Θ}{A : Φ ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(M : Γ ⊢ A)
+  → renˢ (ρ ∘ ρ') M ≡ renˢ ρ (renˢ ρ' M)
+renˢ-comp (` x) = refl
+renˢ-comp (ƛ M) = cong ƛ (trans (renˢ-cong extˢ-comp M) (renˢ-comp M))
+renˢ-comp (L · M) = cong₂ _·_ (renˢ-comp L) (renˢ-comp M)
+renˢ-comp (Λ M) = cong Λ (trans (renˢ-cong extˢ⋆-comp M) (renˢ-comp M))
+renˢ-comp (M ·⋆ A / p) = cong (_·⋆ A / p) (renˢ-comp M)
+renˢ-comp (wrap A B M) = cong (wrap A B) (renˢ-comp M)
+renˢ-comp (unwrap M p) = cong (λ M → unwrap M p) (renˢ-comp M)
+renˢ-comp (con c) = refl
+renˢ-comp (builtin b / p) = refl
+renˢ-comp (error _) = refl
 \end{code}
