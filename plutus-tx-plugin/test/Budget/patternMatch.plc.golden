@@ -1,0 +1,72 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Maybe (fun (type) (type)))
+        (tyvardecl a (type))
+        Maybe_match
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+      )
+    )
+    [
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl x [ Maybe (con integer) ])
+          [ { Just (con integer) } (con integer 1) ]
+        )
+        (lam
+          y
+          [ Maybe (con integer) ]
+          {
+            [
+              [
+                {
+                  [ { Maybe_match (con integer) } x ]
+                  (all dead (type) [ Maybe (con integer) ])
+                }
+                (lam
+                  x
+                  (con integer)
+                  (abs
+                    dead
+                    (type)
+                    {
+                      [
+                        [
+                          {
+                            [ { Maybe_match (con integer) } y ]
+                            (all dead (type) [ Maybe (con integer) ])
+                          }
+                          (lam
+                            y
+                            (con integer)
+                            (abs
+                              dead
+                              (type)
+                              [
+                                { Just (con integer) }
+                                [ [ (builtin addInteger) x ] y ]
+                              ]
+                            )
+                          )
+                        ]
+                        (abs dead (type) { Nothing (con integer) })
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              ]
+              (abs dead (type) { Nothing (con integer) })
+            ]
+            (all dead (type) dead)
+          }
+        )
+      )
+      [ { Just (con integer) } (con integer 2) ]
+    ]
+  )
+)

@@ -6,6 +6,7 @@ Reference
    :titlesonly:
 
    common-weaknesses/index
+   optimization
    examples
    cost-model-parameters
    glossary
