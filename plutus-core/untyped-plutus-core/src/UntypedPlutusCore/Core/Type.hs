@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -12,18 +13,21 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
-    , toTerm
     , bindFunM
     , bindFun
     , mapFun
     , termAnn
     , erase
     , eraseProgram
+    , progAnn
+    , progVer
+    , progTerm
     ) where
 
 import Data.Functor.Identity
 import PlutusPrelude
 
+import Control.Lens
 import PlutusCore.Constant qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
@@ -55,7 +59,7 @@ once per program, so it's not too big a deal if it doesn't get a tag.
 
 The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
 and hence a computation can be stuck expecting only a single type argument for the computation
-to become unstuck. Therefore we can't just silently remove type abstractions and instantions and
+to become unstuck. Therefore we can't just silently remove type abstractions and instantiations and
 need to replace them with something else that also blocks evaluation (in order for the semantics
 of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
 serve exactly this purpose.
@@ -77,9 +81,15 @@ data Term name uni fun ann
     deriving anyclass (NFData)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
+data Program name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progVer  :: TPLC.Version ann
+    , _progTerm :: Term name uni fun ann
+    }
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+makeLenses ''Program
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
@@ -104,9 +114,6 @@ instance TPLC.FromConstant (Term name uni fun ()) where
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
-
-toTerm :: Program name uni fun ann -> Term name uni fun ann
-toTerm (Program _ _ term) = term
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann

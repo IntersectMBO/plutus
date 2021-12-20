@@ -24,6 +24,7 @@ For this test-suite we write the programs directly in the UPLC AST,
 bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
 The reason is that users can submit such hand-crafted code, and we want to test how it behaves.
 Because this is part of our API, we have to be careful not to change the behaviour of even weird untypeable programs.
+In particular, We test both the offline part (Scripts module) and the online part (API module).
 -}
 
 -- (delay outOfScope)
@@ -66,7 +67,7 @@ outITELazy = mkIterApp ()
          ]
 
 -- [(force (builtin ifThenElse)) (con bool True) (con bool  True) (con unit ())]
--- Note that the branches have **different** types.
+-- Note that the branches have **different** types. The machine cannot catch such a type error.
 illITEStrict :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 illITEStrict = mkIterApp ()
          (Force () (Builtin () IfThenElse))
@@ -76,7 +77,7 @@ illITEStrict = mkIterApp ()
          ]
 
 -- [(force (builtin ifThenElse)) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))]
--- The branches are *lazy*. Note that the branches have **different** types.
+-- The branches are *lazy*. Note that the branches have **different** types. The machine cannot catch such a type error.
 illITELazy :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 illITELazy = mkIterApp ()
          (Force () (Builtin () IfThenElse))
@@ -113,42 +114,36 @@ illOverApp = mkIterApp ()
 
 testOffline :: TestNested
 testOffline = pure . testCase "offline" $ do
-    eval outDelay @?= False
-    eval outLam @?= False
-    eval outConst @?= False
+    eval outDelay @?= True
+    eval outLam @?= True
+    eval outConst @?= True
     eval outITEStrict @?= False
-    eval outITELazy @?= False
+    eval outITELazy @?= True
+    eval illITEStrict @?= True
+    eval illITELazy @?= True
     eval illAdd @?= False
     eval illOverSat @?= False
     eval illOverApp @?= False
-    -- some ill-typed expressions cannot be caught by the machine
-    eval illITEStrict @?= True
-    eval illITELazy @?= True
   where
       eval :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      eval = isRight . runExcept . evaluateScript . Script . mkProg
+      eval = isRight . runExcept . Scripts.evaluateScript . Script . mkProg
 
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
-Currently, this includes de Bruijn conversion, but this will go away once we change the evaluator to operate
-on de Bruijn indices directly.
-currently behaves similar to offlineEvalExternal, because any out-of-scope errors will be caught by
-the undebruinification step of mkTermToEvaluate. Subject to change by direct debruijn branch.
 -}
 testOnline :: TestNested
 testOnline = pure . testCase "online" $ do
-    eval outDelay @?= False
-    eval outLam @?= False
-    eval outConst @?= False
+    eval outDelay @?= True
+    eval outLam @?= True
+    eval outConst @?= True
     eval outITEStrict @?= False
-    eval outITELazy @?= False
+    eval outITELazy @?= True
+    eval illITEStrict @?= True
+    eval illITELazy @?= True
     eval illAdd @?= False
     eval illOverSat @?= False
     eval illOverApp @?= False
-    -- some ill-typed expressions cannot be caught by the machine
-    eval illITEStrict @?= True
-    eval illITELazy @?= True
   where
       eval :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
       eval t =
@@ -161,7 +156,6 @@ tests = runTestNestedIn ["plutus-ledger-api"] $
           testNested "eval"
             [ testOffline
             , testOnline
-            -- TODO: implement testOfflineInternal for cek-debruijn branch using Cek.Internal, to show that also no out-of-scope will be caught
             ]
 
 

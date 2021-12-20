@@ -57,7 +57,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.Exception
-import Control.Lens.Combinators (_2)
+import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -112,7 +112,7 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
     toUPlc = pure
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
-    toUPlc p = withExceptT @_ @FreeVariableError toException $ TPLC.runQuoteT $ UPLC.unDeBruijnProgram p
+    toUPlc p = withExceptT @_ @FreeVariableError toException $ TPLC.runQuoteT $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p
 
 pureTry :: Exception e => a -> Either e a
 pureTry = unsafePerformIO . try . evaluate
@@ -180,28 +180,28 @@ goldenTPlc
     => String -> a -> TestNested
 goldenTPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toTPlc value
-    withExceptT @_ @FreeVariableError toException $ deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
 
 goldenTPlcCatch
     :: ToTPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenTPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toTPlc value
-    withExceptT @_ @FreeVariableError toException $ deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
 
 goldenUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
      => String -> a -> TestNested
 goldenUPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenUPlcCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenUPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenTEval
     :: ToTPlc a DefaultUni TPLC.DefaultFun

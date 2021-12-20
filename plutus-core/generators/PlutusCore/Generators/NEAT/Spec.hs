@@ -254,7 +254,7 @@ data TestFail
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni DefaultFun)
-  | UCekP (U.CekEvaluationException DefaultUni DefaultFun)
+  | UCekP (U.CekEvaluationException Name DefaultUni DefaultFun)
   | Ctrex Ctrex
 
 data Ctrex

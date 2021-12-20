@@ -248,3 +248,4 @@ benchmark cek-calibration
       , plutus-tx-plugin -any
       , criterion >= 1.5.9.0
       , mtl -any
+      , lens -any

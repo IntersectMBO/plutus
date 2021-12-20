@@ -33,7 +33,6 @@ module Plutus.V1.Ledger.Scripts(
     applyValidator,
     applyMintingPolicyScript,
     applyStakeValidatorScript,
-    mkTermToEvaluate,
     applyArguments,
     -- * Script wrappers
     mkValidatorScript,
@@ -65,7 +64,7 @@ import Prelude qualified as Haskell
 import Codec.CBOR.Decoding (decodeBytes)
 import Codec.Serialise (Serialise, decode, encode, serialise)
 import Control.DeepSeq (NFData)
-import Control.Monad.Except (MonadError, runExceptT, throwError)
+import Control.Monad.Except (MonadError, throwError)
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import Data.Aeson qualified as JSON
 import Data.Aeson.Extras qualified as JSON
@@ -80,13 +79,12 @@ import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
 import Plutus.V1.Ledger.Orphans ()
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.DeBruijn qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause (..), EvaluationError (..))
 import PlutusCore.MkPlc qualified as PLC
 import PlutusTx (CompiledCode, FromData (..), ToData (..), UnsafeFromData (..), getPlc, makeLift)
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI
-import PlutusTx.Evaluation (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import PlutusTx.Prelude
 import Prettyprinter
 import Prettyprinter.Extras
@@ -174,7 +172,6 @@ fromPlc (UPLC.Program a v t) =
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    | MalformedScript Haskell.String -- ^ Script is wrong in some way
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -184,38 +181,28 @@ applyArguments (Script (UPLC.Program a v t)) args =
         applied = PLC.mkIterApp () t termArgs
     in Script (UPLC.Program a v applied)
 
-mkTermToEvaluate :: Script -> Either PLC.FreeVariableError (UPLC.Program UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
-mkTermToEvaluate (Script (UPLC.Program a v t)) =
-    -- TODO: evaluate the nameless debruijn program directly
-    let named = UPLC.termMapNames PLC.fakeNameDeBruijn t
-        namedProgram = UPLC.Program a v named
-    in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
-
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
 evaluateScript s = do
-    p <- case mkTermToEvaluate s of
-        Right p -> Haskell.return p
-        Left e  -> throwError $ MalformedScript $ Haskell.show e
-    let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
+    let t = UPLC.termMapNames UPLC.fakeNameDeBruijn $ UPLC._progTerm $ unScript s
+        (result, UPLC.TallyingSt _ budget, logOut) = UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter t
     case result of
-        Right _ -> Haskell.pure ()
+        Right _ -> Haskell.pure (budget, logOut)
         Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
             InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
             UserEvaluationError evalError -> EvaluationError logOut (mkError evalError cause) -- TODO fix this error channel fuckery
-    Haskell.pure (budget, logOut)
 
 -- | Create an error message from the contents of an ErrorWithCause.
 -- If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
 -- the error will be a "BuiltinEvaluationFailure" otherwise it will be `PLC.show evalError`
-mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()) -> String
+mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()) -> String
 mkError evalError Nothing = PLC.show evalError
 mkError evalError (Just t) =
   case findBuiltin t of
     Just b  -> "BuiltinEvaluationFailure of " ++ Haskell.show b
     Nothing -> PLC.show evalError
   where
-    findBuiltin :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
+    findBuiltin :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
     findBuiltin t = case t of
        UPLC.Apply _ t _   -> findBuiltin t
        UPLC.Builtin _ fun -> Just fun

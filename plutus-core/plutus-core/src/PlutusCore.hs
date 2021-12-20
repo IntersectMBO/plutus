@@ -55,7 +55,6 @@ module PlutusCore
     , Normalized (..)
     , defaultVersion
     , allKeywords
-    , toTerm
     , termAnn
     , typeAnn
     , tyVarDeclAnn
@@ -67,13 +66,14 @@ module PlutusCore
     , tyDeclAnn
     , tyDeclType
     , tyDeclKind
+    , progAnn
+    , progVer
+    , progTerm
     , mapFun
     -- * DeBruijn representation
     , DeBruijn (..)
     , NamedDeBruijn (..)
-    , deBruijnProgram
     , deBruijnTerm
-    , unDeBruijnProgram
     , unDeBruijnTerm
     -- * Lexer
     , AlexPosn (..)

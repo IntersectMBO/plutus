@@ -60,5 +60,5 @@ typecheckReadKnownCek
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException uni fun) a)
+    -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

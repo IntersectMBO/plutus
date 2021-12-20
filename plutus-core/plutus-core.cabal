@@ -318,7 +318,8 @@ library
         unordered-containers -any,
         witherable -any,
         word-array -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        index-envs
 
 test-suite satint-test
   import: lang
@@ -447,7 +448,8 @@ executable plc
         optparse-applicative -any,
         prettyprinter -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any
 
 executable uplc
     import: lang
@@ -469,7 +471,8 @@ executable uplc
         prettyprinter -any,
         split -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any
 
 executable pir
     import: lang

@@ -336,7 +336,7 @@ instance Flat NamedTyDeBruijn where
 instance Flat (Binder DeBruijn) where
     size _ = id -- zero cost
     encode _ = mempty
-    decode = pure $ Binder (DeBruijn 0)
+    decode = pure $ Binder $ DeBruijn deBruijnInitIndex
 
 -- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
 

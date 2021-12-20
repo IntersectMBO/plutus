@@ -61,7 +61,6 @@
           "PlutusTx/Coverage"
           "PlutusTx/TH"
           "PlutusTx/Prelude"
-          "PlutusTx/Evaluation"
           "PlutusTx/Applicative"
           "PlutusTx/Base"
           "PlutusTx/Bool"

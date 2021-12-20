@@ -12,21 +12,20 @@ module Lib where
 
 import Common
 import Control.Exception
-import Control.Lens.Combinators (_1)
+import Control.Lens
 import Control.Monad.Except
 import Data.Text (Text)
 import Flat (Flat)
 
 import PlcTestUtils
 
-import PlutusPrelude (view)
 import PlutusTx.Code
-import PlutusTx.Evaluation
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty
 
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, PLC.GShow uni, Pretty fun, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
@@ -43,7 +42,7 @@ runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeExcept
 runPlcCek values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
-     either (throwError . SomeException) pure $ evaluateCek p
+     either (throwError . SomeException) pure $ evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
 
 runPlcCekTrace ::
      ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
@@ -52,7 +51,7 @@ runPlcCekTrace ::
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
-     let (logOut, TallyingSt tally _, result) = evaluateCekTrace p
+     let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParameters tallying logEmitter (p ^. UPLC.progTerm)
      res <- either (throwError . SomeException) pure result
      pure (logOut, tally, res)
 

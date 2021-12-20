@@ -6,6 +6,7 @@ import Common
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Semigroup
+import PlutusCore (defaultVersion)
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.MkPlc
@@ -14,9 +15,9 @@ import PlutusCore.Quote
 import Test.Tasty
 import UntypedPlutusCore as UPLC
 
--- Note: The point of these tests is that
--- binders with wrong indices will be undebruinified successfully, whereas
--- variables with wrong indices (e.g. out of scope) will fail.
+-- Note: This tests two things during undebruijnification:
+-- 1) binders with wrong indices will be undebruinified successfully
+-- 2) variables with wrong indices (e.g. out of scope) will fail to undebruijnify
 
 -- (lam x_0 x_1)
 okId0 :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
@@ -90,13 +91,14 @@ test_debruijn = runTestNestedIn ["untyped-plutus-core","test"] $
                     ]
                    ]
   where
-    actThrow = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . unDeBruijnProgram . mkProg
+    actThrow = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . progTerm unDeBruijnTerm . mkProg
 
-    actGrace = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT
-        . flip evalStateT mempty
-        . unDeBruijnProgramWith freeIndexAsConsistentLevel . mkProg
+    actGrace = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ())
+                . runQuoteT
+                . flip evalStateT mempty
+                . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel) . mkProg
 
-    mkProg = programMapNames fakeNameDeBruijn . Program () (Version () 1 0 0)
+    mkProg = Program () (defaultVersion ()) . termMapNames fakeNameDeBruijn
 
     tests = [("okId0", okId0)
             ,("okId99", okId99)

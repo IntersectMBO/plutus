@@ -15,7 +15,7 @@ import Prettyprinter qualified as PP
 genDocs :: Q [TH.Dec]
 genDocs = let allCodes = $(genCodes allErrors)
           in case findDuplicates allCodes of
-                 []   -> pure $ fmap mkTySyn (zip allErrors allCodes)
+                 []   -> pure $ fmap mkTySyn (sortOn snd $ zip allErrors allCodes)
                  -- Fail at compile time if duplicate error codes are found.
                  dups -> fail $ "ErrorCode instances have some duplicate error-code numbers: " ++ (show $ PP.pretty dups)
 

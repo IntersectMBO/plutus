@@ -79,7 +79,7 @@ loadFlat file = do
   case unflat contents of
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right prog -> do
-        let t = unDeBruijnAnonTerm $ UPLC.toTerm prog
+        let t = unDeBruijnAnonTerm $ UPLC._progTerm prog
         return $! force t
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
