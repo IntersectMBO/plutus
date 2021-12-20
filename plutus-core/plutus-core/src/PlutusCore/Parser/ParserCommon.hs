@@ -12,7 +12,7 @@ import Data.ByteString.Char8 (singleton)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
-import PlutusCore qualified as PLC
+-- import PlutusCore qualified as PLC hiding (PlutusCore.Parser)
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1, string)
@@ -20,6 +20,11 @@ import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
+import PlutusCore.Core.Type qualified as PLC
+import PlutusCore.Default qualified as PLC
+import PlutusCore.Error qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusCore.Quote qualified as PLC
 import Universe.Core (someValue)
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }

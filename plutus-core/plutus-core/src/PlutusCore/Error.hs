@@ -33,7 +33,6 @@ import PlutusPrelude
 import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
-import PlutusCore.Parser.Type
 import PlutusCore.Pretty
 
 import Control.Lens hiding (use)
@@ -56,7 +55,6 @@ throwingEither r e = case e of
 -- | An error encountered during parsing.
 data ParseError
     = LexErr String
-    | Unexpected Token
     | UnknownBuiltinType T.Text SourcePos
     | BuiltinTypeNotAStar T.Text SourcePos
     | UnknownBuiltinFunction T.Text SourcePos
@@ -131,7 +129,6 @@ instance Pretty SourcePos where
 
 instance Pretty ParseError where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t)                   = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
     pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
@@ -206,7 +203,6 @@ instance HasErrorCode ParseError where
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-    errorCode Unexpected {}             = ErrorCode 7
     errorCode LexErr {}                 = ErrorCode 6
 
 instance HasErrorCode (UniqueError _a) where

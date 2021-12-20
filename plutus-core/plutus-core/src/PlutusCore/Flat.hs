@@ -22,7 +22,6 @@ import PlutusCore.Core
 import PlutusCore.Data
 import PlutusCore.DeBruijn
 import PlutusCore.Name
-import PlutusCore.Parser.Type
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.Functor
@@ -325,8 +324,6 @@ instance ( Flat ann
     decode = Program <$> decode <*> decode <*> decode
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
-
-instance Flat Keyword
 
 -- See Note [Index (Word64) (de)serialized through Natural]
 instance Flat Index where
