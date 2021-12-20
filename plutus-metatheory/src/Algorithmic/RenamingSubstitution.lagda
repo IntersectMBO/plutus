@@ -139,10 +139,10 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
   → ∀ {K}
     --------------------------------
   → Sub (extsNf σ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
-exts⋆ σ⋆ σ {K}(T {A = A} α) = conv⊢
+exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢
   refl
   (weakenNf-subNf σ⋆ A)
-  (weaken⋆ (σ α))
+  (weaken⋆ (σ x))
 \end{code}
 
 \begin{code}
@@ -232,11 +232,14 @@ _[_]⋆ b A = sub
   b
 \end{code}
 
-# simply typed renaming and substitution
+# simply typed renaming
 
 These are easier to reason about and show up in the CEK machine as
 discharge is simply typed. Fully general rens/subs reasoning easily
 gets bogged down with type coercions.
+
+Note: This doesn't scale to substitution as we need to weaken by a
+type var to go under a Λ.
 
 \begin{code}
 Renˢ : ∀{Φ} → Ctx Φ → Ctx Φ → Set
@@ -275,6 +278,20 @@ renˢ ρ (unwrap M p) = unwrap (renˢ ρ M) p
 renˢ ρ (con c)         = con c
 renˢ ρ (builtin b / p) = builtin b / p
 renˢ ρ (error _) = error _
+
+weakenˢ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
+  → Γ ⊢ A
+    ---------
+  → Γ , B ⊢ A
+weakenˢ M = renˢ S M
+
+-- cannot define this using renˢ
+{-
+weaken⋆ˢ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}
+  → Γ ⊢ A
+    ------------------
+  → Γ ,⋆ K ⊢ weakenNf A
+-}
 
 extˢ-id : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}(x : Γ , A ∋ B)
   → extˢ id x ≡ x
@@ -353,4 +370,25 @@ renˢ-comp (unwrap M p) = cong (λ M → unwrap M p) (renˢ-comp M)
 renˢ-comp (con c) = refl
 renˢ-comp (builtin b / p) = refl
 renˢ-comp (error _) = refl
+
+
+Subˢ : ∀{Φ} → Ctx Φ → Ctx Φ → Set
+Subˢ Γ Δ = ∀{A} → Γ ∋ A → Δ ⊢ A
+
+extsˢ : ∀ {Φ Γ Δ}
+  → (σ : Subˢ Γ Δ)
+  → {B : Φ ⊢Nf⋆ *}
+    ---------------------------------
+  → Subˢ (Γ , B) (Δ , B)
+extsˢ σ Z     = ` Z
+extsˢ σ (S α) = weakenˢ (σ α)
+
+-- cannot define this using renˢ
+{-
+exts⋆ˢ : ∀{Φ}{Γ Δ : Ctx Φ}
+  → (σ : Subˢ Γ Δ)
+  → ∀ {K}
+    ----------------------
+  → Subˢ (Γ ,⋆ K) (Δ ,⋆ K)
+-}
 \end{code}
