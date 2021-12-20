@@ -186,86 +186,93 @@
               { Nil (con integer) }
             ]
           )
-          [
+          (termbind
+            (strict)
+            (vardecl x [ (lam a (type) [ Maybe a ]) (con integer) ])
             [
               [
-                {
-                  {
-                    fFoldableNil_cfoldMap
-                    [ (lam a (type) [ Maybe a ]) (con integer) ]
-                  }
-                  (con integer)
-                }
                 [
-                  [
-                    { CConsMonoid [ (lam a (type) [ Maybe a ]) (con integer) ] }
-                    (lam
-                      ds
+                  {
+                    {
+                      fFoldableNil_cfoldMap
                       [ (lam a (type) [ Maybe a ]) (con integer) ]
-                      (lam
-                        b
-                        [ (lam a (type) [ Maybe a ]) (con integer) ]
-                        {
-                          [
-                            [
-                              {
-                                [ { Maybe_match (con integer) } ds ]
-                                (all
-                                  dead
-                                  (type)
-                                  [ (lam a (type) [ Maybe a ]) (con integer) ]
-                                )
-                              }
-                              (lam ipv (con integer) (abs dead (type) ds))
-                            ]
-                            (abs dead (type) b)
-                          ]
-                          (all dead (type) dead)
-                        }
-                      )
-                    )
-                  ]
-                  { Nothing (con integer) }
-                ]
-              ]
-              (lam
-                x
-                (con integer)
-                {
+                    }
+                    (con integer)
+                  }
                   [
                     [
                       {
-                        [
-                          Bool_match
-                          [
+                        CConsMonoid [ (lam a (type) [ Maybe a ]) (con integer) ]
+                      }
+                      (lam
+                        ds
+                        [ (lam a (type) [ Maybe a ]) (con integer) ]
+                        (lam
+                          b
+                          [ (lam a (type) [ Maybe a ]) (con integer) ]
+                          {
                             [
                               [
-                                { (builtin ifThenElse) Bool }
-                                [
-                                  [
-                                    (builtin lessThanEqualsInteger)
-                                    (con integer 10)
-                                  ]
-                                  x
-                                ]
+                                {
+                                  [ { Maybe_match (con integer) } ds ]
+                                  (all
+                                    dead
+                                    (type)
+                                    [ (lam a (type) [ Maybe a ]) (con integer) ]
+                                  )
+                                }
+                                (lam ipv (con integer) (abs dead (type) ds))
                               ]
-                              False
+                              (abs dead (type) b)
                             ]
-                            True
-                          ]
-                        ]
-                        (all dead (type) [ Maybe (con integer) ])
-                      }
-                      (abs dead (type) [ { Just (con integer) } x ])
+                            (all dead (type) dead)
+                          }
+                        )
+                      )
                     ]
-                    (abs dead (type) { Nothing (con integer) })
+                    { Nothing (con integer) }
                   ]
-                  (all dead (type) dead)
-                }
-              )
+                ]
+                (lam
+                  x
+                  (con integer)
+                  {
+                    [
+                      [
+                        {
+                          [
+                            Bool_match
+                            [
+                              [
+                                [
+                                  { (builtin ifThenElse) Bool }
+                                  [
+                                    [
+                                      (builtin lessThanEqualsInteger)
+                                      (con integer 10)
+                                    ]
+                                    x
+                                  ]
+                                ]
+                                False
+                              ]
+                              True
+                            ]
+                          ]
+                          (all dead (type) [ Maybe (con integer) ])
+                        }
+                        (abs dead (type) [ { Just (con integer) } x ])
+                      ]
+                      (abs dead (type) { Nothing (con integer) })
+                    ]
+                    (all dead (type) dead)
+                  }
+                )
+              ]
+              x
             ]
-            x
-          ]
+          )
+          x
         )
       )
     )

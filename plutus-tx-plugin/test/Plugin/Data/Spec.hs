@@ -49,6 +49,8 @@ monoData = testNested "monomorphic" [
   , goldenUEval "monoConstDestDefault" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "monoRecord" monoRecord
   , goldenPir "recordNewtype" recordNewtype
+  , goldenPir "recordWithStrictField" recordWithStrictField
+  , goldenPir "unusedWrapper" unusedWrapper
   , goldenPir "nonValueCase" nonValueCase
   , goldenPir "strictDataMatch" strictDataMatch
   , goldenPir "synonym" synonym
@@ -111,6 +113,21 @@ data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
 -- pattern match to avoid type getting simplified away
 recordNewtype :: CompiledCode (RecordNewtype -> Integer)
 recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> case x of { RecordNewtype (MyNewtype i) -> i; })
+
+data RecordWithStrictField = RecordWithStrictField { strictField1 :: !MyMonoRecord, strictField2 :: !RecordNewtype }
+
+-- checks that the type of 'strictField2' is replaced with 'Integer', see Note [On workers and wrappers]
+recordWithStrictField :: CompiledCode (RecordWithStrictField -> RecordNewtype)
+recordWithStrictField = plc (Proxy @"recordWithStrictField") (\(x :: RecordWithStrictField) -> strictField2 x)
+
+data T = MkT !(Integer,Integer)
+
+mkT :: (Integer, Integer) -> T
+mkT = MkT
+
+-- checks that the 'wrapper' is compiled but unused, see Note [On workers and wrappers]
+unusedWrapper :: CompiledCode T
+unusedWrapper = plc (Proxy @"unusedWrapper") ((\x (y, z) -> x (z, y)) mkT (1, 2))
 
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Integer)
