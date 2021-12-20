@@ -190,8 +190,6 @@ library
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.InlineUtils
-        PlutusCore.Parsable
-        PlutusCore.Parser.Type
         PlutusCore.Parser.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName

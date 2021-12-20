@@ -35,7 +35,6 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
-import PlutusCore.Parsable
 
 import Control.Applicative
 import Data.ByteString qualified as BS
@@ -137,34 +136,34 @@ instance Show (DefaultUni a) where
         uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
     show DefaultUniData = "data"
 
--- See Note [Parsing horribly broken].
-instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
-    parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
-    parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
-    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
-    parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
-    parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
-    parse text         = asum
-        [ do
-            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
-            SomeTypeIn (Kinded a) <- parse aT
-            Refl <- checkStar @DefaultUni a
-            Just . SomeTypeIn . Kinded $ DefaultUniList a
-        , do
-            abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
-            -- Note that we don't allow whitespace after @,@ (but we could).
-            -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
-            -- tuple (and it can be left- or right- or both-nested), so we're running into
-            -- the same parsing problem as with constants.
-            case Text.splitOn "," abT of
-                [aT, bT] -> do
-                    SomeTypeIn (Kinded a) <- parse aT
-                    Refl <- checkStar @DefaultUni a
-                    SomeTypeIn (Kinded b) <- parse bT
-                    Refl <- checkStar @DefaultUni b
-                    Just . SomeTypeIn . Kinded $ DefaultUniPair a b
-                _ -> Nothing
-        ]
+-- -- See Note [Parsing horribly broken].
+-- instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
+--     parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
+--     parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
+--     parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
+--     parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
+--     parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
+--     parse text         = asum
+--         [ do
+--             aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+--             SomeTypeIn (Kinded a) <- parse aT
+--             Refl <- checkStar @DefaultUni a
+--             Just . SomeTypeIn . Kinded $ DefaultUniList a
+--         , do
+--             abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
+--             -- Note that we don't allow whitespace after @,@ (but we could).
+--             -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
+--             -- tuple (and it can be left- or right- or both-nested), so we're running into
+--             -- the same parsing problem as with constants.
+--             case Text.splitOn "," abT of
+--                 [aT, bT] -> do
+--                     SomeTypeIn (Kinded a) <- parse aT
+--                     Refl <- checkStar @DefaultUni a
+--                     SomeTypeIn (Kinded b) <- parse bT
+--                     Refl <- checkStar @DefaultUni b
+--                     Just . SomeTypeIn . Kinded $ DefaultUniPair a b
+--                 _ -> Nothing
+--         ]
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
