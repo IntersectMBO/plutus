@@ -62,11 +62,7 @@ natTrace = natTracer
 A new context name is added.
 \begin{code}
 appendName :: LoggerName -> Trace m a -> Trace m a
-appendName name tr = Tracer $ \(names0, lo) ->
-    let names = if names0 == T.empty then name else name <> "." <> names0
-    in
-    traceWith tr (names, lo)
-
+appendName name tr = undefined
 \end{code}
 
 \subsubsection{Change named context}\label{code:modifyName}\index{modifyName}
@@ -76,17 +72,13 @@ modifyName
     :: (LoggerName -> LoggerName)
     -> Trace m a
     -> Trace m a
-modifyName k = contramap f
-  where
-    f (names0, lo) = (k names0, lo)
-
+modifyName k = undefined
 \end{code}
 
 \subsubsection{Contramap a trace and produce the naming context}
 \begin{code}
 named :: Tracer m (LoggerName,LogObject a) -> Tracer m (LOMeta, LOContent a)
-named = contramap $ \(meta, loc) -> (mempty, LogObject mempty meta loc)
-
+named = undefined
 \end{code}
 
 \subsubsection{Trace a |LogObject| through}
@@ -121,16 +113,7 @@ locallock = unsafePerformIO $ newMVar ()
 
 \begin{code}
 stdoutTrace :: Trace IO T.Text
-stdoutTrace = Tracer $ \(ctx, LogObject _loname _ lc) ->
-    withMVar locallock $ \_ ->
-        case lc of
-            (LogMessage logItem) ->
-                    output ctx logItem
-            obj ->
-                    output ctx $ toStrict (encodeToLazyText obj)
-  where
-    output nm msg = TIO.putStrLn $ nm <> " :: " <> msg
-
+stdoutTrace = undefined
 \end{code}
 
 
@@ -138,12 +121,10 @@ stdoutTrace = Tracer $ \(ctx, LogObject _loname _ lc) ->
 
 \begin{code}
 traceInTVar :: STM.TVar [a] -> Tracer STM.STM a
-traceInTVar tvar = Tracer $ \a -> STM.modifyTVar tvar ((:) a)
+traceInTVar tvar = undefined
 
 traceInTVarIO :: STM.TVar [a] -> Tracer IO a
-traceInTVarIO tvar = Tracer $ \a ->
-                         STM.atomically $ STM.modifyTVar tvar ((:) a)
-
+traceInTVarIO tvar = undefined
 \end{code}
 
 \subsubsection{Enter message into a trace}\label{code:traceNamedItem}\index{traceNamedItem}
