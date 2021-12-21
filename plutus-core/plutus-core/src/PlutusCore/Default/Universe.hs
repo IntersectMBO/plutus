@@ -38,7 +38,6 @@ import PlutusCore.Evaluation.Result
 
 import Control.Applicative
 import Data.ByteString qualified as BS
-import Data.Foldable
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.Exts (inline, oneShot)

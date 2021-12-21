@@ -24,7 +24,6 @@ module UntypedPlutusCore.Parser
 import Prelude hiding (fail)
 
 import Control.Monad.Except ((<=<))
-import Control.Monad.State (StateT)
 
 import PlutusCore qualified as PLC
 import PlutusPrelude (through)
@@ -34,64 +33,49 @@ import UntypedPlutusCore.Check.Uniques (checkProgram)
 import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.ByteString.Lazy (ByteString)
-import Data.ByteString.Lazy.Internal (unpackChars)
 import Data.Text qualified as T
 import PlutusCore.Parser.ParserCommon
 
 -- Parsers for UPLC terms
 
-conTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+-- | A parsable UPLC term.
+type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos
+
+conTerm :: Parser PTerm
 conTerm = inParens $ UPLC.Constant <$> wordPos "con" <*> constant
 
-builtinTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+builtinTerm :: Parser PTerm
 builtinTerm = inParens $ UPLC.Builtin <$> wordPos "builtin" <*> builtinFunction
 
-varTerm :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
+varTerm :: Parser PTerm
 varTerm = UPLC.Var <$> getSourcePos <*> name
 
-lamTerm :: ParsecT PLC.ParseError
-                   T.Text
-                   (StateT ParserState PLC.Quote)
-                   (UPLC.Term PLC.Name uni fun SourcePos)
-                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-lamTerm tm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> tm
+lamTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
+lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
 
-appTerm :: ParsecT PLC.ParseError
-                   T.Text
-                   (StateT ParserState PLC.Quote)
-                   (UPLC.Term PLC.Name uni fun SourcePos)
-                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-appTerm tm = inBrackets $ UPLC.Apply <$> getSourcePos <*> tm <*> tm
+appTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
+appTerm = inBrackets $ UPLC.Apply <$> getSourcePos <*> term <*> term
 
-delayTerm :: ParsecT PLC.ParseError
-                   T.Text
-                   (StateT ParserState PLC.Quote)
-                   (UPLC.Term PLC.Name uni fun SourcePos)
-                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-delayTerm tm = inParens $ UPLC.Delay <$> wordPos "abs" <*> tm
+delayTerm :: Parser PTerm
+delayTerm = inParens $ UPLC.Delay <$> wordPos "abs" <*> term
 
-forceTerm :: ParsecT PLC.ParseError
-                   T.Text
-                   (StateT ParserState PLC.Quote)
-                   (UPLC.Term PLC.Name uni fun SourcePos)
-                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-forceTerm tm = inBraces $ UPLC.Force <$> getSourcePos <*> tm
+forceTerm :: Parser PTerm
+forceTerm = inBraces $ UPLC.Force <$> getSourcePos <*> term
 
 errorTerm
-    :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
+    :: Parser PTerm
 errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
-term :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+term :: Parser PTerm
 term = conTerm
     <|> builtinTerm
     <|> varTerm
-    <|> lamTerm self
-    <|> appTerm self
-    <|> delayTerm self
-    <|> forceTerm self
+    <|> lamTerm
+    <|> appTerm
+    <|> delayTerm
+    <|> forceTerm
     <|> errorTerm
-    where self = term
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
@@ -100,17 +84,13 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
--- | Generic parser function.
-parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text PLC.ParseError) a
-parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
-
--- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
+-- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm :: ByteString ->
-    Either (ParseErrorBundle T.Text PLC.ParseError) (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+    Either (ParseErrorBundle T.Text PLC.ParseError) PTerm
 parseTerm = parseGen term
 
--- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
+-- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram :: ByteString ->
     Either (ParseErrorBundle T.Text PLC.ParseError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)

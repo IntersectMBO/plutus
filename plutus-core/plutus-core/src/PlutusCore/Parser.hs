@@ -1,8 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
 
 module PlutusCore.Parser
     ( parseProgram
@@ -11,54 +8,85 @@ module PlutusCore.Parser
     , ParseError(..)
     ) where
 
-import PlutusCore.Constant.Typed
-import PlutusCore.Core
-import PlutusCore.Core.Type
-import PlutusCore.Default
-import PlutusCore.Error
-import PlutusCore.Mark
-import PlutusCore.MkPlc (mkConstant, mkTyBuiltin)
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusPrelude
-import Universe
-
-import Control.Monad.Except
-import Control.Monad.State
 import Data.ByteString.Lazy (ByteString)
-import Data.List.NonEmpty qualified as NE
-import Data.Map qualified
-import Data.Proxy
 import Data.Text qualified as T
-import PlutusCore.Parser.ParserCommon (Parser, pType, parse)
-import Text.Megaparsec (SourcePos, runParserT')
+import PlutusCore.Core (Program (..), Term (..), Type)
+import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Error (ParseError (..))
+import PlutusCore.Name (Name, TyName)
+import PlutusCore.Parser.ParserCommon
+import PlutusPrelude
+import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, getSourcePos)
 import Text.Megaparsec.Error (ParseErrorBundle)
 
-tyInst :: a -> Term tyname name uni fun a -> NonEmpty (Type tyname uni a) -> Term tyname name uni fun a
-tyInst loc t (ty :| [])  = TyInst loc t ty
-tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
+-- Parsers for PLC terms
 
-tyApps :: a -> Type tyname uni a -> NonEmpty (Type tyname uni a) -> Type tyname uni a
-tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
-tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
+-- | A parsable PLC term.
+type PTerm = Term TyName Name DefaultUni DefaultFun SourcePos
 
-app :: a -> Term tyname name uni fun a -> NonEmpty (Term tyname name uni fun a) -> Term tyname name uni fun a
-app loc t (t' :| []) = Apply loc t t'
-app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
+varTerm :: Parser PTerm
+varTerm = Var <$> getSourcePos <*> name
+
+tyAbsTerm :: Parser PTerm
+tyAbsTerm = TyAbs <$> wordPos "abs" <*> tyName  <*> kind <*> term
+
+lamTerm :: Parser PTerm
+lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
+
+appTerm :: Parser PTerm
+appTerm = inBrackets $ Apply <$> getSourcePos <*> term <*> term
+
+conTerm :: Parser PTerm
+conTerm = inParens $ Constant <$> wordPos "con" <*> constant
+
+builtinTerm :: Parser PTerm
+builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
+
+tyInstTerm :: Parser PTerm
+tyInstTerm = inBraces $ TyInst <$> getSourcePos <*> term <*> pType
+
+unwrapTerm :: Parser PTerm
+unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term
+
+iwrapTerm :: Parser PTerm
+iwrapTerm = inParens $ IWrap <$> wordPos "iwrap" <*> pType <*> pType <*> term
+
+errorTerm
+    :: Parser PTerm
+errorTerm = inParens $ Error <$> wordPos "error" <*> pType
+
+-- | Parser for all PLC terms.
+term :: Parser PTerm
+term = varTerm
+    <|> tyAbsTerm
+    <|> lamTerm
+    <|> appTerm
+    <|> conTerm
+    <|> builtinTerm
+    <|> tyInstTerm
+    <|> unwrapTerm
+    <|> iwrapTerm
+    <|> errorTerm
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram ::
-    String -> T.Text ->
-        Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
-parseProgram = parse pProgram
+    ByteString -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
+parseProgram = parseGen program
+
+-- | Parser for PLC programs.
+program :: Parser (Program TyName Name DefaultUni DefaultFun SourcePos)
+program = whitespace >> do
+    prog <- inParens $ Program <$> wordPos "program" <*> version <*> term
+    notFollowedBy anySingle
+    return prog
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm ::
     String -> T.Text ->
         Either (ParseErrorBundle T.Text ParseError) (Term TyName Name DefaultUni DefaultFun SourcePos)
-parseTerm = parse pTerm
+parseTerm = parse term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.

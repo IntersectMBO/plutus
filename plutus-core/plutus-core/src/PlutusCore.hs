@@ -163,7 +163,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
-import Text.Megaparsec (SourcePos, initialPos)
+import Text.Megaparsec (ParseErrorBundle, SourcePos, initialPos)
 
 
 topSourcePos :: SourcePos
@@ -188,11 +188,8 @@ fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
-    :: (AsUniqueError e SourcePos,
-        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
-        MonadError e m)
-    => BSL.ByteString
-    -> m T.Text
+    :: BSL.ByteString
+    -> Either (ParseErrorBundle T.Text ParseError) T.Text
 printType bs = runQuoteT $ T.pack . show . pretty <$> do
     scoped <- parseScoped bs
     config <- getDefTypeCheckConfig topSourcePos
@@ -201,23 +198,16 @@ printType bs = runQuoteT $ T.pack . show . pretty <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped
-    :: (AsUniqueError e SourcePos,
-        MonadError e m,
-        MonadQuote m)
-    => BSL.ByteString
-    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+    :: BSL.ByteString
+    -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
-    :: (AsUniqueError e SourcePos,
-        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
-        MonadError e m,
-        MonadQuote m)
-    => TypeCheckConfig DefaultUni DefaultFun
+    :: TypeCheckConfig DefaultUni DefaultFun
     -> BSL.ByteString
-    -> m (Normalized (Type TyName DefaultUni ()))
+    -> Either (ParseErrorBundle T.Text ParseError) (Normalized (Type TyName DefaultUni ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -231,17 +221,17 @@ typecheckPipeline
 typecheckPipeline = inferTypeOfProgram
 
 parseProgramDef
-    :: (MonadError e m, MonadQuote m)
-    => BSL.ByteString -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+    :: BSL.ByteString -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgramDef = parseProgram
 
-formatDoc :: (MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
+formatDoc ::
+    PrettyConfigPlc -> BSL.ByteString ->
+        Either (ParseErrorBundle T.Text ParseError) (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
 formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgramDef)
 
 format
-    :: (MonadError e m)
-    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+    :: PrettyConfigPlc -> BSL.ByteString -> m T.Text
 -- don't use parseScoped since we don't bother running sanity checks when we format
 format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
