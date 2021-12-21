@@ -10,6 +10,19 @@
         (vardecl Poly (fun a [ [ MyPolyData a ] b ]))
       )
     )
-    (lam ds [ [ MyPolyData (con integer) ] (con integer) ] ds)
+    (lam
+      ds
+      [ [ MyPolyData (con integer) ] (con integer) ]
+      [
+        [
+          {
+            [ { { MyPolyData_match (con integer) } (con integer) } ds ]
+            (con integer)
+          }
+          (lam ipv (con integer) (lam ipv (con integer) (con integer 1)))
+        ]
+        (lam i (con integer) i)
+      ]
+    )
   )
 )

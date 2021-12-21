@@ -40,7 +40,7 @@ enumerateDebug :: forall a j. EnumerateFromTo 0 j TermDebug a => a -> a
 enumerateDebug = id
 
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
--- possibe to construct a 'TypeScheme' out of the resulting type. Example usages:
+-- possible to construct a 'TypeScheme' out of the resulting type. Example usages:
 --
 -- >>> :t inferDebug False
 -- inferDebug False :: Bool
