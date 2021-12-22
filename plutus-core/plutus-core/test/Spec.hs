@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -28,7 +27,6 @@ import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
-import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
 import Data.Text qualified as T
@@ -136,9 +134,9 @@ reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
    because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
-    mapM_ (\t -> (fmap void . parseTm . reprint $ t) @?= Right t) smallConsts
+    mapM_ (\t -> (fmap void . parseTerm . reprint $ t) @?= Right t) smallConsts
         where
-          smallConsts :: [DefaultTerm ()]
+          smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
               [ mkConstant () ()
               , mkConstant () False
@@ -179,7 +177,7 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term reprint (fmap void . parseTerm)
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
@@ -187,17 +185,17 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     Hedgehog.tripping prog (reprint . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError SourcePos) p)
+                (\p -> fmap (TextualProgram . void) $ parseProgram p)
 
-type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
+type TestFunction = BSL.ByteString -> Either DefaultError T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
-asGolden :: TestFunction SourcePos -> TestName -> TestTree
+asGolden :: TestFunction -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 -- TODO: evaluation tests should go under the 'Evaluation' module,
@@ -223,7 +221,6 @@ tests = testCase "example programs" $ fold
     , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where
-        fmt :: BSL.ByteString -> Either ParseError T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 

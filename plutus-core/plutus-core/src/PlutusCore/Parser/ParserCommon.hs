@@ -21,6 +21,7 @@ import Text.Megaparsec.Char.Lexer qualified as Lex
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
 import Data.ByteString.Lazy (ByteString)
+import Data.ByteString.Lazy.Internal (unpackChars)
 import PlutusCore.Core.Type qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Error qualified as PLC
@@ -61,8 +62,9 @@ parse p file str = PLC.runQuote $ parseQuoted p file str
 parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text PLC.ParseError) a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
-parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote
-                   (Either (ParseErrorBundle T.Text PLC.ParseError) a)
+parseQuoted ::
+    Parser a -> String -> T.Text ->
+        PLC.Quote (Either (ParseErrorBundle T.Text PLC.ParseError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 -- | Space consumer.

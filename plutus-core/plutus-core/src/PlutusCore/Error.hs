@@ -26,6 +26,7 @@ module PlutusCore.Error
     , Error (..)
     , AsError (..)
     , throwingEither
+    , ShowErrorComponent (..)
     ) where
 
 import PlutusPrelude

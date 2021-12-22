@@ -84,13 +84,13 @@ program = whitespace >> do
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm ::
-    String -> T.Text ->
+    ByteString ->
         Either (ParseErrorBundle T.Text ParseError) (Term TyName Name DefaultUni DefaultFun SourcePos)
-parseTerm = parse term
+parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseType ::
-    String -> T.Text ->
+    ByteString ->
         Either (ParseErrorBundle T.Text ParseError) (Type TyName DefaultUni SourcePos)
-parseType = parse pType
+parseType = parseGen pType
