@@ -528,7 +528,8 @@ type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 {- Note [Performance of KnownTypeIn instances]
 Even though we don't use 'makeKnown' and 'readKnown' directly over concrete types, it's still
 beneficial to inline them, because otherwise GHC compiles each of them to two definitions
-(one calling the other) for some reason.
+(one calling the other) for some reason. So always add an @INLINE@ pragma to all definitions
+of 'makeKnown' and 'readKnown' unless you have a specific reason not to.
 
 Similarly, we inline implementations of 'toTypeAst' just to get tidier Core.
 
