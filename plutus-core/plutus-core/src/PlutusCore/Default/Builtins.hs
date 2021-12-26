@@ -282,8 +282,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               DefaultUniPair _ uniB <- pure uniPairAB
               pure . fromConstant . someValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
-    toBuiltinMeaning ChooseList =
     -- Lists
+    toBuiltinMeaning ChooseList =
         makeBuiltinMeaning
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)

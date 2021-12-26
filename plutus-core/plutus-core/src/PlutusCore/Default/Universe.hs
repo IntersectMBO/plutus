@@ -19,6 +19,9 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+-- effectfully: to the best of my experimentation, -O2 here improves performance, however by
+-- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
+-- 'Int' is compiled (one more call is inlined with -O2). This needs to be investigated.
 {-# OPTIONS_GHC -O2 #-}
 
 module PlutusCore.Default.Universe
@@ -39,7 +42,7 @@ import Data.ByteString qualified as BS
 import Data.Foldable
 import Data.Proxy
 import Data.Text qualified as Text
-import GHC.Exts (oneShot)
+import GHC.Exts (inline, oneShot)
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -214,7 +217,10 @@ instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
     {-# INLINE makeKnown #-}
 
     readKnown mayCause term =
-        readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
+        -- See Note [Performance of KnownTypeIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        inline readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
             if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
                 then pure $ fromIntegral i
                 else throwingWithCause _EvaluationFailure () mayCause

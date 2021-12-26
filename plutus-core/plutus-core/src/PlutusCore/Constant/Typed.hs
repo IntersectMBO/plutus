@@ -514,18 +514,46 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
--- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
--- hence defining it as a class synonym.
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
-instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
+-- -- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
+-- -- hence defining it as a class synonym.
+-- -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+-- class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+--             KnownBuiltinTypeIn uni term a
+-- instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+--             KnownBuiltinTypeIn uni term a
+
+type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
+
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
--- See Note [Performance of KnownTypeIn instances]
+{- Note [Performance of KnownTypeIn instances]
+Even though we don't use 'makeKnown' and 'readKnown' directly over concrete types, it's still
+beneficial to inline them, because otherwise GHC compiles each of them to two definitions
+(one calling the other) for some reason.
+
+Similarly, we inline implementations of 'toTypeAst' just to get tidier Core.
+
+Some 'readKnown' implementations require inserting a call to 'oneShot'. E.g. if 'oneShot' is not
+used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' branch, thus
+allocating a thunk of type 'String' that is completely redundant whenever there's no error,
+which is the majority of cases. And putting 'oneShot' as the outermost call results in
+worse Core.
+
+Any change to an instance of 'KnownTypeIn', even completely trivial, requires looking into the
+generated Core, since compilation of these instances is extremely brittle optimization-wise.
+
+Things to watch out for are unnecessary sharing (for example, a @let@ appearing outside of a @case@
+allocates a thunk and if that thunk is not referenced inside of one of the branches, then it's
+wasteful, especially when it's not referenced in the most commonly chosen branch) and type class
+methods not being extracted from the dictionary and used directly instead (i.e. if you see
+multiple @pure@ and @>>=@ in the code, that's not good). Note that neither @let@ nor @>>=@ are bad
+in general, we certainly do need to allocate thunks occasionally, it's just that when it comes to
+builtins this is rarely the case as most of the time we want aggressive inlining and specialization
+and the "just compute the damn thing" behavior.
+-}
+
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
     :: forall term a err cause m.
@@ -533,10 +561,11 @@ readKnownConstant
        , KnownBuiltinType term a
        )
     => Maybe cause -> term -> m a
+-- See Note [Performance of KnownTypeIn instances].
 readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf term) @a
-        case uniAct `geq` uniExp of
+        case uniExp `geq` uniAct of
             Just Refl -> pure x
             Nothing   -> do
                 let err = fromString $ concat
@@ -547,6 +576,7 @@ readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
                 throwingWithCause _UnliftingError err mayCause
 {-# INLINE readKnownConstant #-}
 
+-- See Note [Performance of KnownTypeIn instances].
 -- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
 -- the latter breaks on @m a@ (and for brevity).
 -- | Haskell types known to exist on the PLC side.
@@ -585,6 +615,7 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
            , KnownBuiltinType term a
            )
         => Maybe cause -> term -> m a
+    -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
 
@@ -762,10 +793,10 @@ coerceArg = coerce
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (Opaque term' rep) where
-    makeKnown _ _ = coerceArg pure
+    makeKnown _ _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
-    readKnown _ = coerceArg pure
+    readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE readKnown #-}
 
 -- Custom type errors to guide the programmer adding a new built-in function.
