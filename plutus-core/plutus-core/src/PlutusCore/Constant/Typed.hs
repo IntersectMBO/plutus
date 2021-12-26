@@ -514,16 +514,13 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
--- -- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
--- -- hence defining it as a class synonym.
--- -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
--- class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
---             KnownBuiltinTypeIn uni term a
--- instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
---             KnownBuiltinTypeIn uni term a
-
-type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
-
+-- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
+-- hence defining it as a class synonym.
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+            KnownBuiltinTypeIn uni term a
+instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+            KnownBuiltinTypeIn uni term a
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
@@ -565,7 +562,7 @@ readKnownConstant
 readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf term) @a
-        case uniExp `geq` uniAct of
+        case uniAct `geq` uniExp of
             Just Refl -> pure x
             Nothing   -> do
                 let err = fromString $ concat
