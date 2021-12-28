@@ -344,11 +344,13 @@ maybeAddTySubst tn rhs = do
 -- | Is this a an utterly trivial term which might as well be inlined?
 trivialTerm :: Term tyname name uni fun a -> Bool
 trivialTerm = \case
-    Builtin{}  -> True
-    Var{}      -> True
+    Builtin{}      -> True
+    Var{}          -> True
     -- TODO: Should this depend on the size of the constant?
-    Constant{} -> True
-    _          -> False
+    Constant{}     -> True
+    TyAbs _ _ _ t  -> trivialTerm t
+    LamAbs _ _ _ t -> trivialTerm t
+    _              -> False
 
 -- | Is this a an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni a -> Bool
