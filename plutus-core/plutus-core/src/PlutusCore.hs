@@ -195,14 +195,14 @@ printType :: (AsTypeError
    DefaultFun
    SourcePos,
  MonadQuote f, MonadError err f) =>
- BSL.ByteString -> f (Doc ann)
+ BSL.ByteString -> f T.Text
 printType bs = do
     case runQuoteT $ parseScoped bs of
       Left peb -> pure $ error $ "errorBundlePretty peb"
       Right pro -> do
         config <- getDefTypeCheckConfig topSourcePos
         ty <- inferTypeOfProgram config pro
-        pure $ pretty ty
+        pure $ pack $ show $ pretty ty
 
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
