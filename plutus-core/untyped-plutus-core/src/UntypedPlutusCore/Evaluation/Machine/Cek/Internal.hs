@@ -71,6 +71,7 @@ import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array
+import Data.Foldable
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -542,7 +543,11 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     TypeSchemeResult _ -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        makeKnown ?cekEmitter (Just term) x
+        let (errOrRes, logs) = makeKnownRun (Just term) x
+        traverse_ ?cekEmitter logs
+        case errOrRes of
+            Left err  -> throwError err
+            Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 

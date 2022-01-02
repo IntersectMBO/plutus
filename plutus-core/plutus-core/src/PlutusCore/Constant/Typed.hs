@@ -47,8 +47,9 @@ module PlutusCore.Constant.Typed
     , KnownTypeIn (..)
     , KnownType
     , TestTypesFromTheUniverseAreAllKnown
-    , readKnownSelf
+    , makeKnownRun
     , makeKnownOrFail
+    , readKnownSelf
     , SomeConstant (..)
     , SomeConstantPoly (..)
     ) where
@@ -66,6 +67,7 @@ import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 
 import Control.Monad.Except
+import Data.DList (DList)
 import Data.Functor.Const
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
@@ -588,18 +590,17 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err
+        :: ( AsEvaluationFailure err
            )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        => Maybe cause -> a -> ExceptT (ErrorWithCause err cause) Emitter term
     default makeKnown
-        :: ( MonadError (ErrorWithCause err cause) m
-           , KnownBuiltinType term a
+        :: ( KnownBuiltinType term a
            )
-        => (Text -> m ()) -> Maybe cause -> a -> m term
+        => Maybe cause -> a -> ExceptT (ErrorWithCause err cause) Emitter term
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown _ _ x = pure . fromConstant . someValue $! x
+    makeKnown _ x = pure . fromConstant . someValue $! x
     {-# INLINE makeKnown #-}
 
     -- | Convert a PLC term to the corresponding Haskell value.
@@ -620,6 +621,19 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
 -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
 type KnownType term = KnownTypeIn (UniOf term) term
 
+makeKnownRun
+    :: (KnownType term a, AsEvaluationFailure err)
+    => Maybe cause -> a -> (Either (ErrorWithCause err cause) term, DList Text)
+makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
+{-# INLINE makeKnownRun #-}
+
+-- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
+-- For example the monad can be simply 'EvaluationResult'.
+makeKnownOrFail :: KnownType term a => a -> EvaluationResult term
+makeKnownOrFail =
+    either (\_ -> EvaluationFailure) EvaluationSuccess . fst . makeKnownRun @_ @_ @() Nothing
+{-# INLINE makeKnownOrFail #-}
+
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
     :: ( KnownType term a
@@ -639,23 +653,6 @@ instance (forall term. KnownBuiltinTypeIn uni term a => KnownTypeIn uni term a) 
 -- (according to 'Everywhere') from the universe has a 'KnownTypeIn' instance.
 class uni `Everywhere` ImplementedKnownBuiltinTypeIn uni => TestTypesFromTheUniverseAreAllKnown uni
 
--- | A transformer for fitting a monad not carrying the cause of a failure into 'makeKnown'.
-newtype NoCauseT (term :: GHC.Type) m a = NoCauseT
-    { unNoCauseT :: m a
-    } deriving newtype (Functor, Applicative, Monad)
-
-instance (MonadError err m, AsEvaluationFailure err) =>
-            MonadError (ErrorWithCause err term) (NoCauseT term m) where
-    throwError _ = NoCauseT $ throwError evaluationFailure
-    NoCauseT a `catchError` h =
-        NoCauseT $ a `catchError` \err ->
-            unNoCauseT . h $ ErrorWithCause err Nothing
-
--- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
--- For example the monad can be simply 'EvaluationResult'.
-makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
-makeKnownOrFail = unNoCauseT . makeKnown (\_ -> pure ()) Nothing
-
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type ToBinds (EvaluationResult a) = ToBinds a
 
@@ -664,8 +661,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
             KnownTypeIn uni term (EvaluationResult a) where
-    makeKnown _    mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
-    makeKnown emit mayCause (EvaluationSuccess x) = makeKnown emit mayCause x
+    makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
+    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
     {-# INLINE makeKnown #-}
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
@@ -685,7 +682,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
-    makeKnown emit mayCause (Emitter k) = k emit >>= makeKnown emit mayCause
+    makeKnown mayCause a = lift a >>= makeKnown mayCause
     {-# INLINE makeKnown #-}
 
     -- TODO: we really should tear 'KnownType' apart into two separate type classes.
@@ -709,7 +706,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (SomeConstant uni rep) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstant
+    makeKnown _ = pure . fromConstant . unSomeConstant
     {-# INLINE makeKnown #-}
 
     readKnown mayCause = fmap SomeConstant . asConstant mayCause
@@ -739,7 +736,7 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
          , HasConstantIn uni term
          ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstantPoly
+    makeKnown _ = pure . fromConstant . unSomeConstantPoly
     {-# INLINE makeKnown #-}
 
     readKnown mayCause = fmap SomeConstantPoly . asConstant mayCause
@@ -791,7 +788,7 @@ coerceArg = coerce
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (Opaque term' rep) where
-    makeKnown _ _ = coerceArg pure  -- A faster @pure . Opaque@.
+    makeKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
     readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.

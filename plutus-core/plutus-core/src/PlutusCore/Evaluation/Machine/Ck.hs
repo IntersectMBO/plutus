@@ -68,7 +68,12 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    TypeSchemeResult _ -> makeKnown emitCkM (Just term) x
+    TypeSchemeResult _ -> do
+        let (errOrRes, logs) = makeKnownRun (Just term) x
+        emitCkM logs
+        case errOrRes of
+            Left err  -> throwError err
+            Right res -> pure res
     _                  -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
@@ -109,12 +114,12 @@ instance AsEvaluationFailure CkUserError where
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-emitCkM :: Text -> CkM uni fun s ()
-emitCkM str = do
+emitCkM :: DList Text -> CkM uni fun s ()
+emitCkM logs = do
     mayLogsRef <- asks ckEnvMayEmitRef
     case mayLogsRef of
         Nothing      -> pure ()
-        Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
+        Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.append` logs)
 
 type instance UniOf (CkValue uni fun) = uni
 

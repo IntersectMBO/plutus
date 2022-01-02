@@ -213,7 +213,7 @@ instance KnownTypeAst DefaultUni Int where
 
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
-    makeKnown emit mayCause = makeKnown emit mayCause . toInteger
+    makeKnown mayCause = makeKnown mayCause . toInteger
     {-# INLINE makeKnown #-}
 
     readKnown mayCause term =
