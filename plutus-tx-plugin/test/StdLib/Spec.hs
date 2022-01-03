@@ -37,6 +37,7 @@ import PlutusTx.Plugin
 import PlutusCore.Data qualified as PLC
 
 import Data.Proxy
+import Data.Ratio qualified as GHCRatio
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -101,7 +102,31 @@ testReduce = Hedgehog.property $ do
     plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
-    Hedgehog.assert (ghcResult == plutusResult)
+    -- GHC permits negative denominators, while we don't. Thus, we have to do
+    -- some normalization of our own to ensure it all behaves.
+    case ghcResult of
+      Nothing -> Hedgehog.assert (ghcResult == plutusResult)
+      Just ghcR -> case signum . GHCRatio.denominator $ ghcR of
+        (-1) -> case plutusResult of
+          Nothing -> Hedgehog.assert (ghcResult == plutusResult)
+          Just plutusR -> do
+                Hedgehog.assert (GHCRatio.numerator plutusR == (negate . GHCRatio.numerator $ ghcR))
+                Hedgehog.assert (GHCRatio.denominator plutusR == (negate . GHCRatio.denominator $ ghcR))
+        _ -> Hedgehog.assert (ghcResult == plutusResult)
+      {-
+    case (ghcResult, plutusResult) of
+      (Just ghcR, Just plutusR) -> do
+        let theirNum = GHCRatio.numerator ghcR
+        let theirDen = GHCRatio.denominator ghcR
+        -- We need to do this as GHC doesn't reduce negative numerator and
+        -- denominator as eagerly as we do.
+        if (signum theirNum == signum theirDen) && (signum theirNum == (-1))
+        then do
+          Hedgehog.assert (GHCRatio.numerator plutusR == abs theirNum)
+          Hedgehog.assert (GHCRatio.denominator plutusR == abs theirDen)
+        else Hedgehog.assert (ghcResult == plutusResult)
+      _ -> Hedgehog.assert (ghcResult == plutusResult)
+      -}
 
 testOrd :: Property
 testOrd = Hedgehog.property $ do
