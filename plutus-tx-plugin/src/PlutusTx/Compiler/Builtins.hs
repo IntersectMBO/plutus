@@ -275,6 +275,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.indexByteString $ mkBuiltin PLC.IndexByteString
     defineBuiltinTerm 'Builtins.sha2_256 $ mkBuiltin PLC.Sha2_256
     defineBuiltinTerm 'Builtins.sha3_256 $ mkBuiltin PLC.Sha3_256
+    defineBuiltinTerm 'Builtins.blake2b_256 $ mkBuiltin PLC.Blake2b_256
     defineBuiltinTerm 'Builtins.equalsByteString $ mkBuiltin PLC.EqualsByteString
     defineBuiltinTerm 'Builtins.lessThanByteString $ mkBuiltin PLC.LessThanByteString
     defineBuiltinTerm 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString

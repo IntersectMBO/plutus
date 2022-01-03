@@ -2,6 +2,7 @@
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -18,6 +19,11 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+-- effectfully: to the best of my experimentation, -O2 here improves performance, however by
+-- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
+-- 'Int' is compiled (one more call is inlined with -O2). This needs to be investigated.
+{-# OPTIONS_GHC -O2 #-}
+
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
@@ -32,11 +38,11 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Parsable
 
 import Control.Applicative
-import Control.Monad
 import Data.ByteString qualified as BS
 import Data.Foldable
 import Data.Proxy
 import Data.Text qualified as Text
+import GHC.Exts (inline, oneShot)
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -208,11 +214,17 @@ instance KnownTypeAst DefaultUni Int where
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
     makeKnown emit mayCause = makeKnown emit mayCause . toInteger
-    readKnown mayCause term = do
-        i :: Integer <- readKnown mayCause term
-        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () mayCause
-        pure $ fromIntegral i
+    {-# INLINE makeKnown #-}
+
+    readKnown mayCause term =
+        -- See Note [Performance of KnownTypeIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        inline readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
+            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
+                then pure $ fromIntegral i
+                else throwingWithCause _EvaluationFailure () mayCause
+    {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

@@ -1,4 +1,7 @@
 (let
+  (nonrec)
+  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
+(let
   (rec)
   (datatypebind
     (datatype
@@ -17,5 +20,6 @@
       (vardecl Cons (fun [Tree a] (fun [Forest a] [Forest a])))
     )
   )
-  { Nil (all a (type) (fun a a)) }
+  [ { Node unit } (error unit) { Nil unit } ]
+)
 )

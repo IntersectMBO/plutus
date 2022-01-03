@@ -11,6 +11,23 @@
         (vardecl Mono (fun (con integer) MyMonoData))
       )
     )
-    (lam ds MyMonoData ds)
+    (lam
+      ds
+      MyMonoData
+      [
+        [
+          [
+            { [ MyMonoData_match ds ] (con integer) }
+            (lam
+              default_arg0
+              (con integer)
+              (lam default_arg1 (con integer) (con integer 1))
+            )
+          ]
+          (lam i (con integer) i)
+        ]
+        (lam default_arg0 (con integer) (con integer 1))
+      ]
+    )
   )
 )
