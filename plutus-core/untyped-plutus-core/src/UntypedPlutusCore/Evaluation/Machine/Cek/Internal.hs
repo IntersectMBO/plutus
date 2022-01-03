@@ -677,7 +677,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
-        let argTerm = dischargeCekValue arg
+        let argTerm = error "argTerm"
             term' = Apply () term argTerm
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
