@@ -79,13 +79,11 @@ module PlutusCore
     , SourcePos
     -- * Formatting
     , format
-    , formatDoc
     -- * Processing
     , HasUniques
     , Rename (..)
     -- * Type checking
     , module TypeCheck
-    -- , fileType
     , printType
     , normalizeTypesIn
     , normalizeTypesInProgram
@@ -168,48 +166,17 @@ import Text.Megaparsec (SourcePos, errorBundlePretty, initialPos)
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
--- -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
--- -- its type or an error message.
--- fileType :: FilePath -> IO T.Text
--- fileType file = do
---     bs <- BSL.readFile file
---     ty <- printType bs
---     pure $ T.pack $ show ty
-
--- | Print the type of a program contained in a 'ByteString'
--- printType
---     :: BSL.ByteString
---     -> Either (ParseErrorBundle T.Text ParseError) T.Text
--- printType :: (AsTypeError
---    err
---    (Term TyName Name DefaultUni DefaultFun ())
---    DefaultUni
---    DefaultFun
---    SourcePos,
---  MonadQuote f, MonadError err f) =>
-    -- BSL.ByteString -> f (Normalized (Type TyName DefaultUni ()))
-printType :: (AsTypeError
-   err
-   (Term TyName Name DefaultUni DefaultFun ())
-   DefaultUni
-   DefaultFun
-   SourcePos,
- MonadQuote f, MonadError err f) =>
- BSL.ByteString -> f T.Text
-printType bs = do
-    case runQuoteT $ parseScoped bs of
-      Left peb -> pure $ error $ "errorBundlePretty peb"
-      Right pro -> do
-        config <- getDefTypeCheckConfig topSourcePos
-        ty <- inferTypeOfProgram config pro
-        pure $ pack $ show $ pretty ty
-
+printType ::(AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
+        MonadError e m)
+    => BSL.ByteString
+    -> m T.Text
+printType bs = runQuoteT $ T.pack . show . pretty <$> do
+    scoped <- parseScoped bs
+    config <- getDefTypeCheckConfig topSourcePos
+    inferTypeOfProgram config scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
--- parseScoped
---     :: BSL.ByteString
---     -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped :: (MonadQuote f) =>
     BSL.ByteString
@@ -237,12 +204,16 @@ parseScoped bs = do
                 -- if there's no errors, return the parsed program
                 Right _ -> pure p
 
-
 -- | Parse a program and typecheck it.
--- parseTypecheck
---     :: TypeCheckConfig DefaultUni DefaultFun
---     -> BSL.ByteString
---     -> Either (ParseErrorBundle T.Text ParseError) (Normalized (Type TyName DefaultUni ()))
+parseTypecheck :: (AsTypeError
+   e
+   (Term TyName Name DefaultUni DefaultFun ())
+   DefaultUni
+   DefaultFun
+   SourcePos,
+ MonadError e m, MonadQuote m) =>
+    TypeCheckConfig DefaultUni DefaultFun
+    -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -255,22 +226,10 @@ typecheckPipeline
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram
 
--- formatDoc ::
---     PrettyConfigPlc -> BSL.ByteString ->
---         Either (ParseErrorBundle T.Text ParseError) (Doc a)
--- don't use parseScoped since we don't bother running sanity checks when we format
--- formatDoc :: config -> a -> Program TyName Name DefaultUni DefaultFun (Doc ann)
-formatDoc cfg bs = do
-    case parseProgram bs of
-        -- when fail, pretty print the parse errors.
-        Left err ->
-            errorWithoutStackTrace $ errorBundlePretty err
-        -- otherwise,
-        Right p -> do
-            -- run @rename@ through the program
-            renamed <- runQuoteT $ rename p
-            fmap (prettyBy cfg) . rename renamed
-
+format :: (Monad m,
+ PrettyBy
+   config (Program TyName Name DefaultUni DefaultFun SourcePos)) =>
+ config -> BSL.ByteString -> m T.Text
 format cfg bs = do
     case parseProgram bs of
         -- when fail, pretty print the parse errors.
@@ -280,8 +239,7 @@ format cfg bs = do
         Right p -> do
             -- run @rename@ through the program
             renamed <- runQuoteT $ rename p
-            fmap (displayBy cfg) . rename renamed
-
+            runQuoteT $ fmap (displayBy cfg) $ rename renamed
 
 -- | Take one PLC program and apply it to another.
 applyProgram
