@@ -301,18 +301,30 @@ maybeAddSubst s n rhs = do
         postInlineUnconditional ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         postInlineUnconditional t = do
             -- See Note [Inlining criteria]
-            let termIsTrivial = trivialTerm t
+            let shouldInline = costIsAcceptable t && sizeIsAcceptable t
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
-            pure $ termIsTrivial && case s of { Strict -> termIsPure; NonStrict -> True; }
+            pure $ shouldInline && case s of { Strict -> termIsPure; NonStrict -> True; }
 
 {- Note [Inlining criteria]
-What gets inlined? We don't really care about performance here, so we're really just
-angling to simplify the code without making things worse.
+What gets inlined? Our goals are simple:
+- Make the resulting program faster (or at least no slower)
+- Make the resulting program smaller (or at least no bigger)
+- Inline as much as we can, since it exposes optimization opportunities
 
-The obvious candidates are tiny things like builtins, variables, or constants.
-We could also consider inlining variables with arbitrary RHSs that are used only
-once, but we don't do that currently.
+There are two easy cases:
+- Inlining approximately variable-sized and variable-costing terms (e.g. builtins, other variables)
+- Inlining single-use terms
+
+After that it gets more difficult. As soon as we're inlining things that are not variable-sized
+and are used more than once, we are at risk of doing more work or making things bigger.
+
+There are a few things we could do to do this in a more principled way, such as call-site inlining
+based on whether a funciton is fully applied.
+
+For now, we have one special case that is a little questionable: inlining functions whose body is small
+(motivating example: const). This *could* lead to code duplication, but it's a limited enough case that
+we're just going to accept that risk for now. We'll need to be more careful if we inline more functions.
 -}
 
 {- Note [Inlining and purity]
@@ -341,16 +353,46 @@ maybeAddTySubst tn rhs = do
         pure Nothing
     else pure $ Just rhs
 
--- | Is this a an utterly trivial term which might as well be inlined?
-trivialTerm :: Term tyname name uni fun a -> Bool
-trivialTerm = \case
-    Builtin{}      -> True
-    Var{}          -> True
-    -- TODO: Should this depend on the size of the constant?
-    Constant{}     -> True
-    TyAbs _ _ _ t  -> trivialTerm t
-    LamAbs _ _ _ t -> trivialTerm t
-    _              -> False
+-- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
+-- the given term acceptable?
+costIsAcceptable :: Term tyname name uni fun a -> Bool
+costIsAcceptable = \case
+  Builtin{}  -> True
+  Var{}      -> True
+  Constant{} -> True
+  Error{}    -> True
+  -- This will mean that we create closures at each use site instead of
+  -- once, but that's a very low cost which we're okay rounding to 0.
+  LamAbs{}   -> True
+  TyAbs{}    -> True
+
+  -- Arguably we could allow these two, but they're uncommon anyway
+  IWrap{}    -> False
+  Unwrap{}   -> False
+  Apply{}    -> False
+  TyInst{}   -> False
+  Let{}      -> False
+
+-- | Is the size increase (in the AST) of inlining a variable whose RHS is
+-- the given term acceptable?
+sizeIsAcceptable :: Term tyname name uni fun a -> Bool
+sizeIsAcceptable = \case
+  Builtin{}      -> True
+  Var{}          -> True
+  Error{}        -> True
+  -- See Note [Inlining criteria]
+  LamAbs _ _ _ t -> sizeIsAcceptable t
+  TyAbs _ _ _ t  -> sizeIsAcceptable t
+
+  -- Arguably we could allow these two, but they're uncommon anyway
+  IWrap{}        -> False
+  Unwrap{}       -> False
+  -- Constants can be big! We could check the size here and inline if they're
+  -- small, but probably not worth it
+  Constant{}     -> False
+  Apply{}        -> False
+  TyInst{}       -> False
+  Let{}          -> False
 
 -- | Is this a an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni a -> Bool

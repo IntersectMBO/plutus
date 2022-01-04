@@ -1,5 +1,6 @@
 (let
   (nonrec)
+  (termbind (strict) (vardecl x (con integer)) (con integer 42))
   (termbind
     (strict)
     (vardecl simple (con integer))
@@ -18,7 +19,7 @@
   (termbind
     (strict)
     (vardecl variableCapture (con integer))
-    [ (lam y (con integer) (con integer 42)) (con integer 24) ]
+    [ (lam y (con integer) x) (con integer 24) ]
   )
-  (con integer 42)
+  x
 )
