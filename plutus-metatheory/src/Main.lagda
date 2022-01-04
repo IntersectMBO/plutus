@@ -28,19 +28,19 @@ open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
 open import Type.BetaNormal
-open import Untyped as U
-import Untyped.Reduction as U
+open import UntypedMaybe as U
+--import Untyped.Reduction as U
 import Scoped as S
 open import Raw
 open import Scoped
 open import Utils hiding (ByteString)
-open import Untyped
+--open import Untyped
 open import Algorithmic hiding (Term;Type)
 open import Algorithmic.ReductionEC
 open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
-open import Algorithmic.Erasure
+open import Algorithmic.ErasureMaybe
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -124,7 +124,7 @@ postulate
   deBruijnifyTmU : TermNU → Either FreeVariableError TermU
   parseU : ByteString → Either ParseError ProgramNU
   parseTmU : ByteString → Either ParseError TermNU
-  convPU : ProgramU → Untyped
+  convPU : ProgramU → U.Untyped
   convTmU : TermU → Untyped
   unconvTmU : Untyped → TermU
   
@@ -230,11 +230,12 @@ parsePLC plc = do
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
-parseUPLC : ByteString → Either ERROR (0 ⊢)
+open import Data.Empty
+parseUPLC : ByteString → Either ERROR (⊥ ⊢)
 parseUPLC plc = do
   namedprog ← withE parseError $ parseU plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
-  withE scopeError $ U.scopeCheckU {0} (convPU prog)
+  withE scopeError $ U.scopeCheckU0 (convPU prog)
 
 typeCheckPLC : ScopedTm Z → Either TypeError (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
 typeCheckPLC t = inferType _ t
@@ -256,9 +257,9 @@ reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
+  just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU t')
+  return $ prettyPrintUTm (extricateU0 t')
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
@@ -277,11 +278,11 @@ executePLC TCEKV t = do
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
-executeUPLC : 0 ⊢ → Either ERROR String
+executeUPLC : ⊥ ⊢ → Either ERROR String
 executeUPLC t = do
-  just t' ← withE runtimeError $ U.progressor 10000000 t
+  just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
     where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU t')
+  return $ prettyPrintUTm (extricateU0 t')
 
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString U b = do
@@ -545,10 +546,10 @@ postulate showU : TermU -> String
 
 runU : TermU → Either ERROR TermU
 runU t = do
-  tDB ← withE scopeError $ U.scopeCheckU {0} (convTmU t)
-  just tR ← withE runtimeError $ U.progressor maxsteps tDB
+  tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
+  just tR ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
     where nothing → inj₂ (unconvTmU UError)
-  return (unconvTmU (extricateU tR))
+  return (unconvTmU (extricateU0 tR))
 
 {-# COMPILE GHC runU as runUAgda #-}
 \end{code}
