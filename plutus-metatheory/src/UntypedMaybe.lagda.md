@@ -1,6 +1,7 @@
 ```
 open import Utils
 open import Builtin
+open import Scoped using (ScopeError;deBError)
 
 data _⊢ (X : Set) : Set where
   `   : X → X ⊢
@@ -14,7 +15,7 @@ data _⊢ (X : Set) : Set where
 ```
 
 ```
-open import Untyped hiding (_⊢;extricateU)
+open import Untyped hiding (_⊢;extricateU;scopeCheckU)
 open import Data.Nat
 
 extG : {X : Set} → (X → ℕ) → Maybe X → ℕ
@@ -31,4 +32,30 @@ extricateU g (con c)     = UCon c
 extricateU g (builtin b) = UBuiltin b
 extricateU g error       = UError
 
+open import Data.Empty
+extricateU0 : ⊥  ⊢ → Untyped
+extricateU0 t = extricateU (λ()) t
+```
+
+```
+extG' : {X : Set} → (ℕ → Either ScopeError X) → ℕ → Either ScopeError (Maybe X)
+extG' g zero    = return nothing
+extG' g (suc n) = fmap just (g n)
+
+scopeCheckU : {X : Set}
+            → (ℕ → Either ScopeError X) → Untyped → Either ScopeError (X ⊢)
+scopeCheckU g (UVar x)     = fmap ` (g x)
+scopeCheckU g (ULambda t)  = fmap ƛ (scopeCheckU (extG' g) t)
+scopeCheckU g (UApp t u)   = do
+  t ← scopeCheckU g t
+  u ← scopeCheckU g u
+  return (t · u)
+scopeCheckU g (UCon c)     = return (con c)
+scopeCheckU g UError       = return error
+scopeCheckU g (UBuiltin b) = return (builtin b)
+scopeCheckU g (UDelay t)   = fmap delay (scopeCheckU g t)
+scopeCheckU g (UForce t)   = fmap force (scopeCheckU g t)
+
+scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
+scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 ```
