@@ -62,7 +62,7 @@ import Data.Traversable
 
 {-
 The patched 8.10 GHCs from haskell.nix include a buggy patch that introduced some changes to the core
-AST that should only have been in 9.0. In order to facilitate building with non-patched GHCs, we use a bit 
+AST that should only have been in 9.0. In order to facilitate building with non-patched GHCs, we use a bit
 of CPP here.
 
 How do we know whether we're using a haskell.nix GHC? Well, we can't in general, but in fact we're using
