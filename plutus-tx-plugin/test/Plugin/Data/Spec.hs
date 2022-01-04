@@ -116,7 +116,7 @@ recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> case x of
 
 data RecordWithStrictField = RecordWithStrictField { strictField1 :: !MyMonoRecord, strictField2 :: !RecordNewtype }
 
--- checks that the type of 'strictField2' is replaced with 'Integer', see Note [On workers and wrappers]
+-- checks that the type of 'strictField2' is replaced with 'Integer', see Note [On data constructor workers and wrappers]
 recordWithStrictField :: CompiledCode (RecordWithStrictField -> RecordNewtype)
 recordWithStrictField = plc (Proxy @"recordWithStrictField") (\(x :: RecordWithStrictField) -> strictField2 x)
 
@@ -125,7 +125,7 @@ data T = MkT !(Integer,Integer)
 mkT :: (Integer, Integer) -> T
 mkT = MkT
 
--- checks that the 'wrapper' is compiled but unused, see Note [On workers and wrappers]
+-- checks that the 'wrapper' is compiled but unused, see Note [On data constructor workers and wrappers]
 unusedWrapper :: CompiledCode T
 unusedWrapper = plc (Proxy @"unusedWrapper") ((\x (y, z) -> x (z, y)) mkT (1, 2))
 

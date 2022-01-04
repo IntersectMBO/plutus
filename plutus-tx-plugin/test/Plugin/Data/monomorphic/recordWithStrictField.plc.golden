@@ -9,16 +9,7 @@
         (vardecl RecordNewtype (fun (con integer) RecordNewtype))
       )
     )
-    (datatypebind
-      (datatype
-        (tyvardecl MyMonoRecord (type))
-
-        MyMonoRecord_match
-        (vardecl
-          MyMonoRecord (fun (con integer) (fun (con integer) MyMonoRecord))
-        )
-      )
-    )
+    (typebind (tyvardecl MyMonoRecord (type)) (all a (type) (fun a a)))
     (datatypebind
       (datatype
         (tyvardecl RecordWithStrictField (type))
