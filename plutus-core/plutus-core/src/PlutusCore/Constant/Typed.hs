@@ -715,13 +715,13 @@ newtype SomeConstant uni rep = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
 
-instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant uni' rep) where
+instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
     type ToBinds (SomeConstant _ rep) = ToBinds rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
-instance (uni ~ uni', HasConstantIn uni term) => KnownTypeIn uni term (SomeConstant uni' rep) where
+instance HasConstantIn uni term => KnownTypeIn uni term (SomeConstant uni rep) where
     makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
@@ -736,9 +736,9 @@ newtype SomeConstantPoly uni f reps = SomeConstantPoly
     { unSomeConstantPoly :: Some (ValueOf uni)
     }
 
-instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
-            KnownTypeAst uni (SomeConstantPoly uni' f reps) where
-    type ToBinds (SomeConstantPoly uni' f reps) = ListToBinds reps
+instance (uni `Contains` f, All (KnownTypeAst uni) reps) =>
+            KnownTypeAst uni (SomeConstantPoly uni f reps) where
+    type ToBinds (SomeConstantPoly uni f reps) = ListToBinds reps
 
     toTypeAst _ =
         -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
@@ -749,8 +749,7 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
                 []
     {-# INLINE toTypeAst #-}
 
-instance (uni ~ uni', HasConstantIn uni term) =>
-            KnownTypeIn uni term (SomeConstantPoly uni' f reps) where
+instance HasConstantIn uni term => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
     makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
@@ -797,7 +796,7 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
-instance (term ~ term', uni ~ UniOf term) => KnownTypeIn uni term (Opaque term' rep) where
+instance uni ~ UniOf term => KnownTypeIn uni term (Opaque term rep) where
     makeKnown _ _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
