@@ -526,6 +526,16 @@ instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
 
 {- Note [Performance of KnownTypeIn instances]
+It's critically important that 'readKnown' runs in the concrete 'Either' rather than a general
+'MonadError'. Changing from the latter to the former gave us a speedup of up to 19%, see
+https://github.com/input-output-hk/plutus/pull/4307
+
+The same does not apply to 'makeKnown' however and so we keep 'MonadError' there, see
+https://github.com/input-output-hk/plutus/pull/4308
+Although there's a different kind of inlining that helps in case of 'makeKnown', see the first
+commit and the first comment of https://github.com/input-output-hk/plutus/pull/4251
+We don't have it merged currently though, because there's a hope for a better solution.
+
 Even though we don't use 'makeKnown' and 'readKnown' directly over concrete types, it's still
 beneficial to inline them, because otherwise GHC compiles each of them to two definitions
 (one calling the other) for some reason. So always add an @INLINE@ pragma to all definitions
@@ -554,11 +564,8 @@ and the "just compute the damn thing" behavior.
 
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
-    :: forall term a err cause m.
-       ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
-       , KnownBuiltinType term a
-       )
-    => Maybe cause -> term -> m a
+    :: forall term a err cause. (AsUnliftingError err, KnownBuiltinType term a)
+    => Maybe cause -> term -> Either (ErrorWithCause err cause) a
 -- See Note [Performance of KnownTypeIn instances].
 readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
     Some (ValueOf uniAct x) -> do
@@ -605,14 +612,14 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err
+        :: ( AsUnliftingError err, AsEvaluationFailure err
            )
-        => Maybe cause -> term -> m a
+        => Maybe cause -> term -> Either (ErrorWithCause err cause) a
     default readKnown
-        :: ( MonadError (ErrorWithCause err cause) m, AsUnliftingError err
+        :: ( AsUnliftingError err
            , KnownBuiltinType term a
            )
-        => Maybe cause -> term -> m a
+        => Maybe cause -> term -> Either (ErrorWithCause err cause) a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
@@ -623,9 +630,9 @@ type KnownType term = KnownTypeIn (UniOf term) term
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
     :: ( KnownType term a
-       , MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+       , AsUnliftingError err, AsEvaluationFailure err
        )
-    => term -> m a
+    => term -> Either (ErrorWithCause err term) a
 readKnownSelf term = readKnown (Just term) term
 
 -- | For providing a 'KnownTypeIn' instance for a built-in type it's enough for that type to satisfy
@@ -709,10 +716,10 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (SomeConstant uni rep) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstant
+    makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
-    readKnown mayCause = fmap SomeConstant . asConstant mayCause
+    readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
 -- | For unlifting from the 'Constant' constructor when the stored value is of a polymorphic
@@ -739,10 +746,10 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
          , HasConstantIn uni term
          ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
-    makeKnown _ _ = pure . fromConstant . unSomeConstantPoly
+    makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
-    readKnown mayCause = fmap SomeConstantPoly . asConstant mayCause
+    readKnown = coerceVia (\asC mayCause -> fmap SomeConstantPoly . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
 toTyNameAst
@@ -784,10 +791,6 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
 
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
-
-coerceArg :: Coercible a b => (a -> r) -> b -> r
-coerceArg = coerce
-{-# INLINE coerceArg #-}
 
 instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
             KnownTypeIn uni term (Opaque term' rep) where
@@ -859,6 +862,19 @@ instance TypeError NoConstraintsErrMsg => Monoid (Opaque term rep) where
     mempty = underTypeError
 
 -- Utils
+
+-- | Coerce the second argument to the result type of the first one. The motivation for this
+-- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
+-- to constructor an explicit coercion function, so this combinator can be used in cases like that.
+-- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
+coerceVia :: Coercible a b => (a -> b) -> a -> b
+coerceVia _ = coerce
+{-# INLINE coerceVia #-}
+
+-- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
+coerceArg :: Coercible a b => (a -> r) -> b -> r
+coerceArg = coerce
+{-# INLINE coerceArg #-}
 
 -- | Like 'cpara_SList' but the folding function takes a 'Proxy' argument for the convenience of
 -- the caller.
