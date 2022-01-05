@@ -514,13 +514,17 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
--- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
--- hence defining it as a class synonym.
+-- -- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
+-- -- hence defining it as a class synonym.
+-- -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+-- class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+--             KnownBuiltinTypeIn uni term a
+-- instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
+--             KnownBuiltinTypeIn uni term a
+
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
-instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
+
+type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
@@ -591,7 +595,7 @@ readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
 -- as a term). Note that an evaluator might require the cause to be computed lazily for best
 -- performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
 -- the cause stored in it is not forced due to @Maybe@ being a lazy data type.
-class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
+class uni ~ UniOf term => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
@@ -624,8 +628,12 @@ class (uni ~ UniOf term, KnownTypeAst uni a) => KnownTypeIn uni term a where
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
 
+-- -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
+-- class    (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a) => KnownType term a
+-- instance (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a) => KnownType term a
+
 -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
-type KnownType term = KnownTypeIn (UniOf term) term
+type KnownType term a = (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a)
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
@@ -669,8 +677,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
-instance (KnownTypeAst uni a, KnownTypeIn uni term a) =>
-            KnownTypeIn uni term (EvaluationResult a) where
+instance KnownTypeIn uni term a => KnownTypeIn uni term (EvaluationResult a) where
     makeKnown _    mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
     makeKnown emit mayCause (EvaluationSuccess x) = makeKnown emit mayCause x
     {-# INLINE makeKnown #-}
@@ -714,8 +721,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
-instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
-            KnownTypeIn uni term (SomeConstant uni rep) where
+instance (uni ~ uni', HasConstantIn uni term) => KnownTypeIn uni term (SomeConstant uni' rep) where
     makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
@@ -743,9 +749,8 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
                 []
     {-# INLINE toTypeAst #-}
 
-instance ( uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps
-         , HasConstantIn uni term
-         ) => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
+instance (uni ~ uni', HasConstantIn uni term) =>
+            KnownTypeIn uni term (SomeConstantPoly uni' f reps) where
     makeKnown _ _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
@@ -792,8 +797,7 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
-instance (term ~ term', uni ~ UniOf term, KnownTypeAst uni rep) =>
-            KnownTypeIn uni term (Opaque term' rep) where
+instance (term ~ term', uni ~ UniOf term) => KnownTypeIn uni term (Opaque term' rep) where
     makeKnown _ _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
