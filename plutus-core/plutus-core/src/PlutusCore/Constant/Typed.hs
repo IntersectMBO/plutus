@@ -514,17 +514,8 @@ type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
--- We need to be able to partially apply that in the definition of 'ImplementedKnownBuiltinTypeIn',
--- hence defining it as a class synonym.
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-class    (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
-instance (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a) =>
-            KnownBuiltinTypeIn uni term a
-
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-
--- type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
+type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType term a = KnownBuiltinTypeIn (UniOf term) term a
@@ -629,11 +620,7 @@ class uni ~ UniOf term => KnownTypeIn uni term a where
     {-# INLINE readKnown #-}
 
 -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
-class    (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a) => KnownType term a
-instance (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a) => KnownType term a
-
--- -- | Haskell types known to exist on the PLC side. See 'KnownTypeIn'.
--- type KnownType term a = (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a)
+type KnownType term a = (KnownTypeAst (UniOf term) a, KnownTypeIn (UniOf term) term a)
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
