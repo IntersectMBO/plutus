@@ -33,6 +33,7 @@ module PlutusTx.Ratio(
     , gcd
     ) where
 
+import PlutusTx.Applicative qualified as P
 import PlutusTx.Base qualified as P
 import PlutusTx.Bool qualified as P
 import PlutusTx.Eq qualified as P
@@ -47,6 +48,7 @@ import PlutusTx.Trace qualified as P
 
 import PlutusTx.Builtins qualified as Builtins
 
+import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
 import GHC.Real qualified as Ratio
 import Prelude (Ord (..), Show, (*))
@@ -144,18 +146,14 @@ instance P.ToData Rational where
 
 instance P.FromData Rational where
   {-# INLINABLE fromBuiltinData #-}
-  fromBuiltinData dat = case P.fromBuiltinData dat of
-    P.Nothing -> P.Nothing
-    P.Just (n, d) -> if d P.== P.zero
-                     then Builtins.error ()
-                     else P.Just (unsafeRatio n d)
+  fromBuiltinData dat = do
+    (n, d) <- P.fromBuiltinData dat
+    guard (d P./= P.zero)
+    P.pure P.. unsafeRatio n P.$ d
 
 instance P.UnsafeFromData Rational where
   {-# INLINABLE unsafeFromBuiltinData #-}
-  unsafeFromBuiltinData dat = case P.unsafeFromBuiltinData dat of
-    (n, d) -> if d P.== P.zero
-              then Builtins.error ()
-              else unsafeRatio n d
+  unsafeFromBuiltinData = P.uncurry unsafeRatio P.. P.unsafeFromBuiltinData
 
 -- | This mimics the behaviour of Aeson's instance for 'GHC.Rational'.
 instance ToJSON Rational where

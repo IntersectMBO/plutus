@@ -113,20 +113,6 @@ testReduce = Hedgehog.property $ do
                 Hedgehog.assert (GHCRatio.numerator plutusR == (negate . GHCRatio.numerator $ ghcR))
                 Hedgehog.assert (GHCRatio.denominator plutusR == (negate . GHCRatio.denominator $ ghcR))
         _ -> Hedgehog.assert (ghcResult == plutusResult)
-      {-
-    case (ghcResult, plutusResult) of
-      (Just ghcR, Just plutusR) -> do
-        let theirNum = GHCRatio.numerator ghcR
-        let theirDen = GHCRatio.denominator ghcR
-        -- We need to do this as GHC doesn't reduce negative numerator and
-        -- denominator as eagerly as we do.
-        if (signum theirNum == signum theirDen) && (signum theirNum == (-1))
-        then do
-          Hedgehog.assert (GHCRatio.numerator plutusR == abs theirNum)
-          Hedgehog.assert (GHCRatio.denominator plutusR == abs theirDen)
-        else Hedgehog.assert (ghcResult == plutusResult)
-      _ -> Hedgehog.assert (ghcResult == plutusResult)
-      -}
 
 testOrd :: Property
 testOrd = Hedgehog.property $ do
