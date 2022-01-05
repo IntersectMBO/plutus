@@ -70,6 +70,7 @@ data Env : Set → Set where
 data Value where
   V-ƛ : ∀{X} → Env X → Maybe X ⊢ → Value
   V-con : TermCon → Value
+  V-delay : ∀{X} → Env X → X ⊢ → Value
 
 Ren : Set → Set → Set
 Ren X Y = X → Y
@@ -111,15 +112,17 @@ sub σ error       = error
 env2sub : ∀{Γ} → Env Γ → Sub Γ ⊥
 
 discharge : Value → ⊥ ⊢
-discharge (V-ƛ ρ t) = ƛ (sub (lifts (env2sub ρ)) t)
-discharge (V-con c) = con c
+discharge (V-ƛ ρ t)   = ƛ (sub (lifts (env2sub ρ)) t)
+discharge (V-con c)   = con c
+discharge (V-delay ρ t) = delay (sub (env2sub ρ) t)
 
 env2sub (ρ ∷ v) nothing  = discharge v
 env2sub (ρ ∷ v) (just x) = env2sub ρ x
 
 data Frame : Set where
   -·  : ∀{Γ} → Env Γ → Γ ⊢ → Frame
-  _·- : Value → Frame 
+  _·- : Value → Frame
+  force- : Frame
 
 data Stack : Set where
   ε : Stack
@@ -141,15 +144,20 @@ step : State → State
 step (s ; ρ ▻ ` x)       = s ◅ lookup ρ x
 step (s ; ρ ▻ ƛ t)       = s ◅ V-ƛ ρ t
 step (s ; ρ ▻ (t · u))   = (s , -· ρ u) ; ρ ▻ t
-step (s ; ρ ▻ force t)   = ◆
-step (s ; ρ ▻ delay t)   = ◆
+step (s ; ρ ▻ force t)   = (s , force-) ; ρ ▻ t
+step (s ; ρ ▻ delay t)   = s ◅ V-delay ρ t
 step (s ; ρ ▻ con c)     = s ◅ V-con c
 step (s ; ρ ▻ builtin b) = ◆
 step (s ; ρ ▻ error)     = ◆
 step (ε ◅ v)             = □ v
 step ((s , -· ρ u) ◅ v)  = (s , (v ·-)) ; ρ ▻ u
 step ((s , (V-ƛ ρ t ·-)) ◅ v) = s ; ρ ∷ v ▻ t
-step ((s , (V-con c ·-)) ◅ v) = ◆ -- constant in function position
+step ((s , (V-con _     ·-)) ◅ v) = ◆ -- constant in function position
+step ((s , (V-delay _ _ ·-)) ◅ v) = ◆ -- delay in function position
+step ((s , force-) ◅ V-ƛ _ _)   = ◆ -- lambda in delay position
+step ((s , force-) ◅ V-con _)   = ◆ -- constant in delay position
+step ((s , force-) ◅ V-delay ρ t) = step (s ; ρ ▻ t)
+
 step (□ v)               = □ v
 step ◆                   = ◆
 
