@@ -683,7 +683,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
             TypeSchemeArrow _ schB -> do
-                x <- readKnown (Just argTerm) arg
+                x <- liftEither $ readKnown (Just argTerm) arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                 -- Maybe we could fuse the two?

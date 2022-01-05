@@ -302,7 +302,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
         TypeSchemeArrow _ schB -> do
-            x <- readKnown (Just argTerm) arg
+            x <- liftEither $ readKnown (Just argTerm) arg
             let noCosting = error "The CK machine does not support costing"
                 runtime' = BuiltinRuntime schB (f x) noCosting
             res <- evalBuiltinApp term' runtime'
