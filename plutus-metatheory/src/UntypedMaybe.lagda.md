@@ -350,10 +350,10 @@ step (□ v)               = □ v
 step ◆                   = ◆
 
 open import Function
-stepper : ℕ → (t : State) → Either RuntimeError (Maybe (⊥ ⊢))
+stepper : ℕ → (t : State) → Either RuntimeError State
 stepper 0       s = inj₁ gasError
 stepper (suc n) s with step s
 ... | (s ; ρ ▻ t) = stepper n (s ; ρ ▻ t)
 ... | (s ◅ v)     = stepper n (s ◅ v)
-... | (□ v)       = inj₂ $ just (discharge v)
-... | ◆           = inj₁ userError
+... | (□ v)       = return (□ v)
+... | ◆           = return ◆

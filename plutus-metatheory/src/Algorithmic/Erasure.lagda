@@ -67,7 +67,7 @@ erase (t ·⋆ A / refl)      = force (erase t)
 erase (wrap A B t)         = erase t
 erase (unwrap t refl)      = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (builtin b / refl)     = builtin b
+erase (builtin b / refl)   = builtin b
 erase (error A)            = error
 \end{code}
 

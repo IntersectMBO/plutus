@@ -257,9 +257,15 @@ reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
+    where ◆  → inj₁ (runtimeError userError)
+          _    → inj₁ (runtimeError gasError)
+
+{-
+just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU0 t')
+    -}
+  return $ prettyPrintUTm (extricateU0 (U.discharge V))
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
@@ -280,9 +286,10 @@ executePLC TCEKV t = do
 
 executeUPLC : ⊥ ⊢ → Either ERROR String
 executeUPLC t = do
-  just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
-    where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU0 t')
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
+    where ◆  → inj₁ (runtimeError userError)
+          _    → inj₁ (runtimeError gasError)
+  return $ prettyPrintUTm (extricateU0 (U.discharge V))
 
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString U b = do
@@ -513,6 +520,8 @@ runTL t = do
 
 {-# COMPILE GHC runTL as runTLAgda #-}
 
+-- note the interfaces to evaluation below catch userErrors and replace them with error terms
+
 -- Haskell interface to (typechecked) CK
 runTCK : Term → Either ERROR Term
 runTCK t = do
@@ -543,13 +552,13 @@ postulate showU : TermU -> String
 
 {-# COMPILE GHC showU = T.pack . show #-}
 
-
 runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
-  just tR ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where nothing → inj₂ (unconvTmU UError)
-  return (unconvTmU (extricateU0 tR))
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
+    where ◆  → return (unconvTmU UError)
+          _    → inj₁ (runtimeError gasError)
+  return (unconvTmU (extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}
 \end{code}
