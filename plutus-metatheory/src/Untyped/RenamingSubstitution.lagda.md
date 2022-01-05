@@ -4,7 +4,6 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --rewriting #-}
 module Untyped.RenamingSubstitution where
 ```
 
@@ -23,15 +22,17 @@ open import Utils
 
 ## Renaming
 
+
+
 ```
-Ren : ℕ → ℕ → Set
-Ren m n = Fin m → Fin n
+Ren : Set → Set → Set
+Ren X Y = X → Y
 
-lift : Ren m n → Ren (suc m) (suc n)
-lift ρ zero = zero
-lift ρ (suc x) = suc (ρ x)
+lift : {X Y : Set} → Ren X Y → Ren (Maybe X) (Maybe Y)
+lift ρ nothing = nothing
+lift ρ (just x) = just (ρ x)
 
-ren : Ren m n → m ⊢ → n ⊢
+ren : {X Y : Set} → Ren X Y → X ⊢ → Y ⊢
 ren ρ (` x)       = ` (ρ x)
 ren ρ (ƛ t)       = ƛ (ren (lift ρ) t)
 ren ρ (t · u)     = ren ρ t · ren ρ u
@@ -41,13 +42,14 @@ ren ρ (con tcn)   = con tcn
 ren ρ (builtin b) = builtin b
 ren ρ error       = error
 
-weaken : n ⊢ → suc n ⊢
-weaken t = ren suc t
+weaken : {X : Set} → X ⊢ → Maybe X ⊢
+weaken t = ren just t
 ```
 
 Proofs that renaming forms a functor
 
 ```
+{-
 lift-cong :
     {ρ ρ' : Ren m n}
   → (∀ x → ρ x ≡ ρ' x)
@@ -102,20 +104,21 @@ ren-comp ρ ρ' (force t)   = cong force (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (delay t)   = cong delay (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (con c)     = refl
 ren-comp ρ ρ' (builtin b) = refl
-ren-comp ρ ρ' error       = refl 
+ren-comp ρ ρ' error       = refl
+-}
 ```
 
 ## Substitution
 
 ```
-Sub : ℕ → ℕ → Set
-Sub m n = Fin m → n ⊢
+Sub : Set → Set → Set
+Sub X Y = X → Y ⊢
 
-lifts : Sub m n → Sub (suc m) (suc n)
-lifts ρ zero = ` zero
-lifts ρ (suc x) = ren suc (ρ x)
+lifts : {X Y : Set} → Sub X Y → Sub (Maybe X) (Maybe Y)
+lifts ρ nothing = ` nothing
+lifts ρ (just x) = ren just (ρ x)
 
-sub    : Sub m n → m ⊢ → n ⊢
+sub : {X Y : Set} → Sub X Y → X ⊢ → Y ⊢
 sub σ (` x)       = σ x
 sub σ (ƛ t)       = ƛ (sub (lifts σ) t) 
 sub σ (t · u)     = sub σ t · sub σ u
@@ -125,17 +128,18 @@ sub σ (con tcn)   = con tcn
 sub σ (builtin b) = builtin b
 sub σ error       = error
 
-extend : Sub m n → n ⊢ → Sub (suc m) n
-extend σ t zero    = t
-extend σ t (suc x) = σ x
+extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (Maybe X) Y
+extend σ t nothing  = t
+extend σ t (just x) = σ x
 
-_[_] : suc n ⊢ → n ⊢ → n ⊢
+_[_] : ∀{X} → Maybe X ⊢ → X ⊢ → X ⊢
 t [ u ] = sub (extend ` u) t
 ```
 
 Proofs that substitution forms a monad
 
 ```
+{-
 lifts-cong : {σ σ' : Sub m n}
   → (∀ x → σ x ≡ σ' x)
   → (x : Fin (suc m))
@@ -227,4 +231,5 @@ sub-comp g f (delay t)   = cong delay (sub-comp g f t)
 sub-comp g f (con c)     = refl
 sub-comp g f (builtin b) = refl
 sub-comp g f error       = refl
+-}
 ```

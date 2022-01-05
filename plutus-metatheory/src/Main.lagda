@@ -28,19 +28,18 @@ open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
 open import Type.BetaNormal
-open import UntypedMaybe as U
---import Untyped.Reduction as U
+import Untyped as U
+open import Untyped.CEK as U
 import Scoped as S
 open import Raw
 open import Scoped
 open import Utils hiding (ByteString)
---open import Untyped
 open import Algorithmic hiding (Term;Type)
 open import Algorithmic.ReductionEC
 open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
-open import Algorithmic.ErasureMaybe
+open import Algorithmic.Erasure
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -125,8 +124,8 @@ postulate
   parseU : ByteString → Either ParseError ProgramNU
   parseTmU : ByteString → Either ParseError TermNU
   convPU : ProgramU → U.Untyped
-  convTmU : TermU → Untyped
-  unconvTmU : Untyped → TermU
+  convTmU : TermU → U.Untyped
+  unconvTmU : U.Untyped → TermU
   
 
 {-# FOREIGN GHC import PlutusCore.Name #-}
@@ -177,7 +176,7 @@ postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
 
-  prettyPrintUTm : Untyped → String
+  prettyPrintUTm : U.Untyped → String
 
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# COMPILE GHC prettyPrintTm = display @T.Text . unconv 0 #-}
@@ -231,7 +230,7 @@ parsePLC plc = do
   -- shifter is run
 
 open import Data.Empty
-parseUPLC : ByteString → Either ERROR (⊥ ⊢)
+parseUPLC : ByteString → Either ERROR (⊥ U.⊢)
 parseUPLC plc = do
   namedprog ← withE parseError $ parseU plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
@@ -265,7 +264,7 @@ executePLC U t = do
 just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
     -}
-  return $ prettyPrintUTm (extricateU0 (U.discharge V))
+  return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
@@ -284,12 +283,12 @@ executePLC TCEKV t = do
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
-executeUPLC : ⊥ ⊢ → Either ERROR String
+executeUPLC : ⊥ U.⊢ → Either ERROR String
 executeUPLC t = do
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
     where ◆  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
-  return $ prettyPrintUTm (extricateU0 (U.discharge V))
+  return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString U b = do
@@ -333,25 +332,6 @@ junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.Show.show (pos n) ∷ junk
 
-alphaTm : ByteString → ByteString → Bool
-alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
-alphaTm plc1 plc2 | _ | _ = Bool.false
-
-{-# COMPILE GHC alphaTm as alphaTm #-}
-
-alphaU : ByteString → ByteString → Bool
-alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decUTm (convTmU plc1'') (convTmU plc2'')
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
-alphaU plc1 plc2 | _ | _ = Bool.false
-
-{-# COMPILE GHC alphaU as alphaU #-}
-
-
 blah : ByteString → ByteString → String
 blah plc1 plc2 with parseTm plc1 | parseTm plc2
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
@@ -378,6 +358,25 @@ alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
+
+alphaTm : ByteString → ByteString → Bool
+alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
+alphaTm plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaTm as alphaTm #-}
+
+alphaU : ByteString → ByteString → Bool
+alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = U.decUTm (convTmU plc1'') (convTmU plc2'')
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
+alphaU plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaU as alphaU #-}
+
 
 -- Opt stuff
 
@@ -556,9 +555,9 @@ runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where ◆  → return (unconvTmU UError)
+    where ◆  → return (unconvTmU U.UError)
           _    → inj₁ (runtimeError gasError)
-  return (unconvTmU (extricateU0 (U.discharge V)))
+  return (unconvTmU (U.extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}
 \end{code}

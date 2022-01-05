@@ -108,7 +108,7 @@ is sound and complete with respect to it.
 ```
 import Declarative
 import Declarative.RenamingSubstitution
-import Declarative.Erasure
+-- import Declarative.Erasure
 
 import Declarative.Examples
 import Declarative.Examples.StdLib.Function
@@ -131,8 +131,8 @@ import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
-import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.Erasure.Reduction
+-- import Algorithmic.Erasure.RenamingSubstitution
+-- import Algorithmic.Erasure.Reduction
 import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEKV
@@ -150,7 +150,7 @@ import Scoped.RenamingSubstitution
 
 import Scoped.Extrication
 import Scoped.Extrication.RenamingSubstitution
-import Scoped.Erasure
+--import Scoped.Erasure
 --import Scoped.Erasure.RenamingSubstitution
 ```
 
@@ -161,7 +161,7 @@ Untyped terms, reduction and evaluation
 ```
 import Untyped
 import Untyped.RenamingSubstitution
-import Untyped.Reduction
+--import Untyped.Reduction
 ```
 
 ## Type checker

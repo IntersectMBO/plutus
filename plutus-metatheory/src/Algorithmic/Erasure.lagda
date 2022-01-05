@@ -7,7 +7,7 @@ module Algorithmic.Erasure where
 \begin{code}
 open import Algorithmic as A
 open import Untyped
-open import Untyped.RenamingSubstitution as U
+--open import Untyped.RenamingSubstitution as U
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
@@ -34,20 +34,22 @@ open import Relation.Binary.PropositionalEquality
 \end{code}
 
 \begin{code}
-len : ∀{Φ} → Ctx Φ → ℕ
-len ∅ = 0
-len (Γ ,⋆ K) = len Γ
-len (Γ , A)  = suc (len Γ)
+open import Data.Empty
 
-len⋆ : Ctx⋆ → ℕ
-len⋆ ∅        = 0
-len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
+len⋆ : Ctx⋆ → Set
+len⋆ ∅        = ⊥
+len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
+
+len : ∀{Φ} → Ctx Φ → Set
+len ∅ = ⊥
+len (Γ ,⋆ K) = len Γ
+len (Γ , A)  = Maybe (len Γ)
 \end{code}
 
 \begin{code}
-eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → Fin (len Γ)
-eraseVar Z     = zero
-eraseVar (S α) = suc (eraseVar α) 
+eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → len Γ
+eraseVar Z     = nothing
+eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
@@ -78,6 +80,7 @@ I need to pattern match on the term constructors
 # Erasing decl/alg terms agree
 
 \begin{code}
+{-
 open import Relation.Binary.PropositionalEquality
 import Declarative as D
 import Declarative.Erasure as D
@@ -328,4 +331,5 @@ same' {Γ = Γ} (con x) = trans
   (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
 same' {Γ = Γ} (builtin b / refl) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
+-- -}
 \end{code}
