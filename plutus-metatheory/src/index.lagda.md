@@ -108,7 +108,7 @@ is sound and complete with respect to it.
 ```
 import Declarative
 import Declarative.RenamingSubstitution
--- import Declarative.Erasure
+import Declarative.Erasure
 
 import Declarative.Examples
 import Declarative.Examples.StdLib.Function
