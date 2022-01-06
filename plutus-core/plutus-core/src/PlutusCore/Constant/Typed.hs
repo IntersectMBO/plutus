@@ -37,8 +37,8 @@ module PlutusCore.Constant.Typed
     , FromConstant (..)
     , HasConstant
     , HasConstantIn
-    , RepInfer
-    , TypeInfer
+    , RepHole
+    , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , Merge
@@ -398,13 +398,13 @@ for built-in types.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
 
 -- | Representation of an intrinsically-kinded type variable: a name.
-data family TyVarRep (var :: TyNameRep kind) :: kind
+data family TyVarRep (name :: TyNameRep kind) :: kind
 
 -- | Representation of an intrinsically-kinded type application: a function and an argument.
 data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
-data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
+data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- | Throw an 'UnliftingError' saying that the received argument is not a constant.
 throwNotAConstant
@@ -456,33 +456,8 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
--- -- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
--- -- We add such a trivial type synonym to make instances of 'KnownTypeAst' for built-in types look
--- -- better. For example, the \"abstract\" 'KnownBuiltinTypeAst' looks sensible here:
--- --
--- -- > instance KnownBuiltinTypeAst DefaultUni Integer => KnownTypeAst DefaultUni Integer
--- --
--- -- while inlining the definition would give us
--- --
--- -- > instance DefaultUni `Contains` Integer => KnownTypeAst DefaultUni Integer
--- --
--- -- which is nonsense, because the @DefaultUni `Contains` Integer@ constraint is redundant
--- -- (by means of being trivially satisfied).
--- --
--- -- We could omit the constraint in both the cases due to `Integer` being monomorphic, but for
--- -- polymorphic built-in types we do need it and so we keep things uniform by introducing this
--- -- type synonym. Which also allows us to replicate the same pattern as with 'KnownTypeIn':
--- --
--- -- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
--- type KnownBuiltinTypeAst = Contains
-
-data RepInfer (x :: a)
-data TypeInfer (a :: GHC.Type)
-
--- type BuiltinToHoles :: forall k. k -> [GHC.Type]
--- type family BuiltinToHoles b where
---     BuiltinToHoles (f a) = TypeInfer a ': BuiltinToHoles f
---     BuiltinToHoles _     = '[]
+data RepHole (x :: a)
+data TypeHole (a :: GHC.Type)
 
 type BuiltinHead :: forall k. k -> k
 data family BuiltinHead f
@@ -492,6 +467,7 @@ type family ElaborateBuiltin a where
     ElaborateBuiltin (f x) = ElaborateBuiltin f `TyAppRep` x
     ElaborateBuiltin f     = BuiltinHead f
 
+-- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
 type KnownBuiltinTypeAst uni a = KnownTypeAst uni (ElaborateBuiltin a)
 
 class KnownTypeAst uni (a :: k) where
@@ -513,7 +489,7 @@ class KnownTypeAst uni (a :: k) where
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) where
-    type ToHoles (a -> b) = '[TypeInfer a, TypeInfer b]
+    type ToHoles (a -> b) = '[TypeHole a, TypeHole b]
     type ToBinds (a -> b) = Merge (ToBinds a) (ToBinds b)
 
     toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
@@ -691,7 +667,7 @@ makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err)
 makeKnownOrFail = unNoCauseT . makeKnown (\_ -> pure ()) Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
-    type ToHoles (EvaluationResult a) = '[ TypeInfer a ]
+    type ToHoles (EvaluationResult a) = '[TypeHole a]
     type ToBinds (EvaluationResult a) = ToBinds a
 
     toTypeAst _ = toTypeAst $ Proxy @a
@@ -713,7 +689,7 @@ instance KnownTypeIn uni term a => KnownTypeIn uni term (EvaluationResult a) whe
     {-# INLINE readKnown #-}
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
-    type ToHoles (Emitter a) = '[ TypeInfer a ]
+    type ToHoles (Emitter a) = '[TypeHole a]
     type ToBinds (Emitter a) = ToBinds a
 
     toTypeAst _ = toTypeAst $ Proxy @a
@@ -737,7 +713,7 @@ newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     }
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
-    type ToHoles (SomeConstant _ rep) = '[ RepInfer rep ]
+    type ToHoles (SomeConstant _ rep) = '[RepHole rep]
     type ToBinds (SomeConstant _ rep) = ToBinds rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep
@@ -758,27 +734,27 @@ toTyNameAst _ =
         (Text.pack $ symbolVal @text Proxy)
         (Unique . fromIntegral $ natVal @uniq Proxy)
 
-instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
-            KnownTypeAst uni (TyVarRep var) where
-    type ToHoles (TyVarRep var) = '[]
-    type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
+instance (name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst uni (TyVarRep name) where
+    type ToHoles (TyVarRep name) = '[]
+    type ToBinds (TyVarRep name) = '[ 'GADT.Some name ]
 
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
-    type ToHoles (TyAppRep fun arg) = '[ RepInfer fun, RepInfer arg ]
+    type ToHoles (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
     type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
 
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
     {-# INLINE toTypeAst #-}
 
 instance
-        ( var ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
+        ( name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
         , KnownKind kind, KnownTypeAst uni a
-        ) => KnownTypeAst uni (TyForallRep var a) where
-    type ToHoles (TyForallRep var a) = '[ RepInfer a ]
-    type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
+        ) => KnownTypeAst uni (TyForallRep name a) where
+    type ToHoles (TyForallRep name a) = '[RepHole a]
+    type ToBinds (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds a)
 
     toTypeAst _ =
         TyForall ()
@@ -788,7 +764,7 @@ instance
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
-    type ToHoles (Opaque _ rep) = '[ RepInfer rep ]
+    type ToHoles (Opaque _ rep) = '[RepHole rep]
     type ToBinds (Opaque _ rep) = ToBinds rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep

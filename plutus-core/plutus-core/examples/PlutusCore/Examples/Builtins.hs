@@ -133,7 +133,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
-    type ToHoles (PlcListRep a) = '[ RepInfer a ]
+    type ToHoles (PlcListRep a) = '[RepHole a]
     type ToBinds (PlcListRep a) = ToBinds a
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
@@ -148,8 +148,6 @@ instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
-
--- TODO: JoinOpaque
 
 -- See Note [Representable built-in functions over polymorphic built-in types].
 -- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates
