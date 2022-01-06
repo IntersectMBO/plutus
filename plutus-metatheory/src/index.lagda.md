@@ -131,7 +131,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
--- import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.RenamingSubstitution
 -- import Algorithmic.Erasure.Reduction
 import Algorithmic.CC
 import Algorithmic.CK
@@ -150,8 +150,6 @@ import Scoped.RenamingSubstitution
 
 import Scoped.Extrication
 import Scoped.Extrication.RenamingSubstitution
---import Scoped.Erasure
---import Scoped.Erasure.RenamingSubstitution
 ```
 
 ## Untyped terms
@@ -161,7 +159,7 @@ Untyped terms, reduction and evaluation
 ```
 import Untyped
 import Untyped.RenamingSubstitution
---import Untyped.Reduction
+import Untyped.CEK
 ```
 
 ## Type checker
