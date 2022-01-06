@@ -84,7 +84,7 @@ tyInstTerm :: Parser PTerm
 tyInstTerm = PIR.mkIterInst <$> getSourcePos <*> pTerm <*> some pType
 
 pTerm :: Parser PTerm
-pTerm = choice
+pTerm = try $ choice
     [ inParens pTerm
     , absTerm
     , lamTerm

@@ -15,8 +15,7 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParseError (..))
 import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.ParserCommon
-import PlutusPrelude
-import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, getSourcePos)
+import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, try)
 import Text.Megaparsec.Error (ParseErrorBundle)
 
 -- Parsers for PLC terms
@@ -36,8 +35,13 @@ lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
 appTerm :: Parser PTerm
 appTerm = inBrackets $ Apply <$> getSourcePos <*> term <*> term
 
+-- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
 conTerm :: Parser PTerm
-conTerm = inParens $ Constant <$> wordPos "con" <*> constant
+conTerm = inParens $ do
+    p <- wordPos "con"
+    _conTy <- defaultUniType -- TODO: do case of for each ty?
+    con <- constant
+    pure $ Constant p con
 
 builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
@@ -57,16 +61,19 @@ errorTerm = inParens $ Error <$> wordPos "error" <*> pType
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = varTerm
-    <|> tyAbsTerm
-    <|> lamTerm
-    <|> appTerm
-    <|> conTerm
-    <|> builtinTerm
-    <|> tyInstTerm
-    <|> unwrapTerm
-    <|> iwrapTerm
-    <|> errorTerm
+term = try $ choice
+    [ inParens term
+    , varTerm
+    , tyAbsTerm
+    , lamTerm
+    , appTerm
+    , conTerm
+    , builtinTerm
+    , tyInstTerm
+    , unwrapTerm
+    , iwrapTerm
+    , errorTerm
+    ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.

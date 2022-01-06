@@ -12,30 +12,28 @@ import Data.ByteString.Char8 (singleton)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
--- import PlutusCore qualified as PLC hiding (PlutusCore.Parser)
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1, string)
+import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
-import PlutusCore.Core.Type qualified as PLC
-import PlutusCore.Default qualified as PLC
-import PlutusCore.Error qualified as PLC
-import PlutusCore.Name qualified as PLC
-import PlutusCore.Quote qualified as PLC
-import Universe.Core (someValue)
+import PlutusCore.Core.Type
+import PlutusCore.Default
+import PlutusCore.Error
+import PlutusCore.Name
+import PlutusCore.Quote
 
-newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
+newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving (Show)
 
 type Parser =
-    ParsecT PLC.ParseError T.Text (StateT ParserState PLC.Quote)
+    ParsecT ParseError T.Text (StateT ParserState Quote)
 
-instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
+instance (Stream s, MonadQuote m) => MonadQuote (ParsecT e s m)
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -43,28 +41,28 @@ initial = ParserState M.empty
 -- | Return the unique identifier of a name.
 -- If it's not in the current parser state, map the name to a fresh id
 -- and add it to the state. Used in the Name parser.
-intern :: (MonadState ParserState m, PLC.MonadQuote m)
-    => T.Text -> m PLC.Unique
+intern :: (MonadState ParserState m, MonadQuote m)
+    => T.Text -> m Unique
 intern n = do
     st <- get
     case M.lookup n (identifiers st) of
         Just u -> return u
         Nothing -> do
-            fresh <- PLC.freshUnique
+            fresh <- freshUnique
             let identifiers' = M.insert n fresh $ identifiers st
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text PLC.ParseError) a
-parse p file str = PLC.runQuote $ parseQuoted p file str
+parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParseError) a
+parse p file str = runQuote $ parseQuoted p file str
 
 -- | Generic parser function.
-parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text PLC.ParseError) a
+parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParseError) a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
 parseQuoted ::
     Parser a -> String -> T.Text ->
-        PLC.Quote (Either (ParseErrorBundle T.Text PLC.ParseError) a)
+        Quote (Either (ParseErrorBundle T.Text ParseError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 -- | Space consumer.
@@ -79,38 +77,38 @@ symbol = Lex.symbol whitespace
 
 -- | A PLC @Type@ to be parsed. ATM the parser only works
 -- for types in the @DefaultUni@ with @DefaultFun@.
-type PType = PLC.Type PLC.TyName PLC.DefaultUni SourcePos
+type PType = Type TyName DefaultUni SourcePos
 
 varType :: Parser PType
-varType = PLC.TyVar <$> getSourcePos <*> tyName
+varType = TyVar <$> getSourcePos <*> tyName
 
 funType :: Parser PType
-funType = PLC.TyFun <$> wordPos "fun" <*> pType <*> pType
+funType = TyFun <$> wordPos "fun" <*> pType <*> pType
 
 allType :: Parser PType
-allType = PLC.TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
+allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
 
 lamType :: Parser PType
-lamType = PLC.TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
+lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
 
 ifixType :: Parser PType
-ifixType = PLC.TyIFix <$> wordPos "ifix" <*> pType <*> pType
+ifixType = TyIFix <$> wordPos "ifix" <*> pType <*> pType
 
 builtinType :: Parser PType
-builtinType = PLC.TyBuiltin <$> wordPos "con" <*> defaultUniType
+builtinType = TyBuiltin <$> wordPos "con" <*> defaultUniType
 
 appType :: Parser PType
 appType = do
     pos  <- getSourcePos
     fn   <- pType
     args <- some pType
-    pure $ foldl' (PLC.TyApp pos) fn args
+    pure $ foldl' (TyApp pos) fn args
 
-kind :: Parser (PLC.Kind SourcePos)
+kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
     where
-        typeKind = PLC.Type <$> wordPos "type"
-        funKind  = PLC.KindArrow <$> wordPos "fun" <*> kind <*> kind
+        typeKind = Type <$> wordPos "type"
+        funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
 
 -- | Parser for @PType@.
 pType :: Parser PType
@@ -125,18 +123,18 @@ pType = choice
     , inBrackets appType
     ]
 
-defaultUniType :: Parser (PLC.SomeTypeIn PLC.DefaultUni)
+defaultUniType :: Parser (SomeTypeIn DefaultUni)
 defaultUniType = choice
   [ inParens defaultUniType
-  , PLC.SomeTypeIn PLC.DefaultUniInteger <$ symbol "integer"
-  , PLC.SomeTypeIn PLC.DefaultUniByteString <$ symbol "bytestring"
-  , PLC.SomeTypeIn PLC.DefaultUniString <$ symbol "symbol"
-  , PLC.SomeTypeIn PLC.DefaultUniUnit <$ symbol "unit"
-  , PLC.SomeTypeIn PLC.DefaultUniBool <$ symbol "bool"
-  , PLC.SomeTypeIn PLC.DefaultUniProtoList <$ symbol "list"
-  , PLC.SomeTypeIn PLC.DefaultUniProtoPair <$ symbol "pair"
-  -- , PLC.SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
-  , PLC.SomeTypeIn PLC.DefaultUniData <$ symbol "data" ]
+  , SomeTypeIn DefaultUniInteger <$ symbol "integer"
+  , SomeTypeIn DefaultUniByteString <$ symbol "bytestring"
+  , SomeTypeIn DefaultUniString <$ symbol "string"
+  , SomeTypeIn DefaultUniUnit <$ symbol "unit"
+  , SomeTypeIn DefaultUniBool <$ symbol "bool"
+  , SomeTypeIn DefaultUniProtoList <$ symbol "list"
+  , SomeTypeIn DefaultUniProtoPair <$ symbol "pair"
+  -- , SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
+  , SomeTypeIn DefaultUniData <$ symbol "data" ]
 
 lbracket :: Parser T.Text
 lbracket = symbol "["
@@ -168,27 +166,85 @@ wordPos ::
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
-builtinFunction :: Parser PLC.DefaultFun
-builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
-    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
+builtinFnList :: [(DefaultFun, T.Text)]
+builtinFnList =
+    [ (AddInteger,"addInteger")
+    , (SubtractInteger,"subtractInteger")
+    , (MultiplyInteger,"multiplyInteger")
+    , (DivideInteger,"divideInteger")
+    , (QuotientInteger,"quotientInteger")
+    , (RemainderInteger,"remainderInteger")
+    , (ModInteger,"modInteger")
+    , (EqualsInteger,"equalsInteger")
+    , (LessThanInteger,"lessThanInteger")
+    , (LessThanEqualsInteger,"lessThanEqualsInteger")
+    , (AppendByteString,"appendByteString")
+    , (ConsByteString,"consByteString")
+    , (SliceByteString,"sliceByteString")
+    , (LengthOfByteString,"lengthOfByteString")
+    , (IndexByteString,"indexByteString")
+    , (EqualsByteString,"equalsByteString")
+    , (LessThanByteString,"lessThanByteString")
+    , (LessThanEqualsByteString,"lessThanEqualsByteString")
+    , (Sha2_256,"sha2_256")
+    , (Sha3_256,"sha3_256")
+    , (Blake2b_256,"blake2b_256")
+    , (VerifySignature,"verifySignature")
+    , (AppendString,"appendString")
+    , (EqualsString,"equalsString")
+    , (EncodeUtf8,"encodeUtf8")
+    , (DecodeUtf8,"decodeUtf8")
+    , (IfThenElse,"ifThenElse")
+    , (ChooseUnit,"chooseUnit")
+    , (Trace,"trace")
+    , (FstPair,"fstPair")
+    , (SndPair,"sndPair")
+    , (ChooseList,"chooseList")
+    , (MkCons,"mkCons")
+    , (HeadList,"headList")
+    , (TailList,"tailList")
+    , (NullList,"nullList")
+    , (ChooseData,"chooseData")
+    , (ConstrData,"constrData")
+    , (MapData,"mapData")
+    , (ListData,"listData")
+    , (IData,"iData")
+    , (BData,"bData")
+    , (UnConstrData,"unConstrData")
+    , (UnMapData,"unMapData")
+    , (UnListData,"unListData")
+    , (UnIData,"unIData")
+    , (UnBData,"unBData")
+    , (EqualsData,"equalsData")
+    , (MkPairData,"mkPairData")
+    , (MkNilData,"mkNilData")
+    , (MkNilPairData,"mkNilPairData")
+    ]
 
-version :: Parser (PLC.Version SourcePos)
+builtinFunction :: Parser DefaultFun
+builtinFunction =
+    lexeme $ try $ choice $
+        map
+            (\(fn, text) -> fn <$ symbol text)
+            builtinFnList
+
+version :: Parser (Version SourcePos)
 version = lexeme $ do
     p <- getSourcePos
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
     void $ char '.'
-    PLC.Version p x y <$> Lex.decimal
+    Version p x y <$> Lex.decimal
 
-name :: Parser PLC.Name
+name :: Parser Name
 name = lexeme $ try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
-    PLC.Name str <$> intern str
+    Name str <$> intern str
 
-tyName :: Parser PLC.TyName
-tyName = PLC.TyName <$> name
+tyName :: Parser TyName
+tyName = TyName <$> name
 
 -- | Turn a parser that can succeed without consuming any input into one that fails in this case.
 enforce :: Parser a -> Parser a
@@ -198,44 +254,44 @@ enforce p = do
     pure x
 
 -- | Parser for integer constants.
-conInt :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conInt :: Parser (Some (ValueOf DefaultUni))
 conInt = do
     con::Integer <- lexeme Lex.decimal
     pure $ someValue con
 
 -- | Parser for single quoted char.
-conChar :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conChar :: Parser (Some (ValueOf DefaultUni))
 conChar = do
     con <- between (char '\'') (char '\'') Lex.charLiteral
     pure $ someValue $ singleton con
 
 -- | Parser for double quoted string.
-conText :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conText :: Parser (Some (ValueOf DefaultUni))
 conText = do
     con <- char '\"' *> manyTill Lex.charLiteral (char '\"')
     pure $ someValue $ T.pack con
 
 -- | Parser for unit.
-conUnit :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conUnit :: Parser (Some (ValueOf DefaultUni))
 conUnit = someValue () <$ symbol "unit"
 
 -- | Parser for bool.
-conBool :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+conBool :: Parser (Some (ValueOf DefaultUni))
 conBool = choice
     [ someValue True <$ symbol "True"
     , someValue False <$ symbol "False"
     ]
 
 --TODO fix these (add parsing of constant after symbol?):
--- conPair :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conPair :: Parser (Some (ValueOf DefaultUni))
 -- conPair = someValue (,) <$ symbol "pair"
--- conList :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conList :: Parser (Some (ValueOf DefaultUni))
 -- conList = someValue [] <$ symbol "list"
--- conData :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
+-- conData :: Parser (Some (ValueOf DefaultUni))
 -- conData = someValue Data? <$ symbol "data"
 
-constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
-constant = choice
+constant :: Parser (Some (ValueOf DefaultUni))
+constant = try $ choice
     [ inParens constant
     , conInt
     , conChar
@@ -246,11 +302,3 @@ constant = choice
     -- , conList
     -- , conData
     ]
-
--- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
-constantTerm :: Parser (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-constantTerm = do
-    p <- wordPos "con"
-    _conTy <- defaultUniType -- TODO: do case of for each ty?
-    con <- constant
-    pure $ PLC.Constant p con
