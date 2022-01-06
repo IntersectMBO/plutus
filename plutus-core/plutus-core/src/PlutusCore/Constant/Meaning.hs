@@ -20,13 +20,11 @@ module PlutusCore.Constant.Meaning where
 
 import PlutusPrelude
 
-import PlutusCore.Constant.Dynamic.Emit
 import PlutusCore.Constant.Function
 import PlutusCore.Constant.Kinded
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 
 import Control.Lens (ix, (^?))
@@ -232,28 +230,78 @@ type x ~?~ y = TryUnify (x === y) x y
 -- | Get the element at an @i@th position in a list.
 type Lookup :: forall a. Nat -> [a] -> a
 type family Lookup n xs where
+    Lookup _ '[]       = TypeError ('Text "Not enough elements")
     Lookup 0 (x ': xs) = x
     Lookup n (_ ': xs) = Lookup (n - 1) xs
 
 -- | Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
 -- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
-type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
+type GetName :: GHC.Type -> Nat -> Symbol
+type family GetName k i where
+  GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
+  GetName _        i = Lookup i '["f", "g", "h", "m", "n"]
 
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
-type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class TrySpecializeAsVar i j term a | i term a -> j
+type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
+class TrySpecializeAsVar i j f a | i f a -> j
 instance
-    ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
+    ( var ~ f (TyVarRep @k ('TyNameRep (GetName k i) i))
     -- Try to unify @a@ with a freshly created @var@.
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
     -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
     , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j term a
+    ) => TrySpecializeAsVar i j f (a :: k)
 
+type Id :: forall a. a -> a
+data family Id x
+
+type HandleHole :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class HandleHole i j term hole | i term hole -> j
+instance
+    ( TrySpecializeAsVar i j Id (Id x)
+    , HandleHoles j k term x
+    ) => HandleHole i k term (RepInfer x)
+instance
+    ( TrySpecializeAsVar i j (Opaque term) a
+    , HandleHoles j k term a
+    ) => HandleHole i k term (TypeInfer a)
+
+type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [GHC.Type] -> GHC.Constraint
+class HandleHolesGo i j term holes | i term holes -> j
+instance i ~ j => HandleHolesGo i j term '[]
+instance
+      ( HandleHole i j term hole
+      , HandleHolesGo j k term holes
+      ) => HandleHolesGo i k term (hole ': holes)
+
+type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
+type HandleHoles i j term x = HandleHolesGo i j term (ToHoles x)
+
+type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type EnumerateFromTo i j term a = HandleHole i j term (TypeInfer a)
+
+-- type EnumerateFromToRec :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+-- class EnumerateFromToRec i j term a | i term a -> j
+-- instance {-# OVERLAPPABLE #-} HandleHoles i j term a => EnumerateFromToRec i j term a
+-- -- | TODO: First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
+-- instance {-# OVERLAPPING #-}
+--     ( TrySpecializeAsVar i j (Opaque term) a
+--     , HandleHoles j k term a
+--     , EnumerateFromTo k l term b
+--     ) => EnumerateFromToRec i l term (a -> b)
+
+-- type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+-- class EnumerateFromTo i j term a | i term a -> j
+-- instance
+--     ( TrySpecializeAsVar i j (Opaque term) a
+--     , HandleHoles j k term a
+--     ) => EnumerateFromTo i k term a
+
+{-
 -- | For looking under special-case types, for example the type of a constant or the type arguments
 -- of a polymorphic built-in type get specialized as types representing PLC type variables,
 -- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
@@ -275,10 +323,10 @@ instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
         HandleSpecialCases i j term (Emitter a)
 -- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
 -- @OVERLAPPABLE@ instance above.
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term (Opaque term rep)
-    , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
-    ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
+-- instance {-# OVERLAPPING #-}
+--     ( TrySpecializeAsVar i j term (Opaque term rep)
+--     , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
+--     ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
 
 -- | Instantiate an argument or result type.
 type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
@@ -320,6 +368,7 @@ instance
     ( EnumerateFromToOne i j term a
     , EnumerateFromToRec j k term a
     ) => EnumerateFromTo i k term a
+-}
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its

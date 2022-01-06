@@ -37,6 +37,8 @@ module PlutusCore.Constant.Typed
     , FromConstant (..)
     , HasConstant
     , HasConstantIn
+    , RepInfer
+    , TypeInfer
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , Merge
@@ -50,7 +52,6 @@ module PlutusCore.Constant.Typed
     , readKnownSelf
     , makeKnownOrFail
     , SomeConstant (..)
-    , SomeConstantPoly (..)
     ) where
 
 import PlutusPrelude
@@ -66,10 +67,8 @@ import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 
 import Control.Monad.Except
-import Data.Functor.Const
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
-import Data.SOP.Constraint
 import Data.Some.GADT qualified as GADT
 import Data.String
 import Data.Text (Text)
@@ -457,40 +456,73 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
--- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
--- We add such a trivial type synonym to make instances of 'KnownTypeAst' for built-in types look
--- better. For example, the \"abstract\" 'KnownBuiltinTypeAst' looks sensible here:
---
--- > instance KnownBuiltinTypeAst DefaultUni Integer => KnownTypeAst DefaultUni Integer
---
--- while inlining the definition would give us
---
--- > instance DefaultUni `Contains` Integer => KnownTypeAst DefaultUni Integer
---
--- which is nonsense, because the @DefaultUni `Contains` Integer@ constraint is redundant
--- (by means of being trivially satisfied).
---
--- We could omit the constraint in both the cases due to `Integer` being monomorphic, but for
--- polymorphic built-in types we do need it and so we keep things uniform by introducing this
--- type synonym. Which also allows us to replicate the same pattern as with 'KnownTypeIn':
---
--- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
-type KnownBuiltinTypeAst = Contains
+-- -- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
+-- -- We add such a trivial type synonym to make instances of 'KnownTypeAst' for built-in types look
+-- -- better. For example, the \"abstract\" 'KnownBuiltinTypeAst' looks sensible here:
+-- --
+-- -- > instance KnownBuiltinTypeAst DefaultUni Integer => KnownTypeAst DefaultUni Integer
+-- --
+-- -- while inlining the definition would give us
+-- --
+-- -- > instance DefaultUni `Contains` Integer => KnownTypeAst DefaultUni Integer
+-- --
+-- -- which is nonsense, because the @DefaultUni `Contains` Integer@ constraint is redundant
+-- -- (by means of being trivially satisfied).
+-- --
+-- -- We could omit the constraint in both the cases due to `Integer` being monomorphic, but for
+-- -- polymorphic built-in types we do need it and so we keep things uniform by introducing this
+-- -- type synonym. Which also allows us to replicate the same pattern as with 'KnownTypeIn':
+-- --
+-- -- > instance KnownBuiltinTypeIn DefaultUni term Integer => KnownTypeIn DefaultUni term Integer
+-- type KnownBuiltinTypeAst = Contains
+
+data RepInfer (x :: a)
+data TypeInfer (a :: GHC.Type)
+
+-- type BuiltinToHoles :: forall k. k -> [GHC.Type]
+-- type family BuiltinToHoles b where
+--     BuiltinToHoles (f a) = TypeInfer a ': BuiltinToHoles f
+--     BuiltinToHoles _     = '[]
+
+type BuiltinHead :: forall k. k -> k
+data family BuiltinHead f
+
+type ElaborateBuiltin :: forall k. k -> k
+type family ElaborateBuiltin a where
+    ElaborateBuiltin (f x) = ElaborateBuiltin f `TyAppRep` x
+    ElaborateBuiltin f     = BuiltinHead f
+
+type KnownBuiltinTypeAst uni a = KnownTypeAst uni (ElaborateBuiltin a)
 
 class KnownTypeAst uni (a :: k) where
+    type ToHoles a :: [GHC.Type]
+    type ToHoles a = ToHoles (ElaborateBuiltin a)
+
     -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantPoly' has to be
     -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
     -- type variables in them just like monomorphic ones.
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
     -- in an @a@.
-    type ToBinds (a :: k) :: [GADT.Some TyNameRep]
-    type ToBinds _ = '[]
+    type ToBinds a :: [GADT.Some TyNameRep]
+    type ToBinds a = ToBinds (ElaborateBuiltin a)
 
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
     default toTypeAst :: KnownBuiltinTypeAst uni a => proxy a -> Type TyName uni ()
-    toTypeAst _ = mkTyBuiltin @_ @a ()
+    toTypeAst _ = toTypeAst $ Proxy @(ElaborateBuiltin a)
     {-# INLINE toTypeAst #-}
+
+instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) where
+    type ToHoles (a -> b) = '[TypeInfer a, TypeInfer b]
+    type ToBinds (a -> b) = Merge (ToBinds a) (ToBinds b)
+
+    toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
+
+instance uni `Contains` f => KnownTypeAst uni (BuiltinHead f) where
+    type ToHoles (BuiltinHead f) = '[]
+    type ToBinds (BuiltinHead f) = '[]
+
+    toTypeAst _ = mkTyBuiltin @_ @f ()
 
 -- | Delete all @x@s from a list.
 type family Delete x xs :: [a] where
@@ -659,6 +691,7 @@ makeKnownOrFail :: (KnownType term a, MonadError err m, AsEvaluationFailure err)
 makeKnownOrFail = unNoCauseT . makeKnown (\_ -> pure ()) Nothing
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
+    type ToHoles (EvaluationResult a) = '[ TypeInfer a ]
     type ToBinds (EvaluationResult a) = ToBinds a
 
     toTypeAst _ = toTypeAst $ Proxy @a
@@ -680,6 +713,7 @@ instance KnownTypeIn uni term a => KnownTypeIn uni term (EvaluationResult a) whe
     {-# INLINE readKnown #-}
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
+    type ToHoles (Emitter a) = '[ TypeInfer a ]
     type ToBinds (Emitter a) = ToBinds a
 
     toTypeAst _ = toTypeAst $ Proxy @a
@@ -698,11 +732,12 @@ instance KnownTypeIn uni term a => KnownTypeIn uni term (Emitter a) where
 --
 -- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
 -- @Opaque term rep@).
-newtype SomeConstant uni rep = SomeConstant
+newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
+    type ToHoles (SomeConstant _ rep) = '[ RepInfer rep ]
     type ToBinds (SomeConstant _ rep) = ToBinds rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep
@@ -715,34 +750,6 @@ instance HasConstantIn uni term => KnownTypeIn uni term (SomeConstant uni rep) w
     readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
--- | For unlifting from the 'Constant' constructor when the stored value is of a polymorphic
--- built-in type.
---
--- The @f@ is the built-in type and @reps@ are its arguments representing PLC types.
-newtype SomeConstantPoly uni f reps = SomeConstantPoly
-    { unSomeConstantPoly :: Some (ValueOf uni)
-    }
-
-instance (uni `Contains` f, All (KnownTypeAst uni) reps) =>
-            KnownTypeAst uni (SomeConstantPoly uni f reps) where
-    type ToBinds (SomeConstantPoly uni f reps) = ListToBinds reps
-
-    toTypeAst _ =
-        -- Convert the type-level list of arguments into a term-level one and feed it to @f@.
-        mkIterTyApp () (mkTyBuiltin @_ @f ()) $
-            cfoldr_SList
-                (Proxy @(All (KnownTypeAst uni) reps))
-                (\(_ :: Proxy (rep ': _reps')) rs -> toTypeAst (Proxy @rep) : rs)
-                []
-    {-# INLINE toTypeAst #-}
-
-instance HasConstantIn uni term => KnownTypeIn uni term (SomeConstantPoly uni f reps) where
-    makeKnown _ _ = coerceArg $ pure . fromConstant
-    {-# INLINE makeKnown #-}
-
-    readKnown = coerceVia (\asC mayCause -> fmap SomeConstantPoly . asC mayCause) asConstant
-    {-# INLINE readKnown #-}
-
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)
     => Proxy ('TyNameRep text uniq) -> TyName
@@ -753,12 +760,14 @@ toTyNameAst _ =
 
 instance (var ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst uni (TyVarRep var) where
+    type ToHoles (TyVarRep var) = '[]
     type ToBinds (TyVarRep var) = '[ 'GADT.Some var ]
 
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
+    type ToHoles (TyAppRep fun arg) = '[ RepInfer fun, RepInfer arg ]
     type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
 
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
@@ -768,6 +777,7 @@ instance
         ( var ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
         , KnownKind kind, KnownTypeAst uni a
         ) => KnownTypeAst uni (TyForallRep var a) where
+    type ToHoles (TyForallRep var a) = '[ RepInfer a ]
     type ToBinds (TyForallRep var a) = Delete ('GADT.Some var) (ToBinds a)
 
     toTypeAst _ =
@@ -778,6 +788,7 @@ instance
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
+    type ToHoles (Opaque _ rep) = '[ RepInfer rep ]
     type ToBinds (Opaque _ rep) = ToBinds rep
 
     toTypeAst _ = toTypeAst $ Proxy @rep
@@ -865,22 +876,3 @@ coerceVia _ = coerce
 coerceArg :: Coercible a b => (a -> r) -> b -> r
 coerceArg = coerce
 {-# INLINE coerceArg #-}
-
--- | Like 'cpara_SList' but the folding function takes a 'Proxy' argument for the convenience of
--- the caller.
-cparaP_SList
-    :: forall k c (xs :: [k]) proxy r. All c xs
-    => proxy c
-    -> r '[]
-    -> (forall y ys. (c y, All c ys) => Proxy (y ': ys) -> r ys -> r (y ': ys))
-    -> r xs
-cparaP_SList p z f = cpara_SList p z $ f Proxy
-
--- | A right fold over reflected lists. Like 'cparaP_SList' except not indexed.
-cfoldr_SList
-    :: forall c xs r proxy. All c xs
-    => proxy (All c xs)
-    -> (forall y ys. (c y, All c ys) => Proxy (y ': ys) -> r -> r)
-    -> r
-    -> r
-cfoldr_SList _ f z = getConst $ cparaP_SList @_ @c @xs Proxy (coerce z) (coerce . f)

@@ -1,1 +1,1 @@
-(fun (con unit) (con list (data)))
+(fun (con unit) [ (con list) (con data) ])
