@@ -78,7 +78,6 @@ library
     else
         build-depends: ghc >=8.10 && <9
 
-
 test-suite plutus-tx-tests
     import: lang
     if flag(use-ghc-stub)
@@ -130,3 +129,15 @@ test-suite plutus-tx-tests
         containers -any
     -- NOTE: -g makes the plugin give better errors
     ghc-options: -g
+
+test-suite size
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test/size
+    build-depends:
+        base >= 4.9 && < 5.0,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
+        tagged -any,
+        tasty -any

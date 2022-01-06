@@ -21,7 +21,7 @@ tests: true
 benchmarks: true
 
 -- The only sensible test display option
-test-show-details: streaming
+test-show-details: direct
 
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
