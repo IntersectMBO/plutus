@@ -114,13 +114,13 @@ kind = inParens (typeKind <|> funKind)
 pType :: Parser PType
 pType = choice
     [inParens pType
-    , varType
     , funType
     , ifixType
     , allType
     , builtinType
     , lamType
     , inBrackets appType
+    , varType
     ]
 
 defaultUniType :: Parser (SomeTypeIn DefaultUni)
@@ -131,41 +131,31 @@ defaultUniType = choice
   , SomeTypeIn DefaultUniString <$ symbol "string"
   , SomeTypeIn DefaultUniUnit <$ symbol "unit"
   , SomeTypeIn DefaultUniBool <$ symbol "bool"
-  , SomeTypeIn DefaultUniProtoList <$ symbol "list"
-  , SomeTypeIn DefaultUniProtoPair <$ symbol "pair"
+--   , SomeTypeIn DefaultUniProtoList <$ symbol "list"
+--   , SomeTypeIn DefaultUniProtoPair <$ symbol "pair"
   -- , SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
-  , SomeTypeIn DefaultUniData <$ symbol "data" ]
-
-lbracket :: Parser T.Text
-lbracket = symbol "["
-rbracket :: Parser T.Text
-rbracket = symbol "]"
-
-lbrace :: Parser T.Text
-lbrace = symbol "{"
-rbrace :: Parser T.Text
-rbrace = symbol "}"
+    ]
 
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
 inBrackets :: Parser a -> Parser a
-inBrackets = between lbracket rbracket
+inBrackets = between (symbol "[") (symbol "]")
 
 inBraces :: Parser a-> Parser a
-inBraces = between lbrace rbrace
+inBraces = between (symbol "{") (symbol "}")
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 
 -- | Create a parser that matches the input word and returns its source position.
 -- This is for attaching source positions to parsed terms/programs.
--- getSourcePos is not cheap, don't call it on matching of every token.
 wordPos ::
     -- | The word to match
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
+-- | The list of parsable default functions and their pretty print correspondence.
 builtinFnList :: [(DefaultFun, T.Text)]
 builtinFnList =
     [ (AddInteger,"addInteger")
@@ -223,9 +213,9 @@ builtinFnList =
 
 builtinFunction :: Parser DefaultFun
 builtinFunction =
-    lexeme $ try $ choice $
+    choice $
         map
-            (\(fn, text) -> fn <$ symbol text)
+            (try . (\(fn, text) -> fn <$ symbol text))
             builtinFnList
 
 version :: Parser (Version SourcePos)
@@ -291,7 +281,7 @@ conBool = choice
 -- conData = someValue Data? <$ symbol "data"
 
 constant :: Parser (Some (ValueOf DefaultUni))
-constant = try $ choice
+constant = choice $ map try
     [ inParens constant
     , conInt
     , conChar

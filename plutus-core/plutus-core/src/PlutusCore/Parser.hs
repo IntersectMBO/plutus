@@ -27,7 +27,7 @@ varTerm :: Parser PTerm
 varTerm = Var <$> getSourcePos <*> name
 
 tyAbsTerm :: Parser PTerm
-tyAbsTerm = TyAbs <$> wordPos "abs" <*> tyName  <*> kind <*> term
+tyAbsTerm = inParens $ TyAbs <$> wordPos "abs" <*> tyName  <*> kind <*> term
 
 lamTerm :: Parser PTerm
 lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
@@ -44,7 +44,11 @@ conTerm = inParens $ do
     pure $ Constant p con
 
 builtinTerm :: Parser PTerm
-builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
+builtinTerm = inParens $ do
+    p <- wordPos "builtin"
+    fn <- builtinFunction
+    pure $ Builtin p fn
+    -- Builtin <$> wordPos "builtin" <*> builtinFunction
 
 tyInstTerm :: Parser PTerm
 tyInstTerm = inBraces $ TyInst <$> getSourcePos <*> term <*> pType
@@ -61,10 +65,8 @@ errorTerm = inParens $ Error <$> wordPos "error" <*> pType
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = try $ choice
-    [ inParens term
-    , varTerm
-    , tyAbsTerm
+term = choice $ map try
+    [ tyAbsTerm
     , lamTerm
     , appTerm
     , conTerm
@@ -73,6 +75,7 @@ term = try $ choice
     , unwrapTerm
     , iwrapTerm
     , errorTerm
+    , varTerm
     ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
