@@ -117,3 +117,17 @@ test-suite plutus-tx-test
         tasty-hunit -any,
         serialise -any,
         cborg -any
+
+test-suite laws
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test/laws
+    build-depends:
+        base >= 4.9 && < 5.0,
+        hedgehog -any,
+        hedgehog-fn -any,
+        plutus-tx -any,
+        pretty-show -any,
+        tasty -any,
+        tasty-hedgehog -any
