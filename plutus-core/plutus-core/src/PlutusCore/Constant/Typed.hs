@@ -37,6 +37,7 @@ module PlutusCore.Constant.Typed
     , FromConstant (..)
     , HasConstant
     , HasConstantIn
+    , Hole
     , RepHole
     , TypeHole
     , KnownBuiltinTypeAst
@@ -67,7 +68,7 @@ import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 
 import Control.Monad.Except
-import Data.Kind qualified as GHC (Type)
+import Data.Kind qualified as GHC (Constraint, Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.String
@@ -456,12 +457,117 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
-data RepHole (x :: a)
-data TypeHole (a :: GHC.Type)
+{- Note [Rep vs Type context]
+Say you define an @Id@ built-in function and specify its Haskell type signature:
 
+    id :: forall a. a -> a
+
+This gets picked up by the 'TypeScheme' inference machinery, which detects @a@ and instantiates it
+to @Opaque term Var0@ where @Var0@ is some concrete type (the exact details don't matter here)
+representing a Plutus type variable of kind @*@ with the @0@ unique, so @id@ elaborates to
+
+    id :: Opaque term Var0 -> Opaque term Var0
+
+But consider also the case where you want to define @id@ only over lists. The signature of the
+built-in function then is
+
+    idList :: forall a. Opaque term [a] -> Opaque term [a]
+
+Now the 'Opaque' is explicit and the 'TypeScheme' inference machinery needs to go under it in order
+to instantiate @a@. Which now does not get instantiated to an 'Opaque' as before, since we're
+already inside an 'Opaque' and can just use @Var0@ directly. So @idList@ elaborates to
+
+    idList :: Opaque term [Var0] -> Opaque term [Var0]
+
+Now let's make up some syntax for annotating contexts so that it's clear what's going on:
+
+    idList @Type |
+        :: (@Type | Opaque term (@Rep | [Var0]))
+        -> (@Type | Opaque term (@Rep | [Var0]))
+
+'@ann |' annotates everything to the right of it. The whole thing then reads as
+
+1. a builtin is always defined in the Type context
+2. @->@ preserves the Type context, i.e. it accepts it and passes it down to the domain and codomain
+3. @Opaque term@ switches the context from Type to Rep, i.e. it accepts the Type context, but
+creates the Rep context for its argument that represents a Plutus type
+
+So why the distinction?
+
+The difference between the Rep and the Type contexts that we've seen so far is that in the Rep
+context we don't need any @Opaque@, but this is a very superficial reason to keep the distinction
+between contexts, since everything that is legal in the Type context is legal in the Rep context
+as well. For example we could've elaborated @idList@ into a bit more verbose
+
+    idList :: Opaque term [Opaque term Var0] -> Opaque term [Opaque term Var0]
+
+and the world wouldn't end because of that, everything would work correctly.
+
+The opposite however is not true: certain types that are legal in the Rep context are not legal in
+the Type one and this is the reason why the distinction exists. The simplest example is
+
+    id :: Var0 -> Var0
+
+@Var0@ represents a Plutus type variable and it's a data family with no inhabitants, so it does not
+make sense to try to unlift a value of that type.
+
+Now let's say we added a @term@ argument to @Var0@ and said that when @Var0 term@ is a @GHC.Type@,
+it has a @term@ inside, just like 'Opaque'. Then we would be able to unlift it, but we also have
+things like @TyAppRep@, @TyForallRep@ and that set is open, any Plutus type can be represented
+using such combinators and we can even name particular types, e.g. we could have @PlcListRep@,
+so we'd have to special-case @GHC.Type@ for each of them and it would be a huge mess.
+
+So instead of mixing up types whose values are actually unliftable with types that are only used
+for type checking, we keep the distinction explicit.
+
+The barrier between Haskell and Plutus is the barrier between the Type and the Rep contexts and
+that barrier must always be some explicit type constructor that switches the context from Type to
+Rep. We've only considered 'Opaque' as an example of such type constructor, but we also have
+'SomeConstant' as another example.
+
+Some type constructors turn any context into the Type one, for example 'EvaluationResult' and
+'Emitter', although they are useless inside the Rep context, given that it's only for type checking
+Plutus and they don't exist in the type language of Plutus.
+
+These @*Rep@ data families like 'TyVarRep', 'TyAppRep' etc all require the Rep context and preserve
+it, since they're only for representing Plutus types for type checking purposes.
+
+We call a thing in a Rep or 'Type' context a 'RepHole' or 'TypeHole' respectively. The reason for
+the name is that the inference machinery looks at the thing and tries to instantiate it, like fill
+a hole.
+
+For the user defining a builtin this all is pretty much invisible.
+-}
+
+-- See Note [Rep vs Type context].
+-- | The kind of holes.
+data Hole
+
+-- See Note [Rep vs Type context].
+-- | A hole in the Rep context.
+type RepHole :: forall a hole. a -> hole
+data family RepHole x
+
+-- See Note [Rep vs Type context].
+-- | A hole in the Type context.
+type TypeHole :: forall hole. GHC.Type -> hole
+data family TypeHole a
+
+-- | For annotating an uninstantiated built-in type, so that it gets handled by the right instance
+-- or type family.
 type BuiltinHead :: forall k. k -> k
 data family BuiltinHead f
 
+-- | Take an iterated application of a built-in type and elaborate every function application
+-- inside of it to 'TypeAppRep', plus annotate the head with 'BuiltinHead'.
+-- The idea is that we don't need to process built-in types manually if we simply add some
+-- annotations for instance resolution to look for. Think what we'd have to do manually for, say,
+-- 'ToHoles': traverse the spine of the application and collect all the holes into a list, which is
+-- troubling, because type applications are left-nested and lists are right-nested, so we'd have to
+-- use accumulators or an explicit 'Reverse' type family. And then we also have 'KnownTypeAst' and
+-- 'ToBinds', so handling built-in types in a special way for each of those would be a hassle,
+-- especially given the fact that type-level Haskell is not exactly good at computing things.
+-- With the 'ElaborateBuiltin' approach we get 'KnownTypeAst', 'ToHoles' and 'ToBinds' for free.
 type ElaborateBuiltin :: forall k. k -> k
 type family ElaborateBuiltin a where
     ElaborateBuiltin (f x) = ElaborateBuiltin f `TyAppRep` x
@@ -470,13 +576,14 @@ type family ElaborateBuiltin a where
 -- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
 type KnownBuiltinTypeAst uni a = KnownTypeAst uni (ElaborateBuiltin a)
 
-class KnownTypeAst uni (a :: k) where
-    type ToHoles a :: [GHC.Type]
+type KnownTypeAst :: forall k. (GHC.Type -> GHC.Type) -> k -> GHC.Constraint
+class KnownTypeAst uni a where
+    -- | Return every part of the type that can be a to-be-instantiated type variable.
+    -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
+    -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
+    type ToHoles a :: [Hole]
     type ToHoles a = ToHoles (ElaborateBuiltin a)
 
-    -- One can't directly put a PLC type variable into lists or tuples ('SomeConstantPoly' has to be
-    -- used for that), hence we say that polymorphic built-in types can't directly contain any PLC
-    -- type variables in them just like monomorphic ones.
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
     -- in an @a@.
     type ToBinds a :: [GADT.Some TyNameRep]
@@ -493,12 +600,14 @@ instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) w
     type ToBinds (a -> b) = Merge (ToBinds a) (ToBinds b)
 
     toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
+    {-# INLINE toTypeAst #-}
 
 instance uni `Contains` f => KnownTypeAst uni (BuiltinHead f) where
     type ToHoles (BuiltinHead f) = '[]
     type ToBinds (BuiltinHead f) = '[]
 
     toTypeAst _ = mkTyBuiltin @_ @f ()
+    {-# INLINE toTypeAst #-}
 
 -- | Delete all @x@s from a list.
 type family Delete x xs :: [a] where
@@ -518,7 +627,8 @@ type family Merge xs ys :: [a] where
 -- @type instance@ themselves (which is no big deal, but it's nicer not to ask the user to do that).
 -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
 -- in a list.
-type family ListToBinds (x :: [a]) :: [GADT.Some TyNameRep]
+type ListToBinds :: forall a. [a] -> [GADT.Some TyNameRep]
+type family ListToBinds xs
 type instance ListToBinds '[]       = '[]
 type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 

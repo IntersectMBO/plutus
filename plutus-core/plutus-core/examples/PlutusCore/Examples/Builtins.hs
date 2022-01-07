@@ -103,6 +103,7 @@ data ExtensionFun
     | FailingPlus
     | ExpensivePlus
     | UnsafeCoerce
+    | UnsafeCoerceEl
     | Undefined
     | Absurd
     | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
@@ -224,6 +225,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (Opaque . unOpaque)
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning UnsafeCoerceEl =
+        makeBuiltinMeaning
+            unsafeCoerceElPlc
+            (\_ _ -> ExBudget 1 0)
+      where
+        unsafeCoerceElPlc
+            :: SomeConstant DefaultUni [a]
+            -> EvaluationResult (SomeConstant DefaultUni [b])
+        unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+            DefaultUniList _ <- pure uniList
+            pure . SomeConstant $ someValueOf uniList xs
 
     toBuiltinMeaning Undefined =
         makeBuiltinMeaning

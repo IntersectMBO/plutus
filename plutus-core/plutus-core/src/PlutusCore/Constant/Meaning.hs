@@ -267,7 +267,7 @@ data family Id x
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
 -- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
 -- (including @0@).
-type HandleHole :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
 class HandleHole i j term hole | i term hole -> j
 instance
     ( TrySpecializeAsVar i j Id (Id x)
@@ -278,7 +278,7 @@ instance
     , HandleHoles j k term a
     ) => HandleHole i k term (TypeHole a)
 
-type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [GHC.Type] -> GHC.Constraint
+type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
 class HandleHolesGo i j term holes | i term holes -> j
 instance i ~ j => HandleHolesGo i j term '[]
 instance
