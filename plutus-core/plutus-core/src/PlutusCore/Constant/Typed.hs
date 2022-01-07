@@ -703,7 +703,7 @@ readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
 
 -- See Note [Performance of KnownTypeIn instances].
 -- We use @default@ for providing instances for built-in types instead of @DerivingVia@, because
--- the latter breaks on @m a@ (and for brevity).
+-- the latter breaks on @m term@ (and for brevity).
 -- | Haskell types known to exist on the PLC side.
 -- Both the methods take a @Maybe cause@ argument to report the cause of a potential failure.
 -- @cause@ is different to @term@ to support evaluators that distinguish between terms and values
@@ -711,6 +711,11 @@ readKnownConstant mayCause term = asConstant mayCause term >>= oneShot \case
 -- as a term). Note that an evaluator might require the cause to be computed lazily for best
 -- performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
 -- the cause stored in it is not forced due to @Maybe@ being a lazy data type.
+-- Note that 'KnownTypeAst' is not a superclass of 'KnownTypeIn'. This is due to the fact that
+-- polymorphic built-in types are only liftable/unliftable when they're fully monomorphized, while
+-- 'toTypeAst' works for polymorphic built-in types that have type variables in them, and so the
+-- constraints are completely different in the two cases and we keep the two classes apart
+-- (there doesn't seem to be any cons to that).
 class uni ~ UniOf term => KnownTypeIn uni term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
