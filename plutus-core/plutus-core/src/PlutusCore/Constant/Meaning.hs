@@ -238,12 +238,17 @@ type family Lookup n xs where
 -- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
 type GetName :: GHC.Type -> Nat -> Symbol
 type family GetName k i where
-  GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
-  GetName _        i = Lookup i '["f", "g", "h", "m", "n"]
+    GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
+    GetName _        i = Lookup i '["f", "g", "h", "m", "n"]
+
+-- | Like 'id', but a type constructor.
+type Id :: forall a. a -> a
+data family Id x
 
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
+-- @f@ is for wrapping 'TyVarRep' (see 'HandleHole' for how this is used).
 type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
 class TrySpecializeAsVar i j f a | i f a -> j
 instance
@@ -256,28 +261,25 @@ instance
     , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j f (a :: k)
 
-type Id :: forall a. a -> a
-data family Id x
-
--- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
--- an 'Opaque' thing, but here we only want to instantiate the type representations.
--- | For looking under special-case types, for example the type of a constant or the type arguments
--- of a polymorphic built-in type get specialized as types representing PLC type variables,
--- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
--- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
--- (including @0@).
+-- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
+-- that using 'HandleHoles'.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+-- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
 class HandleHole i j term hole | i term hole -> j
+-- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
 instance
-    ( TrySpecializeAsVar i j Id (Id x)
+    ( TrySpecializeAsVar i j Id (Id x)  -- The two 'Id's cancel each other.
     , HandleHoles j k term x
     ) => HandleHole i k term (RepHole x)
+-- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque term@.
 instance
     ( TrySpecializeAsVar i j (Opaque term) a
     , HandleHoles j k term a
     ) => HandleHole i k term (TypeHole a)
 
+-- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
+-- the calls.
 type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
 class HandleHolesGo i j term holes | i term holes -> j
 instance i ~ j => HandleHolesGo i j term '[]
@@ -286,20 +288,15 @@ instance
       , HandleHolesGo j k term holes
       ) => HandleHolesGo i k term (hole ': holes)
 
+-- | Get the holes of @x@ and recurse into them.
 type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
 type HandleHoles i j term x = HandleHolesGo i j term (ToHoles x)
 
--- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
--- first trying to specialize the whole type using 'EnumerateFromToOne' and then recursing on the
--- result of that using 'EnumerateFromToRec'. The initial attempt to specialize the type allows us
--- to handle the case where the whole type is just a single type variable (such as @undefined :: a@)
--- and it also allows us to look into the result type due to 'EnumerateFromToRec' mutually
--- recursively calling 'EnumerateFromTo'. I.e. the initial attempt at specialization allows
--- 'EnumerateFromToRec' to cut one argument off the type and call 'EnumerateFromTo' over the rest
--- of the type and so forth until we get to the result, which is attempted to be specialized just
--- like in the @undefined@ case where there are no argument types in the first place.
-type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-type EnumerateFromTo i j term a = HandleHole i j term (TypeHole a)
+-- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+-- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
+type SpecializeFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -310,13 +307,7 @@ type EnumerateFromTo i j term a = HandleHole i j term (TypeHole a)
 makeBuiltinMeaning
     :: forall a term cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
-       -- This constraint is just to get through 'KnownPolytype' stuck on an unknown type straight
-       -- to the custom type error that we have in the @Typed@ module. Though, somehow, the error
-       -- gets triggered even without the constraint when this function in used, but I don't
-       -- understand how that is possible and it does not work when the function from the @Debug@
-       -- module is used. So we're just doing the right thing here and adding the constraint.
-       , KnownMonotype term args res a
+       , KnownPolytype binds term args res a, SpecializeFromTo 0 j term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)

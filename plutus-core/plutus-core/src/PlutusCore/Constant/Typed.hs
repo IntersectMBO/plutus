@@ -536,6 +536,13 @@ We call a thing in a Rep or 'Type' context a 'RepHole' or 'TypeHole' respectivel
 the name is that the inference machinery looks at the thing and tries to instantiate it, like fill
 a hole.
 
+We could also have a third type of hole/context, Name, because binders bind names rather than
+variables and so it makes sense to infer names sometimes, like for 'TyForallRep' for example.
+We don't do that currently, because we don't have such builtins anyway.
+
+And there could be even fancier kinds of holes like "infer anything" for cases where the hole
+is determined by some other part of the signature. We don't have that either, for the same reason.
+
 For the user defining a builtin this all is pretty much invisible.
 -}
 
