@@ -33,7 +33,30 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ Apply <$> getSourcePos <*> term <*> term
+appTerm = inBrackets $ do
+    pos <- getSourcePos
+    tm <- term
+    tms <- appTerms
+    pure $ app pos tm tms
+
+app :: SourcePos -> PTerm -> [PTerm] -> PTerm
+app _  _t []        = error "appTerm, app: An application without the argument."
+app loc t [t']      = Apply loc t t'
+app loc t (t' : ts) = Apply loc (app loc t (t':init ts)) (last ts)
+
+-- | The syntax allows @(app (app x y) z)@ to be written as [x y z]
+-- rather than [[x y] z]. This deals with more than one application.
+appTerms :: Parser [PTerm]
+appTerms = choice
+    [ try terms
+    , do
+        tm <- term
+        pure [tm]
+    ]
+    where terms = do
+            tm <- term
+            tms <- appTerms
+            pure $ tm : tms
 
 -- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
 conTerm :: Parser PTerm
@@ -44,11 +67,7 @@ conTerm = inParens $ do
     pure $ Constant p con
 
 builtinTerm :: Parser PTerm
-builtinTerm = inParens $ do
-    p <- wordPos "builtin"
-    fn <- builtinFunction
-    pure $ Builtin p fn
-    -- Builtin <$> wordPos "builtin" <*> builtinFunction
+builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
 
 tyInstTerm :: Parser PTerm
 tyInstTerm = inBraces $ TyInst <$> getSourcePos <*> term <*> pType
