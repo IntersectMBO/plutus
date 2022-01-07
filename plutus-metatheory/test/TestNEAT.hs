@@ -111,7 +111,7 @@ prop_Term tyG tmG = do
   let namedEvs = [("meta red",runTLAgda),("meta CK",runTCKAgda),("meta CEK",runTCEKAgda)]
   let (ss,evs) = unzip namedEvs
   let tmEvsM = map ($ tmDB) evs
-  tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "1" tyG tmG)) $
+  tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "typed" tyG tmG)) $
     liftEither $ sequence tmEvsM
   tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
 
@@ -123,12 +123,12 @@ prop_Term tyG tmG = do
   -- turn it into an untyped de Bruij term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
-  tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "2" tyG tmG))) $ liftEither $ runUAgda tmUDB
+  tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))) $ liftEither $ runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
   -- reduce the orignal de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "3" tyG tmG))) $
-    liftEither $ runTLAgda tmDB
+  tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG))) $
+    liftEither $ runTCEKAgda tmDB
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
   -- erase it after the fact
