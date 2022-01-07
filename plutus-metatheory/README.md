@@ -53,9 +53,10 @@ of Haskell libraries.
 
 ### Stage 4 (untyped CEK)
 
-- [ ] Untyped CEK machine;
-- [ ] Untyped CEK compiled to production quality Haskell;
+- [X] Untyped CEK machine;
+- [X] Testing typed CEK against untyped CEK;
 - [ ] Correspondence between typed and untyped CEK;
+- [ ] Untyped CEK compiled to production quality Haskell;
 - [ ] Published paper.
 
 

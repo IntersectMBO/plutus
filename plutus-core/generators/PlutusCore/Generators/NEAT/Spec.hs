@@ -294,6 +294,7 @@ data Ctrex
     (Term TyName Name DefaultUni DefaultFun ())
     (Term TyName Name DefaultUni DefaultFun ())
   | CtrexTermEvaluationFail
+    String
     ClosedTypeG
     ClosedTermG
   | CtrexTermEvaluationMismatch
@@ -376,10 +377,10 @@ instance Show Ctrex where
     printf tpl (show tmG) (show tyG)
     where
       tpl = "Counterexample found (typecheck fail): %s :: %s"
-  show (CtrexTermEvaluationFail tyG tmG) =
+  show (CtrexTermEvaluationFail s tyG tmG) =
     printf tpl (show tmG) (show tyG)
     where
-      tpl = "Counterexample found (term evaluation fail): %s :: %s"
+      tpl = "Counterexample found (" ++ s ++ " term evaluation fail): %s :: %s"
   show (CtrexTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where

@@ -4,7 +4,6 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --rewriting #-}
 module Untyped.RenamingSubstitution where
 ```
 
@@ -23,15 +22,17 @@ open import Utils
 
 ## Renaming
 
+
+
 ```
-Ren : ℕ → ℕ → Set
-Ren m n = Fin m → Fin n
+Ren : Set → Set → Set
+Ren X Y = X → Y
 
-lift : Ren m n → Ren (suc m) (suc n)
-lift ρ zero = zero
-lift ρ (suc x) = suc (ρ x)
+lift : {X Y : Set} → Ren X Y → Ren (Maybe X) (Maybe Y)
+lift ρ nothing = nothing
+lift ρ (just x) = just (ρ x)
 
-ren : Ren m n → m ⊢ → n ⊢
+ren : {X Y : Set} → Ren X Y → X ⊢ → Y ⊢
 ren ρ (` x)       = ` (ρ x)
 ren ρ (ƛ t)       = ƛ (ren (lift ρ) t)
 ren ρ (t · u)     = ren ρ t · ren ρ u
@@ -41,26 +42,26 @@ ren ρ (con tcn)   = con tcn
 ren ρ (builtin b) = builtin b
 ren ρ error       = error
 
-weaken : n ⊢ → suc n ⊢
-weaken t = ren suc t
+weaken : {X : Set} → X ⊢ → Maybe X ⊢
+weaken t = ren just t
 ```
 
 Proofs that renaming forms a functor
 
 ```
-lift-cong :
-    {ρ ρ' : Ren m n}
+lift-cong : ∀{X Y}
+    {ρ ρ' : Ren X Y}
   → (∀ x → ρ x ≡ ρ' x)
-  → (x : Fin (suc m))
+  → (x : Maybe X)
     --------------------
   → lift ρ x ≡ lift ρ' x
-lift-cong p zero    = refl
-lift-cong p (suc x) = cong suc (p x)
+lift-cong p nothing  = refl
+lift-cong p (just x) = cong just (p x)
 
-ren-cong :
-    {ρ ρ' : Ren m n}
+ren-cong : ∀{X Y}
+    {ρ ρ' : Ren X Y}
   → (∀ x → ρ x ≡ ρ' x)
-  → (t : m ⊢)
+  → (t : X ⊢)
   → ren ρ t ≡ ren ρ' t
 ren-cong p (` x)       = cong ` (p x)
 ren-cong p (ƛ t)       = cong ƛ (ren-cong (lift-cong p) t)
@@ -71,17 +72,16 @@ ren-cong p (con c)     = refl
 ren-cong p (builtin b) = refl
 ren-cong p error       = refl
 
-lift-id : (x : Fin (suc n)) → id x ≡ lift id x
-lift-id zero    = refl
-lift-id (suc x) = refl
+lift-id : ∀{X}(x : Maybe X) → id x ≡ lift id x
+lift-id nothing  = refl
+lift-id (just x) = refl
 
-lift-comp : (g : Ren m n)(f : Ren n o)(x : Fin (suc m))
+lift-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(x : Maybe X)
   → lift (f ∘ g) x ≡ lift f (lift g x)
-lift-comp g f zero    = refl
-lift-comp g f (suc x) = refl
+lift-comp g f nothing  = refl
+lift-comp g f (just x) = refl
 
-
-ren-id : (t : n ⊢) → t ≡ ren id t
+ren-id : ∀{X}(t : X ⊢) → t ≡ ren id t
 ren-id (` x)       = refl
 ren-id (ƛ t)       = cong ƛ (trans (ren-id t) (ren-cong lift-id t)) 
 ren-id (t · u)     = cong₂ _·_ (ren-id t) (ren-id u)
@@ -91,7 +91,7 @@ ren-id (con c)     = refl
 ren-id (builtin b) = refl
 ren-id error       = refl
 
-ren-comp : (g : Ren m n)(f : Ren n o)(t : m ⊢)
+ren-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(t : X ⊢)
   → ren (f ∘ g) t ≡ ren f (ren g t)
 ren-comp ρ ρ' (` x)            = refl
 ren-comp ρ ρ' (ƛ t)            = cong ƛ (trans
@@ -102,20 +102,20 @@ ren-comp ρ ρ' (force t)   = cong force (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (delay t)   = cong delay (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (con c)     = refl
 ren-comp ρ ρ' (builtin b) = refl
-ren-comp ρ ρ' error       = refl 
+ren-comp ρ ρ' error       = refl
 ```
 
 ## Substitution
 
 ```
-Sub : ℕ → ℕ → Set
-Sub m n = Fin m → n ⊢
+Sub : Set → Set → Set
+Sub X Y = X → Y ⊢
 
-lifts : Sub m n → Sub (suc m) (suc n)
-lifts ρ zero = ` zero
-lifts ρ (suc x) = ren suc (ρ x)
+lifts : {X Y : Set} → Sub X Y → Sub (Maybe X) (Maybe Y)
+lifts ρ nothing = ` nothing
+lifts ρ (just x) = ren just (ρ x)
 
-sub    : Sub m n → m ⊢ → n ⊢
+sub : {X Y : Set} → Sub X Y → X ⊢ → Y ⊢
 sub σ (` x)       = σ x
 sub σ (ƛ t)       = ƛ (sub (lifts σ) t) 
 sub σ (t · u)     = sub σ t · sub σ u
@@ -125,27 +125,27 @@ sub σ (con tcn)   = con tcn
 sub σ (builtin b) = builtin b
 sub σ error       = error
 
-extend : Sub m n → n ⊢ → Sub (suc m) n
-extend σ t zero    = t
-extend σ t (suc x) = σ x
+extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (Maybe X) Y
+extend σ t nothing  = t
+extend σ t (just x) = σ x
 
-_[_] : suc n ⊢ → n ⊢ → n ⊢
+_[_] : ∀{X} → Maybe X ⊢ → X ⊢ → X ⊢
 t [ u ] = sub (extend ` u) t
 ```
 
 Proofs that substitution forms a monad
 
 ```
-lifts-cong : {σ σ' : Sub m n}
+lifts-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (∀ x → σ x ≡ σ' x)
-  → (x : Fin (suc m))
+  → (x : Maybe X)
   → lifts σ x ≡ lifts σ' x
-lifts-cong p zero    = refl
-lifts-cong p (suc x) = cong (ren suc) (p x) 
+lifts-cong p nothing  = refl
+lifts-cong p (just x) = cong (ren just) (p x) 
 
-sub-cong : {σ σ' : Sub m n}
+sub-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (∀ x → σ x ≡ σ' x)
-  → (t : m ⊢)
+  → (t : X ⊢)
   → sub σ t ≡ sub σ' t
 
 sub-cong p (` x)       = p x
@@ -157,11 +157,11 @@ sub-cong p (con c)     = refl
 sub-cong p (builtin b) = refl
 sub-cong p error       = refl
 
-lifts-id : (x : Fin (suc n)) → ` x ≡ lifts ` x
-lifts-id zero    = refl
-lifts-id (suc x) = refl
+lifts-id : ∀{X}(x : Maybe X) → ` x ≡ lifts ` x
+lifts-id nothing  = refl
+lifts-id (just x) = refl
 
-sub-id : (t : n ⊢) → t ≡ sub ` t
+sub-id : ∀{X}(t : X ⊢) → t ≡ sub ` t
 sub-id (` x)       = refl
 sub-id (ƛ t)       = cong ƛ (trans (sub-id t) (sub-cong lifts-id t))
 sub-id (t · u)     = cong₂ _·_ (sub-id t) (sub-id u)
@@ -171,12 +171,12 @@ sub-id (con c)     = refl
 sub-id (builtin b) = refl
 sub-id error       = refl
 
-lifts-lift : (g : Ren m n)(f : Sub n o)(x : Fin (suc m))
+lifts-lift : ∀{X Y Z}(g : Ren X Y)(f : Sub Y Z)(x : Maybe X)
   → lifts (f ∘ g) x ≡ lifts f (lift g x)
-lifts-lift g f zero    = refl
-lifts-lift g f (suc x) = refl
+lifts-lift g f nothing  = refl
+lifts-lift g f (just x) = refl
 
-sub-ren : (ρ : Ren m n)(σ : Sub n o)(t : m ⊢)
+sub-ren : ∀{X Y Z}(ρ : Ren X Y)(σ : Sub Y Z)(t : X ⊢)
   → sub (σ ∘ ρ) t ≡ sub σ (ren ρ t)
 sub-ren ρ σ (` x)       = refl
 sub-ren ρ σ (ƛ t)       = cong ƛ (trans
@@ -189,14 +189,14 @@ sub-ren ρ σ (con c)     = refl
 sub-ren ρ σ (builtin b) = refl
 sub-ren ρ σ error       = refl
 
-ren-lift-lifts : (g : Sub m n)(f : Ren n o)(x : Fin (suc m))
+ren-lift-lifts : ∀{X Y Z}(g : Sub X Y)(f : Ren Y Z)(x : Maybe X)
   → lifts (ren f ∘ g) x ≡ ren (lift f) (lifts g x)
-ren-lift-lifts g f zero = refl
-ren-lift-lifts g f (suc x) = trans
-  (sym (ren-comp f suc (g x)))
-  (ren-comp suc (lift f) (g x))
+ren-lift-lifts g f nothing  = refl
+ren-lift-lifts g f (just x) = trans
+  (sym (ren-comp f just (g x)))
+  (ren-comp just (lift f) (g x))
 
-ren-sub : (σ : Sub m n)(ρ : Ren n o)(t : m ⊢)
+ren-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(t : X ⊢)
   → sub (ren ρ ∘ σ) t ≡ ren ρ (sub σ t)
 ren-sub σ ρ (` x)               = refl
 ren-sub σ ρ (ƛ t)               = cong ƛ (trans
@@ -209,14 +209,14 @@ ren-sub σ ρ (con c)     = refl
 ren-sub σ ρ (builtin b) = refl
 ren-sub σ ρ error       = refl
 
-lifts-comp : (g : Sub m n)(f : Sub n o)(x : Fin (suc m))
+lifts-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(x : Maybe X)
   → lifts (sub f ∘ g) x ≡ sub (lifts f) (lifts g x)
-lifts-comp g f zero    = refl
-lifts-comp g f (suc x) = trans
-  (sym (ren-sub f suc (g x)))
-  (sub-ren suc (lifts f) (g x))
+lifts-comp g f nothing  = refl
+lifts-comp g f (just x) = trans
+  (sym (ren-sub f just (g x)))
+  (sub-ren just (lifts f) (g x))
 
-sub-comp : (g : Sub m n)(f : Sub n o)(t : m ⊢)
+sub-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(t : X ⊢)
   → sub (sub f ∘ g) t ≡ sub f (sub g t)
 sub-comp g f (` x)       = refl
 sub-comp g f (ƛ t)       =
