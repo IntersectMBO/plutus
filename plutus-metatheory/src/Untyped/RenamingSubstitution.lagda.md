@@ -91,8 +91,7 @@ ren-id (con c)     = refl
 ren-id (builtin b) = refl
 ren-id error       = refl
 
-{-
-ren-comp : (g : Ren m n)(f : Ren n o)(t : m ⊢)
+ren-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(t : X ⊢)
   → ren (f ∘ g) t ≡ ren f (ren g t)
 ren-comp ρ ρ' (` x)            = refl
 ren-comp ρ ρ' (ƛ t)            = cong ƛ (trans
@@ -104,7 +103,6 @@ ren-comp ρ ρ' (delay t)   = cong delay (ren-comp ρ ρ' t)
 ren-comp ρ ρ' (con c)     = refl
 ren-comp ρ ρ' (builtin b) = refl
 ren-comp ρ ρ' error       = refl
--}
 ```
 
 ## Substitution
@@ -173,13 +171,12 @@ sub-id (con c)     = refl
 sub-id (builtin b) = refl
 sub-id error       = refl
 
-{-
-lifts-lift : (g : Ren m n)(f : Sub n o)(x : Fin (suc m))
+lifts-lift : ∀{X Y Z}(g : Ren X Y)(f : Sub Y Z)(x : Maybe X)
   → lifts (f ∘ g) x ≡ lifts f (lift g x)
-lifts-lift g f zero    = refl
-lifts-lift g f (suc x) = refl
+lifts-lift g f nothing  = refl
+lifts-lift g f (just x) = refl
 
-sub-ren : (ρ : Ren m n)(σ : Sub n o)(t : m ⊢)
+sub-ren : ∀{X Y Z}(ρ : Ren X Y)(σ : Sub Y Z)(t : X ⊢)
   → sub (σ ∘ ρ) t ≡ sub σ (ren ρ t)
 sub-ren ρ σ (` x)       = refl
 sub-ren ρ σ (ƛ t)       = cong ƛ (trans
@@ -192,14 +189,14 @@ sub-ren ρ σ (con c)     = refl
 sub-ren ρ σ (builtin b) = refl
 sub-ren ρ σ error       = refl
 
-ren-lift-lifts : (g : Sub m n)(f : Ren n o)(x : Fin (suc m))
+ren-lift-lifts : ∀{X Y Z}(g : Sub X Y)(f : Ren Y Z)(x : Maybe X)
   → lifts (ren f ∘ g) x ≡ ren (lift f) (lifts g x)
-ren-lift-lifts g f zero = refl
-ren-lift-lifts g f (suc x) = trans
-  (sym (ren-comp f suc (g x)))
-  (ren-comp suc (lift f) (g x))
+ren-lift-lifts g f nothing  = refl
+ren-lift-lifts g f (just x) = trans
+  (sym (ren-comp f just (g x)))
+  (ren-comp just (lift f) (g x))
 
-ren-sub : (σ : Sub m n)(ρ : Ren n o)(t : m ⊢)
+ren-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(t : X ⊢)
   → sub (ren ρ ∘ σ) t ≡ ren ρ (sub σ t)
 ren-sub σ ρ (` x)               = refl
 ren-sub σ ρ (ƛ t)               = cong ƛ (trans
@@ -212,14 +209,14 @@ ren-sub σ ρ (con c)     = refl
 ren-sub σ ρ (builtin b) = refl
 ren-sub σ ρ error       = refl
 
-lifts-comp : (g : Sub m n)(f : Sub n o)(x : Fin (suc m))
+lifts-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(x : Maybe X)
   → lifts (sub f ∘ g) x ≡ sub (lifts f) (lifts g x)
-lifts-comp g f zero    = refl
-lifts-comp g f (suc x) = trans
-  (sym (ren-sub f suc (g x)))
-  (sub-ren suc (lifts f) (g x))
+lifts-comp g f nothing  = refl
+lifts-comp g f (just x) = trans
+  (sym (ren-sub f just (g x)))
+  (sub-ren just (lifts f) (g x))
 
-sub-comp : (g : Sub m n)(f : Sub n o)(t : m ⊢)
+sub-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(t : X ⊢)
   → sub (sub f ∘ g) t ≡ sub f (sub g t)
 sub-comp g f (` x)       = refl
 sub-comp g f (ƛ t)       =
@@ -230,5 +227,4 @@ sub-comp g f (delay t)   = cong delay (sub-comp g f t)
 sub-comp g f (con c)     = refl
 sub-comp g f (builtin b) = refl
 sub-comp g f error       = refl
--}
 ```
