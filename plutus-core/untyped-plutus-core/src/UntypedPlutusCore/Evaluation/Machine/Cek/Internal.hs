@@ -25,6 +25,8 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-all -fforce-recomp -dumpdir /tmp/dumps #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
@@ -45,6 +47,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , PrettyUni
     , extractEvaluationResult
     , runCek
+--     , runCekDef
     )
 where
 
@@ -55,6 +58,7 @@ import UntypedPlutusCore.Core
 import UntypedPlutusCore.Subst
 
 import PlutusCore.Constant
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
@@ -548,12 +552,13 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (ToBuiltinMeaning uni fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
-    => Context uni fun
+    . (PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
+    => (fun -> BuiltinMeaning (CekValue uni fun) (CostingPart uni fun))
+    -> Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
     -> CekM uni fun s (Term Name uni fun ())
-enterComputeCek = computeCek (toWordArray 0) where
+enterComputeCek toBM = computeCek (toWordArray 0) where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -593,7 +598,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
-        let meaning = toBuiltinRuntime ?cekRuntime $ toBuiltinMeaning bn
+        let meaning = toBuiltinRuntime ?cekRuntime $ toBM bn
         returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
@@ -729,4 +734,13 @@ runCek
 runCek params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek NoFrame mempty term
+        enterComputeCek toBuiltinMeaning NoFrame mempty term
+
+-- runCekDef
+--     :: (uni ~ DefaultUni, fun ~ DefaultFun)
+--     => MachineParameters CekMachineCosts CekValue uni fun
+--     -> ExBudgetMode cost uni fun
+--     -> EmitterMode uni fun
+--     -> Term Name uni fun ()
+--     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [Text])
+-- runCekDef = runCek

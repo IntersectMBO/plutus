@@ -27,7 +27,6 @@ import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
 import Common
-import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
 import Prettyprinter
 import Prettyprinter.Render.Text
@@ -56,16 +55,16 @@ test_machines =
         ]
 
 testBudget
-    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
-    => BuiltinsRuntime fun (CekValue DefaultUni fun)
+    :: (ToBuiltinMeaning DefaultUni fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
+    => CostingPart DefaultUni fun
     -> TestName
     -> Term Name DefaultUni fun ()
     -> TestNested
-testBudget runtime name term =
+testBudget builtinscosts name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters $ CostModel Plc.defaultCekMachineCosts builtinscosts) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -112,9 +111,9 @@ test_budget
     = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
-        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime ()) bunchOfIdNats
-        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
+        [ folder Plc.defaultBuiltinCostModel bunchOfFibs
+        , folder () bunchOfIdNats
+        , folder Plc.defaultBuiltinCostModel bunchOfIfThenElseNats
         ]
   where
     folder runtime =
