@@ -65,7 +65,6 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
 import PlutusCore.Pretty
 
-import Data.Ix (Ix)
 import Data.Text (Text)
 import Universe
 
@@ -82,7 +81,7 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: ( uni `Everywhere` ExMemoryUsage, ToBuiltinMeaning uni fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
@@ -96,7 +95,7 @@ runCekNoEmit params mode term =
 unsafeRunCekNoEmit
     :: ( GShow uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , ToBuiltinMeaning uni fun, Pretty fun, Typeable fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
@@ -108,7 +107,7 @@ unsafeRunCekNoEmit params mode =
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: ( uni `Everywhere` ExMemoryUsage, ToBuiltinMeaning uni fun, PrettyUni uni fun)
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
@@ -119,7 +118,7 @@ evaluateCek emitMode params term =
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: ( uni `Everywhere` ExMemoryUsage, ToBuiltinMeaning uni fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
@@ -129,7 +128,7 @@ evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 unsafeEvaluateCek
     :: ( GShow uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , ToBuiltinMeaning uni fun, Pretty fun, Typeable fun
        )
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
@@ -143,7 +142,7 @@ unsafeEvaluateCek emitTime params =
 unsafeEvaluateCekNoEmit
     :: ( GShow uni, Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Ix fun, Pretty fun, Typeable fun
+       , ToBuiltinMeaning uni fun, Pretty fun, Typeable fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
@@ -154,7 +153,7 @@ unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEm
 readKnownCek
     :: ( uni `Everywhere` ExMemoryUsage
        , KnownType (Term Name uni fun ()) a
-       , Ix fun, PrettyUni uni fun
+       , ToBuiltinMeaning uni fun, PrettyUni uni fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()

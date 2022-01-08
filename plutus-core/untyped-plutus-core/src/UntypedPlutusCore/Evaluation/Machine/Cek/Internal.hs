@@ -70,7 +70,6 @@ import Control.Monad.Catch
 import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
-import Data.Array
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -117,7 +116,7 @@ though the rest of the user-facing API (which 'runCek' is a part of) is defined 
 Another problem is handling mutual recursion in the 'computeCek'/'returnCek'/'forceEvaluate'/etc
 family. If we keep these functions at the top level, GHC won't be able to pull the constraints out of
 the family (confirmed by inspecting Core: GHC thinks that since the superclass constraints
-populating the dictionary representing the @Ix fun@ constraint are redundant, they can be replaced
+populating the dictionary representing the @ToBuiltinMeaning uni fun@ constraint are redundant, they can be replaced
 with calls to 'error' in a recursive call, but that changes the dictionary and so it can no longer
 be pulled out of recursion). But that entails passing a redundant argument around, which slows down
 the machine a tiny little bit.
@@ -322,7 +321,7 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun)))
+type GivenCekRuntime uni fun = (?cekRuntime :: (CostingPart uni fun))
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
@@ -502,10 +501,10 @@ runCekM
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
+runCekM (MachineParameters (CostModel costs builtincosts)) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    let ?cekRuntime = runtime
+    let ?cekRuntime = builtincosts
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -550,7 +549,7 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
+    . (ToBuiltinMeaning uni fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
     => Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
@@ -595,7 +594,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
-        meaning <- lookupBuiltin bn ?cekRuntime
+        let meaning = toBuiltinRuntime ?cekRuntime $ toBuiltinMeaning bn
         returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
@@ -722,7 +721,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: ( uni `Everywhere` ExMemoryUsage, ToBuiltinMeaning uni fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
