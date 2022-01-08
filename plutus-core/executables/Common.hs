@@ -622,7 +622,7 @@ typeSchemeToSignature = toSig []
                PLC.TypeSchemeAll proxy schK ->
                    case proxy of
                      (_ :: Proxy '(text, uniq, kind)) ->
-                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
+                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) schK
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do

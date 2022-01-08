@@ -96,16 +96,7 @@ data TypeScheme term (args :: [GHC.Type]) res where
            -- Here we require the user to manually provide the unique of a type variable.
            -- That's nothing but silly, but I do not see what else we can do with the current design.
         => Proxy '(text, uniq, kind)
-           -- We use a funny trick here: instead of binding
-           --
-           -- > TyVarRep ('TyNameRep @kind text uniq)
-           --
-           -- directly we introduce an additional and "redundant" type variable. The reason why we
-           -- do that is because this way we can also bind such a variable later when constructing
-           -- the 'TypeScheme' of a polymorphic builtin manually, so that for the user this looks
-           -- exactly like a single bound type variable instead of this weird @TyVarRep@ thing.
-        -> (forall ot. ot ~ TyVarRep ('TyNameRep @kind text uniq) =>
-               Proxy ot -> TypeScheme term args res)
+        -> TypeScheme term args res
         -> TypeScheme term args res
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.

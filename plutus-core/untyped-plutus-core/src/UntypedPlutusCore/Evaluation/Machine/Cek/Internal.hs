@@ -73,7 +73,6 @@ import Control.Monad.ST.Unsafe
 import Data.Array
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
-import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word64Array.Word8
@@ -648,7 +647,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
             TypeSchemeAll  _ schK -> do
-                let runtime' = BuiltinRuntime (schK Proxy) f exF
+                let runtime' = BuiltinRuntime schK f exF
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.

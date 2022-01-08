@@ -206,7 +206,7 @@ instance KnownMonotype term args res a => KnownPolytype '[] term args res a wher
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
+    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
 
 -- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
 
