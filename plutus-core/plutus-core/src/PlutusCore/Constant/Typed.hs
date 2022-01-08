@@ -25,6 +25,7 @@
 
 module PlutusCore.Constant.Typed
     ( TypeScheme (..)
+    , argOf
     , FoldArgs
     , FoldArgsEx
     , TyNameRep (..)
@@ -87,10 +88,10 @@ infixr 9 `TypeSchemeArrow`
 data TypeScheme term (args :: [GHC.Type]) res where
     TypeSchemeResult
         :: KnownType term res
-        => Proxy res -> TypeScheme term '[] res
+        => TypeScheme term '[] res
     TypeSchemeArrow
         :: KnownType term arg
-        => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
+        => TypeScheme term args res -> TypeScheme term (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -98,6 +99,9 @@ data TypeScheme term (args :: [GHC.Type]) res where
         => Proxy '(text, uniq, kind)
         -> TypeScheme term args res
         -> TypeScheme term args res
+
+argOf :: TypeScheme term (arg ': args) res -> Proxy arg
+argOf _ = Proxy
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
 --

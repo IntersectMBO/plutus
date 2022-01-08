@@ -18,16 +18,16 @@ data BuiltinApp tyname name uni fun a = BuiltinApp fun [Arg tyname name uni fun 
 
 saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
-saturatesScheme _ TypeSchemeResult{}                       = Just True
+saturatesScheme _ TypeSchemeResult{}                     = Just True
 -- Consume one argument
-saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
-saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ sch)   = saturatesScheme args sch
+saturatesScheme (TermArg _ : args) (TypeSchemeArrow sch) = saturatesScheme args sch
+saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ sch) = saturatesScheme args sch
 -- Under-applied, not saturated
-saturatesScheme [] TypeSchemeArrow{}                       = Just False
-saturatesScheme [] TypeSchemeAll{}                         = Just False
+saturatesScheme [] TypeSchemeArrow{}                     = Just False
+saturatesScheme [] TypeSchemeAll{}                       = Just False
 -- These cases are only possible in case we have an ill-typed builtin application, so we can't give an answer.
-saturatesScheme (TypeArg _ : _) TypeSchemeArrow{}          = Nothing
-saturatesScheme (TermArg _ : _) TypeSchemeAll{}            = Nothing
+saturatesScheme (TypeArg _ : _) TypeSchemeArrow{}        = Nothing
+saturatesScheme (TermArg _ : _) TypeSchemeAll{}          = Nothing
 
 -- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
