@@ -4,10 +4,6 @@
 
 module PlutusCore.Constant.Function
     ( typeSchemeToType
-    , countTermArgs
-    , ArgumentClass (..)
-    , Arity
-    , getArity
     ) where
 
 import PlutusCore.Constant.Kinded
@@ -29,23 +25,4 @@ typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
         let text = Text.pack $ symbolVal @text Proxy
             uniq = fromIntegral $ natVal @uniq Proxy
             a    = TyName $ Name text $ Unique uniq
-        in TyForall () a (runSingKind $ knownKind @kind) $ typeSchemeToType (schK Proxy)
-
-countTermArgs :: TypeScheme uni args res -> Int
-countTermArgs (TypeSchemeResult _)     = 0
-countTermArgs (TypeSchemeArrow _ schB) = 1 + countTermArgs schB
-countTermArgs (TypeSchemeAll _ schK)   = countTermArgs (schK Proxy)
-
--- | This type is used when evaluating builtins to decide whether a term argument or a type instantiation is required
-data ArgumentClass
-    = TypeArg
-    | TermArg
-      deriving (Show, Eq)
-
-type Arity = [ArgumentClass]
-
--- | Return a list containing the argument types of a TypeScheme
-getArity ::  TypeScheme uni args res -> Arity
-getArity (TypeSchemeResult _)     = []
-getArity (TypeSchemeArrow _ schB) = TermArg : getArity schB
-getArity (TypeSchemeAll _ schK)   = TypeArg : getArity (schK Proxy)
+        in TyForall () a (runSingKind $ knownKind @kind) $ typeSchemeToType schK

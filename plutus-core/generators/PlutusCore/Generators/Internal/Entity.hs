@@ -46,7 +46,6 @@ import Data.ByteString qualified as BS
 import Data.Dependent.Map qualified as DMap
 import Data.Functor.Compose
 import Data.Kind as GHC
-import Data.Proxy
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Prettyprinter
@@ -165,7 +164,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
             y     = f x                          -- Apply the Haskell function to the generated argument.
         go schB term' args' y
     go (TypeSchemeAll _ schK)   term args f =
-        go (schK Proxy) term args f
+        go schK term args f
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
 -- Generates first-order functions and constants including constant applications.

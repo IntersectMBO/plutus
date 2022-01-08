@@ -10,8 +10,6 @@ import PlutusIR
 import PlutusCore.Constant.Meaning
 import PlutusCore.Constant.Typed
 
-import Data.Proxy
-
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
 
@@ -23,7 +21,7 @@ saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> M
 saturatesScheme _ TypeSchemeResult{}                       = Just True
 -- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
-saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ k)     = saturatesScheme args (k Proxy)
+saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ sch)   = saturatesScheme args sch
 -- Under-applied, not saturated
 saturatesScheme [] TypeSchemeArrow{}                       = Just False
 saturatesScheme [] TypeSchemeAll{}                         = Just False

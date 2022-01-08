@@ -41,7 +41,6 @@ import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
-import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -276,7 +275,7 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
         TypeSchemeAll  _ schK -> do
-            let runtime' = BuiltinRuntime (schK Proxy) f exF
+            let runtime' = BuiltinRuntime schK f exF
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
