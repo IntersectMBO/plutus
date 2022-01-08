@@ -320,8 +320,6 @@ global - but we already have this for most of the hot functions by making them a
 they don't actually take the context as an argument even at the source level.
 -}
 
--- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun = (?cekRuntime :: (CostingPart uni fun))
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
@@ -330,7 +328,7 @@ type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
+type GivenCekReqs uni fun s = (GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
@@ -501,11 +499,10 @@ runCekM
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [Text])
-runCekM (MachineParameters (CostModel costs builtincosts)) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
+runCekM (MachineParameters (CostModel costs _)) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    let ?cekRuntime = builtincosts
-        ?cekEmitter = _cekEmitterInfoEmit
+    let ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
@@ -550,12 +547,12 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 enterComputeCek
     :: forall uni fun s
     . (PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
-    => (fun -> BuiltinMeaning (CekValue uni fun) (CostingPart uni fun))
+    => (fun -> BuiltinRuntime (CekValue uni fun))
     -> Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
     -> CekM uni fun s (Term Name uni fun ())
-enterComputeCek toBM = computeCek (toWordArray 0) where
+enterComputeCek toBR = computeCek (toWordArray 0) where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -595,7 +592,7 @@ enterComputeCek toBM = computeCek (toWordArray 0) where
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
-        let meaning = toBuiltinRuntime ?cekRuntime $ toBM bn
+        let meaning = toBR bn
         returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
@@ -728,10 +725,10 @@ runCek
     -> EmitterMode uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [Text])
-runCek params mode emitMode term =
+runCek params@(MachineParameters (CostModel _ builtincosts)) mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek toBuiltinMeaning NoFrame mempty term
+        (enterComputeCek $! toBuiltinRuntime builtincosts . toBuiltinMeaning) NoFrame mempty term
 
 -- runCekDef
 --     :: (uni ~ DefaultUni, fun ~ DefaultFun)
