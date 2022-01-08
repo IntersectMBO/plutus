@@ -25,8 +25,6 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-all -fforce-recomp -dumpdir /tmp/dumps #-}
-
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
