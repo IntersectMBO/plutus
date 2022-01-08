@@ -78,7 +78,6 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word64Array.Word8
 import Prettyprinter
-import Universe
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

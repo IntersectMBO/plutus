@@ -35,7 +35,6 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
-import GHC.Exts (oneShot)
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?
@@ -140,7 +139,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning
         :: forall term. HasConstantIn uni term
         => DefaultFun -> BuiltinMeaning term BuiltinCostModel
-    toBuiltinMeaning = oneShot $ \case
+    toBuiltinMeaning = \case
         AddInteger ->
             makeBuiltinMeaning
                 ((+) @Integer)
