@@ -213,10 +213,9 @@ library
     MAlonzo.Code.Utils
     MAlonzo.RTE
     MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
@@ -403,11 +402,9 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.RTE
-    MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max

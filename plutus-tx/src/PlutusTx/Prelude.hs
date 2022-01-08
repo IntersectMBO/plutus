@@ -68,11 +68,10 @@ module PlutusTx.Prelude (
     verifySignature,
     -- * Rational numbers
     Rational,
-    (%),
+    unsafeRatio,
+    ratio,
     fromInteger,
     round,
-    divMod,
-    quotRem,
     -- * Data
     BuiltinData,
     fromBuiltin,
