@@ -184,12 +184,12 @@ class KnownMonotype term args res a | args res -> a, a -> res where
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownType term res) => KnownMonotype term '[] res res' where
-    knownMonotype = TypeSchemeResult Proxy
+    knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType term arg, KnownMonotype term args res a) =>
             KnownMonotype term (arg ': args) res (arg -> a) where
-    knownMonotype = Proxy `TypeSchemeArrow` knownMonotype
+    knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where

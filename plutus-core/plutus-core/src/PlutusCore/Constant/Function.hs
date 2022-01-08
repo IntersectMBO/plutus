@@ -18,8 +18,9 @@ import GHC.TypeLits
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme term args res -> Type TyName (UniOf term) ()
-typeSchemeToType (TypeSchemeResult pR)      = toTypeAst pR
-typeSchemeToType (TypeSchemeArrow pA schB)  = TyFun () (toTypeAst pA) $ typeSchemeToType schB
+typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
+typeSchemeToType sch@(TypeSchemeArrow schB) =
+    TyFun () (toTypeAst $ argOf sch) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
     (_ :: Proxy '(text, uniq, kind)) ->
         let text = Text.pack $ symbolVal @text Proxy
