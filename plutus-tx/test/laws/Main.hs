@@ -2,20 +2,23 @@
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TupleSections      #-}
 {-# OPTIONS_GHC -Wno-orphans #-} -- We need an Arg instance for hedgehog-fn
 
 module Main (main) where
 
 import Prelude
 
+import Data.Aeson (decode, encode)
 import Data.Functor.Contravariant (contramap)
 import Data.Kind (Type)
-import Hedgehog (Gen, Property, cover, forAllWith, property, success, (/==), (===))
+import Hedgehog (Gen, Property, assert, cover, forAllWith, property, success, tripping, (/==), (===))
 import Hedgehog.Function (Arg (build), CoGen, fnWith, forAllFn, vary, via)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
-import PlutusTx.Ratio as Ratio
+import PlutusTx.Ratio qualified as Ratio
 import Test.Tasty (defaultMain, localOption, testGroup)
 import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testProperty)
 import Text.Show.Pretty (ppShow)
@@ -38,7 +41,8 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     testProperty "+ commutes" propPlusComm,
     testProperty "+ associates" propPlusAssoc,
     testProperty "zero is an identity" propZeroId,
-    testProperty "x - x = zero" propMinusCancel
+    testProperty "x - x = zero" propMinusCancel,
+    testProperty "negate . negate = id" propDoubleNeg
     ],
   testGroup "MultiplicativeMonoid" [
     testProperty "* associates" propTimesAssoc,
@@ -55,6 +59,32 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     testProperty "scale one = id" propScaleOne,
     testProperty "scale distributes over +" propScaleDistPlus,
     testProperty "scale x (scale y r) = scale (x * y) r" propScaleTimes
+    ],
+  testGroup "Serialization" [
+    testProperty "FromBuiltinData-ToBuiltinData roundtrip" propIsDataRound,
+    testProperty "FromJSON-ToJSON roundtrip" propIsJSONRound,
+    testProperty "unsafeFromBuiltinData . toBuiltinData = id" propUnsafeIsData
+    ],
+  testGroup "Construction" [
+    testProperty "ratio x 0 = Nothing" propZeroDenom,
+    testProperty "ratio x 1 = Just . fromInteger $ x" propOneDenom,
+    testProperty "ratio x x = Just 1 for x /= 0" propRatioSelf,
+    testProperty "sign of result depends on signs of arguments" propRatioSign,
+    testProperty "if ratio x y = Just r, then unsafeRatio x y = r" propConstructionAgreement,
+    testProperty "if r = fromInteger x, then numerator r = x" propFromIntegerNum,
+    testProperty "if r = fromInteger x, then denominator r = 1" propFromIntegerDen,
+    testProperty "ratio x y = ratio (x * z) (y * z) for z /= 0" propRatioScale
+    ],
+  testGroup "Other" [
+    testProperty "numerator r = numerator . scale (denominator r) $ r" propNumeratorScale,
+    testProperty "denominator r >= 1" propPosDen,
+    testProperty "recip r * r = 1 for r /= 0" propRecipSelf,
+    testProperty "abs r >= 0" propAbs,
+    testProperty "abs r * abs r' = abs (r * r')" propAbsTimes,
+    testProperty "r = n + f, where (n, f) = properFraction r" propProperFrac,
+    testProperty "signs of properFraction components match signs of input" propProperFracSigns,
+    testProperty "abs f < 1, where (_, f) = properFraction r" propProperFracAbs,
+    testProperty "abs (round r) >= abs n, where (n, _) = properFraction r" propAbsRound
     ]
   ]
 
@@ -205,7 +235,7 @@ propScaleDistPlus = property $ do
   x <- forAllWith ppShow genInteger
   y <- forAllWith ppShow genRational
   z <- forAllWith ppShow genRational
-  Plutus.scale x (y Plutus.+ z) === (Plutus.scale x y) Plutus.+ (Plutus.scale x z)
+  Plutus.scale x (y Plutus.+ z) === Plutus.scale x y Plutus.+ Plutus.scale x z
 
 propScaleTimes :: Property
 propScaleTimes = property $ do
@@ -213,6 +243,171 @@ propScaleTimes = property $ do
   y <- forAllWith ppShow genInteger
   r <- forAllWith ppShow genRational
   Plutus.scale x (Plutus.scale y r) === Plutus.scale (x Plutus.* y) r
+
+propUnsafeIsData :: Property
+propUnsafeIsData = property $ do
+  x <- forAllWith ppShow genRational
+  (unsafeFromBuiltinData . toBuiltinData $ x) === x
+
+propZeroDenom :: Property
+propZeroDenom = property $ do
+  x <- forAllWith ppShow genInteger
+  Ratio.ratio x Plutus.zero === Nothing
+
+propOneDenom :: Property
+propOneDenom = property $ do
+  x <- forAllWith ppShow genInteger
+  Ratio.ratio x Plutus.one === (Just . Ratio.fromInteger $ x)
+
+propConstructionAgreement :: Property
+propConstructionAgreement = property $ do
+  n <- forAllWith ppShow genInteger
+  d <- forAllWith ppShow . Gen.filter (/= 0) $ genInteger
+  Ratio.ratio n d === (Just . Ratio.unsafeRatio n $ d)
+
+propFromIntegerNum :: Property
+propFromIntegerNum = property $ do
+  x <- forAllWith ppShow genInteger
+  let r = Ratio.fromInteger x
+  Ratio.numerator r === x
+
+propFromIntegerDen :: Property
+propFromIntegerDen = property $ do
+  x <- forAllWith ppShow genInteger
+  let r = Ratio.fromInteger x
+  Ratio.denominator r === Plutus.one
+
+propPosDen :: Property
+propPosDen = property $ do
+  r <- forAllWith ppShow genRational
+  assert (Ratio.denominator r Plutus.>= Plutus.one)
+
+propDoubleNeg :: Property
+propDoubleNeg = property $ do
+  r <- forAllWith ppShow genRational
+  (Ratio.negate . Ratio.negate $ r) === r
+
+propAbs :: Property
+propAbs = property $ do
+  r <- forAllWith ppShow genRational
+  assert (Ratio.abs r >= Plutus.zero)
+
+propIsDataRound :: Property
+propIsDataRound = property $ do
+  r <- forAllWith ppShow genRational
+  tripping r toBuiltinData fromBuiltinData
+
+propIsJSONRound :: Property
+propIsJSONRound = property $ do
+  r <- forAllWith ppShow genRational
+  tripping r encode decode
+
+propRatioScale :: Property
+propRatioScale = property $ do
+  x <- forAllWith ppShow genInteger
+  y <- forAllWith ppShow genInteger
+  z <- forAllWith ppShow . Gen.filter (/= Plutus.zero) $ genInteger
+  Ratio.ratio x y === Ratio.ratio (x Plutus.* z) (y Plutus.* z)
+
+propRatioSelf :: Property
+propRatioSelf = property $ do
+  x <- forAllWith ppShow . Gen.filter (/= Plutus.zero) $ genInteger
+  Ratio.ratio x x === Just Plutus.one
+
+propRatioSign :: Property
+propRatioSign = property $ do
+  (n, d) <- forAllWith ppShow go
+  cover 30 "zero numerator" $ n == 0
+  cover 30 "same signs" $ signum n == signum d
+  cover 30 "different signs" $ (signum n /= signum d) && n /= 0
+  let r = Ratio.ratio n d
+  let signIndicator = Plutus.compare <$> r <*> pure Plutus.zero
+  case (signum n, signum d) of
+    (0, _)   -> signIndicator === Just Plutus.EQ
+    (-1, -1) -> signIndicator === Just Plutus.GT
+    (1, 1)   -> signIndicator === Just Plutus.GT
+    _        -> signIndicator === Just Plutus.LT
+  where
+    go :: Gen (Plutus.Integer, Plutus.Integer)
+    go = Gen.choice [zeroNum, sameSign, diffSign]
+    zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
+    zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
+    sameSign :: Gen (Plutus.Integer, Plutus.Integer)
+    sameSign = do
+      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+      (,) <$> gen <*> gen
+    diffSign :: Gen (Plutus.Integer, Plutus.Integer)
+    diffSign = do
+      (genN, genD) <- Gen.element [(genIntegerPos, negate <$> genIntegerPos),
+                                   (negate <$> genIntegerPos, genIntegerPos)]
+      (,) <$> genN <*> genD
+
+propNumeratorScale :: Property
+propNumeratorScale = property $ do
+  r <- forAllWith ppShow genRational
+  Ratio.numerator r === (Ratio.numerator . Plutus.scale (Ratio.denominator r) $ r)
+
+propRecipSelf :: Property
+propRecipSelf = property $ do
+  r <- forAllWith ppShow . Gen.filter (/= Plutus.zero) $ genRational
+  Ratio.recip r Plutus.* r === Plutus.one
+
+propAbsTimes :: Property
+propAbsTimes = property $ do
+  r <- forAllWith ppShow genRational
+  r' <- forAllWith ppShow genRational
+  Ratio.abs r Plutus.* Ratio.abs r' === Ratio.abs (r Plutus.* r')
+
+propProperFrac :: Property
+propProperFrac = property $ do
+  r <- forAllWith ppShow genRational
+  let (n, f) = Ratio.properFraction r
+  r === Ratio.fromInteger n Plutus.+ f
+
+propProperFracAbs :: Property
+propProperFracAbs = property $ do
+  r <- forAllWith ppShow genRational
+  let (_, f) = Ratio.properFraction r
+  assert (Ratio.abs f Plutus.< Plutus.one)
+
+propProperFracSigns :: Property
+propProperFracSigns = property $ do
+  r <- forAllWith ppShow go
+  cover 30 "zero" $ r Plutus.== Plutus.zero
+  cover 30 "negative" $ r Plutus.< Plutus.zero
+  cover 30 "positive" $ r Plutus.> Plutus.zero
+  let (n, f) = Ratio.properFraction r
+  case Plutus.compare r Plutus.zero of
+    Plutus.EQ -> do
+      Plutus.compare n Plutus.zero === Plutus.EQ
+      Plutus.compare f Plutus.zero === Plutus.EQ
+    Plutus.GT -> do
+      Plutus.compare n Plutus.zero /== Plutus.LT
+      Plutus.compare f Plutus.zero /== Plutus.LT
+    Plutus.LT -> do
+      Plutus.compare n Plutus.zero /== Plutus.GT
+      Plutus.compare n Plutus.zero /== Plutus.GT
+  where
+    go :: Gen Plutus.Rational
+    go = Gen.choice [zeroNum, sameSign, diffSign]
+    zeroNum :: Gen Plutus.Rational
+    zeroNum = Ratio.unsafeRatio Plutus.zero <$> Gen.filter (/= Plutus.zero) genInteger
+    sameSign :: Gen Plutus.Rational
+    sameSign = do
+      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+      Ratio.unsafeRatio <$> gen <*> gen
+    diffSign :: Gen Plutus.Rational
+    diffSign = do
+      (genN, genD) <- Gen.element [(genIntegerPos, negate <$> genIntegerPos),
+                                   (negate <$> genIntegerPos, genIntegerPos)]
+      Ratio.unsafeRatio <$> genN <*> genD
+
+propAbsRound :: Property
+propAbsRound = property $ do
+  r <- forAllWith ppShow genRational
+  let rounded = Ratio.round r
+  let (n, _) = Ratio.properFraction r
+  assert (Plutus.abs rounded Plutus.>= Plutus.abs n)
 
 -- Helpers
 
@@ -233,6 +428,9 @@ genRational = do
 
 genInteger :: Gen Integer
 genInteger = Gen.integral . Range.linearFrom 0 (-100) $ 100
+
+genIntegerPos :: Gen Integer
+genIntegerPos = Gen.integral . Range.linearFrom 50 1 $ 100
 
 -- This is a hack to ensure coverage.
 data Entangled (a :: Type) =

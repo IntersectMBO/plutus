@@ -124,6 +124,7 @@ test-suite laws
     main-is: Main.hs
     hs-source-dirs: test/laws
     build-depends:
+        aeson -any,
         base >= 4.9 && < 5.0,
         hedgehog -any,
         hedgehog-fn -any,
