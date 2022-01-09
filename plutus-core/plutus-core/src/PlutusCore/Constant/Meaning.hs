@@ -106,18 +106,18 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | Get the 'BuiltinMeaning' of a built-in function.
     toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term (CostingPart uni fun)
 
+    -- | Calculate runtime info for all built-in functions given denotations of builtins
+    -- and a cost model.
+    toBuiltinsRuntime
+        :: (cost ~ CostingPart uni fun, HasConstantIn uni term)
+        => cost -> BuiltinsRuntime fun term
+    toBuiltinsRuntime cost =
+        BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
+
 -- | Get the type of a built-in function.
 typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
 typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
-
--- | Calculate runtime info for all built-in functions given denotations of builtins
--- and a cost model.
-toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun)
-    => cost -> BuiltinsRuntime fun term
-toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
