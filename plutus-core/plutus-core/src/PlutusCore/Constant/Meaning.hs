@@ -184,12 +184,12 @@ class KnownMonotype term args res a | args res -> a, a -> res where
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownType term res) => KnownMonotype term '[] res res' where
-    knownMonotype = TypeSchemeResult Proxy
+    knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType term arg, KnownMonotype term args res a) =>
             KnownMonotype term (arg ': args) res (arg -> a) where
-    knownMonotype = Proxy `TypeSchemeArrow` knownMonotype
+    knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
@@ -206,7 +206,7 @@ instance KnownMonotype term args res a => KnownPolytype '[] term args res a wher
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
+    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
 
 -- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
 
