@@ -718,7 +718,7 @@ could actually work and if we ever write a paper on builtins, we should mention 
    elaborating @cons :: a -> [a] -> [a]@ as a Plutus builtin we need to unlift both the arguments
    and check that their @a@s are equal
    (See Note [Representable built-in functions over polymorphic built-in types])
-   and it either way too complex or even impossible to do that automatically within some generic
+   and it's either way too complex or even impossible to do that automatically within some generic
    machinery
 
 So what we do is we simply require the user to write
