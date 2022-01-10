@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -66,7 +67,10 @@ defaultCekMachineCosts =
   $$(readJSONFromFile DFP.cekMachineCostsFile)
 
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
-defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
+defaultCekCostModel =
+    let !costs = defaultCekMachineCosts
+        !model = defaultBuiltinCostModel
+    in CostModel costs model
 --- defaultCekMachineCosts is CekMachineCosts
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
@@ -75,7 +79,9 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = toMachineParameters defaultCekCostModel
+defaultCekParameters =
+    let !model = defaultCekCostModel
+    in toMachineParameters model
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)

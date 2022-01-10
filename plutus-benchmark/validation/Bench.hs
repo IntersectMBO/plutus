@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -84,7 +85,9 @@ loadFlat file = do
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
 mkCekBM :: Term -> Benchmarkable
-mkCekBM program = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) program
+mkCekBM program =
+    let !params = PLC.defaultCekParameters
+    in whnf (UPLC.unsafeEvaluateCekNoEmit params) program
 
 mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =
