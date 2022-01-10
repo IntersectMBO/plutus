@@ -34,8 +34,8 @@ type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 --       To fix this error instantiate all constrained type variables
 --     • In the first argument of ‘enumerateDebug’, namely ‘42’
 --       In the expression: enumerateDebug 42
-enumerateDebug :: forall a j. SpecializeFromTo 0 j TermDebug a => a -> a
-enumerateDebug = id
+specializeDebug :: forall a j. SpecializeFromTo 0 j TermDebug a => a -> a
+specializeDebug = id
 
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
 -- possible to construct a 'TypeScheme' out of the resulting type. Example usages:

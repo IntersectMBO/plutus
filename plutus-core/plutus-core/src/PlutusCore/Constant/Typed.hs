@@ -682,6 +682,66 @@ builtins this is rarely the case as most of the time we want aggressive inlining
 and the "just compute the damn thing" behavior.
 -}
 
+{- Note [Unlifting values of built-in types]
+It's trivial to unlift from a term a value of a monomorphic type like 'Integer': just check that
+the term is a constant, extract the type tag and check it for equality with the type tag of
+'Integer'.
+
+Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
+any different from just 'Integer' unlifting-wise.
+
+However there's no sensible way of unlifting a value of, say, @[a]@ where @a@ in not a built-in
+type. So let's say we instantiated @a@ to an @Opaque term rep@ like we do for polymorphic functions
+that don't deal with polymorphic built-in types (e.g. `id`, `ifThenElse` etc). That would mean we'd
+need to write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque term a]@. Which
+is really easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be
+cheap and that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making
+perfectly linear algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for
+how that would look like.
+
+So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of
+statically-unknown type (that @a@ is existential) to @[a']@ where @a'@ is known statically.
+Thus it's impossible to instantiate @a@ in Haskell's
+
+    nullList :: [a] -> Bool
+
+so that there's a 'TypeScheme' for this function.
+
+One non-solution would be to instantiate @a@, then recurse on the type, construct a new function
+that defers to the original @nullList@ but wraps its argument in a specific way (more on that below)
+making it possible to assign a 'TypeScheme' to the resulting function. Astonishingly enough, that
+could actually work and if we ever write a paper on builtins, we should mention that example, but:
+
+1. such a trick requires a generic machinery that knows how to check that the head of the builtin
+   application is a particular built-in type. We used to have that, but it was just way too slow
+2. that would only work for functions that don't care about @a@ at all. But for example when
+   elaborating @cons :: a -> [a] -> [a]@ as a Plutus builtin we need to unlift both the arguments
+   and check that their @a@s are equal
+   (See Note [Representable built-in functions over polymorphic built-in types])
+   and it either way too complex or even impossible to do that automatically within some generic
+   machinery
+
+So what we do is we simply require the user to write
+
+    nullList :: Opaque term [a] -> Bool
+
+and unlift a @[a]@ manually within the definition of the builtin. This works, because the
+existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
+and use it immediately without ever exposing the existential parts to the outside and it's not fine
+to try to return a value having an existential inside of it, which is what unlifting of @[a]@ would
+amount to.
+
+Could we somehow align the unlifting machinery so that it does not construct values of particular
+types, but rather feeds them to a continuation or something, so that the existential parts never
+try to escape? Maybe, but see point 2 from the above, we do want to get our hands on the particular
+universes sometimes and point 1 prevents us from doing that generically, so it doesn't seem like
+we could do that within some automated machinery.
+
+Overall, asking the user to manually unlift from @Opaque term [a]@ is just always going to be
+faster than any kind of fancy encoding.
+-}
+
+-- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
     :: forall term a err cause. (AsUnliftingError err, KnownBuiltinType term a)

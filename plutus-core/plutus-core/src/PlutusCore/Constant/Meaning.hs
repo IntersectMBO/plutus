@@ -239,7 +239,7 @@ type family Lookup n xs where
 type GetName :: GHC.Type -> Nat -> Symbol
 type family GetName k i where
     GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
-    GetName _        i = Lookup i '["f", "g", "h", "m", "n"]
+    GetName _        i = Lookup i '["f", "g", "h", "m", "n"]  -- For higher-kinded types.
 
 -- | Like 'id', but a type constructor.
 type Id :: forall a. a -> a
