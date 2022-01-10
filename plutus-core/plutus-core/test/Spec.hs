@@ -218,9 +218,9 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ [ (builtin addInteger) x ] y ])"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where
+        fmt :: BSL.ByteString -> Either ParseError T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 

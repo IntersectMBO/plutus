@@ -42,7 +42,6 @@ import Control.Monad.Except
 import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
-import Prettyprinter.Internal (Doc (Text))
 import Text.Megaparsec.Error (ShowErrorComponent, showErrorComponent)
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 import Universe (Closed (Everywhere), GEq, GShow)
@@ -55,8 +54,7 @@ throwingEither r e = case e of
 
 -- | An error encountered during parsing.
 data ParseError
-    = LexErr String
-    | UnknownBuiltinType T.Text SourcePos
+    = UnknownBuiltinType T.Text SourcePos
     | BuiltinTypeNotAStar T.Text SourcePos
     | UnknownBuiltinFunction T.Text SourcePos
     | InvalidBuiltinConstant T.Text T.Text SourcePos
@@ -129,7 +127,6 @@ instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
 instance Pretty ParseError where
-    pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
@@ -204,7 +201,6 @@ instance HasErrorCode ParseError where
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-    errorCode LexErr {}                 = ErrorCode 6
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21

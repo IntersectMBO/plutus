@@ -104,6 +104,11 @@ appType = do
     args <- some pType
     pure $ foldl' (TyApp pos) fn args
 
+tyApps :: SourcePos -> PType -> [PType] -> PType
+tyApps _  _t []           = error "tyApps: A type application without an argument."
+tyApps loc ty [ty']       = TyApp loc ty ty'
+tyApps loc ty (ty' : tys) = TyApp loc (tyApps loc ty (ty':init tys)) (last tys)
+
 kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
     where
@@ -124,7 +129,7 @@ pType = choice
     ]
 
 defaultUniType :: Parser (SomeTypeIn DefaultUni)
-defaultUniType = choice
+defaultUniType = choice $ map try
   [ inParens defaultUniType
   , SomeTypeIn DefaultUniInteger <$ symbol "integer"
   , SomeTypeIn DefaultUniByteString <$ symbol "bytestring"
@@ -243,16 +248,19 @@ enforce p = do
     guard . not $ T.null input
     pure x
 
+signedInteger :: ParsecT ParseError T.Text (StateT ParserState Quote) Integer
+signedInteger = Lex.signed whitespace (lexeme Lex.decimal)
+
 -- | Parser for integer constants.
 conInt :: Parser (Some (ValueOf DefaultUni))
 conInt = do
-    con::Integer <- lexeme Lex.decimal
+    con::Integer <- signedInteger
     pure $ someValue con
 
 -- | Parser for single quoted char.
 conChar :: Parser (Some (ValueOf DefaultUni))
 conChar = do
-    con <- between (char '\'') (char '\'') Lex.charLiteral
+    con <- Lex.charLiteral
     pure $ someValue $ singleton con
 
 -- | Parser for double quoted string.
@@ -263,7 +271,7 @@ conText = do
 
 -- | Parser for unit.
 conUnit :: Parser (Some (ValueOf DefaultUni))
-conUnit = someValue () <$ symbol "unit"
+conUnit = someValue () <$ symbol "()"
 
 -- | Parser for bool.
 conBool :: Parser (Some (ValueOf DefaultUni))

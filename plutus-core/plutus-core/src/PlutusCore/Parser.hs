@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
 module PlutusCore.Parser
@@ -11,7 +12,7 @@ module PlutusCore.Parser
 import Data.ByteString.Lazy (ByteString)
 import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default
 import PlutusCore.Error (ParseError (..))
 import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.ParserCommon
@@ -40,7 +41,7 @@ appTerm = inBrackets $ do
     pure $ app pos tm tms
 
 app :: SourcePos -> PTerm -> [PTerm] -> PTerm
-app _  _t []        = error "appTerm, app: An application without the argument."
+app _  _t []        = error "appTerm, app: An application without an argument."
 app loc t [t']      = Apply loc t t'
 app loc t (t' : ts) = Apply loc (app loc t (t':init ts)) (last ts)
 
@@ -62,15 +63,42 @@ appTerms = choice
 conTerm :: Parser PTerm
 conTerm = inParens $ do
     p <- wordPos "con"
-    _conTy <- defaultUniType -- TODO: do case of for each ty?
-    con <- constant
+    conTy <- defaultUniType -- TODO: do case of for each ty?
+    con <-
+        case conTy of
+            SomeTypeIn DefaultUniInteger    -> conInt
+            SomeTypeIn DefaultUniByteString -> conChar
+            SomeTypeIn DefaultUniString     -> conText
+            SomeTypeIn DefaultUniUnit       -> conUnit
+            SomeTypeIn DefaultUniBool       -> conBool
     pure $ Constant p con
 
 builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
 
 tyInstTerm :: Parser PTerm
-tyInstTerm = inBraces $ TyInst <$> getSourcePos <*> term <*> pType
+tyInstTerm = inBraces $ do
+    pos <- getSourcePos
+    tm <- term
+    tys <- appTypes
+    pure $ tyInst pos tm tys
+
+appTypes :: Parser [PType]
+appTypes = choice
+    [ try types
+    , do
+        ty <- pType
+        pure [ty]
+    ]
+    where types = do
+            ty <- pType
+            tys <- appTypes
+            pure $ ty : tys
+
+tyInst :: SourcePos -> PTerm -> [PType] -> PTerm
+tyInst _  _t []         = error "tyInst: A type instantiation without an argument."
+tyInst loc t [ty]       = TyInst loc t ty
+tyInst loc t (ty : tys) = TyInst loc (tyInst loc t (ty : init tys)) (last tys)
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term
