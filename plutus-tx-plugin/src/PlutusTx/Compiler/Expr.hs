@@ -69,7 +69,7 @@ How do we know whether we're using a haskell.nix GHC? Well, we can't in general,
 an extra-special patched version which we *can* detect, so that lets us do the job for now until we can
 fix this properly.
 -}
-#if __GLASGOW_HASKELL_PATCHLEVEL2__ == 20210212
+#if (__GLASGOW_HASKELL_PATCHLEVEL2__ == 20210212) || defined(UBXT_PATCH)
 type Tickish = GHC.GenTickish
 #else
 type Tickish = GHC.Tickish
