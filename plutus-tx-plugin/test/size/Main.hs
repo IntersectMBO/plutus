@@ -50,7 +50,8 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Construction" [
       fitsInto "unsafeRatio" ratMkUnsafe 185,
-      fitsInto "ratio" ratMkSafe 292
+      fitsInto "ratio" ratMkSafe 292,
+      fitsInto "fromInteger" ratFromInteger 21
       ],
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 24,
@@ -60,6 +61,11 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "properFraction" ratProperFraction 61,
       fitsInto "recip" ratRecip 101,
       fitsInto "abs (specialized)" ratAbs 76
+      ],
+    testGroup "Comparison" [
+      fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
+      fitsUnder "abs" ("specialized", ratAbs) ("general", genAbs),
+      fitsUnder "scale" ("type class method", ratScale) ("equivalent in other primitives", genScale)
       ]
     ]
   ]
@@ -84,6 +90,38 @@ instance (Typeable a) => IsTest (SizeTest a) where
       0    -> testPassed $ "AST size: " <> show limit
       _    -> testPassed $ "Remaining budget: " <> show diff
   testOptions = Tagged []
+
+fitsUnder :: forall (a :: Type) .
+  (Typeable a) =>
+  String -> (String, CompiledCode a) -> (String, CompiledCode a) -> TestTree
+fitsUnder name measured = singleTest name . ComparisonTest measured
+
+data ComparisonTest (a :: Type) =
+  ComparisonTest (String, CompiledCode a) (String, CompiledCode a)
+
+instance (Typeable a) => IsTest (ComparisonTest a) where
+  run _ (ComparisonTest (mName, mCode) (tName, tCode)) _ = do
+    let tEstimate = sizePlc tCode
+    let mEstimate = sizePlc mCode
+    let diff = tEstimate - mEstimate
+    pure $ case signum diff of
+      (-1) -> testFailed . renderFailed (tName, tEstimate) (mName, mEstimate) $ diff
+      0    -> testPassed . renderEstimates (tName, tEstimate) $ (mName, mEstimate)
+      _    -> testPassed . renderExcess (tName, tEstimate) (mName, mEstimate) $ diff
+  testOptions = Tagged []
+
+renderFailed :: (String, Integer) -> (String, Integer) -> Integer -> String
+renderFailed tData mData diff = renderEstimates tData mData <>
+                                "Exceeded by: " <> show diff
+
+renderEstimates :: (String, Integer) -> (String, Integer) -> String
+renderEstimates (tName, tEstimate) (mName, mEstimate) =
+  "Target: " <> tName <> "; size " <> show tEstimate <> "\n" <>
+  "Measured: " <> mName <> "; size " <> show mEstimate <> "\n"
+
+renderExcess :: (String, Integer) -> (String, Integer) -> Integer -> String
+renderExcess tData mData diff = renderEstimates tData mData <>
+                                "Remaining slack: " <> show diff
 
 -- Compiled definitions
 
@@ -170,3 +208,15 @@ ratRecip = $$(compile [|| PlutusRatio.recip ||])
 
 ratAbs :: CompiledCode (Plutus.Rational -> Plutus.Rational)
 ratAbs = $$(compile [|| PlutusRatio.abs ||])
+
+ratFromInteger :: CompiledCode (Plutus.Integer -> Plutus.Rational)
+ratFromInteger = $$(compile [|| PlutusRatio.fromInteger ||])
+
+genNegate :: CompiledCode (Plutus.Rational -> Plutus.Rational)
+genNegate = $$(compile [|| Plutus.negate ||])
+
+genAbs :: CompiledCode (Plutus.Rational -> Plutus.Rational)
+genAbs = $$(compile [|| Plutus.abs ||])
+
+genScale :: CompiledCode (Plutus.Integer -> Plutus.Rational -> Plutus.Rational)
+genScale = $$(compile [|| \s v -> PlutusRatio.fromInteger s Plutus.* v ||])

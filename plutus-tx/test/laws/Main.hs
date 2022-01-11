@@ -62,8 +62,8 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     ],
   testGroup "Serialization" [
     testProperty "FromBuiltinData-ToBuiltinData roundtrip" propIsDataRound,
-    testProperty "FromJSON-ToJSON roundtrip" propIsJSONRound,
-    testProperty "unsafeFromBuiltinData . toBuiltinData = id" propUnsafeIsData
+    testProperty "unsafeFromBuiltinData . toBuiltinData = id" propUnsafeIsData,
+    testProperty "FromJSON-ToJSON roundtrip" propIsJSONRound
     ],
   testGroup "Construction" [
     testProperty "ratio x 0 = Nothing" propZeroDenom,
@@ -84,7 +84,12 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     testProperty "r = n + f, where (n, f) = properFraction r" propProperFrac,
     testProperty "signs of properFraction components match signs of input" propProperFracSigns,
     testProperty "abs f < 1, where (_, f) = properFraction r" propProperFracAbs,
-    testProperty "abs (round r) >= abs n, where (n, _) = properFraction r" propAbsRound
+    testProperty "abs (round r) >= abs n, where (n, _) = properFraction r" propAbsRound,
+    testProperty "halves round as expected" propRoundHalf,
+    testProperty ("if abs f < half, then round r = truncate r, " <>
+                  "where (_, f) = properFraction r") propRoundLow,
+    testProperty ("if abs f > half, then abs (round r) = abs (truncate r) + 1, " <>
+                  "where (_, f) = properFraction r") propRoundHigh
     ]
   ]
 
@@ -408,6 +413,63 @@ propAbsRound = property $ do
   let rounded = Ratio.round r
   let (n, _) = Ratio.properFraction r
   assert (Plutus.abs rounded Plutus.>= Plutus.abs n)
+
+propRoundHalf :: Property
+propRoundHalf = property $ do
+  (n, f) <- forAllWith ppShow go
+  let r = Ratio.fromInteger n Plutus.+ f
+  let rounded = Ratio.round r
+  case (signum n, even n) of
+    (-1, False) -> rounded === n Plutus.- Plutus.one
+    (-1, True)  -> rounded === n
+    (0, _)      -> rounded === Plutus.zero
+    (1, False)  -> rounded === n Plutus.+ Plutus.one
+    _           -> rounded === n
+  where
+    go :: Gen (Integer, Plutus.Rational)
+    go = do
+      n <- genInteger
+      f <- case signum n of
+            (-1) -> pure . Ratio.negate $ Ratio.half
+            0    -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
+            _    -> pure Ratio.half
+      pure (n, f)
+
+propRoundLow :: Property
+propRoundLow = property $ do
+  (n, f) <- forAllWith ppShow go
+  let r = Ratio.fromInteger n Plutus.+ f
+  let rounded = Ratio.round r
+  let truncated = Ratio.truncate r
+  rounded === truncated
+  where
+    go :: Gen (Integer, Plutus.Rational)
+    go = do
+      num <- Gen.integral . Range.constant 1 $ 135
+      let f = Ratio.unsafeRatio num 271
+      n <- genInteger
+      case signum n of
+        (-1) -> pure (n, Ratio.negate f)
+        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
+        _    -> pure (n, f)
+
+propRoundHigh :: Property
+propRoundHigh = property $ do
+  (n, f) <- forAllWith ppShow go
+  let r = Ratio.fromInteger n Plutus.+ f
+  let rounded = Ratio.round r
+  let truncated = Ratio.truncate r
+  Plutus.abs rounded === Plutus.abs truncated Plutus.+ Plutus.one
+  where
+    go :: Gen (Integer, Plutus.Rational)
+    go = do
+      num <- Gen.integral . Range.constant 136 $ 270
+      let f = Ratio.unsafeRatio num 271
+      n <- genInteger
+      case signum n of
+        (-1) -> pure (n, Ratio.negate f)
+        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
+        _    -> pure (n, f)
 
 -- Helpers
 
