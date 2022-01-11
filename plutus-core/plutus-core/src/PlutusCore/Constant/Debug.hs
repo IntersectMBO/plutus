@@ -22,8 +22,6 @@ type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 --
 -- >>> :t enumerateDebug False
 -- enumerateDebug False :: Bool
--- >>> :t enumerateDebug $ Just 'a'
--- enumerateDebug $ Just 'a' :: Maybe Char
 -- >>> :t enumerateDebug $ \_ -> ()
 -- enumerateDebug $ \_ -> ()
 --   :: Opaque
@@ -31,13 +29,13 @@ type TermDebug = Term TyName Name DefaultUni DefaultFun ()
 --        (TyVarRep ('TyNameRep "a" 0))
 --      -> ()
 -- >>> :t enumerateDebug 42
--- <interactive>:1:16-17: error:
+-- <interactive>:1:16: error:
 --     • Built-in functions are not allowed to have constraints
 --       To fix this error instantiate all constrained type variables
 --     • In the first argument of ‘enumerateDebug’, namely ‘42’
 --       In the expression: enumerateDebug 42
-enumerateDebug :: forall a j. EnumerateFromTo 0 j TermDebug a => a -> a
-enumerateDebug = id
+specializeDebug :: forall a j. SpecializeFromTo 0 j TermDebug a => a -> a
+specializeDebug = id
 
 -- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
 -- possible to construct a 'TypeScheme' out of the resulting type. Example usages:
@@ -45,9 +43,10 @@ enumerateDebug = id
 -- >>> :t inferDebug False
 -- inferDebug False :: Bool
 -- >>> :t inferDebug $ Just 'a'
--- <interactive>:1:1-21: error:
---     • There's no 'KnownType' instance for Maybe Char
---       Did you add a new built-in type and forget to provide a 'KnownType' instance for it?
+-- <interactive>:1:1: error:
+--     • No instance for (KnownPolytype
+--                          (ToBinds (Maybe Char)) TermDebug '[] (Maybe Char) (Maybe Char))
+--         arising from a use of ‘inferDebug’
 --     • In the expression: inferDebug $ Just 'a'
 -- >>> :t inferDebug $ \_ -> ()
 -- inferDebug $ \_ -> ()
@@ -58,8 +57,7 @@ enumerateDebug = id
 inferDebug
     :: forall a binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds TermDebug args res a, EnumerateFromTo 0 j TermDebug a
-       , KnownMonotype TermDebug args res a
+       , KnownPolytype binds TermDebug args res a, SpecializeFromTo 0 j TermDebug a
        )
     => a -> a
 inferDebug = id
