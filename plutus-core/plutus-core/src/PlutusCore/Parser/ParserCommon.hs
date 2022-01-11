@@ -8,13 +8,12 @@
 
 module PlutusCore.Parser.ParserCommon where
 
-import Data.ByteString.Char8 (singleton)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1)
+import Text.Megaparsec.Char (char, hexDigitChar, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
@@ -102,7 +101,7 @@ appType = do
     pos  <- getSourcePos
     fn   <- pType
     args <- some pType
-    pure $ foldl' (TyApp pos) fn args
+    pure $ tyApps pos fn args
 
 tyApps :: SourcePos -> PType -> [PType] -> PType
 tyApps _  _t []           = error "tyApps: A type application without an argument."
@@ -257,13 +256,13 @@ conInt = do
     con::Integer <- signedInteger
     pure $ someValue con
 
--- | Parser for single quoted char.
+-- | Parser for bytestring constants. They start with "#".
 conChar :: Parser (Some (ValueOf DefaultUni))
 conChar = do
-    con <- Lex.charLiteral
-    pure $ someValue $ singleton con
+    con <- char '#' *> Text.Megaparsec.many hexDigitChar--Lex.charLiteral
+    pure $ someValue $ T.pack con
 
--- | Parser for double quoted string.
+-- | Parser for string constants. They are wrapped in double quotes.
 conText :: Parser (Some (ValueOf DefaultUni))
 conText = do
     con <- char '\"' *> manyTill Lex.charLiteral (char '\"')
