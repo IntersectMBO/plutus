@@ -335,7 +335,7 @@ pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == Just ConsumePub
 
 -- | Filter to get only the script inputs.
 scriptTxIns :: Fold (Set.Set TxIn) TxIn
-scriptTxIns = folding . Set.filter $ \case
+scriptTxIns = (\x -> folding x) . Set.filter $ \case
     TxIn{ txInType = Just ConsumeScriptAddress{} } -> True
     _                                              -> False
 

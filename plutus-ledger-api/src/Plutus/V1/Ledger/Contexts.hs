@@ -332,9 +332,6 @@ makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
 makeLift ''TxInfo
 makeIsDataIndexed ''TxInfo [('TxInfo,0)]
 
-makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
-
 
 makeLift ''ScriptPurpose
 makeIsDataIndexed ''ScriptPurpose
@@ -343,3 +340,6 @@ makeIsDataIndexed ''ScriptPurpose
     , ('Rewarding,2)
     , ('Certifying,3)
     ]
+
+makeLift ''ScriptContext
+makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]

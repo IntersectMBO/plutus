@@ -82,6 +82,7 @@
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."some" or (errorHandler.buildDepError "some"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."th-compat" or (errorHandler.buildDepError "th-compat"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))

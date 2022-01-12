@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE PolyKinds        #-}
 {-# LANGUAGE RankNTypes       #-}
@@ -23,7 +25,7 @@ class KnownKind k where
     knownKind :: SingKind k
 
 -- | Plutus only supports lifted types, hence the equality constraint.
-instance rep ~ 'LiftedRep => KnownKind (TYPE rep) where
+instance rep ~ LiftedRep => KnownKind (TYPE rep) where
     knownKind = SingType
 
 instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where

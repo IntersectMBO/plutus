@@ -118,7 +118,6 @@ instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList a
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 
-makeLift ''Data
 makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either
@@ -129,3 +128,4 @@ makeLift ''(,)
 makeLift ''(,,)
 makeLift ''(,,,)
 makeLift ''(,,,,)
+makeLift ''Data

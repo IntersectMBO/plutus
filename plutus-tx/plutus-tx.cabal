@@ -83,6 +83,7 @@ library
         bytestring -any,
         deepseq -any,
         template-haskell >=2.13.0.0,
+        th-compat -any,
         th-abstraction -any,
         prettyprinter -any,
         text -any,

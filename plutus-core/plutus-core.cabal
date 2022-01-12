@@ -288,6 +288,7 @@ library
         serialise -any,
         some < 1.0.3,
         template-haskell -any,
+        th-compat -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
