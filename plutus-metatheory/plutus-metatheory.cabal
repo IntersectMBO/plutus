@@ -271,6 +271,7 @@ library
     MAlonzo.Code.Algorithmic.CC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
+    MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin

@@ -102,6 +102,8 @@ data ExtensionFun
     | ExpensiveSucc
     | FailingPlus
     | ExpensivePlus
+    | UnsafeCoerce
+    | UnsafeCoerceEl
     | Undefined
     | Absurd
     | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
@@ -132,6 +134,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
+    type ToHoles (PlcListRep a) = '[RepHole a]
     type ToBinds (PlcListRep a) = ToBinds a
 
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
@@ -179,25 +182,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
-                => a -> a)
+            (Prelude.id :: fi ~ Opaque term (TyAppRep f Integer) => fi -> fi)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (PlcListRep (TyVarRep ('TyNameRep "a" 0)))
-                => a -> a)
+            (Prelude.id :: la ~ Opaque term (PlcListRep a) => la -> la)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: ( f ~ 'TyNameRep "f" 0
-                   , a ~ 'TyNameRep @GHC.Type "a" 1
-                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
-                   )
+                :: afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 
@@ -225,6 +221,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
+    toBuiltinMeaning UnsafeCoerce =
+        makeBuiltinMeaning
+            (Opaque . unOpaque)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning UnsafeCoerceEl =
+        makeBuiltinMeaning
+            unsafeCoerceElPlc
+            (\_ _ -> ExBudget 1 0)
+      where
+        unsafeCoerceElPlc
+            :: SomeConstant DefaultUni [a]
+            -> EvaluationResult (SomeConstant DefaultUni [b])
+        unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+            DefaultUniList _ <- pure uniList
+            pure . SomeConstant $ someValueOf uniList xs
+
     toBuiltinMeaning Undefined =
         makeBuiltinMeaning
             undefined
@@ -244,40 +257,39 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         commaPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
-            -> SomeConstantPoly uni (,) '[a, b]
+            -> SomeConstant uni (a, b)
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
-            SomeConstantPoly $ someValueOf (DefaultUniPair uniA uniB) (x, y)
+            SomeConstant $ someValueOf (DefaultUniPair uniA uniB) (x, y)
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
-            -> SomeConstantPoly uni (,) '[a, b]
-            -> EvaluationResult (SomeConstantPoly uni (,) '[a, b])
+            -> SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (a, b))
         biconstPairPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniB y)))
-            (SomeConstantPoly (Some (ValueOf uniPairAB _))) = do
+            (SomeConstant (Some (ValueOf uniPairAB _))) = do
                 DefaultUniPair uniA' uniB' <- pure uniPairAB
                 Just Refl <- pure $ uniA `geq` uniA'
                 Just Refl <- pure $ uniB `geq` uniB'
-                pure . SomeConstantPoly $ someValueOf uniPairAB (x, y)
+                pure . SomeConstant $ someValueOf uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc
-            :: SomeConstantPoly uni (,) '[a, b]
-            -> EvaluationResult (SomeConstantPoly uni (,) '[b, a])
-        swapPlc (SomeConstantPoly (Some (ValueOf uniPairAB p))) = do
+            :: SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (b, a))
+        swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
-            pure . SomeConstantPoly $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
+            pure . SomeConstant $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
-            :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-            => SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[a, Bool]]
-            -> EvaluationResult (SomeConstantPoly uni [] '[SomeConstantPoly uni (,) '[Bool, a]])
-        swapElsPlc (SomeConstantPoly (Some (ValueOf uniList xs))) = do
+            :: SomeConstant uni [SomeConstant uni (a, Bool)]
+            -> EvaluationResult (SomeConstant uni [SomeConstant uni (Bool, a)])
+        swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
             let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
-            pure . SomeConstantPoly . someValueOf uniList' $ map swap xs
+            pure . SomeConstant . someValueOf uniList' $ map swap xs

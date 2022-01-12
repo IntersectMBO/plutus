@@ -181,7 +181,6 @@
         "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
         "charset".revision = (((hackage."charset")."0.3.9").revisions).default;
         "dependent-sum-template".revision = (((hackage."dependent-sum-template")."0.1.0.3").revisions).default;
-        "sop-core".revision = (((hackage."sop-core")."0.5.0.1").revisions).default;
         "data-fix".revision = (((hackage."data-fix")."0.3.2").revisions).default;
         "dense-linear-algebra".revision = (((hackage."dense-linear-algebra")."0.1.0.0").revisions).default;
         "contravariant".revision = (((hackage."contravariant")."1.5.5").revisions).default;
@@ -751,7 +750,6 @@
           "case-insensitive".components.library.planned = lib.mkOverride 900 true;
           "data-fix".components.library.planned = lib.mkOverride 900 true;
           "dependent-sum-template".components.library.planned = lib.mkOverride 900 true;
-          "sop-core".components.library.planned = lib.mkOverride 900 true;
           "text-short".components.library.planned = lib.mkOverride 900 true;
           "plutus-tx".components.library.planned = lib.mkOverride 900 true;
           "fail".components.library.planned = lib.mkOverride 900 true;
