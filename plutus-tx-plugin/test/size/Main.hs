@@ -88,7 +88,7 @@ instance (Typeable a) => IsTest (SizeTest a) where
     pure $ case signum diff of
       (-1) -> testFailed $ "Exceeded limit by " <> (show . abs $ diff)
       0    -> testPassed $ "AST size: " <> show limit
-      _    -> testPassed $ "Remaining budget: " <> show diff
+      _    -> testPassed $ "Remaining headroom: " <> show diff
   testOptions = Tagged []
 
 fitsUnder :: forall (a :: Type) .
@@ -121,7 +121,7 @@ renderEstimates (tName, tEstimate) (mName, mEstimate) =
 
 renderExcess :: (String, Integer) -> (String, Integer) -> Integer -> String
 renderExcess tData mData diff = renderEstimates tData mData <>
-                                "Remaining slack: " <> show diff
+                                "Remaining headroom: " <> show diff
 
 -- Compiled definitions
 

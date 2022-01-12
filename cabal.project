@@ -20,7 +20,8 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
--- The only sensible test display option
+-- The only sensible test display option, since it allows us to have colourized 
+-- 'tasty' output.
 test-show-details: direct
 
 allow-newer:

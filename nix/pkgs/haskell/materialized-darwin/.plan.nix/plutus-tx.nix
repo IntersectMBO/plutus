@@ -121,6 +121,21 @@
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
+        "laws" = {
+          depends = [
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."hedgehog-fn" or (errorHandler.buildDepError "hedgehog-fn"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."pretty-show" or (errorHandler.buildDepError "pretty-show"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "test/laws" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-tx; }

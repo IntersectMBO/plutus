@@ -23,19 +23,22 @@ import Test.Tasty (defaultMain, localOption, testGroup)
 import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testProperty)
 import Text.Show.Pretty (ppShow)
 
+-- We set the test count to be 1000, as Hedgehog's default of 100 is too few to
+-- indicate much of anything, due to the probabilistic nature of property
+-- testing.
 main :: IO ()
-main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "Rational" $ [
+main = defaultMain . localOption regularLimit . testGroup "Rational" $ [
   testGroup "Eq" [
     testProperty "== is reflexive" propEqRefl,
-    testProperty "== is symmetric" propEqSymm,
-    testProperty "== is transitive" propEqTrans,
-    testProperty "== implies substitution" propEqSub
+    localOption coverLimit . testProperty "== is symmetric" $ propEqSymm,
+    localOption coverLimit . testProperty "== is transitive" $ propEqTrans,
+    localOption coverLimit . testProperty "== implies substitution" $ propEqSub
     ],
   testGroup "Ord" [
     testProperty "<= is reflexive" propOrdRefl,
-    testProperty "<= is anti-symmetric" propOrdAntiSymm,
-    testProperty "<= is transitive" propOrdTrans,
-    testProperty "== implies EQ" propOrdCompare
+    localOption coverLimit . testProperty "<= is anti-symmetric" $ propOrdAntiSymm,
+    localOption coverLimit . testProperty "<= is transitive" $ propOrdTrans,
+    localOption coverLimit . testProperty "== implies EQ" $ propOrdCompare
     ],
   testGroup "AdditiveGroup" [
     testProperty "+ commutes" propPlusComm,
@@ -69,7 +72,7 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     testProperty "ratio x 0 = Nothing" propZeroDenom,
     testProperty "ratio x 1 = Just . fromInteger $ x" propOneDenom,
     testProperty "ratio x x = Just 1 for x /= 0" propRatioSelf,
-    testProperty "sign of result depends on signs of arguments" propRatioSign,
+    localOption coverLimit . testProperty "sign of result depends on signs of arguments" $ propRatioSign,
     testProperty "if ratio x y = Just r, then unsafeRatio x y = r" propConstructionAgreement,
     testProperty "if r = fromInteger x, then numerator r = x" propFromIntegerNum,
     testProperty "if r = fromInteger x, then denominator r = 1" propFromIntegerDen,
@@ -82,7 +85,7 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
     testProperty "abs r >= 0" propAbs,
     testProperty "abs r * abs r' = abs (r * r')" propAbsTimes,
     testProperty "r = n + f, where (n, f) = properFraction r" propProperFrac,
-    testProperty "signs of properFraction components match signs of input" propProperFracSigns,
+    localOption coverLimit . testProperty "signs of properFraction components match signs of input" $ propProperFracSigns,
     testProperty "abs f < 1, where (_, f) = properFraction r" propProperFracAbs,
     testProperty "abs (round r) >= abs n, where (n, _) = properFraction r" propAbsRound,
     testProperty "halves round as expected" propRoundHalf,
@@ -92,6 +95,15 @@ main = defaultMain . localOption (HedgehogTestLimit . Just $ 1000) . testGroup "
                   "where (_, f) = properFraction r") propRoundHigh
     ]
   ]
+  where
+    regularLimit :: HedgehogTestLimit
+    regularLimit = HedgehogTestLimit . Just $ 1000
+    -- For tests which require use of 'cover', due to Hedgehog's treatment of
+    -- coverage as a hard minimum percentage, we need to run considerably more
+    -- tests, as otherwise, we risk a coverage failure due to entirely
+    -- probabilistic reasons from the generator.
+    coverLimit :: HedgehogTestLimit
+    coverLimit = HedgehogTestLimit . Just $ 8000
 
 -- Properties
 
@@ -495,39 +507,76 @@ genIntegerPos :: Gen Integer
 genIntegerPos = Gen.integral . Range.linearFrom 50 1 $ 100
 
 -- This is a hack to ensure coverage.
+--
+-- To fully-explain the purpose of this type, consider the symmetry property of
+-- a binary relation R; if R(x, y), then R(y, x). Note that, if some x and y are
+-- _not_ related by R, we don't actually care what the outcome is.
+--
+-- Consider the case of testing the symmetry of equality. A naive approach would
+-- be something like:
+--
+-- 1. Generate x and y, independently.
+-- 2. Check if x == y.
+-- 3. If 2, then ensure y == x; otherwise, pass unconditionally.
+--
+-- However, this is extremely problematic, as the probability that we
+-- independently generate equal x and y is low, especially if the number of
+-- inhabitants of the relevant type is large, or infinite. Thus, if we run these
+-- tests, we may not actually be getting any useful information, since our tests
+-- will pass, but it'll be purely because the precondition in 2 is almost never
+-- satisfied!
+--
+-- Entangled (and Entangled3) 'hack' the generator for a type to ensure that,
+-- roughly half the time, we generate two (or three) identical copies of the
+-- same thing, while using independent generation the rest of the time. Combined
+-- with liberal use of 'cover, we can ensure that we don't run afoul of the
+-- issue described above.
+--
+-- Note: this assumes that the relation being tested is also reflexive, and that
+-- the type being tested over is either large, or infinite. If the relation is
+-- irreflexive, or the type is small, this 'biasing' will actually work
+-- _against_ you: keep this in mind when using.
 data Entangled (a :: Type) =
   Identical a |
   Regular a a
   deriving stock (Eq, Show)
 
+-- Should be used for defining a property. So named because after this, we can
+-- no longer distinguish whether we have a duplicate value 'by force', or if we
+-- independently generated.
 collapse :: Entangled a -> (a, a)
 collapse = \case
   Identical x -> (x, x)
   Regular x y -> (x, y)
 
+-- Checks if our 'hack' kicked in.
 isDefinitelyIdentical :: Entangled a -> Bool
 isDefinitelyIdentical = \case
   Identical _ -> True
   Regular _ _ -> False
 
+-- 'Promote' a generator for values into a 'hacked' generator.
 entangled :: forall (a :: Type) . Gen a -> Gen (Entangled a)
 entangled gen = Gen.choice [Identical <$> gen, Regular <$> gen <*> gen]
 
--- Similar, but for triples.
+-- Similar to 'Entangled', but for 3-tuples instead of 2-tuples.
 data Entangled3 (a :: Type) =
   Identical3 a |
   Regular3 a a a
   deriving stock (Eq, Show)
 
+-- Corresponds to 'collapse' for 'Entangled3'.
 collapse3 :: Entangled3 a -> (a, a, a)
 collapse3 = \case
   Identical3 x   -> (x, x, x)
   Regular3 x y z -> (x, y, z)
 
+-- Corresponds to 'isDefinitelyIdentical' for 'Entangled3'.
 isDefinitelyIdentical3 :: Entangled3 a -> Bool
 isDefinitelyIdentical3 = \case
   Identical3 _ -> True
   Regular3{}   -> False
 
+-- 'Promotion' function corresponding to 'entangled'.
 entangled3 :: forall (a :: Type) . Gen a -> Gen (Entangled3 a)
 entangled3 gen = Gen.choice [Identical3 <$> gen, Regular3 <$> gen <*> gen <*> gen]
