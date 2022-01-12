@@ -197,7 +197,6 @@
         "mtl-compat".flags.two-point-one = false;
         "mtl-compat".flags.two-point-two = false;
         "concurrent-output".revision = (((hackage."concurrent-output")."1.10.12").revisions).default;
-        "sop-core".revision = (((hackage."sop-core")."0.5.0.1").revisions).default;
         "abstract-par".revision = (((hackage."abstract-par")."0.3.3").revisions).default;
         "directory".revision = (((hackage."directory")."1.3.6.0").revisions).default;
         "clock".revision = (((hackage."clock")."0.8.2").revisions).default;
@@ -657,7 +656,6 @@
           "plutus-core".components.exes."uplc".planned = lib.mkOverride 900 true;
           "cborg".components.library.planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.exes."list-sort-exe".planned = lib.mkOverride 900 true;
-          "sop-core".components.library.planned = lib.mkOverride 900 true;
           "comonad".components.library.planned = lib.mkOverride 900 true;
           "managed".components.library.planned = lib.mkOverride 900 true;
           "data-fix".components.library.planned = lib.mkOverride 900 true;

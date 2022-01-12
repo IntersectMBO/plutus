@@ -4,59 +4,59 @@ layout: page
 ---
 
 ```
+{-# OPTIONS --type-in-type #-}
+```
+
+```
 module Untyped where
 ```
 
 ## Imports
 
 ```
-open import Data.Nat
-open import Data.Fin hiding (_≤_)
-open import Data.Bool using (Bool;true;false)
-open import Data.Integer hiding (suc;_≤_)
-open import Data.Integer.Show
-open import Data.String using (String) renaming (_++_ to _+++_)
-open import Data.Sum
-open import Data.Product renaming (_,_ to _,,_)
-open import Relation.Nullary
-open import Data.String
-open import Data.Bool
-
-open import Raw
 open import Utils
+open import Builtin
 open import Scoped using (ScopeError;deBError)
 open import Builtin
-open import Utils
+open import Raw
+
+open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
+open import Data.Nat using (ℕ;suc;zero)
+open import Data.Bool using (true;false)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Algorithmic using (arity;Term;Type)
+open import Data.List using ([];_∷_)
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 ```
 
 ## Well-scoped Syntax
 
 ```
-data _⊢ n : Set where
-  `       : Fin n → n ⊢
-  ƛ       : suc n ⊢ → n ⊢
-  _·_     : n ⊢ → n ⊢ → n ⊢
-  force   : n ⊢ → n ⊢
-  delay   : n ⊢ → n ⊢
-  con     : TermCon → n ⊢
-  builtin : (b : Builtin) → n ⊢
-  error   : n ⊢
+data _⊢ (X : Set) : Set where
+  `   : X → X ⊢
+  ƛ   : Maybe X ⊢ → X ⊢
+  _·_ : X ⊢ → X ⊢ → X ⊢
+  force : X ⊢ → X ⊢
+  delay : X ⊢ → X ⊢
+  con : TermCon → X ⊢
+  builtin : (b : Builtin) → X ⊢
+  error : X ⊢
+```
 
+```
 variable
-  n m o : ℕ
-  t t' u u' : n ⊢
+  t t' u u' : ∀{X} → X ⊢
 ```
 
-## Ugly printing for debugging
+## Debug printing
 
 ```
-uglyFin : ∀{n} → Fin n → String
-uglyFin zero = "0"
-uglyFin (suc x) = "(S " +++ uglyFin x +++ ")"
-
+open import Data.Integer.Show
+open import Data.String renaming (_++_ to _+++_) hiding (show)
 
 uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " +++ Data.Integer.Show.show x +++ ")"
+uglyTermCon (integer x) = "(integer " +++ show x +++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " +++ s +++ ")"
@@ -75,8 +75,8 @@ uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
 
-ugly : n ⊢ → String
-ugly (` x) = "(` " +++ uglyFin x +++ ")"
+ugly : ∀{X} → X ⊢ → String
+ugly (` x) = "(` var )"
 ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
 ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
 ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
@@ -106,36 +106,47 @@ data Untyped : Set where
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
 ```
 
-## Scope checking
+## Scope checking and scope extrication
 
 ```
-extricateU : n ⊢ → Untyped
-extricateU (con c) = UCon c
-extricateU (` x) = UVar (Data.Fin.toℕ x)
-extricateU (ƛ t) = ULambda (extricateU t)
-extricateU (t · u) = UApp (extricateU t) (extricateU u)
-extricateU (force t) = UForce (extricateU t)
-extricateU (delay t) = UDelay (extricateU t)
-extricateU (builtin b) = UBuiltin b
-extricateU error = UError
+extG : {X : Set} → (X → ℕ) → Maybe X → ℕ
+extG g (just x) = suc (g x)
+extG g nothing  = 0
 
-ℕtoFin : ℕ → Either ScopeError (Fin n)
-ℕtoFin {zero}  _       = inj₁ deBError
-ℕtoFin {suc m} zero    = return zero
-ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
+extricateU : {X : Set} → (X → ℕ) → X ⊢ → Untyped
+extricateU g (` x)       = UVar (g x)
+extricateU g (ƛ t)       = ULambda (extricateU (extG g) t)
+extricateU g (t · u)     = UApp (extricateU g t) (extricateU g u)
+extricateU g (force t)   = UForce (extricateU g t)
+extricateU g (delay t)   = UDelay (extricateU g t)
+extricateU g (con c)     = UCon c
+extricateU g (builtin b) = UBuiltin b
+extricateU g error       = UError
 
-scopeCheckU : Untyped → Either ScopeError (n ⊢)
-scopeCheckU (UVar x)     = fmap ` (ℕtoFin x)
-scopeCheckU (ULambda t)  = fmap ƛ (scopeCheckU t)
-scopeCheckU (UApp t u)   = do
-  t ← scopeCheckU t
-  u ← scopeCheckU u
+open import Data.Empty
+extricateU0 : ⊥  ⊢ → Untyped
+extricateU0 t = extricateU (λ()) t
+
+extG' : {X : Set} → (ℕ → Either ScopeError X) → ℕ → Either ScopeError (Maybe X)
+extG' g zero    = return nothing
+extG' g (suc n) = fmap just (g n)
+
+scopeCheckU : {X : Set}
+            → (ℕ → Either ScopeError X) → Untyped → Either ScopeError (X ⊢)
+scopeCheckU g (UVar x)     = fmap ` (g x)
+scopeCheckU g (ULambda t)  = fmap ƛ (scopeCheckU (extG' g) t)
+scopeCheckU g (UApp t u)   = do
+  t ← scopeCheckU g t
+  u ← scopeCheckU g u
   return (t · u)
-scopeCheckU (UCon c)     = return (con c)
-scopeCheckU UError       = return error
-scopeCheckU (UBuiltin b) = return (builtin b)
-scopeCheckU (UDelay t)   = fmap delay (scopeCheckU t)
-scopeCheckU (UForce t)   = fmap force (scopeCheckU t)
+scopeCheckU g (UCon c)     = return (con c)
+scopeCheckU g UError       = return error
+scopeCheckU g (UBuiltin b) = return (builtin b)
+scopeCheckU g (UDelay t)   = fmap delay (scopeCheckU g t)
+scopeCheckU g (UForce t)   = fmap force (scopeCheckU g t)
+
+scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
+scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 ```
 
 ## Equality checking for raw terms
@@ -143,6 +154,8 @@ scopeCheckU (UForce t)   = fmap force (scopeCheckU t)
 Used to compare outputs in testing
 
 ```
+open import Data.Bool
+
 decUTermCon : (C C' : TermCon) → Bool
 decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
 ... | yes p = true
@@ -171,4 +184,3 @@ decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
-```

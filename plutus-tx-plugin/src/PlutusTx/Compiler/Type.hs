@@ -236,10 +236,23 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
           | GHC.isFamilyTyCon tc = throwSd UnsupportedError $ "Irreducible type family application:" GHC.<+> GHC.ppr tc
           | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
+{- Note [On data constructor workers and wrappers]
+By default GHC has 'unbox-small-strict-fields' flag enabled.
+This option causes all constructor fields which are marked strict and
+which representation is smaller or equal to the size of a pointer to be unpacked.
+
+Because of that we have to use 'dataConRepArgTys' for the constructor type
+to get the argument types of the worker, not the wrapper.
+
+That fixes the type mismatch problem when the GHC unpacks the field but we infer
+the type of the original code without that information.
+-}
+
 -- | Makes the type of the constructor corresponding to the given 'DataCon', with the type variables free.
 mkConstructorType :: CompilingDefault uni fun m => GHC.DataCon -> m (PIRType uni)
 mkConstructorType dc =
-    let argTys = GHC.dataConOrigArgTys dc
+    -- see Note [On data constructor workers and wrappers]
+    let argTys = GHC.dataConRepArgTys dc
     in
         -- See Note [Scott encoding of datatypes]
         withContextM 3 (sdToTxt $ "Compiling data constructor type:" GHC.<+> GHC.ppr dc) $ do

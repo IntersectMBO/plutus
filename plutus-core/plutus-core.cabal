@@ -304,7 +304,6 @@ library
         serialise -any,
         size-based -any,
         some < 1.0.3,
-        sop-core -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,

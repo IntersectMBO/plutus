@@ -40,7 +40,7 @@ sound and an executable that is intended to be compiled into Haskell.
 
 The type level language is similar to simply-typed lambda-calculus
 with the addition of constants for forall, μ, and builtin
-contants. The [`Type`](Type.html) module containts kinds, contexts and
+constants. The [`Type`](Type.html) module contains kinds, contexts and
 types. Types are intrinsically scoped and kinded and variables are
 represented using De Bruijn indices. Parallel renaming and
 substitution are implemented in the
@@ -132,7 +132,7 @@ import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.Erasure.Reduction
+-- import Algorithmic.Erasure.Reduction
 import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEKV
@@ -150,8 +150,6 @@ import Scoped.RenamingSubstitution
 
 import Scoped.Extrication
 import Scoped.Extrication.RenamingSubstitution
-import Scoped.Erasure
---import Scoped.Erasure.RenamingSubstitution
 ```
 
 ## Untyped terms
@@ -161,7 +159,7 @@ Untyped terms, reduction and evaluation
 ```
 import Untyped
 import Untyped.RenamingSubstitution
-import Untyped.Reduction
+import Untyped.CEK
 ```
 
 ## Type checker

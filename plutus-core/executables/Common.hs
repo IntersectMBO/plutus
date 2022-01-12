@@ -616,13 +616,13 @@ typeSchemeToSignature = toSig []
     where toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
           toSig acc =
               \case
-               PLC.TypeSchemeResult pR -> Signature acc (PLC.toTypeAst pR)
-               PLC.TypeSchemeArrow pA schB ->
-                   toSig (acc ++ [Type $ PLC.toTypeAst pA]) schB
+               pR@PLC.TypeSchemeResult -> Signature acc (PLC.toTypeAst pR)
+               arr@(PLC.TypeSchemeArrow schB) ->
+                   toSig (acc ++ [Type $ PLC.toTypeAst $ PLC.argOf arr]) schB
                PLC.TypeSchemeAll proxy schK ->
                    case proxy of
                      (_ :: Proxy '(text, uniq, kind)) ->
-                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) (schK Proxy)
+                         toSig (acc ++ [QVar $ symbolVal @text Proxy]) schK
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do

@@ -20,13 +20,11 @@ module PlutusCore.Constant.Meaning where
 
 import PlutusPrelude
 
-import PlutusCore.Constant.Dynamic.Emit
 import PlutusCore.Constant.Function
 import PlutusCore.Constant.Kinded
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 
 import Control.Lens (ix, (^?))
@@ -184,12 +182,12 @@ class KnownMonotype term args res a | args res -> a, a -> res where
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownType term res) => KnownMonotype term '[] res res' where
-    knownMonotype = TypeSchemeResult Proxy
+    knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType term arg, KnownMonotype term args res a) =>
             KnownMonotype term (arg ': args) res (arg -> a) where
-    knownMonotype = Proxy `TypeSchemeArrow` knownMonotype
+    knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
@@ -206,7 +204,7 @@ instance KnownMonotype term args res a => KnownPolytype '[] term args res a wher
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
+    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
 
 -- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
 
@@ -232,94 +230,73 @@ type x ~?~ y = TryUnify (x === y) x y
 -- | Get the element at an @i@th position in a list.
 type Lookup :: forall a. Nat -> [a] -> a
 type family Lookup n xs where
+    Lookup _ '[]       = TypeError ('Text "Not enough elements")
     Lookup 0 (x ': xs) = x
     Lookup n (_ ': xs) = Lookup (n - 1) xs
 
 -- | Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
 -- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
-type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
+type GetName :: GHC.Type -> Nat -> Symbol
+type family GetName k i where
+    GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
+    GetName _        i = Lookup i '["f", "g", "h", "m", "n"]  -- For higher-kinded types.
+
+-- | Like 'id', but a type constructor.
+type Id :: forall a. a -> a
+data family Id x
 
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
-type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class TrySpecializeAsVar i j term a | i term a -> j
+-- @f@ is for wrapping 'TyVarRep' (see 'HandleHole' for how this is used).
+type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
+class TrySpecializeAsVar i j f a | i f a -> j
 instance
-    ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
+    ( var ~ f (TyVarRep @k ('TyNameRep (GetName k i) i))
     -- Try to unify @a@ with a freshly created @var@.
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
     -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
     , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j term a
+    ) => TrySpecializeAsVar i j f (a :: k)
 
--- | For looking under special-case types, for example the type of a constant or the type arguments
--- of a polymorphic built-in type get specialized as types representing PLC type variables,
--- and for 'Emitter' and 'EvaluationResult' we simply recurse into the type that they receive.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since
--- 'HandleSpecialCases' can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@
--- (including @0@).
-type HandleSpecialCases :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class HandleSpecialCases i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => HandleSpecialCases i j term a
--- The 'Opaque' wrapper is due to 'TrySpecializeAsVar' trying to unify its last argument with
--- an 'Opaque' thing, but here we only want to instantiate the type representations.
--- | Take an argument of a polymorphic built-in type and try to specialize it as a type representing
--- a PLC type variable.
-instance {-# OVERLAPPING #-} TrySpecializeAsVar i j term (Opaque term rep) =>
-        HandleSpecialCases i j term (SomeConstant uni rep)
-instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
-        HandleSpecialCases i j term (EvaluationResult a)
-instance {-# OVERLAPPING #-} EnumerateFromToOne i j term a =>
-        HandleSpecialCases i j term (Emitter a)
--- Note that we don't explicitly handle the no-more-arguments case as it's handled by the
--- @OVERLAPPABLE@ instance above.
-instance {-# OVERLAPPING #-}
-    ( TrySpecializeAsVar i j term (Opaque term rep)
-    , HandleSpecialCases j k term (SomeConstantPoly uni f reps)
-    ) => HandleSpecialCases i k term (SomeConstantPoly uni f (rep ': reps))
-
--- | Instantiate an argument or result type.
-type EnumerateFromToOne :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromToOne i j term a | i term a -> j
--- | First try to instantiate @a@ as a PLC type variable, then handle all the special cases.
+-- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
+-- that using 'HandleHoles'.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+-- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
+type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
+class HandleHole i j term hole | i term hole -> j
+-- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
 instance
-    ( TrySpecializeAsVar i j term a
-    , HandleSpecialCases j k term a
-    ) => EnumerateFromToOne i k term a
-
--- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
--- for a detailed elaboration on how this works.
--- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
--- deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
--- right) and trying to specialize every argument and result type as a PLC type variable
--- (via 'TrySpecializeAsVar') until no deconstruction is possible, at which point we've got a result
--- which we don't try to specialize, because it's already monomorphic due to 'EnumerateFromTo'
--- trying to specialize its argument before recursing on it using this class.
-type EnumerateFromToRec :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromToRec i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromToRec i j term a
-instance {-# OVERLAPPING #-}
-    ( EnumerateFromToOne i j term a
-    , EnumerateFromTo j k term b
-    ) => EnumerateFromToRec i k term (a -> b)
-
--- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable by
--- first trying to specialize the whole type using 'EnumerateFromToOne' and then recursing on the
--- result of that using 'EnumerateFromToRec'. The initial attempt to specialize the type allows us
--- to handle the case where the whole type is just a single type variable (such as @undefined :: a@)
--- and it also allows us to look into the result type due to 'EnumerateFromToRec' mutually
--- recursively calling 'EnumerateFromTo'. I.e. the initial attempt at specialization allows
--- 'EnumerateFromToRec' to cut one argument off the type and call 'EnumerateFromTo' over the rest
--- of the type and so forth until we get to the result, which is attempted to be specialized just
--- like in the @undefined@ case where there are no argument types in the first place.
-type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromTo i j term a | i term a -> j
+    ( TrySpecializeAsVar i j Id (Id x)  -- The two 'Id's cancel each other.
+    , HandleHoles j k term x
+    ) => HandleHole i k term (RepHole x)
+-- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque term@.
 instance
-    ( EnumerateFromToOne i j term a
-    , EnumerateFromToRec j k term a
-    ) => EnumerateFromTo i k term a
+    ( TrySpecializeAsVar i j (Opaque term) a
+    , HandleHoles j k term a
+    ) => HandleHole i k term (TypeHole a)
+
+-- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
+-- the calls.
+type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
+class HandleHolesGo i j term holes | i term holes -> j
+instance i ~ j => HandleHolesGo i j term '[]
+instance
+      ( HandleHole i j term hole
+      , HandleHolesGo j k term holes
+      ) => HandleHolesGo i k term (hole ': holes)
+
+-- | Get the holes of @x@ and recurse into them.
+type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
+type HandleHoles i j term x = HandleHolesGo i j term (ToHoles x)
+
+-- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
+-- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
+type SpecializeFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -330,13 +307,7 @@ instance
 makeBuiltinMeaning
     :: forall a term cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
-       -- This constraint is just to get through 'KnownPolytype' stuck on an unknown type straight
-       -- to the custom type error that we have in the @Typed@ module. Though, somehow, the error
-       -- gets triggered even without the constraint when this function in used, but I don't
-       -- understand how that is possible and it does not work when the function from the @Debug@
-       -- module is used. So we're just doing the right thing here and adding the constraint.
-       , KnownMonotype term args res a
+       , KnownPolytype binds term args res a, SpecializeFromTo 0 j term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)

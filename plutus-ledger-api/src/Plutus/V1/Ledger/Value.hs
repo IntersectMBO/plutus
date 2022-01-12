@@ -53,7 +53,6 @@ import Prelude qualified as Haskell
 
 import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Control.Monad (guard)
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import Data.Aeson qualified as JSON
 import Data.Aeson.Extras qualified as JSON
@@ -361,11 +360,15 @@ unionWith f ls rs =
 {-# INLINABLE flattenValue #-}
 -- | Convert a value to a simple list, keeping only the non-zero amounts.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
-flattenValue v = do
-    (cs, m) <- Map.toList $ getValue v
-    (tn, a) <- Map.toList m
-    guard $ a /= 0
-    return (cs, tn, a)
+flattenValue v = goOuter [] (Map.toList $ getValue v)
+  where
+    goOuter acc []             = acc
+    goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
+
+    goInner _ acc [] = acc
+    goInner cs acc ((tn, a) : tl)
+        | a /= 0    = goInner cs ((cs, tn, a) : acc) tl
+        | otherwise = goInner cs acc tl
 
 -- Num operations
 

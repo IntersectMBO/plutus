@@ -94,8 +94,6 @@ data PluginOptions = PluginOptions {
 
     -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
     -- Which effectively ignores the trace text.
-    -- TODO: when simpilers are enabled, we should reduce and inline a `\_ a -> a` call to just `a`.
-    -- Reducing `test/Plugin/NoTrace/traceComplex.plc.golden` is a good start.
     , poRemoveTrace                    :: Bool
     }
 
