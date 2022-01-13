@@ -104,31 +104,31 @@ test-suite plutus-tx-test
         buildable: False
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules: 
+        Suites.Laws
+        Suites.Laws.Eq
+        Suites.Laws.Ord
+        Suites.Laws.Additive
+        Suites.Laws.Multiplicative
+        Suites.Laws.Ring
+        Suites.Laws.Module
+        Suites.Laws.Serialization
+        Suites.Laws.Construction
+        Suites.Laws.Other
+        Suites.Laws.Helpers
     hs-source-dirs: test
     build-tool-depends: doctest:doctest
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
         bytestring -any,
+        hedgehog -any,
+        hedgehog-fn -any,
         plutus-core -any,
         plutus-tx -any,
-        hedgehog -any,
+        pretty-show -any,
         tasty -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
         serialise -any,
         cborg -any
-
-test-suite laws
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Main.hs
-    hs-source-dirs: test/laws
-    build-depends:
-        aeson -any,
-        base >= 4.9 && < 5.0,
-        hedgehog -any,
-        hedgehog-fn -any,
-        plutus-tx -any,
-        pretty-show -any,
-        tasty -any,
-        tasty-hedgehog -any
