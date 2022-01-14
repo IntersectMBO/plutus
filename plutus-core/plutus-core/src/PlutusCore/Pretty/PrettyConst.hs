@@ -118,6 +118,9 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
+instance PrettyBy ConstConfig (Proxy a) where
+    prettyBy _ Proxy = "Proxy"
+
 instance GShow uni => Pretty (SomeTypeIn uni) where
     pretty (SomeTypeIn uni) = pretty $ gshow uni
 

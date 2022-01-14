@@ -24,6 +24,7 @@ import Data.Bits (shiftL, (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS (pack)
 import Data.Char (ord)
+import Data.Proxy
 import Data.Text qualified as T
 import Text.Read
 
@@ -108,6 +109,9 @@ deriving via AsRead Char    instance Parsable Char
 deriving via AsRead Integer instance Parsable Integer
 deriving via AsRead ()      instance Parsable ()
 deriving via AsRead T.Text instance Parsable T.Text
+
+instance Parsable (Proxy a) where
+    parse = error "Parsing for Proxy is not implemented"
 
 instance Parsable (a, b) where
     parse = error "Parsing for tuples is not implemented"

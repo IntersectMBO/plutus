@@ -116,6 +116,7 @@ decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
 deriving via AsSerialize Data instance Flat Data
+deriving via AsSerialize (Proxy a) instance Flat (Proxy a)
 
 decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
 decodeKindedUniFlat =

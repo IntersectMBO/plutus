@@ -30,6 +30,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Char
 import Data.Ix
+import Data.Proxy
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
@@ -108,6 +109,7 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
+    | MkNil
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 {- Note [Textual representation of names of built-in functions]. The plc parser
@@ -432,6 +434,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
+    toBuiltinMeaning MkNil =
+        makeBuiltinMeaning
+            nilPlc
+            (runCostingFunOneArgument . paramMkNilData)
+      where
+        nilPlc :: SomeConstant uni (Proxy a) -> EvaluationResult (Opaque term [a])
+        nilPlc (SomeConstant (Some (ValueOf uniProxy _))) = do
+            DefaultUniProxy uniA <- pure uniProxy
+            pure . fromConstant $ someValueOf (DefaultUniList uniA) []
+        {-# INLINE nilPlc #-}
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're
@@ -510,6 +522,7 @@ instance Flat DefaultFun where
               MkPairData               -> 48
               MkNilData                -> 49
               MkNilPairData            -> 50
+              MkNil                    -> 51
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -563,6 +576,7 @@ instance Flat DefaultFun where
               go 48 = pure MkPairData
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
+              go 51 = pure MkNil
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

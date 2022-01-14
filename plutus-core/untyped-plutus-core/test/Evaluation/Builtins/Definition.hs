@@ -453,8 +453,8 @@ test_Data = testCase "Data" $ do
     evals (B "hello world") BData [cons @ByteString "hello world"]
     evals (I 3) IData [cons @Integer 3]
     evals (B "hello world") BData [cons @ByteString "hello world"]
-    evals @[Data] [] MkNilData [cons ()]
-    evals @[(Data,Data)] [] MkNilPairData [cons ()]
+    evals' @[Data] [] mkNilData
+    evals' @[(Data,Data)] [] mkNilPairData
 
     -- equality
     evals True EqualsData [cons $ B "hello world", cons $ B "hello world"]
@@ -561,6 +561,12 @@ evals :: Contains DefaultUni a => a -> DefaultFun -> [Term TyName Name DefaultUn
 evals expectedVal b args =
     let actualExp = mkIterApp () (builtin () b) args
     in  Right (EvaluationSuccess $ cons expectedVal)
+        @=?
+        typecheckEvaluateCekNoEmit defaultCekParameters actualExp
+
+evals' :: Contains DefaultUni a => a -> Term TyName Name DefaultUni DefaultFun () -> Assertion
+evals' expectedVal actualExp =
+    Right (EvaluationSuccess $ cons expectedVal)
         @=?
         typecheckEvaluateCekNoEmit defaultCekParameters actualExp
 

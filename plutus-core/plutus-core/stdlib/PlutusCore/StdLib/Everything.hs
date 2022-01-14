@@ -69,8 +69,10 @@ stdLib =
                   , plcTermFile "FoldList"  Builtin.foldList
                   ]
               , treeFolderContents "Data"
-                  [ plcTypeFile "Data"     dataTy
-                  , plcTermFile "caseData" caseData
+                  [ plcTypeFile "Data"          dataTy
+                  , plcTermFile "mkNilData"     mkNilData
+                  , plcTermFile "mkNilPairData" mkNilPairData
+                  , plcTermFile "caseData"      caseData
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy

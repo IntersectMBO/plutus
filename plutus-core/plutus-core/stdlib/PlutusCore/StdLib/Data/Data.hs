@@ -6,6 +6,8 @@
 
 module PlutusCore.StdLib.Data.Data
     ( dataTy
+    , mkNilData
+    , mkNilPairData
     , caseData
     ) where
 
@@ -19,6 +21,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 import Data.ByteString (ByteString)
+import Data.Proxy
 import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.Unit
@@ -26,6 +29,19 @@ import PlutusCore.StdLib.Data.Unit
 -- | @Data@ as a built-in PLC type.
 dataTy :: uni `Contains` Data => Type TyName uni ()
 dataTy = mkTyBuiltin @_ @Data ()
+
+mkNilAt
+    :: (DefaultUni `Contains` a, TermLike term TyName Name DefaultUni DefaultFun)
+    => Proxy a -> term ()
+mkNilAt (proxyA :: Proxy a)
+    = apply () (tyInst () (builtin () MkNil) $ mkTyBuiltin @_ @a ())
+    $ constant () (someValue proxyA)
+
+mkNilData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+mkNilData = mkNilAt $ Proxy @Data
+
+mkNilPairData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+mkNilPairData = mkNilAt $ Proxy @(Data, Data)
 
 -- | Pattern matching over 'Data' inside PLC.
 --

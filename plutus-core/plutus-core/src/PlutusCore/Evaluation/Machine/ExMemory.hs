@@ -142,6 +142,9 @@ instance PrettyBy config ExCPU where
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
+instance ExMemoryUsage (Proxy a) where
+    memoryUsage _ = 1
+
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
 instance ExMemoryUsage SatInt where

@@ -28,6 +28,7 @@ module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
+    , pattern DefaultUniProxy
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
@@ -40,6 +41,7 @@ import PlutusCore.Parsable
 import Control.Applicative
 import Data.ByteString qualified as BS
 import Data.Foldable
+import Data.Kind as GHC
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.Exts (inline, oneShot)
@@ -79,6 +81,8 @@ We already allow built-in functions with polymorphic types. There might be a way
 feature and have meta-constructors as built-in functions.
 -}
 
+type ProxyType = Proxy :: GHC.Type -> GHC.Type
+
 -- See Note [Representing polymorphism].
 -- | The universe used by default.
 data DefaultUni a where
@@ -91,6 +95,7 @@ data DefaultUni a where
     DefaultUniProtoPair  :: DefaultUni (Esc (,))
     DefaultUniApply      :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
     DefaultUniData       :: DefaultUni (Esc Data)
+    DefaultUniProtoProxy :: DefaultUni (Esc ProxyType)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -98,6 +103,8 @@ pattern DefaultUniList uniA =
     DefaultUniProtoList `DefaultUniApply` uniA
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
+pattern DefaultUniProxy uniA =
+    DefaultUniProtoProxy `DefaultUniApply` uniA
 
 deriveGEq ''DefaultUni
 deriveGCompare ''DefaultUni
@@ -116,6 +123,7 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniProtoPair      = knownKind
     toSingKind (DefaultUniApply uniF _) = case toSingKind uniF of _ `SingKindArrow` cod -> cod
     toSingKind DefaultUniData           = knownKind
+    toSingKind DefaultUniProtoProxy     = knownKind
 
 instance HasUniApply DefaultUni where
     matchUniApply (DefaultUniApply f a) _ h = h f a
@@ -135,7 +143,9 @@ instance Show (DefaultUni a) where
         DefaultUniProtoPair                          -> concat ["pair (", show uniB, ")"]
         DefaultUniProtoPair `DefaultUniApply` uniA   -> concat ["pair (", show uniA, ") (", show uniB, ")"]
         uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
+        DefaultUniProtoProxy                         -> concat ["proxy (", show uniB, ")"]
     show DefaultUniData = "data"
+    show DefaultUniProtoProxy = "proxy"
 
 -- See Note [Parsing horribly broken].
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
@@ -174,6 +184,7 @@ instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
 instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoPair
 instance DefaultUni `Contains` Data          where knownUni = DefaultUniData
+instance DefaultUni `Contains` ProxyType     where knownUni = DefaultUniProtoProxy
 
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
@@ -186,6 +197,7 @@ instance KnownBuiltinTypeAst DefaultUni Bool          => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni [a]
 instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
+instance KnownBuiltinTypeAst DefaultUni (ProxyType a) => KnownTypeAst DefaultUni (ProxyType a)
 
 instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
 instance KnownBuiltinTypeIn DefaultUni term BS.ByteString => KnownTypeIn DefaultUni term BS.ByteString
@@ -195,6 +207,7 @@ instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn Default
 instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
 instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
+instance (k ~ GHC.Type, KnownBuiltinTypeIn DefaultUni term (Proxy a)) => KnownTypeIn DefaultUni term (Proxy (a :: k))
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
@@ -244,6 +257,7 @@ instance Closed DefaultUni where
         , constr `Permits` []
         , constr `Permits` (,)
         , constr `Permits` Data
+        , constr `Permits` ProxyType
         )
 
     -- See Note [Stable encoding of tags].
@@ -257,6 +271,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniProtoPair         = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
     encodeUni DefaultUniData              = [8]
+    encodeUni DefaultUniProtoProxy        = [9]
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
@@ -274,6 +289,7 @@ instance Closed DefaultUni where
                     withApplicable uniF uniA $
                         k $ uniF `DefaultUniApply` uniA
         8 -> k DefaultUniData
+        9 -> k DefaultUniProtoProxy
         _ -> empty
 
     bring
@@ -291,3 +307,4 @@ instance Closed DefaultUni where
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
     bring _ DefaultUniData r = r
+    bring p (DefaultUniProtoProxy `DefaultUniApply` uniA) r = bring p uniA r
