@@ -37,232 +37,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Algorithmic
-\end{code}
-
-## Values
-
-\begin{code}
-data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
- base : Γ ≤C Γ
- skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
- skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
-
-data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
- base : Γ ≤C' Γ
- skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
- skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
-
-skip' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A} → Γ ≤C' Γ' → Γ ≤C' (Γ' , A)
-skip' base = skip base
-skip' (skip⋆ p) = skip⋆ (skip' p)
-skip' (skip p) = skip (skip' p)
-
-skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
-skip⋆' base = skip⋆ base
-skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
-skip⋆' (skip p) = skip (skip⋆' p)
-
-≤Cto≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Γ ≤C' Γ'
-≤Cto≤C' base      = base
-≤Cto≤C' (skip⋆ p) = skip⋆' (≤Cto≤C' p)
-≤Cto≤C' (skip p)  = skip' (≤Cto≤C' p)
-
-<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-<C'2type base      C = C
-<C'2type (skip⋆ p) C = Π (<C'2type p C)
-<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
-
-Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
-  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
-  → (Π
-       (eval
-        (T.sub (T.exts (T.exts (λ x → embNf (σ x))))
-         (embNf (<C'2type p C)))
-        (exte (exte (idEnv ∅))))
-       [ A ]Nf)
-      ≡ subNf (subNf-cons σ A) (Π (<C'2type p C))
-Πlem p A C σ = sym (subNf-cons-[]Nf (Π (<C'2type p C)))
-
-⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
-       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
-  → ((eval (T.sub (T.exts (λ x → embNf (σ x))) (embNf B))
-        (exte (idEnv ∅))
-        ⇒
-        eval (T.sub (T.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
-        (exte (idEnv ∅)))
-       [ A ]Nf)
-      ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
-⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
-
--- something very much like a substitution
--- labelled by a builtin and given a first order presentation
-ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
-
-data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
-
-  V-ƛ : {A B : ∅ ⊢Nf⋆ *}
-    → (M : ∅ , A ⊢ B)
-      ---------------------------
-    → Value (ƛ M)
-
-  V-Λ : ∀ {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
-    → (M : ∅ ,⋆ K ⊢ B)
-      ----------------
-    → Value (Λ M)
-
-  V-wrap : ∀{K}
-   → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {B : ∅ ⊢Nf⋆ K}
-   → {M : ∅ ⊢  _}
-   → Value M
-   → Value (wrap A B M)
-
-  V-con : ∀{tcn : TyCon _}
-    → (cn : TermCon (con tcn))
-    → Value (con cn)
-
-  -- It is not necessary to index by the builtin, I could instead index
-  -- by a context which is extracted from the builtin in the base case,
-  -- but is it helpful to have it on the top level?
-
-  V-I⇒ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = sig b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅)
-    → (p : (Δ , A) ≤C' Γ)
-    → ITel b Δ σ
-    → (t : ∅ ⊢ subNf σ (<C'2type (skip p) C))
-    → Value t
-
-  V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = sig b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅) -- could try one at a time
-      (p : (Δ ,⋆ K) ≤C' Γ)
-    → ITel b Δ σ
-    → (t : ∅ ⊢ subNf σ (<C'2type (skip⋆ p) C))
-    → Value t
-
-ITel b ∅       σ = ⊤
-ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A) σ = ITel b Γ σ × Σ (∅ ⊢ subNf σ A) Value
-
-deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
-deval {u = u} _ = u
-tval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢Nf⋆ *
-tval {A = A} _ = A
-\end{code}
-
-\begin{code}
-voidVal : Value (con unit)
-voidVal = V-con unit
-\end{code}
-
-\begin{code}
-data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
-  -- an actual error term
-  E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
-\end{code}
-
-\begin{code}
-convVal :  ∀ {A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
-  → ∀{t : ∅ ⊢ A} → Value t → Value (conv⊢ refl q t)
-convVal refl v = v
-\end{code}
-
-\begin{code}
-IBUILTIN : (b : Builtin)
-    → let Φ ,, Γ ,, C = sig b in
-      (σ : SubNf Φ ∅)
-    → (tel : ITel b Γ σ)
-      -----------------------------
-    → Σ (∅ ⊢ subNf σ C) λ t → Value t ⊎ Error t 
-      -- ^ should be val or error to avoid throwing away work
-IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i + j)))
-IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i - j)))
-IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i ** j)))
-IBUILTIN divideInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₁ (V-con (integer (div i j)))
-... | yes p = _ ,, inj₂ E-error -- divide by zero
-IBUILTIN quotientInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₁ (V-con (integer (quot i j)))
-... | yes p = _ ,, inj₂ E-error -- divide by zero
-IBUILTIN remainderInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₁ (V-con (integer (rem i j)))
-... | yes p = _ ,, inj₂ E-error -- divide by zero
-IBUILTIN modInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₁ (V-con (integer (mod i j)))
-... | yes p = _ ,, inj₂ E-error -- divide by zero
-IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i <? j
-... | no ¬p = _ ,, inj₁ (V-con (bool false))
-... | yes p = _ ,, inj₁ (V-con (bool true))
-
-IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i ≤? j
-... | no ¬p = _ ,, inj₁ (V-con (bool false))
-... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j))  with i ≟ j
-... | no ¬p = _ ,, inj₁ (V-con (bool false))
-... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN appendByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bytestring (concat b b')))
-IBUILTIN consByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (cons i b)))
-IBUILTIN sliceByteString σ (((tt ,, _ ,, V-con (integer st)) ,, _ ,, V-con (integer n)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (slice st n b)))
-IBUILTIN lengthOfByteString σ (tt ,, _ ,, V-con (bytestring b)) =
-  _ ,, inj₁ (V-con (integer (length b)))
-IBUILTIN indexByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (integer i)) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = _ ,, inj₂ E-error
-... | yes _ with i <? length b
-... | no _ =  _ ,, inj₂ E-error
-... | yes _ = _ ,, inj₁ (V-con (integer (index b i)))
-IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (equals b b')))
-IBUILTIN lessThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B< b b')))
-IBUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
-IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
-IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
-IBUILTIN blake2b-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (BLAKE2B-256 b)))
-IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
-... | just b = _ ,, inj₁ (V-con (bool b))
-... | nothing = _ ,, inj₂ E-error -- not sure what this is for
-IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
-  _ ,, inj₁ (V-con (string (primStringAppend s s')))
-IBUILTIN equalsString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = _ ,, inj₁ (V-con (bool (primStringEquality s s')))
-IBUILTIN encodeUtf8 σ (tt ,, _ ,, V-con (string s)) =
-  _ ,, inj₁ (V-con (bytestring (ENCODEUTF8 s)))
-IBUILTIN decodeUtf8 σ (tt ,, _ ,, V-con (bytestring b)) with DECODEUTF8 b
-... | nothing = _ ,, inj₂ E-error
-... | just s  = _ ,, inj₁ (V-con (string s))
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
-  _ ,, inj₁ (proj₂ f)
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
-  _ ,, inj₁ (proj₂ t)
-IBUILTIN trace σ (((tt ,, _) ,, _ ,, V-con (string s)) ,, v) =
-  _ ,, inj₁ (TRACE s (proj₂ v))
-IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
-  _ ,, inj₁ (V-con (Data (iDATA i)))
-IBUILTIN bData σ (tt ,, _ ,, V-con (bytestring b)) =
-  _ ,, inj₁ (V-con (Data (bDATA b)))
-IBUILTIN unIData σ (tt ,, _ ,, V-con (Data (iDATA i))) =
-  _ ,, inj₁ (V-con (integer i))
-IBUILTIN unBData σ (tt ,, _ ,, V-con (Data (bDATA b))) =
-  _ ,, inj₁ (V-con (bytestring b))
-IBUILTIN b σ t = _ ,, inj₂ E-error
-
-IBUILTIN' : (b : Builtin)
-    → let Φ ,, Γ ,, C = sig b in
-      ∀{Φ'}{Γ' : Ctx Φ'}
-    → (p : Φ ≡ Φ')
-    → (q : substEq Ctx p Γ ≡ Γ')
-      (σ : SubNf Φ' ∅)
-    → (tel : ITel b Γ' σ)
-    → (C' : Φ' ⊢Nf⋆ *)
-    → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-      -----------------------------
-    → Σ (∅ ⊢ subNf σ C') λ t → Value t ⊎ Error t
-    
-IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
+open import Algorithmic.ReductionEC hiding (_—→_;_—↠_)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -318,56 +93,56 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → M —→ M'
     → wrap A B M —→ wrap A B M'
 
-  E-·₂ : {A B : ∅ ⊢Nf⋆ *} {L : ∅ ⊢ A ⇒ B}
-    → Value L
-    → L · error A —→ error B
-  E-·₁ : {A B : ∅ ⊢Nf⋆ *}{M : ∅ ⊢ A}
-    → error (A ⇒ B) · M —→ error B
+  E-·₂ : ∀{A B : ∅ ⊢Nf⋆ *}{L}{M}
+    → M —→ error A
+    → L · M —→ error B
+  E-·₁ : ∀{A B : ∅ ⊢Nf⋆ *}{L}{M}
+    → L —→ error (A ⇒ B)
+    → L · M —→ error B
   E-·⋆ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{A : ∅ ⊢Nf⋆ K}
-    → error (Π B) ·⋆ A / refl —→ error (B [ A ]Nf)
+    → {M : _}
+    → M —→ error (Π B)
+    → M ·⋆ A / refl —→ error (B [ A ]Nf)
   E-unwrap : ∀{K}
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
-    → unwrap (error (μ A B)) refl
+    → {M : _}
+    → M —→ error (μ A B)
+    → unwrap M refl
         —→ error (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   E-wrap : ∀{K}
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
-    → wrap A B (error _) —→ error (μ A B) 
+    → {M : _}
+    → M —→ error _
+    → wrap A B M —→ error (μ A B) 
+  E-top : {A : ∅ ⊢Nf⋆ *} → error A —→ error A
 
-  β-sbuiltin :
+  β-sbuiltin : ∀{A B}
       (b : Builtin)
-    → let Φ ,, Γ ,, C = sig b in
-      ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}
-    → (σ : SubNf Φ' ∅)
-    → (p : Φ ≡ Φ')
-    → (q : substEq Ctx p Γ ≡  Γ' , A)
-    → (C' : Φ' ⊢Nf⋆ *)
-    → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ subNf σ A ⇒ subNf σ C')
-    → (u : ∅ ⊢ subNf σ A)
-    → (tel : ITel b Γ' σ)
-    → (v : Value u)
+    → (t : ∅ ⊢ A ⇒ B)
+    → ∀{az}
+    → (p : az <>> (Term ∷ []) ∈ arity b)
+    → (bt : BApp b p t) -- one left
+    → (u : ∅ ⊢ A)
+    → (vu : Value u)
       -----------------------------
-    → t · u —→ proj₁ (IBUILTIN' b p q σ (tel ,, u ,, v) C' r)
+    → t · u —→ BUILTIN' b (bubble p) (BApp.step p bt vu)
 
-  β-sbuiltin⋆ :
+  β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
       (b : Builtin)
-    → let Φ ,, Γ ,, C = sig b in
-      ∀{Φ'}{Γ' : Ctx Φ'}{K}{A : ∅ ⊢Nf⋆ K}
-    → (σ : SubNf Φ' ∅)
-    → (p : Φ ≡ Φ' ,⋆ K)
-    → (q : substEq Ctx p Γ ≡  (Γ' ,⋆ K))
-    → (C' : Φ' ,⋆ K ⊢Nf⋆ *)
-    → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ subNf σ (Π C'))
-    → (tel : ITel b Γ' σ)
+    → (t : ∅ ⊢ Π B)
+    → ∀{az}
+    → (p : az <>> (Type ∷ []) ∈ arity b)
+    → (bt : BApp b p t) -- one left
+    → ∀ A
+    → (q : C ≡ _)
       -----------------------------
-    → t ·⋆ A / refl —→ conv⊢ refl (subNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (subNf-cons σ A) (tel ,, A) C' r))
+    → t ·⋆ A / q —→ BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
 \end{code}
 
 \begin{code}
-data _—↠_ : {A A' : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A' → Set
+data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
   where
 
   refl—↠ : ∀{A}{M : ∅ ⊢ A}
@@ -379,11 +154,54 @@ data _—↠_ : {A A' : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A' → Set
     → M' —↠ M''
       ---------
     → M —↠ M''
-
-
 \end{code}
 
 \begin{code}
+lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→ M'
+lem—→⋆ (β-ƛ v) = β-ƛ v
+lem—→⋆ (β-Λ refl) = β-Λ
+lem—→⋆ (β-wrap v refl) = β-wrap v
+lem—→⋆ (β-sbuiltin b t p bt u vu) = β-sbuiltin b t p bt u vu
+lem—→⋆ (β-sbuiltin⋆ b t p bt A q) = β-sbuiltin⋆ b t p bt A q
+
+lemCS—→ : ∀{A}{M M' : ∅ ⊢ A} → M Algorithmic.ReductionEC.—→ M' → M —→ M'
+lemCS—→ (ruleEC [] p refl refl) = lem—→⋆ p
+lemCS—→ (ruleEC (E l· M) p refl refl) = ξ-·₁ (lemCS—→ (ruleEC E p refl refl))
+lemCS—→ (ruleEC (V ·r E) p refl refl) = ξ-·₂ V (lemCS—→ (ruleEC E p refl refl))
+lemCS—→ (ruleEC (E ·⋆ A / refl) p refl refl) = ξ-·⋆ (lemCS—→ (ruleEC E p refl refl))
+lemCS—→ (ruleEC (wrap E) p refl refl) = ξ-wrap (lemCS—→ (ruleEC E p refl refl))
+lemCS—→ (ruleEC (unwrap E / refl) p refl refl) =
+  ξ-unwrap (lemCS—→ (ruleEC E p refl refl))
+lemCS—→ (ruleErr [] refl) = E-top
+lemCS—→ (ruleErr (E l· M) refl) = E-·₁ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (V ·r E) refl) = E-·₂ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (E ·⋆ A / refl) refl) = E-·⋆ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (wrap E) refl) = E-wrap (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (unwrap E / refl) refl) = E-unwrap (lemCS—→ (ruleErr E refl))
+
+{-
+lemSC—→ : ∀{A}{M M' : ∅ ⊢ A} → M —→ M' → M Algorithmic.ReductionEC.—→ M'
+lemSC—→ (ξ-·₁ X) = {!!}
+lemSC—→ (ξ-·₂ x p) = {!!}
+lemSC—→ (ξ-·⋆ p) with lemSC—→ p
+... | ruleEC E p' refl refl = ruleEC (E ·⋆ _ / refl) p' refl refl
+... | ruleErr E x = {!ruleErr!}
+lemSC—→ (β-ƛ x) = ruleEC [] (β-ƛ x) refl refl 
+lemSC—→ β-Λ = ruleEC [] (β-Λ refl) refl refl
+lemSC—→ (β-wrap x) = ruleEC [] (β-wrap x refl) refl refl
+lemSC—→ (ξ-unwrap p) = {!!}
+lemSC—→ (ξ-wrap p) = {!!}
+lemSC—→ (E-·₂ p) = {!!}
+lemSC—→ (E-·₁ p) = {!!}
+lemSC—→ (E-·⋆ p) = {!!}
+lemSC—→ (E-unwrap p) = {!!}
+lemSC—→ (E-wrap p) = {!!}
+lemSC—→ E-top = {!!}
+lemSC—→ (β-sbuiltin b t p bt u vu) = {!!}
+lemSC—→ (β-sbuiltin⋆ b t p bt A q) = {!!}
+-}
+
+{-
 data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
   step : ∀{N : ∅ ⊢ A}
     → M —→ N
@@ -523,3 +341,4 @@ progressor (suc n) t with progress t
 ... | step {N = t'} _ = progressor n t'
 ... | done v = inj₂ (just (deval v))
 ... | error _ = inj₂ nothing -- should this be an runtime error?
+-}
