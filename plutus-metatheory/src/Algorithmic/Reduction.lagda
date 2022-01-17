@@ -38,6 +38,7 @@ open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Algorithmic
 open import Algorithmic.ReductionEC hiding (_—→_;_—↠_)
+import Algorithmic.ReductionEC as E
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -199,48 +200,61 @@ lemCS—→E (E ·⋆ A / refl) = E-·⋆ (lemCS—→E E)
 lemCS—→E (wrap E) = E-wrap (lemCS—→E E)
 lemCS—→E (unwrap E / refl) = E-unwrap (lemCS—→E E)
 
-lemCS—→ : ∀{A}{M M' : ∅ ⊢ A} → M Algorithmic.ReductionEC.—→ M' → M —→ M'
+lemCS—→ : ∀{A}{M M' : ∅ ⊢ A} → M E.—→ M' → M —→ M'
 lemCS—→ (ruleEC E p refl refl) = red (lemCS—→V E p)
 lemCS—→ (ruleErr E refl) = err (lemCS—→E E)
 
-{-
-lemCS—→ (ruleEC [] p refl refl) = red (lem—→⋆ p)
-lemCS—→ (ruleEC (E l· M) p refl refl) = ξ-·₁ (lemCS—→ (ruleEC E p refl refl))
-  λ q → let r ,, r' ,, r'' = unique-EC' E _ (β p) q in errred E-error (substEq (_—→⋆ _) r'' p) 
-lemCS—→ (ruleEC (V ·r E) p refl refl) = ξ-·₂ V (lemCS—→ (ruleEC E p refl refl))
-lemCS—→ (ruleEC (E ·⋆ A / refl) p refl refl) = ξ-·⋆ (lemCS—→ (ruleEC E p refl refl))
-lemCS—→ (ruleEC (wrap E) p refl refl) = ξ-wrap (lemCS—→ (ruleEC E p refl refl))
-lemCS—→ (ruleEC (unwrap E / refl) p refl refl) =
-  ξ-unwrap (lemCS—→ (ruleEC E p refl refl))
-lemCS—→ (ruleErr [] refl) = E-top
-lemCS—→ (ruleErr (E l· M) refl) = {!!} -- E-·₁ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (V ·r E) refl) = {!!} -- E-·₂ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (E ·⋆ A / refl) refl) = {!!} -- E-·⋆ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (wrap E) refl) = {!!} -- E-wrap (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (unwrap E / refl) refl) = {!!} -- E-unwrap (lemCS—→ (ruleErr E refl))
+lemSC—→V : ∀{A}{M M' : ∅ ⊢ A}
+  → M —→V M'
+  → ∃ λ B 
+  → ∃ λ (E : EC A B)
+  → ∃ λ L
+  → ∃ λ L'
+  → (M ≡ E [ L ]ᴱ) × (M' ≡ E [ L' ]ᴱ) × (L —→⋆ L')
+lemSC—→V (ξ-·₁ p) with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
+  B ,, E l· _ ,, L ,, L' ,, refl ,, refl ,, q
+lemSC—→V (ξ-·₂ v p) with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
+  B ,, v ·r E ,, L ,, L' ,, refl ,, refl ,, q
+lemSC—→V (ξ-·⋆ p) with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
+  B ,, E ·⋆ _ / refl ,, L ,, L' ,, refl ,, refl ,, q
+lemSC—→V (β-ƛ v) = _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-ƛ v
+lemSC—→V β-Λ = _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-Λ refl
+lemSC—→V (β-wrap v) = _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-wrap v refl
+lemSC—→V (ξ-unwrap p) with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
+  B ,, unwrap E / refl ,, L ,, L' ,, refl ,, refl ,, q
+lemSC—→V (ξ-wrap p) with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
+  B ,, wrap E ,, L ,, L' ,, refl ,, refl ,, q
+lemSC—→V (β-sbuiltin b t p bt u vu) =
+  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin b t p bt u vu
+lemSC—→V (β-sbuiltin⋆ b t p bt A q) =
+  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin⋆ b t p bt A q
 
-lemSC—→ : ∀{A}{M M' : ∅ ⊢ A} → M —→ M' → M Algorithmic.ReductionEC.—→ M'
-lemSC—→ (ξ-·₁ p q) with lemSC—→ p
-... | ruleEC E x refl refl = ruleEC (E l· _) x refl refl
-... | ruleErr E refl = {!q!}
-lemSC—→ (ξ-·₂ x p) = {!!}
-lemSC—→ (ξ-·⋆ p) with lemSC—→ p
-... | ruleEC E p' refl refl = ruleEC (E ·⋆ _ / refl) p' refl refl
-... | ruleErr E x = {!ruleErr!}
-lemSC—→ (β-ƛ x) = ruleEC [] (β-ƛ x) refl refl 
-lemSC—→ β-Λ = ruleEC [] (β-Λ refl) refl refl
-lemSC—→ (β-wrap x) = ruleEC [] (β-wrap x refl) refl refl
-lemSC—→ (ξ-unwrap p) = {!!}
-lemSC—→ (ξ-wrap p) = {!!}
-lemSC—→ E-·₂ = {!!}
-lemSC—→ E-·₁ = {!!}
-lemSC—→ E-·⋆ = {!!}
-lemSC—→ E-unwrap = {!!}
-lemSC—→ E-wrap = {!!}
-lemSC—→ E-top = {!!}
-lemSC—→ (β-sbuiltin b t p bt u vu) = {!!}
-lemSC—→ (β-sbuiltin⋆ b t p bt A q) = {!!}
--}
+lemSC—→E : ∀{A}{M : ∅ ⊢ A}
+  → M —→E error A
+  → ∃ λ B 
+  → ∃ λ (E : EC A B)
+  → (M ≡ E [ error B ]ᴱ)
+lemSC—→E (E-·₂ v p) with lemSC—→E p
+... | B ,, E ,, refl = B ,, v ·r E ,, refl
+lemSC—→E (E-·₁ p) with lemSC—→E p
+... | B ,, E ,, refl = B ,, E l· _ ,, refl
+lemSC—→E (E-·⋆ p) with lemSC—→E p
+... | B ,, E ,, refl = B ,, E ·⋆ _ / refl ,, refl
+lemSC—→E (E-unwrap p) with lemSC—→E p
+... | B ,, E ,, refl = B ,, unwrap E / refl ,, refl
+lemSC—→E (E-wrap p) with lemSC—→E p
+... | B ,, E ,, refl = B ,, wrap E ,, refl
+lemSC—→E E-top = _ ,, [] ,, refl
+
+lemSC—→ : ∀{A}{M M' : ∅ ⊢ A} → M —→ M' → M E.—→ M'
+lemSC—→ (red p) =
+  let B ,, E ,, L ,, L' ,, r ,, r' ,, q = lemSC—→V p in ruleEC E q r r'
+lemSC—→ (err p) = let B ,, E ,, p = lemSC—→E p in ruleErr E p 
 
 {-
 data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
