@@ -37,7 +37,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Algorithmic
-open import Algorithmic.ReductionEC hiding (_—→_;_—↠_)
+open import Algorithmic.ReductionEC hiding (_—→_;_—↠_;progress;Progress;determinism)
 import Algorithmic.ReductionEC as E
 \end{code}
 
@@ -255,3 +255,28 @@ lemSC—→ : ∀{A}{M M' : ∅ ⊢ A} → M —→ M' → M E.—→ M'
 lemSC—→ (red p) =
   let B ,, E ,, L ,, L' ,, r ,, r' ,, q = lemSC—→V p in ruleEC E q r r'
 lemSC—→ (err p) = let B ,, E ,, p = lemSC—→E p in ruleErr E p 
+
+
+data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
+  step : ∀{N : ∅ ⊢ A}
+    → M —→ N
+      -------------
+    → Progress M
+  done :
+      Value M
+      ----------
+    → Progress M
+
+  error :
+      Error M
+      -------
+    → Progress M
+
+progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
+progress M with E.progress M
+... | step p = step (lemCS—→ p)
+... | done v = done v
+... | error e = error e
+
+determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
+determinism p q = E.determinism (lemSC—→ p) (lemSC—→ q)
