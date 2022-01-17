@@ -40,6 +40,9 @@ open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
 open import Algorithmic.Erasure
+import Algorithmic.Evaluation as L
+
+
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -267,8 +270,7 @@ just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
-    where nothing → inj₁ (runtimeError userError)
+  t' ← withE runtimeError $ L.stepper t maxsteps
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
 executePLC TCK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
@@ -507,8 +509,6 @@ normalizeTypeTerm t = do
 {-# COMPILE GHC checkType∅ as checkTypeAgda #-}
 
 -- Haskell interface to (typechecked and proven correct) reduction
-
-import Algorithmic.Evaluation as L
 
 runTL : Term → Either ERROR Term
 runTL t = do
