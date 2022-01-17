@@ -43,80 +43,55 @@ open import Algorithmic.ReductionEC hiding (_—→_;_—↠_)
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
-infix 2 _—→_
+infix 2 _—→V_
 
-data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
+data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
 
   ξ-·₁ : {A B : ∅ ⊢Nf⋆ *} {L L′ : ∅ ⊢ A ⇒ B} {M : ∅ ⊢ A}
-    → L —→ L′
+    → L —→V L′
       -----------------
-    → L · M —→ L′ · M
+    → L · M —→V L′ · M
 
   ξ-·₂ : {A B : ∅ ⊢Nf⋆ *}{V : ∅ ⊢ A ⇒ B} {M M′ : ∅ ⊢ A}
     → Value V
-    → M —→ M′
+    → M —→V M′
       --------------
-    → V · M —→ V · M′
+    → V · M —→V V · M′
 
   ξ-·⋆ : ∀ {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{L L' : ∅ ⊢ Π B}{A}
-    → L —→ L'
+    → L —→V L'
       -----------------
-    → L ·⋆ A / refl —→ L' ·⋆ A / refl
+    → L ·⋆ A / refl —→V L' ·⋆ A / refl
 
   β-ƛ : {A B : ∅ ⊢Nf⋆ *}{N : ∅ , A ⊢ B} {V : ∅ ⊢ A}
     → Value V
       -------------------
-    → (ƛ N) · V —→ N [ V ]
+    → (ƛ N) · V —→V N [ V ]
 
   β-Λ : ∀ {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{N : ∅ ,⋆ K ⊢ B}{A}
       -------------------
-    → (Λ N) ·⋆ A / refl —→ N [ A ]⋆
+    → (Λ N) ·⋆ A / refl —→V N [ A ]⋆
 
   β-wrap : ∀{K}
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
     → {M : ∅ ⊢ _}
     → Value M
-    → unwrap (wrap A B M) refl —→ M
+    → unwrap (wrap A B M) refl —→V M
 
   ξ-unwrap : ∀{K}
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
     → {M M' : ∅ ⊢ μ A B}
-    → M —→ M'
-    → unwrap M refl —→ unwrap M' refl
+    → M —→V M'
+    → unwrap M refl —→V unwrap M' refl
     
   ξ-wrap : ∀{K}
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
     → {M M' : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}
-    → M —→ M'
-    → wrap A B M —→ wrap A B M'
-
-  E-·₂ : ∀{A B : ∅ ⊢Nf⋆ *}{L}{M}
-    → M —→ error A
-    → L · M —→ error B
-  E-·₁ : ∀{A B : ∅ ⊢Nf⋆ *}{L}{M}
-    → L —→ error (A ⇒ B)
-    → L · M —→ error B
-  E-·⋆ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{A : ∅ ⊢Nf⋆ K}
-    → {M : _}
-    → M —→ error (Π B)
-    → M ·⋆ A / refl —→ error (B [ A ]Nf)
-  E-unwrap : ∀{K}
-    → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {B : ∅ ⊢Nf⋆ K}
-    → {M : _}
-    → M —→ error (μ A B)
-    → unwrap M refl
-        —→ error (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
-  E-wrap : ∀{K}
-    → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {B : ∅ ⊢Nf⋆ K}
-    → {M : _}
-    → M —→ error _
-    → wrap A B M —→ error (μ A B) 
-  E-top : {A : ∅ ⊢Nf⋆ *} → error A —→ error A
+    → M —→V M'
+    → wrap A B M —→V wrap A B M'
 
   β-sbuiltin : ∀{A B}
       (b : Builtin)
@@ -127,7 +102,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (u : ∅ ⊢ A)
     → (vu : Value u)
       -----------------------------
-    → t · u —→ BUILTIN' b (bubble p) (BApp.step p bt vu)
+    → t · u —→V BUILTIN' b (bubble p) (BApp.step p bt vu)
 
   β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
       (b : Builtin)
@@ -138,10 +113,48 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → ∀ A
     → (q : C ≡ _)
       -----------------------------
-    → t ·⋆ A / q —→ BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
+    → t ·⋆ A / q —→V BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
 \end{code}
 
 \begin{code}
+infix 2 _—→E_
+
+data _—→E_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
+  E-·₂ : ∀{A B : ∅ ⊢Nf⋆ *}{L M}
+    → Value L
+    → M —→E error A
+    → L · M —→E error B
+  E-·₁ : ∀{A B : ∅ ⊢Nf⋆ *}{L M}
+    → L —→E error (A ⇒ B)
+    → L · M —→E error B
+  E-·⋆ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{A : ∅ ⊢Nf⋆ K}{L}
+    → L —→E error (Π B)
+    → L ·⋆ A / refl —→E error _
+  E-unwrap : ∀{K}
+    → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : ∅ ⊢Nf⋆ K}
+    → {M : _}
+    → M —→E error (μ A B)
+    → unwrap M refl —→E error _
+  E-wrap : ∀{K}
+    → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : ∅ ⊢Nf⋆ K}
+    → {M : _}
+    → M —→E error _
+    → wrap A B M —→E error (μ A B) 
+  E-top : {A : ∅ ⊢Nf⋆ *} → error A —→E error A
+\end{code}
+
+
+\begin{code}
+infix 2 _—→_
+
+data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
+  red : {A : ∅ ⊢Nf⋆ *}{M  M' : ∅ ⊢ A}
+    → M —→V M' → M —→ M'
+  err : {A : ∅ ⊢Nf⋆ *}{M : ∅ ⊢ A}
+    → M —→E error A → M —→ error A
+
 data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
   where
 
@@ -157,31 +170,59 @@ data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
 \end{code}
 
 \begin{code}
-lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→ M'
+lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→V M'
 lem—→⋆ (β-ƛ v) = β-ƛ v
 lem—→⋆ (β-Λ refl) = β-Λ
 lem—→⋆ (β-wrap v refl) = β-wrap v
 lem—→⋆ (β-sbuiltin b t p bt u vu) = β-sbuiltin b t p bt u vu
 lem—→⋆ (β-sbuiltin⋆ b t p bt A q) = β-sbuiltin⋆ b t p bt A q
 
+lemCS—→V : ∀{A}
+         → ∀{B}{L L' : ∅ ⊢ B}
+         → (E : EC A B)
+         → L —→⋆ L'
+         → E [ L ]ᴱ —→V E [ L' ]ᴱ
+lemCS—→V [] p = lem—→⋆ p
+lemCS—→V (E l· M) p = ξ-·₁ (lemCS—→V E p)
+lemCS—→V (V ·r E) p = ξ-·₂ V (lemCS—→V E p)
+lemCS—→V (E ·⋆ A / refl) p = ξ-·⋆ (lemCS—→V E p)
+lemCS—→V (wrap E) p = ξ-wrap (lemCS—→V E p)
+lemCS—→V (unwrap E / refl) p = ξ-unwrap (lemCS—→V E p)
+
+lemCS—→E : ∀{A B}
+         → (E : EC A B)
+         → E [ error B ]ᴱ —→E error A
+lemCS—→E [] = E-top
+lemCS—→E (E l· M) = E-·₁ (lemCS—→E E)
+lemCS—→E (V ·r E) = E-·₂ V (lemCS—→E E)
+lemCS—→E (E ·⋆ A / refl) = E-·⋆ (lemCS—→E E)
+lemCS—→E (wrap E) = E-wrap (lemCS—→E E)
+lemCS—→E (unwrap E / refl) = E-unwrap (lemCS—→E E)
+
 lemCS—→ : ∀{A}{M M' : ∅ ⊢ A} → M Algorithmic.ReductionEC.—→ M' → M —→ M'
-lemCS—→ (ruleEC [] p refl refl) = lem—→⋆ p
+lemCS—→ (ruleEC E p refl refl) = red (lemCS—→V E p)
+lemCS—→ (ruleErr E refl) = err (lemCS—→E E)
+
+{-
+lemCS—→ (ruleEC [] p refl refl) = red (lem—→⋆ p)
 lemCS—→ (ruleEC (E l· M) p refl refl) = ξ-·₁ (lemCS—→ (ruleEC E p refl refl))
+  λ q → let r ,, r' ,, r'' = unique-EC' E _ (β p) q in errred E-error (substEq (_—→⋆ _) r'' p) 
 lemCS—→ (ruleEC (V ·r E) p refl refl) = ξ-·₂ V (lemCS—→ (ruleEC E p refl refl))
 lemCS—→ (ruleEC (E ·⋆ A / refl) p refl refl) = ξ-·⋆ (lemCS—→ (ruleEC E p refl refl))
 lemCS—→ (ruleEC (wrap E) p refl refl) = ξ-wrap (lemCS—→ (ruleEC E p refl refl))
 lemCS—→ (ruleEC (unwrap E / refl) p refl refl) =
   ξ-unwrap (lemCS—→ (ruleEC E p refl refl))
 lemCS—→ (ruleErr [] refl) = E-top
-lemCS—→ (ruleErr (E l· M) refl) = E-·₁ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (V ·r E) refl) = E-·₂ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (E ·⋆ A / refl) refl) = E-·⋆ (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (wrap E) refl) = E-wrap (lemCS—→ (ruleErr E refl))
-lemCS—→ (ruleErr (unwrap E / refl) refl) = E-unwrap (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (E l· M) refl) = {!!} -- E-·₁ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (V ·r E) refl) = {!!} -- E-·₂ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (E ·⋆ A / refl) refl) = {!!} -- E-·⋆ (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (wrap E) refl) = {!!} -- E-wrap (lemCS—→ (ruleErr E refl))
+lemCS—→ (ruleErr (unwrap E / refl) refl) = {!!} -- E-unwrap (lemCS—→ (ruleErr E refl))
 
-{-
 lemSC—→ : ∀{A}{M M' : ∅ ⊢ A} → M —→ M' → M Algorithmic.ReductionEC.—→ M'
-lemSC—→ (ξ-·₁ X) = {!!}
+lemSC—→ (ξ-·₁ p q) with lemSC—→ p
+... | ruleEC E x refl refl = ruleEC (E l· _) x refl refl
+... | ruleErr E refl = {!q!}
 lemSC—→ (ξ-·₂ x p) = {!!}
 lemSC—→ (ξ-·⋆ p) with lemSC—→ p
 ... | ruleEC E p' refl refl = ruleEC (E ·⋆ _ / refl) p' refl refl
@@ -191,11 +232,11 @@ lemSC—→ β-Λ = ruleEC [] (β-Λ refl) refl refl
 lemSC—→ (β-wrap x) = ruleEC [] (β-wrap x refl) refl refl
 lemSC—→ (ξ-unwrap p) = {!!}
 lemSC—→ (ξ-wrap p) = {!!}
-lemSC—→ (E-·₂ p) = {!!}
-lemSC—→ (E-·₁ p) = {!!}
-lemSC—→ (E-·⋆ p) = {!!}
-lemSC—→ (E-unwrap p) = {!!}
-lemSC—→ (E-wrap p) = {!!}
+lemSC—→ E-·₂ = {!!}
+lemSC—→ E-·₁ = {!!}
+lemSC—→ E-·⋆ = {!!}
+lemSC—→ E-unwrap = {!!}
+lemSC—→ E-wrap = {!!}
 lemSC—→ E-top = {!!}
 lemSC—→ (β-sbuiltin b t p bt u vu) = {!!}
 lemSC—→ (β-sbuiltin⋆ b t p bt A q) = {!!}
@@ -216,9 +257,7 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       Error M
       -------
     → Progress M
-\end{code}
 
-\begin{code}
 progress-·V :  {A B : ∅ ⊢Nf⋆ *}
   → {t : ∅ ⊢ A ⇒ B} → Value t
   → {u : ∅ ⊢ A} → Progress u
@@ -342,3 +381,5 @@ progressor (suc n) t with progress t
 ... | done v = inj₂ (just (deval v))
 ... | error _ = inj₂ nothing -- should this be an runtime error?
 -}
+
+-- -}
