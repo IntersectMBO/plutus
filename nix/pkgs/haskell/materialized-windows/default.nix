@@ -282,8 +282,6 @@
         "aeson".flags.cffi = false;
         "th-lift".revision = (((hackage."th-lift")."0.8.2").revisions).default;
         "cabal-doctest".revision = (((hackage."cabal-doctest")."1.0.9").revisions).default;
-        "hedgehog-fn".revision = (((hackage."hedgehog-fn")."1.0").revisions).default;
-        "hedgehog-fn".flags.build-examples = false;
         "semigroups".revision = (((hackage."semigroups")."0.20").revisions).default;
         "semigroups".flags.bytestring = true;
         "semigroups".flags.deepseq = true;
@@ -737,7 +735,6 @@
           "flat".components.library.planned = lib.mkOverride 900 true;
           "inline-c".components.library.planned = lib.mkOverride 900 true;
           "mwc-random".components.library.planned = lib.mkOverride 900 true;
-          "plutus-tx".components.tests."laws".planned = lib.mkOverride 900 true;
           "plutus-ghc-stub".components.library.planned = lib.mkOverride 900 true;
           "fingertree".components.library.planned = lib.mkOverride 900 true;
           "test-framework".components.library.planned = lib.mkOverride 900 true;
@@ -823,7 +820,6 @@
           "foundation".components.library.planned = lib.mkOverride 900 true;
           "ordered-containers".components.library.planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.benchmarks."cek-calibration".planned = lib.mkOverride 900 true;
-          "hedgehog-fn".components.library.planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.tests."test2".planned = lib.mkOverride 900 true;
           "plutus-core".components.benchmarks."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;

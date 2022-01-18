@@ -759,7 +759,6 @@
           "flat".components.library.planned = lib.mkOverride 900 true;
           "inline-c".components.library.planned = lib.mkOverride 900 true;
           "mwc-random".components.library.planned = lib.mkOverride 900 true;
-          "plutus-tx".components.tests."laws".planned = lib.mkOverride 900 true;
           "plutus-ghc-stub".components.library.planned = lib.mkOverride 900 true;
           "fingertree".components.library.planned = lib.mkOverride 900 true;
           "test-framework".components.library.planned = lib.mkOverride 900 true;
