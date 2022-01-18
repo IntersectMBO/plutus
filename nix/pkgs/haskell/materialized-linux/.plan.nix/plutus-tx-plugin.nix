@@ -121,6 +121,18 @@
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
+        "size" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "test/size" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       };
     } // rec { src = (pkgs.lib).mkDefault ../plutus-tx-plugin; }
