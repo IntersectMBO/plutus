@@ -4,6 +4,7 @@ module DeBruijn.Spec (test_debruijn) where
 
 import Common
 import Control.Monad.Except
+import Control.Monad.State
 import Data.Semigroup
 import PlutusCore.Default
 import PlutusCore.Error
@@ -81,11 +82,19 @@ failMix n = timesAbs n lamAbs0 $ timesAbs n lamAbs99 $ Var () $ DeBruijn $ n+n+1
 test_debruijn :: TestTree
 test_debruijn = runTestNestedIn ["untyped-plutus-core","test"] $
                   testNested "DeBruijn"
-                    [testNested "Golden" $
-                      fmap (\ (n,t) -> nestedGoldenVsDoc n $ act t) tests
+                   [testNested "Golden"
+                    [testNested "Strict" $
+                      fmap (\ (n,t) -> nestedGoldenVsDoc n $ actThrow t) tests
+                    ,testNested "Graceful" $
+                      fmap (\ (n,t) -> nestedGoldenVsDoc n $ actGrace t) testsGrace
                     ]
+                   ]
   where
-    act = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . unDeBruijnProgram . mkProg
+    actThrow = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . unDeBruijnProgram . mkProg
+
+    actGrace = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT
+        . flip evalStateT mempty
+        . unDeBruijnProgramWith freeIndexAsConsistentLevel . mkProg
 
     mkProg = programMapNames fakeNameDeBruijn . Program () (Version () 1 0 0)
 
@@ -105,7 +114,30 @@ test_debruijn = runTestNestedIn ["untyped-plutus-core","test"] $
             ,("failMix", failMix 10)
             ]
 
+    testsGrace = [("graceDeep", failDeep 5)
+                  ,("graceTop", failTop)
+                  ,("graceConst", failConst)
+                  ,("graceElaborate", graceElaborate)
+                  ]
 
+
+-- (lam0 [2 1 4 (lam99 [1 4 3 5])])
+graceElaborate :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
+graceElaborate = lamAbs0 $
+    mkIterApp () (d 2)
+      [
+        d 1
+      , d 4
+      , lamAbs99 (mkIterApp () (d 1)
+                 [
+                   d 4
+                 , d 3
+                 , d 5
+                 ]
+                 )
+      ]
+ where
+   d = Var () . DeBruijn
 
 -- HELPERS
 
