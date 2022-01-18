@@ -132,12 +132,14 @@ test-suite plutus-tx-tests
 
 test-suite size
     import: lang
+    -- needs plutus-tx-plugin but it looks unused
+    ghc-options: -Wno-unused-packages
     type: exitcode-stdio-1.0
     main-is: Main.hs
     hs-source-dirs: test/size
     build-depends:
         base >= 4.9 && < 5.0,
         plutus-tx -any,
-        plutus-tx-plugin -any,
+        plutus-tx-plugin,
         tagged -any,
         tasty -any
