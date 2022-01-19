@@ -20,8 +20,9 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
--- The only sensible test display option
-test-show-details: streaming
+-- The only sensible test display option, since it allows us to have colourized 
+-- 'tasty' output.
+test-show-details: direct
 
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated

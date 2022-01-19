@@ -20,6 +20,7 @@ import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (..), isqrt, rsqrt)
 import Prelude hiding (Rational, negate, recip)
+import Suites.Laws (lawsTests)
 import Test.Tasty
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
@@ -34,6 +35,7 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
+    , lawsTests
     ]
 
 sqrtTests :: TestTree
