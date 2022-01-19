@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -195,12 +196,13 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 -- Memory usage for lists: let's just go for a naive traversal for now.
+-- This is strict and tail-recursive for improved efficiency since we use it on the chain
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = sizeList
-        where sizeList =
-                  \case
-                   []   -> 0
-                   x:xs -> memoryUsage x + sizeList xs
+    memoryUsage l0 = sizeList l0 0
+        where sizeList l !acc =
+                  case l of
+                    []   -> acc
+                    x:xs -> sizeList xs (acc + memoryUsage x)
 
 {- Another naive traversal for size.  This accounts for the number of nodes in a
    Data object, and also the sizes of the contents of the nodes.  This is not
@@ -219,17 +221,20 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    four units per node, but we may wish to revise this after experimentation.
 -}
 instance ExMemoryUsage Data where
-    memoryUsage = sizeData
-        where sizeData d =
-                  nodeMem +
+    memoryUsage d0 = sizeData d0 0
+        where sizeData d !acc =
                      case d of
-                       Constr _ l -> sizeDataList l
-                       Map l      -> sizeDataPairs l
-                       List l     -> sizeDataList l
-                       I n        -> memoryUsage n
-                       B b        -> memoryUsage b
+                       Constr _ l -> sizeDataList  l (acc+nodeMem)
+                       Map l      -> sizeDataPairs l (acc+nodeMem)
+                       List l     -> sizeDataList  l (acc+nodeMem)
+                       I n        -> acc + memoryUsage n
+                       B b        -> acc + memoryUsage b
               nodeMem = 4
-              sizeDataList []     = 0
-              sizeDataList (d:ds) = sizeData d + sizeDataList ds
-              sizeDataPairs []           = 0
-              sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
+              sizeDataList l !acc =
+                  case l of
+                    []   -> acc
+                    d:ds -> sizeData d (sizeDataList ds acc)
+              sizeDataPairs l !acc =
+                  case l of
+                    []           -> acc
+                    ((d1,d2):ps) -> sizeData d1 (sizeData d2 (sizeDataPairs ps acc))
