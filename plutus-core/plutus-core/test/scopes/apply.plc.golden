@@ -1,3 +1,3 @@
 (program
-  0.1.0 (lam x_4 y_1 (lam x_5 z_2 [ [ [ f_3 x_5 ] (lam x_6 y_1 x_6) ] x_5 ]))
+  0.1.0 (lam x_7 y_1 (lam x_8 z_2 [ [ [ f_3 x_8 ] (lam x_9 y_1 x_9) ] x_8 ]))
 )

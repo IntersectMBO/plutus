@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module PlutusCore.Parser
     ( parseProgram
@@ -63,11 +64,11 @@ appTerms = choice
 conTerm :: Parser PTerm
 conTerm = inParens $ do
     p <- wordPos "con"
-    conTy <- defaultUniType -- TODO: do case of for each ty?
+    conTy <- defaultUniType
     con <-
-        case conTy of
+        case conTy of --TODO add Lists, Pairs, Data, App
             SomeTypeIn DefaultUniInteger    -> conInt
-            SomeTypeIn DefaultUniByteString -> conChar
+            SomeTypeIn DefaultUniByteString -> conBS
             SomeTypeIn DefaultUniString     -> conText
             SomeTypeIn DefaultUniUnit       -> conUnit
             SomeTypeIn DefaultUniBool       -> conBool

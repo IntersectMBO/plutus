@@ -13,11 +13,12 @@ import Data.Map qualified as M
 import Data.Text qualified as T
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, hexDigitChar, letterChar, space1)
+import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
+import Data.ByteString.Internal (packChars)
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
 import PlutusCore.Core.Type
@@ -257,10 +258,11 @@ conInt = do
     pure $ someValue con
 
 -- | Parser for bytestring constants. They start with "#".
-conChar :: Parser (Some (ValueOf DefaultUni))
-conChar = do
-    con <- char '#' *> Text.Megaparsec.many hexDigitChar--Lex.charLiteral
-    pure $ someValue $ T.pack con
+conBS :: Parser (Some (ValueOf DefaultUni))
+conBS = do
+    _ <- char '#'
+    con <- takeWhileP (Just "builtin bytestring") isAlphaNum
+    pure $ someValue $ packChars $ T.unpack con
 
 -- | Parser for string constants. They are wrapped in double quotes.
 conText :: Parser (Some (ValueOf DefaultUni))
@@ -291,7 +293,7 @@ constant :: Parser (Some (ValueOf DefaultUni))
 constant = choice $ map try
     [ inParens constant
     , conInt
-    , conChar
+    , conBS
     , conText
     , conUnit
     , conBool
