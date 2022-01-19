@@ -225,12 +225,13 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 instance ExMemoryUsage Data where
     memoryUsage d0 = sizeData d0 0
         where sizeData d !acc =
-                     case d of
-                       Constr _ l -> sizeDataList  l (acc+nodeMem)
-                       Map l      -> sizeDataPairs l (acc+nodeMem)
-                       List l     -> sizeDataList  l (acc+nodeMem)
-                       I n        -> acc + memoryUsage n
-                       B b        -> acc + memoryUsage b
+                  nodeMem +  -- Constant charge for processing each node
+                    case d of
+                      Constr _ l -> sizeDataList  l acc
+                      Map l      -> sizeDataPairs l acc
+                      List l     -> sizeDataList  l acc
+                      I n        -> acc + memoryUsage n
+                      B b        -> acc + memoryUsage b
               nodeMem = 4
               sizeDataList l !acc =
                   case l of
