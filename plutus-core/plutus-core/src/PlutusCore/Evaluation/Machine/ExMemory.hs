@@ -211,14 +211,16 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    implementation of '==' (fortunately the costing functions are lazy, so this
    won't be called for things like 'unBData' which have constant costing
    functions because they only have to look at the top node).  The problem is
-   that when we call 'equalsData' the comparison will take place entirely in Haskell,
-   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
-   Thus if we just counted the number of nodes the sizes of 'I 2' and
-   'B <huge bytestring>' would be the same but they'd take different amounts of
-   time to compare.  It's not clear how to trade off the costs of processing a
-   units per node, but we may wish to revise this after experimentationnode and
-   processing the contents of nodes: the implementation below compromises by charging
-   four units per node, but we may wish to revise this after experimentation.
+   that when we call 'equalsData' the comparison will take place entirely in
+   Haskell, so the costing functions for the contents of 'I' and 'B' nodes won't
+   be called.  Thus if we just counted the number of nodes the sizes of 'I 2'
+   and 'B <huge bytestring>' would be the same but they'd take different amounts
+   of time to compare.  It's not clear how to trade off the costs of processing
+   a node and processing the contents of nodes: the implementation below
+   compromises by charging four units per node, but we may wish to revise this
+   after experimentation.  Another problem is that even though this is only
+   called for `equalsData` it probably costs more to run than `equalsData` does
+   itself.  It's not clear if there's any sensible way to deal with that though.
 -}
 instance ExMemoryUsage Data where
     memoryUsage d0 = sizeData d0 0
