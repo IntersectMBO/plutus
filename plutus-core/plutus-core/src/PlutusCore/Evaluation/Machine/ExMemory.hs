@@ -202,7 +202,7 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
         where sizeList l !acc =
                   case l of
                     []   -> acc
-                    x:xs -> sizeList xs (acc + memoryUsage x)
+                    x:xs -> let !u = memoryUsage x in sizeList xs (acc + u)
 
 {- Another naive traversal for size.  This accounts for the number of nodes in a
    Data object, and also the sizes of the contents of the nodes.  This is not
@@ -230,8 +230,8 @@ instance ExMemoryUsage Data where
                       Constr _ l -> sizeDataList  l acc
                       Map l      -> sizeDataPairs l acc
                       List l     -> sizeDataList  l acc
-                      I n        -> acc + memoryUsage n
-                      B b        -> acc + memoryUsage b
+                      I n        -> let !u = memoryUsage n in acc + u
+                      B b        -> let !u = memoryUsage b in acc + u
               nodeMem = 4
               sizeDataList l !acc =
                   case l of
