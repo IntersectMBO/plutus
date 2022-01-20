@@ -26,6 +26,7 @@ module PlutusCore.Generators.NEAT.Spec
   , throwCtrex
   , Ctrex (..)
   , handleError
+  , handleUError
   ) where
 
 import PlutusCore
