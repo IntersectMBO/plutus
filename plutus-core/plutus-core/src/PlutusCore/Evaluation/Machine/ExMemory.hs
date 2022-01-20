@@ -236,9 +236,9 @@ instance ExMemoryUsage Data where
               sizeDataList l acc =
                   case l of
                     []   -> acc
-                    d:ds -> let! acc1 = sizeDataList ds acc
+                    d:ds -> let acc1 = sizeDataList ds acc
                             in sizeData d acc1
-              sizeDataPairs l !acc =
+              sizeDataPairs l acc =
                   case l of
                     []           -> acc
                     ((d1,d2):ps) -> let acc1 = sizeData d1 acc
