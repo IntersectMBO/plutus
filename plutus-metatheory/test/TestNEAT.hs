@@ -14,6 +14,7 @@ import PlutusCore.Pretty
 import Test.Tasty
 import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as U
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
 import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda, normalizeTypeAgda,
                           normalizeTypeTermAgda, runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
@@ -135,3 +136,9 @@ prop_Term tyG tmG = do
   let tmU'' = U.erase tm''
   unless (tmU' == tmU'') $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmU'),("reduce;erase" , tmU'')])
+
+  -- 4. run prod untyped CEK against meta untyped CEK
+  tmU''' <- withExceptT UCekP $ liftEither $
+    U.evaluateCekNoEmit defaultCekParameters tmU'' `catchError` handleUError
+  unless (tmU' == tmU''') $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U" , tmU'),("prod U" , tmU'')])
