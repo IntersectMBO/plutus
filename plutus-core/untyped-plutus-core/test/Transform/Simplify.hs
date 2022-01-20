@@ -13,6 +13,7 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import Test.Tasty
 import Test.Tasty.Golden
+import UntypedPlutusCore.Transform.Simplify (simplifyTerm)
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1

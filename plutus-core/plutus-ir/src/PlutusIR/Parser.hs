@@ -10,6 +10,7 @@ module PlutusIR.Parser
     , program
     -- , plcProgram
     , pType
+    , pTerm
     , Parser
     , SourcePos
     ) where

@@ -5,10 +5,11 @@ import Test.Tasty.Extras
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
+import TestLib
 
 types :: TestNested
 types = testNested "types"
-    $ map (goldenTypeFromPir topSourcePos term)
+    $ map (goldenTypeFromPir topSourcePos pTerm)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -42,7 +43,7 @@ types = testNested "types"
 
 typeErrors :: TestNested
 typeErrors = testNested "type-errors"
-    $ map (goldenTypeFromPirCatch topSourcePos term)
+    $ map (goldenTypeFromPirCatch topSourcePos pTerm)
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
     ]

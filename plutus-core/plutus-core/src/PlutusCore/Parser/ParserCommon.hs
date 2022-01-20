@@ -261,7 +261,7 @@ conInt = do
 conBS :: Parser (Some (ValueOf DefaultUni))
 conBS = do
     _ <- char '#'
-    con <- takeWhileP (Just "builtin bytestring") isAlphaNum
+    con <- takeWhileP (Just "builtin bytestring") isHexDigit
     pure $ someValue $ packChars $ T.unpack con
 
 -- | Parser for string constants. They are wrapped in double quotes.

@@ -11,6 +11,7 @@ module PlutusCore
     , parseTerm
     , parseType
     , parseScoped
+    , topSourcePos
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
