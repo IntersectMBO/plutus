@@ -8,17 +8,18 @@
 
 module PlutusCore.Parser.ParserCommon where
 
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isHexDigit)
 import Data.Map qualified as M
 import Data.Text qualified as T
+import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Read (hexadecimal)
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1)
+import Text.Megaparsec.Char (char, hexDigitChar, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 
-import Data.ByteString.Internal (packChars)
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
 import PlutusCore.Core.Type
@@ -261,8 +262,8 @@ conInt = do
 conBS :: Parser (Some (ValueOf DefaultUni))
 conBS = do
     _ <- char '#'
-    con <- takeWhileP (Just "builtin bytestring") isHexDigit
-    pure $ someValue $ packChars $ T.unpack con
+    con <- Text.Megaparsec.many hexDigitChar--takeWhileP (Just "builtin bytestring") isAlphaNum--isHexDigit
+    pure $ someValue $ encodeUtf8 $ hexadecimal $ fromJust $ T.pack con-- $ encodeUtf8 con
 
 -- | Parser for string constants. They are wrapped in double quotes.
 conText :: Parser (Some (ValueOf DefaultUni))

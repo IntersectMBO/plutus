@@ -46,7 +46,7 @@ tests = testGroup "plutus-ir" <$> sequence
 
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting"
-    $ map (goldenPir id $ pTerm)
+    $ map (goldenPir id pTerm)
     [ "basic"
     , "maybe"
     ]
