@@ -10,8 +10,8 @@ open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNormal.Equality
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as Nf
 
 open import Relation.Binary.PropositionalEquality hiding (subst)
 open import Data.Sum
@@ -29,6 +29,7 @@ open import Function
 
 CR : ∀{Φ} K → Val Φ K → Val Φ K → Set
 CR *       n        n'        = n ≡ n'
+CR ♯       n        n'        = n ≡ n'
 CR (K ⇒ J) (inj₁ n) (inj₁ n') = n ≡ n' -- reify (inj₁ n) ≡ reify (inj₁ n')
 CR (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
 CR (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
@@ -65,6 +66,7 @@ symCR : ∀{K}{v v' : Val Φ K}
     --------------------------
   → CR K v' v
 symCR {K = *}                        p              = sym p
+symCR {K = ♯}                        p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = sym p
 symCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
 symCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()
@@ -77,6 +79,8 @@ transCR : ∀{K}{v v' v'' : Val Φ K}
     ----------------------------------
   → CR K v v''
 transCR {K = *}                                   p              q
+  = trans p q
+transCR {K = ♯}                                   p              q
   = trans p q
 transCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} {inj₁ n''} p              q
   = trans p q
@@ -108,6 +112,7 @@ reflectCR : ∀{K}{n n' : Φ ⊢Ne⋆ K}
     -----------------------------
   → CR K (reflect n) (reflect n')
 reflectCR {K = *}     p = cong ne p
+reflectCR {K = ♯}     p = cong ne p
 reflectCR {K = K ⇒ J} p = p
 
 reifyCR : ∀{K}{v v' : Val Φ K}
@@ -115,6 +120,7 @@ reifyCR : ∀{K}{v v' : Val Φ K}
     --------------------------
   → reify v ≡ reify v'
 reifyCR {K = *    }                    p              = p
+reifyCR {K = ♯    }                    p              = p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
@@ -168,6 +174,7 @@ renVal-reflect : ∀{K}
     -------------------------------------------------
   → CR K (renVal ρ (reflect n)) (reflect (renNe ρ n))
 renVal-reflect {K = *}     ρ n = refl
+renVal-reflect {K = ♯}     ρ n = refl
 renVal-reflect {K = K ⇒ J} ρ n = renNe-cong (λ _ → refl) n
 \end{code}
 
@@ -180,6 +187,8 @@ ren-reify : ∀{K}{v v' : Val Φ K}
     ---------------------------------------
   → renNf ρ (reify v) ≡ reify (renVal ρ v')
 ren-reify {K = *} p ρ =
+  cong (renNf ρ) p
+ren-reify {K = ♯} p ρ =
   cong (renNf ρ) p
 ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p ρ =
   cong (ne ∘ renNe ρ) p
@@ -198,6 +207,7 @@ renVal-id : ∀{K}{v v' : Val Φ K}
     -------------------------------
   → CR K (renVal id v) v'
 renVal-id {K = *} p = trans (renNf-id _) p
+renVal-id {K = ♯} p = trans (renNf-id _) p
 renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p = trans (renNe-id _) p
 renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
@@ -215,6 +225,8 @@ renVal-comp : ∀{K}
     --------------------------------------------------
   → CR K (renVal (ρ' ∘ ρ) v) (renVal ρ' (renVal ρ v'))
 renVal-comp {K = *} ρ ρ' p =
+  trans (cong (renNf (ρ' ∘ ρ)) p) (renNf-comp _)
+renVal-comp {K = ♯} ρ ρ' p =
   trans (cong (renNf (ρ' ∘ ρ)) p) (renNf-comp _)
 renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} p =
   trans (cong (renNe (ρ' ∘ ρ)) p) (renNe-comp _)
@@ -236,6 +248,7 @@ renCR : ∀{K}{v v' : Val Φ K}
   → CR K v v'
   → CR K (renVal ρ v) (renVal ρ v')
 renCR {K = *} ρ p = cong (renNf ρ) p
+renCR {K = ♯} ρ p = cong (renNf ρ) p
 renCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} ρ p = cong (renNe ρ) p
 renCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ρ ()
 renCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ρ ()
@@ -258,6 +271,8 @@ renVal·V :
     -----------------------------------------------------
   → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
 renVal·V {J = *} ρ {inj₁ n} {inj₁ n'} p {v}{v'}  q =
+  cong₂ (λ x y → ne (x · y)) (cong (renNe ρ) p) (ren-reify q ρ)
+renVal·V {J = ♯} ρ {inj₁ n} {inj₁ n'} p {v}{v'}  q =
   cong₂ (λ x y → ne (x · y)) (cong (renNe ρ) p) (ren-reify q ρ)
 renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ n'} p      q = cong₂ _·_
   (cong (renNe ρ) p)
@@ -337,7 +352,8 @@ idext p (ƛ B) =
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
 idext p (A · B) = AppCR (idext p A) (idext p B)
 idext p (μ A B) = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
-idext p (con c) = cong con (idextTyCon p c)
+idext p (con c) = cong con (idext p c)
+idext p (^ b) = cong ^ (idextTyCon p b)
 
 renVal-eval (` x) p ρ = renCR ρ (p x)
 renVal-eval (Π B) p ρ = cong Π (trans
@@ -374,7 +390,8 @@ renVal-eval (A · B) p ρ = transCR
 renVal-eval (μ A B) p ρ = cong₂ μ
   (trans (ren-reify (idext (reflCR ∘ p) A) ρ) (reifyCR (renVal-eval A p ρ)))
   (trans (ren-reify (idext (reflCR ∘ p) B) ρ) (reifyCR (renVal-eval B p ρ)))
-renVal-eval (con c) p ρ = cong con (renValTyCon-eval c p ρ)
+renVal-eval (con c) p ρ = cong con (renVal-eval c p ρ)
+renVal-eval (^ b) p ρ = cong ^ (renValTyCon-eval b p ρ)
 \end{code}
 
 (pre) renaming commutes with eval
@@ -435,7 +452,8 @@ ren-eval (ƛ B) p ρ =
 ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
 ren-eval (μ A B) p ρ =
   cong₂ μ (reifyCR (ren-eval A p ρ)) (reifyCR (ren-eval B p ρ))
-ren-eval (con c) p ρ = cong con (renTyCon-eval c p ρ)
+ren-eval (con c) p ρ = cong con (ren-eval c p ρ)
+ren-eval (^ b)   p ρ = cong ^ (renTyCon-eval b p ρ)
 \end{code}
 
 Subsitution lemma
@@ -503,7 +521,11 @@ sub-eval (ƛ B) p σ =
 sub-eval (A · B) p σ = AppCR (sub-eval A p σ) (sub-eval B p σ)
 sub-eval (μ A B) p ρ =
   cong₂ μ (reifyCR (sub-eval A p ρ)) (reifyCR (sub-eval B p ρ))
-sub-eval (con c) p ρ = cong con (subTyCon-eval c p ρ)
+sub-eval (^ A) p ρ =
+  cong ^ (subTyCon-eval A p ρ)
+sub-eval (con A) p ρ =
+  cong con (reifyCR (sub-eval A p ρ))
+
 \end{code}
 
 Fundamental Theorem of logical relations for CR
@@ -553,7 +575,8 @@ fund p (β≡β B A) =
                     ; (S x) → renVal-id (reflCR (p x))})
                  B)
           (symCR (sub-eval B (symCR ∘ p) (sub-cons ` A)))
-fund p (con≡β q) = cong con (fundTyCon p q)
+fund p (con≡β q) = cong con (fund p q)
+fund p (^≡β q)   = cong ^ (fundTyCon p q)
 \end{code}
 
 constructing the identity CR

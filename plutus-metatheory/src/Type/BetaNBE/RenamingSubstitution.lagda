@@ -25,6 +25,7 @@ reify ∘ reflect preserves the neutral term
 \begin{code}
 reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡ ne n
 reify-reflect {*}     n = refl
+reify-reflect {♯}     n = refl
 reify-reflect {K ⇒ J} n = refl
 \end{code}
 

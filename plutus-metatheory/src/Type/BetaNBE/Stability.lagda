@@ -9,7 +9,7 @@ open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯)
 
 open import Relation.Binary.PropositionalEquality
 open import Function
@@ -46,9 +46,11 @@ stability (ƛ B) =
                                       ; (S α) → renVal-reflect S (` α)})
                                    (embNf B)))
                 (stability B))
-stability (con c) = cong con (stabilityTyCon c)
+stability (con c) = cong con (stability c)
+stability (^ b) = cong ^ (stabilityTyCon b)
 stability (μ A B) = cong₂ μ (stability A) (stability B)
 stability {K = *} (ne n) = stabilityNe n
+stability {K = ♯} (ne n) = stabilityNe n
 stability {K = K ⇒ J} (ne n) = reifyCR (stabilityNe n)
 
 stabilityNe (` α) = reflectCR refl

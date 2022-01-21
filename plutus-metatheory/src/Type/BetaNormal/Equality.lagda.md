@@ -8,7 +8,7 @@ open import Type
 open import Type.Equality
 open import Type.BetaNormal
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯)
 
 open import Function
 open import Relation.Binary.PropositionalEquality
@@ -46,7 +46,8 @@ renNf-cong p (Π A)   = cong Π (renNf-cong (ext-cong p) A)
 renNf-cong p (A ⇒ B) = cong₂ _⇒_ (renNf-cong p A) (renNf-cong p B)
 renNf-cong p (ƛ A)   = cong ƛ (renNf-cong (ext-cong p) A)
 renNf-cong p (ne A)  = cong ne (renNe-cong p A)
-renNf-cong p (con c) = cong con (renNfTyCon-cong p c)
+renNf-cong p (con c) = cong con (renNf-cong p c)
+renNf-cong p (^ c) = cong ^ (renNfTyCon-cong p c)
 renNf-cong p (μ A B) = cong₂ μ (renNf-cong p A) (renNf-cong p B)
 
 renNe-cong p (` α)   = cong ` (p α)
@@ -78,7 +79,8 @@ renNf-id (Π A)   = cong Π (trans (renNf-cong ext-id A) (renNf-id A))
 renNf-id (A ⇒ B) = cong₂ _⇒_ (renNf-id A) (renNf-id B)
 renNf-id (ƛ A)   = cong ƛ (trans (renNf-cong ext-id A) (renNf-id A))
 renNf-id (ne A)  = cong ne (renNe-id A)
-renNf-id (con c) = cong con (renNfTyCon-id c)
+renNf-id (con c) = cong con (renNf-id c)
+renNf-id (^ b)   = cong ^ (renNfTyCon-id b)
 renNf-id (μ A B) = cong₂ μ (renNf-id A) (renNf-id B)
 
 renNe-id (` α)   = refl
@@ -116,7 +118,8 @@ renNf-comp (Π B)   = cong Π (trans (renNf-cong ext-comp B) (renNf-comp B))
 renNf-comp (A ⇒ B) = cong₂ _⇒_ (renNf-comp A) (renNf-comp B)
 renNf-comp (ƛ A)   = cong ƛ (trans (renNf-cong ext-comp A) (renNf-comp A))
 renNf-comp (ne A)  = cong ne (renNe-comp A)
-renNf-comp (con c) = cong con (renNfTyCon-comp c)
+renNf-comp (con c) = cong con (renNf-comp c)
+renNf-comp (^ b)   = cong ^ (renNfTyCon-comp b)
 renNf-comp (μ A B) = cong₂ μ (renNf-comp A) (renNf-comp B)
 
 renNe-comp (` x)   = refl

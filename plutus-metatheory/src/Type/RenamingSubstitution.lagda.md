@@ -12,7 +12,7 @@ module Type.RenamingSubstitution where
 ```
 open import Utils
 open import Type
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
@@ -68,7 +68,8 @@ ren ρ (A ⇒ B)     = ren ρ A ⇒ ren ρ B
 ren ρ (ƛ B)       = ƛ (ren (ext ρ) B)
 ren ρ (A · B)     = ren ρ A · ren ρ B
 ren ρ (μ A B)     = μ (ren ρ A) (ren ρ B)
-ren ρ (con c)   = con (renTyCon ρ c) 
+ren ρ (con c)     = con (ren ρ c)
+ren ρ (^ b)       = ^ (renTyCon ρ b)
 ```
 
 Weakening is a special case of renaming.
@@ -136,7 +137,8 @@ ren-cong p (A ⇒ B) = cong₂ _⇒_ (ren-cong p A) (ren-cong p B)
 ren-cong p (ƛ A)   = cong ƛ (ren-cong (ext-cong p) A)
 ren-cong p (A · B) = cong₂ _·_ (ren-cong p A) (ren-cong p B)
 ren-cong p (μ A B) = cong₂ μ (ren-cong p A) (ren-cong p B)
-ren-cong p (con c) = cong con (renTyCon-cong p c)
+ren-cong p (con c) = cong con (ren-cong p c)
+ren-cong p (^ b)   = cong ^ (renTyCon-cong p b)
 ```
 
 First functor law for `ren`
@@ -164,7 +166,8 @@ ren-id (A ⇒ B) = cong₂ _⇒_(ren-id A) (ren-id B)
 ren-id (ƛ A)   = cong ƛ (trans (ren-cong ext-id A) (ren-id A))
 ren-id (A · B) = cong₂ _·_ (ren-id A) (ren-id B)
 ren-id (μ A B) = cong₂ μ (ren-id A) (ren-id B)
-ren-id (con c) = cong con (renTyCon-id c)
+ren-id (con c) = cong con (ren-id c)
+ren-id (^ b)   = cong ^ (renTyCon-id b)
 ```
 
 Second functor law for `ext`
@@ -203,7 +206,8 @@ ren-comp (A ⇒ B) = cong₂ _⇒_ (ren-comp A) (ren-comp B)
 ren-comp (ƛ A)   = cong ƛ (trans (ren-cong ext-comp A) (ren-comp A))
 ren-comp (A · B) = cong₂ _·_ (ren-comp A) (ren-comp B)
 ren-comp (μ A B) = cong₂ μ (ren-comp A) (ren-comp B)
-ren-comp (con c) = cong con (renTyCon-comp c)
+ren-comp (con c) = cong con (ren-comp c)
+ren-comp (^ b)   = cong ^ (renTyCon-comp b)
 ```
 
 ## Type substitution
@@ -257,7 +261,8 @@ sub σ (A ⇒ B) = sub σ A ⇒ sub σ B
 sub σ (ƛ B)   = ƛ (sub (exts σ) B)
 sub σ (A · B) = sub σ A · sub σ B
 sub σ (μ A B) = μ (sub σ A) (sub σ B)
-sub σ (con c) = con (subTyCon σ c)
+sub σ (con c) = con (sub σ c)
+sub σ (^ b)   = ^ (subTyCon σ b)
 ```
 
 Extend a substitution with an additional type (analogous to `cons` for
@@ -331,7 +336,8 @@ sub-cong p (A ⇒ B) = cong₂ _⇒_ (sub-cong p A) (sub-cong p B)
 sub-cong p (ƛ A)   = cong ƛ (sub-cong (exts-cong p) A)
 sub-cong p (A · B) = cong₂ _·_ (sub-cong p A) (sub-cong p B)
 sub-cong p (μ A B) = cong₂ μ (sub-cong p A) (sub-cong p B)
-sub-cong p (con c) = cong con (subTyCon-cong p c)
+sub-cong p (con c) = cong con (sub-cong p c)
+sub-cong p (^ b)   = cong ^ (subTyCon-cong p b)
 ```
 
 First relative monad `law` for `sub`
@@ -360,7 +366,8 @@ sub-id (A ⇒ B)    = cong₂ _⇒_ (sub-id A) (sub-id B)
 sub-id (ƛ A)      = cong ƛ (trans (sub-cong exts-id A) (sub-id A))
 sub-id (A · B)    = cong₂ _·_ (sub-id A) (sub-id B)
 sub-id (μ A B)    = cong₂ μ (sub-id A) (sub-id B)
-sub-id (con c)    = cong con (subTyCon-id c)
+sub-id (con c)    = cong con (sub-id c)
+sub-id (^ b)      = cong ^ (subTyCon-id b)
 ```
 
 Fusion of `exts` and `ext`
@@ -399,7 +406,8 @@ sub-ren (A ⇒ B) = cong₂ _⇒_ (sub-ren A) (sub-ren B)
 sub-ren (ƛ A)   = cong ƛ (trans (sub-cong exts-ext A) (sub-ren A))
 sub-ren (A · B) = cong₂ _·_ (sub-ren A) (sub-ren B)
 sub-ren (μ A B) = cong₂ μ (sub-ren A) (sub-ren B)
-sub-ren (con c) = cong con (subTyCon-renTyCon c)
+sub-ren (con c) = cong con (sub-ren c)
+sub-ren (^ b)   = cong ^ (subTyCon-renTyCon b)
 ```
 
 Fusion for `exts` and `ext`
@@ -438,7 +446,8 @@ ren-sub (A ⇒ B) = cong₂ _⇒_ (ren-sub A) (ren-sub B)
 ren-sub (ƛ A)   = cong ƛ (trans (sub-cong ren-ext-exts A) (ren-sub A))
 ren-sub (A · B) = cong₂ _·_ (ren-sub A) (ren-sub B)
 ren-sub (μ A B) = cong₂ μ (ren-sub A) (ren-sub B)
-ren-sub (con c) = cong con (renTyCon-subTyCon c)
+ren-sub (con c) = cong con (ren-sub c)
+ren-sub (^ b)   = cong ^ (renTyCon-subTyCon b)
 ```
 
 Fusion of two `exts`
@@ -477,7 +486,8 @@ sub-comp (A ⇒ B) = cong₂ _⇒_ (sub-comp A) (sub-comp B)
 sub-comp (ƛ A)   = cong ƛ (trans (sub-cong extscomp A) (sub-comp A))
 sub-comp (A · B) = cong₂ _·_ (sub-comp A) (sub-comp B)
 sub-comp (μ A B) = cong₂ μ (sub-comp A) (sub-comp B)
-sub-comp (con c) = cong con (subTyCon-comp c) 
+sub-comp (con c) = cong con (sub-comp c)
+sub-comp (^ b)   = cong ^ (subTyCon-comp b)
 ```
 
 Commuting `sub-cons` and `ren`

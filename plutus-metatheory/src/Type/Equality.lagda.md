@@ -19,7 +19,7 @@ infix  1 _≡β_
 open import Utils
 open import Type
 open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯)
 
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym)
@@ -96,10 +96,13 @@ data _≡β_ where
         ----------------
       → μ A B ≡β μ A' B'
 
-  con≡β : ∀{c c' : TyCon Φ}
-        → c ≡βTyCon c'
+  ^≡β : ∀{b b' : TyCon Φ}
+        → b ≡βTyCon b'
           -----------
-        → con c ≡β con c'
+        → ^ b ≡β ^ b'
+  con≡β : ∀{A A' : Φ ⊢⋆ ♯}
+        → A ≡β A'
+        → con A ≡β con A'
 
   -- computation rule
 
@@ -145,7 +148,8 @@ ren≡β ρ (β≡β B A)     = trans≡β
   (≡2β (trans (sym (sub-ren B))
               (trans (sub-cong (ren-sub-cons ρ A) B)
                      (ren-sub B))))
-ren≡β ρ (con≡β p) = con≡β (ren≡βTyCon ρ p)
+ren≡β ρ (con≡β p) = con≡β (ren≡β ρ p)
+ren≡β ρ (^≡β p)   = ^≡β (ren≡βTyCon ρ p)
 ```
 
 ## Substitution for proofs of type equality
@@ -178,6 +182,7 @@ sub≡β σ (β≡β B A)     = trans≡β
   (≡2β (trans (trans (sym (sub-comp B))
                      (sub-cong (sub-sub-cons σ A) B))
               (sub-comp B)))
-sub≡β ρ (con≡β p) = con≡β (sub≡βTyCon ρ p)       
+sub≡β ρ (con≡β p) = con≡β (sub≡β ρ p)
+sub≡β ρ (^≡β p)   = ^≡β (sub≡βTyCon ρ p)       
 ```
 

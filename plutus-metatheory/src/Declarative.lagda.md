@@ -10,13 +10,15 @@ module Declarative where
 ## Imports
 
 ```
+open import Function hiding (_∋_;typeOf)
+
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
 open import Builtin
 open import Utils hiding (TermCon)
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind * ♯ _⊢⋆_ (con ∘ ^)
 
 open import Relation.Binary.PropositionalEquality
   hiding ([_]) renaming (subst to substEq)
@@ -32,7 +34,6 @@ open import Data.List hiding ([_]; length; take; drop)
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Data.Sum
-open import Function hiding (_∋_;typeOf)
 import Data.Bool as Bool
 open import Data.String
 ```
@@ -96,8 +97,9 @@ Let `x`, `y` range over variables.
 Computing a signature for a builtin. Ideally this should be done generically:
 ```
 sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-sig ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
-sig addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con (^ bool) , ` Z , ` Z ,, ` Z
+sig addInteger = ∅ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+{-
 sig subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 sig multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 sig divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
@@ -117,7 +119,9 @@ sig verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestr
 sig equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
 sig appendString = ∅ ,, ∅ , con string , con string ,, con string
 sig trace = ∅ ,, ∅ , con string ,, con unit
-sig _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
+-}
+sig fstPair = _ ,, ∅ ,⋆ ♯ ,⋆ ♯ , con (^ (pair (` (S Z)) (` Z))) ,, con (` Z)
+sig _ = ∅ ,, ∅ ,, con (^ unit) -- TODO: add support for remaining builtins
 ```
 
 Converting a signature to a totally unsaturated type:

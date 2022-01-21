@@ -85,7 +85,7 @@ open import Data.String
 
 data _⊢⋆_ : Ctx⋆ → Kind → Set
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯)
 
 data _⊢⋆_ where
   ` : Φ ∋⋆ J
@@ -115,7 +115,10 @@ data _⊢⋆_ where
       ---------------------
     → Φ ⊢⋆ *
 
-  con : TyCon Φ
+  ^ : TyCon Φ → Φ ⊢⋆ ♯ -- this embeds builtin 'types' into 'types'
+                       -- it would be nice if this was silent
+  
+  con : Φ ⊢⋆ ♯ -- these are types of term constants
         ------
       → Φ ⊢⋆ *
 ```

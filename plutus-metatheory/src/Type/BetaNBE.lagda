@@ -10,8 +10,8 @@ open import Type
 open import Type.BetaNormal
 open import Type.RenamingSubstitution
 open import Type.Equality
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as Nf
 
 open import Function
 open import Data.Sum
@@ -29,6 +29,7 @@ either neutral or Kripke functions
 \begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
+Val Φ ♯       = Φ ⊢Nf⋆ ♯
 Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
@@ -39,6 +40,7 @@ defined with reify.
 \begin{code}
 reflect : ∀{Φ σ} → Φ ⊢Ne⋆ σ → Val Φ σ
 reflect {σ = *}     n = ne n
+reflect {σ = ♯}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
 
@@ -55,6 +57,7 @@ Renaming for values
 \begin{code}
 renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
 renVal {*}     ψ n        = renNf ψ n
+renVal {♯}     ψ n        = renNf ψ n
 renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
 renVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ λ ρ' →  f (ρ' ∘ ψ)
 \end{code}
@@ -71,6 +74,7 @@ Reify takes a value and yields a normal form.
 \begin{code}
 reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
 reify {*}     n         = n
+reify {♯}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
 reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh)) -- has a name been lost here?
 \end{code}
@@ -143,7 +147,8 @@ eval (A ⇒ B) η = reify (eval A η) ⇒ reify (eval B η)
 eval (ƛ B)   η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
 eval (A · B) η = eval A η ·V eval B η
 eval (μ A B) η = μ (reify (eval A η)) (reify (eval B η))
-eval (con c) η = con (evalTyCon c η)
+eval (con c) η = con (eval c η)
+eval (^ b) η = ^ (evalTyCon b η)
 \end{code}
 
 Identity environment

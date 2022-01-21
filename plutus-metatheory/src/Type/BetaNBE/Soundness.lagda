@@ -9,7 +9,7 @@ open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯) as Syn
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq)
@@ -29,6 +29,7 @@ type is beta-eta-equal to the result of reifying the value.
 \begin{code}
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
+SR ♯       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNe n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
   (A ≡β ƛ B) -- this bit of indirection is needed as we have only β not βη
@@ -48,6 +49,7 @@ reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢Ne⋆ K}
     ------------------
   → SR K A (reflect n)
 reflectSR {K = *}     p = p
+reflectSR {K = ♯}     p = p
 reflectSR {K = K ⇒ J} p = p
 
 reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
@@ -55,6 +57,7 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
     --------------------
   → A ≡β embNf (reify v)
 reifySR {K = *}                  p            = p
+reifySR {K = ♯}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
 reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) = trans≡β
   p
@@ -92,6 +95,7 @@ subSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
     ---------------------------
   → SR K A' v
 subSR {K = *}     p          q            = trans≡β p q
+subSR {K = ♯}     p          q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
 \end{code}
@@ -104,6 +108,7 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
     ---------------------------------
   → SR K (ren ρ A) (renVal ρ v)
 renSR ρ {*}{A}{n} p = trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNf ρ n)))
+renSR ρ {♯}{A}{n} p = trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNf ρ n)))
 renSR ρ {K ⇒ J} {A} {inj₁ n} p =
   trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNe ρ n)))
 renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
@@ -217,7 +222,8 @@ evalSR (ƛ B)   {σ}{η}          p =
     (evalSR B (SR,,⋆ (renSR ρ ∘ p) q))
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR (μ A B)     p = μ≡β (reifySR (evalSR A p)) (reifySR (evalSR B p))
-evalSR (con c)     p = con≡β (evalSRTyCon c p)
+evalSR (con c)     p = con≡β (evalSR c p)
+evalSR (^ b)       p = ^≡β (evalSRTyCon b p)
 \end{code}
 
 Identity SREnv

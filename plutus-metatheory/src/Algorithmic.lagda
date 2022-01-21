@@ -19,8 +19,8 @@ import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯)
+open import Builtin.Constant.Term Ctx⋆ Kind * ♯ _⊢Nf⋆_ (_⊢Nf⋆_.con ∘ ^)
 \end{code}
 
 ## Fixity declarations
@@ -92,8 +92,9 @@ an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
 sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
-sig ifThenElse = _ ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
-sig addInteger = _ ,, ∅ , con integer , con integer ,, con integer
+sig ifThenElse = _ ,, ∅ ,⋆ * , con (^ bool) , ne (` Z) , ne (` Z) ,, ne (` Z)
+sig addInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+{-
 sig subtractInteger = _ ,, ∅ , con integer , con integer ,, con integer
 sig multiplyInteger = _ ,, ∅ , con integer , con integer ,, con integer
 sig divideInteger = _ ,, ∅ , con integer , con integer ,, con integer
@@ -115,8 +116,10 @@ sig trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
 sig equalsString = _ ,, ∅ , con string , con string ,, con bool
 sig encodeUtf8 = _ ,, ∅ , con string ,, con bytestring
 sig decodeUtf8 = _ ,, ∅ , con bytestring ,, con string
+-}
 sig fstPair =
-  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` (S Z))
+  _ ,, ∅ ,⋆ ♯ ,⋆ ♯ , con (^ (pair (ne (` (S Z))) (ne (` Z)))) ,, con (ne (` (S Z)))
+{-
 sig sndPair = 
   _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
 sig nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
@@ -159,6 +162,9 @@ sig sliceByteString =
 sig lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
 sig indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
 sig blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
+-}
+sig _ = _ ,, ∅ , con (^ string) ,, con (^ string)
+
 
 sig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 sig2type .∅ ∅ C = C
@@ -277,4 +283,5 @@ ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
 
 arity : Builtin → Arity
 arity b = ctx2bwdarity (proj₁ (proj₂ (sig b))) <>> []
+-- -}
 \end{code}

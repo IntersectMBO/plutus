@@ -16,7 +16,7 @@ infix 4 _⊢Ne⋆_
 open import Utils
 open import Type
 open import Type.RenamingSubstitution
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ ♯) as Syn
 
 
 open import Relation.Binary.PropositionalEquality
@@ -36,7 +36,7 @@ pi types, function types, lambdas or neutral terms.
 \begin{code}
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as Nf
 
 data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
   ` : Φ ∋⋆ J
@@ -67,7 +67,9 @@ data _⊢Nf⋆_ where
        --------
      → Φ ⊢Nf⋆ K
 
-  con : Nf.TyCon Φ → Φ ⊢Nf⋆ *
+  ^ : Nf.TyCon Φ → Φ ⊢Nf⋆ ♯
+
+  con : Φ ⊢Nf⋆ ♯ → Φ ⊢Nf⋆ *
 
   μ : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *
     → Φ ⊢Nf⋆ K
@@ -118,7 +120,8 @@ renNf ρ (Π A)     = Π (renNf (ext ρ) A)
 renNf ρ (A ⇒ B)   = renNf ρ A ⇒ renNf ρ B
 renNf ρ (ƛ B)     = ƛ (renNf (ext ρ) B)
 renNf ρ (ne A)    = ne (renNe ρ A)
-renNf ρ (con c)   = con (renNfTyCon ρ c)
+renNf ρ (con c)   = con (renNf ρ c)
+renNf ρ (^ b)     = ^ (renNfTyCon ρ b)
 renNf ρ (μ A B)   = μ (renNf ρ A) (renNf ρ B)
 
 renNe ρ (` x)   = ` (ρ x)
@@ -152,7 +155,8 @@ embNf (Π B)   = Π (embNf B)
 embNf (A ⇒ B) = embNf A ⇒ embNf B
 embNf (ƛ B)    = ƛ (embNf B)
 embNf (ne B)  = embNe B
-embNf (con c) = con (embNfTyCon c )
+embNf (con c) = con (embNf c)
+embNf (^ b)   = ^ (embNfTyCon b)
 embNf (μ A B) = μ (embNf A) (embNf B)
 
 embNe (` x)   = ` x
@@ -190,7 +194,8 @@ ren-embNf ρ (Π B)   = cong Π (ren-embNf (ext ρ) B)
 ren-embNf ρ (A ⇒ B) = cong₂ _⇒_ (ren-embNf ρ A) (ren-embNf ρ B)
 ren-embNf ρ (ƛ B)   = cong ƛ (ren-embNf (ext ρ) B)
 ren-embNf ρ (ne n)  = ren-embNe ρ n
-ren-embNf ρ (con c) = cong con (renTyCon-embNf ρ c)
+ren-embNf ρ (con c) = cong con (ren-embNf ρ c)
+ren-embNf ρ (^ b)   = cong ^ (renTyCon-embNf ρ b)
 ren-embNf ρ (μ A B) = cong₂ μ (ren-embNf ρ A) (ren-embNf ρ B)
 
 ren-embNe ρ (` x)    = refl
