@@ -8,6 +8,8 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
+-- For some reason this module is very slow to compile otherwise
+{-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
@@ -381,7 +383,12 @@ runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
-    -- Pir configuration
+    let hints = UPLC.InlineHints $ \a _ -> case a of
+            -- This instructs the inliner to inline *any* binding inside a destructor,
+            -- which is a slightly large hammer but is actually what we want.
+            PIR.DatatypeComponent PIR.Destructor _ -> True
+            _                                      -> False
+    -- Compilation configuration
     let pirTcConfig = if poDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
                       then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
@@ -397,6 +404,10 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coInlineHints)                    hints
+        uplcSimplOpts = UPLC.defaultSimplifyOpts
+            & set UPLC.soMaxSimplifierIterations (poMaxSimplifierIterations opts)
+            & set UPLC.soInlineHints hints
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
@@ -416,7 +427,8 @@ runCompiler moduleName opts expr = do
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
-    uplcP <- liftExcept $ traverseOf UPLC.progTerm (UPLC.deBruijnTerm . UPLC.simplifyTerm) $ UPLC.eraseProgram plcP
+    uplcT <- liftExcept $ traverseOf UPLC.progTerm (UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts) (UPLC.erase plcT)
+    let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT
     when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 

@@ -1,8 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
--- | Functions for computing variable usage inside terms and types.
-module PlutusIR.Analysis.Usages (runTermUsages, runTypeUsages, Usages, getUsageCount, allUsed) where
+-- | Functions for computing variable usage inside terms.
+module UntypedPlutusCore.Analysis.Usages (runTermUsages, Usages, getUsageCount, allUsed) where
 
-import PlutusIR
+import UntypedPlutusCore.Core.Plated
+import UntypedPlutusCore.Core.Type
 
 import PlutusCore qualified as PLC
 import PlutusCore.Name qualified as PLC
@@ -36,29 +37,14 @@ allUsed usages = Map.keysSet $ Map.filter (> 0) usages
 
 -- | Compute the 'Usages' for a 'Term'.
 runTermUsages
-    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni fun a
+    :: (PLC.HasUnique name PLC.TermUnique)
+    => Term name uni fun a
     -> Usages
 runTermUsages term = execState (termUsages term) mempty
 
--- | Compute the 'Usages' for a 'Type'.
-runTypeUsages
-    ::(PLC.HasUnique tyname PLC.TypeUnique)
-    => Type tyname uni a
-    -> Usages
-runTypeUsages ty = execState (typeUsages ty) mempty
-
 termUsages
-    :: (MonadState Usages m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni fun a
+    :: (MonadState Usages m, PLC.HasUnique name PLC.TermUnique)
+    => Term name uni fun a
     -> m ()
 termUsages (Var _ n) = modify (addUsage n)
-termUsages term      = traverse_ termUsages (term ^.. termSubterms) >> traverse_ typeUsages (term ^.. termSubtypes)
-
--- TODO: move to plutus-core
-typeUsages
-    :: (MonadState Usages m, PLC.HasUnique tyname PLC.TypeUnique)
-    => Type tyname uni a
-    -> m ()
-typeUsages (TyVar _ n) = modify (addUsage n)
-typeUsages ty          = traverse_ typeUsages (ty ^.. typeSubtypes)
+termUsages term      = traverse_ termUsages (term ^.. termSubterms)

@@ -1,8 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind (strict) (vardecl t (con string)) (con string "no"))
-    (termbind (strict) (vardecl t (con string)) (con string "yes"))
     (datatypebind
       (datatype
         (tyvardecl Bool (type))

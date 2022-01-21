@@ -127,6 +127,7 @@
           "PlutusCore/Eq"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Lexer/Type"
+          "PlutusCore/InlineUtils"
           "PlutusCore/Parsable"
           "PlutusCore/Parser/Internal"
           "PlutusCore/ParserCommon"
@@ -153,6 +154,7 @@
           "PlutusIR/Normalize"
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
+          "UntypedPlutusCore/Analysis/Usages"
           "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
           "UntypedPlutusCore/Core/Instance/Eq"
@@ -169,9 +171,11 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
+          "UntypedPlutusCore/Simplify"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
-          "UntypedPlutusCore/Transform/Simplify"
+          "UntypedPlutusCore/Transform/ForceDelay"
+          "UntypedPlutusCore/Transform/Inline"
           "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
@@ -276,6 +280,7 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/MkUPlc"
           "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core/Type"
@@ -524,6 +529,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))

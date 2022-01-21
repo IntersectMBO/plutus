@@ -19,9 +19,16 @@ module UntypedPlutusCore.Core.Type
     , termAnn
     , erase
     , eraseProgram
+<<<<<<< HEAD
     , progAnn
     , progVer
     , progTerm
+||||||| parent of a890dc7bc (SCP-3392 UPLC simplifier)
+=======
+    , UVarDecl(..)
+    , uvarDeclName
+    , uvarDeclAnn
+>>>>>>> a890dc7bc (SCP-3392 UPLC simplifier)
     ) where
 
 import Control.Lens
@@ -32,6 +39,8 @@ import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC
 import Universe
+
+import Control.Lens.TH
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.
@@ -112,6 +121,13 @@ instance TPLC.FromConstant (Term name uni fun ()) where
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+
+-- | An untyped "variable declaration", i.e. a name for a variable.
+data UVarDecl name ann = UVarDecl
+    { _uvarDeclAnn  :: ann
+    , _uvarDeclName :: name
+    } deriving (Functor, Show, Generic)
+makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann

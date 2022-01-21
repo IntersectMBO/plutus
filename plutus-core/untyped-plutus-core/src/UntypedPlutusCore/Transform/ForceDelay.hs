@@ -1,15 +1,14 @@
 {-# LANGUAGE LambdaCase #-}
--- | Very basic simplifications on UPLC.
-module UntypedPlutusCore.Transform.Simplify
-    ( simplifyTerm
+module UntypedPlutusCore.Transform.ForceDelay
+    ( forceDelayCancel
     ) where
 
 import UntypedPlutusCore.Core
 
 import Control.Lens (transformOf)
 
-simplifyTerm :: Term name uni fun a -> Term name uni fun a
-simplifyTerm = transformOf termSubterms processTerm
+forceDelayCancel :: Term name uni fun a -> Term name uni fun a
+forceDelayCancel = transformOf termSubterms processTerm
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case

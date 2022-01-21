@@ -143,6 +143,7 @@ library
         UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
+        UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core.Type
@@ -191,6 +192,7 @@ library
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Lexer.Type
+        PlutusCore.InlineUtils
         PlutusCore.Parsable
         PlutusCore.Parser.Internal
         PlutusCore.ParserCommon
@@ -220,6 +222,7 @@ library
         PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore.Analysis.Definitions
+        UntypedPlutusCore.Analysis.Usages
         UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
@@ -236,9 +239,11 @@ library
         UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
+        UntypedPlutusCore.Simplify
         UntypedPlutusCore.Size
         UntypedPlutusCore.Subst
-        UntypedPlutusCore.Transform.Simplify
+        UntypedPlutusCore.Transform.ForceDelay
+        UntypedPlutusCore.Transform.Inline
 
         Data.Aeson.Flatten
         Data.Aeson.THReader
@@ -454,6 +459,7 @@ test-suite untyped-plutus-core-test
         bytestring -any,
         hedgehog -any,
         flat -any,
+        lens -any,
         mtl -any,
         plutus-core -any,
         plutus-core-testlib -any,
