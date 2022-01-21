@@ -3,13 +3,10 @@
 
 module Main where
 
-import PlutusBenchmark.Common (Term, getConfig, getDataDir, unDeBruijnAnonTerm)
+import PlutusBenchmark.Common (Term, getConfig, getDataDir, runTermCek, toNamedDeBruijnTerm)
 import PlutusBenchmark.NaturalSort
 
-import PlutusCore qualified as PLC
-
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
 import Criterion.Main.Options (Mode, parseWith)
@@ -79,12 +76,12 @@ loadFlat file = do
   case unflat contents of
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right prog -> do
-        let t = unDeBruijnAnonTerm $ UPLC._progTerm prog
-        return $! force t
+        let t = UPLC._progTerm prog
+        return $! force $ toNamedDeBruijnTerm t
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
 mkCekBM :: Term -> Benchmarkable
-mkCekBM program = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) program
+mkCekBM program = whnf (runTermCek) program
 
 mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =

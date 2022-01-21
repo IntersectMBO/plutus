@@ -167,6 +167,7 @@ library lists-internal
     , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
+    , mtl -any
 
 executable list-sort-exe
   import: lang

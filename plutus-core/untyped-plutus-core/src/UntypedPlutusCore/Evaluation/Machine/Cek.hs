@@ -17,6 +17,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCekNoEmit
     , EvaluationResult(..)
     , extractEvaluationResult
+    , unsafeExtractEvaluationResult
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)

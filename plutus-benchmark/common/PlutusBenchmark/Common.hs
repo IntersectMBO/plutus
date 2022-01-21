@@ -10,9 +10,8 @@ module PlutusBenchmark.Common
     ( module Export
     , Term
     , getConfig
-    , unDeBruijn
-    , unDeBruijnAnonTerm
     , toAnonDeBruijnTerm
+    , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
     , benchTermCek
@@ -30,9 +29,6 @@ import PlutusCore.Default
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import Control.DeepSeq (force)
-import Control.Exception
-import Control.Monad.Trans.Except
 import Criterion.Main
 import Criterion.Types (Config (..))
 import System.FilePath
@@ -51,50 +47,26 @@ getConfig limit = do
                 timeLimit = limit
               }
 
-type Term    = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+type Term    = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 {- | Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
    123 is the relevant de Bruijn index.-}
-makeNamed
+toNamedDeBruijnTerm
     :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
     -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-makeNamed = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix)
-
+toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
 
 {- | Remove the textual names from a NamedDeBruijn term -}
-makeAnon
-    :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+toAnonDeBruijnTerm
+    :: Term
     -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-makeAnon = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix)
-
-{- | Take a NamedDeBruijn term and convert it to one with Names -}
-unDeBruijn :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> Term
-unDeBruijn term =
-    case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
-      Left e  -> throw e
-      Right t -> force t
-      -- We're going to be using the results in benchmarks, so let's try to make
-      -- sure that the result is fully evaluated to avoid adding the conversion
-      -- overhead.
-
-{- | Take a program whose variables are nameless de Bruijn indices and convert it
-   to one with variables which are textual names. -}
-unDeBruijnAnonTerm :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun () -> Term
-unDeBruijnAnonTerm = unDeBruijn . makeNamed
-
-{- | Take a program whose variables are textual names and convert it to one with
-   variables whose variables are nameless de Bruijn indices. -}
-toAnonDeBruijnTerm :: Term -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-toAnonDeBruijnTerm term =
-  case runExcept @UPLC.FreeVariableError (UPLC.deBruijnTerm term) of
-    Left e  -> throw e
-    Right t -> makeAnon t
+toAnonDeBruijnTerm = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix)
 
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
-compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = unDeBruijn body
+compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
 
 {- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
    if we try to do this over an arbitrary universe.-}
@@ -106,12 +78,11 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCode
 {- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
 benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
-    nf (Cek.unsafeEvaluateCek Cek.noEmitter PLC.defaultCekParameters) $! term -- Or whnf?
+    nf (runTermCek) $! term -- Or whnf?
 
 {- | Just run a term (used for tests etc.) -}
 runTermCek :: Term -> EvaluationResult Term
-runTermCek = Cek.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
-
+runTermCek = unsafeExtractEvaluationResult . (\ (fstT,_,_) -> fstT) . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
 
 type Result = EvaluationResult Term
 

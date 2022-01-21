@@ -22,7 +22,6 @@ import PlutusBenchmark.NoFib.LastPiece qualified as LastPiece
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-import PlutusCore (Name (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Pretty qualified as PLC
@@ -185,10 +184,10 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
+evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+evaluateWithCek = unsafeExtractEvaluationResult . (\(fstT,_,_) -> fstT) . runCekDeBruijn PLC.defaultCekParameters restrictingEnormous noEmitter
 
-writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
+writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr $ Flat.flat prog
 
 writeFlatDeBruijn ::UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
@@ -240,7 +239,7 @@ main = do
     DumpFlatNamed pa   -> writeFlatNamed . mkProg . getTerm $ pa
     DumpFlatDeBruijn pa-> writeFlatDeBruijn . mkProg . toAnonDeBruijnTerm . getTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
-    where getTerm :: ProgAndArgs -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+    where getTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
           getTerm =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
@@ -255,4 +254,4 @@ main = do
 --          getUnDBrTerm = unDeBruijn . getDBrTerm
 
           mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
-          mkProg = UPLC.Program () (UPLC.Version () 1 0 0)
+          mkProg = UPLC.Program () (PLC.defaultVersion ())
