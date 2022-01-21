@@ -130,7 +130,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (runQuote . (Inline.inline <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . (Inline.inline mempty <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "var"
     , "builtin"
     , "constant"

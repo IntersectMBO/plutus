@@ -28,7 +28,6 @@ main = defaultMain $ testGroup "Untyped Plutus Core"
     , test_golden
     , test_tallying
     , test_simplify
-    , test_simplify
     , test_deserializingBigConstants
     , test_debruijn
     ]

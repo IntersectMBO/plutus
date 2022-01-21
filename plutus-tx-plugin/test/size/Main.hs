@@ -17,47 +17,47 @@ main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
     testGroup "Eq" [
-      fitsInto "==" ratEq 80,
-      fitsInto "/=" ratNeq 90
+      fitsInto "==" ratEq 55,
+      fitsInto "/=" ratNeq 63
       ],
     testGroup "Ord" [
-      fitsInto "compare" ratCompare 129,
-      fitsInto "<=" ratLe 67,
-      fitsInto ">=" ratGe 67,
-      fitsInto "<" ratLt 67,
-      fitsInto ">" ratGt 67,
-      fitsInto "max" ratMax 77,
-      fitsInto "min" ratMin 77
+      fitsInto "compare" ratCompare 89,
+      fitsInto "<=" ratLe 38,
+      fitsInto ">=" ratGe 38,
+      fitsInto "<" ratLt 38,
+      fitsInto ">" ratGt 38,
+      fitsInto "max" ratMax 46,
+      fitsInto "min" ratMin 46
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 186,
-      fitsInto "zero" ratZero 20,
-      fitsInto "-" ratMinus 186,
-      fitsInto "negate (specialized)" ratNegate 32
+      fitsInto "+" ratPlus 134,
+      fitsInto "zero" ratZero 7,
+      fitsInto "-" ratMinus 134,
+      fitsInto "negate (specialized)" ratNegate 20
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 178,
-      fitsInto "one" ratOne 23,
-      fitsInto "scale" ratScale 127
+      fitsInto "*" ratTimes 126,
+      fitsInto "one" ratOne 10,
+      fitsInto "scale" ratScale 100
       ],
     testGroup "Serialization" [
-      fitsInto "toBuiltinData" ratToBuiltin 87,
-      fitsInto "fromBuiltinData" ratFromBuiltin 471,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 299
+      fitsInto "toBuiltinData" ratToBuiltin 33,
+      fitsInto "fromBuiltinData" ratFromBuiltin 411,
+      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 256
       ],
     testGroup "Construction" [
-      fitsInto "unsafeRatio" ratMkUnsafe 185,
-      fitsInto "ratio" ratMkSafe 292,
-      fitsInto "fromInteger" ratFromInteger 21
+      fitsInto "unsafeRatio" ratMkUnsafe 168,
+      fitsInto "ratio" ratMkSafe 264,
+      fitsInto "fromInteger" ratFromInteger 8
       ],
     testGroup "Other" [
-      fitsInto "numerator" ratNumerator 24,
-      fitsInto "denominator" ratDenominator 24,
-      fitsInto "round" ratRound 390,
-      fitsInto "truncate" ratTruncate 28,
-      fitsInto "properFraction" ratProperFraction 61,
-      fitsInto "recip" ratRecip 101,
-      fitsInto "abs (specialized)" ratAbs 76
+      fitsInto "numerator" ratNumerator 7,
+      fitsInto "denominator" ratDenominator 7,
+      fitsInto "round" ratRound 332,
+      fitsInto "truncate" ratTruncate 11,
+      fitsInto "properFraction" ratProperFraction 36,
+      fitsInto "recip" ratRecip 87,
+      fitsInto "abs (specialized)" ratAbs 58
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),

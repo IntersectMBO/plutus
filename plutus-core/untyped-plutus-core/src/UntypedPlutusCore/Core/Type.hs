@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -19,6 +20,9 @@ module UntypedPlutusCore.Core.Type
     , termAnn
     , erase
     , eraseProgram
+    , UVarDecl(..)
+    , uvarDeclName
+    , uvarDeclAnn
     ) where
 
 import Data.Functor.Identity
@@ -29,6 +33,8 @@ import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC
 import Universe
+
+import Control.Lens.TH
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.
@@ -104,6 +110,13 @@ instance TPLC.FromConstant (Term name uni fun ()) where
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+
+-- | An untyped "variable declaration", i.e. a name for a variable.
+data UVarDecl name ann = UVarDecl
+    { _uvarDeclAnn  :: ann
+    , _uvarDeclName :: name
+    } deriving (Functor, Show, Generic)
+makeLenses ''UVarDecl
 
 toTerm :: Program name uni fun ann -> Term name uni fun ann
 toTerm (Program _ _ term) = term

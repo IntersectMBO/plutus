@@ -66,9 +66,9 @@ instance (Typeable a) => IsTest (SizeTest a) where
     let estimate = sizePlc cc
     let diff = limit - estimate
     pure $ case signum diff of
-      (-1) -> testFailed $ "Exceeded limit by " <> (show . abs $ diff)
-      0    -> testPassed $ "AST size: " <> show limit
-      _    -> testPassed $ "Remaining headroom: " <> show diff
+      (-1) -> testFailed $ "Actual size: " <> show estimate <> ", exceeded limit by " <> (show . abs $ diff)
+      0    -> testPassed $ "Actual size: " <> show estimate
+      _    -> testPassed $ "Actual size: " <> show estimate <> ", remaining headroom: " <> show diff
   testOptions = Tagged []
 
 fitsUnder :: forall (a :: Type) .
