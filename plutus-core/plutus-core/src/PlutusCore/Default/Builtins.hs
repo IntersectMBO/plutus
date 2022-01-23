@@ -137,7 +137,7 @@ in relevant files (will have a proper overview doc on that, but for now you can 
 comment: https://github.com/input-output-hk/plutus/issues/4306#issuecomment-1003308938).
 
 In order to add a new built-in function one needs to add a constructor to 'DefaultFun' and handle
-it within the @ToBuiltinMeaning uni DefaultFun@ instance like that:
+it within the @ToBuiltinMeaning uni DefaultFun@ instance like this:
 
     toBuiltinMeaning <Name> =
         makeBuiltinMeaning
@@ -168,7 +168,7 @@ builtin (out of the scope of this Note) and handling it within the @Flat Default
 (see Note [Stable encoding of PLC]).
 
 2. If the type of the denotation has any constrained type variables in it, all of them need to be
-be instantiated. For example feeding @(+)@ directly to 'makeBuiltinMeaning' will give you an error
+instantiated. For example feeding @(+)@ directly to 'makeBuiltinMeaning' will give you an error
 message asking to instantiate constrained type variables, which you can do via an explicit type
 annotation or type application or using any other way of specifying types.
 
@@ -289,7 +289,7 @@ the denotation is monomorphic or polymorphic w.r.t. failing.
 
 But note that
 
-    'EvaluationResult' MUST BE EXPLICIYLY USED FOR ANY FAILING BUILTIN AND THROWING AN EXCEPTION
+    'EvaluationResult' MUST BE EXPLICITLY USED FOR ANY FAILING BUILTIN AND THROWING AN EXCEPTION
     VIA 'error' OR 'throw' OR ELSE IS NOT ALLOWED AND CAN BE A HUGE VULNERABILITY. MAKE SURE THAT
     NONE OF THE FUNCTIONS THAT YOU USE TO DEFINE A BUILTIN THROW EXCEPTIONS
 
