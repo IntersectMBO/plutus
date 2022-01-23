@@ -149,6 +149,8 @@ the value. Instead we can keep the argument intact and apply the Haskell functio
 the PLC AST representing some value.
 
 E.g. Having a built-in function with the following signature:
+(TODO: we can't have that, figure out a way to make this example actually work while being as
+clear as it currently is)
 
     reverse : all a. [a] -> [a]
 
@@ -969,6 +971,16 @@ instance uni ~ UniOf term => KnownTypeIn uni term (Opaque term rep) where
 -- no way we could do that.
 underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
+
+type NoStandalonePolymorphicDataErrMsg =
+    'Text "Plutus type variables can't directly appear inside built-in types" ':$$:
+    'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
+    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':<>:
+    'Text " in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':<>:
+    'Text " of an argument or the type of the result, respectively"
+
+instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
+    knownUni = underTypeError
 
 type NoConstraintsErrMsg =
     'Text "Built-in functions are not allowed to have constraints" ':$$:
