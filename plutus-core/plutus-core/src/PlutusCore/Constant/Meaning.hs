@@ -288,15 +288,46 @@ instance
       , HandleHolesGo j k term holes
       ) => HandleHolesGo i k term (hole ': holes)
 
+-- | If the outermost constructor of the second argument is known and happens to be one of the
+-- constructors of the list data type, then the second argument is returned back. Otherwise the
+-- first one is returned, which is meant to be a custom type error.
+type ThrowOnStuckList :: forall a. [a] -> [a] -> [a]
+type family ThrowOnStuckList err xs where
+    ThrowOnStuckList _   '[]       = '[]
+    ThrowOnStuckList _   (x ': xs) = x ': xs
+    ThrowOnStuckList err _         = err
+
+type UnknownTypeError :: forall a any. GHC.Type -> a -> any
+type family UnknownTypeError term x where
+    UnknownTypeError term x = TypeError
+        (         'Text "No instance for ‘KnownTypeAst "
+            ':<>: 'ShowType (UniOf term)
+            ':<>: 'Text " ("
+            ':<>: 'ShowType x
+            ':<>: 'Text ")’"
+        ':$$: 'Text "Which means"
+        ':$$: 'Text "  ‘" ':<>: 'ShowType x ':<>: 'Text "’"
+        ':$$: 'Text "is neither a built-in type, nor one of the control types."
+        ':$$: 'Text "If it can be represented in terms of one of the built-in types"
+        ':$$: 'Text "  then go add the instance (you may need a ‘KnownTypeIn’ one too)"
+        ':$$: 'Text "  alongside the instance for the built-in type."
+        ':$$: 'Text "Otherwise you may need to add a new built-in type"
+        ':$$: 'Text "  (provided you're doing something that can be supported in principle)"
+        )
+
 -- | Get the holes of @x@ and recurse into them.
 type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
-type HandleHoles i j term x = HandleHolesGo i j term (ToHoles x)
+type HandleHoles i j term x =
+    -- Here we detect a stuck application of 'ToHoles' and throw 'UnknownTypeError' on it.
+    -- See https://blog.csongor.co.uk/report-stuck-families for a detailed description of how
+    -- detection of stuck type families works.
+    HandleHolesGo i j term (ThrowOnStuckList (UnknownTypeError term x) (ToHoles x))
 
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type SpecializeFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
+type ElaborateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type ElaborateFromTo i j term a = HandleHole i j term (TypeHole a)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -306,8 +337,8 @@ type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
 -- 2. an uninstantiated costing function
 makeBuiltinMeaning
     :: forall a term cost binds args res j.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds term args res a, SpecializeFromTo 0 j term a
+       ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
+       , ElaborateFromTo 0 j term a, KnownPolytype binds term args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
