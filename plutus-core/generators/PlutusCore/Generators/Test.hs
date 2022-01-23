@@ -18,7 +18,7 @@ module PlutusCore.Generators.Test
 
 import PlutusPrelude (ShowPretty (..))
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception

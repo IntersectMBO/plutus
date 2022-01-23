@@ -24,7 +24,7 @@ module UntypedPlutusCore.Core.Type
 import Data.Functor.Identity
 import PlutusPrelude
 
-import PlutusCore.Constant qualified as TPLC
+import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC

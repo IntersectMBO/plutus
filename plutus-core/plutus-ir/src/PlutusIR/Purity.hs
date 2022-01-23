@@ -7,8 +7,7 @@ module PlutusIR.Purity (isPure) where
 
 import PlutusIR
 
-import PlutusCore.Constant.Meaning
-import PlutusCore.Constant.Typed
+import PlutusCore.Builtin
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
@@ -16,7 +15,7 @@ data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyn
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
 data BuiltinApp tyname name uni fun a = BuiltinApp fun [Arg tyname name uni fun a]
 
-saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> Maybe Bool
+saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme val args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
 saturatesScheme _ TypeSchemeResult{}                     = Just True
 -- Consume one argument

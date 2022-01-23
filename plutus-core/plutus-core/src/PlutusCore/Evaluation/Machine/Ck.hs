@@ -28,7 +28,7 @@ module PlutusCore.Evaluation.Machine.Ck
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result

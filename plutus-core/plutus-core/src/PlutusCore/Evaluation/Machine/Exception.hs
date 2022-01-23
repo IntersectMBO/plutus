@@ -98,18 +98,18 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
     _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
 -- | An error and (optionally) what caused it.
-data ErrorWithCause err term = ErrorWithCause
+data ErrorWithCause err cause = ErrorWithCause
     { _ewcError :: err
-    , _ewcCause :: Maybe term
+    , _ewcCause :: Maybe cause
     } deriving (Eq, Functor, Foldable, Traversable, Generic, NFData)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
 
-instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
+instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err cause) where
     _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
 
-instance (Pretty err, Pretty term) => Pretty (ErrorWithCause err term) where
+instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
     pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
 
 type EvaluationException user internal =
@@ -199,20 +199,20 @@ instance
         , pretty err
         ]
 
-instance (PrettyBy config term, PrettyBy config err) =>
-            PrettyBy config (ErrorWithCause err term) where
+instance (PrettyBy config cause, PrettyBy config err) =>
+            PrettyBy config (ErrorWithCause err cause) where
     prettyBy config (ErrorWithCause err mayCause) =
         "An error has occurred: " <+> prettyBy config err <>
             case mayCause of
                 Nothing    -> mempty
                 Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
 
-instance (PrettyPlc term, PrettyPlc err) =>
-            Show (ErrorWithCause err term) where
+instance (PrettyPlc cause, PrettyPlc err) =>
+            Show (ErrorWithCause err cause) where
     show = render . prettyPlcReadableDebug
 
 deriving anyclass instance
-    (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) => Exception (ErrorWithCause err term)
+    (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) => Exception (ErrorWithCause err cause)
 
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30

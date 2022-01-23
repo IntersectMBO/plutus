@@ -25,7 +25,7 @@ import PlutusPrelude
 
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (AsConstant (..), FromConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (AsConstant (..), FromConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))

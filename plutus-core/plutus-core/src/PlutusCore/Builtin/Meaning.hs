@@ -16,13 +16,16 @@
 -- DO NOT enable @StrictData@ in this file as it makes the evaluator slower (even with @~@ put in
 -- 'BuiltinRuntime' in the places where it's necessary to have laziness for evaluators to work).
 
-module PlutusCore.Constant.Meaning where
+module PlutusCore.Builtin.Meaning where
 
 import PlutusPrelude
 
-import PlutusCore.Constant.Function
-import PlutusCore.Constant.Kinded
-import PlutusCore.Constant.Typed
+import PlutusCore.Builtin.HasConstant
+import PlutusCore.Builtin.KnownKind
+import PlutusCore.Builtin.KnownType
+import PlutusCore.Builtin.KnownTypeAst
+import PlutusCore.Builtin.Polymorphism
+import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
@@ -48,16 +51,16 @@ import GHC.TypeLits
 --
 -- A costing function for a built-in function is computed from a cost model for all built-in
 -- functions from a certain set, hence the @cost@ parameter.
-data BuiltinMeaning term cost =
+data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
-        (TypeScheme term args res)
+        (TypeScheme val args res)
         (FoldArgs args res)
         (cost -> FoldArgsEx args)
--- I tried making it @(forall term. HasConstantIn uni term => TypeScheme term args res)@ instead of
--- @TypeScheme term args res@, but 'makeBuiltinMeaning' has to talk about
--- @KnownPolytype binds term args res a@ (note the @term@), because instances of 'KnownMonotype'
--- are constrained with @KnownType term arg@ and @KnownType term res@, and so the earliest we can
--- generalize from @term@ to @UniOf term@ is in 'toBuiltinMeaning'.
+-- I tried making it @(forall val. HasConstantIn uni val => TypeScheme val args res)@ instead of
+-- @TypeScheme val args res@, but 'makeBuiltinMeaning' has to talk about
+-- @KnownPolytype binds val args res a@ (note the @val@), because instances of 'KnownMonotype'
+-- are constrained with @KnownType val arg@ and @KnownType val res@, and so the earliest we can
+-- generalize from @val@ to @UniOf val@ is in 'toBuiltinMeaning'.
 -- Besides, for 'BuiltinRuntime' we want to have a concrete 'TypeScheme' anyway for performance
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
@@ -78,9 +81,9 @@ data BuiltinMeaning term cost =
 --
 -- All the three are in sync in terms of partial instantiatedness due to 'TypeScheme' being a
 -- GADT and 'FoldArgs' and 'FoldArgsEx' operating on the index of that GADT.
-data BuiltinRuntime term =
+data BuiltinRuntime val =
     forall args res. BuiltinRuntime
-        (TypeScheme term args res)
+        (TypeScheme val args res)
         (FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
                              -- it's fully saturated before figuring out what it's going to cost.
         (FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
@@ -88,12 +91,12 @@ data BuiltinRuntime term =
                              -- introduces any measurable speedup.
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
-newtype BuiltinsRuntime fun term = BuiltinsRuntime
-    { unBuiltinRuntime :: Array fun (BuiltinRuntime term)
+newtype BuiltinsRuntime fun val = BuiltinsRuntime
+    { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
-toBuiltinRuntime :: cost -> BuiltinMeaning term cost -> BuiltinRuntime term
+toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) = BuiltinRuntime sch f (exF cost)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
@@ -102,7 +105,7 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     type CostingPart uni fun
 
     -- | Get the 'BuiltinMeaning' of a built-in function.
-    toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term (CostingPart uni fun)
+    toBuiltinMeaning :: HasConstantIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
 typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
@@ -112,14 +115,14 @@ typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ (
 -- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.
 toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun)
-    => cost -> BuiltinsRuntime fun term
+    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
+    => cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime cost =
     BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
-    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun, Ix fun)
+    :: (MonadError (ErrorWithCause err cause) m, AsMachineError err fun, Ix fun)
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
@@ -135,13 +138,13 @@ respectively. 'KnownMonotype' turns every argument that the Haskell denotation o
 receives into a 'TypeSchemeArrow'. We extract the arguments from the type of the Haskell denotation
 using the 'GetArgs' type family. 'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'.
 We extract variables from the type of the Haskell denotation using the 'ToBinds' type family
-(in particular, see the @ToBinds (TypeScheme term args res)@ type instances). Variables are
+(in particular, see the @ToBinds (TypeScheme val args res)@ type instances). Variables are
 collected in the order that they appear in (i.e. just like in Haskell). For example, processing
 a type signature like
 
     const
-        :: ( a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-           , b ~ Opaque term (TyVarRep ('TyNameRep "b" 1))
+        :: ( a ~ Opaque val (TyVarRep ('TyNameRep "a" 0))
+           , b ~ Opaque val (TyVarRep ('TyNameRep "b" 1))
            )
         => b -> a -> b
 
@@ -177,24 +180,24 @@ type family GetArgs a :: [GHC.Type] where
     GetArgs _        = '[]
 
 -- | A class that allows us to derive a monotype for a builtin.
-class KnownMonotype term args res a | args res -> a, a -> res where
-    knownMonotype :: TypeScheme term args res
+class KnownMonotype val args res a | args res -> a, a -> res where
+    knownMonotype :: TypeScheme val args res
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
-instance (res ~ res', KnownType term res) => KnownMonotype term '[] res res' where
+instance (res ~ res', KnownType val res) => KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
-instance (KnownType term arg, KnownMonotype term args res a) =>
-            KnownMonotype term (arg ': args) res (arg -> a) where
+instance (KnownType val arg, KnownMonotype val args res a) =>
+            KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
-class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
-    knownPolytype :: Proxy binds -> TypeScheme term args res
+class KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
+    knownPolytype :: Proxy binds -> TypeScheme val args res
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
-instance KnownMonotype term args res a => KnownPolytype '[] term args res a where
+instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
     knownPolytype _ = knownMonotype
 
 -- Here we unpack an existentially packed @kind@ and constrain it afterwards!
@@ -202,8 +205,8 @@ instance KnownMonotype term args res a => KnownPolytype '[] term args res a wher
 -- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,
 -- all information is lost and we can't do anything with @kind@.
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
-instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
-            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
+instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
+            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
     knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
 
 -- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
@@ -266,37 +269,37 @@ instance
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
-class HandleHole i j term hole | i term hole -> j
+class HandleHole i j val hole | i val hole -> j
 -- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
 instance
     ( TrySpecializeAsVar i j Id (Id x)  -- The two 'Id's cancel each other.
-    , HandleHoles j k term x
-    ) => HandleHole i k term (RepHole x)
--- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque term@.
+    , HandleHoles j k val x
+    ) => HandleHole i k val (RepHole x)
+-- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque val@.
 instance
-    ( TrySpecializeAsVar i j (Opaque term) a
-    , HandleHoles j k term a
-    ) => HandleHole i k term (TypeHole a)
+    ( TrySpecializeAsVar i j (Opaque val) a
+    , HandleHoles j k val a
+    ) => HandleHole i k val (TypeHole a)
 
 -- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
 -- the calls.
 type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
-class HandleHolesGo i j term holes | i term holes -> j
-instance i ~ j => HandleHolesGo i j term '[]
+class HandleHolesGo i j val holes | i val holes -> j
+instance i ~ j => HandleHolesGo i j val '[]
 instance
-      ( HandleHole i j term hole
-      , HandleHolesGo j k term holes
-      ) => HandleHolesGo i k term (hole ': holes)
+      ( HandleHole i j val hole
+      , HandleHolesGo j k val holes
+      ) => HandleHolesGo i k val (hole ': holes)
 
 -- | Get the holes of @x@ and recurse into them.
 type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
-type HandleHoles i j term x = HandleHolesGo i j term (ToHoles x)
+type HandleHoles i j val x = HandleHolesGo i j val (ToHoles x)
 
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type SpecializeFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
+type SpecializeFromTo i j val a = HandleHole i j val (TypeHole a)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -305,9 +308,9 @@ type SpecializeFromTo i j term a = HandleHole i j term (TypeHole a)
 -- 1. the denotation of the builtin
 -- 2. an uninstantiated costing function
 makeBuiltinMeaning
-    :: forall a term cost binds args res j.
+    :: forall a val cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds term args res a, SpecializeFromTo 0 j term a
+       , KnownPolytype binds val args res a, SpecializeFromTo 0 j val a
        )
-    => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term cost
-makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
+    => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning val cost
+makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme val args res)

@@ -22,7 +22,7 @@ import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant.Meaning qualified as PLC
+import PlutusCore.Builtin.Meaning qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Subst (typeSubstTyNamesM)

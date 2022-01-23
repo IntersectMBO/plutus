@@ -15,7 +15,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
