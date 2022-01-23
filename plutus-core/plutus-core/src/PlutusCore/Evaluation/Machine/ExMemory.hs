@@ -199,10 +199,11 @@ instance ExMemoryUsage Bool where
 -- This is strict and tail-recursive for improved efficiency since we use it on the chain
 instance ExMemoryUsage a => ExMemoryUsage [a] where
     memoryUsage l0 = sizeList l0 0
-        where sizeList l acc =
+        where sizeList l !acc =
                   case l of
                     []   -> acc
-                    x:xs -> sizeList xs (acc + memoryUsage x)
+                    x:xs -> let !acc' = acc + memoryUsage x
+                            in sizeList xs acc'
 
 {- Another naive traversal for size.  This accounts for the number of nodes in a
    Data object, and also the sizes of the contents of the nodes.  This is not
@@ -224,24 +225,23 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 -}
 instance ExMemoryUsage Data where
     memoryUsage d0 = sizeData d0 0
-        where sizeData d acc =
+        where sizeData d !acc =
                   nodeMem +  -- Constant charge for processing each node
                     case d of
                       Constr _ l -> sizeDataList  l acc
                       Map l      -> sizeDataPairs l acc
                       List l     -> sizeDataList  l acc
-                      I n        -> let u = memoryUsage n in acc + u
-                      B b        -> let u = memoryUsage b in acc + u
+                      I n        -> let !u = memoryUsage n in acc + u
+                      B b        -> let !u = memoryUsage b in acc + u
               nodeMem = 4
-              sizeDataList l acc =
+              sizeDataList l !acc =
                   case l of
                     []   -> acc
-                    d:ds -> let acc1 = sizeDataList ds acc
+                    d:ds -> let! acc1 = sizeDataList ds acc
                             in sizeData d acc1
-              sizeDataPairs l acc =
+              sizeDataPairs l !acc =
                   case l of
                     []           -> acc
-                    ((d1,d2):ps) -> let acc1 = sizeData d1 acc
-                                        acc2 = sizeData d2 acc1
+                    ((d1,d2):ps) -> let !acc1 = sizeData d1 acc
+                                        !acc2 = sizeData d2 acc1
                                     in sizeDataPairs ps acc2
-
