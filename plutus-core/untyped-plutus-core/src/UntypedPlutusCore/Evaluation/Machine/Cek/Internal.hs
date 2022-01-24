@@ -440,7 +440,7 @@ dischargeCekValEnv valEnv@(RelativizedMap _ curLvl) = go 0
   go :: Word -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
   go !lamCnt =  \case
     LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = fromIntegral ndbnIx :: Word  in
+    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word  in
         if lamCnt >= ix
         -- the index n is less-than-or-equal than the number of lambdas we have descended
         -- this means that n points to a bound variable, so we don't discharge it.
@@ -541,7 +541,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.index` fromIntegral varIx of
+    case varEnv `Env.index` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val

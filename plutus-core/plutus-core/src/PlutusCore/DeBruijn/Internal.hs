@@ -51,14 +51,12 @@ import Data.Map qualified as M
 import Data.Text qualified as T
 import Prettyprinter
 
-import Numeric.Natural
-
 import Control.DeepSeq (NFData)
 import ErrorCode
 import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
-newtype Index = Index Natural
+newtype Index = Index Word
     deriving stock Generic
     deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty)
     deriving anyclass NFData
