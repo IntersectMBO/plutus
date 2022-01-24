@@ -28,11 +28,6 @@ import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
 import PlutusCore.StdLib.Data.Integer qualified as StdLib
 import PlutusCore.StdLib.Data.Unit qualified as StdLib
 
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
-
 import Control.DeepSeq (NFData, rnf)
 import Control.Lens hiding (ix, op)
 import Control.Monad.Except
@@ -52,6 +47,10 @@ import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter (Doc, pretty, (<+>))
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
@@ -73,9 +72,9 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    (AsParseError e PLC.AlexPosn, MonadError e m, PLC.MonadQuote m) =>
+    (AsParseError e, MonadError e m, PLC.MonadQuote m) =>
     BSL.ByteString ->
-      m (p PLC.AlexPosn)
+      m p
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -83,14 +82,14 @@ class Executable p where
      (Ord ann, AsUniqueError e ann,
        MonadError e m)
     => (UniqueError ann -> Bool)
-    -> p ann
+    -> p
     -> m ()
 
   -- | Convert names to de Bruijn indices and then serialise
-  serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
+  serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p -> IO BSL.ByteString
 
   -- | Read and deserialise a Flat-encoded UPLC AST
-  loadASTfromFlat :: AstNameType -> Input -> IO (p ())
+  loadASTfromFlat :: AstNameType -> Input -> IO p
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
@@ -277,17 +276,17 @@ getInput StdInput         = getContents
 
 -- | Read and parse a source program
 parseInput ::
-  (Executable p, PLC.Rename (p PLC.AlexPosn) ) =>
+  (Executable p, PLC.Rename p ) =>
   -- | The source program
   Input ->
   -- | The output is either a UPLC or PLC program with annotation
-  IO (p PLC.AlexPosn)
+  IO p
 parseInput inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
     -- parse the UPLC program
     case PLC.runQuoteT $ parseProgram bsContents of
       -- when fail, pretty print the parse errors.
-      Left (err :: PLC.ParseError PLC.AlexPosn) ->
+      Left (err :: PLC.ParseError) ->
         errorWithoutStackTrace $ PP.render $ pretty err
       -- otherwise,
       Right p -> do
@@ -297,7 +296,7 @@ parseInput inp = do
         let checked = through (Common.checkProgram (const True)) renamed
         case checked of
           -- pretty print the error
-          Left (err :: PLC.UniqueError PLC.AlexPosn) ->
+          Left (err :: PLC.UniqueError PLC.SourcePos) ->
             errorWithoutStackTrace $ PP.render $ pretty err
           -- if there's no errors, return the parsed program
           Right _ -> pure p
@@ -359,14 +358,14 @@ loadUplcASTfromFlat flatMode inp = do
 getProgram ::
   (Executable p,
    Functor p,
-   PLC.Rename (p PLC.AlexPosn)) =>
-  Format -> Input -> IO (p PLC.AlexPosn)
+   PLC.Rename p) =>
+  Format -> Input -> IO p
 getProgram fmt inp =
     case fmt of
       Textual  -> parseInput inp
       Flat flatMode -> do
                prog <- loadASTfromFlat flatMode inp
-               return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in Flat, so we have to make them up.
+               return $ topSourcePos <$ prog  -- No source locations in Flat, so we have to make them up.
 
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------

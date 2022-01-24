@@ -72,6 +72,7 @@ conTerm = inParens $ do
             SomeTypeIn DefaultUniString     -> conText
             SomeTypeIn DefaultUniUnit       -> conUnit
             SomeTypeIn DefaultUniBool       -> conBool
+    whitespace
     pure $ Constant p con
 
 builtinTerm :: Parser PTerm

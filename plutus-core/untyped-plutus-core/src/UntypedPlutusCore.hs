@@ -35,6 +35,7 @@ import PlutusCore.Name as Export
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Core.Instance.Flat as Export
 import UntypedPlutusCore.DeBruijn as Export
+import UntypedPlutusCore.Size as Export
 import UntypedPlutusCore.Subst as Export (programMapNames)
 import UntypedPlutusCore.Transform.Simplify as Export (simplifyTerm)
 -- | Take one UPLC program and apply it to another.
