@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
-module Data.DeBruijnEnv (DeBruijnEnv (..), RelativizedMap (..)) where
+module Data.DeBruijnEnv (DeBruijnEnv (..), BRAL.RAList (..)) where
 
 import Data.IntMap.Strict qualified as IM
 import Data.Kind

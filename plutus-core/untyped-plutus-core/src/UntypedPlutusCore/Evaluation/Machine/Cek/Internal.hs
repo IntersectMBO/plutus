@@ -203,7 +203,7 @@ data CekValue uni fun =
                                             -- Check the docs of 'BuiltinRuntime' for details.
     deriving (Show)
 
-type CekValEnv uni fun = RelativizedMap (CekValue uni fun)
+type CekValEnv uni fun = RAList (CekValue uni fun)
 
 -- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -433,33 +433,7 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
 dischargeCekValEnv :: forall uni fun. CekValEnv uni fun -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
-dischargeCekValEnv valEnv@(RelativizedMap _ curLvl) = go 0
- where
-  -- The lamCnt is just a counter that measures how many lambda-abstractions
-  -- we have descended in the `go` loop.
-  go :: Word -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
-  go !lamCnt =  \case
-    LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word  in
-        if lamCnt >= ix
-        -- the index n is less-than-or-equal than the number of lambdas we have descended
-        -- this means that n points to a bound variable, so we don't discharge it.
-        then var
-        else
-            -- index relative to (as seen from the point of view of) the environment
-            let envIx = ix - lamCnt
-            in if envIx > curLvl
-               -- if the relative index is larger than current level, it means
-               -- that the variable is free, since we don't have such a large key stored in the env
-               then var
-               -- Although we call unsafeIndex, it must be safe, since we made the prior check that we are less-than-equal
-               -- to the current level. In other words, all keys less-than-equal to the current level are guaranteed to exist in the env.
-               else
-                   dischargeCekValue $ valEnv `Env.unsafeIndex` envIx
-    Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
-    Delay ann term       -> Delay ann $ go lamCnt term
-    Force ann term       -> Force ann $ go lamCnt term
-    t -> t
+dischargeCekValEnv _ t = t
 
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
@@ -541,7 +515,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.index` coerce varIx of
+    case varEnv `Env.index` (coerce varIx - 1) of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
