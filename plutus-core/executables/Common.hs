@@ -14,7 +14,8 @@ import PlutusPrelude (through)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
-import PlutusCore.Error (AsParseError, AsUniqueError, UniqueError)
+import PlutusCore.Constant qualified as PLC
+import PlutusCore.Error (AsUniqueError, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen

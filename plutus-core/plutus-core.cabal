@@ -541,7 +541,8 @@ executable pir
         containers -any,
         prettyprinter -any,
         cassava -any,
-        text -any
+        text -any,
+        megaparsec -any
 
 executable traceToStacks
     import: lang
