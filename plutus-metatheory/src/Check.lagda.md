@@ -8,7 +8,7 @@ module Check where
 ```
 
 ```
-open import Data.Nat hiding (_*_)
+open import Data.Nat hiding (_*_;_^_)
 open import Function hiding (_∋_)
 open import Data.String
 open import Data.Fin
@@ -30,7 +30,7 @@ open import Type.BetaNBE.Soundness
 open import Algorithmic
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal.Equality
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
 ```
 
@@ -50,6 +50,7 @@ inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
 data TypeError : Set where
   kindMismatch : (K K' : Kind) → ¬ (K ≡ K') → TypeError
   notStar : (K : Kind) → ¬ (K ≡ *) → TypeError
+  notHash : (K : Kind) → ¬ (K ≡ ♯) → TypeError
   notFunKind  : (K : Kind) → (∀ K' J → ¬ (K ≡ K' ⇒ J)) → TypeError
   notPat  : (K : Kind) → (∀ K' → ¬ (K ≡ (K' ⇒ *) ⇒ (K' ⇒ *))) → TypeError
   UnknownType : TypeError
@@ -65,6 +66,11 @@ meqKind : (K K' : Kind) → Either (¬ (K ≡ K')) (K ≡ K')
 meqKind * * = inj₂ refl
 meqKind * (K' ⇒ J') = inj₁ λ() 
 meqKind (K ⇒ J) * = inj₁ λ()
+meqKind ♯ * = inj₁ λ()
+meqKind * ♯ = inj₁ λ()
+meqKind ♯ ♯ = inj₂ refl
+meqKind ♯ (K' ⇒ J') = inj₁ λ() 
+meqKind (K ⇒ J) ♯ = inj₁ λ()
 meqKind (K ⇒ J) (K' ⇒ J') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
   q ← withE (λ ¬q → λ{refl → ¬q refl}) (meqKind J J')
@@ -76,6 +82,16 @@ isStar : ∀{Φ}
 isStar p = do
   * ,, A ← p
    where (K ⇒ J ,, _) → inj₁ (notStar (K ⇒ J) λ())
+         (♯      ,, _) → inj₁ (notStar ♯ λ())
+  return A
+
+isHash : ∀{Φ}
+       → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
+       → Either TypeError (Φ ⊢Nf⋆ ♯)
+isHash p = do
+  ♯ ,, A ← p
+   where (K ⇒ J ,, _) → inj₁ (notStar (K ⇒ J) λ())
+         (*      ,, _) → inj₁ (notHash * λ())
   return A
 
 isFunKind : ∀{Φ}
@@ -84,6 +100,7 @@ isFunKind : ∀{Φ}
 isFunKind p = do
   K ⇒ J ,, A ← p
     where (* ,, _) → inj₁ (notFunKind * λ _ _ ())
+          (♯ ,, _) → inj₁ (notFunKind * λ _ _ ())
   return (K ,, J ,, A)
 
 isPat : ∀{Φ}
@@ -93,10 +110,19 @@ isPat p = do
   (K ⇒ *) ⇒ (K' ⇒ *) ,, A ← p
     where
       (* ,, _) → inj₁ (notPat * λ _ ())
+      (♯ ,, _) → inj₁ (notPat ♯ λ _ ())      
       (K@(_ ⇒ *) ,, _) → inj₁ (notPat K λ _ ())
+      (K@(_ ⇒ ♯) ,, _) → inj₁ (notPat K λ _ ())
       (K@(_ ⇒ (_ ⇒ (_ ⇒ _))) ,, _) → inj₁ (notPat K λ _ ())
       (K@(* ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@(♯ ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@(* ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@(♯ ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@((_ ⇒ ♯) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@((_ ⇒ *) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@((_ ⇒ ♯) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())      
       (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
+      (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())      
   refl ← withE (kindMismatch _ _) (meqKind K K')
   return (K ,, A)
 
@@ -143,11 +169,11 @@ inferKindCon Φ S.string = inj₂ T.string
 inferKindCon Φ S.unit = inj₂ T.unit
 inferKindCon Φ S.bool = inj₂ T.bool
 inferKindCon Φ (S.list A) = do
-  A ← isStar (inferKind Φ A)
+  A ← isHash (inferKind Φ A)
   return (T.list A)
 inferKindCon Φ (S.pair A B) = do
-  A ← isStar (inferKind Φ A)
-  B ← isStar (inferKind Φ B)  
+  A ← isHash (inferKind Φ A)
+  B ← isHash (inferKind Φ B)  
   return (T.pair A B)
 inferKindCon Φ S.Data = inj₂ T.Data
 
@@ -171,9 +197,12 @@ inferKind Φ (A · B) = do
   (K ,, J ,, A) ← isFunKind (inferKind Φ A)
   B ← checkKind Φ B K
   return (J ,, nf (embNf A · embNf B))
-inferKind Φ (con tc) = do
+inferKind Φ (^ tc) = do
   tc ← inferKindCon Φ tc
-  return (* ,, con tc)
+  return (♯ ,, ^ tc)
+inferKind Φ (con A) = do
+  A ← isHash (inferKind Φ A)
+  return (* ,, con A)
 inferKind Φ (μ A B) = do
   K ,, A ← isPat (inferKind Φ A)
   B ← checkKind Φ B K
@@ -289,8 +318,11 @@ meqNfTy (Π {K = K} A) (Π {K = K'} A') = do
  q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
  return (cong Π q)
 meqNfTy (con c) (con c') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyCon c c')
+  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy c c')
   return (cong con p)
+meqNfTy (^ c) (^ c') = do
+  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyCon c c')
+  return (cong ^ p)
 meqNfTy (μ {K = K} A B) (μ {K = K'} A' B') = do
   refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
   q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
@@ -313,15 +345,16 @@ meqNfTy (ne _) (_ ⇒ _) = inj₁ λ()
 meqNfTy (ne _) (ƛ _) = inj₁ λ()
 meqNfTy (ne _) (con _) = inj₁ λ()
 meqNfTy (ne _) (μ _ _) = inj₁ λ()
+meqNfTy (ne _) (^ _) = inj₁ λ()
 meqNfTy (con _) (Π _) = inj₁ λ()
 meqNfTy (con _) (_ ⇒ _) = inj₁ λ()
 meqNfTy (con _) (ne _) = inj₁ λ()
 meqNfTy (con _) (μ _ _) = inj₁ λ()
+meqNfTy (^ _) (ne _) = inj₁ λ()
 meqNfTy (μ _ _) (Π _) = inj₁ λ()
 meqNfTy (μ _ _) (_ ⇒ _) = inj₁ λ()
 meqNfTy (μ _ _) (ne _) = inj₁ λ()
 meqNfTy (μ _ _) (con _) = inj₁ λ()
-
 meqNeTy (` α) (` α') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyVar α α')
   return (cong ` p)
@@ -341,10 +374,10 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
 open import Function
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^ as A
 open import Type.RenamingSubstitution
 
-inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
+inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (^ c) 
 inferTypeCon (integer i)    = T.integer ,, A.integer i
 inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
 inferTypeCon (string s)     = T.string ,, A.string s
@@ -383,7 +416,7 @@ inferType {Φ} Γ (L · M) = do
   return (B ,, L · M)
 inferType {Φ} Γ (con c) = do
   let tc ,, c = inferTypeCon {Φ} c
-  return (con tc ,, con c)
+  return (con (^ tc) ,, con c)
 inferType Γ (error A) = do
   A ← isStar (inferKind _ A)
   return (A ,, error A)

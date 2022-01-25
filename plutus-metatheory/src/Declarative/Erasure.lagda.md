@@ -18,11 +18,13 @@ open import Untyped.RenamingSubstitution as U
 ```
 
 ```
+open import Function using (_∘_)
+
 open import Type
 open import Declarative
 open import Builtin hiding (length)
 open import Utils
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^
   renaming (TermCon to TyTermCon)
 
 open import Data.Empty
@@ -53,7 +55,7 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ *} → TyTermCon A → TermCon
+eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ ♯} → TyTermCon A → TermCon
 eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s

@@ -21,7 +21,7 @@ open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^
 open import Declarative
 ```
 

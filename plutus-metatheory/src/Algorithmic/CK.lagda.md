@@ -23,7 +23,7 @@ open import Type.BetaNormal.Equality
 open import Algorithmic
 open import Builtin
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNBE
 open import Algorithmic.RenamingSubstitution
@@ -237,7 +237,7 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
-test : State (con unit)
+test : State (con (^ unit))
 test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
 
 postulate

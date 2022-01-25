@@ -24,8 +24,8 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Builtin
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^ as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^ as NTermCon
 \end{code}
 
 \begin{code}
@@ -72,7 +72,7 @@ soundness-μ p A B = trans≡β
 
 \begin{code}
 
-embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
+embTC : ∀{φ}{A : φ ⊢Nf⋆ ♯}
   → NTermCon.TermCon A
   → STermCon.TermCon (embNf A)
 embTC (NTermCon.integer i)    = STermCon.integer i

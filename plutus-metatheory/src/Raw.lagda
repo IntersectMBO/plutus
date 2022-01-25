@@ -32,7 +32,8 @@ data RawTy where
   Π   : Kind → RawTy → RawTy
   ƛ   : Kind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
-  con : RawTyCon → RawTy
+  con : RawTy → RawTy
+  ^   : RawTyCon → RawTy
   μ    : RawTy → RawTy → RawTy
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
@@ -118,6 +119,11 @@ decRKi : (K K' : Kind) → Bool
 decRKi * * = true
 decRKi * (K' ⇒ J') = false
 decRKi (K ⇒ J) * = false
+decRKi * ♯ = false
+decRKi ♯ * = false
+decRKi ♯ ♯ = true
+decRKi ♯ (K' ⇒ J') = false
+decRKi (K ⇒ J) ♯ = false
 decRKi (K ⇒ J) (K' ⇒ J') with decRKi K K'
 decRKi (K ⇒ J) (K' ⇒ J') | true with decRKi J J'
 decRKi (K ⇒ J) (K' ⇒ J') | true | true = true
@@ -183,9 +189,7 @@ decRTy (con c) (A' ⇒ B') = false
 decRTy (con c) (Π K' A') = false
 decRTy (con c) (ƛ K' A') = false
 decRTy (con c) (A' · A'') = false
-decRTy (con c) (con c') with decRTyCon c c'
-... | false = false
-... | true = true
+decRTy (con c) (con c') = decRTy c c'
 decRTy (con c) (μ A' B') = false
 decRTy (μ A B) (` x') = false
 decRTy (μ A B) (A' ⇒ B') = false
@@ -198,6 +202,21 @@ decRTy (μ A B) (μ A' B') with decRTy A A'
 ... | true with decRTy B B'
 ... | false = false
 ... | true = true
+decRTy (^ A) (` x) = false
+decRTy (^ A) (A' ⇒ A'') = false
+decRTy (^ A) (Π k A') = false
+decRTy (^ A) (ƛ k A') = false
+decRTy (^ A) (A' · A'') = false
+decRTy (^ A) (con A') = false
+decRTy (` x) (^ A') = false
+decRTy (A ⇒ A') (^ A'') = false
+decRTy (Π x A) (^ A') = false
+decRTy (ƛ x A) (^ A') = false
+decRTy (A · A') (^ A'') = false
+decRTy (con A) (^ A') = false
+decRTy (^ A) (^ A') = decRTyCon A A'
+decRTy (μ A A') (^ A'') = false
+decRTy (^ x) (μ A' A'') = false
 
 decRTm : (t t' : RawTm) → Bool
 decRTm (` x) (` x') with x ≟ x'
@@ -250,6 +269,7 @@ rawTyPrinter (Π K A) = "(Π" ++ "kind" ++ rawTyPrinter A ++ ")"
 rawTyPrinter (ƛ K A) = "(ƛ" ++ "kind" ++ rawTyPrinter A ++ ")"
 rawTyPrinter (A · B) = "(" ++ rawTyPrinter A ++ "·" ++ rawTyPrinter B ++ ")"
 rawTyPrinter (con c) = "(con)"
+rawTyPrinter (^ c) = "(^)"
 rawTyPrinter (μ A B) = "(μ" ++ rawTyPrinter A ++ rawTyPrinter B ++ ")"
 
 rawPrinter : RawTm → String

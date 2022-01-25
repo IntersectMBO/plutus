@@ -33,7 +33,7 @@ open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Builtin
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Algorithmic

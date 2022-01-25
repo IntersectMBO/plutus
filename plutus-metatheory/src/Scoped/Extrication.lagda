@@ -18,10 +18,10 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic as A
 open import Scoped
 open import Builtin
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^ as B
 open import Type.BetaNormal
 open import Type.RenamingSubstitution as T
 \end{code}
@@ -57,8 +57,9 @@ extricateNf⋆ (Π {K = K} A) = Π K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
 extricateNf⋆ (ƛ {K = K} A) = ƛ K (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
-extricateNf⋆ (con c) = con (extricateTyConNf⋆ c)
+extricateNf⋆ (con c) = con (extricateNf⋆ c)
 extricateNf⋆ (μ A B) = μ (extricateNf⋆ A) (extricateNf⋆ B)
+extricateNf⋆ (^ A) = ^ (extricateTyConNf⋆ A)
 
 extricateNe⋆ (` α) = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
@@ -78,7 +79,7 @@ extricateVar Z = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
-extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Utils.TermCon
+extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ ♯} → B.TermCon A → Utils.TermCon
 extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s

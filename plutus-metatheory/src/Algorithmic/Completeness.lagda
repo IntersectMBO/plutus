@@ -68,11 +68,11 @@ lem[] A B = trans
     (sym (sub-eval B idCR (sub-cons ` A))))
 
 open import Builtin hiding (length)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^ as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^ as NTermCon
 
 
-nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
+nfTypeTC : ∀{φ}{A : φ ⊢⋆ ♯} → STermCon.TermCon A → NTermCon.TermCon (nf A)
 nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s

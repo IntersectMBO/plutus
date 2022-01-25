@@ -8,7 +8,7 @@ erasure commutes with renaming/substitution
 open import Utils
 open import Type
 open import Type.BetaNormal
-open import Data.Nat
+open import Data.Nat hiding (_^_)
 open import Data.Fin
 open import Function hiding (_∋_)
 open import Relation.Binary.PropositionalEquality as Eq
@@ -23,7 +23,7 @@ open import Scoped.Extrication
 open import Algorithmic.RenamingSubstitution as AS
 open import Scoped.RenamingSubstitution as SS
 open import Builtin
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as AC
+import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯) as AC
 import Builtin.Constant.Type ℕ ScopedTy as SC
 
 -- type renamings
@@ -106,7 +106,8 @@ ren-extricateNf⋆ ρ⋆ (ƛ A)  =
   cong (ƛ _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
-ren-extricateNf⋆ ρ⋆ (con c)  = cong con (ren-extricateTyConNf⋆ ρ⋆ c)
+ren-extricateNf⋆ ρ⋆ (con c)  = cong con (ren-extricateNf⋆ ρ⋆ c)
+ren-extricateNf⋆ ρ⋆ (^ c)    = cong ^ (ren-extricateTyConNf⋆ ρ⋆ c)
 ren-extricateNf⋆ ρ⋆ (μ A B)  =
   cong₂ μ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 

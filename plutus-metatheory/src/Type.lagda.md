@@ -115,10 +115,12 @@ data _⊢⋆_ where
       ---------------------
     → Φ ⊢⋆ *
 
-  ^ : TyCon Φ → Φ ⊢⋆ ♯ -- this embeds builtin 'types' into 'types'
+  ^ : TyCon Φ
+      -------
+    → Φ ⊢⋆ ♯  -- this embeds builtin 'types' into 'types'
                        -- it would be nice if this was silent
   
-  con : Φ ⊢⋆ ♯ -- these are types of term constants
+  con : Φ ⊢⋆ ♯ -- these act as types of term constants
         ------
       → Φ ⊢⋆ *
 ```

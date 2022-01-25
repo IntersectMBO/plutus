@@ -20,7 +20,7 @@ open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯)
-open import Builtin.Constant.Term Ctx⋆ Kind * ♯ _⊢Nf⋆_ (_⊢Nf⋆_.con ∘ ^)
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^
 \end{code}
 
 ## Fixity declarations
@@ -94,77 +94,71 @@ application.
 sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
 sig ifThenElse = _ ,, ∅ ,⋆ * , con (^ bool) , ne (` Z) , ne (` Z) ,, ne (` Z)
 sig addInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
-{-
-sig subtractInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig multiplyInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig divideInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig quotientInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig remainderInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig modInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig lessThanInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig lessThanEqualsInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig equalsInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig appendByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-sig lessThanByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig lessThanEqualsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig sha2-256 = _ ,, ∅ , con bytestring ,, con bytestring
-sig sha3-256 = _ ,, ∅ , con bytestring ,, con bytestring
-sig verifySignature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig equalsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig appendString = _ ,, ∅ , con string , con string ,, con string
-sig trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
-sig equalsString = _ ,, ∅ , con string , con string ,, con bool
-sig encodeUtf8 = _ ,, ∅ , con string ,, con bytestring
-sig decodeUtf8 = _ ,, ∅ , con bytestring ,, con string
--}
+sig subtractInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig multiplyInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig divideInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig quotientInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig remainderInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig modInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ integer)
+sig lessThanInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ bool)
+sig lessThanEqualsInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ bool)
+sig equalsInteger = _ ,, ∅ , con (^ integer) , con (^ integer) ,, con (^ bool)
+sig appendByteString = _ ,, ∅ , con (^ bytestring) , con (^ bytestring) ,, con (^ bytestring)
+sig lessThanByteString = _ ,, ∅ , con (^ bytestring) , con (^ bytestring) ,, con (^ bool)
+sig lessThanEqualsByteString = _ ,, ∅ , con (^ bytestring) , con (^ bytestring) ,, con (^ bool)
+sig sha2-256 = _ ,, ∅ , con (^ bytestring) ,, con (^ bytestring)
+sig sha3-256 = _ ,, ∅ , con (^ bytestring) ,, con (^ bytestring)
+sig verifySignature = _ ,, ∅ , con (^ bytestring) , con (^ bytestring) , con (^ bytestring) ,, con (^ bool)
+sig equalsByteString = _ ,, ∅ , con (^ bytestring) , con (^ bytestring) ,, con (^ bool)
+sig appendString = _ ,, ∅ , con (^ string) , con (^ string) ,, con (^ string)
+sig trace = _ ,, ∅ ,⋆ * , con (^ string) , ne (` Z) ,, ne (` Z)
+sig equalsString = _ ,, ∅ , con (^ string) , con (^ string) ,, con (^ bool)
+sig encodeUtf8 = _ ,, ∅ , con (^ string) ,, con (^ bytestring)
+sig decodeUtf8 = _ ,, ∅ , con (^ bytestring) ,, con (^ string)
 sig fstPair =
   _ ,, ∅ ,⋆ ♯ ,⋆ ♯ , con (^ (pair (ne (` (S Z))) (ne (` Z)))) ,, con (ne (` (S Z)))
-{-
 sig sndPair = 
-  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
-sig nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
-sig headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, ne (` Z)
-sig tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
+  _ ,, ∅ ,⋆ ♯ ,⋆ ♯ , con (^ (pair (ne (` (S Z))) (ne (` Z)))) ,, con (ne (` Z))
+sig nullList = _ ,, ∅ ,⋆ ♯ , con (^ (list (ne (` Z)))) ,, con (^ bool)
+sig headList = _ ,, ∅ ,⋆ ♯ , con (^ (list (ne (` Z)))) ,, con (ne (` Z))
+sig tailList = _ ,, ∅ ,⋆ ♯ , con (^ (list (ne (` Z)))) ,, con (^ (list (ne (` Z))))
 sig chooseList =
   _
   ,,
-  ∅ ,⋆ * ,⋆ * , ne (` (S Z)) , ne (` (S Z)) , con (list (ne (` Z)))
+  ∅ ,⋆ ♯ ,⋆ ♯ , con (ne (` (S Z))) , (con (ne (` (S Z)))) , con (^ (list (ne (` Z))))
   ,,
-  ne (` (S Z)) 
-sig constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
-sig mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
-sig listData = _ ,, ∅ , con (list (con Data)) ,, con Data
-sig iData = _ ,, ∅ , con integer ,, con Data
-sig bData = _ ,, ∅ , con bytestring ,, con Data
+  con (ne (` (S Z)))
+sig constrData = _ ,, ∅ , con (^ integer) , con (^ (list (^ Data))) ,, con (^ Data)
+sig mapData = _ ,, ∅ , con (^ (pair (^ Data) (^ Data))) ,, con (^ Data)
+sig listData = _ ,, ∅ , con (^ (list (^ Data))) ,, con (^ Data)
+sig iData = _ ,, ∅ , con (^ integer) ,, con (^ Data)
+sig bData = _ ,, ∅ , con (^ bytestring) ,, con (^ Data)
 sig unConstrData =
-  _ ,, ∅ , con Data ,, con (pair (con integer) (con (list (con Data))))
-sig unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
-sig unListData = _ ,, ∅ , con Data ,, con (list (con Data))
-sig unIData = _ ,, ∅ , con Data ,, con integer
-sig unBData = _ ,, ∅ , con Data ,, con bytestring
-sig equalsData = _ ,, ∅ , con Data , con Data ,, con bool
+  _ ,, ∅ , con (^ Data) ,, con (^ (pair (^ integer) (^ (list (^ Data)))))
+sig unMapData = _ ,, ∅ , con (^ Data) ,, con (^ (pair (^ Data) (^ Data)))
+sig unListData = _ ,, ∅ , con (^ Data) ,, con (^ (list (^ Data)))
+sig unIData = _ ,, ∅ , con (^ Data) ,, con (^ integer)
+sig unBData = _ ,, ∅ , con (^ Data) ,, con (^ bytestring)
+sig equalsData = _ ,, ∅ , con (^ Data) , con (^ Data) ,, con (^ bool)
 sig chooseData =
   _
   ,,
-  ∅ ,⋆ * , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , con Data
+  ∅ ,⋆ * , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , con (^ Data)
   ,,
   ne (` Z)
-sig chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
+sig chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con (^ unit) ,, ne (` Z)
 sig mkPairData =
-  _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
-sig mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
-sig mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
+  _ ,, ∅ , con (^ Data) , con (^ Data) ,, con (^ (pair (^ Data) (^ Data)))
+sig mkNilData = _ ,, ∅ , con (^ unit) ,, con (^ (list (^ Data)))
+sig mkNilPairData = _ ,, ∅ , con (^ unit) ,, con (^ (list (^ (pair (^ Data) (^ Data)))))
 sig mkCons =
-  _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
-sig consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
+  _ ,, ∅ , con (^ Data) , con (^ (list (^ Data))) ,, con (^ (list (^ Data)))
+sig consByteString = _ ,, ∅ , con (^ integer) , con (^ bytestring) ,, con (^ bytestring)
 sig sliceByteString =
-  _ ,, ∅ , con integer , con integer , con bytestring ,, con bytestring
-sig lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
-sig indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
-sig blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
--}
-sig _ = _ ,, ∅ , con (^ string) ,, con (^ string)
-
+  _ ,, ∅ , con (^ integer) , con (^ integer) , con (^ bytestring) ,, con (^ bytestring)
+sig lengthOfByteString = _ ,, ∅ , con (^ bytestring) ,, con (^ integer)
+sig indexByteString = _ ,, ∅ , con (^ bytestring) , con (^ integer) ,, con (^ integer)
+sig blake2b-256 = _ ,, ∅ , con (^ bytestring) ,, con (^ bytestring)
 
 sig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 sig2type .∅ ∅ C = C
@@ -227,7 +221,7 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → Γ ⊢ C
 
   con : ∀{tcn}
-    → TermCon {Φ} (con tcn)
+    → TermCon {Φ} tcn
       ---------------------
     → Γ ⊢ con tcn
 
@@ -284,4 +278,15 @@ ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
 arity : Builtin → Arity
 arity b = ctx2bwdarity (proj₁ (proj₂ (sig b))) <>> []
 -- -}
+
+id' : ∅ ⊢ Π (ne (` Z) ⇒ ne (` Z))
+id' = Λ (ƛ (` Z))
+
+open import Data.Integer
+
+one : ∅ ⊢ con (^ integer)
+one = con (integer (ℤ.pos 1))
+
+one' : ∅ ⊢ con (^ integer)
+one' = (id' ·⋆ con (^ integer) / refl) · con (integer (ℤ.pos 1))
 \end{code}

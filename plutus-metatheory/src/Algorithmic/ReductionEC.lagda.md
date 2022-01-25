@@ -32,8 +32,8 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Builtin
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ ♯)
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡;≅-to-subst-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
@@ -80,8 +80,8 @@ data Value where
    → Value M
    → Value (wrap A B M)
 
-  V-con : ∀{tcn : TyCon ∅}
-    → (cn : TermCon (con tcn))
+  V-con : ∀{tcn : ∅ ⊢Nf⋆ ♯}
+    → (cn : TermCon tcn)
     → Value (con cn)
 
   V-I⇒ : ∀ b {A B as as'}

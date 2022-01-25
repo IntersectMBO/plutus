@@ -17,8 +17,8 @@ open import Type
 open import Type.BetaNBE.RenamingSubstitution
 open import Function hiding (_∋_)
 open import Builtin hiding (length)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^ as DC renaming (TermCon to TyTermCon)
+import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^ as AC renaming (TermCon to TyTermCon)
 open import Type.RenamingSubstitution as T
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -53,7 +53,7 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
+eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ ♯} → AC.TyTermCon A → TermCon
 eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
@@ -115,7 +115,7 @@ lemsuc refl refl x = refl
 open import Type.BetaNormal.Equality
 open import Function
 
-sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
+sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ ♯}(tcn : DC.TyTermCon A)
   → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
@@ -246,7 +246,7 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
   (cong (subst id (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
         (D.T (embVar x))))
 
-same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
+same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ ♯}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
 same'TC (AC.integer i)    = refl
 same'TC (AC.bytestring b) = refl

@@ -3,11 +3,13 @@ module Declarative.Examples.StdLib.ChurchNat where
 \end{code}
 
 \begin{code}
+open import Function using (_∘_)
+
 open import Utils
 open import Type
 open import Declarative
 open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢⋆_ ^
 
 open import Data.Unit
 \end{code}
@@ -33,18 +35,18 @@ open import Data.Integer
 open import Data.Nat
 open import Agda.Builtin.Sigma renaming (_,_ to _,,_)
 
-con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
 con0 = con (integer (ℤ.pos 0))
 
-con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
 con1 = con (integer (ℤ.pos 1))
 
-inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer ⇒ con integer
+inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer) ⇒ con (^ integer)
 inc = ƛ (builtin addInteger · con1  · ` Z)
 
-Nat2Int : ∅ ⊢ N ⇒ con integer
+Nat2Int : ∅ ⊢ N ⇒ con (^ integer)
 Nat2Int = ƛ (Iter
-  ·⋆ con integer
+  ·⋆ con (^ integer)
   ·  con0
   ·  inc
   ·  ` Z)

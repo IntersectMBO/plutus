@@ -3,7 +3,7 @@ module Scoped where
 \end{code}
 
 \begin{code}
-open import Data.Nat hiding (_*_)
+open import Data.Nat hiding (_*_;_^_)
 open import Data.Fin hiding (_-_;_+_;_<_)
 open import Data.List hiding (map; _++_)
 open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
@@ -37,7 +37,8 @@ data ScopedTy n where
   Π    : Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
-  con  : S.TyCon n → ScopedTy n
+  con  : ScopedTy n → ScopedTy n
+  ^    : S.TyCon n → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
 
@@ -137,6 +138,7 @@ shifterTy w (Π K A) = Π K (shifterTy (T w) A)
 shifterTy w (ƛ K A) = ƛ K (shifterTy (T w) A)
 shifterTy w (A · B) = shifterTy w A · shifterTy w B
 shifterTy w (con c) = con c
+shifterTy w (^ c) = ^ c
 shifterTy w (μ A B) = μ (shifterTy w A) (shifterTy w B)
 
 shifter : ∀{n}(w : Weirdℕ n) → RawTm → RawTm
@@ -159,6 +161,7 @@ unshifterTy w (Π K A) = Π K (unshifterTy (T w) A)
 unshifterTy w (ƛ K A) = ƛ K (unshifterTy (T w) A)
 unshifterTy w (A · B) = unshifterTy w A · unshifterTy w B
 unshifterTy w (con c) = con c
+unshifterTy w (^ c) = ^ c
 unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
 
 open import Relation.Binary.PropositionalEquality
@@ -253,7 +256,8 @@ scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = fmap con (scopeCheckTyCon c)
+scopeCheckTy (con c) = fmap con (scopeCheckTy c)
+scopeCheckTy (^ c)   = fmap ^ (scopeCheckTyCon c)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -312,9 +316,10 @@ extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
 extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
 extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
-extricateScopeTy (con c) = con (extricateTyCon c)
+extricateScopeTy (con c) = con (extricateScopeTy c)
+extricateScopeTy (^ c)   = ^ (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con bool -- TODO
+extricateScopeTy missing = con (^ bool) -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)

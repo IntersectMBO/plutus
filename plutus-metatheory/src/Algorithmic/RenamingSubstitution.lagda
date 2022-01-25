@@ -23,7 +23,7 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Term Ctx⋆ Kind ♯ _⊢Nf⋆_ ^
 open import Type.BetaNormal.Equality
 \end{code}
 
@@ -61,7 +61,7 @@ ext⋆ ρ⋆ ρ (T {A = A} x) = conv∋
 renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
     -----------------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
+  → ({A : Φ ⊢Nf⋆ ♯} → TermCon A → TermCon (renNf ρ⋆ A ))
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
@@ -149,7 +149,7 @@ exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢
 subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
+  → ({A : Φ ⊢Nf⋆ ♯} → TermCon A → TermCon (subNf σ⋆ A ))
 subTermCon σ⋆ (integer i)    = integer i
 subTermCon σ⋆ (bytestring b) = bytestring b
 subTermCon σ⋆ (string s)     = string s

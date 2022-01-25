@@ -3,7 +3,7 @@ module Scoped.RenamingSubstitution where
 \end{code}
 
 \begin{code}
-open import Data.Nat
+open import Data.Nat hiding (_^_)
 open import Data.Fin hiding (lift)
 open import Data.Vec using ([];_∷_)
 open import Function
@@ -38,7 +38,8 @@ ren⋆ ρ (A ⇒ B) = ren⋆ ρ A ⇒ ren⋆ ρ B
 ren⋆ ρ (Π K A) = Π K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
-ren⋆ ρ (con c) = con (renTyCon⋆ ρ c)
+ren⋆ ρ (con c) = con (ren⋆ ρ c)
+ren⋆ ρ (^ c)   = ^ (renTyCon⋆ ρ c)
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 ren⋆ ρ missing = missing
 
@@ -100,7 +101,8 @@ sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
 sub⋆ σ (Π K A) = Π K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
-sub⋆ σ (con c) = con (subTyCon⋆ σ c)
+sub⋆ σ (con c) = con (sub⋆ σ c)
+sub⋆ σ (^ c)   = ^ (subTyCon⋆ σ c)
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 sub⋆ ρ missing = missing
 
@@ -187,7 +189,8 @@ ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
 ren⋆-cong p (Π K A)     = cong (Π K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (ƛ K A)     = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (A · B)     = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
-ren⋆-cong p (con c)     = cong con (renTyCon⋆-cong p c)
+ren⋆-cong p (con c)     = cong con (ren⋆-cong p c)
+ren⋆-cong p (^ c)       = cong ^ (renTyCon⋆-cong p c)
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
 ren⋆-cong p missing     = refl
 
@@ -218,7 +221,8 @@ sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (Π K A)     = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
-sub⋆-cong p (con c)     = cong con (subTyCon⋆-cong p c)
+sub⋆-cong p (con c)     = cong con (sub⋆-cong p c)
+sub⋆-cong p (^ c)       = cong ^ (subTyCon⋆-cong p c)
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 sub⋆-cong p missing     = refl
 
