@@ -25,6 +25,7 @@
         "bifunctors".flags.semigroups = true;
         "haskell-lexer".revision = (((hackage."haskell-lexer")."1.1").revisions).default;
         "ghc-prim".revision = (((hackage."ghc-prim")."0.6.1").revisions).default;
+        "secp256k1-haskell".revision = (((hackage."secp256k1-haskell")."0.6.0").revisions).default;
         "formatting".revision = (((hackage."formatting")."7.1.3").revisions).default;
         "bimap".revision = (((hackage."bimap")."0.4.0").revisions).default;
         "monad-par".revision = (((hackage."monad-par")."0.3.5").revisions).default;
@@ -110,6 +111,7 @@
         "monad-control".revision = (((hackage."monad-control")."1.0.3.1").revisions).default;
         "random".revision = (((hackage."random")."1.2.1").revisions).default;
         "code-page".revision = (((hackage."code-page")."0.2.1").revisions).default;
+        "string-conversions".revision = (((hackage."string-conversions")."0.4.0.1").revisions).default;
         "unix-compat".revision = (((hackage."unix-compat")."0.5.3").revisions).default;
         "unix-compat".flags.old-time = false;
         "optparse-applicative".revision = (((hackage."optparse-applicative")."0.16.1.0").revisions).default;
@@ -125,6 +127,8 @@
         "scientific".revision = (((hackage."scientific")."0.3.7.0").revisions).default;
         "scientific".flags.integer-simple = false;
         "scientific".flags.bytestring-builder = false;
+        "entropy".revision = (((hackage."entropy")."0.4.1.7").revisions).default;
+        "entropy".flags.halvm = false;
         "binary-orphans".revision = (((hackage."binary-orphans")."1.0.2").revisions).default;
         "prettyprinter".revision = (((hackage."prettyprinter")."1.7.1").revisions).default;
         "prettyprinter".flags.buildreadme = false;
@@ -213,6 +217,7 @@
         "integer-logarithms".revision = (((hackage."integer-logarithms")."1.0.3.1").revisions).default;
         "integer-logarithms".flags.check-bounds = false;
         "integer-logarithms".flags.integer-gmp = true;
+        "utf8-string".revision = (((hackage."utf8-string")."1.0.2").revisions).default;
         "newtype".revision = (((hackage."newtype")."0.2.2.0").revisions).default;
         "lens".revision = (((hackage."lens")."4.19.2").revisions).default;
         "lens".flags.test-doctests = true;
@@ -391,6 +396,7 @@
         "indexed-traversable-instances".revision = (((hackage."indexed-traversable-instances")."0.1.1").revisions).default;
         "testing-type-modifiers".revision = (((hackage."testing-type-modifiers")."0.1.0.1").revisions).default;
         "th-desugar".revision = (((hackage."th-desugar")."1.11").revisions).default;
+        "base16".revision = (((hackage."base16")."0.3.0.2").revisions).default;
         "microstache".revision = (((hackage."microstache")."1.0.2").revisions).default;
         "base-compat-batteries".revision = (((hackage."base-compat-batteries")."0.12.1").revisions).default;
         "extra".revision = (((hackage."extra")."1.7.10").revisions).default;
@@ -560,6 +566,7 @@
           "semigroupoids".components.library.planned = lib.mkOverride 900 true;
           "Win32-network".components.exes."named-pipe-demo".planned = lib.mkOverride 900 true;
           "criterion-measurement".components.library.planned = lib.mkOverride 900 true;
+          "secp256k1-haskell".components.library.planned = lib.mkOverride 900 true;
           "bifunctors".components.library.planned = lib.mkOverride 900 true;
           "ral".components.library.planned = lib.mkOverride 900 true;
           "streaming-commons".components.library.planned = lib.mkOverride 900 true;
@@ -597,6 +604,7 @@
           "plutus-core".components.benchmarks."index-envs-bench".planned = lib.mkOverride 900 true;
           "word-array".components.library.planned = lib.mkOverride 900 true;
           "strict-containers".components.library.planned = lib.mkOverride 900 true;
+          "base16".components.library.planned = lib.mkOverride 900 true;
           "microstache".components.library.planned = lib.mkOverride 900 true;
           "th-desugar".components.library.planned = lib.mkOverride 900 true;
           "prettyprinter-configurable".components.library.planned = lib.mkOverride 900 true;
@@ -650,6 +658,7 @@
           "dependent-map".components.library.planned = lib.mkOverride 900 true;
           "invariant".components.library.planned = lib.mkOverride 900 true;
           "system-fileio".components.library.planned = lib.mkOverride 900 true;
+          "entropy".components.setup.planned = lib.mkOverride 900 true;
           "parallel".components.library.planned = lib.mkOverride 900 true;
           "uuid-types".components.library.planned = lib.mkOverride 900 true;
           "QuickCheck".components.library.planned = lib.mkOverride 900 true;
@@ -657,6 +666,7 @@
           "hspec-discover".components.library.planned = lib.mkOverride 900 true;
           "orphans-deriving-via".components.library.planned = lib.mkOverride 900 true;
           "optparse-applicative".components.library.planned = lib.mkOverride 900 true;
+          "string-conversions".components.library.planned = lib.mkOverride 900 true;
           "unix-compat".components.library.planned = lib.mkOverride 900 true;
           "monad-control".components.library.planned = lib.mkOverride 900 true;
           "random".components.library.planned = lib.mkOverride 900 true;
@@ -667,6 +677,7 @@
           "half".components.library.planned = lib.mkOverride 900 true;
           "newtype-generics".components.library.planned = lib.mkOverride 900 true;
           "binary-orphans".components.library.planned = lib.mkOverride 900 true;
+          "entropy".components.library.planned = lib.mkOverride 900 true;
           "scientific".components.library.planned = lib.mkOverride 900 true;
           "th-reify-many".components.library.planned = lib.mkOverride 900 true;
           "inline-r".components.library.planned = lib.mkOverride 900 true;
@@ -728,6 +739,7 @@
           "plutus-core".components.tests."satint-test".planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.tests."test3".planned = lib.mkOverride 900 true;
           "integer-logarithms".components.library.planned = lib.mkOverride 900 true;
+          "utf8-string".components.library.planned = lib.mkOverride 900 true;
           "ansi-wl-pprint".components.library.planned = lib.mkOverride 900 true;
           "th-utilities".components.library.planned = lib.mkOverride 900 true;
           "reflection".components.library.planned = lib.mkOverride 900 true;

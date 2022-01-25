@@ -23,7 +23,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Crypto (verifySignature)
+import Crypto (verifySECP256k1Signature, verifySignature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Char
@@ -63,6 +63,7 @@ data DefaultFun
     | Sha3_256
     | Blake2b_256
     | VerifySignature
+    | VerifySECP256k1Signature
     -- Strings
     | AppendString
     | EqualsString
@@ -544,6 +545,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifySignature)
+    toBuiltinMeaning VerifySECP256k1Signature =
+        makeBuiltinMeaning
+            verifySECP256k1Signature
+            mempty
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
@@ -786,6 +791,7 @@ instance Flat DefaultFun where
               Sha3_256                 -> 19
               Blake2b_256              -> 20
               VerifySignature          -> 21
+              VerifySECP256k1Signature -> 51
 
               AppendString             -> 22
               EqualsString             -> 23
@@ -876,6 +882,7 @@ instance Flat DefaultFun where
               go 48 = pure MkPairData
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
+              go 51 = pure VerifySECP256k1Signature
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

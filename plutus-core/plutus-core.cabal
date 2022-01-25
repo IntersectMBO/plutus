@@ -299,6 +299,7 @@ library
         prettyprinter-configurable -any,
         primitive -any,
         recursion-schemes -any,
+        secp256k1-haskell -any,
         semigroupoids -any,
         semigroups >=0.19.1,
         serialise -any,

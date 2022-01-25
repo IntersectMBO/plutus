@@ -40,6 +40,7 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+          (hsPkgs."cereal" or (errorHandler.buildDepError "cereal"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
@@ -48,6 +49,7 @@
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+          (hsPkgs."secp256k1-haskell" or (errorHandler.buildDepError "secp256k1-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
@@ -67,6 +69,7 @@
           "Cardano/Crypto/DSIGN/Ed448"
           "Cardano/Crypto/DSIGN/Mock"
           "Cardano/Crypto/DSIGN/NeverUsed"
+          "Cardano/Crypto/DSIGN/SECP256k1"
           "Cardano/Crypto/Hash/Blake2b"
           "Cardano/Crypto/Hash/Class"
           "Cardano/Crypto/Hash/NeverUsed"
@@ -80,6 +83,8 @@
           "Cardano/Crypto/KES/Simple"
           "Cardano/Crypto/KES/Single"
           "Cardano/Crypto/KES/Sum"
+          "Cardano/Crypto/KES/CompactSingle"
+          "Cardano/Crypto/KES/CompactSum"
           "Cardano/Crypto/PinnedSizedBytes"
           "Cardano/Crypto/Seed"
           "Cardano/Crypto/Util"

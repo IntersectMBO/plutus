@@ -43,7 +43,7 @@ let
     inherit checkMaterialization;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
-      "https://github.com/input-output-hk/cardano-base"."0b1b5b37e305c4bb10791f843bc8c81686a0cba4" = "1z98f3m4skmqy782dpcpd3y0k7hccdrz5yl1fjgjs524swh4vv56";
+      "https://github.com/mlabs-haskell/cardano-base"."196174685462c1ba893834dffcb1ed53f322a987" = "sha256-VBtPVJuezwjQ73c/EWhBGZzfTq0cdXKSAHNEumRfZ88=";
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
