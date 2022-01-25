@@ -136,10 +136,7 @@ defaultUniType = choice $ map try
   , SomeTypeIn DefaultUniString <$ symbol "string"
   , SomeTypeIn DefaultUniUnit <$ symbol "unit"
   , SomeTypeIn DefaultUniBool <$ symbol "bool"
---   , SomeTypeIn DefaultUniProtoList <$ symbol "list"
---   , SomeTypeIn DefaultUniProtoPair <$ symbol "pair"
-  -- , SomeTypeIn DefaultUniApply <$ symbol "?" TODO need to make this an operator
-    ]
+  ] --TODO complete all defaultUni types
 
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
@@ -287,14 +284,6 @@ conBool = choice
     [ someValue True <$ symbol "True"
     , someValue False <$ symbol "False"
     ]
-
---TODO fix these (add parsing of constant after symbol?):
--- conPair :: Parser (Some (ValueOf DefaultUni))
--- conPair = someValue (,) <$ symbol "pair"
--- conList :: Parser (Some (ValueOf DefaultUni))
--- conList = someValue [] <$ symbol "list"
--- conData :: Parser (Some (ValueOf DefaultUni))
--- conData = someValue Data? <$ symbol "data"
 
 constant :: Parser (Some (ValueOf DefaultUni))
 constant = choice $ map try

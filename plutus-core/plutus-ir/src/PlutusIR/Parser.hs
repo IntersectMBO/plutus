@@ -98,6 +98,7 @@ pTerm = choice $ map try
     , builtinTerm
     , unwrapTerm
     ]
+
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
 program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
@@ -108,9 +109,3 @@ program = whitespace >> do
         Program p <$> pTerm
     notFollowedBy anySingle
     return prog
-
--- plcProgram :: Parser (PLC.Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
--- plcProgram = whitespace >> do
---     prog <- inParens $ PLC.Program <$> wordPos "program" <*> version <*> plcTerm
---     notFollowedBy anySingle
---     return prog

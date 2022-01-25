@@ -8,7 +8,6 @@ import PlutusCore
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Generators.NEAT.Spec
 import PlutusCore.Generators.NEAT.Term
-import PlutusCore.Lexer
 import PlutusCore.Normalize
 import PlutusCore.Pretty
 import Test.Tasty

@@ -74,7 +74,6 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    -- (AsParseError e, MonadError e m, PLC.MonadQuote m) =>
     BSL.ByteString ->
       Either (ParseErrorBundle T.Text PLC.ParseError) (p PLC.SourcePos)
 
@@ -91,7 +90,7 @@ class Executable p where
   serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
 
   -- | Read and deserialise a Flat-encoded UPLC AST
-  loadASTfromFlat :: AstNameType -> Input -> IO (p())
+  loadASTfromFlat :: AstNameType -> Input -> IO (p ())
 
 -- | Instance for PLC program.
 instance Executable PlcProg where

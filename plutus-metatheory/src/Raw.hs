@@ -157,7 +157,7 @@ unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 -- imported in multiple places
 
 data ERROR = TypeError T.Text
-           | ParseError (ParseError ())
+           | ParseError ParseError
            | ScopeError ScopeError
            | RuntimeError RuntimeError
            deriving Show

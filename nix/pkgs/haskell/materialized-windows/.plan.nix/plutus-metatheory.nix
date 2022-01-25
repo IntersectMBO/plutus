@@ -55,6 +55,7 @@
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           ];
         buildable = true;
         modules = [
@@ -159,6 +160,7 @@
           "MAlonzo/Code/Data/These/Base"
           "MAlonzo/Code/Data/Vec/Base"
           "MAlonzo/Code/Data/Vec/Bounded/Base"
+          "MAlonzo/Code/Declarative"
           "MAlonzo/Code/Debug/Trace"
           "MAlonzo/Code/Function/Bijection"
           "MAlonzo/Code/Function/Bundles"
