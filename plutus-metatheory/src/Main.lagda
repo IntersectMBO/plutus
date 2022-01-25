@@ -205,6 +205,7 @@ data ERROR : Set where
 uglyTypeError : TypeError → String
 uglyTypeError (kindMismatch K K' x) = "kindMismatch"
 uglyTypeError (notStar K x) = "notStar"
+uglyTypeError (notHash K x) = "notHash"
 uglyTypeError (notFunKind K x) = "NotFunKind"
 uglyTypeError (notPat K x) = "notPat"
 uglyTypeError UnknownType = "UnknownType"
