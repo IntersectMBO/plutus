@@ -130,6 +130,7 @@ test-suite plutus-tx-tests
     -- NOTE: -g makes the plugin give better errors
     ghc-options: -g
 
+
 test-suite size
     import: lang
     -- needs plutus-tx-plugin but it looks unused

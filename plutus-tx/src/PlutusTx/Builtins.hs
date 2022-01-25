@@ -20,6 +20,7 @@ module PlutusTx.Builtins (
                                 , sha3_256
                                 , blake2b_256
                                 , verifySignature
+                                , verifySECP256k1Signature
                                 , decodeUtf8
                                 -- * Integer builtins
                                 , Integer
@@ -156,6 +157,24 @@ greaterThanEqualsByteString x y = BI.ifThenElse (BI.lessThanByteString x y) Fals
 -- | Converts a ByteString to a String.
 decodeUtf8 :: BuiltinByteString -> BuiltinString
 decodeUtf8 = BI.decodeUtf8
+
+{-# INLINEABLE verifySECP256k1Signature #-}
+-- | Given a SECP256k1 public key, a SECP256k1 signature, and a SECP256k1
+-- message hash (all as 'BuiltinByteString's), verify the hash with that key and
+-- signature.
+--
+-- = Important note
+--
+-- The public key, the signature, and the message hash must all be of
+-- appropriate form and length for SECP256k1. This function will error if any of
+-- these are not the case.
+verifySECP256k1Signature
+  :: BuiltinByteString -- ^ Public key
+  -> BuiltinByteString -- ^ Signature
+  -> BuiltinByteString -- ^ Message hash
+  -> Bool
+verifySECP256k1Signature pk sig msg =
+  fromBuiltin (BI.verifySECP256k1Signature pk sig msg)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.

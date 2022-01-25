@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -19,12 +18,15 @@ import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
+import Data.Functor.Identity (Identity (Identity), runIdentity)
 import Data.Hashable (Hashable)
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
+import PlutusCore.Constant.Dynamic.Emit (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (Pretty (..), viaShow)
 
@@ -196,6 +198,17 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b b
 verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
   coerce (fromMaybe False (Crypto.verifySignature pubKey message signature))
+
+{-# NOINLINE verifySECP256k1Signature #-}
+verifySECP256k1Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
+verifySECP256k1Signature (BuiltinByteString pk) (BuiltinByteString sig) (BuiltinByteString msg) =
+  case Crypto.verifySECP256k1Signature pk sig msg of
+    Emitter f -> case runIdentity (f go) of
+      EvaluationFailure   -> mustBeReplaced "SECP256k1 verification errored."
+      EvaluationSuccess b -> BuiltinBool b
+  where
+    go :: Text -> Identity ()
+    go t = Identity . trace (BuiltinString t) $ ()
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
