@@ -490,6 +490,7 @@ executable plc
         text -any,
         transformers -any,
         lens -any
+        megaparsec -any
 
 executable uplc
     import: lang
@@ -514,6 +515,7 @@ executable uplc
         text -any,
         transformers -any,
         lens -any
+        megaparsec -any
 
 executable pir
     import: lang
