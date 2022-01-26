@@ -1,0 +1,16 @@
+\section{Some Basic Notation}
+\begin{itemize}
+\item  The symbol $[]$ denotes an empty list.
+\item The notation $[x_1, \ldots, x_n]$ denotes
+  a list containing the elements $x_1, \ldots, x_n$.  If $n<1$ then the list
+  is empty.
+\item Given an object $x$ and a list $L = [x_1,\ldots, x_n]$,
+we denote the list $[x,x_1,\ldots, x_n]$ by $x \cons L$.
+\item Given a list $L = [x_1, \ldots, x_n]$ and an object $x$,
+we denote the list $[x_1, \ldots, x_n, x]$ by $L \snoc x$.
+%%\item We say that the list $L^{\prime}$ is a \textit{proper prefix} of the list
+%%  $L = [x_1, \ldots, x_n]$, and
+%%  write $L^{\prime} \prec L$,  if $L^{\prime} = [x_1, \ldots, x_m]$ for some $m<n$.
+\item Given a syntactic category $V$, the symbol $\repetition{V}$ denotes a
+  possibly empty list $[V_1,\ldots, V_n]$ of elements $V_i \in V$.
+\end{itemize}

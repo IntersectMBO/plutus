@@ -1,3 +1,17 @@
+@InProceedings{Wadler-Findler-blame,
+author="Wadler, Philip
+and Findler, Robert Bruce",
+editor="Castagna, Giuseppe",
+title="Well-Typed Programs Can't Be Blamed",
+booktitle="Programming Languages and Systems",
+year="2009",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="1--16",
+abstract="We introduce the blame calculus, which adds the notion of blame from Findler and Felleisen's contracts to a system similar to Siek and Taha's gradual types and Flanagan's hybrid types. We characterise where positive and negative blame can arise by decomposing the usual notion of subtype into positive and negative subtypes, and show that these recombine to yield naive subtypes. Naive subtypes previously appeared in type systems that are unsound, but we believe this is the first time naive subtypes play a role in establishing type soundness.",
+isbn="978-3-642-00590-9"
+}
+
 @InProceedings{unravelling-recursion,
 author="Peyton Jones, Michael
 and Gkoumas, Vasilis
@@ -329,8 +343,38 @@ howpublished={\url{https://github.com/input-output-hk/plutus/tree/master/metathe
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
+
+@inproceedings{ches-2011-24091,
+  title={High-Speed High-Security Signatures},
+  booktitle={CHES},
+  series={Lecture Notes in Computer Science},
+  publisher={Springer},
+  volume={6917},
+  pages={124-142},
+  url={https://www.iacr.org/archive/ches2011/69170125/69170125.pdf},
+  doi={10.1007/978-3-642-23951-9_9},
+  author={Daniel J. Bernstein and Niels Duif and Tanja Lange and Peter Schwabe and Bo-Yin Yang},
+  year=2011
+}
+
+
 @misc{flat,
 title="Flat format specification",
 author={Pasqualino `Titto' Assini},
 howpublished={\url{http://quid2.org/docs/Flat.pdf}}
+}
+
+@misc{rfc8949,
+	series =	{Request for Comments},
+	number =	8949,
+	howpublished =	{RFC 8949},
+	publisher =	{RFC Editor},
+	doi =		{10.17487/RFC8949},
+	url =		{https://www.rfc-editor.org/info/rfc8949},
+        author =	{Carsten Bormann and Paul E. Hoffman},
+	title =		{{Concise Binary Object Representation (CBOR)}},
+	pagetotal =	66,
+	year =		2020,
+	month =		dec,
+	abstract =	{The Concise Binary Object Representation (CBOR) is a data format whose design goals include the possibility of extremely small code size, fairly small message size, and extensibility without the need for version negotiation. These design goals make it different from earlier binary serializations such as ASN.1 and MessagePack. This document obsoletes RFC 7049, providing editorial improvements, new details, and errata fixes while keeping full compatibility with the interchange format of RFC 7049. It does not create a new version of the format.},
 }

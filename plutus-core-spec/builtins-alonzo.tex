@@ -1,0 +1,364 @@
+\section{Built-in Types and Functions Supported in the Alonzo Release}
+\label{appendix:default-builtins-alonzo}
+
+\newcounter{note}
+\newcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{note}
+  \noindent\textbf{Note \thenote. #1}
+}
+
+\newcommand{\ty}[1]{\mathtt{#1}}
+\subsection{Built-in types and type operators}
+\label{sec:alonzo-built-in-types}
+The Alonzo release of the Cardano blockchain supports a default set of built-in
+types and type operators defined in Figures~\ref{fig:alonzo-built-in-types} and
+~\ref{fig:alonzo-built-in-type-operators}.  We also include concrete syntax for
+these; the concrete syntax is not strictly part of the language, but may be
+useful for tools working with Plutus Core.
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{6cm}|l|}
+        \hline
+        Type & Denotation & Concrete Syntax\\
+        \hline
+        \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]*}\\
+        \texttt{bytestring}  & $ \byte^*$, the set of sequences of bytes or 8-bit characters. & \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}\\
+        \texttt{string} &   The set of sequences of Unicode scalar values, as defined in \href{http://www.unicode.org/versions/Unicode5.2.0/ch03.pdf#page=35}{§3.9, definition D76 of the Unicode 5.2 standard}. & See note below\\
+        \texttt{bool} & \{\texttt{true, false}\} & \texttt{True | False}\\
+        \texttt{unit} &  \{()\} & \texttt{()}\\
+        \texttt{data} &  See below. & Not yet supported\\
+        \hline
+    \end{tabular}
+    \caption{Atomic Types}
+    \label{fig:alonzo-built-in-types}
+\end{table}
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{14mm}|l|l|}
+        \hline
+        Operator $\mathit{op}$ & $\left|\mathit{op}\right|$  & Denotation & Concrete Syntax\\
+        \hline
+        \texttt{list} & 1 & $\denote{\listOf{t}} = \denote{t}^*$ & Not yet supported\\
+        \texttt{pair} & 2 & $\denote{\pairOf{t_1}{t_2}} = \denote{t_1} \times \denote{t_2}$ & Not yet supported\\
+        \hline
+        \end{tabular}
+   \caption{Type Operators}
+    \label{fig:alonzo-built-in-type-operators}
+\end{table}
+
+\paragraph{Concrete syntax for strings.} Strings are represented as sequences of Unicode characters
+enclosed in double quotes, and may include standard escape sequences.
+
+\paragraph{Concrete syntax for higher-order types.} Types such as $\listOf{\ty{integer}}$
+and $\pairOf{\ty{bool}}{\ty{string)}}$ are represented by application at the
+type level, thus: \texttt{[(con list) (con integer)]} and\texttt{[(con pair)
+    (con bool) (con string)]}.  Each higher-order type will need further syntax
+for representing constants of those types.  For example, we might use
+\texttt{[]} for list values and \texttt{(,)} for pairs, so the list [11,22,33]
+might be written as
+\begin{verbatim}
+   (con [(con list) (con integer)] 
+        [(con integer 11), (con integer 22), (con integer 33)]
+   )
+\end{verbatim}
+and the pair (True, "Plutus") as
+\begin{verbatim}
+   (con [(con pair) (con bool) (con string)] 
+        ((con bool True), (con string "Plutus"))
+   ).
+\end{verbatim}
+Note however that this syntax is not currently supported by most Plutus Core tools at the time of writing.
+
+
+
+\paragraph{The $\ty{data}$ type.}
+We provide a built-in type $\ty{data}$ which permits the encoding of simple data structures
+for use as arguments to Plutus Core scripts.  This type is defined in Haskell as 
+\begin{alltt}
+data Data =
+      Constr Integer [Data]
+    | Map [(Data, Data)]
+    | List [Data]
+    | I Integer
+    | B ByteString
+\end{alltt}
+
+
+
+\noindent In set-theoretic terms the denotation of $\ty{data}$ is
+defined to be the least fixed point of the endofunctor $F$ on the category of
+sets given by $F(X) = (\denote{\ty{integer}} \times X^*) \disj (X \times X)^* \disj
+X^* \disj \denote{\ty{integer}} \disj \denote{\ty{bytestring}}$, so that
+$$ \denote{\ty{data}} = (\denote{\ty{integer}} \times \denote{\ty{data}}^*)
+               \disj (\denote{\ty{data}} \times \denote{\ty{data}})^*
+               \disj \denote{\ty{data}}^*
+               \disj \denote{\ty{integer}}
+               \disj \denote{\ty{bytestring}}.
+$$
+We have injections
+\begin{align*}
+  \inj_C: \denote{\ty{integer}} \times \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
+  \inj_M: \denote{\ty{data}} \times \denote{\ty{data}}^*  & \to \denote{\ty{data}} \\
+  \inj_L: \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
+  \inj_I: \denote{\ty{integer}} & \to \denote{\ty{data}} \\
+  inj_B: \denote{\ty{bytestring}} & \to \denote{\ty{data}} \\
+\end{align*}
+\noindent and projections
+\begin{align*}
+  \proj_C: \denote{\ty{data}} & \to \withError{(\denote{\ty{integer}} \times \denote{\ty{data}}^*)}\\
+  \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}}^*)}\\
+  \proj_L: \denote{\ty{data}} & \to \withError{\denote{\ty{data}}^* }\\
+  \proj_I: \denote{\ty{data}} & \to \withError{\denote{\ty{integer}}}\\
+  \proj_B: \denote{\ty{data}} & \to \withError{\denote{\ty{bytestring}} }\\
+\end{align*}
+\noindent which extract an object of the relevant type from a $\ty{data}$ object
+$D$, returning $\errorX$ if $D$ does not lie in the expected component of the
+disjoint union; also there are functions
+$$
+\is_C, \is_M, \is_L, \is_I, \is_B: \denote{\ty{data}} \to \denote{\ty{bool}}
+$$
+\noindent which determine whether a $\ty{data}$ value lies in the relevant component.
+
+
+\subsection{Built-in functions}
+The default set of built-in functions for the Alonzo release is shown in Figure~\ref{fig:alonzo-built-in-functions}.
+\setlength{\LTleft}{-18mm}  % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & Fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & Fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in Functions}
+    % This caption goes on every page of the table except the last.  Ideally it
+    % would appear only on the first page and all the rest would say
+    % (continued). Unfortunately it doesn't seem to be easy to do that in a
+    % longtable.
+    \endfoot
+    \caption[]{Built-in Functions (continued)}
+    \label{fig:alonzo-built-in-functions}
+    \endlastfoot
+    \T{addInteger}               & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $+$ &  & \\
+    \T{subtractInteger}          & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $-$ &  & \\
+    \T{multiplyInteger}          & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $\times$ &  & \\
+    \T{divideInteger}            & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $\divfn$   & Yes & \ref{note:integer-division-functions}\\
+    \T{modInteger}               & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $\modfn$   & Yes & \ref{note:integer-division-functions}\\
+    \T{quotientInteger}          & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $\quotfn$  & Yes & \ref{note:integer-division-functions}\\
+    \T{remainderInteger}         & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $\remfn$   & Yes & \ref{note:integer-division-functions}\\
+    \T{equalsInteger}            & $[\ty{integer}, \ty{integer}] \to \ty{bool}$      & $=$ &  & \\
+    \T{lessThanInteger}          & $[\ty{integer}, \ty{integer}] \to \ty{bool}$      & $<$ &  & \\
+    \T{lessThanEqualsInteger}    & $[\ty{integer}, \ty{integer}] \to \ty{bool}$      & $\leq$ &  & \\
+    %% Some of the signatures look like $ ... $ \mbox{\;\; $ ... $} to allow a break with some indentation afterwards
+    \T{appendByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \mbox{$\;\; \to \ty{bytestring}$}
+                                           & $([c_1, \dots, c_m], [d_1, \ldots, d_n]) $ \mbox{$\;\; \mapsto [c_1,\ldots, c_m,d_1, \ldots, d_n]$} &  & \\
+    \T{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \mbox{$\;\; \to \ty{bytestring}$}
+                                          & $(c,[c_1,\ldots,c_n]) $ \mbox{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &  & \\
+    \T{sliceByteString}        & $[\ty{integer}, \ty{integer}, \ty{bytestring]} $  \mbox {$\;\; \to  \ty{bytestring}$}
+                                                   &   $(s,k,[c_0,\ldots,c_n])$ \mbox{$\;\;\mapsto [c_{\max(s,0)},\ldots,c_{\min(s+k-1,n-1)}]$}
+                                                   &  & \ref{note:slicebytestring}\\
+    \T{lengthOfByteString}       & $[\ty{bytestring}] \to \ty{integer}$ & $[] \mapsto 0, [c_1,\ldots, c_n] \mapsto n$ &  & \\
+    \T{indexByteString}          & $[\ty{bytestring}, \ty{integer}] $ \mbox{$\;\; \to \ty{integer}$}
+                                                   & $([c_0,\ldots,c_{n-1}],j)$ \mbox{$\;\;\mapsto
+                                                       \left\{ \begin{array}{ll}
+                                                         c_i & \mbox{if $0 \leq j \leq n-1$} \\
+                                                         \errorX & \mbox{otherwise}
+                                                       \end{array}\right.$} & Yes & \\
+    \T{equalsByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \mbox{$\;\; \to \ty{bool}$}   & = &  & \ref{note:bytestring-comparison}\\
+    \T{lessThanByteString}       & $[\ty{bytestring}, \ty{bytestring}] $ \mbox{$\;\; \to \ty{bool}$}   & $<$ &  & \ref{note:bytestring-comparison}\\
+    \T{lessThanEqualsByteString} & $[\ty{bytestring}, \ty{bytestring}] $ \mbox{$\;\; \to \ty{bool}$}   & $\leq$ &  & \ref{note:bytestring-comparison}\\
+    \T{appendString}             & $[\ty{string}, \ty{string}] \to \ty{string}$
+                                         & $([u_1, \dots, u_m], [v_1, \ldots, v_n]) $ \mbox{$\;\; \mapsto [u_1,\ldots, u_m,v_1, \ldots, v_n]$} &  & \\
+    \T{equalsString}             & $[\ty{string}, \ty{string}] \to \ty{bool}$           & = &  & \\
+    \T{encodeUtf8}               & $[\ty{string}] \to \ty{bytestring}$      & Convert a $\ty{string}$ to a \texttt{byte\-string}. & &
+                                                                                                               \ref{note:bytestring-encoding} \\
+    \T{decodeUtf8}               & $[\ty{bytestring}] \to \ty{string}$      & Convert a $\ty{bytestring}$ to a $\ty{string}$. & Yes
+                                                                                                                  & \ref{note:bytestring-encoding} \\
+    \T{sha2\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \T{SHA\-256}. &  & \\
+    \T{sha3\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \T{SHA3\-256}. &  & \\
+    \T{blake2b\_256}             & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \T{Blake2B\-256}. &  & \\
+    \T{verifySignature}          & $[\ty{bytestring}, \ty{bytestring}, $ \mbox{$\;\; \ty{bytestring}] \to \ty{bool}$}
+                                                  & Verify the signature using \T{Ed25519}. &  Yes & \ref{note:signature-verification}\\
+    \T{ifThenElse}               & $[\forall a_*, \ty{bool}, a_*, a_*] \to a_*$
+                                                 & \mbox{$(\mathtt{true},t_1,t_2) \mapsto t_1$}
+                                                 \mbox{$(\mathtt{false},t_1,t_2) \mapsto t_2$} & & \\
+    \T{chooseUnit}               & $[\forall a_*, \ty{unit}, a_*] \to a_*$        & $((), t) \mapsto t$ & & \\
+    \T{trace}                    & $[\forall a_*, \ty{string}, a_*] \to a_*$      & $ (s,t) \mapsto t$ &  & \ref{note:trace}\\
+    \T{fstPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to a_\#$       & $(x,y) \mapsto x$ && \\
+    \T{sndPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to b_\#$       & $(x,y) \mapsto y$ & & \\
+    \T{chooseList}               & $[\forall a_\#, \forall b_*, \listOf{a_\#}, b_*, b_*] \to b_*$
+                                              & \mbox{$([], t_1, t_2) \mapsto t_1$,} \mbox{$([x_1,\ldots,x_n],t_1,t_2) \mapsto t_2\ (n \geq 1)$}. & & \\
+    \T{mkCons}                   & $[\forall a_\#, a_\#, \listOf{a_\#}] \to \listOf{a _\#}$  & $(x,[x_1,\ldots,x_n]) \mapsto [x,x_1,\ldots,x_n]$ & Yes & \\
+    \T{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \\
+    \T{tailList}                 & $[\forall a_\#, \listOf{a_\#}] \to \listOf{a_\#}$
+                                        &  \mbox{$[] \mapsto \errorX$,} \mbox{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \\
+    \T{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \T{true},
+                                                                                                    [x_1,\ldots, x_n] \mapsto \T{false}$& & \\
+    \T{chooseData}               & $[\forall a_*, \ty{data}, a_*, a_*, a_*, a_*, a_*] \to a_*$
+    & $ (d,t_C, t_M, t_L, t_I, t_B) $
+    \smallskip
+    \newline  % The big \{ was abutting the text above
+    \mbox{$\;\;\mapsto
+                                                       \left\{ \begin{array}{ll}
+                                                         t_C  & \mbox{if $\is_C(d)$} \\
+                                                         t_M  & \mbox{if $\is_M(d)$} \\
+                                                         t_L  & \mbox{if $\is_L(d)$} \\
+                                                         t_I  & \mbox{if $\is_I(d)$} \\
+                                                         t_B  & \mbox{if $\is_B(d)$} \\
+                                                       \end{array}\right.$}  & & \\
+    \T{constrData}               & $[\ty{integer}, \listOf{\ty{data}}] \to \ty{data}$          & $\inj_C$ & & \\
+    \T{mapData}                  & $[\listOf{\pairOf{\ty{data}}{\ty{data}}}$ \mbox{$\;\; \to \ty{data}$}     & $\inj_M$& & \\
+    \T{listData}                 & $[\listOf{\ty{data}}] \to \ty{data} $      & $\inj_L$& & \\
+    \T{iData}                    & $[\ty{integer}] \to \ty{data} $            & $\inj_I$ & & \\
+    \T{bData}                    & $[\ty{bytestring}] \to \ty{data} $         & $\inj_B$& & \\
+    \T{unConstrData}             & $[\ty{data}] \to \pairOf{\ty{integer}}{\ty{data}} $            & $\proj_C$ & Yes& \\
+    \T{unMapData}                & $[\ty{data}] $\mbox{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}}$}  & $\proj_M$ & Yes& \\
+    \T{unListData}               & $[\ty{data}] \to \listOf{\ty{data}} $                          & $\proj_L$ & Yes& \\
+    \T{unIData}                  & $[\ty{data}] \to \ty{integer} $                                & $\proj_I$ & Yes& \\
+    \T{unBData}                  & $[\ty{data}] \to \ty{bytestring} $                             & $\proj_B$ & Yes& \\
+    \T{equalsData}               & $[\ty{data}, \ty{data}] \to \ty{bool} $                        & $ = $ & & \\
+    \T{mkPairData}               & $[\ty{data}, \ty{data}]$ \mbox{\;\; $\to \pairOf{\ty{data}}{\ty{data}}$}  & $(x,y) \mapsto (x,y) $ & & \\
+    \T{mkNilData}                & $[\ty{unit}] \to \listOf{\ty{data}} $                       & $() \mapsto []$ & & \\
+    \T{mkNilPairData}            & $[\ty{unit}] $ \mbox{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}} $}   & $() \mapsto []$ & & \\
+    \hline 
+\end{longtable}
+
+\kwxm{Maybe try \texttt{tabulararray} to see what sort of output that gives for the big table.}
+
+\note{Integer division functions.}
+\label{note:integer-division-functions}
+We provide four integer division functions: \texttt{divideInteger},
+\texttt{modInteger}, \texttt{quotientInteger}, and \texttt{remainderInteger},
+whose denotations are mathematical functions $\divfn, \modfn, \quotfn$, and
+$\remfn$ which are modelled on the corresponding Haskell operations. Each of
+these takes two arguments and will fail (returning $\errorX$) if the second one
+is negative.  For all $a,b \in \Z$ with $a \ne 0$ we have
+$$
+\divfn(a,b) \times b + \modfn(a,b) = a
+$$
+$$
+  |\modfn(a,b)| < |b|
+$$\noindent and
+$$
+  \quotfn(a,b) \times b + \remfn(a,b) = a
+$$
+$$
+  |\remfn(a,b)| < |b|.
+$$
+\noindent The $\divfn$ and $\modfn$ functions form a pair, as do $\quotfn$ and $\remfn$;
+$\divfn$ should not be used in combination with $\modfn$, not should $\quotfn$ be used
+with $\modfn$.
+
+For positive divisors $b$, $\divfn$ truncates downwards and $\modfn$ always
+returns a non-negative result ($0 \leq \modfn(a,b) \leq b-1$).  The $\quotfn$
+function truncates towards zero.  Figure~\ref{fig:integer-division-signs} shows
+how the signs of the outputs of the division functions depend on the signs of
+the inputs ($+$ means non-negative, so includes 0).
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|cc|cc|cc|}
+        \hline
+        a & b & $\divfn$ & $\modfn$ & $\quotfn$ & $\remfn$ \\
+        \hline
+        $+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\
+        $-$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
+        $+$ & $-$ & $-$ & $+$ & $+$ & $+$ \\
+        $-$ & $-$ & $+$ & $-$ & $+$ & $-$ \\
+        \hline
+        \end{tabular}
+   \caption{Behaviour of integer division functions}
+   \label{fig:integer-division-signs}
+\end{table}
+%% -------------------------------
+%% |   n  d | div mod | quot rem |
+%% |-----------------------------|
+%% |  41  5 |  8   1  |   8   1  |
+%% | -41  5 | -9   4  |  -8  -1  |
+%% |  41 -5 | -9  -4  |  -8   1  |
+%% | -41 -5 |  8  -1  |   8  -1  |
+%% -------------------------------
+
+\note{The \texttt{sliceByteString} function.}
+\label{note:slicebytestring}
+The application \texttt{[(builtin sliceByteString) (con integer $s$) (con
+    integer $k$) (con bytestring $b$)]} returns the substring of $b$ of length
+$k$ starting at position $s$; indexing is zero-based, so a call with $s=0$
+returns a substring starting with the first element of $b$, $s=1$ returns a
+substring starting with the second, and so on.  This function always succeeds,
+even if the arguments are out of range: if $b=[c_0, \ldots, c_{n-1}]$ then the
+  application above returns the substring $[c_i, \ldots, c_j]$ where
+  $i=\max(s,0)$ and $j=\min(s+k-1, n-1)$; if $j<i$ then the empty string is returned.
+  
+
+\note{Comparisons of bytestrings.}
+\label{note:bytestring-comparison}
+Bytestrings are ordered lexicographically.  If we have $a = [c_1, \ldots, c_m]$
+and $b = [d_1, \ldots, d_n]$ then
+\begin{itemize}
+\item $a = b$ if and only if $m=n$ and $c_i = d_i$ for $1 \leq i \leq m$
+\item $a \leq b$ if $c_i = d_i$ for $1 \leq i \leq \min(m,n)$
+\item $a<b$ if $a \leq b$ and $a \neq b$.
+\end{itemize}
+\noindent The empty bytestring is equal only to itself and is strictly less than all other bytestrings.
+
+\kwxm{The lexicographic ordering means that $\mathtt{\#23456789} <
+  \mathtt{\#24}$, which came as a slight surprise to me.  I think I was thinking
+  of these as long numbers, not strings.}
+
+\note{Encoding and decoding bytestrings.}
+\label{note:bytestring-encoding}
+The \texttt{encodeUtf8} and \texttt{decodeUtf8} functions convert between the
+$\ty{string}$ type and the $\ty{bytestring}$ type.  We have defined
+$\denote{\ty{string}}$ to consist of sequences of Unicode characters without
+specifying any particular character representation, but
+$\denote{\ty{bytestring}}$ consists of sequences of 8-bit bytes.  As the names
+suggest, both functions use the well-known UTF-8 character encoding, where each
+Unicode character is encoded using between one and four bytes: thus in general
+neither function will preserve the length of an object; moreover, not all
+sequences of bytes are valid representations of Unicode characters, and
+\texttt{decodeUtf8} will fail if it receives an invalid input (but
+\texttt{encodeUtf8} will always succeed).
+
+\kwxm{In fact, strings are represented as sequences of UTF-16 characters, which
+  use two or four bytes per character.  Do we need to mention that?  If we do,
+  we'll need to be a little careful: there are sequences of 16-bit words that
+  don't represent valid Unicode characters (for example, if the sequence uses
+  surrogate codepoints improperly.  I don't think you can create a Haskell
+  \texttt{Text} object (which is what our strings really are) that's invalid
+  though.}
+
+
+\note{Signature verification.}
+\label{note:signature-verification}
+The \texttt{verifySignature} performs cryptographic signature verification using
+the Ed25519 scheme (\cite{ches-2011-24091}).  The function takes three bytestring
+arguments: a public key $k$, a message $m$, and a signature $s$ (in that order).
+The key $k$ must be exactly 32 bytes long and the signature $s$ must be exactly 64
+bytes, and the function will fail if either is the wrong length; there is no
+restriction on the length of the message. If $k$ and $s$ are the correct lengths
+then \texttt{verifySignature} returns \texttt{true} if the private key
+corresponding to $k$ was used to sign the message $m$ to produce $s$, otherwise
+it returns \texttt{false}.
+
+\note{The \texttt{trace} function.}
+\label{note:trace}
+An application \texttt{[(builtin trace) $s$ $v$]} ($s$ a \texttt{string}, $v$
+any Plutus Core value) returns $v$.  We do not specify the semantics any
+further.  An implementation may choose to discard $s$ or to perform some
+side-effect such as writing it to a terminal or log file.
+
+\kwxm{I sincerely hope that this is the only function we'll ever have that can
+  do things like this.  I don't want to have to introduce some general notion of
+  effectfulness into the notation to deal with the general case.}
+
+\subsection{Cost accounting for built-in functions}
+To follow.
+
+\newpage

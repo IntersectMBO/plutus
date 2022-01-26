@@ -5,7 +5,7 @@ BIB=${DOC}.bib
 
 FIGS=./figures
 
-SRC = ${DOC}.tex ${BIB} ${FIGS}/*.tex 
+SRC = *.tex ${BIB} # ${FIGS}/*.tex 
 
 
 LATEX = pdflatex -halt-on-error -shell-escape # To get pstricks to work with PDF
@@ -35,8 +35,8 @@ again:
 	touch ${DOC}.tex && ${MAKE}
 
 clean:
-	rm -f *.aux *.log *.cov *.par *.bbl *.fls *.blg *.xml *.bcf *.dvi *.out *~
-	cd ${FIGS} && ${MAKE} clean
+	rm -f *.aux *.log *.cov *.par *.bbl *.fls *.blg *.out *.xml *.bcf *.dvi *.toc *.tdo *~
+#	cd ${FIGS} && ${MAKE} clean
 
 clean2: clean
 	rm -f ${DOC}.pdf
