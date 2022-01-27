@@ -39,7 +39,7 @@ jobs:
       # Extract the benchmark name from the comment text
       #
       - uses: actions-ecosystem/action-regex-match@v2
-        if: steps.check.outputs.triggered == 'true'
+        if: steps.find-comment.outputs.triggered == 'true'
         id: extract-benchmark
         with:
           text: ${{ github.find-comment.outputs.comment_body }}
