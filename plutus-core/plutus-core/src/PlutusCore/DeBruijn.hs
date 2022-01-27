@@ -6,6 +6,7 @@
 -- | Support for using de Bruijn indices for term and type names.
 module PlutusCore.DeBruijn
     ( Index (..)
+    , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
     , TyDeBruijn (..)
@@ -43,7 +44,7 @@ import Control.Monad.Reader
 
 {- NOTE: [DeBruijn indices of Binders]
 In a debruijnijfied Term AST, the Binders have a debruijn index
-at their the spefiic AST location.
+at their the specific AST location.
 During *undebruijnification* we ignore such binders' indices because they are meaningless,
 and instead use the convention that such introduced binders have
 a fixed debruijn index '0' at their introduction.

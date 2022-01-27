@@ -294,6 +294,7 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core/Type"
           "Common"
@@ -514,7 +515,10 @@
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
+            "DeBruijn/Common"
+            "DeBruijn/Scope"
             "DeBruijn/Spec"
+            "DeBruijn/UnDeBruijnify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
