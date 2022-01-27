@@ -2,9 +2,9 @@
 
 set -e
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
     echo "[trigger-buildkite-pipeline]: Missing argument(s)"
-    echo "[trigger-buildkite-pipeline]: expecting 2 arguments: <branch name> <PR number>"
+    echo "[trigger-buildkite-pipeline]: expecting 3 arguments: <branch name> <PR number> <benchmark name>"
     echo "[trigger-buildkite-pipeline]: Arguments received: '$*'"
     exit 1
 fi
@@ -15,9 +15,10 @@ if [ -z "$BUILDKITE_API_ACCESS_TOKEN" ] ; then
 fi
 
 BRANCH="$1"
-PR="$2"
+PR_NUMBER="$2"
+BENCHMARK_NAME="$2"
 
-echo "[trigger-buildkite-pipeline]: Triggering build for $BRANCH"
+echo "[trigger-buildkite-pipeline]: Triggering build of benchmark $BENCHMARK_NAME for branch $BRANCH on PR $PR_NUMBER"
 
 curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
      -X POST "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds"\
@@ -26,6 +27,7 @@ curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
          \"branch\": \"$BRANCH\",
          \"message\": \"Running benchmarks\",
            \"env\": {
-             \"PR_NUMBER\": \"$PR\"
+             \"PR_NUMBER\": \"$PR_NUMBER\"
+             \"BENCHMARK_NAME\": \"$BENCHMARK_NAME\"
            }
          }"
