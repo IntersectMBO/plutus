@@ -42,8 +42,13 @@ jobs:
         if: steps.find-comment.outputs.triggered == 'true'
         id: extract-benchmark
         with:
-          text: ${{ github.find-comment.outputs.comment_body }}
+          text: ${{ steps.find-comment.outputs.comment_body }}
           regex: '^\/benchmark\s*(.*?)\s*$'
+
+      - run: |
+          echo "{{ steps.find-comment.outputs.comment_body }}"
+          echo "{{ steps.extract-benchmark.outputs.match }}"
+        if: steps.find-comment.outputs.triggered == 'true'
 
       #
       # Trigger the buildkite pipeline IF the 'benchmark' command was found
