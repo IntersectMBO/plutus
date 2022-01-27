@@ -46,8 +46,8 @@ jobs:
           regex: '^\/benchmark\s*(.*?)\s*$'
 
       - run: |
-          echo "{{ steps.find-comment.outputs.comment_body }}"
-          echo "{{ steps.extract-benchmark.outputs.match }}"
+          echo "${{ steps.find-comment.outputs.comment_body }}"
+          echo "${{ steps.extract-benchmark.outputs.match }}"
         if: steps.find-comment.outputs.triggered == 'true'
 
       #
