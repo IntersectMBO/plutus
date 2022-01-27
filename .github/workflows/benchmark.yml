@@ -43,7 +43,7 @@ jobs:
         id: extract-benchmark
         with:
           text: ${{ github.find-comment.outputs.comment_body }}
-          regex: '^/benchmark\s*(.*?)\s*$'
+          regex: '^\/benchmark\s*(.*?)\s*$'
 
       #
       # Trigger the buildkite pipeline IF the 'benchmark' command was found
