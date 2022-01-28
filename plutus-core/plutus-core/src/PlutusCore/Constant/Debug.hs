@@ -1,63 +1,51 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+{-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
 
-{-# LANGUAGE DataKinds    #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
 
 -- | This module helps to visualize and debug the 'TypeScheme' inference machinery from the
 -- @Meaning@ module.
-module PlutusCore.Constant.Debug where
+module PlutusCore.Constant.Debug
+  ( module PlutusCore.Constant.Debug
+  -- Reexporting a bunch of stuff, so that debug output is not littered with module names.
+  , module Export
+  ) where
 
-import PlutusCore.Constant.Meaning
-import PlutusCore.Constant.Typed
-import PlutusCore.Core
-import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Constant.Meaning as Export
+import PlutusCore.Constant.Typed as Export
+import PlutusCore.Core as Export
+import PlutusCore.Default as Export
+import PlutusCore.Name as Export
 
-type TermDebug = Term TyName Name DefaultUni DefaultFun ()
-
--- | Instantiate type variables in the type of a value using 'EnumerateFromTo'.
--- This function only performs the enumeration and checks that the result does not have certain
--- constraints, so it's allowed for the type to reference types that are not in the universe.
--- Example usages:
+-- | Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
 --
--- >>> :t enumerateDebug False
--- enumerateDebug False :: Bool
--- >>> :t enumerateDebug $ \_ -> ()
--- enumerateDebug $ \_ -> ()
+-- >>> :t elaborateDebug False
+-- elaborateDebug False :: Bool
+-- >>> :t elaborateDebug $ \_ -> ()
+-- elaborateDebug $ \_ -> ()
 --   :: Opaque
 --        (Term TyName Name DefaultUni DefaultFun ())
 --        (TyVarRep ('TyNameRep "a" 0))
 --      -> ()
--- >>> :t enumerateDebug 42
--- <interactive>:1:16: error:
+-- >>> :t elaborateDebug $ Just ()
+-- <interactive>:1:1: error:
+--     • No instance for ‘KnownTypeAst DefaultUni (Maybe ())’
+--       Which means
+--         ‘Maybe ()’
+--       is neither a built-in type, nor one of the control types.
+--       If it can be represented in terms of one of the built-in types
+--         then go add the instance (you may need a ‘KnownTypeIn’ one too)
+--         alongside the instance for the built-in type.
+--       Otherwise you may need to add a new built-in type
+--         (provided you're doing something that can be supported in principle)
+--     • In the expression: elaborateDebug $ Just ()
+-- >>> :t elaborateDebug $ 0 + 42
+-- <interactive>:1:18: error:
 --     • Built-in functions are not allowed to have constraints
 --       To fix this error instantiate all constrained type variables
---     • In the first argument of ‘enumerateDebug’, namely ‘42’
---       In the expression: enumerateDebug 42
-specializeDebug :: forall a j. SpecializeFromTo 0 j TermDebug a => a -> a
-specializeDebug = id
-
--- | Instantiate type variables in the type of a value using 'EnumerateFromTo' and check that it's
--- possible to construct a 'TypeScheme' out of the resulting type. Example usages:
---
--- >>> :t inferDebug False
--- inferDebug False :: Bool
--- >>> :t inferDebug $ Just 'a'
--- <interactive>:1:1: error:
---     • No instance for (KnownPolytype
---                          (ToBinds (Maybe Char)) TermDebug '[] (Maybe Char) (Maybe Char))
---         arising from a use of ‘inferDebug’
---     • In the expression: inferDebug $ Just 'a'
--- >>> :t inferDebug $ \_ -> ()
--- inferDebug $ \_ -> ()
---   :: Opaque
---        (Term TyName Name DefaultUni DefaultFun ())
---        (TyVarRep ('TyNameRep "a" 0))
---      -> ()
-inferDebug
-    :: forall a binds args res j.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds TermDebug args res a, SpecializeFromTo 0 j TermDebug a
-       )
+--     • In the second argument of ‘($)’, namely ‘0 + 42’
+--       In the expression: elaborateDebug $ 0 + 42
+elaborateDebug
+    :: forall a j. ElaborateFromTo 0 j (Term TyName Name DefaultUni DefaultFun ()) a
     => a -> a
-inferDebug = id
+elaborateDebug = id

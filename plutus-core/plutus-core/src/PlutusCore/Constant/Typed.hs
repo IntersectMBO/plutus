@@ -44,7 +44,6 @@ module PlutusCore.Constant.Typed
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , Merge
-    , ListToBinds
     , KnownBuiltinTypeIn
     , KnownBuiltinType
     , readKnownConstant
@@ -623,18 +622,6 @@ type family Delete x xs :: [a] where
 type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
     Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
-
--- There's no sensible way to provide a 'KnownTypeAst' instance for a type-level list, so we
--- create a separate type family. We could have a single type family on the top level for both
--- 'ToBinds' and 'ListToBinds', but then we'd lose a very convenient default of each type from the
--- universe returning an empty list from 'ToBinds' and the user would need to do provide a
--- @type instance@ themselves (which is no big deal, but it's nicer not to ask the user to do that).
--- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
--- in a list.
-type ListToBinds :: forall a. [a] -> [GADT.Some TyNameRep]
-type family ListToBinds xs
-type instance ListToBinds '[]       = '[]
-type instance ListToBinds (x ': xs) = Merge (ToBinds x) (ListToBinds xs)
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinTypeIn uni term a = (HasConstantIn uni term, GShow uni, GEq uni, uni `Contains` a)
