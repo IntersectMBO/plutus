@@ -2,7 +2,6 @@
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE PatternSynonyms    #-}
-{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 module PlutusCore
     (

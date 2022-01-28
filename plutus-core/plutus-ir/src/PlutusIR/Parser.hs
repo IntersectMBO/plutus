@@ -2,7 +2,6 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 module PlutusIR.Parser
     ( parse
