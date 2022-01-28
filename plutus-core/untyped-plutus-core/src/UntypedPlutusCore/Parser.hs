@@ -57,10 +57,10 @@ appTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
 appTerm = inBrackets $ UPLC.Apply <$> getSourcePos <*> term <*> term
 
 delayTerm :: Parser PTerm
-delayTerm = inParens $ UPLC.Delay <$> wordPos "abs" <*> term
+delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term
 
 forceTerm :: Parser PTerm
-forceTerm = inBraces $ UPLC.Force <$> getSourcePos <*> term
+forceTerm = inParens $ UPLC.Force <$> wordPos "force" <*> term
 
 errorTerm
     :: Parser PTerm

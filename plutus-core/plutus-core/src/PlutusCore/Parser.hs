@@ -1,7 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 
 module PlutusCore.Parser
     ( parseProgram
@@ -60,20 +60,8 @@ appTerms = choice
             tms <- appTerms
             pure $ tm : tms
 
--- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
 conTerm :: Parser PTerm
-conTerm = inParens $ do
-    p <- wordPos "con"
-    conTy <- defaultUniType
-    con <-
-        case conTy of --TODO add Lists, Pairs, Data, App
-            SomeTypeIn DefaultUniInteger    -> conInt
-            SomeTypeIn DefaultUniByteString -> conBS
-            SomeTypeIn DefaultUniString     -> conText
-            SomeTypeIn DefaultUniUnit       -> conUnit
-            SomeTypeIn DefaultUniBool       -> conBool
-    whitespace
-    pure $ Constant p con
+conTerm = inParens $ Constant <$> wordPos "con" <*> constant
 
 builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction

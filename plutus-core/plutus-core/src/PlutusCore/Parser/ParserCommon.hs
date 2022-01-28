@@ -2,8 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
-
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 
 module PlutusCore.Parser.ParserCommon where
@@ -285,12 +284,16 @@ conBool = choice
     , someValue False <$ symbol "False"
     ]
 
+-- | Parser for a constant term. Currently the syntax is "con defaultUniType val".
 constant :: Parser (Some (ValueOf DefaultUni))
-constant = choice $ map try
-    [ inParens constant
-    , conInt
-    , conBS
-    , conText
-    , conUnit
-    , conBool
-    ]
+constant = do
+    conTy <- defaultUniType
+    con <-
+        case conTy of --TODO add Lists, Pairs, Data, App
+            SomeTypeIn DefaultUniInteger    -> conInt
+            SomeTypeIn DefaultUniByteString -> conBS
+            SomeTypeIn DefaultUniString     -> conText
+            SomeTypeIn DefaultUniUnit       -> conUnit
+            SomeTypeIn DefaultUniBool       -> conBool
+    whitespace
+    pure con
