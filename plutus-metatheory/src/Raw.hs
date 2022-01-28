@@ -16,6 +16,7 @@ import PlutusCore.Parser
 import PlutusCore.Pretty
 
 import Data.Either
+import Text.Megaparsec.Error qualified as M
 
 data RType = RTyVar Integer
            | RTyFun RType RType
@@ -157,7 +158,7 @@ unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 -- imported in multiple places
 
 data ERROR = TypeError T.Text
-           | ParseError ParseError
+           | ParseError (M.ParseErrorBundle T.Text ParseError)
            | ScopeError ScopeError
            | RuntimeError RuntimeError
            deriving Show
