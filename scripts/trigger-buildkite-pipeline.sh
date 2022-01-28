@@ -16,7 +16,7 @@ fi
 
 BRANCH="$1"
 PR_NUMBER="$2"
-BENCHMARK_NAME="$2"
+BENCHMARK_NAME="$3"
 
 echo "[trigger-buildkite-pipeline]: Triggering build of benchmark $BENCHMARK_NAME for branch $BRANCH on PR $PR_NUMBER"
 
