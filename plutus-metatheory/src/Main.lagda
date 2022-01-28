@@ -149,7 +149,6 @@ postulate
 {-# FOREIGN GHC import Data.Bifunctor #-}
 
 {-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParseError #-}
---{-# COMPILE GHC ParseError = type PlutusCore.ParseError #-}
 {-# COMPILE GHC parse = parseProgram  #-}
 {-# COMPILE GHC parseU = U.parseProgram  #-}
 {-# COMPILE GHC parseTm = parseTerm  #-}
