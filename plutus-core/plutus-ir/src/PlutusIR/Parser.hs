@@ -48,10 +48,11 @@ datatype = inParens $ Datatype <$> wordPos "datatype"
 
 binding
     :: Parser (Binding TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-binding = inParens $
-    (try $ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> pTerm)
-    <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> pType)
-    <|> (wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
+binding = inParens $ choice $ map try
+    [ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> pTerm
+    , wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> pType
+    , wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype
+    ]
 
 absTerm :: Parser PTerm
 absTerm = PIR.TyAbs <$> wordPos "abs" <*> tyName <*> kind <*> pTerm
@@ -85,8 +86,7 @@ tyInstTerm = PIR.mkIterInst <$> getSourcePos <*> pTerm <*> some pType
 
 pTerm :: Parser PTerm
 pTerm = choice $ map try
-    [ inParens pTerm
-    , absTerm
+    [ absTerm
     , lamTerm
     , conTerm
     , iwrapTerm
