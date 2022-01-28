@@ -118,9 +118,7 @@
           build-tools = [
             (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
-          buildable = if compiler.isGhcjs && true || system.isWindows
-            then false
-            else true;
+          buildable = if system.isWindows then false else true;
           modules = [
             "Suites/Laws"
             "Suites/Laws/Eq"

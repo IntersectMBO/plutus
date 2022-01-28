@@ -5,6 +5,8 @@
         "charset".revision = (((hackage."charset")."0.3.9").revisions).default;
         "size-based".revision = (((hackage."size-based")."0.1.2.0").revisions).default;
         "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
+        "hedgehog-fn".revision = (((hackage."hedgehog-fn")."1.0").revisions).default;
+        "hedgehog-fn".flags.build-examples = false;
         "happy".revision = (((hackage."happy")."1.20.0").revisions).default;
         "ghc-boot".revision = (((hackage."ghc-boot")."8.10.7").revisions).default;
         "tasty-hedgehog".revision = (((hackage."tasty-hedgehog")."1.1.0.0").revisions).default;
@@ -732,7 +734,9 @@
           "iohk-monitoring-stub".components.library.planned = lib.mkOverride 900 true;
           "ansi-wl-pprint".components.library.planned = lib.mkOverride 900 true;
           "uuid-types".components.library.planned = lib.mkOverride 900 true;
+          "hedgehog-fn".components.library.planned = lib.mkOverride 900 true;
           "test-framework".components.library.planned = lib.mkOverride 900 true;
+          "plutus-tx-plugin".components.tests."size".planned = lib.mkOverride 900 true;
           "tagged".components.library.planned = lib.mkOverride 900 true;
           "hspec-discover".components.exes."hspec-discover".planned = lib.mkOverride 900 true;
           "haskell-lexer".components.library.planned = lib.mkOverride 900 true;

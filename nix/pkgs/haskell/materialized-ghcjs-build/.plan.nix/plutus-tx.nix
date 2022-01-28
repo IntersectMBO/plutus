@@ -101,11 +101,14 @@
       tests = {
         "plutus-tx-test" = {
           depends = [
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."hedgehog-fn" or (errorHandler.buildDepError "hedgehog-fn"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."pretty-show" or (errorHandler.buildDepError "pretty-show"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -116,6 +119,19 @@
             (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
           buildable = if system.isWindows then false else true;
+          modules = [
+            "Suites/Laws"
+            "Suites/Laws/Eq"
+            "Suites/Laws/Ord"
+            "Suites/Laws/Additive"
+            "Suites/Laws/Multiplicative"
+            "Suites/Laws/Ring"
+            "Suites/Laws/Module"
+            "Suites/Laws/Serialization"
+            "Suites/Laws/Construction"
+            "Suites/Laws/Other"
+            "Suites/Laws/Helpers"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
