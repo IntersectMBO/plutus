@@ -828,4 +828,5 @@ srcSpanEndLine = undefined
 srcSpanStartCol = undefined
 srcSpanEndCol = undefined
 mg_modBreaks = undefined
+dataConRepArgTys = undefined
 
