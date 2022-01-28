@@ -11,7 +11,7 @@ open import Utils
 open import Type
 open import Type.BetaNormal
 open import Algorithmic
-open import Algorithmic.Reduction
+open import Algorithmic.ReductionEC
 \end{code}
 
 ## Evaluation
@@ -42,7 +42,7 @@ data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
 --   neutral : {L : ∅ ⊢ A} → Neutral L → Finished L
 \end{code}
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
-a reduction sequence from `L` to `N` and an indication of whether
+Ma reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
 \begin{code}
 data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where

@@ -1,13 +1,15 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiWayIf            #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
+
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
@@ -59,21 +61,6 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
-
-{-
-The patched 8.10 GHCs from haskell.nix include a buggy patch that introduced some changes to the core
-AST that should only have been in 9.0. In order to facilitate building with non-patched GHCs, we use a bit
-of CPP here.
-
-How do we know whether we're using a haskell.nix GHC? Well, we can't in general, but in fact we're using
-an extra-special patched version which we *can* detect, so that lets us do the job for now until we can
-fix this properly.
--}
-#if __GLASGOW_HASKELL_PATCHLEVEL2__ == 20210212
-type Tickish = GHC.GenTickish
-#else
-type Tickish = GHC.Tickish
-#endif
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -866,9 +853,22 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
    differently with regards to tick floating.
 -}
 
--- | Do your best to try to extract a source span from a tick
+{- Note [Partial type signature for getSourceSpan]
+Why is there a partial type signature here? The answer is that we sometimes compile with a patched
+GHC provided from haskell.nix that has a slightly busted patch applied to it. That patch changes
+the type of the 'Tickish' part of 'Tick'.
+
+Obviously we would eventually like to not have this problem (should be when we go to 9.2), but in
+the mean time we'd like things to compile on both the patched and non-patched GHC.
+
+A partial type signature provides a simple solution: GHC will infer different types for the hole
+in each case, but since we operate on them in the same way, there's no problem.
+-}
+
 -- See Note [What source locations to cover]
-getSourceSpan :: Maybe GHC.ModBreaks -> Tickish pass -> Maybe GHC.RealSrcSpan
+-- See Note [Partial type signature for getSourceSpan]
+-- | Do your best to try to extract a source span from a tick
+getSourceSpan :: Maybe GHC.ModBreaks -> _ -> Maybe GHC.RealSrcSpan
 getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
 getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
   case cc of

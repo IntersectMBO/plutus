@@ -40,8 +40,6 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ```
 
 ```
-{-# INJECTIVE _⊢_ #-}
-{-# INJECTIVE _⊢Nf⋆_ #-}
 ```
 
 ## Values
@@ -361,7 +359,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
 ```
 
 ```
-data _—↠_ : {A A' : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A' → Set
+data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
   where
 
   refl—↠ : ∀{A}{M : ∅ ⊢ A}
@@ -1480,11 +1478,26 @@ unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
 ... | refl ,, refl ,, refl with U E refl p
 ... | refl ,, refl ,, refl = refl
 
+unique-EC' : ∀{A B}(E : EC A B)(L : ∅ ⊢ B) → Redex L
+  → E [ L ]ᴱ ≡ error _ → ∃ λ (p : B ≡ A) → E ≡ substEq (λ A → EC A B) p [] × L ≡ error _
+unique-EC' E L p q with rlemma51! (E [ L ]ᴱ)
+... | done VEL = ⊥-elim (valredex (lemVE L E VEL) p)
+... | step ¬VEL E'' r r' U with U [] q err
+... | refl ,, refl ,, refl with U E refl p
+... | refl ,, refl ,, refl = refl ,, refl ,, refl
+
 notVAL : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→ N → ⊥
 notVAL V (ruleEC E p refl r) = valred (lemVE _ E V) p
 notVAL V (ruleErr E refl)    =
   valerr E-error (lemVE _ E V)
-
+{-
+notErr : ∀{A B}{L L′ : ∅ ⊢ A}{E : EC B A} → L —→⋆ L′ → E [ L′ ]ᴱ ≡ error _ → ⊥
+notErr {L = L}{L′}{E} x y with rlemma51! (E [ L′ ]ᴱ)
+... | step x₁ E₁ x₂ x₃ x₄ = {!!}
+-- what do we know? E [ L′ ]ᴱ == error B, so E == [] and L′ == error B
+-- we also have that E [ L′ ] ᴱ == E₁ [ L₁ ]ᴱ and L₁ is a redex...
+... | done x₁ = ⊥-elim (notVAL x₁ (ruleErr [] y))
+-}
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
 determinism {L = L} p q with rlemma51! L
 determinism {L = .(E [ _ ]ᴱ)} (ruleEC E p refl p') q | done VL =

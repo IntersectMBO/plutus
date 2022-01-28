@@ -29,14 +29,19 @@ if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
    exit 1
 fi
-echo "[ci-plutus-benchmark]: Processing benchmark comparison for PR $PR_NUMBER"
+if [ -z "$BENCHMARK_NAME" ] ; then
+   echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set! Exiting"
+   exit 1
+fi
+
+echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark $BENCHMARK_NAME on PR $PR_NUMBER"
 PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix-shell --run "cabal bench plutus-benchmark:validation >bench-PR.log 2>&1"
+nix-shell --run "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
 
 echo "[ci-plutus-benchmark]: fetching origin ..."
 git fetch origin
@@ -46,7 +51,7 @@ git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-nix-shell --run "cabal bench plutus-benchmark:validation >bench-base.log 2>&1"
+nix-shell --run "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
