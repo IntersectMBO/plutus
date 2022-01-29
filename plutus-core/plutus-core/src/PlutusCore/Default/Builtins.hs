@@ -338,58 +338,8 @@ whose inferred Haskell type is
 The way 'makeBuiltinMeaning' handles such a type is by traversing it and instantiating every type
 variable. What a type variable gets instantiated to depends on where it appears. When the entire
 type of an argument is a single type variable, it gets instantiated to @Opaque val VarN@ where
-@VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N".
-For the purpose of this explanation it doesn't matter what @VarN@ actually is and the representation
-is subject to change anyway. 'Opaque' however is more fundamental and so we need to talk about it.
-Here's how it's defined:
-
-    newtype Opaque val (rep :: GHC.Type) = Opaque
-        { unOpaque :: term
-        }
-
-In order to apply the denotation of a builtin to a value of a monomorphic type like 'Integer' we
-need to extract that value from the AST
-
-For monomorphic types like 'Integer' we
-
-The idea is that while for monomorphic types like 'Integer'
-
-in order
-
-
-to apply the denotation of a builtin to an argument in whose type the
-denotation is polymorphic
-
-
-The idea behind 'Opaque' is really simple: we have parametricity in Haskell and so any
-
-@Opaque val rep@ is a @newtype@ wrapper around @term@.
-
-
-: for values of built-in types we
-
-
-Plutus has parametricity and so any Plutus function
-polymorphic in the type of an argument can't inspect that argument in any way
-
-Plutus has parametricity and types do not survive full
-compilation, hence any Plutus function can't
-
-
-both Plutus and Haskell have parametricity
-in either of the languages , hence we can simply instantiate all type variables in the denotation of a
-builtin at the type of
-
-Fortunately, there is a simple trick: we have parametricity in Haskell, so a function that is
-polymorphic in its argument can't inspect that argument in any way and so we never actually need to
-convert such an argument from PLC to Haskell just to convert it back later without ever inspecting
-the value. Instead we can keep the argument intact and apply the Haskell function directly to
-the PLC AST representing some value.
-
-
-TODO: ....
-and @Opaque@ actually are,
-see Note [Elaboration of polymorphism] for
+@VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N"
+(for the purpose of this explanation it doesn't matter what @VarN@ actually is).
 See Note [Implementation of polymorphic built-in functions] for what 'Opaque' is.
 
 So the type from the above elaborates to

@@ -1,4 +1,4 @@
--- | Orphan 'GEq' and 'GCompare' instances of data types from "PlutusCore.Builtin.Typed".
+-- | Orphan 'GEq' and 'GCompare' instances for known types.
 -- The reason we keep the instances separate is that they are highly unsafe ('unsafeCoerce' is used)
 -- and needed only for tests.
 
