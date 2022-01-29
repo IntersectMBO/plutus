@@ -6,12 +6,13 @@
 -- | This module helps to visualize and debug the 'TypeScheme' inference machinery from the
 -- @Meaning@ module.
 module PlutusCore.Builtin.Debug
-  ( module PlutusCore.Builtin.Debug
+  ( elaborateDebug
   -- Reexporting a bunch of stuff, so that debug output is not littered with module names.
   , module Export
   ) where
 
-import PlutusCore.Builtin as Export
+import PlutusCore.Builtin.Elaborate as Export
+import PlutusCore.Builtin.Polymorphism as Export
 import PlutusCore.Core as Export
 import PlutusCore.Default as Export
 import PlutusCore.Name as Export
@@ -45,6 +46,6 @@ import PlutusCore.Name as Export
 --     • In the second argument of ‘($)’, namely ‘0 + 42’
 --       In the expression: elaborateDebug $ 0 + 42
 elaborateDebug
-    :: forall a j. SpecializeFromTo 0 j (Term TyName Name DefaultUni DefaultFun ()) a
+    :: forall a j. ElaborateFromTo 0 j (Term TyName Name DefaultUni DefaultFun ()) a
     => a -> a
 elaborateDebug = id

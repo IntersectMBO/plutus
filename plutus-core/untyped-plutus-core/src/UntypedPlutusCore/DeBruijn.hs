@@ -6,6 +6,7 @@
 -- | Support for using de Bruijn indices for term names.
 module UntypedPlutusCore.DeBruijn
     ( Index (..)
+    , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
     , FreeVariableError (..)

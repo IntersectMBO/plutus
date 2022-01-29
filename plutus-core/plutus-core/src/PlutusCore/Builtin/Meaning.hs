@@ -1,13 +1,11 @@
 -- GHC doesn't like the definition of 'makeBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
-{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE PolyKinds                 #-}
-{-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
@@ -18,26 +16,19 @@
 
 module PlutusCore.Builtin.Meaning where
 
-import PlutusPrelude
-
+import PlutusCore.Builtin.Elaborate
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.KnownTypeAst
-import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
-import Control.Lens (ix, (^?))
-import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import Data.Type.Bool
-import Data.Type.Equality
 import GHC.TypeLits
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
@@ -65,40 +56,6 @@ data BuiltinMeaning val cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
--- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
--- 'BuiltinRuntime's.
--- | A 'BuiltinRuntime' represents a possibly partial builtin application.
--- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
--- builtin with no arguments) by instantiating (via 'toBuiltinRuntime') a 'BuiltinMeaning'.
---
--- A 'BuiltinRuntime' contains info that is used during evaluation:
---
--- 1. the 'TypeScheme' of the uninstantiated part of the builtin. I.e. initially it's the type
---      scheme of the whole builtin, but applying or type-instantiating the builtin peels off
---      the corresponding constructor from the type scheme
--- 2. the (possibly partially instantiated) denotation
--- 3. the (possibly partially instantiated) costing function
---
--- All the three are in sync in terms of partial instantiatedness due to 'TypeScheme' being a
--- GADT and 'FoldArgs' and 'FoldArgsEx' operating on the index of that GADT.
-data BuiltinRuntime val =
-    forall args res. BuiltinRuntime
-        (TypeScheme val args res)
-        (FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
-                             -- it's fully saturated before figuring out what it's going to cost.
-        (FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
-                             -- can put @undefined@ here. TODO: we should test if making this strict
-                             -- introduces any measurable speedup.
-
--- | A 'BuiltinRuntime' for each builtin from a set of builtins.
-newtype BuiltinsRuntime fun val = BuiltinsRuntime
-    { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
-    }
-
--- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
-toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime cost (BuiltinMeaning sch f exF) = BuiltinRuntime sch f (exF cost)
-
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
@@ -111,23 +68,6 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
 typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
 typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
-
--- | Calculate runtime info for all built-in functions given denotations of builtins
--- and a cost model.
-toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
-    => cost -> BuiltinsRuntime fun val
-toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
-
--- | Look up the runtime info of a built-in function during evaluation.
-lookupBuiltin
-    :: (MonadError (ErrorWithCause err cause) m, AsMachineError err fun, Ix fun)
-    => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
--- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
-lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
-    Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
-    Just bri -> pure bri
 
 {- Note [Automatic derivation of type schemes]
 We use two type classes for automatic derivation of type schemes: 'KnownMonotype' and
@@ -209,98 +149,6 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
     knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
 
--- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
-
--- | Check if two values of different kinds are in fact the same value (with the same kind).
--- A heterogeneous version of @Type.Equality.(==)@.
-type (===) :: forall a b. a -> b -> Bool
-type family x === y where
-    x === x = 'True
-    x === y = 'False
-
-type TryUnify :: forall a b. Bool -> a -> b -> GHC.Constraint
-class same ~ (x === y) => TryUnify same x y
-instance (x === y) ~ 'False => TryUnify 'False x y
-instance {-# INCOHERENT #-} (x ~~ y, same ~ 'True) => TryUnify same x y
-
--- | Unify two values unless they're obviously distinct (in which case do nothing).
--- Allows us to detect and specialize type variables, since a type variable is not obviously
--- distinct from anything else and so the INCOHERENT instance of 'TryUnify' gets triggered and the
--- variable gets unified with whatever we want it to.
-type (~?~) :: forall a b. a -> b -> GHC.Constraint
-type x ~?~ y = TryUnify (x === y) x y
-
--- | Get the element at an @i@th position in a list.
-type Lookup :: forall a. Nat -> [a] -> a
-type family Lookup n xs where
-    Lookup _ '[]       = TypeError ('Text "Not enough elements")
-    Lookup 0 (x ': xs) = x
-    Lookup n (_ ': xs) = Lookup (n - 1) xs
-
--- | Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
--- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
-type GetName :: GHC.Type -> Nat -> Symbol
-type family GetName k i where
-    GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
-    GetName _        i = Lookup i '["f", "g", "h", "m", "n"]  -- For higher-kinded types.
-
--- | Like 'id', but a type constructor.
-type Id :: forall a. a -> a
-data family Id x
-
--- | Try to specialize @a@ as a type representing a PLC type variable.
--- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
--- specialization attempt is successful or not).
--- @f@ is for wrapping 'TyVarRep' (see 'HandleHole' for how this is used).
-type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
-class TrySpecializeAsVar i j f a | i f a -> j
-instance
-    ( var ~ f (TyVarRep @k ('TyNameRep (GetName k i) i))
-    -- Try to unify @a@ with a freshly created @var@.
-    , a ~?~ var
-    -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
-    -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
-    -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
-    , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j f (a :: k)
-
--- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
--- that using 'HandleHoles'.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
--- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
-class HandleHole i j val hole | i val hole -> j
--- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
-instance
-    ( TrySpecializeAsVar i j Id (Id x)  -- The two 'Id's cancel each other.
-    , HandleHoles j k val x
-    ) => HandleHole i k val (RepHole x)
--- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque val@.
-instance
-    ( TrySpecializeAsVar i j (Opaque val) a
-    , HandleHoles j k val a
-    ) => HandleHole i k val (TypeHole a)
-
--- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
--- the calls.
-type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
-class HandleHolesGo i j val holes | i val holes -> j
-instance i ~ j => HandleHolesGo i j val '[]
-instance
-      ( HandleHole i j val hole
-      , HandleHolesGo j k val holes
-      ) => HandleHolesGo i k val (hole ': holes)
-
--- | Get the holes of @x@ and recurse into them.
-type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
-type HandleHoles i j val x = HandleHolesGo i j val (ToHoles x)
-
--- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
--- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
--- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type SpecializeFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-type SpecializeFromTo i j val a = HandleHole i j val (TypeHole a)
-
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
 -- 'TypeScheme', given
@@ -309,8 +157,8 @@ type SpecializeFromTo i j val a = HandleHole i j val (TypeHole a)
 -- 2. an uninstantiated costing function
 makeBuiltinMeaning
     :: forall a val cost binds args res j.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ Merge (ListToBinds args) (ToBinds res)
-       , KnownPolytype binds val args res a, SpecializeFromTo 0 j val a
+       ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
+       , ElaborateFromTo 0 j val a, KnownPolytype binds val args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning val cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme val args res)
