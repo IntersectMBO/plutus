@@ -218,6 +218,11 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    processing the contents of nodes: the implementation below compromises by charging
    four units per node, but we may wish to revise this after experimentation.
 -}
+{- This code runs on the chain and hence should be as efficient as possible. To
+   that end it's tempting to make these functions strict and tail recursive (and
+   similarly in the instance for lists above), but experiments showed that that
+   didn't improve matters and in fact some versions led to a slight slowdown.
+-}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData
         where sizeData d =
