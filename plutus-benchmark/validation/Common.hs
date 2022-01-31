@@ -1,9 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE BangPatterns #-}
+module Common (validationBench, ValidationMode (..)) where
 
-module Main where
-
-import PlutusBenchmark.Common (Term, getConfig, getDataDir, unDeBruijnAnonTerm)
+import PlutusBenchmark.Common (getConfig, getDataDir, unDeBruijnAnonTerm)
 import PlutusBenchmark.NaturalSort
 
 import PlutusCore qualified as PLC
@@ -73,29 +71,32 @@ withAnyPrefixFrom :: [String] -> [String] -> [String]
 l `withAnyPrefixFrom` ps =
     concatMap (\p -> filter (isPrefixOf p) l) ps
 
-loadFlat :: FilePath -> IO Term
-loadFlat file = do
-  contents <- BSL.fromStrict <$> BS.readFile file
-  case unflat contents of
-    Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
-    Right prog -> do
-        let t = unDeBruijnAnonTerm $ UPLC.toTerm prog
-        return $! force t
-        -- `force` to try to ensure that deserialiation is not included in benchmarking time.
+readFlat :: FilePath -> IO BSL.ByteString
+readFlat file = BSL.fromStrict <$> BS.readFile file
 
-mkCekBM :: Term -> Benchmarkable
-mkCekBM program = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) program
+mkFullBM :: String -> BSL.ByteString -> Benchmarkable
+mkFullBM file = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
+                      . unDeBruijnAnonTerm
+                      . unsafeUnflat file
+                     )
 
-mkScriptBM :: FilePath -> FilePath -> Benchmark
-mkScriptBM dir file =
-    env (loadFlat $ dir </> file) $ \script -> bench (dropExtension file) $ mkCekBM script
+mkCekBM :: String -> BSL.ByteString -> Benchmarkable
+mkCekBM file program =
+    -- don't count the undebruijn . unflat cost
+    -- `force` to try to ensure that deserialiation is not included in benchmarking time.
+    let !dbterm' = force (unDeBruijnAnonTerm $ unsafeUnflat file program)
+    in whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) dbterm'
 
--- Make benchmarks for the given files in the directory
-mkBMs :: FilePath -> [FilePath] -> [Benchmark]
-mkBMs dir files = map (mkScriptBM dir) files
-
+unsafeUnflat :: String -> BSL.ByteString -> UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+unsafeUnflat file contents =
+    case unflat contents of
+        Left e     -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
+        Right prog -> UPLC.toTerm prog
 
 ----------------------- Main -----------------------
+
+data ValidationMode = CekOnly -- ^ measure only the CEK execution time
+                    | Full -- ^ measure also the time take before CEK script execution starts
 
 -- Extend the options to include `--quick`: see eg https://github.com/haskell/criterion/pull/206
 data BenchOptions = BenchOptions
@@ -120,16 +121,31 @@ parserInfo cfg =
    or
      `cabal bench -- plutus-benchmark:validation --benchmark-options crowdfunding`.
 -}
-main :: IO ()
-main = do
-  cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
-  options <- execParser $ parserInfo cfg
-  scriptDirectory <- getScriptDirectory
-  files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
-  let files1 = naturalSort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
-               -- naturalSort puts the filenames in a better order than Data.List.Sort
-      files = if quick options then files1 `withAnyPrefixFrom` quickPrefixes else files1
-      benchmarks = mkBMs scriptDirectory files
-  runMode (otherOptions options) benchmarks
+validationBench :: ValidationMode -> IO ()
+validationBench vMode = do
+    cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
+    options <- execParser $ parserInfo cfg
+    scriptDirectory <- getScriptDirectory
+    files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
+    let -- naturalSort puts the filenames in a better order than Data.List.Sort
+        files1 = naturalSort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
+        files = if quick options
+                then files1 `withAnyPrefixFrom` quickPrefixes
+                else files1
+    runMode (otherOptions options) $ mkBMs scriptDirectory files
+ where
+
+    -- Make benchmarks for the given files in the directory
+    mkBMs :: FilePath -> [FilePath] -> [Benchmark]
+    mkBMs dir files = map (mkScriptBM dir) files
+
+    mkScriptBM :: FilePath -> FilePath -> Benchmark
+    mkScriptBM dir file =
+        env (readFlat $ dir </> file) $ \scriptBS ->
+            bench (dropExtension file) $
+                case vMode of
+                    CekOnly -> mkCekBM file scriptBS
+                    Full    -> mkFullBM file scriptBS
+
 
 
