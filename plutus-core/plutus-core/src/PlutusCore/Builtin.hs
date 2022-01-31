@@ -1,4 +1,4 @@
--- | Reexports from modules from the @Constant@ folder.
+-- | Reexports from modules from the @Builtin@ folder.
 
 module PlutusCore.Builtin
     ( module Export
