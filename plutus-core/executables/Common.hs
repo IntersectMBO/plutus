@@ -12,8 +12,8 @@ module Common where
 import PlutusPrelude (through)
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
-import PlutusCore.Constant qualified as PLC
 import PlutusCore.Error (AsParseError, AsUniqueError, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -618,7 +618,7 @@ typeSchemeToSignature = toSig []
               \case
                pR@PLC.TypeSchemeResult -> Signature acc (PLC.toTypeAst pR)
                arr@(PLC.TypeSchemeArrow schB) ->
-                   toSig (acc ++ [Type $ PLC.toTypeAst $ PLC.argOf arr]) schB
+                   toSig (acc ++ [Type $ PLC.toTypeAst $ PLC.argProxy arr]) schB
                PLC.TypeSchemeAll proxy schK ->
                    case proxy of
                      (_ :: Proxy '(text, uniq, kind)) ->

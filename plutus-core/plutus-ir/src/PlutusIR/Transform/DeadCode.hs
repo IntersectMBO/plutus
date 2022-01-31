@@ -11,7 +11,7 @@ import PlutusIR.MkPir
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 
 import Control.Lens

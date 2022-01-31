@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module PlutusCore.Constant.Dynamic.Emit
+module PlutusCore.Builtin.Emitter
     ( Emitter (..)
     , emitM
     ) where

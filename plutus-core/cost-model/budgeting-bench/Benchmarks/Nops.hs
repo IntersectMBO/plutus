@@ -18,7 +18,7 @@ import Common
 import Generators (randNwords)
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
@@ -96,8 +96,8 @@ nopCostParameters = toMachineParameters $ CostModel defaultCekMachineCosts nopCo
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
     type CostingPart uni NopFuns = NopCostModel
     toBuiltinMeaning
-        :: HasConstantIn uni term
-           => NopFuns -> BuiltinMeaning term NopCostModel
+        :: HasConstantIn uni val
+           => NopFuns -> BuiltinMeaning val NopCostModel
     toBuiltinMeaning Nop1 =
         makeBuiltinMeaning
              @(Integer -> Integer)

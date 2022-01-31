@@ -31,7 +31,7 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result

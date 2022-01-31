@@ -19,7 +19,7 @@ import PlutusPrelude
 
 import PlutusCore.Parser.Internal
 
-import PlutusCore.Constant.Typed
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Core.Type
 import PlutusCore.Default

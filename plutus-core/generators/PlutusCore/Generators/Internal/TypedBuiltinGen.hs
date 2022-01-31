@@ -24,7 +24,7 @@ import PlutusPrelude
 
 import PlutusCore.Generators.Internal.Dependent
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Result

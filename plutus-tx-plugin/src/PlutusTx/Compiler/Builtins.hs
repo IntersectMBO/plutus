@@ -34,7 +34,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
 

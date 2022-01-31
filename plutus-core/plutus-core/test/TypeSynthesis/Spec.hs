@@ -10,7 +10,7 @@ module TypeSynthesis.Spec
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.FsTree
 import PlutusCore.Pretty
 

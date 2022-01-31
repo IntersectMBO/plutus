@@ -12,7 +12,7 @@ module Evaluation.Builtins.Definition
     ) where
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Interesting

@@ -12,7 +12,7 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import PlutusCore qualified as Plc
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters

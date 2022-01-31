@@ -362,6 +362,20 @@ Read these blog posts for more good tips:
 - https://mtlynch.io/human-code-reviews-1/
 - https://mtlynch.io/human-code-reviews-2/
 
+=== Benchmarking PRs
+
+Sometimes it is useful to benchmark a PR, and we have some automation for this.
+To trigger it, make a comment on the PR with this form: `/benchmark <benchmark-component>`, where `<benchmark-component>` is as you would provide it to cabal.
+For example, if you would run `cabal bench plutus-benchmark:validation` locally, then write `/benchmark plutus-benchmark:validation` in the comment.
+
+This will trigger a benchmarking job on a stable machine. 
+The job will:
+
+1. Run the specified benchmark on the base of the PR branch.
+2. Run the specified benchmark on the tip of the PR branch.
+3. Compare the two runs.
+4. Post the comparison as a comment to the PR.
+
 == External contributors
 
 The Plutus team welcomes contributions from external contributors.
@@ -433,4 +447,4 @@ These perform some of the same checks as Hydra, but Github Actions is often more
 
 ==== Buildkite
 
-Buildkite is used for a benchmarking job, triggered by a comment on a PR containing `/benchmark`.
+Buildkite is used to run the benchmarking job.

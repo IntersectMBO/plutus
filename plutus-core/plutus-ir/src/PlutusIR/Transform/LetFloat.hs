@@ -21,7 +21,7 @@ import Data.Set qualified as S
 import Data.Set.Lens (setOf)
 import GHC.Generics
 import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 import PlutusIR
 import PlutusIR.Purity

@@ -23,7 +23,7 @@ import PlutusPrelude
 import PlutusCore.Generators.Internal.TypedBuiltinGen
 import PlutusCore.Generators.Internal.Utils
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Error

@@ -18,7 +18,7 @@ import PlutusPrelude
 
 import PlutusCore.Parser.Internal
 
-import PlutusCore.Constant.Typed
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Lexer

@@ -17,7 +17,7 @@
 module PlutusCore.Examples.Builtins where
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
@@ -163,7 +163,7 @@ data BuiltinErrorCall = BuiltinErrorCall
 --    to be handled correctly by design
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
-    toBuiltinMeaning :: forall term. HasConstantIn uni term => ExtensionFun -> BuiltinMeaning term ()
+    toBuiltinMeaning :: forall val. HasConstantIn uni val => ExtensionFun -> BuiltinMeaning val ()
 
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
@@ -182,18 +182,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id :: fi ~ Opaque term (TyAppRep f Integer) => fi -> fi)
+            (Prelude.id :: fi ~ Opaque val (TyAppRep f Integer) => fi -> fi)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
-            (Prelude.id :: la ~ Opaque term (PlcListRep a) => la -> la)
+            (Prelude.id :: la ~ Opaque val (PlcListRep a) => la -> la)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                :: afa ~ Opaque val (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 
