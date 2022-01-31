@@ -54,7 +54,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Subst
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception

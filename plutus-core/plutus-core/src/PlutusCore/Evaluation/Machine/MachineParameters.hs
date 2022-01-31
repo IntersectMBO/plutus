@@ -5,7 +5,7 @@
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 
 import PlutusCore.Core.Type hiding (Type)
 import PlutusCore.Evaluation.Machine.ExBudget ()

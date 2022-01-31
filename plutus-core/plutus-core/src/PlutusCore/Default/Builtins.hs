@@ -15,7 +15,7 @@ module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -337,21 +337,21 @@ whose inferred Haskell type is
 
 The way 'makeBuiltinMeaning' handles such a type is by traversing it and instantiating every type
 variable. What a type variable gets instantiated to depends on where it appears. When the entire
-type of an argument is a single type variable, it gets instantiated to @Opaque term VarN@ where
+type of an argument is a single type variable, it gets instantiated to @Opaque val VarN@ where
 @VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N"
 (for the purpose of this explanation it doesn't matter what @VarN@ actually is).
 See Note [Implementation of polymorphic built-in functions] for what 'Opaque' is.
 
 So the type from the above elaborates to
 
-    Bool -> Opaque term Var0 -> Opaque term Var0 -> Opaque term Var0
+    Bool -> Opaque val Var0 -> Opaque val Var0 -> Opaque val Var0
 
 We could've specified this type explicitly (leaving out the @Var0@ thing for the elaboration
 machinery to figure out):
 
     toBuiltinMeaning IfThenElse =
         makeBuiltinMeaning
-            @(Bool -> Opaque term _ -> Opaque term _ -> Opaque term _)
+            @(Bool -> Opaque val _ -> Opaque val _ -> Opaque val _)
             (\b x y -> if b then x else y)
             <costingFunction>
 
@@ -361,7 +361,7 @@ the correct thing gets inferred anyway.
 Another thing we could do is define an auxiliary function with a type signature and explicit
 'Opaque' while still having explicit polymorphism:
 
-    ifThenElse :: Bool -> Opaque term a -> Opaque term a -> Opaque term a
+    ifThenElse :: Bool -> Opaque val a -> Opaque val a -> Opaque val a
     ifThenElse b x y = if b then x else y
 
     toBuiltinMeaning IfThenElse =
@@ -371,13 +371,13 @@ Another thing we could do is define an auxiliary function with a type signature 
 
 This achieves the same, but note how @a@ is now an argument to 'Opaque' rather than the entire type
 of an argument. In order for this definition to elaborate to the same type as before @a@ needs to be
-instantiated to just @Var0@, as opposed to @Opaque term Var0@, because the 'Opaque' part is
+instantiated to just @Var0@, as opposed to @Opaque val Var0@, because the 'Opaque' part is
 already there, so this is what the elaboration machinery does.
 
 So regardless of which method of defining 'IfThenElse' we choose, the type of its denotation gets
 elaborated to the same
 
-    Bool -> Opaque term Var0 -> Opaque term Var0 -> Opaque term Var0
+    Bool -> Opaque val Var0 -> Opaque val Var0 -> Opaque val Var0
 
 which then gets digested, so that we can compute what Plutus type it corresponds to. The procedure
 is simple: collect all distinct type variables, @all@-bind them and replace the usages with the
@@ -400,13 +400,13 @@ the Haskell type of 'const' gets inferred as
 
 and the elaboration machinery turns that into
 
-    Opaque term Var0 -> Opaque term Var1 -> Opaque term Var0
+    Opaque val Var0 -> Opaque val Var1 -> Opaque val Var0
 
 The elaboration machinery respects the explicitly specified parts of the type and does not attempt
 to argue with them. For example if the user insisted that the instantiated type of 'const' had
 @Var0@ and @Var1@ swapped:
 
-    Opaque term Var1 -> Opaque term Var0 -> Opaque term Var1
+    Opaque val Var1 -> Opaque val Var0 -> Opaque val Var1
 
 the elaboration machinery wouldn't make a fuss about that.
 
@@ -423,7 +423,7 @@ from [How to add a built-in function: simple cases]. The inferred type of the de
 
 which elaborates to
 
-    Text -> Opaque term Var0 -> Emitter (Opaque term Var0)
+    Text -> Opaque val Var0 -> Emitter (Opaque val Var0)
 
 Elaboration machinery is able to look under 'Emitter' and 'EvaluationResult' even if there's a type
 variable inside that does not appear anywhere else in the type signature, for example the inferred
@@ -440,7 +440,7 @@ is
 
 which gets elaborated to
 
-    EvaluationResult (Opaque term Var0)
+    EvaluationResult (Opaque val Var0)
 
 from which the final Plutus type of the builtin is computed:
 
@@ -451,8 +451,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     -- Integers
     toBuiltinMeaning
-        :: forall term. HasConstantIn uni term
-        => DefaultFun -> BuiltinMeaning term BuiltinCostModel
+        :: forall val. HasConstantIn uni val
+        => DefaultFun -> BuiltinMeaning val BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)
@@ -582,7 +582,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             fstPlc
             (runCostingFunOneArgument . paramFstPair)
         where
-          fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque term a)
+          fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
               pure . fromConstant . someValueOf uniA $ fst xy
@@ -592,7 +592,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             sndPlc
             (runCostingFunOneArgument . paramSndPair)
         where
-          sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque term b)
+          sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
           sndPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
               pure . fromConstant . someValueOf uniB $ snd xy
@@ -616,7 +616,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMkCons)
         where
           consPlc
-              :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque term [a])
+              :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniListA xs))) = do
@@ -635,7 +635,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             headPlc
             (runCostingFunOneArgument . paramHeadList)
         where
-          headPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque term a)
+          headPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val a)
           headPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
@@ -646,7 +646,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             tailPlc
             (runCostingFunOneArgument . paramTailList)
         where
-          tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque term [a])
+          tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
           tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs

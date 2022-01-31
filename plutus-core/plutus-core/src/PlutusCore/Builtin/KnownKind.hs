@@ -3,7 +3,7 @@
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusCore.Constant.Kinded where
+module PlutusCore.Builtin.KnownKind where
 
 import PlutusCore.Core
 
@@ -42,10 +42,10 @@ class ToKind (uni :: GHC.Type -> GHC.Type) where
     toSingKind :: uni (Esc (a :: k)) -> SingKind k
 
 -- | Convert a reified Haskell kind to a Plutus kind.
-runSingKind :: SingKind k -> Kind ()
-runSingKind SingType                = Type ()
-runSingKind (SingKindArrow dom cod) = KindArrow () (runSingKind dom) (runSingKind cod)
+demoteKind :: SingKind k -> Kind ()
+demoteKind SingType                = Type ()
+demoteKind (SingKindArrow dom cod) = KindArrow () (demoteKind dom) (demoteKind cod)
 
 -- | Compute the kind of a type from a universe.
 kindOfBuiltinType :: ToKind uni => uni (Esc a) -> Kind ()
-kindOfBuiltinType = runSingKind . toSingKind
+kindOfBuiltinType = demoteKind . toSingKind

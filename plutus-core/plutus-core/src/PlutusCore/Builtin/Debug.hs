@@ -5,14 +5,14 @@
 
 -- | This module helps to visualize and debug the 'TypeScheme' inference machinery from the
 -- @Meaning@ module.
-module PlutusCore.Constant.Debug
-  ( module PlutusCore.Constant.Debug
+module PlutusCore.Builtin.Debug
+  ( elaborateDebug
   -- Reexporting a bunch of stuff, so that debug output is not littered with module names.
   , module Export
   ) where
 
-import PlutusCore.Constant.Meaning as Export
-import PlutusCore.Constant.Typed as Export
+import PlutusCore.Builtin.Elaborate as Export
+import PlutusCore.Builtin.Polymorphism as Export
 import PlutusCore.Core as Export
 import PlutusCore.Default as Export
 import PlutusCore.Name as Export

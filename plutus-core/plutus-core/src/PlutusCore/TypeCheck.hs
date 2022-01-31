@@ -25,7 +25,7 @@ module PlutusCore.TypeCheck
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name
