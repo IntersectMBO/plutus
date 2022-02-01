@@ -25,12 +25,12 @@ import Text.Show.Pretty (ppShow)
 secp256k1Prop :: PropertyT IO ()
 secp256k1Prop = do
   secpCase <- forAllWith ppShow genCase
-  cover 15 "malformed pubkey" (is (_ShouldError . _BadPubKey) secpCase)
-  cover 15 "malformed message" (is (_ShouldError . _BadMsg) secpCase)
-  cover 15 "malformed signature" (is (_ShouldError . _BadSig) secpCase)
-  cover 15 "mismatch of signing key and pubkey" (is (_Shouldn'tError . _WrongKey) secpCase)
-  cover 15 "mismatch of message and signature" (is (_Shouldn'tError . _WrongSignature) secpCase)
-  cover 15 "happy path" (is (_Shouldn'tError . _AllGood) secpCase)
+  cover 14 "malformed pubkey" (is (_ShouldError . _BadPubKey) secpCase)
+  cover 14 "malformed message" (is (_ShouldError . _BadMsg) secpCase)
+  cover 14 "malformed signature" (is (_ShouldError . _BadSig) secpCase)
+  cover 14 "mismatch of signing key and pubkey" (is (_Shouldn'tError . _WrongKey) secpCase)
+  cover 14 "mismatch of message and signature" (is (_Shouldn'tError . _WrongSignature) secpCase)
+  cover 14 "happy path" (is (_Shouldn'tError . _AllGood) secpCase)
   let actualExp = mkIterApp () (builtin () VerifySECP256k1Signature) [
         mkConstant @ByteString () . getPubKey $ secpCase,
         mkConstant @ByteString () . getSig $ secpCase,

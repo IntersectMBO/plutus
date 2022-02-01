@@ -576,7 +576,7 @@ fails b args =
 -- Test that the SECP256k1 builtins are behaving correctly
 testSECP256k1 :: TestTree
 testSECP256k1 =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testProperty "verifySECP256k1Signature behaves correctly on all inputs" .
   property $ secp256k1Prop
 

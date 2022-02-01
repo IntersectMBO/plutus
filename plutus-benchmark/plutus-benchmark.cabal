@@ -207,15 +207,16 @@ test-suite plutus-benchmark-lists-tests
       , tasty -any
       , tasty-quickcheck -any
 
-
 ---------------- validation ----------------
 
 benchmark validation
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Bench.hs
+  main-is: BenchCek.hs
   hs-source-dirs:
       validation
+  other-modules:
+      Common
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
@@ -228,6 +229,27 @@ benchmark validation
     , flat -any
     , optparse-applicative -any
 
+---------------- validation-full ----------------
+
+benchmark validation-full
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: BenchFull.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      Common
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , bytestring -any
+    , criterion >= 1.5.9.0
+    , deepseq -any
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
 
 ---------------- Cek cost model calibration ----------------
 
