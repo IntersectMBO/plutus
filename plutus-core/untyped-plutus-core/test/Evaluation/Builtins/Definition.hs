@@ -37,7 +37,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Exception
 import Data.ByteString (ByteString)
 import Data.Either
-import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
@@ -577,8 +576,9 @@ fails b args =
 -- Test that the SECP256k1 builtins are behaving correctly
 testSECP256k1 :: TestTree
 testSECP256k1 =
-  testProperty "verifySECP256k1Signature behaves correctly on all inputs"
-               (property secp256k1Prop)
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  testProperty "verifySECP256k1Signature behaves correctly on all inputs" .
+  property $ secp256k1Prop
 
 test_definition :: TestTree
 test_definition =

@@ -13,7 +13,7 @@ import Crypto.ECC.Ed25519Donna
 import Crypto.Error (maybeCryptoError)
 import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
-import PlutusCore.Constant.Dynamic.Emit (Emitter, emitM)
+import PlutusCore.Builtin.Emitter (Emitter, emitM)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 verifySignature
