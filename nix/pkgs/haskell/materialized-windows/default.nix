@@ -840,6 +840,7 @@
           "fin".components.library.planned = lib.mkOverride 900 true;
           "base-orphans".components.library.planned = lib.mkOverride 900 true;
           "directory".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.benchmarks."validation-full".planned = lib.mkOverride 900 true;
           "th-abstraction".components.library.planned = lib.mkOverride 900 true;
           "cardano-slotting".components.library.planned = lib.mkOverride 900 true;
           "primitive".components.library.planned = lib.mkOverride 900 true;
