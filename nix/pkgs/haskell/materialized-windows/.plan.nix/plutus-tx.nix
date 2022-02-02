@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "2.2";
+      specVersion = "3.0";
       identifier = { name = "plutus-tx"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -97,6 +97,28 @@
           "PlutusTx/Utils"
           ];
         hsSourceDirs = [ "src" ];
+        };
+      sublibs = {
+        "plutus-tx-testlib" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+            (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            ];
+          buildable = true;
+          modules = [ "PlutusTx/Test" ];
+          hsSourceDirs = [ "testlib" ];
+          };
         };
       tests = {
         "plutus-tx-test" = {
