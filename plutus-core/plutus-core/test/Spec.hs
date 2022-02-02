@@ -21,7 +21,6 @@ import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
-import PlutusCore.DeBruijn
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
@@ -29,11 +28,9 @@ import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
 import Data.ByteString.Lazy qualified as BSL
-import Data.Either (isLeft)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
-import Data.Word (Word64)
-import Flat (flat, unflat)
+import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -99,17 +96,6 @@ propFlat :: Property
 propFlat = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog Flat.flat Flat.unflat
-
--- | Asserts that an index serialized as a 'Natural' will deserialize as 'Word64'
--- iff it is in bounds.
-natWordSerializationProp :: Property
-natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
-    let maxWord :: Natural = fromIntegral (maxBound :: Word64)
-    (n :: Natural) <- forAll $ Gen.integral (Range.linear 0 (maxWord*2))
-    let res = unflat @Index (flat n)
-    if n <= maxWord
-    then res === Right (fromIntegral n)
-    else Hedgehog.assert (isLeft res)
 
 {- The lexer contains some quite complex regular expressions for literal
   constants, allowing escape sequences inside quoted strings among other
@@ -229,7 +215,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "lexing constants" propLexConstant
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (Flat)" propFlat
-    , testProperty "nat/word serialization test" natWordSerializationProp
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles

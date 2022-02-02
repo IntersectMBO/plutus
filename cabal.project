@@ -34,10 +34,12 @@ extra-packages: ieee, filemanip
 
 -- https://github.com/Quid2/flat/pull/22 fixes a potential exception
 -- when decoding invalid (e.g. malicious) text literals.
+-- https://github.com/Quid2/flat/pull/29 fixes a potential overflow
+-- when unflat @Word64 . flat @Natural
 source-repository-package
   type: git
-  location: https://github.com/Quid2/flat.git
-  tag: ee59880f47ab835dbd73bea0847dab7869fc20d8
+  location: https://github.com/bezirg/flat.git
+  tag: baafd8b7738b208b0a572ab3bbdd39f737e98ef7
 
 source-repository-package
   type: git

@@ -42,7 +42,7 @@ let
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {
-      "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
+      "https://github.com/bezirg/flat.git"."baafd8b7738b208b0a572ab3bbdd39f737e98ef7" = "13fl50b84wy157np4487yzpsbkrh4x3pyk2l023yim9m8qzwal4v";
       "https://github.com/input-output-hk/cardano-base"."0b1b5b37e305c4bb10791f843bc8c81686a0cba4" = "1z98f3m4skmqy782dpcpd3y0k7hccdrz5yl1fjgjs524swh4vv56";
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";

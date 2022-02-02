@@ -63,8 +63,8 @@ extra-deps:
 
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
-- git: https://github.com/michaelpj/flat.git
-  commit: ee59880f47ab835dbd73bea0847dab7869fc20d8
+- git: https://github.com/bezirg/flat.git
+  commit: baafd8b7738b208b0a572ab3bbdd39f737e98ef7
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: 07397f0e50da97eaa0575d93bee7ac4b2b2576ec
 - git: https://github.com/input-output-hk/cardano-prelude
