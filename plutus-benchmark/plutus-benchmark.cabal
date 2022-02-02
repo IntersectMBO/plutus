@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-benchmark
 version: 0.1.0.0
 license: Apache-2.0
@@ -141,6 +141,7 @@ test-suite plutus-benchmark-nofib-tests
       , nofib-internal
       , plutus-core -any
       , plutus-tx -any
+      , plutus-tx:plutus-tx-testlib -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any

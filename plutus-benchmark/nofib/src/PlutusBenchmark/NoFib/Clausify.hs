@@ -185,7 +185,8 @@ getFormula =
 runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
-{-# INLINABLE mkClausifyTerm #-}
+mkClausifyCode :: StaticFormula -> Tx.CompiledCode [LRVars]
+mkClausifyCode formula = $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula
+
 mkClausifyTerm :: StaticFormula -> Term
-mkClausifyTerm formula = compiledCodeToTerm $
-                         $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula
+mkClausifyTerm formula = compiledCodeToTerm $ mkClausifyCode formula
