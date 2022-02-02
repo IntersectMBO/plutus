@@ -1,6 +1,6 @@
 ## Plutus Benchmarks
 
-This directory contains four sets of benchmarks:
+This directory contains three sets of benchmarks:
 
 * `nofib`: Plutus versions of some of Haskell's `nofib` benchmarks from https://github.com/ghc/nofib.
 
@@ -54,9 +54,11 @@ This directory contains four sets of benchmarks:
      statistically reasonable total number of executions.  It takes about 10
      minutes to run the entire suite (again, this will depend on the hardware).
 
-* `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
+   * There are also two variants (`validation-decode` & `validation-full` ) that measure
+     the peformance of the validation dataset for the script deserialization,
+     and for the deserialization+extrachecks+execution, respectively.
 
-* `validation-full`: a clone of the above that also measures the script setup time before CEK evaluation starts; currently that is script deserialization and scope checking.
+* `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
 
 See also [nofib/README.md](./nofib/README.md) and [validation/README.md](./validation/README.md).
 

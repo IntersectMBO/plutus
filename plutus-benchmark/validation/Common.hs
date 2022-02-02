@@ -1,20 +1,15 @@
-{-# LANGUAGE BangPatterns #-}
-module Common (validationBench, ValidationMode (..)) where
+module Common (benchWith, unsafeUnflat) where
 
-import PlutusBenchmark.Common (getConfig, getDataDir, unDeBruijnAnonTerm)
+import PlutusBenchmark.Common (getConfig, getDataDir)
 import PlutusBenchmark.NaturalSort
 
-import PlutusCore qualified as PLC
-
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
 import Criterion.Main.Options (Mode, parseWith)
 import Criterion.Types (Config (..))
 import Options.Applicative
 
-import Control.DeepSeq (force)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.List (isPrefixOf)
@@ -74,19 +69,6 @@ l `withAnyPrefixFrom` ps =
 readFlat :: FilePath -> IO BSL.ByteString
 readFlat file = BSL.fromStrict <$> BS.readFile file
 
-mkFullBM :: String -> BSL.ByteString -> Benchmarkable
-mkFullBM file = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
-                      . unDeBruijnAnonTerm
-                      . unsafeUnflat file
-                     )
-
-mkCekBM :: String -> BSL.ByteString -> Benchmarkable
-mkCekBM file program =
-    -- don't count the undebruijn . unflat cost
-    -- `force` to try to ensure that deserialiation is not included in benchmarking time.
-    let !dbterm' = force (unDeBruijnAnonTerm $ unsafeUnflat file program)
-    in whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters) dbterm'
-
 unsafeUnflat :: String -> BSL.ByteString -> UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 unsafeUnflat file contents =
     case unflat contents of
@@ -94,9 +76,6 @@ unsafeUnflat file contents =
         Right prog -> UPLC.toTerm prog
 
 ----------------------- Main -----------------------
-
-data ValidationMode = CekOnly -- ^ measure only the CEK execution time
-                    | Full -- ^ measure also the time take before CEK script execution starts
 
 -- Extend the options to include `--quick`: see eg https://github.com/haskell/criterion/pull/206
 data BenchOptions = BenchOptions
@@ -116,13 +95,8 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
-{- Run the benchmarks.  You can run groups of benchmarks by typing things like
-     `stack bench -- plutus-benchmark:validation --ba crowdfunding`
-   or
-     `cabal bench -- plutus-benchmark:validation --benchmark-options crowdfunding`.
--}
-validationBench :: ValidationMode -> IO ()
-validationBench vMode = do
+benchWith :: (FilePath -> BSL.ByteString -> Benchmarkable) -> IO ()
+benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
     options <- execParser $ parserInfo cfg
     scriptDirectory <- getScriptDirectory
@@ -142,10 +116,7 @@ validationBench vMode = do
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
         env (readFlat $ dir </> file) $ \scriptBS ->
-            bench (dropExtension file) $
-                case vMode of
-                    CekOnly -> mkCekBM file scriptBS
-                    Full    -> mkFullBM file scriptBS
+            bench (dropExtension file) $ act file scriptBS
 
 
 
