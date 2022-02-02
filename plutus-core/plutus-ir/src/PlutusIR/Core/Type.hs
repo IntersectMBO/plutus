@@ -18,7 +18,8 @@ module PlutusIR.Core.Type (
     Binding (..),
     Term (..),
     Program (..),
-    applyProgram
+    applyProgram,
+    termAnn
     ) where
 
 import PlutusPrelude
@@ -158,3 +159,17 @@ applyProgram
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
 applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
+
+termAnn :: Term tynam name uni fun a -> a
+termAnn t = case t of
+  Let a _ _ _    -> a
+  Var a _        -> a
+  TyAbs a _ _ _  -> a
+  LamAbs a _ _ _ -> a
+  Apply a _ _    -> a
+  Constant a _   -> a
+  Builtin a _    -> a
+  TyInst a _ _   -> a
+  Error a _      -> a
+  IWrap a _ _ _  -> a
+  Unwrap a _     -> a
