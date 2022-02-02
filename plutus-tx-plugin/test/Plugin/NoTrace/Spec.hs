@@ -11,13 +11,13 @@ module Plugin.NoTrace.Spec where
 
 import Common
 import Data.Proxy
-import Lib
 import Prelude qualified as H
 
 import PlutusTx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 noTrace :: TestNested
 noTrace = testNested "NoTrace"

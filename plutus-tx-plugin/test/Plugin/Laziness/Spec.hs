@@ -10,13 +10,13 @@
 module Plugin.Laziness.Spec where
 
 import Common
-import Lib
 import PlcTestUtils
 import Plugin.Lib
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Test
 
 import Data.Proxy
 

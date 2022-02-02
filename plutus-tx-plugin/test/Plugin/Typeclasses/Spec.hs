@@ -12,13 +12,13 @@
 module Plugin.Typeclasses.Spec where
 
 import Common
-import Lib
 import Plugin.Typeclasses.Lib
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 
 import Data.Proxy

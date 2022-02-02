@@ -8,7 +8,6 @@
 module Lift.Spec where
 
 import Common
-import Lib ()
 import PlcTestUtils
 import Plugin.Data.Spec
 import Plugin.Primitives.Spec
@@ -16,6 +15,7 @@ import Plugin.Primitives.Spec
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Lift qualified as Lift
+import PlutusTx.Test ()
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

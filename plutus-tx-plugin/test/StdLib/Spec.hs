@@ -19,8 +19,8 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Lib
 import PlcTestUtils
+import PlutusTx.Test
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testProperty)
 

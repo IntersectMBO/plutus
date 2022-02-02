@@ -11,13 +11,12 @@
 
 module Budget.Spec where
 
-import Budget.Lib (goldenBudget)
 import Common
-import Lib (goldenPir)
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenBudget, goldenPir)
 
 tests :: TestNested
 tests = testNested "Budget" [

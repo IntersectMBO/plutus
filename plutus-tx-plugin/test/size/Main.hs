@@ -4,17 +4,14 @@
 
 module Main (main) where
 
-import Data.Kind (Type)
-import Data.Tagged (Tagged (Tagged))
-import PlutusTx.Code (CompiledCode, sizePlc)
+import PlutusTx.Code (CompiledCode)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 import Prelude
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
-import Type.Reflection (Typeable)
+import Test.Tasty (defaultMain, testGroup)
 
 main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
@@ -69,59 +66,6 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ]
     ]
   ]
-
--- Helpers
-
--- Size testing for Tasty
-
-fitsInto :: forall (a :: Type) .
-  (Typeable a) =>
-  String -> CompiledCode a -> Integer -> TestTree
-fitsInto name cc = singleTest name . SizeTest cc
-
-data SizeTest (a :: Type) = SizeTest (CompiledCode a) Integer
-
-instance (Typeable a) => IsTest (SizeTest a) where
-  run _ (SizeTest cc limit) _ = do
-    let estimate = sizePlc cc
-    let diff = limit - estimate
-    pure $ case signum diff of
-      (-1) -> testFailed $ "Exceeded limit by " <> (show . abs $ diff)
-      0    -> testPassed $ "AST size: " <> show limit
-      _    -> testPassed $ "Remaining headroom: " <> show diff
-  testOptions = Tagged []
-
-fitsUnder :: forall (a :: Type) .
-  (Typeable a) =>
-  String -> (String, CompiledCode a) -> (String, CompiledCode a) -> TestTree
-fitsUnder name measured = singleTest name . ComparisonTest measured
-
-data ComparisonTest (a :: Type) =
-  ComparisonTest (String, CompiledCode a) (String, CompiledCode a)
-
-instance (Typeable a) => IsTest (ComparisonTest a) where
-  run _ (ComparisonTest (mName, mCode) (tName, tCode)) _ = do
-    let tEstimate = sizePlc tCode
-    let mEstimate = sizePlc mCode
-    let diff = tEstimate - mEstimate
-    pure $ case signum diff of
-      (-1) -> testFailed . renderFailed (tName, tEstimate) (mName, mEstimate) $ diff
-      0    -> testPassed . renderEstimates (tName, tEstimate) $ (mName, mEstimate)
-      _    -> testPassed . renderExcess (tName, tEstimate) (mName, mEstimate) $ diff
-  testOptions = Tagged []
-
-renderFailed :: (String, Integer) -> (String, Integer) -> Integer -> String
-renderFailed tData mData diff = renderEstimates tData mData <>
-                                "Exceeded by: " <> show diff
-
-renderEstimates :: (String, Integer) -> (String, Integer) -> String
-renderEstimates (tName, tEstimate) (mName, mEstimate) =
-  "Target: " <> tName <> "; size " <> show tEstimate <> "\n" <>
-  "Measured: " <> mName <> "; size " <> show mEstimate <> "\n"
-
-renderExcess :: (String, Integer) -> (String, Integer) -> Integer -> String
-renderExcess tData mData diff = renderEstimates tData mData <>
-                                "Remaining headroom: " <> show diff
 
 -- Compiled definitions
 

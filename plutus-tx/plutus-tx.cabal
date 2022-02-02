@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-tx
 version: 0.1.0.0
 license: Apache-2.0
@@ -97,6 +97,27 @@ library
         hashable -any,
         memory -any,
         serialise -any
+
+library plutus-tx-testlib
+    import: lang
+    visibility: public
+    hs-source-dirs: testlib
+    exposed-modules:
+        PlutusTx.Test
+    build-depends:
+        base >=4.9 && <5,
+        prettyprinter -any,
+        text -any,
+        flat -any,
+        filepath -any,
+        plutus-core -any,
+        plutus-tx -any,
+        lens -any,
+        mtl -any,
+        ghc-prim -any,
+        tagged -any,
+        tasty -any,
+        text -any
 
 test-suite plutus-tx-test
     import: lang
