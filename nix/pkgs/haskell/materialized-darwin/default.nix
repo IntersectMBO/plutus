@@ -848,6 +848,7 @@
           "plutus-benchmark".components.benchmarks."cek-calibration".planned = lib.mkOverride 900 true;
           "hedgehog-fn".components.library.planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
+          "plutus-benchmark".components.benchmarks."validation-decode".planned = lib.mkOverride 900 true;
           "plutus-metatheory".components.tests."test2".planned = lib.mkOverride 900 true;
           "plutus-core".components.benchmarks."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "aeson".components.library.planned = lib.mkOverride 900 true;
