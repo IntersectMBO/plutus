@@ -4,13 +4,13 @@ module DeBruijn.Scope (test_scope) where
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Check.Scope as UPLC
 
-import Common
 import Control.Monad.Except
 import Data.Bifunctor
 import Data.Either
 import DeBruijn.Common
 import PlutusCore.Default
 import PlutusCore.MkPlc
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 -- Note: The point of these tests is that

@@ -1,4 +1,4 @@
-cabal-version:       2.4
+cabal-version:       3.0
 name:                plutus-metatheory
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs
@@ -474,6 +474,7 @@ test-suite test3
     mtl -any,
     plutus-metatheory,
     plutus-core,
+    plutus-core:plutus-core-testlib,
     size-based -any,
     Stream -any,
     tasty -any,

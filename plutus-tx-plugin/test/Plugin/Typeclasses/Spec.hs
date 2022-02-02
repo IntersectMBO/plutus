@@ -11,7 +11,8 @@
 
 module Plugin.Typeclasses.Spec where
 
-import Common
+import Test.Tasty.Extras
+
 import Plugin.Typeclasses.Lib
 
 import PlutusTx.Builtins qualified as Builtins

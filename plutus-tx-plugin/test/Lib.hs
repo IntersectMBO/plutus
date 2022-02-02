@@ -10,14 +10,14 @@
 {-# OPTIONS_GHC -Wno-orphans  #-}
 module Lib where
 
-import Common
 import Control.Exception
 import Control.Lens.Combinators (_1)
 import Control.Monad.Except
 import Data.Text (Text)
 import Flat (Flat)
+import Test.Tasty.Extras
 
-import PlcTestUtils
+import PlutusCore.Test
 
 import PlutusPrelude (view)
 import PlutusTx.Code

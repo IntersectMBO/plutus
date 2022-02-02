@@ -1,4 +1,4 @@
-module Common
+module Test.Tasty.Extras
     ( TestNested
     , runTestNestedIn
     , runTestNested
@@ -15,8 +15,7 @@ module Common
 
 import PlutusPrelude
 
-import Control.Monad.Reader (Reader, runReader)
-import Control.Monad.Reader qualified as Reader
+import Control.Monad.Reader
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
@@ -38,7 +37,7 @@ runTestNested = runTestNestedIn []
 -- | Descend into a name prefix.
 testNested :: String -> [TestNested] -> TestNested
 testNested folderName =
-    Reader.local (++ [folderName]) . fmap (testGroup folderName) . sequence
+    local (++ [folderName]) . fmap (testGroup folderName) . sequence
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree
@@ -65,7 +64,8 @@ nestedGoldenVsText name = nestedGoldenVsTextM name . pure
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsTextM :: TestName -> IO Text -> TestNested
 nestedGoldenVsTextM name text = do
-    path <- Reader.ask
+    path <- ask
+    -- TODO: make more generic
     return $ goldenVsTextM name (foldr (</>) (name ++ ".plc.golden") path) text
 
 -- | Check the contents of a file under a name prefix against a 'Text'.

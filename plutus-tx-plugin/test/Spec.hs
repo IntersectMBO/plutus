@@ -7,9 +7,8 @@ import Plugin.Spec qualified as Plugin
 import StdLib.Spec qualified as Lib
 import TH.Spec qualified as TH
 
-import Common
-
 import Test.Tasty
+import Test.Tasty.Extras
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests

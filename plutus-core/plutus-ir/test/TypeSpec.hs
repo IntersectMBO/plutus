@@ -1,9 +1,9 @@
 module TypeSpec where
 
-import Common
-import TestLib
+import Test.Tasty.Extras
 
 import PlutusIR.Parser
+import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 
 types :: TestNested

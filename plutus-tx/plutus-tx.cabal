@@ -111,6 +111,7 @@ library plutus-tx-testlib
         flat -any,
         filepath -any,
         plutus-core -any,
+        plutus-core:plutus-core-testlib -any,
         plutus-tx -any,
         lens -any,
         mtl -any,

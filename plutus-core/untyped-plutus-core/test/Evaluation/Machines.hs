@@ -26,12 +26,12 @@ import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import Common
 import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
 import Prettyprinter
 import Prettyprinter.Render.Text
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 testMachine

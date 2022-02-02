@@ -26,7 +26,6 @@ module PlutusTx.Test (
 
 import Prelude
 
-import Common
 import Control.Exception
 import Control.Lens (_1, view)
 import Control.Monad.Except
@@ -38,13 +37,14 @@ import Flat (Flat)
 import Prettyprinter
 import System.FilePath ((</>))
 import Test.Tasty (TestName, TestTree)
+import Test.Tasty.Extras
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
 import Type.Reflection (Typeable)
 
-import PlcTestUtils
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Pretty
+import PlutusCore.Test
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPlc, sizePlc)
 import PlutusTx.Evaluation
 import PlutusTx.Evaluation qualified as PlutusTx

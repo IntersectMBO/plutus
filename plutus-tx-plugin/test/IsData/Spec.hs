@@ -13,10 +13,11 @@
 
 module IsData.Spec where
 
-import Common
-import PlcTestUtils
+import Test.Tasty.Extras
+
 import Plugin.Data.Spec
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData

@@ -8,12 +8,10 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+module PlutusIR.Test where
 
-module TestLib where
-
-import Common
-import PlcTestUtils
 import PlutusPrelude
+import Test.Tasty.Extras
 
 import Control.Exception
 import Control.Lens hiding (op, transform)
@@ -26,6 +24,7 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Test
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
 import PlutusIR.Parser as Parser

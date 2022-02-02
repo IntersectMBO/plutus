@@ -5,17 +5,18 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module TransformSpec (transform) where
 
-import Common
-import PlcTestUtils
-import TestLib
+import Test.Tasty.Extras
 
 import PlutusCore.Quote
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Test
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Error as PIR
 import PlutusIR.Parser
+import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.Inline qualified as Inline
@@ -26,10 +27,9 @@ import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
+import PlutusIR.TypeCheck as TC
 
 import Control.Monad
-import PlutusIR.Error as PIR
-import PlutusIR.TypeCheck as TC
 import Text.Megaparsec.Pos
 
 

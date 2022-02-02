@@ -7,11 +7,12 @@
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
-import Common
-import PlcTestUtils
+import Test.Tasty.Extras
+
 import Plugin.Data.Spec
 import Plugin.Primitives.Spec
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Lift qualified as Lift

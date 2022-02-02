@@ -11,7 +11,7 @@
 
 module Budget.Spec where
 
-import Common
+import Test.Tasty.Extras
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx

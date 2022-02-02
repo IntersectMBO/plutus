@@ -9,7 +9,8 @@
 
 module Plugin.NoTrace.Spec where
 
-import Common
+import Test.Tasty.Extras
+
 import Data.Proxy
 import Prelude qualified as H
 

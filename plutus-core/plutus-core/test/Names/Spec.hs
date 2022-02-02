@@ -5,7 +5,7 @@
 
 module Names.Spec where
 
-import PlcTestUtils
+import PlutusCore.Test
 
 import PlutusCore
 import PlutusCore.DeBruijn

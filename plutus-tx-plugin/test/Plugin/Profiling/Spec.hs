@@ -12,9 +12,10 @@
 -- | Tests for the profiling machinery.
 
 module Plugin.Profiling.Spec where
-import Common
-import PlcTestUtils (ToUPlc (toUPlc), goldenUEvalProfile)
 
+import Test.Tasty.Extras
+
+import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalProfile)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
