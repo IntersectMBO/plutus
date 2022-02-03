@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "2.2";
+      specVersion = "3.0";
       identifier = { name = "plutus-benchmark"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -132,7 +132,9 @@
             (hsPkgs."plutus-benchmark".components.sublibs.plutus-benchmark-common or (errorHandler.buildDepError "plutus-benchmark:plutus-benchmark-common"))
             (hsPkgs."plutus-benchmark".components.sublibs.nofib-internal or (errorHandler.buildDepError "plutus-benchmark:nofib-internal"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx".components.sublibs.plutus-tx-testlib or (errorHandler.buildDepError "plutus-tx:plutus-tx-testlib"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))

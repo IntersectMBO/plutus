@@ -94,12 +94,13 @@ unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d
 runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
-{-# INLINABLE mkKnightsTerm #-}
-mkKnightsTerm :: Integer -> Integer -> Term
-mkKnightsTerm depth boardSize =
-  compiledCodeToTerm $
+mkKnightsCode :: Integer -> Integer -> Tx.CompiledCode [Solution]
+mkKnightsCode depth boardSize =
        $$(Tx.compile [|| runKnights ||])
              `Tx.applyCode` Tx.liftCode depth
                   `Tx.applyCode` Tx.liftCode boardSize
+
+mkKnightsTerm :: Integer -> Integer -> Term
+mkKnightsTerm depth boardSize = compiledCodeToTerm $ mkKnightsCode depth boardSize
 
 Tx.makeLift ''ChessSet
