@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Compare the output from two runs of 'nofib-exe sizes-and-budgets' and print a
+# table of the increase/decrease in size/cpu/memory for each.  We only print the
+# changes because including the input data would make the table too wide.
+
+# Do something like
+#    `cabal run nofib-exe sizes-and-budgets >results1
+# in one branch and then 
+#    `cabal run nofib-exe sizes-and-budgets >results2
+# in another, then
+#    `nofib-compare results1 results2`
+# to see the comparison.
+#
+
+if [[ $# -lt 2 || $1 == "-h" || $1 == "--help" ]]
+then
+    echo -n "Usage: $0 <file1> <file2>"
+    exit 1
+fi
+
+INPUT1=$1
+INPUT2=$2
+
+if [[ ! -r "$INPUT1" ]]
+then echo "Error: can't open $INPUT1" && exit 1
+fi
+
+if [[ ! -r "$INPUT2" ]]
+then echo "Error: can't open $INPUT2" && exit 1
+fi
+
+TMP1=$(mktemp /tmp/bc1-XXXXXXX)
+TMP2=$(mktemp /tmp/bc2-XXXXXXX)
+
+trap 'rm -f "$TMP1" "$TMP2"' EXIT
+
+# print out everything after the first line containing "----", ie after the header
+awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT1" > "$TMP1"
+awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT2" > "$TMP2"
+      
+paste "$TMP1" "$TMP2" |
+   awk '
+      function diff (n1, n2) {
+        d = (n2-n1)/n1 * 100
+        sign = (d<0) ? "" : ((d==0) ? " " : "+")  # We get the "-" anyway if d<0
+        return sprintf ("%s%.1f%%", sign, d)
+      }       
+      BEGIN { 
+        printf ("Script                     Size         CPU budget    Memory budget\n")
+        printf ("--------------------------------------------------------------------\n")
+     }
+  { printf ("%-15s %15s %15s %15s\n", $1, diff($2,$6), diff($3,$7), diff($4,$8)) }
+'
+
