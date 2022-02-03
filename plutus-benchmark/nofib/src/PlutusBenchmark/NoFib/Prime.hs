@@ -304,13 +304,17 @@ mkPrimalityTestTerm n =
 runFixedPrimalityTest :: PrimeID -> Result
 runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 
+
+mkPrimalityCode :: PrimeID -> Tx.CompiledCode Result
+mkPrimalityCode pid =
+    $$(Tx.compile [|| runFixedPrimalityTest ||])
+          `Tx.applyCode` Tx.liftCode pid
+
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
 mkPrimalityBenchTerm :: PrimeID -> Term
 mkPrimalityBenchTerm pid =
-    compiledCodeToTerm $
-        $$(Tx.compile [|| runFixedPrimalityTest ||])
-        `Tx.applyCode` Tx.liftCode pid
+    compiledCodeToTerm $ mkPrimalityCode pid
 
 Tx.makeLift ''PrimeID
 Tx.makeLift ''Result
