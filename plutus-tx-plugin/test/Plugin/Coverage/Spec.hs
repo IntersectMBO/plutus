@@ -6,10 +6,8 @@
 
 module Plugin.Coverage.Spec (coverage) where
 
-import Common
-import Lib
-
 import Control.Lens
+
 
 import Data.Map qualified as Map
 import Data.Proxy
@@ -19,9 +17,11 @@ import PlutusTx.Code
 import PlutusTx.Coverage
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 import Prelude as Haskell
 
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 noBool :: CompiledCode (() -> ())

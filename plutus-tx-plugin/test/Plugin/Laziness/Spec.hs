@@ -9,14 +9,15 @@
 
 module Plugin.Laziness.Spec where
 
-import Common
-import Lib
-import PlcTestUtils
+import Test.Tasty.Extras
+
 import Plugin.Lib
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Test
 
 import Data.Proxy
 

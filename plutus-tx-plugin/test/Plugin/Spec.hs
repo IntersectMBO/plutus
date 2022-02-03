@@ -1,6 +1,6 @@
 module Plugin.Spec where
 
-import Common
+import Test.Tasty.Extras
 
 import Plugin.Basic.Spec
 import Plugin.Coverage.Spec

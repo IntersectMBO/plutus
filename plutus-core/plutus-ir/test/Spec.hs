@@ -8,9 +8,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import Common
 import PlutusPrelude
-import TestLib
 
 import NamesSpec
 import ParserSpec
@@ -19,10 +17,12 @@ import TypeSpec
 
 import PlutusIR
 import PlutusIR.Parser
+import PlutusIR.Test
 
 import PlutusCore qualified as PLC
 
 import Test.Tasty
+import Test.Tasty.Extras
 
 import Flat (flat, unflat)
 
