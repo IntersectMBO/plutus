@@ -5,7 +5,6 @@ import Test.Tasty.Extras
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
-import TestLib
 
 types :: TestNested
 types = testNested "types"

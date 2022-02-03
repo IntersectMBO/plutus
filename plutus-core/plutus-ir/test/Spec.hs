@@ -14,12 +14,11 @@ import TransformSpec
 import TypeSpec
 
 import PlutusIR
-import PlutusIR.Parser
+import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
 
 import PlutusCore qualified as PLC
-import PlutusIR
-import PlutusIR.Parser (pTerm)
+
 import Test.Tasty
 import Test.Tasty.Extras
 
