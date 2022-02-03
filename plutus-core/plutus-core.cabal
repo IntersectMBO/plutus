@@ -1,4 +1,4 @@
-cabal-version: 2.4
+cabal-version: 3.0
 name: plutus-core
 version: 0.1.0.0
 license: Apache-2.0
@@ -75,14 +75,6 @@ library
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
-        PlutusCore.Generators
-        PlutusCore.Generators.AST
-        PlutusCore.Generators.Interesting
-        PlutusCore.Generators.NEAT.Common
-        PlutusCore.Generators.NEAT.Spec
-        PlutusCore.Generators.NEAT.Term
-        PlutusCore.Generators.NEAT.Type
-        PlutusCore.Generators.Test
         PlutusCore.Lexer
         PlutusCore.Mark
         PlutusCore.MkPlc
@@ -127,7 +119,6 @@ library
         PlutusIR.Core.Plated
         PlutusIR.Core.Type
         PlutusIR.Error
-        PlutusIR.Generators.AST
         PlutusIR.Mark
         PlutusIR.MkPir
         PlutusIR.Parser
@@ -156,13 +147,11 @@ library
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core.Type
 
-        Common
         Crypto
         Data.ByteString.Hash
         Data.SatInt
         Prettyprinter.Custom
         ErrorCode
-        PlcTestUtils
         PlutusPrelude
         Universe
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
@@ -172,7 +161,6 @@ library
         plutus-core/examples
         plutus-ir/src
         untyped-plutus-core/src
-        generators
         prelude
         common
     other-modules:
@@ -202,12 +190,6 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Generators.Internal.Denotation
-        PlutusCore.Generators.Internal.Dependent
-        PlutusCore.Generators.Internal.Entity
-        PlutusCore.Generators.Internal.TypeEvalCheck
-        PlutusCore.Generators.Internal.TypedBuiltinGen
-        PlutusCore.Generators.Internal.Utils
         PlutusCore.Lexer.Type
         PlutusCore.Parsable
         PlutusCore.Parser.Internal
@@ -263,13 +245,11 @@ library
         Data.Functor.Foldable.Monadic
         Universe.Core
     build-depends:
-        Stream -any,
         aeson -any,
         algebraic-graphs >= 0.3,
         array -any,
         barbies -any,
         base >=4.9 && <5,
-        bifunctors -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -280,7 +260,6 @@ library
         cryptonite -any,
         data-default-class -any,
         deepseq -any,
-        dependent-map >=0.4.0.0,
         dependent-sum-template -any,
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
@@ -294,7 +273,6 @@ library
         hashable,
         hedgehog >=1.0,
         integer-gmp -any,
-        lazy-search -any,
         lens -any,
         megaparsec -any,
         mmorph -any,
@@ -309,12 +287,7 @@ library
         semigroupoids -any,
         semigroups >=0.19.1,
         serialise -any,
-        size-based -any,
         some < 1.0.3,
-        tasty -any,
-        tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
         template-haskell -any,
         text -any,
         th-lift -any,
@@ -326,6 +299,61 @@ library
         witherable -any,
         word-array -any,
         cardano-crypto-class -any
+
+-- could split this up if we split up the main library for UPLC/PLC/PIR
+library plutus-core-testlib
+    import: lang
+    visibility: public
+    hs-source-dirs: testlib
+    exposed-modules:
+        PlutusCore.Test
+        PlutusCore.Generators
+        PlutusCore.Generators.AST
+        PlutusCore.Generators.Interesting
+        PlutusCore.Generators.NEAT.Common
+        PlutusCore.Generators.NEAT.Spec
+        PlutusCore.Generators.NEAT.Term
+        PlutusCore.Generators.NEAT.Type
+        PlutusCore.Generators.Test
+
+        PlutusIR.Test
+        PlutusIR.Generators.AST
+
+        Test.Tasty.Extras
+    other-modules:
+        PlutusCore.Generators.Internal.Denotation
+        PlutusCore.Generators.Internal.Dependent
+        PlutusCore.Generators.Internal.Entity
+        PlutusCore.Generators.Internal.TypeEvalCheck
+        PlutusCore.Generators.Internal.TypedBuiltinGen
+        PlutusCore.Generators.Internal.Utils
+    build-depends:
+        base >=4.9 && <5,
+        bifunctors -any,
+        bytestring -any,
+        containers -any,
+        dependent-map >=0.4.0.0,
+        filepath -any,
+        ghc-prim -any,
+        hedgehog >=1.0,
+        integer-gmp -any,
+        lazy-search -any,
+        lens -any,
+        megaparsec -any,
+        mmorph -any,
+        mtl -any,
+        plutus-core -any,
+        prettyprinter >=1.1.0.1,
+        prettyprinter-configurable -any,
+        size-based -any,
+        some < 1.0.3,
+        Stream -any,
+        tasty -any,
+        tasty-golden -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any,
+        text -any,
+        transformers -any
 
 test-suite satint-test
   import: lang
@@ -367,6 +395,7 @@ test-suite plutus-core-test
         flat -any,
         hedgehog -any,
         plutus-core -any,
+        plutus-core-testlib -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
@@ -389,20 +418,15 @@ test-suite plutus-ir-test
     other-modules:
         NamesSpec
         ParserSpec
-        TestLib
         TransformSpec
         TypeSpec
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,
-        filepath -any,
+        plutus-core-testlib -any,
         flat -any,
         hedgehog -any,
-        lens -any,
         megaparsec -any,
-        mmorph -any,
-        mtl -any,
-        prettyprinter -any,
         tasty -any,
         tasty-hedgehog -any,
         text -any
@@ -435,6 +459,7 @@ test-suite untyped-plutus-core-test
         lens -any,
         mtl -any,
         plutus-core -any,
+        plutus-core-testlib -any,
         prettyprinter -any,
         pretty-show -any,
         secp256k1-haskell -any,
@@ -453,6 +478,7 @@ executable plc
         Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
         aeson -any,
         base <5,
         bytestring -any,
@@ -474,6 +500,7 @@ executable uplc
         Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
         aeson -any,
         base <5,
         bytestring -any,
@@ -496,6 +523,7 @@ executable pir
         Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
         aeson -any,
         base <5,
         bytestring -any,

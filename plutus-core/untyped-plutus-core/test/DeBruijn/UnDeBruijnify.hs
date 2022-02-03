@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 
-import Common
 import Control.Monad.Except
 import Control.Monad.State
 import DeBruijn.Common
@@ -10,6 +9,7 @@ import PlutusCore.Error
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
+import Test.Tasty.Extras
 import UntypedPlutusCore as UPLC
 
 -- Note: The point of these tests is that

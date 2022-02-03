@@ -95,12 +95,14 @@ runQueens :: Integer -> Algorithm -> [State]
 runQueens n alg = nqueens n (lookupAlgorithm alg)
 
 -- % Compile a Plutus Core term which runs nqueens on given arguments
-mkQueensTerm :: Integer -> Algorithm -> Term
-mkQueensTerm sz alg =
-  compiledCodeToTerm $
+mkQueensCode :: Integer -> Algorithm -> Tx.CompiledCode [State]
+mkQueensCode sz alg =
               $$(Tx.compile [|| runQueens ||])
               `Tx.applyCode` Tx.liftCode sz
               `Tx.applyCode` Tx.liftCode alg
+
+mkQueensTerm :: Integer -> Algorithm -> Term
+mkQueensTerm sz alg = compiledCodeToTerm $ mkQueensCode sz alg
 
 main2 :: Haskell.IO ()  -- Haskell version
 main2 = do

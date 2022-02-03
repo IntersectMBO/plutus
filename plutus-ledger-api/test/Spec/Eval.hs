@@ -3,7 +3,6 @@
 module Spec.Eval (tests) where
 
 import Codec.Serialise qualified as CBOR
-import Common
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
@@ -16,6 +15,7 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 import UntypedPlutusCore as UPLC
 

@@ -1,1 +1,3 @@
-ExBudget {exBudgetCPU = ExCPU 3918934, exBudgetMemory = ExMemory 12602}
+({ cpu: 3918934
+| mem: 12602
+})

@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-ledger-api
 version: 0.1.0.0
 license: Apache-2.0
@@ -97,6 +97,7 @@ test-suite plutus-ledger-api-test
         mtl -any,
         aeson -any,
         plutus-core -any,
+        plutus-core:plutus-core-testlib -any,
         plutus-ledger-api -any,
         hedgehog -any,
         tasty -any,

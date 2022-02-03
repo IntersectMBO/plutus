@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-benchmark
 version: 0.1.0.0
 license: Apache-2.0
@@ -140,7 +140,9 @@ test-suite plutus-benchmark-nofib-tests
       , plutus-benchmark-common
       , nofib-internal
       , plutus-core -any
+      , plutus-core:plutus-core-testlib -any
       , plutus-tx -any
+      , plutus-tx:plutus-tx-testlib -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
@@ -229,6 +231,27 @@ benchmark validation
     , flat -any
     , optparse-applicative -any
 
+---------------- validation-decode ----------------
+
+benchmark validation-decode
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: BenchDec.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      Common
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , bytestring -any
+    , criterion >= 1.5.9.0
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
+
 ---------------- validation-full ----------------
 
 benchmark validation-full
@@ -245,7 +268,6 @@ benchmark validation-full
     , plutus-core -any
     , bytestring -any
     , criterion >= 1.5.9.0
-    , deepseq -any
     , directory -any
     , filepath -any
     , flat -any

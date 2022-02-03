@@ -16,7 +16,8 @@
 
 module TH.Spec (tests) where
 
-import Common
+import Test.Tasty.Extras
+
 import Lib
 
 import PlutusCore.Pretty

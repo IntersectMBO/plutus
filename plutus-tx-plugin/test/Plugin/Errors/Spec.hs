@@ -12,13 +12,13 @@
 
 module Plugin.Errors.Spec where
 
-import Common
-import Lib ()
-import PlcTestUtils
+import Test.Tasty.Extras
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Test ()
 
 import Data.Proxy
 import Data.String

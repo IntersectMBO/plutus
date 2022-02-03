@@ -8,6 +8,7 @@ run to completion. -}
 module Main where
 
 import Test.Tasty
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
@@ -21,6 +22,10 @@ import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 import PlutusCore.Default
 import PlutusTx qualified as Tx
+import PlutusTx.Test qualified as Tx
+
+runTestNested :: TestNested -> TestTree
+runTestNested = runTestNestedIn ["nofib", "test"]
 
 
 -- Unit tests comparing PLC and Haskell computations on given inputs
@@ -41,8 +46,9 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 5190
+               , runTestNested $ Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
-
 
 ---------------- Knights ----------------
 
@@ -58,8 +64,9 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3669
+              , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
-
 
 ---------------- Queens ----------------
 
@@ -75,6 +82,7 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
+               , runTestNested    $ Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -82,9 +90,10 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
+               , runTestNested    $ Tx.goldenBudget "queens5budget" $ Queens.mkQueensCode 5 Queens.Bt
                ]
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 3127
              ]
-
 
 ---------------- Primes ----------------
 

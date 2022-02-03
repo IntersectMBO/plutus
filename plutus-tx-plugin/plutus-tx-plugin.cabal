@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-tx-plugin
 version: 0.1.0.0
 license: Apache-2.0
@@ -86,7 +86,6 @@ test-suite plutus-tx-tests
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
-        Budget.Lib
         Budget.Spec
         IsData.Spec
         Lift.Spec
@@ -111,10 +110,11 @@ test-suite plutus-tx-tests
         base >=4.9 && <5,
         flat -any,
         deepseq -any,
-        filepath -any,
         integer-gmp -any,
         plutus-core -any,
+        plutus-core:plutus-core-testlib -any,
         plutus-tx -any,
+        plutus-tx:plutus-tx-testlib -any,
         plutus-tx-plugin -any,
         prettyprinter -any,
         mtl -any,
@@ -140,6 +140,7 @@ test-suite size
     hs-source-dirs: test/size
     build-depends:
         base >= 4.9 && < 5.0,
+        plutus-tx:plutus-tx-testlib -any,
         plutus-tx -any,
         plutus-tx-plugin,
         tagged -any,
