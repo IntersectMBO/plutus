@@ -243,7 +243,7 @@ measureBudget compiledCode =
                $ UPLC.unDeBruijnProgram
                $ getPlc compiledCode
    in case programE of
-        Left _ -> (-1,-1) -- Something has gone wrong, and I don't care.
+        Left _ -> (-1,-1) -- Something has gone wrong but I don't care.
         Right program ->
           let (_, UPLC.TallyingSt _ budget, _) = evaluateCekTrace program
               ExCPU cpu = exBudgetCPU budget
