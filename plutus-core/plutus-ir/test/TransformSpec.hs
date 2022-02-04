@@ -146,6 +146,8 @@ beta =
     $ map (goldenPir (Beta.beta . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "lamapp"
     , "absapp"
+    , "multiapp"
+    , "multilet"
     ]
 
 unwrapCancel :: TestNested

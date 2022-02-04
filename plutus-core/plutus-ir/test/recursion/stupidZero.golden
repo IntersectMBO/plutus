@@ -84,29 +84,17 @@
                               x_i0
                               Nat_i6
                               [
-                                [
-                                  (lam
-                                    stupidZero_i0
-                                    (fun Nat_i7 Nat_i7)
+                                (lam
+                                  stupidZero_i0
+                                  (fun Nat_i7 Nat_i7)
+                                  [
+                                    [ { [ match_Nat_i4 x_i2 ] Nat_i7 } Zero_i6 ]
                                     (lam
-                                      n_i0
-                                      Nat_i8
-                                      [
-                                        [
-                                          { [ match_Nat_i5 n_i1 ] Nat_i8 }
-                                          Zero_i7
-                                        ]
-                                        (lam
-                                          pred_i0
-                                          Nat_i9
-                                          [ stupidZero_i3 pred_i1 ]
-                                        )
-                                      ]
+                                      pred_i0 Nat_i8 [ stupidZero_i2 pred_i1 ]
                                     )
-                                  )
-                                  [ (unwrap s_i2) s_i2 ]
-                                ]
-                                x_i1
+                                  ]
+                                )
+                                [ (unwrap s_i2) s_i2 ]
                               ]
                             )
                           )
