@@ -5,10 +5,6 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
--- | Parser for untyped Plutus Core using megaparsec, as in Plutus IR.
--- Will replace UntypedPlutusCore.Parser.hs.
--- Parser.y and Lexer.x, which currently generate Parser.hs, will be removed.
-
 module UntypedPlutusCore.Parser
     ( parse
     , parseQuoted

@@ -23,6 +23,7 @@ import Data.ByteString.Lazy.Internal (unpackChars)
 import PlutusCore.Core.Type
 import PlutusCore.Default
 import PlutusCore.Error
+import PlutusCore.MkPlc (mkIterTyApp)
 import PlutusCore.Name
 import PlutusCore.Quote
 
@@ -97,16 +98,11 @@ builtinType :: Parser PType
 builtinType = TyBuiltin <$> wordPos "con" <*> defaultUniType
 
 appType :: Parser PType
-appType = do
+appType = inBrackets $ do
     pos  <- getSourcePos
     fn   <- pType
     args <- some pType
-    pure $ tyApps pos fn args
-
-tyApps :: SourcePos -> PType -> [PType] -> PType
-tyApps _  _t []           = error "tyApps: A type application without an argument."
-tyApps loc ty [ty']       = TyApp loc ty ty'
-tyApps loc ty (ty' : tys) = TyApp loc (tyApps loc ty (ty':init tys)) (last tys)
+    pure $ mkIterTyApp pos fn args
 
 kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
@@ -123,7 +119,7 @@ pType = choice
     , allType
     , builtinType
     , lamType
-    , inBrackets appType
+    , appType
     , varType
     ]
 

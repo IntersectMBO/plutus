@@ -15,9 +15,10 @@ import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (ParseError (..))
+import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.ParserCommon
-import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, try)
+import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, try)
 import Text.Megaparsec.Error (ParseErrorBundle)
 
 -- Parsers for PLC terms
@@ -38,27 +39,8 @@ appTerm :: Parser PTerm
 appTerm = inBrackets $ do
     pos <- getSourcePos
     tm <- term
-    tms <- appTerms
-    pure $ app pos tm tms
-
-app :: SourcePos -> PTerm -> [PTerm] -> PTerm
-app _  _t []        = error "appTerm, app: An application without an argument."
-app loc t [t']      = Apply loc t t'
-app loc t (t' : ts) = Apply loc (app loc t (t':init ts)) (last ts)
-
--- | The syntax allows @(app (app x y) z)@ to be written as [x y z]
--- rather than [[x y] z]. This deals with more than one application.
-appTerms :: Parser [PTerm]
-appTerms = choice
-    [ try terms
-    , do
-        tm <- term
-        pure [tm]
-    ]
-    where terms = do
-            tm <- term
-            tms <- appTerms
-            pure $ tm : tms
+    tms <- many term
+    pure $ mkIterApp pos tm tms
 
 conTerm :: Parser PTerm
 conTerm = inParens $ Constant <$> wordPos "con" <*> constant
@@ -70,25 +52,8 @@ tyInstTerm :: Parser PTerm
 tyInstTerm = inBraces $ do
     pos <- getSourcePos
     tm <- term
-    tys <- appTypes
-    pure $ tyInst pos tm tys
-
-appTypes :: Parser [PType]
-appTypes = choice
-    [ try types
-    , do
-        ty <- pType
-        pure [ty]
-    ]
-    where types = do
-            ty <- pType
-            tys <- appTypes
-            pure $ ty : tys
-
-tyInst :: SourcePos -> PTerm -> [PType] -> PTerm
-tyInst _  _t []         = error "tyInst: A type instantiation without an argument."
-tyInst loc t [ty]       = TyInst loc t ty
-tyInst loc t (ty : tys) = TyInst loc (tyInst loc t (ty : init tys)) (last tys)
+    tys <- many pType
+    pure $ mkIterInst pos tm tys
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term
