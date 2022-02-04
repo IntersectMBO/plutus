@@ -20,12 +20,9 @@ import PlutusBenchmark.NoFib.Prime (Result (Composite, Prime))
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-import PlutusCore qualified as PLC
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Test qualified as Tx
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn ["nofib", "test"]
