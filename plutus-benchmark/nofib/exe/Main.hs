@@ -235,7 +235,7 @@ footerInfo = text "Most commands take the name of a program and a (possbily empt
                    ++ "You'll probably want to redirect the output to a file.")
 
 
--- Copied directly from nofib/test/Spec.hs
+-- Copied pretty much directly from plutus-tx/testlib/PlutusTx/Test.hs
 measureBudget :: CompiledCode a -> (Integer, Integer)
 measureBudget compiledCode =
   let programE = PLC.runQuote
