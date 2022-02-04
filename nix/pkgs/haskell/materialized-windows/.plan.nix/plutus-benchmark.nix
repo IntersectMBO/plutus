@@ -107,6 +107,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
           hsSourceDirs = [ "nofib/exe" ];
