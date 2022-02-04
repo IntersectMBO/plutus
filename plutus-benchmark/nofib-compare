@@ -34,7 +34,8 @@ TMP2=$(mktemp /tmp/bc2-XXXXXXX)
 
 trap 'rm -f "$TMP1" "$TMP2"' EXIT
 
-# print out everything after the first line containing "----", ie after the header
+# Print out everything after the first line containing "----", ie after the header.
+# This should ensure that we're only processing actual data.
 awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT1" > "$TMP1"
 awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT2" > "$TMP2"
       
@@ -49,6 +50,6 @@ paste "$TMP1" "$TMP2" |
         printf ("Script                     Size         CPU budget    Memory budget\n")
         printf ("-------------------------------------------------------------------\n")
      }
-  { printf ("%-15s %15s %15s %15s\n", $1, diff($2,$6), diff($3,$7), diff($4,$8)) }
-'
+     { printf ("%-15s %15s %15s %15s\n", $1, diff($2,$6), diff($3,$7), diff($4,$8)) }
+  '
 
