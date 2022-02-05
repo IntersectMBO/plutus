@@ -72,7 +72,7 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: 592aa61d657ad5935a33bace1243abce3728b643
+  commit: 5c1786f3a2b9b2647489862963003afdc1f27818
   subdirs:
     - base-deriving-via
     - binary
