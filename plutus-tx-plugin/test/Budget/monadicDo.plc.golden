@@ -46,35 +46,30 @@
         )
       )
     )
-    [
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl x [ Maybe (con integer) ])
-          [ { Just (con integer) } (con integer 1) ]
-        )
-        (lam
-          y
-          [ Maybe (con integer) ]
-          [
-            [ { { fMonadMaybe_c (con integer) } (con integer) } x ]
-            (lam
-              x
-              (con integer)
-              [
-                [ { { fMonadMaybe_c (con integer) } (con integer) } y ]
-                (lam
-                  y
-                  (con integer)
-                  [ { Just (con integer) } [ [ (builtin addInteger) x ] y ] ]
-                )
-              ]
-            )
-          ]
-        )
-      )
+    (termbind
+      (strict)
+      (vardecl x [ Maybe (con integer) ])
+      [ { Just (con integer) } (con integer 1) ]
+    )
+    (termbind
+      (strict)
+      (vardecl y [ Maybe (con integer) ])
       [ { Just (con integer) } (con integer 2) ]
+    )
+    [
+      [ { { fMonadMaybe_c (con integer) } (con integer) } x ]
+      (lam
+        x
+        (con integer)
+        [
+          [ { { fMonadMaybe_c (con integer) } (con integer) } y ]
+          (lam
+            y
+            (con integer)
+            [ { Just (con integer) } [ [ (builtin addInteger) x ] y ] ]
+          )
+        ]
+      )
     ]
   )
 )

@@ -101,6 +101,7 @@ executable nofib-exe
     , bytestring -any
     , flat -any
     , optparse-applicative -any
+    , transformers -any
 
 benchmark nofib
   import: lang

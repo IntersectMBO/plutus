@@ -20,8 +20,7 @@
       {
         [
           [
-            { [ Bool_match ds ] (all dead (type) Unit) }
-            (abs dead (type) [ (lam a Unit a) Unit ])
+            { [ Bool_match ds ] (all dead (type) Unit) } (abs dead (type) Unit)
           ]
           (abs
             dead
@@ -31,10 +30,7 @@
               (termbind
                 (strict)
                 (vardecl thunk (con unit))
-                [
-                  { [ Unit_match [ (lam a Unit a) Unit ] ] (con unit) }
-                  (con unit ())
-                ]
+                [ { [ Unit_match Unit ] (con unit) } (con unit ()) ]
               )
               (error Unit)
             )
