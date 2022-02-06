@@ -18,7 +18,6 @@ import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
-import Data.Functor.Identity (Identity (Identity), runIdentity)
 import Data.Hashable (Hashable)
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
@@ -203,12 +202,14 @@ verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinB
 verifySECP256k1Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifySECP256k1Signature (BuiltinByteString pk) (BuiltinByteString sig) (BuiltinByteString msg) =
   case Crypto.verifySECP256k1Signature pk sig msg of
-    Emitter f -> case runIdentity (f go) of
+    Emitter f -> case f go of
       EvaluationFailure   -> mustBeReplaced "SECP256k1 verification errored."
-      EvaluationSuccess b -> BuiltinBool b
+      EvaluationSuccess b -> case b of
+        EvaluationFailure    -> mustBeReplaced "SECP256k1 tracing errored."
+        EvaluationSuccess b' -> BuiltinBool b'
   where
-    go :: Text -> Identity ()
-    go t = Identity . trace (BuiltinString t) $ ()
+    go :: Text -> EvaluationResult ()
+    go t = trace (BuiltinString t) . EvaluationSuccess $ ()
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
