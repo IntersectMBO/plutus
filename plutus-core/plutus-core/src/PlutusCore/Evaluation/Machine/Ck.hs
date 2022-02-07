@@ -67,8 +67,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    TypeSchemeResult -> makeKnown emitCkM (Just term) x
-    _                -> pure $ VBuiltin term runtime
+    RuntimeSchemeResult -> makeKnown emitCkM (Just term) x
+    _                   -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -274,7 +274,7 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        TypeSchemeAll  _ schK -> do
+        RuntimeSchemeAll schK -> do
             let runtime' = BuiltinRuntime schK f exF
             res <- evalBuiltinApp term' runtime'
             stack <| res
@@ -300,7 +300,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        TypeSchemeArrow schB -> do
+        RuntimeSchemeArrow schB -> do
             x <- liftEither $ readKnown (Just argTerm) arg
             let noCosting = error "The CK machine does not support costing"
                 runtime' = BuiltinRuntime schB (f x) noCosting

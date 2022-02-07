@@ -539,7 +539,7 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
-    TypeSchemeResult -> do
+    RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         makeKnown ?cekEmitter (Just term) x
     _ -> pure $ VBuiltin fun term env runtime
@@ -646,7 +646,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            TypeSchemeAll  _ schK -> do
+            RuntimeSchemeAll schK -> do
                 let runtime' = BuiltinRuntime schK f exF
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
@@ -681,7 +681,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            TypeSchemeArrow schB -> do
+            RuntimeSchemeArrow schB -> do
                 x <- liftEither $ readKnown (Just argTerm) arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
