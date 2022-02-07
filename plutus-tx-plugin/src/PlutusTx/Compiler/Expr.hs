@@ -35,6 +35,8 @@ import PlutusTx.PLCTypes (PLCType, PLCVar)
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
 import PrelNames qualified as GHC
+import Pair qualified as GHC
+import GHC.Hs.Dump qualified as GHC
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -52,6 +54,7 @@ import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
 
 import Data.Array qualified as Array
+import Data.Bifunctor (first)
 import Data.ByteString qualified as BS
 import Data.Functor ((<&>))
 import Data.List (elemIndex)
@@ -243,6 +246,35 @@ we do a pattern match at all we will evaluate the scrutinee, since we do pattern
 
 So the only case where we *need* to keep the binding in place is the case described in Note [Default-only cases].
 In this case we make a strict binding, in all others we make a non-strict binding.
+-}
+
+{- Note [Casts to Any]
+We want to be able to have strict patterns on builtin types.
+GHC is (unfortunately) pretty smart and would match on constuctors of actual
+carrier types (e.g. ByteString) if we have
+
+   newtype BuiltinByteString = BuiltinByteString ByteString
+
+We could teach our compiler about internal representation of all possible
+builtin types, but that is not scalable.
+Instead, we can trick GHC by using
+
+   newtype BuiltinByteString = UnsafeBuiltinByteString Any
+
+and exposing a pattern synonym which does the coercion.
+
+Then the strict bindings on BuiltinByteString are compiled to
+
+   case bs `cast` co of x { __DEFAULT -> ... }
+
+We match on this special case (See also Note [Default-only cases]),
+when `co` is a coercion to Any. Then instead of compiling `x` as having `Any`
+type (which we cannot compile), we compile as having type
+before coercion.
+
+This is ok, as if x is used, it is most likely coerced back,
+but we always trust the coercions. See Note [Coercions and newtypes].
+
 -}
 
 {- Note [Default-only cases]
@@ -768,6 +800,29 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
+
+        -- See Note [Casts to Any]
+        GHC.Case scrutinee0 b _ [a@(_, _, body)]
+          | GHC.isDefaultAlt a
+          , Just (scrutinee, co) <- isCast scrutinee0
+          , GHC.Pair tyA tyB <- GHC.coercionKind co
+          , Just tyConB <- GHC.tyConAppTyCon_maybe tyB
+          , tyConB == GHC.anyTyCon
+
+          -> do
+            -- See Note [At patterns]
+            scrutinee' <- compileExpr scrutinee
+            withVarScopedType b tyA $ \v -> do
+                body' <- compileExpr body
+                -- See Note [At patterns]
+                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
+                pure $ PIR.mkLet () PIR.NonRec binds body'
+          where
+            -- match on Cast, looking through ticks.
+            isCast :: GHC.CoreExpr -> Maybe (GHC.CoreExpr, GHC.Coercion)
+            isCast (GHC.Cast s c) = Just (s, c)
+            isCast (GHC.Tick t s) = fmap (first (GHC.Tick t)) (isCast s)
+            isCast _              = Nothing
 
         -- See Note [Default-only cases]
         GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do

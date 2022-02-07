@@ -15,10 +15,8 @@ import Test.Tasty.Extras
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
-import PlutusTx.Lift
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Test
 
 import Data.Proxy
 
@@ -26,6 +24,7 @@ strict :: TestNested
 strict = testNested "Strict" [
     goldenPir "strictAdd" strictAdd
   , goldenPir "strictAppend" strictAppend
+  , goldenPir "strictAppend2" strictAppend2
   ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
@@ -39,3 +38,12 @@ strictAppend = plc (Proxy @"strictLet") strictAppendExample
 
 strictAppendExample :: P.BuiltinByteString -> P.BuiltinByteString -> P.BuiltinByteString
 strictAppendExample !x !y = Builtins.appendByteString x y
+
+strictAppend2 :: CompiledCode (Wrapper -> Wrapper -> Wrapper)
+strictAppend2 = plc (Proxy @"strictLet") strictAppend2Example
+
+strictAppend2Example :: Wrapper -> Wrapper -> Wrapper
+strictAppend2Example !(Wrapper x) !(Wrapper y) = Wrapper (Builtins.appendByteString x y)
+
+-- Wrapper, like PubKeyHash etc.
+newtype Wrapper = Wrapper P.BuiltinByteString

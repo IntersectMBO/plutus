@@ -35,6 +35,12 @@ withVarScoped v k = do
     var <- compileVarFresh v
     local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
 
+withVarScopedType :: CompilingDefault uni fun m => GHC.Var -> GHC.Type -> (PIR.VarDecl PIR.TyName PIR.Name uni fun () -> m a) -> m a
+withVarScopedType v t k = do
+    let ghcName = GHC.getName v
+    var <- compileVarFreshType v t
+    local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
+
 withVarsScoped :: CompilingDefault uni fun m => [GHC.Var] -> ([PIR.VarDecl PIR.TyName PIR.Name uni fun ()] -> m a) -> m a
 withVarsScoped vs k = do
     vars <- for vs $ \v -> do

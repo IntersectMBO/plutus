@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 
@@ -9,6 +10,8 @@ module PlutusTx.Compiler.Names where
 import PlutusTx.Compiler.Kind
 import {-# SOURCE #-} PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Utils
 import PlutusTx.PLCTypes
 
 import GhcPlugins qualified as GHC
@@ -52,8 +55,11 @@ compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
 compileVarFresh :: CompilingDefault uni fun m => GHC.Var -> m (PLCVar uni fun)
-compileVarFresh v = do
-    t' <- compileTypeNorm $ GHC.varType v
+compileVarFresh v = compileVarFreshType v (GHC.varType v)
+
+compileVarFreshType :: CompilingDefault uni fun m => GHC.Var -> GHC.Type -> m (PLCVar uni fun)
+compileVarFreshType v t = withContextM 2 (sdToTxt $ "Compiling fresh variable:" GHC.<+> GHC.ppr v GHC.<+> " :: " GHC.<+> GHC.ppr t) $ do
+    t' <- compileTypeNorm t
     n' <- compileNameFresh $ GHC.getName v
     pure $ PLC.VarDecl () n' t'
 
