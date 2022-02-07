@@ -12,6 +12,7 @@ import Plugin.NoTrace.Spec
 import Plugin.Primitives.Spec
 import Plugin.Profiling.Spec
 import Plugin.Typeclasses.Spec
+import Plugin.Strict.Spec
 
 tests :: TestNested
 tests = testNested "Plugin" [
@@ -25,4 +26,5 @@ tests = testNested "Plugin" [
   , typeclasses
   , profiling
   , coverage
+  , strict
   ]
