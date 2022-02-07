@@ -339,15 +339,60 @@ The way 'makeBuiltinMeaning' handles such a type is by traversing it and instant
 variable. What a type variable gets instantiated to depends on where it appears. When the entire
 type of an argument is a single type variable, it gets instantiated to @Opaque val VarN@ where
 @VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N"
-(for the purpose of this explanation it doesn't matter what @VarN@ actually is).
-See Note [Implementation of polymorphic built-in functions] for what 'Opaque' is.
+For the purpose of this explanation it doesn't matter what @VarN@ actually is and the representation
+is subject to change anyway. 'Opaque' however is more fundamental and so we need to talk about it.
+Here's how it's defined:
 
-So the type from the above elaborates to
+    newtype Opaque val (rep :: GHC.Type) = Opaque
+        { unOpaque :: val
+        }
+
+I.e. @Opaque val rep@ is a wrapper around @val@, which stands for the type of value that an
+evaluator uses (the builtins machinery is designed to work with any evaluator and different
+evaluators define their type of values differently, for example 'CkValue' if the type of value for
+the CK machine). The idea is simple: in order to apply the denotation of a builtin expecting, say,
+an 'Integer' constant we need to actually extract that 'Integer' from the AST of the given value,
+but if the denotation is polymorphic over the type of its argument, then we don't need to extract
+anything, we can just pass the AST of the value directly to the denotation. I.e. in order for a
+polymorphic function to become a monomorphic denotation (denotations are always monomorpic) all type
+variables in the type of that function need to be instantiated at the type of value that a given
+evaluator uses.
+
+If we used just @val@ rathen than @Opaque val rep@, we'd specialize
+
+    forall a. Bool -> a -> a -> a
+
+to
+
+    Bool -> val -> val -> val
+
+however then we'd need to separately specify the Plutus type of this builtin, since we can't infer
+it from all these @val@s in the general case, for example does
+
+    val -> val -> val
+
+stand for
+
+    all a. a -> a -> a
+
+or
+
+    all a b. a -> b -> a
+
+or something else?
+
+So we use the @Opaque val rep@ wrapper, which is basically a @val@ with a @rep@ attached to it where
+@rep@ represents the Plutus type of the argument/result, which is how we arrive at
 
     Bool -> Opaque val Var0 -> Opaque val Var0 -> Opaque val Var0
 
-We could've specified this type explicitly (leaving out the @Var0@ thing for the elaboration
-machinery to figure out):
+Not only does this encoding allow us to specify both the Haskell and the Plutus types of the
+builtin simultaneously, but it also makes it possible to infer such a type from a regular
+polymorphic Haskell function (how that is done is a whole another story), so that we don't even need
+to specify any types when creating builtins out of simple polymorphic functions.
+
+If we wanted to specify the type explicitly, we could do it like this (leaving out the @Var0@ thing
+for the elaboration machinery to figure out):
 
     toBuiltinMeaning IfThenElse =
         makeBuiltinMeaning
@@ -355,7 +400,7 @@ machinery to figure out):
             (\b x y -> if b then x else y)
             <costingFunction>
 
-and this would be equivalent to the original definition. We didn't do that, because why bother if
+and it would be equivalent to the original definition. We didn't do that, because why bother if
 the correct thing gets inferred anyway.
 
 Another thing we could do is define an auxiliary function with a type signature and explicit
