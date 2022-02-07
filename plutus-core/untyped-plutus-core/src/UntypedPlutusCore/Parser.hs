@@ -1,9 +1,4 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module UntypedPlutusCore.Parser
     ( parse
@@ -64,14 +59,16 @@ errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = conTerm
-    <|> builtinTerm
-    <|> varTerm
-    <|> lamTerm
-    <|> appTerm
-    <|> delayTerm
-    <|> forceTerm
-    <|> errorTerm
+term = choice $ map try [
+    conTerm
+    , builtinTerm
+    , varTerm
+    , lamTerm
+    , appTerm
+    , delayTerm
+    , forceTerm
+    , errorTerm
+    ]
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)

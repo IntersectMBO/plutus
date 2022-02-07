@@ -1,20 +1,18 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+
+-- | Parsers for PIR terms in DefaultUni.
 
 module PlutusIR.Parser
     ( parse
     , parseQuoted
     , program
-    -- , plcProgram
     , pType
     , pTerm
     , Parser
     , SourcePos
     ) where
 
-import PlutusCore qualified as PLC
+import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
 import PlutusCore.Parser.ParserCommon
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
@@ -54,49 +52,65 @@ binding = inParens $ choice $ map try
     , wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype
     ]
 
-absTerm :: Parser PTerm
-absTerm = PIR.TyAbs <$> wordPos "abs" <*> tyName <*> kind <*> pTerm
+varTerm :: Parser PTerm
+varTerm = do
+    n <- name
+    ann <- getSourcePos
+    pure $ PIR.Var ann n
 
-lamTerm :: Parser PTerm
-lamTerm = PIR.LamAbs <$> wordPos "lam" <*> name <*> pType <*> pTerm
+-- A small type wrapper for parsers that are parametric in the type of term they parse
+type Parametric
+    = Parser PTerm -> Parser PTerm
 
-conTerm :: Parser PTerm
-conTerm = PIR.Constant <$> wordPos "con" <*> constant
+absTerm :: Parametric
+absTerm tm = inParens $ PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
 
-iwrapTerm :: Parser PTerm
-iwrapTerm = PIR.IWrap <$> wordPos "iwrap" <*> pType <*> pType <*> pTerm
+lamTerm :: Parametric
+lamTerm tm = inParens $ PIR.lamAbs <$> wordPos "lam" <*> name <*> pType <*> tm
 
-builtinTerm :: Parser PTerm
-builtinTerm = PIR.Builtin <$> wordPos "builtin" <*> builtinFunction
+conTerm :: Parametric
+conTerm _tm = inParens $ PIR.constant <$> wordPos "con" <*> constant
 
-unwrapTerm :: Parser PTerm
-unwrapTerm = PIR.Unwrap <$> wordPos "unwrap" <*> pTerm
+iwrapTerm :: Parametric
+iwrapTerm tm = inParens $ PIR.iWrap <$> wordPos "iwrap" <*> pType <*> pType <*> tm
 
-errorTerm :: Parser PTerm
-errorTerm = PIR.Error <$> wordPos "error" <*> pType
+builtinTerm :: Parametric
+builtinTerm _tm = inParens $ PIR.builtin <$> wordPos "builtin" <*> builtinFunction
 
-letTerm :: Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+unwrapTerm :: Parametric
+unwrapTerm tm = inParens $ PIR.unwrap <$> wordPos "unwrap" <*> tm
+
+errorTerm :: Parametric
+errorTerm _tm = inParens $ PIR.error <$> wordPos "error" <*> pType
+
+letTerm
+    :: Parser PTerm
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> pTerm
 
-appTerm :: Parser PTerm
-appTerm = PIR.mkIterApp <$> getSourcePos <*> pTerm <*> some pTerm
+appTerm :: Parametric
+appTerm tm = inBrackets $ PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 
-tyInstTerm :: Parser PTerm
-tyInstTerm = PIR.mkIterInst <$> getSourcePos <*> pTerm <*> some pType
+tyInstTerm :: Parametric
+tyInstTerm tm = inBraces $ PIR.mkIterInst <$> getSourcePos <*> tm <*> some pType
+
+term' :: Parametric
+term' other = choice $ map try [
+    varTerm
+    , absTerm self
+    , lamTerm self
+    , conTerm self
+    , iwrapTerm self
+    , builtinTerm self
+    , unwrapTerm self
+    , errorTerm self
+    , inParens other
+    , tyInstTerm self
+    , appTerm self
+    ]
+    where self = term' other
 
 pTerm :: Parser PTerm
-pTerm = choice $ map try
-    [ absTerm
-    , lamTerm
-    , conTerm
-    , iwrapTerm
-    , errorTerm
-    , letTerm
-    , appTerm
-    , tyInstTerm
-    , builtinTerm
-    , unwrapTerm
-    ]
+pTerm = term' letTerm
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code

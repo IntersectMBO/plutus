@@ -1,7 +1,6 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 
+-- | Parsers for PLC terms in DefaultUni.
 
 module PlutusCore.Parser
     ( parseProgram
@@ -18,10 +17,8 @@ import PlutusCore.Error (ParseError (..))
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.ParserCommon
-import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, try)
+import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 import Text.Megaparsec.Error (ParseErrorBundle)
-
--- Parsers for PLC terms
 
 -- | A parsable PLC term.
 type PTerm = Term TyName Name DefaultUni DefaultFun SourcePos
@@ -36,11 +33,7 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ do
-    pos <- getSourcePos
-    tm <- term
-    tms <- many term
-    pure $ mkIterApp pos tm tms
+appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
 
 conTerm :: Parser PTerm
 conTerm = inParens $ Constant <$> wordPos "con" <*> constant

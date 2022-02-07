@@ -168,7 +168,7 @@ applyProgram
     -> Program tyname name uni fun a
 applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
 
-termAnn :: Term tynam name uni fun a -> a
+termAnn :: Term tyname name uni fun a -> a
 termAnn t = case t of
   Let a _ _ _    -> a
   Var a _        -> a

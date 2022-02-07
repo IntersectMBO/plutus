@@ -182,11 +182,6 @@ parseScoped :: (MonadQuote f) =>
     BSL.ByteString
     -> f (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseScoped bs = do
-    -- case parseProgram bs of
-    --   Left peb -> pure $ error $ errorBundlePretty peb
-    --   Right pro -> do
-    --     renamed <- rename pro
-    --     through (Uniques.checkProgram (const True)) renamed
     case parseProgram bs of
         -- when fail, pretty print the parse errors.
         Left err ->
