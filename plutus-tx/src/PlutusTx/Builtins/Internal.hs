@@ -2,6 +2,8 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE PatternSynonyms    #-}
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're NOINLINE!
@@ -13,20 +15,21 @@
 module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
-import Control.DeepSeq (NFData)
+import Control.DeepSeq (NFData (rnf))
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
-import Data.Hashable (Hashable)
+import Data.Hashable (Hashable (hashWithSalt))
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import GHC.Generics (Generic)
+import GHC.Exts (Any)
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (Pretty (..), viaShow)
+import Unsafe.Coerce (unsafeCoerce)
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -148,10 +151,48 @@ BYTESTRING
 -}
 
 -- | An opaque type representing Plutus Core ByteStrings.
-newtype BuiltinByteString = BuiltinByteString ByteString
-  deriving stock (Generic)
-  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
-  deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+newtype BuiltinByteString = UnsafeBuiltinByteString Any
+--  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
+--  deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+
+
+pattern BuiltinByteString :: ByteString -> BuiltinByteString
+pattern BuiltinByteString bs <- UnsafeBuiltinByteString (unsafeCoerce @Any @ByteString -> bs)
+  where BuiltinByteString bs = UnsafeBuiltinByteString (unsafeCoerce @ByteString @Any bs)
+
+{-# COMPLETE BuiltinByteString #-}
+
+instance Haskell.Show BuiltinByteString where
+    showsPrec d (BuiltinByteString bs) = showsPrec d bs
+
+instance Haskell.Eq BuiltinByteString where
+    BuiltinByteString x == BuiltinByteString y = x Haskell.== y
+
+instance Haskell.Ord BuiltinByteString where
+    compare (BuiltinByteString x) (BuiltinByteString y) = Haskell.compare x y
+
+instance Haskell.Semigroup BuiltinByteString where
+    BuiltinByteString x <> BuiltinByteString y = BuiltinByteString (x Haskell.<> y)
+
+instance Haskell.Monoid BuiltinByteString where
+    mempty = emptyByteString
+
+instance Hashable BuiltinByteString where
+    hashWithSalt salt (BuiltinByteString bs) = hashWithSalt salt bs
+
+instance Serialise BuiltinByteString where
+    encode (BuiltinByteString bs) = encode bs
+    decode = fmap BuiltinByteString decode
+
+instance NFData BuiltinByteString where
+    rnf (BuiltinByteString bs) = rnf bs
+
+instance BA.ByteArrayAccess BuiltinByteString where
+    length (BuiltinByteString ba) = BA.length ba
+    withByteArray (BuiltinByteString ba) = BA.withByteArray ba
+
+instance BA.ByteArray BuiltinByteString where
+    allocRet n k = fmap (fmap BuiltinByteString) (BA.allocRet n k)
 
 instance Pretty BuiltinByteString where
     pretty = viaShow
