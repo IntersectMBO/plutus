@@ -6,7 +6,8 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE ViewPatterns     #-}
-{-|
+{-
+|
 An inlining pass.
 
 This pass is essentially a copy of the PIR inliner, and should be KEPT IN SYNC with it.
@@ -48,9 +49,9 @@ import Witherable
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).
 3. Handling of multiple beta-reductions in one go, this is handled in PIR by a dedicated pass.
-4. Don't inline lambdas with trivial bodies. We shouldn't really do this in PIR, but we leave there for now.
+4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really. But doing it here
+is actively harmful, so we don't include it.
 5. Simplistic purity analysis, in particular we don't try to be clever about builtins (should mostly be handled in PIR).
-
 -}
 
 newtype InlineTerm name uni fun a = Done (Term name uni fun a)
