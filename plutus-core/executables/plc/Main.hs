@@ -11,11 +11,11 @@ import PlutusCore.Pretty qualified as PP
 
 import UntypedPlutusCore qualified as UPLC (eraseProgram)
 
-import Data.Function ((&))
 import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -129,7 +129,7 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode timingMode) = do
   prog <- getProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
-      term = void . PLC.toTerm $ prog
+      term = void $ prog ^. PLC.progTerm
       !_ = rnf term
       -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
       -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.

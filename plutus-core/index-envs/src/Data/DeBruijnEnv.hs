@@ -1,11 +1,16 @@
 {-# LANGUAGE TypeFamilies #-}
-module Data.DeBruijnEnv (DeBruijnEnv (..), RelativizedMap (..)) where
+module Data.DeBruijnEnv
+    ( DeBruijnEnv (..)
+    , BRAL.RAList (..)
+    , RelativizedMap (..)
+    ) where
 
 import Data.IntMap.Strict qualified as IM
 import Data.Kind
 import Data.Maybe (fromJust)
 import Data.RAList qualified as RAL
 import Data.RandomAccessList.SkewBinary qualified as BRAL
+import Data.Word
 
 {-|
 A class for types that can be used to implement a de Bruijn index environment.
@@ -18,12 +23,12 @@ class DeBruijnEnv e where
     empty :: e
     -- | Prepend an element to the environment.
     cons :: Element e -> e -> e
-    -- | Lookup an element in the environment.
-    index :: e -> Word -> Maybe (Element e)
+    -- | Lookup an element in the environment. Assumed to be **1-indexed**.
+    index :: e -> Word64 -> Maybe (Element e)
     {-# INLINABLE unsafeIndex #-}
     -- | Lookup an element in the environment, partially.
-    unsafeIndex :: e -> Word -> Element e
-    unsafeIndex e i = fromJust $ index e i
+    unsafeIndex :: e -> Word64 -> Element e
+    unsafeIndex e = fromJust . index e
 
 instance DeBruijnEnv (BRAL.RAList a) where
     type Element (BRAL.RAList a) = a
@@ -33,12 +38,13 @@ instance DeBruijnEnv (BRAL.RAList a) where
     {-# INLINABLE cons #-}
     cons = BRAL.Cons
     {-# INLINABLE index #-}
-    index = BRAL.safeIndex
+    index e i = BRAL.safeIndexZero e (i-1)
     {-# INLINABLE unsafeIndex #-}
-    unsafeIndex = BRAL.index
+    unsafeIndex e i = BRAL.unsafeIndexZero e (i-1)
 
 -- | A sequence implemented by a map from "levels" to values and a counter giving the "current" level.
-data RelativizedMap a = RelativizedMap (IM.IntMap a) {-# UNPACK #-} !Int
+data RelativizedMap a = RelativizedMap (IM.IntMap a) {-# UNPACK #-} !Word64
+    deriving Show
 
 instance DeBruijnEnv (RelativizedMap a) where
     type Element (RelativizedMap a) = a
@@ -46,9 +52,9 @@ instance DeBruijnEnv (RelativizedMap a) where
     {-# INLINABLE empty #-}
     empty = RelativizedMap mempty 0
     {-# INLINABLE cons #-}
-    cons a (RelativizedMap im l) = RelativizedMap (IM.insert l a im) (l+1)
+    cons a (RelativizedMap im l) = RelativizedMap (IM.insert (fromIntegral l) a im) (l+1)
     {-# INLINABLE index #-}
-    index (RelativizedMap im l) w = IM.lookup (l - fromIntegral w) im
+    index (RelativizedMap im l) w = IM.lookup (fromIntegral l - fromIntegral w) im
 
 instance DeBruijnEnv (RAL.RAList  a) where
     type Element (RAL.RAList a) = a
@@ -58,4 +64,5 @@ instance DeBruijnEnv (RAL.RAList  a) where
     {-# INLINABLE cons #-}
     cons = RAL.cons
     {-# INLINABLE index #-}
-    index l w = l RAL.!? fromIntegral w
+    -- RAL is 0-indexed
+    index l w = l RAL.!? fromIntegral (w-1)

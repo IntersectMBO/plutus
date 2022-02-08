@@ -80,7 +80,8 @@ data NormCheckError tyname name uni fun ann
     | BadTerm ann (Term tyname name uni fun ann) T.Text
     deriving (Show, Functor, Generic, NFData)
 deriving instance
-    ( HasUniques (Term tyname name uni fun ann)
+    ( Eq (Term tyname name uni fun ann)
+    , Eq (Type tyname uni ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)

@@ -12,17 +12,14 @@ module UntypedPlutusCore.DeBruijn
     , FreeVariableError (..)
     , AsFreeVariableError (..)
     , deBruijnTerm
-    , deBruijnProgram
     , unDeBruijnTerm
-    , unDeBruijnProgram
     , unNameDeBruijn
     , fakeNameDeBruijn
     -- * unsafe api, use with care
     , deBruijnTermWith
-    , deBruijnProgramWith
     , unDeBruijnTermWith
-    , unDeBruijnProgramWith
     , freeIndexAsConsistentLevel
+    , deBruijnInitIndex
     ) where
 
 import PlutusCore.DeBruijn.Internal
@@ -46,21 +43,6 @@ deBruijnTerm
     => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
--- | Convert a 'Program' with Name's into a 'Program' with 'DeBruijn's.
--- Will throw an error if a free variable is encountered.
-deBruijnProgram
-    :: (AsFreeVariableError e, MonadError e m)
-    => Program Name uni fun ann -> m (Program NamedDeBruijn uni fun ann)
-deBruijnProgram = deBruijnProgramWith freeUniqueThrow
-
--- | Takes a "handler" function to execute when encountering free variables.
-deBruijnProgramWith
-    :: Monad m
-    => (Unique -> ReaderT Levels m Index)
-    -> Program Name uni fun ann
-    -> m (Program NamedDeBruijn uni fun ann)
-deBruijnProgramWith h (Program ann ver term) = Program ann ver <$> deBruijnTermWith h term
-
 -- | Convert a 'Term' with 'DeBruijn's into a 'Term' with 'Name's.
 -- Will throw an error if a free variable is encountered.
 unDeBruijnTerm
@@ -68,21 +50,7 @@ unDeBruijnTerm
     => Term NamedDeBruijn uni fun ann -> m (Term Name uni fun ann)
 unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 
--- | Convert a 'Program' with 'DeBruijn's into a 'Program' with 'Name's.
--- Will throw an error if a free variable is encountered.
-unDeBruijnProgram
-    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
-    => Program NamedDeBruijn uni fun ann -> m (Program Name uni fun ann)
-unDeBruijnProgram = unDeBruijnProgramWith freeIndexThrow
-
 -- | Takes a "handler" function to execute when encountering free variables.
-unDeBruijnProgramWith
-    :: MonadQuote m
-    => (Index -> ReaderT Levels m Unique)
-    -> Program NamedDeBruijn uni fun ann
-    -> m (Program Name uni fun ann)
-unDeBruijnProgramWith h (Program ann ver term) = Program ann ver <$> unDeBruijnTermWith h term
-
 deBruijnTermWith
     :: Monad m
     => (Unique -> ReaderT Levels m Index)
@@ -136,7 +104,7 @@ unDeBruijnTermWithM h = go
         LamAbs ann n t ->
             -- See NOTE: [DeBruijn indices of Binders]
             declareBinder $ do
-              n' <- deBruijnToName h $ set index 0 n
+              n' <- deBruijnToName h $ set index deBruijnInitIndex n
               withScope $ LamAbs ann n' <$> go t
         -- boring recursive cases
         Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2

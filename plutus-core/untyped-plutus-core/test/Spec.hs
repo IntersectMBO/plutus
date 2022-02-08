@@ -5,6 +5,7 @@ module Main where
 
 import DeBruijn.Spec (test_debruijn)
 import Evaluation.Builtins (test_builtins)
+import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines
 import Transform.Simplify (test_simplify)
@@ -31,6 +32,7 @@ main = defaultMain $ testGroup "Untyped Plutus Core"
     , test_simplify
     , test_deserializingBigConstants
     , test_debruijn
+    , test_freevars
     ]
 
 test_deserializingBigConstants :: TestTree

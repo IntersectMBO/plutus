@@ -6,6 +6,7 @@ module Main where
 import Prelude ((<>))
 import Prelude qualified as Hs
 
+import Control.Lens hiding (argument)
 import Control.Monad ()
 import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString qualified as BS
@@ -25,7 +26,6 @@ import PlutusBenchmark.NoFib.LastPiece qualified as LastPiece
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-import PlutusCore (EvaluationResult, Name (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
@@ -33,7 +33,6 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
 import PlutusTx (getPlc)
 import PlutusTx.Code (CompiledCode, sizePlc)
-import PlutusTx.Evaluation (evaluateCekTrace)
 import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -197,10 +196,10 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateWithCek = UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
+evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+evaluateWithCek = UPLC.unsafeExtractEvaluationResult . (\(fstT,_,_) -> fstT) . UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.restrictingEnormous UPLC.noEmitter
 
-writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
+writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr $ Flat.flat prog
 
 writeFlatDeBruijn ::UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
@@ -240,12 +239,12 @@ measureBudget :: CompiledCode a -> (Integer, Integer)
 measureBudget compiledCode =
   let programE = PLC.runQuote
                $ runExceptT @PLC.FreeVariableError
-               $ UPLC.unDeBruijnProgram
+               $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm
                $ getPlc compiledCode
    in case programE of
         Left _ -> (-1,-1) -- Something has gone wrong but I don't care.
         Right program ->
-          let (_, UPLC.TallyingSt _ budget, _) = evaluateCekTrace program
+          let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
               ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
           in (Hs.fromIntegral cpu, Hs.fromIntegral mem)
@@ -322,7 +321,7 @@ main = do
     SizesAndBudgets
         -> printSizesAndBudgets
     -- Write the output to stdout and let the user deal with redirecting it.
-    where getTerm :: ProgAndArgs -> UPLC.Term UPLC.Name DefaultUni DefaultFun ()
+    where getTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
           getTerm =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
@@ -334,4 +333,4 @@ main = do
                                           else Prime.mkPrimalityTestTerm n
 
           mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
-          mkProg = UPLC.Program () (UPLC.Version () 1 0 0)
+          mkProg = UPLC.Program () (PLC.defaultVersion ())

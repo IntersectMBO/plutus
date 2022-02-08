@@ -1,31 +1,23 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
-module Spec.Eval (tests) where
 
-import Codec.Serialise qualified as CBOR
-import Control.Monad.Except
-import Data.ByteString.Lazy qualified as BSL
-import Data.ByteString.Short qualified as BSS
+module Evaluation.FreeVars
+    ( test_freevars
+    ) where
+
+import Test.Tasty
+import Test.Tasty.HUnit
+
+import Data.DeBruijnEnv as Env
 import Data.Either
-import Data.Maybe
-import Plutus.V1.Ledger.Api as Api
-import Plutus.V1.Ledger.Scripts as Scripts
 import PlutusCore qualified as PLC
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
-import Test.Tasty
-import Test.Tasty.Extras
-import Test.Tasty.HUnit
 import UntypedPlutusCore as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-{- NOTE [Direct UPLC code]
-For this test-suite we write the programs directly in the UPLC AST,
-bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
-The reason is that users can submit such hand-crafted code, and we want to test how it behaves.
-Because this is part of our API, we have to be careful not to change the behaviour of even weird untypeable programs.
-In particular, We test both the offline part (Scripts module) and the online part (API module).
--}
+-- TODO: share examples with plutus-ledger-api:Spec.Eval
 
 -- (delay outOfScope)
 -- Interesting example because it is a delayed value, which would definitely blow up if forced.
@@ -112,50 +104,10 @@ illOverApp = mkIterApp ()
              , one
              ]
 
--- Evaluates using the Scripts module.
-testScripts :: TestNested
-testScripts = "v1-scripts" `testWith` evalScripts
-  where
-      evalScripts :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      evalScripts = isRight . runExcept . Scripts.evaluateScript . Script . mkProg
-
-
-{-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
-Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
--}
-testAPI :: TestNested
-testAPI = "v1-api" `testWith` evalAPI
-  where
-      evalAPI :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      evalAPI t =
-          -- handcraft a serialized script
-          let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
-          in isRight $ snd $ Api.evaluateScriptRestricting Quiet (fromJust defaultCostModelParams) (unExRestrictingBudget enormousBudget) s []
-
--- Test a given eval function against the expected results.
-testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestNested
-testWith str evalFn = pure . testCase str $ do
-    evalFn outDelay @?= False
-    evalFn outLam @?= False
-    evalFn outConst @?= False
-    evalFn outITEStrict @?= False
-    evalFn outITELazy @?= False
-    evalFn illITEStrict @?= True
-    evalFn illITELazy @?= True
-    evalFn illAdd @?= False
-    evalFn illOverSat @?= False
-    evalFn illOverApp @?= False
-
-tests :: TestTree
-tests = runTestNestedIn ["plutus-ledger-api"] $
-          testNested "eval"
-            [ testScripts
-            , testAPI
-            ]
-
-
-mkProg :: UPLC.Term DeBruijn DefaultUni DefaultFun () ->  UPLC.Program DeBruijn DefaultUni DefaultFun ()
-mkProg = Program () $ PLC.defaultVersion ()
+test_freevars :: TestTree
+test_freevars = testGroup "FreeVars" [ testCekInternalFree
+                                     , testDischargeFree
+                                     ]
 
 true :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 true = mkConstant @Bool () True
@@ -174,3 +126,56 @@ mkLam = LamAbs () (DeBruijn 0)
 outOfScope :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 outOfScope = Var () (DeBruijn 9999999)
 
+
+-- | Test the behaviour of Cek evaluator module *directly*
+-- by using the Internal module, thus bypassing any prior term conformance checks, e.g.
+-- that the term is closed (no free variables).
+testCekInternalFree :: TestTree
+testCekInternalFree = testCase "cekInternal" $ do
+    eval outDelay @?= True
+    eval outLam @?= True
+    eval outConst @?= True
+    eval outITEStrict @?= False
+    eval outITELazy @?= True
+    eval illITEStrict @?= True
+    eval illITELazy @?= True
+    eval illAdd @?= False
+    eval illOverSat @?= False
+    eval illOverApp @?= False
+  where
+      eval = isRight . fstT . runCekDeBruijn PLC.defaultCekParameters counting noEmitter
+             . termMapNames fakeNameDeBruijn
+      fstT (x,_,_) =x
+
+-- | Test the behaviour of discharge function against open terms (containing free variables)
+-- by manually constructing CekValue's and Cek Environment's.
+testDischargeFree :: TestTree
+testDischargeFree = testCase "discharge" $ do
+    -- free variable is left alone
+    -- dis( empty |- (delay (\.9999)) ) === (delay (\.9999))
+    dis (VDelay (n outLam) empty) @?= Delay () (n outLam)
+
+    -- x is bound so it is left alone
+    -- y is discharged from the env
+    -- outOfScope is free so it is left alone
+    -- dis( y:unit |- \x-> x y outOfScope) ) === (\x -> x unit outOfScope)
+    dis (VLamAbs (fakeNameDeBruijn $ DeBruijn 0)
+         (n
+         (mkIterApp ()
+           (Var () (DeBruijn 1))
+           [Var () (DeBruijn 2)
+           ,outOfScope
+           ]
+         )
+         )
+         (cons (VCon $ someValue ()) empty)
+        )
+        @?= n (mkLam $ mkIterApp ()
+                          (Var () (DeBruijn 1))
+                          [ Constant () (someValue ())
+                          , outOfScope
+                          ]
+              )
+ where
+     dis = dischargeCekValue
+     n = termMapNames fakeNameDeBruijn
