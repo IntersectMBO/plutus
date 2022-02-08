@@ -31,6 +31,7 @@ import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import Numeric.Natural
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -84,6 +85,28 @@ implementations for them (if they have any constructors reserved for future use)
 
 By default, Flat does not use any space to serialise `()`.
 -}
+
+{- Note [Index (Word64) (de)serialized through Natural]
+
+With the recent change of CEK to use DeBruijn instead of Name,
+we decided to change Index to be a Word instead of Natural, for performance reasons.
+
+However, to be absolutely sure that the script format *does not change*
+for plutus language version 1, we are converting from/to Word64 and (de)-serialize *only through Natural*,
+to keep the old v1 flat format the same.
+
+Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
+However, the current blockchain might have already stored a plutus v1 script
+containing a hugely-indexed variable `>maxBound::Word64` -- such a script must be failing
+because such a huge index must be a free variable (given the current script-size constraints).
+
+When decoding such an already-stored (failing) script
+the Natural deserializer makes the script fail at the scopechecking step (previously undebruijnification step).
+Hypotheically using the Word64 deserializer, the script would *hopefully* fail as well, although earlier
+at the deserialization step. Initial tests and looking at flat internals make this likely,
+but until proven, we postpone the transition to Word64 deserializer for version 2 language.
+-}
+
 
 -- | For deriving 'Flat' instances via 'Serialize'.
 newtype AsSerialize a = AsSerialize
@@ -154,20 +177,13 @@ instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
     size (Some (ValueOf uni x)) acc = size (SomeTypeIn uni) acc
                                         + bring (Proxy @Flat) uni (size x 0)
 
-instance Flat Unique where
-    encode (Unique i) = eInt i
-    decode = Unique <$> dInt
-    -- There is no Generic instance for Unique,
-    -- so a `size` function cannot be generated.
-    size (Unique i) = sInt i
+deriving newtype instance Flat Unique -- via int
 
 instance Flat Name where
     encode (Name txt u) = encode txt <> encode u
     decode = Name <$> decode <*> decode
 
-instance Flat TyName where
-    encode (TyName n) = encode n
-    decode = TyName <$> decode
+deriving newtype instance Flat TyName -- via Name
 
 instance Flat ann => Flat (Version ann) where
     encode (Version ann n n' n'') = encode ann <> encode n <> encode n' <> encode n''
@@ -315,28 +331,30 @@ instance Flat a => Flat (Token a)
 instance Flat Keyword
 instance Flat Special
 
-deriving newtype instance Flat Index
+-- See Note [Index (Word64) (de)serialized through Natural]
+instance Flat Index where
+    -- encode from word64 to natural
+    encode = encode @Natural . fromIntegral
+    -- decode from natural to word64
+    decode = fromIntegral @Natural <$> decode
+    -- to be exact, we must not let this be generically derived,
+    -- because the `gsize` would derive the size of the underlying Word64,
+    -- whereas we want the size of Natural
+    size = sNatural . fromIntegral
 
-instance Flat DeBruijn where
-    encode (DeBruijn i) = encode i
-    decode = DeBruijn <$> decode
+deriving newtype instance Flat DeBruijn -- via index
+deriving newtype instance Flat TyDeBruijn -- via debruijn
 
 instance Flat NamedDeBruijn where
     encode (NamedDeBruijn txt ix) = encode txt <> encode ix
     decode = NamedDeBruijn <$> decode <*> decode
 
-instance Flat TyDeBruijn where
-    encode (TyDeBruijn n) = encode n
-    decode = TyDeBruijn <$> decode
-
-instance Flat NamedTyDeBruijn where
-    encode (NamedTyDeBruijn n) = encode n
-    decode = NamedTyDeBruijn <$> decode
+deriving newtype instance Flat NamedTyDeBruijn -- via nameddebruijn
 
 instance Flat (Binder DeBruijn) where
     size _ = id -- zero cost
     encode _ = mempty
-    decode = pure $ Binder (DeBruijn 0)
+    decode = pure $ Binder $ DeBruijn deBruijnInitIndex
 
 -- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
 

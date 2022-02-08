@@ -105,14 +105,14 @@ goldenPlcFromPir ::
     Parser SourcePos a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
-                                withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
+                                withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenPlcFromPirCatch ::
     ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
     Parser SourcePos a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
-                                           withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
+                                           withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenEvalPir ::
     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>

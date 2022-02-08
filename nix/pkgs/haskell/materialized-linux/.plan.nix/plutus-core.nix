@@ -93,6 +93,7 @@
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+          (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
@@ -377,6 +378,7 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -399,6 +401,7 @@
             (hsPkgs."split" or (errorHandler.buildDepError "split"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -527,6 +530,7 @@
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."pretty-show" or (errorHandler.buildDepError "pretty-show"))
             (hsPkgs."secp256k1-haskell" or (errorHandler.buildDepError "secp256k1-haskell"))
@@ -543,6 +547,7 @@
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
             "Evaluation/Builtins/SECP256k1"
+            "Evaluation/FreeVars"
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"

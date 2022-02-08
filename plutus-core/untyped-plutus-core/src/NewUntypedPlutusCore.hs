@@ -3,7 +3,6 @@
 module NewUntypedPlutusCore (
     Term (..)
     , Program (..)
-    , toTerm
     , bindFunM
     , bindFun
     , mapFun

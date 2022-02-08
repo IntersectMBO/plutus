@@ -416,7 +416,7 @@ runCompiler moduleName opts expr = do
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
-    uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.simplifyProgram $ UPLC.eraseProgram plcP
+    uplcP <- liftExcept $ traverseOf UPLC.progTerm (UPLC.deBruijnTerm . UPLC.simplifyTerm) $ UPLC.eraseProgram plcP
     when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 

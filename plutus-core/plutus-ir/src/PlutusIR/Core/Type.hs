@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusIR.Core.Type (
@@ -19,11 +20,14 @@ module PlutusIR.Core.Type (
     Term (..),
     Program (..),
     applyProgram,
-    termAnn
+    termAnn,
+    progAnn,
+    progTerm,
     ) where
 
 import PlutusPrelude
 
+import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (AsConstant (..), FromConstant (..), throwNotAConstant)
@@ -31,7 +35,6 @@ import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
-
 
 import Data.Text qualified as T
 
@@ -148,7 +151,12 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 -- no version as PIR is not versioned
-data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deriving Generic
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
+    deriving stock Generic
+makeLenses ''Program
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)

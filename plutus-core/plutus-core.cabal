@@ -298,7 +298,8 @@ library
         unordered-containers -any,
         witherable -any,
         word-array -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        index-envs
 
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
@@ -443,6 +444,7 @@ test-suite untyped-plutus-core-test
         Evaluation.Builtins.Definition
         Evaluation.Builtins.MakeRead
         Evaluation.Builtins.SECP256k1
+        Evaluation.FreeVars
         Evaluation.Golden
         Evaluation.Machines
         Transform.Simplify
@@ -460,6 +462,7 @@ test-suite untyped-plutus-core-test
         mtl -any,
         plutus-core -any,
         plutus-core-testlib -any,
+        index-envs -any,
         prettyprinter -any,
         pretty-show -any,
         secp256k1-haskell -any,
@@ -489,7 +492,8 @@ executable plc
         optparse-applicative -any,
         prettyprinter -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any
 
 executable uplc
     import: lang
@@ -512,7 +516,8 @@ executable uplc
         prettyprinter -any,
         split -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any
 
 executable pir
     import: lang

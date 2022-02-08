@@ -164,7 +164,7 @@ trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
 [NOTE]
 ====
 If you don't have an `/etc/nix/nix.conf` or don't want to edit it, you may add the `nix.conf` lines to `~/.config/nix/nix.conf` instead.
-You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this.
+You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this. If this file doesn't exist, go ahead and create it.
 ====
 . On NixOS, set the following NixOS options:
 +

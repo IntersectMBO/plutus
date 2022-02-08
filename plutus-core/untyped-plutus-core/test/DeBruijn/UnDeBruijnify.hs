@@ -4,6 +4,7 @@ module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 import Control.Monad.Except
 import Control.Monad.State
 import DeBruijn.Common
+import PlutusCore (defaultVersion)
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.MkPlc
@@ -145,13 +146,13 @@ test_undebruijnify = testNested "Golden"
                       (\ (n,t) -> nestedGoldenVsDoc n $ actGrace t) <$> testsGrace
                     ]
   where
-    actThrow = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . unDeBruijnProgram . mkProg
+    actThrow = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT . progTerm unDeBruijnTerm . mkProg
+    actGrace = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ())
+                . runQuoteT
+                . flip evalStateT mempty
+                . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel) . mkProg
 
-    actGrace = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT
-        . flip evalStateT mempty
-        . unDeBruijnProgramWith freeIndexAsConsistentLevel . mkProg
-
-    mkProg = programMapNames fakeNameDeBruijn . Program () (Version () 1 0 0)
+    mkProg = Program () (defaultVersion ()) . termMapNames fakeNameDeBruijn
 
 
 
