@@ -59,7 +59,18 @@ data CompilationOpts a = CompilationOpts {
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts a
-defaultCompilationOpts = CompilationOpts True False False False 12 True True True mempty False
+defaultCompilationOpts = CompilationOpts
+  { _coOptimize = True
+  , _coPedantic = False
+  , _coVerbose = False
+  , _coDebug = False
+  , _coMaxSimplifierIterations = 12
+  , _coDoSimplifierUnwrapCancel = True
+  , _coDoSimplifierBeta = True
+  , _coDoSimplifierInline = True
+  , _cInlineHints = mempty
+  , _coProfile = False
+  }
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts a

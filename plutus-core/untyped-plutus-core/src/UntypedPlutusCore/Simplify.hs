@@ -19,7 +19,10 @@ data SimplifyOpts a = SimplifyOpts { _soMaxSimplifierIterations  :: Int, _soInli
 makeLenses ''SimplifyOpts
 
 defaultSimplifyOpts :: SimplifyOpts a
-defaultSimplifyOpts = SimplifyOpts 12 mempty
+defaultSimplifyOpts = SimplifyOpts
+    { _soMaxSimplifierIterations = 12
+    , _soInlineHints = mempty
+    }
 
 simplifyProgram
     :: forall uni fun m a
