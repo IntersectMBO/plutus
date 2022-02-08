@@ -54,7 +54,6 @@ module PlutusCore
     , UniqueMap (..)
     , Normalized (..)
     , defaultVersion
-    , toTerm
     , termAnn
     , typeAnn
     , tyVarDeclAnn
@@ -161,6 +160,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
+import PlutusCore.Parser (parseProgram, parseTerm, parseType)
 import Text.Megaparsec (SourcePos, errorBundlePretty, initialPos)
 
 topSourcePos :: SourcePos

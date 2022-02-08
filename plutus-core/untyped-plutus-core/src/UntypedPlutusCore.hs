@@ -2,7 +2,6 @@ module UntypedPlutusCore (
     module Export
     , Term (..)
     , Program (..)
-    , toTerm
     , bindFunM
     , bindFun
     , mapFun
