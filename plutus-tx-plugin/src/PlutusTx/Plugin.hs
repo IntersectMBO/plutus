@@ -384,8 +384,14 @@ runCompiler moduleName opts expr = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
     let hints = UPLC.InlineHints $ \a _ -> case a of
-            -- This instructs the inliner to inline *any* binding inside a destructor,
-            -- which is a slightly large hammer but is actually what we want.
+            -- See Note [The problem of inlining destructors]
+            -- We want to inline destructors, but even in UPLC our inlining heuristics
+            -- aren't quite smart enough to tell that they're good inlining candidates,
+            -- so we just explicitly tell the inliner to inline them all.
+            --
+            -- In fact, this instructs the inliner to inline *any* binding inside a destructor,
+            -- which is a slightly large hammer but is actually what we want since it will mean
+            -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
             _                                      -> False
     -- Compilation configuration
@@ -427,7 +433,7 @@ runCompiler moduleName opts expr = do
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
-    uplcT <- liftExcept $ traverseOf UPLC.progTerm (UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts) (UPLC.erase plcT)
+    uplcT <- liftExcept $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT
     when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)

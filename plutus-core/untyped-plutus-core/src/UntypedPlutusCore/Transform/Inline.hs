@@ -18,6 +18,7 @@ things in sync, these are explicitly listed in Note [Differences from PIR inline
 If you add another difference, please note it there! Obviously fewer differences is
 better.
 
+See Note [The problem of inlining destructrors].
 -}
 module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 

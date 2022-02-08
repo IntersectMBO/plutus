@@ -227,7 +227,7 @@ lambda abstractions. There are a few considerations that make this tricky, howev
 
 Consequently, for a single type we end up with something like the following:
 
-(forall ty :: * .
+(/\ ty :: * .
   -- ty abstract in these types
   \(c_1 : <constructor type i>) .. (c_j : <constructor type j>) .
     -- ty abstract in this type

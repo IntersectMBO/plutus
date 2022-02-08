@@ -76,6 +76,42 @@ Optimization after substituting in DoneExprs: we can't make different inlining d
 contextually, so there's no point doing this.
 -}
 
+{- Note [The problem of inlining destructors]
+Destructors are *perfect* candidates for inlining:
+
+1. They are *always* called fully-saturated, because they are created from pattern matches,
+which always provide all the arguments.
+2. They will reduce well after being inlined, since their bodies consist of just one argument
+applied to the others.
+
+Unfortunately, we can't inline them even after we've eliminated datatypes, because they look like
+this (see Note [Abstract data types]):
+
+(/\ ty :: * .
+  ...
+  -- ty abstract
+  \match : <destructor type> .
+    <user term>
+)
+<defn of ty>
+...
+-- ty concrete
+<defn of match>
+
+This doesn't look like a let-binding because there is a type abstraction in between the lambda
+and its argument! And this abstraction is important: the body of the matcher only typechecks
+if it is *outside* the type abstraction, so we can't just push it inside or something.
+
+We *could* inline 'ty', but this way lies madness: doing that consistently would mean inlining
+the definitions of *all* datatypes, which would enormously (exponentially!) bloat the types
+inside, making the typechecker (and everything else that processes the AST) incredibly slow.
+
+So it seems that we're stuck. We can't inline destructors in PIR.
+
+But we *can* do it in UPLC! No types, so no problem. The type abstraction/instantiation will
+turn into a delay/force pair and get simplified away, and then we have something that we can
+inline. This is essentially the reason for the existence of the UPLC inlining pass.
+-}
 
 -- 'SubstRng' in the paper, no 'Susp' case
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']

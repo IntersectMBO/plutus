@@ -13,22 +13,16 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
+    , progTerm
     , bindFunM
     , bindFun
     , mapFun
     , termAnn
     , erase
     , eraseProgram
-<<<<<<< HEAD
-    , progAnn
-    , progVer
-    , progTerm
-||||||| parent of a890dc7bc (SCP-3392 UPLC simplifier)
-=======
     , UVarDecl(..)
     , uvarDeclName
     , uvarDeclAnn
->>>>>>> a890dc7bc (SCP-3392 UPLC simplifier)
     ) where
 
 import Control.Lens
