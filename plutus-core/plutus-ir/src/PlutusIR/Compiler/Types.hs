@@ -68,7 +68,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
-  , _cInlineHints = mempty
+  , _coInlineHints = mempty
   , _coProfile = False
   }
 

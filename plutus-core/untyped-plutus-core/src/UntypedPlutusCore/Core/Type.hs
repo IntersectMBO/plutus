@@ -13,6 +13,8 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
+    , progAnn
+    , progVer
     , progTerm
     , bindFunM
     , bindFun
@@ -33,8 +35,6 @@ import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC
 import Universe
-
-import Control.Lens.TH
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.
