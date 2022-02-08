@@ -287,8 +287,8 @@ the inputs ($+$ means non-negative, so includes 0).
 
 \note{The \texttt{sliceByteString} function.}
 \label{note:slicebytestring}
-The application \texttt{[(builtin sliceByteString) (con integer $s$) (con
-    integer $k$) (con bytestring $b$)]} returns the substring of $b$ of length
+The application \texttt{[[(builtin sliceByteString) (con integer $s$)] (con
+    integer $k$)] (con bytestring $b$)]} returns the substring of $b$ of length
 $k$ starting at position $s$; indexing is zero-based, so a call with $s=0$
 returns a substring starting with the first element of $b$, $s=1$ returns a
 substring starting with the second, and so on.  This function always succeeds,

@@ -72,16 +72,24 @@ binary format described in Appendix~\ref{appendix:serialisation}.
     \label{fig:untyped-grammar}
 \end{minipage}
 
-\bigskip
-\noindent The language is parameterised by a set $\Uni$ of \textit{built-in
-  types} (we sometimes refer to $\Uni$ as the \textit{universe}) and a set
-$\Fun$ of \textit{built-in functions} (\textit{builtins} for short), both of
-which are sets of Names.  Briefly, the built-in types represent sets of
-constants such as integers or strings; constant expressions $\con{tn}{c}$
-represent values of the built-in types (the integer 123 or the string
-\texttt{"string"}, for example), and built-in functions are functions operating
-on these values, and possibly also general Plutus Core terms.  Precise details
-are given in Section~\ref{sec:specify-builtins}.  Plutus Core comes with a
-default universe and a default set of builtins, which are described in
+\paragraph{Iterated applications.}
+An application of a term $M$ to a term $N$ is represented by
+$\appU{M}{N}$.   We may occasionally write $\appU{M}{N_1
+  \ldots N_k}$ as an abbreviation for an iterated application
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots
+  N_k\mathtt{]}$, and tools may also use this as concrete syntax.
+
+\paragraph{Built-in types and functions.} The language is parameterised by a set $\Uni$ of
+\textit{built-in types} (we sometimes refer to $\Uni$ as the
+\textit{universe}) and a set $\Fun$ of \textit{built-in functions}
+(\textit{builtins} for short), both of which are sets of Names.
+Briefly, the built-in types represent sets of constants such as
+integers or strings; constant expressions $\con{tn}{c}$ represent
+values of the built-in types (the integer 123 or the string
+\texttt{"string"}, for example), and built-in functions are functions
+operating on these values, and possibly also general Plutus Core
+terms.  Precise details are given in
+Section~\ref{sec:specify-builtins}.  Plutus Core comes with a default
+universe and a default set of builtins, which are described in
 Appendix~\ref{appendix:default-builtins-alonzo}.
 
