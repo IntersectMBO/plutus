@@ -105,7 +105,6 @@ testsFail =
     ,("failConst99", failConst99)
     ,("failBody0", failBody0)
     ,("failBody99", failBody99)
-    ,("failConst", failConst)
     ,("failITE", failITE)
     ,("failDeep", failDeep 10)
     ,("failDeep99", failDeep99 10)

@@ -27,7 +27,7 @@ module PlutusTx.Test (
 import Prelude
 
 import Control.Exception
-import Control.Lens (_1, view)
+import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader qualified as Reader
 import Data.Kind (Type)
@@ -46,8 +46,6 @@ import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Test
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPlc, sizePlc)
-import PlutusTx.Evaluation
-import PlutusTx.Evaluation qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -114,16 +112,16 @@ goldenBudget name compiledCode = do
     goldenVsDoc name filename (maybe "Failed" pretty budgetText)
 
 -- TODO: expose something like this somewhere more useful
-measureBudget :: CompiledCode a -> Maybe PLC.ExBudget
+measureBudget :: CompiledCode a  -> Maybe PLC.ExBudget
 measureBudget compiledCode =
   let programE = PLC.runQuote
                $ runExceptT @PLC.FreeVariableError
-               $ UPLC.unDeBruijnProgram
+               $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm
                $ getPlc compiledCode
    in case programE of
         Left _ -> Nothing
         Right program ->
-          let (_, UPLC.TallyingSt _ budget, _) = PlutusTx.evaluateCekTrace program
+          let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
            in Just budget
 
 -- Compilation testing
@@ -154,16 +152,17 @@ runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeExcept
 runPlcCek values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
-     either (throwError . SomeException) pure $ evaluateCek p
+     either (throwError . SomeException) pure $
+         UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p^.UPLC.progTerm)
 
 runPlcCekTrace ::
      ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
      [a] ->
-     ExceptT SomeException IO ([Text], CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+     ExceptT SomeException IO ([Text], UPLC.CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
-     let (logOut, TallyingSt tally _, result) = evaluateCekTrace p
+     let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- either (throwError . SomeException) pure result
      pure (logOut, tally, res)
 

@@ -27,7 +27,6 @@ module PlutusCore.Core.Type
     , Binder (..)
     , defaultVersion
     -- * Helper functions
-    , toTerm
     , termAnn
     , typeAnn
     , mapFun
@@ -40,6 +39,9 @@ module PlutusCore.Core.Type
     , tyDeclAnn
     , tyDeclType
     , tyDeclKind
+    , progAnn
+    , progVer
+    , progTerm
     )
 where
 
@@ -91,8 +93,13 @@ data Version ann
     deriving (Eq, Show, Functor, Generic, NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progVer  :: Version ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
     deriving (Show, Functor, Generic, NFData, Hashable)
+makeLenses ''Program
 
 -- | Extract the universe from a type.
 type family UniOf a :: GHC.Type -> GHC.Type
@@ -152,9 +159,6 @@ type instance HasUniques (Program tyname name uni fun ann) =
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
-
-toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
-toTerm (Program _ _ term) = term
 
 typeAnn :: Type tyname uni ann -> ann
 typeAnn (TyVar ann _       ) = ann

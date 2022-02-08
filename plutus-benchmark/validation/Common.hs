@@ -1,9 +1,15 @@
-module Common (benchWith, unsafeUnflat) where
+{-# LANGUAGE TypeApplications #-}
+module Common (benchWith, unsafeUnflat, unsafeEvaluateCekNoEmit', throughCheckScope) where
 
 import PlutusBenchmark.Common (getConfig, getDataDir)
 import PlutusBenchmark.NaturalSort
 
+import Control.Monad.Except
+import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.Exception
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Scope (checkScope)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
 import Criterion.Main.Options (Mode, parseWith)
@@ -73,7 +79,7 @@ unsafeUnflat :: String -> BSL.ByteString -> UPLC.Term UPLC.DeBruijn UPLC.Default
 unsafeUnflat file contents =
     case unflat contents of
         Left e     -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
-        Right prog -> UPLC.toTerm prog
+        Right prog -> UPLC._progTerm prog
 
 ----------------------- Main -----------------------
 
@@ -118,5 +124,16 @@ benchWith act = do
         env (readFlat $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
+throughCheckScope :: UPLC.HasIndex name => UPLC.Term name uni fun a -> UPLC.Term name uni fun a
+throughCheckScope t =
+     case runExcept $ checkScope @PLC.FreeVariableError t of
+        Right _ -> t
+        Left _  -> error "scopecheck failed"
 
-
+unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+unsafeEvaluateCekNoEmit' =
+       (\(e, _, _) -> unsafeExtractEvaluationResult e) .
+            UPLC.runCekDeBruijn
+                PLC.defaultCekParameters
+                UPLC.restrictingEnormous
+                UPLC.noEmitter

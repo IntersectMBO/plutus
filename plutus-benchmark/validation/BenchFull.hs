@@ -2,10 +2,7 @@ module Main where
 
 import Common
 import Criterion
-import PlutusBenchmark.Common (unDeBruijnAnonTerm)
-import PlutusCore qualified as PLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
+import PlutusBenchmark.Common
 {-|
 for each data/*.flat validation script, it benchmarks
 the whole time taken from script deserialization to script execution result.
@@ -18,8 +15,8 @@ the whole time taken from script deserialization to script execution result.
 main :: IO ()
 main = benchWith mkFullBM
   where
-    mkFullBM file scriptBS = whnf (UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters
-                                  . unDeBruijnAnonTerm
+    mkFullBM file scriptBS = whnf (unsafeEvaluateCekNoEmit'
+                                  . throughCheckScope
+                                  . toNamedDeBruijnTerm
                                   . unsafeUnflat file
                                   ) scriptBS
-

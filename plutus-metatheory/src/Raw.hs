@@ -6,8 +6,6 @@
 {-# LANGUAGE TypeApplications      #-}
 module Raw where
 
-import GHC.Natural
-
 import Data.ByteString as BS
 import Data.Text qualified as T
 import PlutusCore
@@ -52,7 +50,7 @@ data RTerm = RVar Integer
   deriving Show
 
 unIndex :: Index -> Integer
-unIndex (Index n) = naturalToInteger n
+unIndex (Index n) = toInteger n
 
 convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 convP (Program _ _ t) = conv t
@@ -92,15 +90,15 @@ conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)        = RError (convT _A)
 
 varTm :: Int -> NamedDeBruijn
-varTm i = NamedDeBruijn (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
+varTm i = NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex
 
 varTy :: Int -> NamedDeBruijn
-varTy i = NamedDeBruijn (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
+varTy i = NamedDeBruijn (T.pack [tynames !! i]) deBruijnInitIndex
 
 -- this should take a level and render levels as names
 unconvT :: Int -> RType -> Type NamedTyDeBruijn DefaultUni ()
 unconvT i (RTyVar x)        =
-  TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
+  TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
   TyForall () (NamedTyDeBruijn (varTy i)) k (unconvT (i+1) t)
@@ -144,7 +142,7 @@ tynames = ['A' .. 'Z']
 
 unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun ()
 unconv i (RVar x)          =
-  Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromIntegral x )]) (Index (naturalFromInteger x)))
+  Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromInteger x )]) (Index (fromInteger x)))
 unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) k (unconv (i+1) tm)
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)

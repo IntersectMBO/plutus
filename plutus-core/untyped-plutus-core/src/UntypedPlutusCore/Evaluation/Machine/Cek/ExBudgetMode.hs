@@ -104,7 +104,7 @@ tallying =
 
 newtype RestrictingSt = RestrictingSt ExRestrictingBudget
     deriving stock (Eq, Show)
-    deriving newtype (NFData)
+    deriving newtype (Semigroup, Monoid, NFData)
     deriving anyclass (PrettyBy config)
 
 instance Pretty RestrictingSt where

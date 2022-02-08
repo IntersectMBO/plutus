@@ -197,5 +197,5 @@ typeCode
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     let erased = UPLC.eraseProgram prog
-    db <-  UPLC.deBruijnProgram $ UPLC.simplifyProgram erased
+    db <-  traverseOf UPLC.progTerm (UPLC.deBruijnTerm . UPLC.simplifyTerm) erased
     pure $ DeserializedCode db Nothing mempty

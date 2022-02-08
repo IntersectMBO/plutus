@@ -40,7 +40,7 @@ common lang
      -Wnoncanonical-monoid-instances
 
 
----------------- Common code for benchmarking ----------------     
+---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
   import: lang
@@ -56,13 +56,11 @@ library plutus-benchmark-common
     , plutus-core -any
     , plutus-tx -any
     , criterion -any
-    , deepseq -any
     , filepath -any
-    , transformers -any
 
 
 ---------------- nofib ----------------
-     
+
 library nofib-internal
   import: lang
   hs-source-dirs:
@@ -102,6 +100,7 @@ executable nofib-exe
     , flat -any
     , optparse-applicative -any
     , transformers -any
+    , lens -any
 
 benchmark nofib
   import: lang
@@ -170,6 +169,7 @@ library lists-internal
     , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
+    , mtl -any
 
 executable list-sort-exe
   import: lang
@@ -194,7 +194,7 @@ benchmark lists
     , plutus-benchmark-common
     , lists-internal
     , criterion >= 1.5.9.0
-    
+
 test-suite plutus-benchmark-lists-tests
     import: lang
     type: exitcode-stdio-1.0
@@ -231,6 +231,7 @@ benchmark validation
     , filepath -any
     , flat -any
     , optparse-applicative -any
+    , mtl -any
 
 ---------------- validation-decode ----------------
 
@@ -252,6 +253,7 @@ benchmark validation-decode
     , filepath -any
     , flat -any
     , optparse-applicative -any
+    , mtl -any
 
 ---------------- validation-full ----------------
 
@@ -273,6 +275,7 @@ benchmark validation-full
     , filepath -any
     , flat -any
     , optparse-applicative -any
+    , mtl -any
 
 ---------------- Cek cost model calibration ----------------
 
@@ -293,3 +296,4 @@ benchmark cek-calibration
       , plutus-tx-plugin -any
       , criterion >= 1.5.9.0
       , mtl -any
+      , lens -any

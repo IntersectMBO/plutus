@@ -21,6 +21,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -156,7 +157,7 @@ runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.AlexPosn)) . FileInput) inputfiles
   let appliedScript =
-        case map (\case p -> () <$ p) scripts of
+        case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
           progAndargs -> foldl1 UPLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
@@ -166,7 +167,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
     prog <- getProgram ifmt inp
-    let term = void . UPLC.toTerm $ prog
+    let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
                     Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
