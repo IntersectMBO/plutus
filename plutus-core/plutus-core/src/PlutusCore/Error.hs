@@ -105,7 +105,7 @@ data Error uni fun ann
     | FreeVariableErrorE FreeVariableError
     deriving (Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
-deriving instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show (ParseError ann)) => Show (Error uni fun ann)
+deriving instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParseError) => Show (Error uni fun ann)
 
 instance AsParseError (Error uni fun ann) where
     _ParseError = _ParseErrorE
@@ -134,10 +134,6 @@ instance Pretty ParseError where
 
 instance ShowErrorComponent ParseError where
     showErrorComponent = show . pretty
-
-instance Pretty ann => Show (ParseError ann)
-    where
-      show = show . pretty
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =

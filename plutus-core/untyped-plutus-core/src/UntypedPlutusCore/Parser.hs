@@ -19,8 +19,8 @@ import Control.Monad.Except ((<=<))
 import PlutusCore qualified as PLC
 import PlutusPrelude (through)
 import Text.Megaparsec hiding (ParseError, State, parse)
-import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques (checkProgram)
+import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.ByteString.Lazy (ByteString)

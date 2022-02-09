@@ -95,10 +95,6 @@
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
           ];
-        build-tools = [
-          (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
-          (hsPkgs.buildPackages.happy.components.exes.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy:happy")))
-          ];
         buildable = true;
         modules = [
           "PlutusCore/Analysis/Definitions"
@@ -127,11 +123,8 @@
           "PlutusCore/Default/Universe"
           "PlutusCore/Eq"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
-          "PlutusCore/Lexer/Type"
           "PlutusCore/InlineUtils"
-          "PlutusCore/Parsable"
-          "PlutusCore/Parser/Internal"
-          "PlutusCore/ParserCommon"
+          "PlutusCore/Parser/ParserCommon"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
@@ -216,7 +209,6 @@
           "PlutusCore/Examples/Everything"
           "PlutusCore/Flat"
           "PlutusCore/FsTree"
-          "PlutusCore/Lexer"
           "PlutusCore/Mark"
           "PlutusCore/MkPlc"
           "PlutusCore/Name"
@@ -385,6 +377,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -408,6 +401,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -432,6 +426,7 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];

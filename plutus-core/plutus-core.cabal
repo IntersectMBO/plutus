@@ -489,7 +489,7 @@ executable plc
         prettyprinter -any,
         text -any,
         transformers -any,
-        lens -any
+        lens -any,
         megaparsec -any
 
 executable uplc
@@ -514,7 +514,7 @@ executable uplc
         split -any,
         text -any,
         transformers -any,
-        lens -any
+        lens -any,
         megaparsec -any
 
 executable pir
