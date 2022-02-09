@@ -74,21 +74,14 @@ let
     # a) Where we care (mostly just formatters), constrain the versions of tools which HLS uses explicitly
     # b) pull out the tools themselves from the HLS project so we can use them elsewhere
     cabalProjectLocal = ''
-      constraints: stylish-haskell==0.13.0.0, hlint==3.2.7
-      allow-newer: hls-stylish-haskell-plugin:stylish-haskell
+      constraints: stylish-haskell==0.13.0.0, hlint==3.2.8
     '';
     src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
-    sha256map = {
-      "https://github.com/hsyl20/ghc-api-compat"."8fee87eac97a538dbe81ff1ab18cff10f2f9fa15" = "16bibb7f3s2sxdvdy2mq6w1nj1lc8zhms54lwmj17ijhvjys29vg";
-      "https://github.com/haskell/lsp.git"."ef59c28b41ed4c5775f0ab0c1e985839359cec96" = "1whcgw4hhn2aplrpy9w8q6rafwy7znnp0rczgr6py15fqyw2fwb5";
-    };
     modules = [{
       # for compatibility with the GHC patch for extensible interfaces, not needed on mainline GHC.
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
-      # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
-      packages.haskell-language-server.patches = lib.mkIf stdenv.isDarwin [ ../../patches/haskell-language-server-dynamic.patch ];
       # See https://github.com/haskell/haskell-language-server/pull/1382#issuecomment-780472005
       packages.ghcide.flags.ghc-patched-unboxed-bytecode = true;
     }];
