@@ -72,7 +72,7 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData)
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -85,7 +85,7 @@ data Term tyname name uni fun ann
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
@@ -98,7 +98,7 @@ data Program tyname name uni fun ann = Program
     , _progVer  :: Version ann
     , _progTerm :: Term tyname name uni fun ann
     }
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData)
 makeLenses ''Program
 
 -- | Extract the universe from a type.

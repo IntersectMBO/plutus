@@ -64,10 +64,6 @@ data ParseError ann
 
 makeClassyPrisms ''ParseError
 
-instance Pretty ann => Show (ParseError ann)
-    where
-      show = show . pretty
-
 data UniqueError ann
     = MultiplyDefined Unique ann ann
     | IncoherentUsage Unique ann ann
@@ -105,8 +101,9 @@ data Error uni fun ann
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
     | FreeVariableErrorE FreeVariableError
-    deriving (Show, Eq, Generic, NFData, Functor)
+    deriving (Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
+deriving instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show (ParseError ann)) => Show (Error uni fun ann)
 
 instance AsParseError (Error uni fun ann) ann where
     _ParseError = _ParseErrorE
@@ -134,6 +131,10 @@ instance Pretty ann => Pretty (ParseError ann) where
     pretty (BuiltinTypeNotAStar loc ty)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction loc s)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (InvalidBuiltinConstant loc c s) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+
+instance Pretty ann => Show (ParseError ann)
+    where
+      show = show . pretty
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =

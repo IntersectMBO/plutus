@@ -84,14 +84,14 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
 
 instance ToJSON CurrencySymbol where
-  toJSON currencySymbol =
+  toJSON c =
     JSON.object
       [ ( "unCurrencySymbol"
         , JSON.String .
           JSON.encodeByteString .
           PlutusTx.fromBuiltin .
           unCurrencySymbol $
-          currencySymbol)
+          c)
       ]
 
 instance FromJSON CurrencySymbol where
@@ -100,8 +100,6 @@ instance FromJSON CurrencySymbol where
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
       Haskell.pure $ CurrencySymbol $ PlutusTx.toBuiltin bytes
-
-makeLift ''CurrencySymbol
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
@@ -178,8 +176,6 @@ instance FromJSON TokenName where
                 "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
 
-makeLift ''TokenName
-
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
@@ -190,8 +186,6 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
 {-# INLINABLE assetClass #-}
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
-
-makeLift ''AssetClass
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -239,8 +233,6 @@ instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
 
 deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
 deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
-
-makeLift ''Value
 
 instance Haskell.Eq Value where
     (==) = eq
@@ -442,3 +434,8 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+makeLift ''CurrencySymbol
+makeLift ''TokenName
+makeLift ''AssetClass
+makeLift ''Value

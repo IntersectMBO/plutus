@@ -66,7 +66,7 @@ instance PlutusTx.Eq Credential where
     ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
     _ == _                                    = False
 
-PlutusTx.makeIsDataIndexed ''StakingCredential [('StakingHash,0), ('StakingPtr,1)]
 PlutusTx.makeIsDataIndexed ''Credential [('PubKeyCredential,0), ('ScriptCredential,1)]
-PlutusTx.makeLift ''StakingCredential
+PlutusTx.makeIsDataIndexed ''StakingCredential [('StakingHash,0), ('StakingPtr,1)]
 PlutusTx.makeLift ''Credential
+PlutusTx.makeLift ''StakingCredential

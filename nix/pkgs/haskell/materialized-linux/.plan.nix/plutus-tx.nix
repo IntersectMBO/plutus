@@ -37,6 +37,7 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."th-compat" or (errorHandler.buildDepError "th-compat"))
           (hsPkgs."th-abstraction" or (errorHandler.buildDepError "th-abstraction"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
