@@ -100,6 +100,7 @@
             "Budget/Spec"
             "IsData/Spec"
             "Lift/Spec"
+            "Optimization/Spec"
             "Plugin/Spec"
             "Plugin/Basic/Spec"
             "Plugin/Data/Spec"

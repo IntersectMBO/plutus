@@ -13,15 +13,18 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
+    , progAnn
+    , progVer
+    , progTerm
     , bindFunM
     , bindFun
     , mapFun
     , termAnn
     , erase
     , eraseProgram
-    , progAnn
-    , progVer
-    , progTerm
+    , UVarDecl(..)
+    , uvarDeclName
+    , uvarDeclAnn
     ) where
 
 import Control.Lens
@@ -112,6 +115,13 @@ instance TPLC.FromConstant (Term name uni fun ()) where
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+
+-- | An untyped "variable declaration", i.e. a name for a variable.
+data UVarDecl name ann = UVarDecl
+    { _uvarDeclAnn  :: ann
+    , _uvarDeclName :: name
+    } deriving (Functor, Show, Generic)
+makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann

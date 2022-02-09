@@ -6,12 +6,13 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-|
-A simple inlining pass.
+An inlining pass.
 
-The point of this pass is mainly to tidy up the code, not to particularly optimize performance.
-In particular, we want to get rid of "trivial" let bindings which the Plutus Tx compiler sometimes creates.
+Note that there is (essentially) a copy of this in the UPLC inliner, and the two
+should be KEPT IN SYNC, so if you make changes here please either make them in the other
+one too or add to the comment that summarises the differences.
 -}
-module PlutusIR.Transform.Inline (inline) where
+module PlutusIR.Transform.Inline (inline, InlineHints (..)) where
 
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
@@ -23,6 +24,7 @@ import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin.Meaning qualified as PLC
+import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Subst (typeSubstTyNamesM)
@@ -75,6 +77,42 @@ Optimization after substituting in DoneExprs: we can't make different inlining d
 contextually, so there's no point doing this.
 -}
 
+{- Note [The problem of inlining destructors]
+Destructors are *perfect* candidates for inlining:
+
+1. They are *always* called fully-saturated, because they are created from pattern matches,
+which always provide all the arguments.
+2. They will reduce well after being inlined, since their bodies consist of just one argument
+applied to the others.
+
+Unfortunately, we can't inline them even after we've eliminated datatypes, because they look like
+this (see Note [Abstract data types]):
+
+(/\ ty :: * .
+  ...
+  -- ty abstract
+  \match : <destructor type> .
+    <user term>
+)
+<defn of ty>
+...
+-- ty concrete
+<defn of match>
+
+This doesn't look like a let-binding because there is a type abstraction in between the lambda
+and its argument! And this abstraction is important: the body of the matcher only typechecks
+if it is *outside* the type abstraction, so we can't just push it inside or something.
+
+We *could* inline 'ty', but this way lies madness: doing that consistently would mean inlining
+the definitions of *all* datatypes, which would enormously (exponentially!) bloat the types
+inside, making the typechecker (and everything else that processes the AST) incredibly slow.
+
+So it seems that we're stuck. We can't inline destructors in PIR.
+
+But we *can* do it in UPLC! No types, so no problem. The type abstraction/instantiation will
+turn into a delay/force pair and get simplified away, and then we have something that we can
+inline. This is essentially the reason for the existence of the UPLC inlining pass.
+-}
 
 -- 'SubstRng' in the paper, no 'Susp' case
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -110,12 +148,14 @@ type InliningConstraints tyname name uni fun =
     )
 
 
-data InlineInfo = InlineInfo { _strictnessMap :: Deps.StrictnessMap
-                             , _usages        :: Usages.Usages
-                             }
+data InlineInfo name a = InlineInfo
+    { _strictnessMap :: Deps.StrictnessMap
+    , _usages        :: Usages.Usages
+    , _hints         :: InlineHints name a
+    }
 
 -- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
-type InlineM tyname name uni fun a = ReaderT InlineInfo (StateT (Subst tyname name uni fun a) Quote)
+type InlineM tyname name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst tyname name uni fun a) Quote)
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -162,12 +202,14 @@ and rename everything when we substitute in, which GHC considers too expensive b
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
-    :: ExternalConstraints tyname name uni fun m
-    => Term tyname name uni fun a
+    :: forall tyname name uni fun a m
+    . ExternalConstraints tyname name uni fun m
+    => InlineHints name a
+    -> Term tyname name uni fun a
     -> m (Term tyname name uni fun a)
-inline t = let
-        inlineInfo :: InlineInfo
-        inlineInfo = InlineInfo (snd deps) usgs
+inline hints t = let
+        inlineInfo :: InlineInfo name a
+        inlineInfo = InlineInfo (snd deps) usgs hints
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps t
@@ -250,7 +292,7 @@ processSingleBinding
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding = \case
     TermBind a s v@(VarDecl _ n _) rhs -> do
-        maybeRhs' <- maybeAddSubst s n rhs
+        maybeRhs' <- maybeAddSubst a s n rhs
         pure $ TermBind a s v <$> maybeRhs'
     TypeBind a v@(TyVarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddTySubst n rhs
@@ -263,19 +305,25 @@ processSingleBinding = \case
 --   * we are removing the binding (hence we return Nothing)
 maybeAddSubst
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Strictness
+    => a
+    -> Strictness
     -> name
     -> Term tyname name uni fun a
     -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-maybeAddSubst s n rhs = do
+maybeAddSubst a s n rhs = do
     rhs' <- processTerm rhs
+
+    -- Check whether we've been told specifically to inline this
+    hints <- asks _hints
+    let hinted = shouldInline hints a n
+
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
     then extendAndDrop (Done rhs')
     else do
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postUnconditional <- postInlineUnconditional rhs'
-        if postUnconditional
+        if hinted || postUnconditional
         then extendAndDrop (Done rhs')
         else pure $ Just rhs'
     where
@@ -291,20 +339,21 @@ maybeAddSubst s n rhs = do
         preInlineUnconditional :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         preInlineUnconditional t = do
             usgs <- asks _usages
-            let termIsUsedOnce = Usages.isUsedOnce n usgs
+            -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+            let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
-            pure $ termIsUsedOnce && case s of { Strict -> termIsPure; NonStrict -> True; }
+            pure $ termUsedAtMostOnce && case s of { Strict -> termIsPure; NonStrict -> True; }
 
         -- | Should we inline? Should only inline things that won't duplicate work or code.
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postInlineUnconditional ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         postInlineUnconditional t = do
             -- See Note [Inlining criteria]
-            let shouldInline = costIsAcceptable t && sizeIsAcceptable t
+            let acceptable = costIsAcceptable t && sizeIsAcceptable t
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
-            pure $ shouldInline && case s of { Strict -> termIsPure; NonStrict -> True; }
+            pure $ acceptable && case s of { Strict -> termIsPure; NonStrict -> True; }
 
 {- Note [Inlining criteria]
 What gets inlined? Our goals are simple:
@@ -325,6 +374,9 @@ based on whether a funciton is fully applied.
 For now, we have one special case that is a little questionable: inlining functions whose body is small
 (motivating example: const). This *could* lead to code duplication, but it's a limited enough case that
 we're just going to accept that risk for now. We'll need to be more careful if we inline more functions.
+
+NOTE(MPJ): turns out this *does* lead to moderate size increases. We should fix this with some arity analysis
+and context-sensitive inlining.
 -}
 
 {- Note [Inlining and purity]
@@ -346,8 +398,8 @@ maybeAddTySubst
 maybeAddTySubst tn rhs = do
     usgs <- asks _usages
     -- No need for multiple phases here
-    let typeIsUsedOnce = Usages.isUsedOnce tn usgs
-    if typeIsUsedOnce || trivialType rhs
+    let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
+    if typeUsedAtMostOnce || trivialType rhs
     then do
         modify' (extendType tn rhs)
         pure Nothing

@@ -3,16 +3,20 @@
   [
     [
       [
-        (lam
-          GHC_Types_Nil_i0
-          (lam
-            GHC_Types_Cons_i0
+        (force
+          (delay
             (lam
-              match_GHC_Types_Nil_i0
-              [
-                [ (force GHC_Types_Cons_i2) (con integer 1) ]
-                (force GHC_Types_Nil_i3)
-              ]
+              GHC_Types_Nil_i0
+              (lam
+                GHC_Types_Cons_i0
+                (lam
+                  match_GHC_Types_Nil_i0
+                  [
+                    [ (force GHC_Types_Cons_i2) (con integer 1) ]
+                    (force GHC_Types_Nil_i3)
+                  ]
+                )
+              )
             )
           )
         )

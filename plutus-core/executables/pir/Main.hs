@@ -92,7 +92,7 @@ compile opts pirT = do
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-    set' :: Lens' PIR.CompilationOpts b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
+    set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
     defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
