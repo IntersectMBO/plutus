@@ -6,8 +6,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE ViewPatterns     #-}
-{-
-|
+{- |
 An inlining pass.
 
 This pass is essentially a copy of the PIR inliner, and should be KEPT IN SYNC with it.

@@ -6,10 +6,11 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-|
-A simple inlining pass.
+An inlining pass.
 
-The point of this pass is mainly to tidy up the code, not to particularly optimize performance.
-In particular, we want to get rid of "trivial" let bindings which the Plutus Tx compiler sometimes creates.
+Note that there is (essentially) a copy of this in the UPLC inliner, and the two
+should be KEPT IN SYNC, so if you make changes here please either make them in the other
+one too or add to the comment that summarises the differences.
 -}
 module PlutusIR.Transform.Inline (inline, InlineHints (..)) where
 
