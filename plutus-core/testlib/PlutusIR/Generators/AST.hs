@@ -20,7 +20,7 @@ import PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, gen
                                             simpleRecursive)
 import PlutusCore.Generators.AST qualified as PLC
 
-import Hedgehog hiding (Var)
+import Hedgehog hiding (Rec, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
