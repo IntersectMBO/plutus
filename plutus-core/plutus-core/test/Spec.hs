@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -120,11 +121,7 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
   and programs.  We have unit tests for the unit and boolean types, and property
   tests for the full set of types in the default universe. -}
 
-type DefaultTerm  a = Term TyName Name DefaultUni DefaultFun a
-type DefaultError a = Error DefaultUni DefaultFun a
-
-parseTm :: BSL.ByteString -> Either (DefaultError SourcePos) (DefaultTerm SourcePos)
-parseTm = runQuote . runExceptT . parseTerm @(DefaultError SourcePos)
+type DefaultError = Error DefaultUni DefaultFun SourcePos
 
 reprint :: PrettyPlc a => a -> BSL.ByteString
 reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef

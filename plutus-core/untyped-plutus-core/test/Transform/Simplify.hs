@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeApplications  #-}
 module Transform.Simplify where
 
-import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
+import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
