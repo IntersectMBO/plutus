@@ -26,10 +26,13 @@
           (con string)
           [
             { error a }
-            [
-              { [ Unit_match [ [ { trace Unit } str ] Unit ] ] (con unit) }
+            (let
+              (nonrec)
+              (termbind
+                (strict) (vardecl wild Unit) [ [ { trace Unit } str ] Unit ]
+              )
               unitval
-            ]
+            )
           ]
         )
       )
