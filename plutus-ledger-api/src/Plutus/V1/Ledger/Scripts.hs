@@ -57,6 +57,7 @@ module Plutus.V1.Ledger.Scripts(
     -- * Example scripts
     unitRedeemer,
     unitDatum,
+    SerialiseViaFlat (..)
     ) where
 
 import Prelude qualified as Haskell

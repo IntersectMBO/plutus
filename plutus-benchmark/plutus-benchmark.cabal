@@ -276,6 +276,9 @@ benchmark validation-full
     , flat -any
     , optparse-applicative -any
     , mtl -any
+    , plutus-ledger-api -any
+    , serialise -any
+    , flat -any
 
 ---------------- Cek cost model calibration ----------------
 
