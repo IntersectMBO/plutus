@@ -249,6 +249,7 @@ library
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
         Universe.Core
+        GHC.Natural.Extras
     build-depends:
         aeson -any,
         algebraic-graphs >= 0.3,

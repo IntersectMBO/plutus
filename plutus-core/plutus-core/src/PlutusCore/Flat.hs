@@ -27,11 +27,11 @@ import PlutusCore.Name
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.Functor
 import Data.Proxy
-import Data.Word (Word64, Word8)
+import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import Numeric.Natural
+import GHC.Natural.Extras
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -337,22 +337,14 @@ instance Flat Index where
     encode = encode @Natural . fromIntegral
     -- decode from natural to word64
     decode = do
-        n <- decode
+        n <- decode @Natural
         case naturalToWord64Maybe n of
-            Just w  -> pure $ Index w
-            Nothing -> fail $ "Index outside representable range: " ++ show n
+            Nothing  -> fail $ "Index outside representable range: " ++ show n
+            Just w64 -> pure $ Index w64
     -- to be exact, we must not let this be generically derived,
     -- because the `gsize` would derive the size of the underlying Word64,
     -- whereas we want the size of Natural
     size = sNatural . fromIntegral
-
--- | Downcasts a 'Natural' to a 'Word64', returning 'Nothing' if it won't fit.
--- Not very efficient, could likely be improved.
-naturalToWord64Maybe :: Natural -> Maybe Word64
-naturalToWord64Maybe n =
-    let maxWord64 :: Integer = fromIntegral (maxBound :: Word64)
-        nAsI :: Integer = fromIntegral n
-    in if nAsI <= maxWord64 then Just (fromIntegral nAsI) else Nothing
 
 deriving newtype instance Flat DeBruijn -- via index
 deriving newtype instance Flat TyDeBruijn -- via debruijn

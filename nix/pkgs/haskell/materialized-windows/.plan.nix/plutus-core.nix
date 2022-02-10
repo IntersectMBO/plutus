@@ -181,6 +181,7 @@
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Universe/Core"
+          "GHC/Natural/Extras"
           "PlutusCore"
           "PlutusCore/Check/Normal"
           "PlutusCore/Check/Scoping"
