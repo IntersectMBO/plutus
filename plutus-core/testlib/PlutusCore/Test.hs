@@ -86,7 +86,7 @@ checkQuiet prop = do
     -- For some reason @hedgehog@ thinks it's a good idea to shrink a counterexample in case of
     -- an expected failure, so we suppress that.
     let propNoShrink = withShrinks 0 prop
-    liftIO $ (== OK) . reportStatus <$> checkNamed region color Nothing propNoShrink
+    liftIO $ (== OK) . reportStatus <$> checkNamed region color Nothing Nothing propNoShrink
 
 -- | Check that the given 'Property' fails.
 checkFails :: Property -> IO ()
