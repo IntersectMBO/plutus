@@ -35,7 +35,6 @@ library
     hs-source-dirs: src
     default-language: Haskell2010
     exposed-modules:
-        Data.Aeson.Extras
         Data.Either.Extras
         Prettyprinter.Extras
 
@@ -48,7 +47,6 @@ library
         Plutus.V1.Ledger.DCert
         Plutus.V1.Ledger.Examples
         Plutus.V1.Ledger.Interval
-        Plutus.V1.Ledger.Orphans
         Plutus.V1.Ledger.Scripts
         Plutus.V1.Ledger.Tx
         Plutus.V1.Ledger.Time
@@ -58,7 +56,6 @@ library
         Plutus.V2.Ledger.Contexts
     build-depends:
         base >=4.9 && <5,
-        aeson -any,
         bytestring -any,
         cborg -any,
         containers -any,
@@ -86,12 +83,10 @@ test-suite plutus-ledger-api-test
     hs-source-dirs: test
     other-modules:
         Spec.Interval
-        Spec.Time
         Spec.Eval
     build-depends:
         base >=4.9 && <5,
         mtl -any,
-        aeson -any,
         plutus-core -any,
         plutus-core:plutus-core-testlib -any,
         plutus-ledger-api -any,

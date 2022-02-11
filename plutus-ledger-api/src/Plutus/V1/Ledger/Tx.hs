@@ -44,7 +44,6 @@ module Plutus.V1.Ledger.Tx(
 import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
 import Control.Lens
-import Data.Aeson (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import Data.Map (Map)
 import Data.Maybe (isJust)
 import Data.Set qualified as Set
@@ -61,7 +60,6 @@ import PlutusTx.Ord qualified as PlutusTx
 import Plutus.V1.Ledger.Address
 import Plutus.V1.Ledger.Bytes
 import Plutus.V1.Ledger.Crypto
-import Plutus.V1.Ledger.Orphans ()
 import Plutus.V1.Ledger.Scripts
 import Plutus.V1.Ledger.Value
 
@@ -91,20 +89,20 @@ especially because we only need one direction (to binary).
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
     deriving (Show, Pretty, IsString) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, NFData)
 
 -- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
 -- script of type t in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (Serialise, NFData)
 
 type Redeemers = Map RedeemerPtr Redeemer
 
@@ -116,7 +114,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (Serialise, NFData)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -134,7 +132,7 @@ data TxInType =
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     | ConsumeSimpleScriptAddress -- ^ Consume a simple script
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, NFData)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
@@ -142,7 +140,7 @@ data TxIn = TxIn {
     txInType :: Maybe TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, NFData)
 
 instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
@@ -195,7 +193,7 @@ data TxOut = TxOut {
     txOutDatumHash :: Maybe DatumHash
     }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, NFData)
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue} =

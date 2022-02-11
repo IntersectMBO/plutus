@@ -12,7 +12,6 @@ import Plutus.V1.Ledger.Api
 import Plutus.V1.Ledger.Examples
 import Spec.Eval qualified
 import Spec.Interval qualified
-import Spec.Time qualified
 
 main :: IO ()
 main = defaultMain tests
@@ -73,6 +72,5 @@ tests = testGroup "plutus-ledger-api" [
     , alwaysFalse
     , saltedFunction
     , Spec.Interval.tests
-    , Spec.Time.tests
     , Spec.Eval.tests
     ]

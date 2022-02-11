@@ -14,12 +14,10 @@ module Plutus.V1.Ledger.Crypto(
 
 import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import Data.Hashable (Hashable)
 import Data.String
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
-import Plutus.V1.Ledger.Orphans ()
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
@@ -28,7 +26,7 @@ import Prettyprinter
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes

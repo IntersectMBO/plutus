@@ -16,7 +16,6 @@ module Plutus.V1.Ledger.DCert(DCert(..)) where
 
 import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Aeson (FromJSON, ToJSON)
 import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Credential (StakingCredential)
@@ -48,7 +47,7 @@ data DCert
   | -- | Another really terse Digest
     DCertMir
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
+    deriving anyclass (Serialise, Hashable, NFData)
 
 instance P.Eq DCert where
     {-# INLINABLE (==) #-}
