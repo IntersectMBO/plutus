@@ -1,5 +1,7 @@
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-missing-signatures #-}
 import Data.RandomAccessList.SkewBinary qualified as B
 import Data.Semigroup
@@ -39,30 +41,50 @@ unit_tail4 = (tailN 150 (applyN (B.Cons 0) 100 hundred) == tailN 50 hundred) @? 
 applyN :: (a->a) -> Word64 -> a -> a
 applyN f n = appEndo $ stimes n $ Endo f
 
-unit_ix1 = B.unsafeIndexZero hundred 0 == B.head hundred @? "index error"
-unit_ix2 = B.unsafeIndexZero (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
-unit_ix3 = all (\x -> B.unsafeIndexZero hundred (x-1) == x) [1..100] @? "index wrong"
-prop_ix1 x y = B.unsafeIndexZero (B.Cons x (B.Cons y B.Nil)) 0 == x
-prop_ix2 x y = B.unsafeIndexZero (B.Cons x (B.Cons y B.Nil)) 1 == y
-prop_ix3 xs =
-    not (B.null xs) ==>
-    B.unsafeIndexZero xs 0 == B.head xs
-
-unit_ixzero1 = B.unsafeIndexZero hundred 0 == B.head hundred @? "index error"
-unit_ixzero2 = B.unsafeIndexZero (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
-unit_ixzero3 = all (\x -> B.unsafeIndexZero hundred (x-1) == x) [1..100] @? "index wrong"
-prop_ixzero1 x y = B.unsafeIndexZero (B.Cons x (B.Cons y B.Nil)) 0 == x
-prop_ixzero2 x y = B.unsafeIndexZero (B.Cons x (B.Cons y B.Nil)) 1 == y
-prop_ixzero3 xs =
-    not (B.null xs) ==>
-    B.unsafeIndexZero xs 0 == B.head xs
-
-prop_fail1 (NonZero i) = total $ B.unsafeIndexZero (applyN (B.Cons ()) i B.Nil) i
-prop_fail2 (NonZero i) = total $ B.unsafeIndexZero (B.Nil :: B.RAList ()) i
-
 prop_constail :: Eq a => Word64 -> Word64 -> a -> B.RAList a -> Bool
 prop_constail reps skips x xs =
     applyN (applyN B.tail skips . applyN (B.Cons x) skips) reps xs == xs
+
+-- | Tests a **0-based** index function
+testIxFn :: TestName -> (forall a. (Arbitrary a, Show a, Eq a) => B.RAList a -> Word64 -> a) -> TestTree
+testIxFn n ixFn = testGroup n
+    [
+      testCase "unit_ix1" unit_ix1
+    , testCase "unit_ix2" unit_ix2
+    , testCase "unit_ix3" unit_ix3
+    , testProperty "prop_ix1" prop_ix1
+    , testProperty "prop_ix2" prop_ix2
+    , testProperty "prop_ix3" prop_ix3
+    , testCase "unit_ixzero1" unit_ixzero1
+    , testCase "unit_ixzero2" unit_ixzero2
+    , testCase "unit_ixzero3" unit_ixzero3
+    , testProperty "prop_ixzero1" prop_ixzero1
+    , testProperty "prop_ixzero2" prop_ixzero2
+    , testProperty "prop_ixzero3" prop_ixzero3
+    , testProperty "prop_ixfail1" (expectFailure prop_ixfail1)
+    , testProperty "prop_ixfail2" (expectFailure prop_ixfail2)
+    ]
+  where
+    unit_ix1 = ixFn hundred 0 == B.head hundred @? "index error"
+    unit_ix2 = ixFn (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
+    unit_ix3 = all (\x -> ixFn hundred (x-1) == x) [1..100] @? "index wrong"
+    prop_ix1 x y = ixFn (B.Cons @Integer x (B.Cons y B.Nil)) 0 == x
+    prop_ix2 x y = ixFn (B.Cons @Integer x (B.Cons y B.Nil)) 1 == y
+    prop_ix3 xs =
+        not (B.null xs) ==>
+        ixFn xs 0 == B.head @Integer xs
+
+    unit_ixzero1 = ixFn hundred 0 == B.head hundred @? "index error"
+    unit_ixzero2 = ixFn (B.Cons 1 (B.Cons 2 B.Nil)) 1 @?= (2 :: Int)
+    unit_ixzero3 = all (\x -> ixFn hundred (x-1) == x) [1..100] @? "index wrong"
+    prop_ixzero1 x y = ixFn (B.Cons @Integer x (B.Cons y B.Nil)) 0 == x
+    prop_ixzero2 x y = ixFn (B.Cons @Integer x (B.Cons y B.Nil)) 1 == y
+    prop_ixzero3 xs =
+        not (B.null xs) ==>
+        ixFn xs 0 == B.head @Integer xs
+
+    prop_ixfail1 (NonZero i) = total $ ixFn (applyN (B.Cons ()) i B.Nil) i
+    prop_ixfail2 (NonZero i) = total $ ixFn (B.Nil :: B.RAList ()) i
 
 -- needed by QuickCheck TH
 $(pure [])
@@ -83,22 +105,11 @@ main = defaultMain $
     , testCase "unit_tail2" unit_tail2
     , testCase "unit_tail3" unit_tail3
     , testCase "unit_tail4" unit_tail4
-    , testCase "unit_ix1" unit_ix1
-    , testCase "unit_ix2" unit_ix2
-    , testCase "unit_ix3" unit_ix3
-    , testProperty "prop_ix1" $(monomorphic 'prop_ix1)
-    , testProperty "prop_ix2" $(monomorphic 'prop_ix2)
-    , testProperty "prop_ix3" $(monomorphic 'prop_ix3)
-    , testCase "unit_ixzero1" unit_ixzero1
-    , testCase "unit_ixzero2" unit_ixzero2
-    , testCase "unit_ixzero3" unit_ixzero3
-    , testProperty "prop_ixzero1" $(monomorphic 'prop_ixzero1)
-    , testProperty "prop_ixzero2" $(monomorphic 'prop_ixzero2)
-    , testProperty "prop_ixzero3" $(monomorphic 'prop_ixzero3)
-    , testProperty "prop_fail1" (expectFailure $(monomorphic 'prop_fail1))
-    , testProperty "prop_fail2" (expectFailure $(monomorphic 'prop_fail2))
     -- with word64, quickcheck tends to generate super-long skew binary lists, leading to OOM.
     -- this tones down a bit the default max size from 100 to 10
-    ,   localOption (QuickCheckMaxSize 10) $
+    , localOption (QuickCheckMaxSize 10) $
         testProperty "prop_constail" $(monomorphic 'prop_constail)
+    , testIxFn "indexZero" B.unsafeIndexZero
+    -- change indexone to be 0-based
+    , testIxFn "indexZeroViaOne" (\ e i -> B.unsafeIndexOne e $ i+1)
     ]
