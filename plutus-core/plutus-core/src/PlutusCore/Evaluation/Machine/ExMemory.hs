@@ -202,21 +202,21 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
                    []   -> 0
                    x:xs -> memoryUsage x + sizeList xs
 
-{- Another naive traversal for size.  This accounts for the number of nodes in a
-   Data object, and also the sizes of the contents of the nodes.  This is not
+{- Another naive traversal for size.  This accounts for the number of nodes in
+   a Data object, and also the sizes of the contents of the nodes.  This is not
    ideal, but it seems to be the best we can do.  At present this only comes
    into play for 'equalsData', which is implemented using the derived
    implementation of '==' (fortunately the costing functions are lazy, so this
    won't be called for things like 'unBData' which have constant costing
    functions because they only have to look at the top node).  The problem is
-   that when we call 'equalsData' the comparison will take place entirely in Haskell,
-   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
-   Thus if we just counted the number of nodes the sizes of 'I 2' and
-   'B <huge bytestring>' would be the same but they'd take different amounts of
-   time to compare.  It's not clear how to trade off the costs of processing a
-   units per node, but we may wish to revise this after experimentationnode and
-   processing the contents of nodes: the implementation below compromises by charging
-   four units per node, but we may wish to revise this after experimentation.
+   that when we call 'equalsData' the comparison will take place entirely in
+   Haskell, so the costing functions for the contents of 'I' and 'B' nodes
+   won't be called.  Thus if we just counted the number of nodes the sizes of
+   'I 2' and 'B <huge bytestring>' would be the same but they'd take different
+   amounts of time to compare.  It's not clear how to trade off the costs of
+   processing a node and processing the contents of nodes: the implementation
+   below compromises by charging four units per node, but we may wish to revise
+   this after experimentation.
 -}
 {- This code runs on the chain and hence should be as efficient as possible. To
    that end it's tempting to make these functions strict and tail recursive (and
