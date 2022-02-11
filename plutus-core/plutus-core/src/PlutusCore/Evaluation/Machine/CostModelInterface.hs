@@ -162,4 +162,4 @@ applyCostModelParams
     => CostModel evaluatorcosts builtincosts
     -> CostModelParams
     -> Maybe (CostModel evaluatorcosts builtincosts)
-applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix
+applyCostModelParams model _ = Just model  -- Turned off for experimentation
