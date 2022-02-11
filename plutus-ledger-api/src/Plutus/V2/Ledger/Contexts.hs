@@ -67,30 +67,32 @@ import Plutus.V1.Ledger.Contexts (ScriptPurpose (..), TxId (..), TxInInfo (..), 
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
-    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
-    , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
-    , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    , txInfoMint        :: Value -- ^ The 'Value' minted by this transaction.
-    , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
-    , txInfoWdrl        :: Map StakingCredential Integer -- ^ Withdrawals
-    , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
-    , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
-    , txInfoRedeemers   :: Map ScriptPurpose Redeemer
-    , txInfoData        :: Map DatumHash Datum
-    , txInfoId          :: TxId
+    { txInfoInputs          :: [TxInInfo] -- ^ Transaction inputs
+    , txInfoReferenceInputs :: [TxInInfo] -- ^ Transaction reference inputs
+    , txInfoOutputs         :: [TxOut] -- ^ Transaction outputs
+    , txInfoFee             :: Value -- ^ The fee paid by this transaction.
+    , txInfoMint            :: Value -- ^ The 'Value' minted by this transaction.
+    , txInfoDCert           :: [DCert] -- ^ Digests of certificates included in this transaction
+    , txInfoWdrl            :: Map StakingCredential Integer -- ^ Withdrawals
+    , txInfoValidRange      :: POSIXTimeRange -- ^ The valid range for the transaction.
+    , txInfoSignatories     :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
+    , txInfoRedeemers       :: Map ScriptPurpose Redeemer
+    , txInfoData            :: Map DatumHash Datum
+    , txInfoId              :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq TxInfo where
     {-# INLINABLE (==) #-}
-    TxInfo i o f m c w r s rs d tid == TxInfo i' o' f' m' c' w' r' s' rs' d' tid' =
-        i == i' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && rs == rs' && d == d' && tid == tid'
+    TxInfo i ri o f m c w r s rs d tid == TxInfo i' ri' o' f' m' c' w' r' s' rs' d' tid' =
+        i == i' && ri == ri' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && rs == rs' && d == d' && tid == tid'
 
 instance Pretty TxInfo where
-    pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
+    pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
         vsep
             [ "TxId:" <+> pretty txInfoId
             , "Inputs:" <+> pretty txInfoInputs
+            , "Reference inputs:" <+> pretty txInfoReferenceInputs
             , "Outputs:" <+> pretty txInfoOutputs
             , "Fee:" <+> pretty txInfoFee
             , "Value minted:" <+> pretty txInfoMint
