@@ -40,7 +40,6 @@ library
         Prettyprinter.Extras
 
         Plutus.V1.Ledger.Address
-        Plutus.V1.Ledger.Ada
         Plutus.V1.Ledger.Api
         Plutus.V1.Ledger.Bytes
         Plutus.V1.Ledger.Contexts
@@ -51,9 +50,7 @@ library
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Orphans
         Plutus.V1.Ledger.Scripts
-        Plutus.V1.Ledger.Slot
         Plutus.V1.Ledger.Tx
-        Plutus.V1.Ledger.TxId
         Plutus.V1.Ledger.Time
         Plutus.V1.Ledger.Value
 
@@ -78,7 +75,6 @@ library
         transformers -any,
         base16-bytestring >= 1,
         deepseq -any,
-        newtype-generics -any,
         tagged -any,
         lens -any,
         scientific -any

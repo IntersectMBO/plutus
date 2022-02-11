@@ -22,10 +22,12 @@ module Plutus.V1.Ledger.Value(
     , currencySymbol
     , mpsSymbol
     , currencyMPSHash
+    , adaSymbol
     -- ** Token names
     , TokenName(..)
     , tokenName
     , toString
+    , adaToken
     -- * Asset classes
     , AssetClass(..)
     , assetClass
@@ -175,6 +177,16 @@ instance FromJSON TokenName where
                 "\NUL0x"       -> either Haskell.fail (Haskell.pure . tokenName) . JSON.tryDecode . Text.drop 3 $ t
                 "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
+
+{-# INLINABLE adaSymbol #-}
+-- | The 'CurrencySymbol' of the 'Ada' currency.
+adaSymbol :: CurrencySymbol
+adaSymbol = CurrencySymbol emptyByteString
+
+{-# INLINABLE adaToken #-}
+-- | The 'TokenName' of the 'Ada' currency.
+adaToken :: TokenName
+adaToken = TokenName emptyByteString
 
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
