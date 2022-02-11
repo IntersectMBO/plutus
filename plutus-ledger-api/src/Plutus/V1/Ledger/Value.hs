@@ -53,10 +53,8 @@ module Plutus.V1.Ledger.Value(
 
 import Prelude qualified as Haskell
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Hashable (Hashable)
 import Data.List qualified (sortBy)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -76,10 +74,10 @@ import Prettyprinter
 import Prettyprinter.Extras
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData)
+    deriving anyclass (NFData)
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
@@ -98,10 +96,9 @@ currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
 -- | ByteString of a name of a token, shown as UTF-8 string when possible
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
-    deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData)
+    deriving anyclass (NFData)
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
@@ -143,8 +140,8 @@ adaToken = TokenName emptyByteString
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving anyclass (NFData)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
 {-# INLINABLE assetClass #-}
@@ -168,8 +165,8 @@ assetClass s t = AssetClass (s, t)
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic)
-    deriving anyclass (Hashable, NFData)
-    deriving newtype (Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving anyclass (NFData)
+    deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
 
 instance Haskell.Show Value where
@@ -187,9 +184,6 @@ normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
         filterRange p kvs = [(k,v) | (k,v) <- kvs, p v]
         mapRange f xys = [(x,f y) | (x,y) <- xys]
         sort xs = Data.List.sortBy compare xs
-
-deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
-deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
 
 instance Haskell.Eq Value where
     (==) = eq

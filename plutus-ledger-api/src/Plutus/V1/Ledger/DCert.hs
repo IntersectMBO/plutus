@@ -14,9 +14,7 @@ Digests of certificates that are included in transactions.
 -}
 module Plutus.V1.Ledger.DCert(DCert(..)) where
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Credential (StakingCredential)
 import Plutus.V1.Ledger.Crypto (PubKeyHash)
@@ -47,7 +45,7 @@ data DCert
   | -- | Another really terse Digest
     DCertMir
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance P.Eq DCert where
     {-# INLINABLE (==) #-}

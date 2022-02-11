@@ -12,9 +12,7 @@ module Plutus.V1.Ledger.Crypto(
     PubKeyHash(..)
     ) where
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Hashable (Hashable)
 import Data.String
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
@@ -27,7 +25,7 @@ import Prettyprinter
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash

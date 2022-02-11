@@ -18,7 +18,6 @@ module Plutus.V1.Ledger.Bytes ( LedgerBytes (..)
                 , encodeByteString
                 ) where
 
-import Codec.Serialise
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -66,7 +65,7 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
 
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 

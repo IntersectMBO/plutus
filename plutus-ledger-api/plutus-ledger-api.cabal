@@ -60,9 +60,7 @@ library
         cborg -any,
         containers -any,
         flat -any,
-        hashable -any,
         plutus-core -any,
-        memory -any,
         mtl -any,
         plutus-tx -any,
         serialise -any,
@@ -73,8 +71,7 @@ library
         base16-bytestring >= 1,
         deepseq -any,
         tagged -any,
-        lens -any,
-        scientific -any
+        lens -any
 
 test-suite plutus-ledger-api-test
     import: lang

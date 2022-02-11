@@ -21,9 +21,7 @@ module Plutus.V1.Ledger.Time(
     , fromMilliSeconds
     ) where
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Interval
 import PlutusTx qualified
@@ -37,7 +35,7 @@ import Prettyprinter (Pretty (pretty), (<+>))
 newtype DiffMilliSeconds = DiffMilliSeconds Integer
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
 makeLift ''DiffMilliSeconds
 
@@ -46,7 +44,7 @@ newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData)
   deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-  deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
+  deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral)
 
 makeLift ''POSIXTime
 

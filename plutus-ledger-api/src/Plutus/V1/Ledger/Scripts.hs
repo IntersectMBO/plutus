@@ -65,9 +65,7 @@ import Codec.CBOR.Decoding (decodeBytes)
 import Codec.Serialise (Serialise, decode, encode, serialise)
 import Control.DeepSeq (NFData)
 import Control.Monad.Except (MonadError, throwError)
-import Data.ByteArray qualified as BA
 import Data.ByteString.Lazy qualified as BSL
-import Data.Hashable (Hashable)
 import Data.String
 import Data.Text (Text)
 import Flat qualified
@@ -242,36 +240,18 @@ newtype Validator = Validator { getValidator :: Script }
 instance Haskell.Show Validator where
     show = const "Validator { <script> }"
 
-instance BA.ByteArrayAccess Validator where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (Serialise, NFData) via PLC.Data
+  deriving (NFData) via PLC.Data
   deriving Pretty via PLC.Data
-
-instance BA.ByteArrayAccess Datum where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (Serialise, NFData, Pretty) via PLC.Data
-
-instance BA.ByteArrayAccess Redeemer where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
+  deriving (NFData, Pretty) via PLC.Data
 
 -- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
@@ -283,12 +263,6 @@ newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
 instance Haskell.Show MintingPolicy where
     show = const "MintingPolicy { <script> }"
 
-instance BA.ByteArrayAccess MintingPolicy where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | 'StakeValidator' is a wrapper around 'Script's which are used as validators for withdrawals and stake address certificates.
 newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
   deriving stock (Generic)
@@ -299,58 +273,52 @@ newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
 instance Haskell.Show StakeValidator where
     show = const "StakeValidator { <script> }"
 
-instance BA.ByteArrayAccess StakeValidator where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype StakeValidatorHash =
     StakeValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
 -- | Information about the state of the blockchain and about the transaction
