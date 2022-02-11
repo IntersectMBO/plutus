@@ -34,14 +34,11 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
-          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -51,18 +48,14 @@
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-          (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           ];
         buildable = true;
         modules = [
-          "Data/Aeson/Extras"
           "Data/Either/Extras"
           "Prettyprinter/Extras"
           "Plutus/V1/Ledger/Address"
-          "Plutus/V1/Ledger/Ada"
           "Plutus/V1/Ledger/Api"
           "Plutus/V1/Ledger/Bytes"
           "Plutus/V1/Ledger/Contexts"
@@ -71,11 +64,8 @@
           "Plutus/V1/Ledger/DCert"
           "Plutus/V1/Ledger/Examples"
           "Plutus/V1/Ledger/Interval"
-          "Plutus/V1/Ledger/Orphans"
           "Plutus/V1/Ledger/Scripts"
-          "Plutus/V1/Ledger/Slot"
           "Plutus/V1/Ledger/Tx"
-          "Plutus/V1/Ledger/TxId"
           "Plutus/V1/Ledger/Time"
           "Plutus/V1/Ledger/Value"
           "Plutus/V2/Ledger/Api"
@@ -88,7 +78,6 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
@@ -101,7 +90,7 @@
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             ];
           buildable = true;
-          modules = [ "Spec/Interval" "Spec/Time" "Spec/Eval" ];
+          modules = [ "Spec/Interval" "Spec/Eval" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

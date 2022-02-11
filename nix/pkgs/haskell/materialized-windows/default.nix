@@ -105,7 +105,6 @@
         "criterion".revision = (((hackage."criterion")."1.5.13.0").revisions).default;
         "criterion".flags.embed-data-files = false;
         "criterion".flags.fast = false;
-        "newtype-generics".revision = (((hackage."newtype-generics")."0.6.1").revisions).default;
         "half".revision = (((hackage."half")."0.3.1").revisions).default;
         "monad-control".revision = (((hackage."monad-control")."1.0.3.1").revisions).default;
         "random".revision = (((hackage."random")."1.2.1").revisions).default;
@@ -666,7 +665,6 @@
           "process".components.library.planned = lib.mkOverride 900 true;
           "criterion".components.library.planned = lib.mkOverride 900 true;
           "half".components.library.planned = lib.mkOverride 900 true;
-          "newtype-generics".components.library.planned = lib.mkOverride 900 true;
           "binary-orphans".components.library.planned = lib.mkOverride 900 true;
           "scientific".components.library.planned = lib.mkOverride 900 true;
           "th-reify-many".components.library.planned = lib.mkOverride 900 true;
