@@ -165,11 +165,11 @@ throwReadKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
     ReadKnownUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
     ReadKnownEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
 
-instance AsUnliftingError ReadKnownError where
-    _UnliftingError = _ReadKnownUnliftingError
-
 instance AsEvaluationFailure ReadKnownError where
     _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
+
+instance AsUnliftingError ReadKnownError where
+    _UnliftingError = _ReadKnownUnliftingError
 
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
