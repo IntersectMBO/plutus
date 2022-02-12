@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE TypeOperators  #-}
 
 {-# LANGUAGE StrictData     #-}
@@ -27,8 +28,8 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
         :: KnownTypeIn (UniOf val) val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
-        :: KnownTypeIn (UniOf val) val arg
-        => RuntimeScheme val args res
+        :: (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
+        -> RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
     RuntimeSchemeAll
         :: RuntimeScheme val args res
@@ -64,11 +65,18 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
 
+readKnownFromTypeScheme
+    :: KnownTypeIn (UniOf val) val arg
+    => TypeScheme val (arg ': args) res
+    -> Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg
+readKnownFromTypeScheme _ = readKnown
+{-# INLINE readKnownFromTypeScheme #-}
+
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
 typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
-typeSchemeToRuntimeScheme (TypeSchemeArrow schB) =
-    RuntimeSchemeArrow $ typeSchemeToRuntimeScheme schB
+typeSchemeToRuntimeScheme sch@(TypeSchemeArrow schB) =
+    RuntimeSchemeArrow (readKnownFromTypeScheme sch) $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
     RuntimeSchemeAll $ typeSchemeToRuntimeScheme schK
 
