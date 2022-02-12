@@ -696,14 +696,15 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            RuntimeSchemeArrow schB -> do
-                x <- liftEither $ readKnown (Just argTerm) arg
-                -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
-                -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
-                -- Maybe we could fuse the two?
-                let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
-                res <- evalBuiltinApp fun term' env runtime'
-                returnCek unbudgetedSteps ctx res
+            RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg of
+                Left err -> throwReadKnownErrorWithCause err
+                Right x  -> do
+                    -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
+                    -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
+                    -- Maybe we could fuse the two?
+                    let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+                    res <- evalBuiltinApp fun term' env runtime'
+                    returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ !_ val _ =
