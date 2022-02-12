@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses   #-}
 {-# LANGUAGE OverloadedStrings       #-}
 {-# LANGUAGE QuantifiedConstraints   #-}
+{-# LANGUAGE TemplateHaskell         #-}
 {-# LANGUAGE TypeApplications        #-}
 {-# LANGUAGE TypeFamilies            #-}
 {-# LANGUAGE TypeOperators           #-}
@@ -14,7 +15,9 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 
 module PlutusCore.Builtin.KnownType
-    ( KnownBuiltinTypeIn
+    ( ReadKnownError
+    , throwReadKnownErrorWithCause
+    , KnownBuiltinTypeIn
     , KnownBuiltinType
     , readKnownConstant
     , KnownTypeIn (..)
@@ -32,6 +35,7 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
+import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.Coerce
 import Data.Kind qualified as GHC (Type)
@@ -142,11 +146,31 @@ Overall, asking the user to manually unlift from @Opaque val [a]@ is just always
 faster than any kind of fancy encoding.
 -}
 
+data ReadKnownError
+    = ReadKnownUnliftingError UnliftingError
+    | ReadKnownEvaluationFailure
+    deriving (Eq)
+
+makeClassyPrisms ''ReadKnownError
+
+throwReadKnownErrorWithCause
+    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
+    => ErrorWithCause ReadKnownError cause -> m void
+throwReadKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
+    ReadKnownUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
+    ReadKnownEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
+
+instance AsEvaluationFailure ReadKnownError where
+    _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
+
+instance AsUnliftingError ReadKnownError where
+    _UnliftingError = _ReadKnownUnliftingError
+
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
-    :: forall val a err cause. (AsUnliftingError err, KnownBuiltinType val a)
-    => Maybe cause -> val -> Either (ErrorWithCause err cause) a
+    :: forall val a cause. KnownBuiltinType val a
+    => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
 -- See Note [Performance of KnownTypeIn instances].
 readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
@@ -197,15 +221,10 @@ class uni ~ UniOf val => KnownTypeIn uni val a where
 
     -- | Convert a PLC val to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
-    readKnown
-        :: ( AsUnliftingError err, AsEvaluationFailure err
-           )
-        => Maybe cause -> val -> Either (ErrorWithCause err cause) a
+    readKnown :: Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
     default readKnown
-        :: ( AsUnliftingError err
-           , KnownBuiltinType val a
-           )
-        => Maybe cause -> val -> Either (ErrorWithCause err cause) a
+        :: KnownBuiltinType val a
+        => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
@@ -219,7 +238,7 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = readKnown (Just val) val
+readKnownSelf val = either throwReadKnownErrorWithCause pure $ readKnown (Just val) val
 
 -- | For providing a 'KnownTypeIn' instance for a built-in type it's enough for that type to satisfy
 -- 'KnownBuiltinTypeIn', hence the definition.
