@@ -39,6 +39,7 @@ import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
 import Universe
+import Unsafe.Coerce
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, GShow uni, GEq uni, uni `Contains` a)
@@ -142,6 +143,9 @@ Overall, asking the user to manually unlift from @Opaque val [a]@ is just always
 faster than any kind of fancy encoding.
 -}
 
+coerceByF :: f a :~: f b -> a -> b
+coerceByF _ = unsafeCoerce
+
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
@@ -152,8 +156,8 @@ readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
         case uniAct `geq` uniExp of
-            Just Refl -> pure x
-            Nothing   -> do
+            Just eq -> pure $ coerceByF eq x
+            Nothing -> do
                 let err = fromString $ concat
                         [ "Type mismatch: "
                         , "expected: " ++ gshow uniExp
