@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -71,9 +73,26 @@ import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
 
 import Hedgehog.Internal.Config
+import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
+
+-- | Map the 'TestLimit' of a 'Property' with a given function.
+mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property
+mapTestLimit f =
+    mapConfig $ \config ->
+        config
+            { propertyTerminationCriteria = case propertyTerminationCriteria config of
+                NoEarlyTermination c tests    -> NoEarlyTermination c $ f tests
+                NoConfidenceTermination tests -> NoConfidenceTermination $ f tests
+                EarlyTermination c tests      -> EarlyTermination c $ f tests
+            }
+
+-- | Set the number of times a property should be executed before it is considered
+-- successful, unless it's already higher than that.
+withAtLeastTests :: TestLimit -> Property -> Property
+withAtLeastTests = mapTestLimit . max
 
 -- | @check@ is supposed to just check if the property fails or not, but for some stupid reason it
 -- also performs shrinking and prints the counterexample and other junk. This function is like
@@ -90,7 +109,9 @@ checkQuiet prop = do
 
 -- | Check that the given 'Property' fails.
 checkFails :: Property -> IO ()
-checkFails = checkQuiet >=> \res -> res @?= False
+-- 'withAtLeastTests' gives the property that is supposed to fail some room in order for it to
+-- reach a failing test case.
+checkFails = checkQuiet . withAtLeastTests 1000 >=> \res -> res @?= False
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 -- from the process should be caught.
