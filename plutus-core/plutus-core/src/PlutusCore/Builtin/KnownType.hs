@@ -151,7 +151,9 @@ readKnownConstant
 readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
-        case uniAct `geq` uniExp of
+        -- 'geq' matches on its first argument first, so we make the type tag that will be known
+        -- statically go first in order for GHC to optimize some of the matching away.
+        case uniExp `geq` uniAct of
             Just Refl -> pure x
             Nothing   -> do
                 let err = fromString $ concat

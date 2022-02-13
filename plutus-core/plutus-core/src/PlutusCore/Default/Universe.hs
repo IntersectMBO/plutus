@@ -187,14 +187,40 @@ instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
 
-instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
-instance KnownBuiltinTypeIn DefaultUni term BS.ByteString => KnownTypeIn DefaultUni term BS.ByteString
-instance KnownBuiltinTypeIn DefaultUni term Text.Text     => KnownTypeIn DefaultUni term Text.Text
-instance KnownBuiltinTypeIn DefaultUni term ()            => KnownTypeIn DefaultUni term ()
-instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
-instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
+{- Note [Constraints of KnownTypeIn instances]
+For a monomorphic data type @X@ one only needs to add a @HasConstantIn DefaultUni term@ constraint
+in order to be able to provide a @KnownTypeIn DefaultUni term X@ instance.
+
+For a polymorphic data type @Y@ in addition to the same @HasConstantIn DefaultUni term@ constraint
+one also needs to add @DefaultUni `Contains` Y@, where @Y@ contains all of its type variables.
+
+See the reference site of this Note for examples.
+
+The difference is due to the fact that for any monomorphic type @X@ the @DefaultUni `Contains` X@
+constraint can be discharged statically, so we don't need it to provide the instance, while in
+the polymorphic case whether @Y@ is in the universe or not depends on whether its type arguments are
+in the universe or not, so the @DefaultUni `Contains` Y@ constraint can't be discharged statically.
+
+Could we still provide @DefaultUni `Contains` X@ even though it's redundant? That works, but then
+GHC does not attempt to discharge it statically and takes the type tag needed for unlifting from
+the provided constraint rather than the global scope, which makes the code measurably slower.
+
+Could we at least hide the discrepancy behind a type family? Unfortunately, that generates worse
+Core as some things don't get inlined properly. Somehow GHC is not able to see through the type
+family that it fully reduces anyway.
+-}
+
+-- See Note [Constraints of KnownTypeIn instances].
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Data
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    KnownTypeIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    KnownTypeIn DefaultUni term (a, b)
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
