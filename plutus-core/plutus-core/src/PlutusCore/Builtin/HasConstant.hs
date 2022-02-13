@@ -25,12 +25,11 @@ throwNotAConstant
 throwNotAConstant = throwingWithCause _UnliftingError "Not a constant"
 
 class AsConstant term where
-    -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
     -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
     -- is not a 'Constant'.
     asConstant
-        :: AsUnliftingError err
-        => Maybe cause -> term -> Either (ErrorWithCause err cause) (Some (ValueOf (UniOf term)))
+        :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err)
+        => Maybe cause -> term -> m (Some (ValueOf (UniOf term)))
 
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
