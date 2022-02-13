@@ -32,6 +32,7 @@ module Universe.Core
     , Permits
     , EverywhereAll
     , type (<:)
+    , TestTypesFromTheUniverseAreAllContained
     , HasUniApply (..)
     , checkStar
     , withApplicable
@@ -544,6 +545,10 @@ type family uni `EverywhereAll` constrs where
 
 -- | A constraint for \"@uni1@ is a subuniverse of @uni2@\".
 type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
+
+-- | An instance of this class not having any constraints ensures that every type
+-- (according to 'Everywhere') from the universe has a 'Contains' instance.
+class uni <: uni => TestTypesFromTheUniverseAreAllContained uni
 
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
