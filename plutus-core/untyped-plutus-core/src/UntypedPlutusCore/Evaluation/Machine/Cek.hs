@@ -69,7 +69,6 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Quote
 
-import Control.Monad.Except
 import Control.Monad.State
 import Data.Bifunctor
 import Data.Ix (Ix)
@@ -100,7 +99,7 @@ runCek
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
 runCek params mode emitMode term =
     -- translating input
-    case runExcept @FreeVariableError $ deBruijnTerm term of
+    case deBruijnTermEither @FreeVariableError term of
         Left fvError -> throw fvError
         Right dbt -> do
             -- Don't use 'let': https://github.com/input-output-hk/plutus/issues/3876

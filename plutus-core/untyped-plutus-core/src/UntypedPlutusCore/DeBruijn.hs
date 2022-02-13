@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+
 -- | Support for using de Bruijn indices for term names.
 module UntypedPlutusCore.DeBruijn
     ( Index (..)
@@ -12,6 +13,7 @@ module UntypedPlutusCore.DeBruijn
     , FreeVariableError (..)
     , AsFreeVariableError (..)
     , deBruijnTerm
+    , deBruijnTermEither
     , unDeBruijnTerm
     , unNameDeBruijn
     , fakeNameDeBruijn
@@ -43,6 +45,14 @@ deBruijnTerm
     => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
+-- | Convert a 'Term' with 'Name's into a 'Term' with 'DeBruijn's.
+-- Will throw an error if a free variable is encountered.
+deBruijnTermEither
+    :: AsFreeVariableError e
+    => Term Name uni fun ann -> Either e (Term NamedDeBruijn uni fun ann)
+deBruijnTermEither = deBruijnTermWith freeUniqueThrow
+{-# INLINE deBruijnTerm #-}
+
 -- | Convert a 'Term' with 'DeBruijn's into a 'Term' with 'Name's.
 -- Will throw an error if a free variable is encountered.
 unDeBruijnTerm
@@ -57,6 +67,7 @@ deBruijnTermWith
     -> Term Name uni fun ann
     -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
+{-# INLINE deBruijnTermWith #-}
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
@@ -88,6 +99,7 @@ deBruijnTermWithM h = go
        Constant ann con -> pure $ Constant ann con
        Builtin ann bn -> pure $ Builtin ann bn
        Error ann -> pure $ Error ann
+{-# INLINE deBruijnTermWithM #-}
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM

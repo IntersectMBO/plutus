@@ -164,6 +164,7 @@ data Levels = Levels
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
     local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
+{-# INLINE declareUnique #-}
 
 {-| Declares a new binder by assigning a fresh unique to the *current level*.
 Maintains invariant-B of 'Levels' (that only positive levels are stored),
