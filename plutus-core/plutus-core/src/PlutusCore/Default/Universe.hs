@@ -175,6 +175,9 @@ instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoLis
 instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoPair
 instance DefaultUni `Contains` Data          where knownUni = DefaultUniData
 
+-- If this tells you a 'Contains' instance is missing, add it right above, following the pattern.
+instance TestTypesFromTheUniverseAreAllContained DefaultUni
+
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
 
