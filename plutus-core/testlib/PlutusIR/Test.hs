@@ -86,10 +86,10 @@ withGoldenFileM name op = do
     return $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
     where currentDir = joinPath <$> ask
 
-goldenPir :: Pretty b => (a -> b) -> Parser SourcePos a -> String -> TestNested
+goldenPir :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
-goldenPirM :: Pretty b => (a -> IO b) -> Parser SourcePos a -> String -> TestNested
+goldenPirM :: Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
     where parseOrError = either (return . T.pack . MP.errorBundlePretty) (fmap display . op)
                          . parse parser name
@@ -102,27 +102,27 @@ ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> run
 
 goldenPlcFromPir ::
     ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
-    Parser SourcePos a -> String -> TestNested
+    Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenPlcFromPirCatch ::
     ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
-    Parser SourcePos a -> String -> TestNested
+    Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
                                            withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenEvalPir ::
     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-    Parser SourcePos a -> String -> TestNested
+    Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])
 
 goldenTypeFromPir ::
     forall a. (Pretty a, Typeable a) =>
     a ->
-    Parser SourcePos (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
+    Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
     String ->
     TestNested
 goldenTypeFromPir x =
@@ -135,7 +135,7 @@ goldenTypeFromPir x =
 goldenTypeFromPirCatch ::
     forall a. (Pretty a, Typeable a) =>
     a ->
-    Parser SourcePos (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
+    Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
     String ->
     TestNested
 goldenTypeFromPirCatch x =

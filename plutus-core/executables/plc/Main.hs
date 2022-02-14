@@ -102,7 +102,7 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.AlexPosn)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -148,7 +148,7 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
   let untypedProg = () <$ UPLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
@@ -158,14 +158,14 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.AlexPosn) ) >>= print . getPrintMethod mode
+    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------

@@ -14,7 +14,7 @@ import PlutusPrelude (through)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
-import PlutusCore.Error (AsParseError, AsUniqueError, UniqueError)
+import PlutusCore.Error (AsUniqueError, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
@@ -27,11 +27,6 @@ import PlutusCore.StdLib.Data.Bool qualified as StdLib
 import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
 import PlutusCore.StdLib.Data.Integer qualified as StdLib
 import PlutusCore.StdLib.Data.Unit qualified as StdLib
-
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 
 import Control.DeepSeq (NFData, rnf)
 import Control.Lens hiding (ix, op)
@@ -52,10 +47,15 @@ import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter (Doc, pretty, (<+>))
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
+import Text.Megaparsec.Error (ParseErrorBundle, errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -73,9 +73,8 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    (AsParseError e PLC.AlexPosn, MonadError e m, PLC.MonadQuote m) =>
     BSL.ByteString ->
-      m (p PLC.AlexPosn)
+      Either (ParseErrorBundle T.Text PLC.ParseError) (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -277,18 +276,18 @@ getInput StdInput         = getContents
 
 -- | Read and parse a source program
 parseInput ::
-  (Executable p, PLC.Rename (p PLC.AlexPosn) ) =>
+  (Executable p, PLC.Rename (p PLC.SourcePos) ) =>
   -- | The source program
   Input ->
   -- | The output is either a UPLC or PLC program with annotation
-  IO (p PLC.AlexPosn)
+  IO (p PLC.SourcePos)
 parseInput inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
     -- parse the UPLC program
-    case PLC.runQuoteT $ parseProgram bsContents of
+    case parseProgram bsContents of
       -- when fail, pretty print the parse errors.
-      Left (err :: PLC.ParseError PLC.AlexPosn) ->
-        errorWithoutStackTrace $ PP.render $ pretty err
+      Left (err :: ParseErrorBundle T.Text PLC.ParseError) ->
+        errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program
@@ -297,7 +296,7 @@ parseInput inp = do
         let checked = through (Common.checkProgram (const True)) renamed
         case checked of
           -- pretty print the error
-          Left (err :: PLC.UniqueError PLC.AlexPosn) ->
+          Left (err :: PLC.UniqueError PLC.SourcePos) ->
             errorWithoutStackTrace $ PP.render $ pretty err
           -- if there's no errors, return the parsed program
           Right _ -> pure p
@@ -359,14 +358,14 @@ loadUplcASTfromFlat flatMode inp = do
 getProgram ::
   (Executable p,
    Functor p,
-   PLC.Rename (p PLC.AlexPosn)) =>
-  Format -> Input -> IO (p PLC.AlexPosn)
+   PLC.Rename (p PLC.SourcePos)) =>
+  Format -> Input -> IO (p PLC.SourcePos)
 getProgram fmt inp =
     case fmt of
       Textual  -> parseInput inp
       Flat flatMode -> do
                prog <- loadASTfromFlat flatMode inp
-               return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in Flat, so we have to make them up.
+               return $ PLC.topSourcePos <$ prog  -- No source locations in Flat, so we have to make them up.
 
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------

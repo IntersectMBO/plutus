@@ -48,7 +48,8 @@ library
                  process -any,
                  optparse-applicative -any,
                  text -any,
-                 transformers -any
+                 transformers -any,
+                 megaparsec -any
   exposed-modules:
     MAlonzo.Code.Main
     MAlonzo.Code.Agda.Builtin.Bool
@@ -151,6 +152,7 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Declarative
     MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
