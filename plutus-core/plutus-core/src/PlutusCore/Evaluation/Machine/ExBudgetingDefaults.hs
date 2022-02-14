@@ -17,6 +17,7 @@ where
 
 import PlutusCore.Builtin
 
+import PlutusCore.Core (UniOf)
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -26,6 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemory ()
 import PlutusCore.Evaluation.Machine.MachineParameters
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import UntypedPlutusCore.Evaluation.Machine.Cek.Default ()
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
@@ -80,7 +82,9 @@ defaultCekParameters = toMachineParameters defaultCekCostModel
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
 
-defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntime
+    :: (ToBuiltinsRuntime DefaultFun val, UniOf val ~ DefaultUni)
+    => BuiltinsRuntime DefaultFun val
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
 
 

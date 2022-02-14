@@ -57,6 +57,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import UntypedPlutusCore.Evaluation.Machine.Cek.Default ()
 import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal

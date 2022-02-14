@@ -41,11 +41,9 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 toMachineParameters ::
     ( UniOf (val uni fun) ~ uni
       -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
-    , CostingPart uni fun ~ builtincosts
-    , HasConstant (val uni fun)
-    , ToBuiltinMeaning uni fun
+    , ToBuiltinsRuntime fun (val uni fun)
     )
-    => CostModel machinecosts builtincosts
+    => CostModel machinecosts (CostingPart uni fun)
     -> MachineParameters machinecosts val uni fun
 toMachineParameters (CostModel mchnCosts builtinCosts) =
     MachineParameters mchnCosts (toBuiltinsRuntime builtinCosts)

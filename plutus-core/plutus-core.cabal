@@ -230,8 +230,9 @@ library
         UntypedPlutusCore.Core.Instance.Recursive
         UntypedPlutusCore.Core.Plated
         UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-        UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+        UntypedPlutusCore.Evaluation.Machine.Cek.Default
         UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+        UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
         UntypedPlutusCore.Simplify

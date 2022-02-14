@@ -86,6 +86,8 @@ nopCostModel =
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFuns
 nopCostParameters = toMachineParameters $ CostModel defaultCekMachineCosts nopCostModel
 
+instance HasConstantIn DefaultUni val => ToBuiltinsRuntime NopFuns val
+
 {- | The meanings of the builtins.  Each one takes a number of integer arguments
    and returns an integer without doing any other work.  We could have used
    units instead of integers, but using integers makes it possible to check that

@@ -1,16 +1,19 @@
-{-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE GADTs          #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes     #-}
-{-# LANGUAGE TypeOperators  #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeOperators         #-}
 
-{-# LANGUAGE StrictData     #-}
+{-# LANGUAGE StrictData            #-}
 
 module PlutusCore.Builtin.Runtime where
 
 import PlutusPrelude
 
 import PlutusCore.Builtin.HasConstant
+import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.Meaning
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
@@ -20,7 +23,7 @@ import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC (Type)
-import PlutusCore.Builtin.KnownType
+import GHC.Exts (inline)
 
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 data RuntimeScheme val (args :: [GHC.Type]) res where
@@ -65,18 +68,11 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
 
-readKnownFromTypeScheme
-    :: KnownTypeIn (UniOf val) val arg
-    => TypeScheme val (arg ': args) res
-    -> Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg
-readKnownFromTypeScheme _ = readKnown
-{-# INLINE readKnownFromTypeScheme #-}
-
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
 typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
-typeSchemeToRuntimeScheme sch@(TypeSchemeArrow schB) =
-    RuntimeSchemeArrow (readKnownFromTypeScheme sch) $ typeSchemeToRuntimeScheme schB
+typeSchemeToRuntimeScheme (TypeSchemeArrow rk schB) =
+    RuntimeSchemeArrow rk $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
     RuntimeSchemeAll $ typeSchemeToRuntimeScheme schK
 
@@ -85,13 +81,26 @@ toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
     BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
--- | Calculate runtime info for all built-in functions given denotations of builtins
--- and a cost model.
-toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
-    => cost -> BuiltinsRuntime fun val
-toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
+class ToBuiltinsRuntime fun val where
+    -- | Calculate runtime info for all built-in functions given denotations of builtins
+    -- and a cost model.
+    toBuiltinsRuntime :: uni ~ UniOf val => CostingPart uni fun -> BuiltinsRuntime fun val
+    default toBuiltinsRuntime
+        :: (HasConstantIn uni val, ToBuiltinMeaning uni fun)
+        => CostingPart uni fun -> BuiltinsRuntime fun val
+    toBuiltinsRuntime cost =
+        BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
+
+-- -- Breaks inlining (???)
+-- class ToBuiltinsRuntime fun val where
+--     -- | Calculate runtime info for all built-in functions given denotations of builtins
+--     -- and a cost model.
+--     toBuiltinsRuntime :: CostingPart (UniOf val) fun -> BuiltinsRuntime fun val
+--     default toBuiltinsRuntime
+--         :: (HasConstant val, ToBuiltinMeaning (UniOf val) fun)
+--         => CostingPart (UniOf val) fun -> BuiltinsRuntime fun val
+--     toBuiltinsRuntime cost =
+--         BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

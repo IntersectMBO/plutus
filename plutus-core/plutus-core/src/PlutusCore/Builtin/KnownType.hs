@@ -35,6 +35,7 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
+import Control.Lens ((#))
 import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.Coerce
@@ -171,6 +172,18 @@ instance AsEvaluationFailure ReadKnownError where
 instance AsUnliftingError ReadKnownError where
     _UnliftingError = _ReadKnownUnliftingError
 
+typeMismatchError
+    :: GShow uni
+    => uni (Esc a)
+    -> uni (Esc b)
+    -> UnliftingError
+typeMismatchError uniExp uniAct = fromString $ concat
+    [ "Type mismatch: "
+    , "expected: " ++ gshow uniExp
+    , "; actual: " ++ gshow uniAct
+    ]
+{-# NOINLINE typeMismatchError #-}
+
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
@@ -183,14 +196,9 @@ readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
         -- 'geq' matches on its first argument first, so we make the type tag that will be known
         -- statically (because this function will be inlined) go first in order for GHC to optimize some of the matching away.
         case uniExp `geq` uniAct of
-            Just Refl -> pure x
-            Nothing   -> do
-                let err = fromString $ concat
-                        [ "Type mismatch: "
-                        , "expected: " ++ gshow uniExp
-                        , "; actual: " ++ gshow uniAct
-                        ]
-                throwingWithCause _UnliftingError err mayCause
+            Just Refl -> Right x
+            Nothing   -> Left $
+              ErrorWithCause (_UnliftingError # typeMismatchError uniExp uniAct) mayCause
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of KnownTypeIn instances].

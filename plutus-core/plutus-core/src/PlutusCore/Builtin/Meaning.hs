@@ -29,6 +29,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
+import GHC.Exts (inline)
 import GHC.TypeLits
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
@@ -126,11 +127,13 @@ class KnownMonotype val args res a | args res -> a, a -> res where
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownType val res) => KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
+    {-# INLINE knownMonotype #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType val arg, KnownMonotype val args res a) =>
             KnownMonotype val (arg ': args) res (arg -> a) where
-    knownMonotype = TypeSchemeArrow knownMonotype
+    knownMonotype = TypeSchemeArrow (inline readKnown) knownMonotype
+    {-# INLINE knownMonotype #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
@@ -139,6 +142,7 @@ class KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
     knownPolytype _ = knownMonotype
+    {-# INLINE knownPolytype #-}
 
 -- Here we unpack an existentially packed @kind@ and constrain it afterwards!
 -- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
@@ -148,6 +152,7 @@ instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
     knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
+    {-# INLINE knownPolytype #-}
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -162,3 +167,4 @@ makeBuiltinMeaning
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning val cost
 makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme val args res)
+{-# INLINE makeBuiltinMeaning #-}
