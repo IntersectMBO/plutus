@@ -116,7 +116,6 @@ import Data.Maybe (isJust)
 import Data.SatInt
 import Data.Text (Text)
 import Data.Tuple
-import Plutus.V1.Ledger.Ada
 import Plutus.V1.Ledger.Address
 import Plutus.V1.Ledger.Bytes
 import Plutus.V1.Ledger.Contexts
@@ -126,7 +125,6 @@ import Plutus.V1.Ledger.DCert
 import Plutus.V1.Ledger.Interval hiding (singleton)
 import Plutus.V1.Ledger.Scripts as Scripts
 import Plutus.V1.Ledger.Time
-import Plutus.V1.Ledger.TxId
 import Plutus.V1.Ledger.Value
 import PlutusCore as PLC
 import PlutusCore.Data qualified as PLC

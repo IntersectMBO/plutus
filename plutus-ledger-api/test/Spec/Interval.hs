@@ -9,7 +9,6 @@ import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Plutus.V1.Ledger.Interval qualified as Interval
-import Plutus.V1.Ledger.Slot
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog (testProperty)
@@ -17,12 +16,12 @@ import Test.Tasty.Hedgehog (testProperty)
 alwaysIsNotEmpty :: TestTree
 alwaysIsNotEmpty =
   testCase "always is not empty" $
-    assertBool "always" (not $ Interval.isEmpty (Interval.always :: Interval.Interval Slot))
+    assertBool "always" (not $ Interval.isEmpty (Interval.always :: Interval.Interval Integer))
 
 neverIsEmpty :: TestTree
 neverIsEmpty =
   testCase "never is empty" $
-    assertBool "never" (Interval.isEmpty (Interval.never :: Interval.Interval Slot))
+    assertBool "never" (Interval.isEmpty (Interval.never :: Interval.Interval Integer))
 
 openIsEmpty :: TestTree
 openIsEmpty =
@@ -38,17 +37,17 @@ openOverlaps =
 
 intvlIsEmpty :: Property
 intvlIsEmpty = property $ do
-  (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
+  (i1, i2) <- forAll $ (,) <$> Gen.integral (toInteger <$> Range.linearBounded @Int) <*> Gen.integral (toInteger <$> Range.linearBounded @Int)
   let (from, to) = (min i1 i2, max i1 i2)
-      nonEmpty = Interval.interval (Slot from) (Slot to)
-      empty = Interval.interval (Slot to) (Slot from)
+      nonEmpty = Interval.interval from to
+      empty = Interval.interval to from
   Hedgehog.assert $ from == to || Interval.isEmpty empty
   Hedgehog.assert $ not $ Interval.isEmpty nonEmpty
 
 intvlIntersection :: Property
 intvlIntersection = property $ do
-  ints <- forAll $ traverse (const $ Gen.integral (fromIntegral <$> Range.linearBounded @Int)) [1..4 :: Integer]
-  let [i1, i2, i3, i4] = Slot <$> sort ints
+  ints <- forAll $ traverse (const $ Gen.integral (toInteger <$> Range.linearBounded @Int)) [1..4 :: Integer]
+  let [i1, i2, i3, i4] = sort ints
       outer = Interval.interval i1 i4
       inner = Interval.interval i2 i3
       intersec = outer `Interval.intersection` inner
@@ -63,10 +62,10 @@ intvlIntersection = property $ do
 
 intvlIntersectionWithAlwaysNever :: Property
 intvlIntersectionWithAlwaysNever = property $ do
-  (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
+  (i1, i2) <- forAll $ (,) <$> Gen.integral (toInteger <$> Range.linearBounded @Int) <*> Gen.integral (toInteger <$> Range.linearBounded @Int)
   let (from, to) = (min i1 i2, max i1 i2)
-      i = Interval.interval (Slot from) (Slot to)
-      e = Interval.interval (Slot to) (Slot from)
+      i = Interval.interval from to
+      e = Interval.interval to from
 
   Hedgehog.assert $ Interval.never == i `Interval.intersection` Interval.never
   Hedgehog.assert $ i == i `Interval.intersection` Interval.always
@@ -74,9 +73,9 @@ intvlIntersectionWithAlwaysNever = property $ do
 
 intvlOverlaps :: Property
 intvlOverlaps = property $ do
-  (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
+  (i1, i2) <- forAll $ (,) <$> Gen.integral (toInteger <$> Range.linearBounded @Int) <*> Gen.integral (toInteger <$> Range.linearBounded @Int)
   let (from, to) = (min i1 i2, max i1 i2)
-      i = Interval.interval (Slot from) (Slot to)
+      i = Interval.interval from to
 
   Hedgehog.assert $ i `Interval.overlaps` i
   Hedgehog.assert $ Interval.always `Interval.overlaps` i

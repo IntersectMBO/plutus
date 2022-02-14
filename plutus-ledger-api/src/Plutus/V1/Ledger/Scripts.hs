@@ -65,18 +65,12 @@ import Codec.CBOR.Decoding (decodeBytes)
 import Codec.Serialise (Serialise, decode, encode, serialise)
 import Control.DeepSeq (NFData)
 import Control.Monad.Except (MonadError, throwError)
-import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import Data.Aeson qualified as JSON
-import Data.Aeson.Extras qualified as JSON
-import Data.ByteArray qualified as BA
 import Data.ByteString.Lazy qualified as BSL
-import Data.Hashable (Hashable)
 import Data.String
 import Data.Text (Text)
 import Flat qualified
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
-import Plutus.V1.Ledger.Orphans ()
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
@@ -174,7 +168,6 @@ data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
-    deriving anyclass (ToJSON, FromJSON)
 
 applyArguments :: Script -> [PLC.Data] -> Script
 applyArguments (Script (UPLC.Program a v t)) args =
@@ -219,27 +212,6 @@ mkError evalError (Just t) =
        UPLC.Constant _ _  -> Nothing
        UPLC.Error _       -> Nothing
 
-{- Note [JSON instances for Script]
-The JSON instances for Script are partially hand-written rather than going via the Serialise
-instance directly. The reason for this is to *avoid* the size checks that are in place in the
-Serialise instance. These are only useful for deserialisation checks on-chain, whereas the
-JSON instances are used for e.g. transmitting validation events, which often include scripts
-with the data arguments applied (which can be very big!).
--}
-
-instance ToJSON Script where
-    -- See note [JSON instances for Script]
-    toJSON (Script p) = JSON.String $ JSON.encodeSerialise (SerialiseViaFlat p)
-
-instance FromJSON Script where
-    -- See note [JSON instances for Script]
-    parseJSON v = do
-        (SerialiseViaFlat p) <- JSON.decodeSerialise v
-        Haskell.return $ Script p
-
-deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON PLC.Data
-deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON PLC.Data
-
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
@@ -262,127 +234,97 @@ unStakeValidatorScript = getStakeValidator
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving anyclass (NFData)
   deriving Pretty via (PrettyShow Validator)
 
 instance Haskell.Show Validator where
     show = const "Validator { <script> }"
 
-instance BA.ByteArrayAccess Validator where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (ToJSON, FromJSON, Serialise, NFData) via PLC.Data
+  deriving (NFData) via PLC.Data
   deriving Pretty via PLC.Data
-
-instance BA.ByteArrayAccess Datum where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
-
-instance BA.ByteArrayAccess Redeemer where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
+  deriving (NFData, Pretty) via PLC.Data
 
 -- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving anyclass (NFData)
   deriving Pretty via (PrettyShow MintingPolicy)
 
 instance Haskell.Show MintingPolicy where
     show = const "MintingPolicy { <script> }"
 
-instance BA.ByteArrayAccess MintingPolicy where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | 'StakeValidator' is a wrapper around 'Script's which are used as validators for withdrawals and stake address certificates.
 newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving anyclass (NFData)
   deriving Pretty via (PrettyShow MintingPolicy)
 
 instance Haskell.Show StakeValidator where
     show = const "StakeValidator { <script> }"
 
-instance BA.ByteArrayAccess StakeValidator where
-    length =
-        BA.length . BSL.toStrict . serialise
-    withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
-
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype StakeValidatorHash =
     StakeValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+    deriving anyclass (NFData)
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype Context = Context BuiltinData
-    deriving (ToJSON, FromJSON, Pretty, Haskell.Show) via PLC.Data
+    deriving (Pretty, Haskell.Show) via PLC.Data
 
 -- | Apply a 'Validator' to its 'Context', 'Datum', and 'Redeemer'.
 applyValidator

@@ -16,10 +16,7 @@ module Plutus.V1.Ledger.Address (
     stakingCredential
     ) where
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Aeson (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
-import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
@@ -28,13 +25,12 @@ import Prettyprinter
 
 import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
 import Plutus.V1.Ledger.Crypto
-import Plutus.V1.Ledger.Orphans ()
 import Plutus.V1.Ledger.Scripts
 
 -- | Address with two kinds of credentials, normal and staking.
 data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Serialise, Hashable, NFData)
+    deriving anyclass ( NFData)
 
 instance Pretty Address where
     pretty (Address cred stakingCred) =
