@@ -54,16 +54,29 @@ import PlutusTx.Prelude hiding (toList)
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 import Plutus.V1.Ledger.Address (Address (..))
+import Plutus.V1.Ledger.Contexts (ScriptPurpose (..), fromSymbol, pubKeyOutput)
 import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
 import Plutus.V1.Ledger.Crypto (PubKeyHash (..))
 import Plutus.V1.Ledger.DCert (DCert (..))
 import Plutus.V1.Ledger.Scripts
 import Plutus.V1.Ledger.Time (POSIXTimeRange)
 import Plutus.V1.Ledger.Value (CurrencySymbol, Value)
+import Plutus.V2.Ledger.Tx (OutputDatum (..), TxId (..), TxOut (..), TxOutRef (..))
+
 import Prelude qualified as Haskell
 
-import Plutus.V1.Ledger.Contexts (ScriptPurpose (..), TxId (..), TxInInfo (..), TxOut (..), TxOutRef (..), fromSymbol,
-                                  pubKeyOutput)
+-- | An input of a pending transaction.
+data TxInInfo = TxInInfo
+    { txInInfoOutRef   :: TxOutRef
+    , txInInfoResolved :: TxOut
+    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance Eq TxInInfo where
+    TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+
+instance Pretty TxInInfo where
+    pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
+        pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
@@ -168,8 +181,8 @@ txSignedBy TxInfo{txInfoSignatories} k = case find ((==) k) txInfoSignatories of
 
 {-# INLINABLE ownHashes #-}
 -- | Get the validator and datum hashes of the output that is curently being validated
-ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
-ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
+ownHashes :: ScriptContext -> (ValidatorHash, OutputDatum)
+ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatum=d}}) = (s,d)
 ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"
 
 {-# INLINABLE ownHash #-}
@@ -180,9 +193,9 @@ ownHash p = fst (ownHashes p)
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'TxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
+scriptOutputsAt :: ValidatorHash -> TxInfo -> [(OutputDatum, Value)]
 scriptOutputsAt h p =
-    let flt TxOut{txOutDatumHash=Just ds, txOutAddress=Address (ScriptCredential s) _, txOutValue} | s == h = Just (ds, txOutValue)
+    let flt TxOut{txOutDatum=d, txOutAddress=Address (ScriptCredential s) _, txOutValue} | s == h = Just (d, txOutValue)
         flt _ = Nothing
     in mapMaybe flt (txInfoOutputs p)
 
@@ -234,6 +247,9 @@ spendsOutput p h i =
                 && i == txOutRefIdx outRef
 
     in any spendsOutRef (txInfoInputs p)
+
+makeLift ''TxInInfo
+makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
 
 makeLift ''TxInfo
 makeIsDataIndexed ''TxInfo [('TxInfo,0)]

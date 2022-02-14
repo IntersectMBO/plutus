@@ -190,6 +190,10 @@ txOutDatum TxOut{txOutDatumHash} = txOutDatumHash
 txOutPubKey :: TxOut -> Maybe PubKeyHash
 txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
+-- | The validator hash attached to a 'TxOut', if there is one.
+txOutValidatorHash :: TxOut -> Maybe ValidatorHash
+txOutValidatorHash TxOut{txOutAddress} = toValidatorHash txOutAddress
+
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
 outAddress = lens txOutAddress s where
@@ -207,7 +211,7 @@ isPubKeyOut = isJust . txOutPubKey
 
 -- | Whether the output is a pay-to-script output.
 isPayToScriptOut :: TxOut -> Bool
-isPayToScriptOut = isJust . txOutDatum
+isPayToScriptOut = isJust . txOutValidatorHash
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
