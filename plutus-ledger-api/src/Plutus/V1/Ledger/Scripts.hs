@@ -393,6 +393,8 @@ unitDatum = Datum $ toBuiltinData ()
 unitRedeemer :: Redeemer
 unitRedeemer = Redeemer $ toBuiltinData ()
 
+makeLift ''ScriptHash
+
 makeLift ''ValidatorHash
 
 makeLift ''MintingPolicyHash

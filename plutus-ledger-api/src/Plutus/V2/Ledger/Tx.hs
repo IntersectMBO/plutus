@@ -1,14 +1,13 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -29,6 +28,7 @@ module Plutus.V2.Ledger.Tx(
     outValue,
     txOutPubKey,
     outDatum,
+    outReferenceScript,
     pubKeyHashTxOut,
     -- * Transaction inputs
     TxInType(..),
@@ -78,23 +78,25 @@ instance Pretty OutputDatum where
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {
-    txOutAddress :: Address,
-    txOutValue   :: Value,
-    txOutDatum   :: OutputDatum
+    txOutAddress         :: Address,
+    txOutValue           :: Value,
+    txOutDatum           :: OutputDatum,
+    txOutReferenceScript :: Maybe ScriptHash
     }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
 instance Pretty TxOut where
-    pretty TxOut{txOutAddress, txOutValue, txOutDatum} =
-                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress, "with datum", pretty txOutDatum]
+    pretty TxOut{txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
+                hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress, "with datum", pretty txOutDatum, "with referenceScript", pretty txOutReferenceScript]
 
 instance PlutusTx.Eq TxOut where
     {-# INLINABLE (==) #-}
-    (TxOut txOutAddress txOutValue txOutDatum) == (TxOut txOutAddress' txOutValue' txOutDatum') =
+    (TxOut txOutAddress txOutValue txOutDatum txOutRefScript) == (TxOut txOutAddress' txOutValue' txOutDatum' txOutRefScript') =
         txOutAddress PlutusTx.== txOutAddress'
         PlutusTx.&& txOutValue PlutusTx.== txOutValue'
         PlutusTx.&& txOutDatum PlutusTx.== txOutDatum'
+        PlutusTx.&& txOutRefScript PlutusTx.== txOutRefScript'
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash
@@ -120,6 +122,11 @@ outValue :: Lens' TxOut Value
 outValue = lens txOutValue s where
     s tx v = tx { txOutValue = v }
 
+-- | The reference script attached to a 'TxOut'.
+outReferenceScript :: Lens' TxOut (Maybe ScriptHash)
+outReferenceScript = lens txOutReferenceScript s where
+    s tx v = tx { txOutReferenceScript = v }
+
 -- | Whether the output is a pay-to-pubkey output.
 isPubKeyOut :: TxOut -> Bool
 isPubKeyOut = isJust . txOutPubKey
@@ -130,7 +137,7 @@ isPayToScriptOut = isJust . txOutValidatorHash
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
-pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v NoOutputDatum
+pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v NoOutputDatum Nothing
 
 PlutusTx.makeIsDataIndexed ''OutputDatum [('NoOutputDatum,0), ('OutputDatumHash,1), ('OutputDatum,2)]
 PlutusTx.makeLift ''OutputDatum
