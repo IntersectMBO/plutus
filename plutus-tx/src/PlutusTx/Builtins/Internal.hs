@@ -380,6 +380,10 @@ instance Haskell.Eq BuiltinData where
     (==) (BuiltinData d) (BuiltinData d') = (==) d d'
 instance Haskell.Ord BuiltinData where
     compare (BuiltinData d) (BuiltinData d') = compare d d'
+instance NFData BuiltinData where
+    rnf (BuiltinData d) = rnf d
+instance Pretty BuiltinData where
+    pretty (BuiltinData d) = pretty d
 
 -- NOT a builtin, only safe off-chain, hence the NOINLINE
 {-# NOINLINE builtinDataToData #-}
