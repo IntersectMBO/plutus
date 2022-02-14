@@ -217,7 +217,7 @@ tests = testCase "example programs" $ fold
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     ]
     where
-        fmt :: BSL.ByteString -> Either ParseError T.Text
+        fmt :: BSL.ByteString -> Either ParserError T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 

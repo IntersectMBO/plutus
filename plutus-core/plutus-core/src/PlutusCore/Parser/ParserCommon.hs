@@ -31,7 +31,7 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 
 type Parser =
-    ParsecT ParseError T.Text (StateT ParserState Quote)
+    ParsecT ParserError T.Text (StateT ParserState Quote)
 
 instance (Stream s, MonadQuote m) => MonadQuote (ParsecT e s m)
 
@@ -53,16 +53,16 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParseError) a
+parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParserError) a
 parse p file str = runQuote $ parseQuoted p file str
 
 -- | Generic parser function.
-parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParseError) a
+parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParserError) a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
 parseQuoted ::
     Parser a -> String -> T.Text ->
-        Quote (Either (ParseErrorBundle T.Text ParseError) a)
+        Quote (Either (ParseErrorBundle T.Text ParserError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 -- | Space consumer.
@@ -240,7 +240,7 @@ enforce p = do
     guard . not $ T.null input
     pure x
 
-signedInteger :: ParsecT ParseError T.Text (StateT ParserState Quote) Integer
+signedInteger :: ParsecT ParserError T.Text (StateT ParserState Quote) Integer
 signedInteger = Lex.signed whitespace (lexeme Lex.decimal)
 
 -- | Parser for integer constants.

@@ -6,14 +6,14 @@ module PlutusCore.Parser
     ( parseProgram
     , parseTerm
     , parseType
-    , ParseError(..)
+    , ParserError(..)
     ) where
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
-import PlutusCore.Error (ParseError (..))
+import PlutusCore.Error (ParserError (..))
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.ParserCommon
@@ -76,7 +76,7 @@ term = choice $ map try
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram ::
-    ByteString -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
+    ByteString -> Either (ParseErrorBundle T.Text ParserError) (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parser for PLC programs.
@@ -90,12 +90,12 @@ program = whitespace >> do
 -- of handling any parse errors.
 parseTerm ::
     ByteString ->
-        Either (ParseErrorBundle T.Text ParseError) (Term TyName Name DefaultUni DefaultFun SourcePos)
+        Either (ParseErrorBundle T.Text ParserError) (Term TyName Name DefaultUni DefaultFun SourcePos)
 parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseType ::
     ByteString ->
-        Either (ParseErrorBundle T.Text ParseError) (Type TyName DefaultUni SourcePos)
+        Either (ParseErrorBundle T.Text ParserError) (Type TyName DefaultUni SourcePos)
 parseType = parseGen pType
