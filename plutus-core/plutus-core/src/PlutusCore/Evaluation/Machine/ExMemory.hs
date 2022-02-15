@@ -173,7 +173,7 @@ instance ExMemoryUsage Integer where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory $ ((n-1) `div` 8) + 1
+  memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
 
 {- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
