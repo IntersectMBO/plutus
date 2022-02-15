@@ -26,6 +26,7 @@ import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
 import GhcPlugins qualified as GHC
+import OccurAnal qualified as GHC
 import Panic qualified as GHC
 
 import PlutusCore qualified as PLC
@@ -353,8 +354,10 @@ compileMarkedExpr locStr codeTy origE = do
             ccCurDef = Nothing,
             ccModBreaks = modBreaks
             }
+    -- See Note [Occurrence analysis]
+    let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP

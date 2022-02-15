@@ -99,16 +99,15 @@
               (vardecl x [ [ Tuple2 a ] b ])
               [
                 { error [ [ Tuple2 a ] b ] }
-                [
-                  {
-                    [
-                      Unit_match
-                      [ [ { trace Unit } reconstructCaseError ] Unit ]
-                    ]
-                    (con unit)
-                  }
+                (let
+                  (nonrec)
+                  (termbind
+                    (strict)
+                    (vardecl wild Unit)
+                    [ [ { trace Unit } reconstructCaseError ] Unit ]
+                  )
                   unitval
-                ]
+                )
               ]
             )
             (lam
@@ -272,15 +271,15 @@
             (vardecl x [ Maybe a ])
             [
               { error [ Maybe a ] }
-              [
-                {
-                  [
-                    Unit_match [ [ { trace Unit } reconstructCaseError ] Unit ]
-                  ]
-                  (con unit)
-                }
+              (let
+                (nonrec)
+                (termbind
+                  (strict)
+                  (vardecl wild Unit)
+                  [ [ { trace Unit } reconstructCaseError ] Unit ]
+                )
                 unitval
-              ]
+              )
             ]
           )
           (lam

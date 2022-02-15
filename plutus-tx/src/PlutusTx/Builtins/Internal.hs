@@ -13,17 +13,16 @@
 module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
-import Control.DeepSeq (NFData)
+import Control.DeepSeq (NFData (..))
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
-import Data.Hashable (Hashable)
+import Data.Hashable (Hashable (..))
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import GHC.Generics (Generic)
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (Pretty (..), viaShow)
@@ -61,6 +60,18 @@ for most of our functions it's not a *semantic* problem. Here, however,
 it is a problem. So we just expose the delayed version as the builtin.
 -}
 
+{- Note [Opaque builtin types]
+We have some opaque types that we use to represent the Plutus builtin types
+in Haskell.
+
+We want them to be opaque so that our users don't do anything with them that
+we can't handle, but also so that GHC doesn't look inside and try and get clever.
+
+In particular, we need to use 'data' rather than 'newtype' even for simple wrappers,
+otherwise GHC gets very keen to optimize through the newtype and e.g. our users
+see 'Addr#' popping up everywhere.
+-}
+
 {-# NOINLINE error #-}
 error :: BuiltinUnit -> a
 error = mustBeReplaced "error"
@@ -69,15 +80,16 @@ error = mustBeReplaced "error"
 BOOL
 -}
 
-newtype BuiltinBool = BuiltinBool Bool
+-- See Note [Opaque builtin types]
+data BuiltinBool = BuiltinBool Bool
 
 {-# NOINLINE true #-}
 true :: BuiltinBool
-true = coerce True
+true = BuiltinBool True
 
 {-# NOINLINE false #-}
 false :: BuiltinBool
-false = coerce False
+false = BuiltinBool False
 
 {-# NOINLINE ifThenElse #-}
 ifThenElse :: BuiltinBool -> a -> a -> a
@@ -87,7 +99,8 @@ ifThenElse (BuiltinBool b) x y = if b then x else y
 UNIT
 -}
 
-newtype BuiltinUnit = BuiltinUnit ()
+-- See Note [Opaque builtin types]
+data BuiltinUnit = BuiltinUnit ()
 
 {-# NOINLINE unitval #-}
 unitval :: BuiltinUnit
@@ -101,6 +114,9 @@ chooseUnit (BuiltinUnit ()) a = a
 INTEGER
 -}
 
+-- I'm somewhat surprised that this works despite not being opaque! GHC doesn't seem to
+-- mess with 'Integer', which is suspicious to me. Probably we *should* make 'BuiltinInteger'
+-- opaque, but that's going to really mess with our users' code...
 type BuiltinInteger = Integer
 
 {-# NOINLINE addInteger #-}
@@ -133,25 +149,46 @@ remainderInteger = coerce (rem @Integer)
 
 {-# NOINLINE lessThanInteger #-}
 lessThanInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-lessThanInteger = coerce ((<) @Integer)
+lessThanInteger x y = BuiltinBool $ coerce ((<) @Integer) x  y
 
 {-# NOINLINE lessThanEqualsInteger #-}
 lessThanEqualsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-lessThanEqualsInteger = coerce ((<=) @Integer)
+lessThanEqualsInteger x y = BuiltinBool $ coerce ((<=) @Integer) x y
 
 {-# NOINLINE equalsInteger #-}
 equalsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-equalsInteger = coerce ((==) @Integer)
+equalsInteger x y = BuiltinBool $ coerce ((==) @Integer) x y
 
 {-
 BYTESTRING
 -}
 
+-- See Note [Opaque builtin types]
 -- | An opaque type representing Plutus Core ByteStrings.
-newtype BuiltinByteString = BuiltinByteString ByteString
-  deriving stock (Generic)
-  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
-  deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+data BuiltinByteString = BuiltinByteString ByteString
+
+instance Haskell.Show BuiltinByteString where
+    show (BuiltinByteString bs) = show bs
+instance Haskell.Eq BuiltinByteString where
+    (==) (BuiltinByteString bs) (BuiltinByteString bs') = (==) bs bs'
+instance Haskell.Ord BuiltinByteString where
+    compare (BuiltinByteString bs) (BuiltinByteString bs') = compare bs bs'
+instance Haskell.Semigroup BuiltinByteString where
+    (<>) (BuiltinByteString bs) (BuiltinByteString bs') = BuiltinByteString $ (<>) bs bs'
+instance Haskell.Monoid BuiltinByteString where
+    mempty = BuiltinByteString mempty
+instance Hashable BuiltinByteString where
+    hashWithSalt s (BuiltinByteString bs )= hashWithSalt s bs
+instance Serialise BuiltinByteString where
+    encode (BuiltinByteString bs) = encode bs
+    decode = BuiltinByteString <$> decode
+instance NFData BuiltinByteString where
+    rnf (BuiltinByteString bs) = rnf bs
+instance BA.ByteArrayAccess BuiltinByteString where
+    length (BuiltinByteString bs) = BA.length bs
+    withByteArray (BuiltinByteString bs) = BA.withByteArray bs
+instance BA.ByteArray BuiltinByteString where
+    allocRet i p = fmap (fmap BuiltinByteString) $ BA.allocRet i p
 
 instance Pretty BuiltinByteString where
     pretty = viaShow
@@ -195,19 +232,19 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b b
 {-# NOINLINE verifySignature #-}
 verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
-  coerce (fromMaybe False (Crypto.verifySignature pubKey message signature))
+  BuiltinBool (fromMaybe False (Crypto.verifySignature pubKey message signature))
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((==) @ByteString) b1 b2
+equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinBool $ b1 == b2
 
 {-# NOINLINE lessThanByteString #-}
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<) @ByteString) b1 b2
+lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinBool $ b1 < b2
 
 {-# NOINLINE lessThanEqualsByteString #-}
 lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-lessThanEqualsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<=) @ByteString) b1 b2
+lessThanEqualsByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinBool $ b1 <= b2
 
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString
@@ -217,8 +254,15 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 STRING
 -}
 
-newtype BuiltinString = BuiltinString Text
-    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+-- See Note [Opaque builtin types]
+data BuiltinString = BuiltinString Text
+
+instance Haskell.Show BuiltinString where
+    show (BuiltinString t) = show t
+instance Haskell.Eq BuiltinString where
+    (==) (BuiltinString t) (BuiltinString t') = (==) t t'
+instance Haskell.Ord BuiltinString where
+    compare (BuiltinString t) (BuiltinString t') = compare t t'
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
@@ -230,7 +274,7 @@ emptyString = BuiltinString Text.empty
 
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
-equalsString (BuiltinString s1) (BuiltinString s2) = coerce $ ((==) @Text) s1 s2
+equalsString (BuiltinString s1) (BuiltinString s2) = BuiltinBool $ s1 == s2
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> a -> a
@@ -244,8 +288,15 @@ encodeUtf8 (BuiltinString s) = BuiltinByteString $ Text.encodeUtf8 s
 PAIR
 -}
 
-newtype BuiltinPair a b = BuiltinPair (a, b)
-    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+-- See Note [Opaque builtin types]
+data BuiltinPair a b = BuiltinPair (a, b)
+
+instance (Haskell.Show a, Haskell.Show b) => Haskell.Show (BuiltinPair a b) where
+    show (BuiltinPair p) = show p
+instance (Haskell.Eq a, Haskell.Eq b) => Haskell.Eq (BuiltinPair a b) where
+    (==) (BuiltinPair p) (BuiltinPair p') = (==) p p'
+instance (Haskell.Ord a, Haskell.Ord b) => Haskell.Ord (BuiltinPair a b) where
+    compare (BuiltinPair p) (BuiltinPair p') = compare p p'
 
 {-# NOINLINE fst #-}
 fst :: BuiltinPair a b -> a
@@ -263,13 +314,20 @@ mkPairData d1 d2 = BuiltinPair (d1, d2)
 LIST
 -}
 
-newtype BuiltinList a = BuiltinList [a]
-    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+-- See Note [Opaque builtin types]
+data BuiltinList a = BuiltinList [a]
+
+instance Haskell.Show a => Haskell.Show (BuiltinList a) where
+    show (BuiltinList l) = show l
+instance Haskell.Eq a => Haskell.Eq (BuiltinList a) where
+    (==) (BuiltinList l) (BuiltinList l') = (==) l l'
+instance Haskell.Ord a => Haskell.Ord (BuiltinList a) where
+    compare (BuiltinList l) (BuiltinList l') = compare l l'
 
 {-# NOINLINE null #-}
 null :: BuiltinList a -> BuiltinBool
-null (BuiltinList (_:_)) = coerce False
-null (BuiltinList [])    = coerce True
+null (BuiltinList (_:_)) = BuiltinBool False
+null (BuiltinList [])    = BuiltinBool True
 
 {-# NOINLINE head #-}
 head :: BuiltinList a -> a
@@ -278,7 +336,7 @@ head (BuiltinList [])    = Haskell.error "empty list"
 
 {-# NOINLINE tail #-}
 tail :: BuiltinList a -> BuiltinList a
-tail (BuiltinList (_:xs)) = coerce xs
+tail (BuiltinList (_:xs)) = BuiltinList xs
 tail (BuiltinList [])     = Haskell.error "empty list"
 
 {-# NOINLINE chooseList #-}
@@ -314,8 +372,18 @@ that you want to be representable on-chain.
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
-newtype BuiltinData = BuiltinData PLC.Data
-    deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+data BuiltinData = BuiltinData PLC.Data
+
+instance Haskell.Show BuiltinData where
+    show (BuiltinData d) = show d
+instance Haskell.Eq BuiltinData where
+    (==) (BuiltinData d) (BuiltinData d') = (==) d d'
+instance Haskell.Ord BuiltinData where
+    compare (BuiltinData d) (BuiltinData d') = compare d d'
+instance NFData BuiltinData where
+    rnf (BuiltinData d) = rnf d
+instance Pretty BuiltinData where
+    pretty (BuiltinData d) = pretty d
 
 -- NOT a builtin, only safe off-chain, hence the NOINLINE
 {-# NOINLINE builtinDataToData #-}
@@ -340,15 +408,17 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
-mkConstr i args = BuiltinData (PLC.Constr i (coerce args))
+mkConstr i (BuiltinList args) = BuiltinData (PLC.Constr i (fmap builtinDataToData args))
 
 {-# NOINLINE mkMap #-}
 mkMap :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinData
-mkMap es = BuiltinData (PLC.Map (coerce es))
+mkMap (BuiltinList es) = BuiltinData (PLC.Map $ (fmap p2p es))
+  where
+      p2p (BuiltinPair (d, d')) = (builtinDataToData d, builtinDataToData d')
 
 {-# NOINLINE mkList #-}
 mkList :: BuiltinList BuiltinData -> BuiltinData
-mkList l = BuiltinData (PLC.List (coerce l))
+mkList (BuiltinList l) = BuiltinData (PLC.List (fmap builtinDataToData l))
 
 {-# NOINLINE mkI #-}
 mkI :: BuiltinInteger -> BuiltinData
@@ -360,17 +430,19 @@ mkB (BuiltinByteString b) = BuiltinData (PLC.B b)
 
 {-# NOINLINE unsafeDataAsConstr #-}
 unsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
-unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, coerce args)
+unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, BuiltinList $ fmap dataToBuiltinData args)
 unsafeDataAsConstr _                                 = Haskell.error "not a Constr"
 
 {-# NOINLINE unsafeDataAsMap #-}
 unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-unsafeDataAsMap (BuiltinData (PLC.Map m)) = coerce m
+unsafeDataAsMap (BuiltinData (PLC.Map m)) = BuiltinList (fmap p2p m)
+  where
+      p2p (d, d') = BuiltinPair (dataToBuiltinData d, dataToBuiltinData d')
 unsafeDataAsMap _                         = Haskell.error "not a Map"
 
 {-# NOINLINE unsafeDataAsList #-}
 unsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
-unsafeDataAsList (BuiltinData (PLC.List l)) = coerce l
+unsafeDataAsList (BuiltinData (PLC.List l)) = BuiltinList (fmap dataToBuiltinData l)
 unsafeDataAsList _                          = Haskell.error "not a List"
 
 {-# NOINLINE unsafeDataAsI #-}
@@ -385,4 +457,4 @@ unsafeDataAsB _                       = Haskell.error "not a B"
 
 {-# NOINLINE equalsData #-}
 equalsData :: BuiltinData -> BuiltinData -> BuiltinBool
-equalsData (BuiltinData b1) (BuiltinData b2) = coerce $ b1 Haskell.== b2
+equalsData (BuiltinData b1) (BuiltinData b2) = BuiltinBool $ b1 Haskell.== b2
