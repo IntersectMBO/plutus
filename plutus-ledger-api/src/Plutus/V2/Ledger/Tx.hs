@@ -76,7 +76,8 @@ instance Pretty OutputDatum where
     pretty (OutputDatumHash dh) = "datum hash: " <+> pretty dh
     pretty (OutputDatum d)      = "inline datum : " <+> pretty d
 
--- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
+-- | A transaction output, consisting of a target address, a value,
+-- optionally a datum/datum hash, and optionally a reference script.
 data TxOut = TxOut {
     txOutAddress         :: Address,
     txOutValue           :: Value,
