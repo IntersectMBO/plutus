@@ -1,6 +1,4 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
 {- |
 The interface to Plutus V2 for the ledger.
 -}
@@ -108,6 +106,6 @@ module Plutus.V2.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInfo (..))
+import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..))
 import Plutus.V2.Ledger.Contexts
 import PlutusTx.AssocMap (Map, fromList)
