@@ -148,7 +148,7 @@ postulate
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}
-{-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParseError #-}
+{-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParserError #-}
 
 {-# COMPILE GHC parse = parseProgram  #-}
 {-# COMPILE GHC parseU = U.parseProgram  #-}

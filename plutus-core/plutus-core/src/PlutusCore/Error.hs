@@ -112,8 +112,8 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
--- instance AsParseError (Error uni fun ann) where
---     _ParseError = _ParseErrorE
+-- instance AsParserError (Error uni fun ann) where
+--     _ParserError = _ParseErrorE
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -196,6 +196,12 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Prett
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
+
+instance HasErrorCode ParserError where
+    errorCode InvalidBuiltinConstant {} = ErrorCode 10
+    errorCode UnknownBuiltinFunction {} = ErrorCode 9
+    errorCode UnknownBuiltinType {}     = ErrorCode 8
+    errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
 
 instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
     errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom InvalidBuiltinConstant {})))) _) = ErrorCode 10
