@@ -24,13 +24,14 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+import Data.Bits
 import Data.Functor
 import Data.Proxy
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import GHC.Natural.Extras
+import Numeric.Natural
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -332,7 +333,7 @@ instance Flat Index where
     -- decode from natural to word64
     decode = do
         n <- decode @Natural
-        case naturalToWord64Maybe n of
+        case toIntegralSized n of
             Nothing  -> fail $ "Index outside representable range: " ++ show n
             Just w64 -> pure $ Index w64
     -- to be exact, we must not let this be generically derived,
