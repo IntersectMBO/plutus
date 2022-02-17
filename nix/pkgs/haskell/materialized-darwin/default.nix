@@ -106,6 +106,7 @@
         "criterion".flags.embed-data-files = false;
         "criterion".flags.fast = false;
         "half".revision = (((hackage."half")."0.3.1").revisions).default;
+        "int-cast".revision = (((hackage."int-cast")."0.2.0.0").revisions).default;
         "monad-control".revision = (((hackage."monad-control")."1.0.3.1").revisions).default;
         "random".revision = (((hackage."random")."1.2.1").revisions).default;
         "code-page".revision = (((hackage."code-page")."0.2.1").revisions).default;
@@ -681,6 +682,7 @@
           "random".components.library.planned = lib.mkOverride 900 true;
           "code-page".components.library.planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.sublibs."lists-internal".planned = lib.mkOverride 900 true;
+          "int-cast".components.library.planned = lib.mkOverride 900 true;
           "process".components.library.planned = lib.mkOverride 900 true;
           "criterion".components.library.planned = lib.mkOverride 900 true;
           "half".components.library.planned = lib.mkOverride 900 true;
