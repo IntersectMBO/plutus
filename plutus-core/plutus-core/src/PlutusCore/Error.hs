@@ -58,7 +58,6 @@ data ParserError
     | InvalidBuiltinConstant T.Text T.Text SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
-makeClassyPrisms ''ParserError
 
 instance Show ParserError
     where
@@ -70,7 +69,6 @@ data UniqueError ann
     | FreeVariable Unique ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
-makeClassyPrisms ''UniqueError
 
 data NormCheckError tyname name uni fun ann
     = BadType ann (Type tyname uni ann) T.Text
@@ -83,7 +81,6 @@ deriving stock instance
     , GEq uni, Closed uni, uni `Everywhere` Eq
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
-makeClassyPrisms ''NormCheckError
 
 data TypeError term uni fun ann
     = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
@@ -96,7 +93,6 @@ data TypeError term uni fun ann
     | UnknownBuiltinFunctionE ann fun
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
-makeClassyPrisms ''TypeError
 
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.
@@ -104,7 +100,6 @@ data ParserErrorBundle
     = ParseErrorB (ParseErrorBundle T.Text ParserError)
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
-makeClassyPrisms ''ParserErrorBundle
 
 data Error uni fun ann
     = ParseErrorE ParserErrorBundle
@@ -114,24 +109,7 @@ data Error uni fun ann
     | FreeVariableErrorE FreeVariableError
     deriving stock (Eq, Generic, Functor)
     deriving anyclass (NFData)
-makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
-
-instance AsParserErrorBundle (Error uni fun ann) where
-    _ParserErrorBundle = _ParseErrorE
-
-instance AsUniqueError (Error uni fun ann) ann where
-    _UniqueError = _UniqueCoherencyErrorE
-
-instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann where
-    _TypeError = _TypeErrorE
-
-instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
-    _NormCheckError = _NormCheckErrorE
-
-instance AsFreeVariableError (Error uni fun ann) where
-    _FreeVariableError = _FreeVariableErrorE
 
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
@@ -233,3 +211,27 @@ instance HasErrorCode (Error _a _b _c) where
     errorCode (TypeErrorE e)            = errorCode e
     errorCode (NormCheckErrorE e)       = errorCode e
     errorCode (FreeVariableErrorE e)    = errorCode e
+
+makeClassyPrisms ''ParseError
+makeClassyPrisms ''ParserErrorBundle
+makeClassyPrisms ''UniqueError
+makeClassyPrisms ''NormCheckError
+makeClassyPrisms ''TypeError
+makeClassyPrisms ''Error
+
+instance AsParserErrorBundle (Error uni fun ann) where
+    _ParserErrorBundle = _ParseErrorE
+
+instance AsUniqueError (Error uni fun ann) ann where
+    _UniqueError = _UniqueCoherencyErrorE
+
+instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann where
+    _TypeError = _TypeErrorE
+
+instance (tyname ~ TyName, name ~ Name) =>
+            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
+    _NormCheckError = _NormCheckErrorE
+
+instance AsFreeVariableError (Error uni fun ann) where
+    _FreeVariableError = _FreeVariableErrorE
+
