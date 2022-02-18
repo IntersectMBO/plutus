@@ -134,7 +134,6 @@ toNamedDeBruijn prog =
     Left e  -> errorWithoutStackTrace $ show e
     Right p -> return p
 
-
 ---------------- Printing budgets and costs ----------------
 
 printBudgetStateBudget :: CekModel -> ExBudget -> IO ()

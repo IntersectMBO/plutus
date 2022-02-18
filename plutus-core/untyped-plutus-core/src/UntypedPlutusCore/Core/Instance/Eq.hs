@@ -32,6 +32,10 @@ deriving instance
 
 deriving instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
+   Eq (Term FakeNamedDeBruijn uni fun ann)
+
+deriving instance
+   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term DeBruijn uni fun ann)
 
 deriving instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
