@@ -23,6 +23,7 @@ module Universe.Core
     , ValueOf (..)
     , someValueOf
     , someValue
+    , someValueType
     , Contains (..)
     , Includes
     , DecodeUniM (..)
@@ -415,6 +416,9 @@ someValueOf uni = Some . ValueOf uni
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
+
+someValueType :: Some (ValueOf uni) -> SomeTypeIn uni
+someValueType (Some (ValueOf tag _)) = SomeTypeIn tag
 
 -- | A monad to decode types from a universe in.
 -- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off

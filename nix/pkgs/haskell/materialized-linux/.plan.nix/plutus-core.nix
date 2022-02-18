@@ -276,6 +276,7 @@
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/MkUPlc"
+          "UntypedPlutusCore/Check/Builtins"
           "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core/Type"

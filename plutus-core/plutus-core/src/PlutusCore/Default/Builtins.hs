@@ -37,6 +37,9 @@ import Flat.Encoder as Flat
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?
 -- | Default built-in functions.
+--
+-- When updating these, make sure to add them to the protocol version listing!
+-- See Note [New builtins and protocol versions]
 data DefaultFun
     -- Integers
     = AddInteger

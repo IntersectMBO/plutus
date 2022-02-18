@@ -18,6 +18,7 @@ module PlutusCore
     , ValueOf (..)
     , someValueOf
     , someValue
+    , someValueType
     , Esc
     , Contains (..)
     , Includes
