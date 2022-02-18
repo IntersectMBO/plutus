@@ -59,6 +59,7 @@ module Plutus.V2.Ledger.Api (
     , TxOut(..)
     , TxOutRef(..)
     , TxInInfo(..)
+    , OutputDatum (..)
     -- *** Intervals
     , Interval (..)
     , Extended (..)
@@ -92,6 +93,7 @@ module Plutus.V2.Ledger.Api (
     , RedeemerHash (..)
     , Datum (..)
     , DatumHash (..)
+    , ScriptHash (..)
     -- * Data
     , Data (..)
     , BuiltinData (..)
@@ -107,5 +109,7 @@ module Plutus.V2.Ledger.Api (
 ) where
 
 import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..))
+import Plutus.V1.Ledger.Scripts (ScriptHash (..))
 import Plutus.V2.Ledger.Contexts
+import Plutus.V2.Ledger.Tx (OutputDatum (..))
 import PlutusTx.AssocMap (Map, fromList)
