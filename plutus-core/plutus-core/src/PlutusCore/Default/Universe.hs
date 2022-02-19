@@ -1,27 +1,23 @@
 -- | The universe used by default and its instances.
 
-{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
+{-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE BlockArguments           #-}
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE InstanceSigs             #-}
-{-# LANGUAGE LambdaCase               #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE PatternSynonyms          #-}
-{-# LANGUAGE PolyKinds                #-}
-{-# LANGUAGE RankNTypes               #-}
-{-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE UndecidableSuperClasses  #-}
+{-# LANGUAGE BlockArguments        #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 -- effectfully: to the best of my experimentation, -O2 here improves performance, however by
 -- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
@@ -42,11 +38,9 @@ import PlutusCore.Evaluation.Result
 
 import Control.Applicative
 import Data.ByteString qualified as BS
-import Data.Kind
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.Exts (inline, oneShot)
-import GHC.TypeNats
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -103,68 +97,12 @@ pattern DefaultUniList uniA =
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
-data Peano = Z | S Peano
-
-type family Pred (n :: Peano) :: Peano where
-    Pred 'Z     = 'Z
-    Pred ('S n) = n
-
-type family NatToPeano (n :: Nat) where
-    NatToPeano 0 = 'Z
-    NatToPeano n = 'S (NatToPeano (n - 1))
-
-class UnfoldGEq (n :: Peano) f where
-    unfoldGeq :: f a -> f b -> Maybe (a :~: b)
-
-instance UnfoldGEq 'Z DefaultUni where
-    unfoldGeq = unfoldGeq @('S 'Z)
-    {-# NOINLINE unfoldGeq #-}
-
-type family Min n m where
-    Min ('S n) ('S m) = 'S (Min n m)
-    Min _ _ = 'Z
-
-instance (UnfoldGEq n DefaultUni, UnfoldGEq (Min ('S 'Z) n) DefaultUni) =>
-            UnfoldGEq ('S n) DefaultUni where
-    DefaultUniInteger     `unfoldGeq` DefaultUniInteger     = Just Refl
-    DefaultUniByteString  `unfoldGeq` DefaultUniByteString  = Just Refl
-    DefaultUniString      `unfoldGeq` DefaultUniString      = Just Refl
-    DefaultUniUnit        `unfoldGeq` DefaultUniUnit        = Just Refl
-    DefaultUniBool        `unfoldGeq` DefaultUniBool        = Just Refl
-    DefaultUniProtoList   `unfoldGeq` DefaultUniProtoList   = Just Refl
-    DefaultUniProtoPair   `unfoldGeq` DefaultUniProtoPair   = Just Refl
-    DefaultUniApply f1 a1 `unfoldGeq` DefaultUniApply f2 a2 = do
-        Refl <- unfoldGeq @n f1 f2
-        Refl <- unfoldGeq @(Min ('S 'Z) n) a1 a2
-        Just Refl
-    DefaultUniData        `unfoldGeq` DefaultUniData        = Just Refl
-    _ `unfoldGeq` _                                         = Nothing
-    {-# INLINE unfoldGeq #-}
-
-type MaxApplyDepth = NatToPeano 3
-
-instance GEq DefaultUni where
-    geq = unfoldGeq @MaxApplyDepth
-    {-# INLINE geq #-}
-
+deriveGEq ''DefaultUni
 deriveGCompare ''DefaultUni
 
-type GreaterThanOrEqualTo :: Peano -> Peano -> Constraint
-type family m `GreaterThanOrEqualTo` n where
-    'S m `GreaterThanOrEqualTo` 'S n = m `GreaterThanOrEqualTo` n
-    _    `GreaterThanOrEqualTo` 'Z   = ()
-
-type CountArgs :: forall k. k -> Peano
-type family CountArgs a where
-    CountArgs (a -> b) = 'S (CountArgs b)
-    CountArgs _        = 'Z
-
-class CountArgs k `GreaterThanOrEqualTo` MaxApplyDepth => NoMoreTypeFunctions (f :: k) where
-    -- | For pleasing the coverage checker.
-    noMoreTypeFunctions :: DefaultUni (Esc f) -> any
-
-instance NoMoreTypeFunctions (f :: a -> b -> c -> d) where
-    noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
+-- | For pleasing the coverage checker.
+noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
+noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 instance ToKind DefaultUni where
     toSingKind DefaultUniInteger        = knownKind
