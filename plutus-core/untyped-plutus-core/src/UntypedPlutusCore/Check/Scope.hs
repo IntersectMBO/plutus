@@ -45,3 +45,4 @@ checkScope = go 0
         Force _ t     -> go lvl t
         Delay _ t     -> go lvl t
         _             -> pure ()
+{-# INLINE checkScope #-}

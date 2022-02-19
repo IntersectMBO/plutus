@@ -16,6 +16,7 @@ main :: IO ()
 main = benchWith mkFullBM
   where
     mkFullBM file scriptBS = whnf (unsafeEvaluateCekNoEmit'
+                                  . throughCheckScope
                                   . toNamedDeBruijnTerm
                                   . unsafeUnflat file
                                   ) scriptBS

@@ -126,9 +126,10 @@ benchWith act = do
 
 throughCheckScope :: UPLC.HasIndex name => UPLC.Term name uni fun a -> UPLC.Term name uni fun a
 throughCheckScope t =
-     case runExcept $ checkScope @PLC.FreeVariableError t of
+     case checkScope @PLC.FreeVariableError t of
         Right _ -> t
         Left _  -> error "scopecheck failed"
+{-# INLINE throughCheckScope #-}
 
 unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 unsafeEvaluateCekNoEmit' =
