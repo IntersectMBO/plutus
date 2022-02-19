@@ -30,7 +30,7 @@ import PlutusPrelude
 import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (AsConstant (..), FromConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (HasConstantIn (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
@@ -129,11 +129,10 @@ data Term tyname name uni fun a =
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance AsConstant (Term tyname name uni fun ann) where
+instance HasConstantIn uni (Term tyname name uni fun ()) where
     asConstant _        (Constant _ val) = pure val
     asConstant mayCause _                = throwNotAConstant mayCause
 
-instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
