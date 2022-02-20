@@ -12,7 +12,6 @@ import PlutusPrelude
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Meaning
 import PlutusCore.Builtin.TypeScheme
-import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -26,10 +25,10 @@ import PlutusCore.Builtin.KnownType
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 data RuntimeScheme val (args :: [GHC.Type]) res where
     RuntimeSchemeResult
-        :: KnownTypeIn (UniOf val) val res
+        :: MakeKnown val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
-        :: KnownTypeIn (UniOf val) val arg
+        :: ReadKnown val arg
         => RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
     RuntimeSchemeAll

@@ -12,4 +12,5 @@ import PlutusCore.Builtin.KnownTypeAst as Export
 import PlutusCore.Builtin.Meaning as Export
 import PlutusCore.Builtin.Polymorphism as Export
 import PlutusCore.Builtin.Runtime as Export
+import PlutusCore.Builtin.TestKnown as Export
 import PlutusCore.Builtin.TypeScheme as Export

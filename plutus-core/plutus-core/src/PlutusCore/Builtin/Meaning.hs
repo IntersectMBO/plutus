@@ -125,12 +125,15 @@ class KnownMonotype val args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme val args res
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
-instance (res ~ res', KnownType val res) => KnownMonotype val '[] res res' where
+instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+            KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
-instance (KnownType val arg, KnownMonotype val args res a) =>
-            KnownMonotype val (arg ': args) res (arg -> a) where
+instance
+        ( KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        , KnownMonotype val args res a
+        ) => KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
