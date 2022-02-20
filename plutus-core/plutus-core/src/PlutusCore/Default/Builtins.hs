@@ -790,7 +790,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
-    {-# INLINEABLE toBuiltinMeaning #-}
+    -- Keeping the unfolding, so that this function can be inlined in 'toBuiltinsRuntime'.
+    {-# INLINABLE toBuiltinMeaning #-}
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're

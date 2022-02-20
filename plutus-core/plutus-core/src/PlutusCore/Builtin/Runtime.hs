@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns          #-}
-
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE GADTs                 #-}
