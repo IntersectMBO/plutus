@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns          #-}
+
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -70,7 +72,7 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
 
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
-typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
+typeSchemeToRuntimeScheme TypeSchemeResult = RuntimeSchemeResult
 typeSchemeToRuntimeScheme (TypeSchemeArrow rk schB) =
     RuntimeSchemeArrow rk $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
@@ -79,7 +81,7 @@ typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
+    BuiltinRuntime (typeSchemeToRuntimeScheme sch) f $ exF cost
 
 class ToBuiltinsRuntime fun val where
     -- Somehow getting rid of the @uni ~ UniOf val@ constraint by substituting @UniOf val@ for @uni@

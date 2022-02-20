@@ -30,6 +30,7 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
@@ -45,10 +46,6 @@ import Data.STRef
 import Data.Text (Text)
 import Universe
 
-import PlutusCore.Default
-
-instance ToBuiltinsRuntime DefaultFun (CkValue DefaultUni DefaultFun)
-
 infix 4 |>, <|
 
 -- See Note [Show instance for BuiltinRuntime] in the CEK machine.
@@ -62,6 +59,8 @@ data CkValue uni fun =
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving (Show)
+
+instance ToBuiltinsRuntime DefaultFun (CkValue DefaultUni DefaultFun)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is

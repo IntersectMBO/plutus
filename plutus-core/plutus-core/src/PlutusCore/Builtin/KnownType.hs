@@ -166,12 +166,13 @@ throwReadKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
     ReadKnownUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
     ReadKnownEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
 
-instance AsEvaluationFailure ReadKnownError where
-    _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
-
 instance AsUnliftingError ReadKnownError where
     _UnliftingError = _ReadKnownUnliftingError
 
+instance AsEvaluationFailure ReadKnownError where
+    _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
+
+-- | An 'UnliftingError' for case when two type tags don't match.
 typeMismatchError
     :: GShow uni
     => uni (Esc a)
@@ -182,6 +183,8 @@ typeMismatchError uniExp uniAct = fromString $ concat
     , "expected: " ++ gshow uniExp
     , "; actual: " ++ gshow uniAct
     ]
+-- If this function is inlined, it pollutes Core output a lot, so we mark it as non-inlineable,
+-- given that we don't care about performance here, since evaluation is about to be terminated.
 {-# NOINLINE typeMismatchError #-}
 
 -- See Note [Unlifting values of built-in types].

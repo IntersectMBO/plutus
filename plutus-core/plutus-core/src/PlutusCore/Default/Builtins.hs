@@ -33,6 +33,7 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
+import GHC.Exts (inline)
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?
