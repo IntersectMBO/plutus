@@ -106,6 +106,7 @@
           "PlutusCore/Builtin/Meaning"
           "PlutusCore/Builtin/Polymorphism"
           "PlutusCore/Builtin/Runtime"
+          "PlutusCore/Builtin/TestKnown"
           "PlutusCore/Builtin/TypeScheme"
           "PlutusCore/Core/Instance"
           "PlutusCore/Core/Instance/Eq"

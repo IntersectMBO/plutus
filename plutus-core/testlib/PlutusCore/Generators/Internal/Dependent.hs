@@ -4,12 +4,14 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module PlutusCore.Generators.Internal.Dependent
-    ( AsKnownType (..)
+    ( KnownType
+    , AsKnownType (..)
     , proxyAsKnownType
     ) where
 
@@ -26,6 +28,8 @@ liftOrdering :: Ordering -> GOrdering a b
 liftOrdering LT = GLT
 liftOrdering EQ = error "'liftOrdering': 'Eq'"
 liftOrdering GT = GGT
+
+type KnownType val a = (KnownTypeAst (UniOf val) a, MakeKnown val a)
 
 -- | Contains a proof that @a@ is a 'KnownType'.
 data AsKnownType term a where
