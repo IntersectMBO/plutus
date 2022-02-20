@@ -82,6 +82,8 @@ toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
     BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
 class ToBuiltinsRuntime fun val where
+    -- Somehow getting rid of the @uni ~ UniOf val@ constraint by substituting @UniOf val@ for @uni@
+    -- completely breaks inlining of 'toBuiltinMeaning'.
     -- | Calculate runtime info for all built-in functions given denotations of builtins
     -- and a cost model.
     toBuiltinsRuntime :: uni ~ UniOf val => CostingPart uni fun -> BuiltinsRuntime fun val
@@ -90,17 +92,6 @@ class ToBuiltinsRuntime fun val where
         => CostingPart uni fun -> BuiltinsRuntime fun val
     toBuiltinsRuntime cost =
         BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
-
--- -- Breaks inlining (???)
--- class ToBuiltinsRuntime fun val where
---     -- | Calculate runtime info for all built-in functions given denotations of builtins
---     -- and a cost model.
---     toBuiltinsRuntime :: CostingPart (UniOf val) fun -> BuiltinsRuntime fun val
---     default toBuiltinsRuntime
---         :: (HasConstant val, ToBuiltinMeaning (UniOf val) fun)
---         => CostingPart (UniOf val) fun -> BuiltinsRuntime fun val
---     toBuiltinsRuntime cost =
---         BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

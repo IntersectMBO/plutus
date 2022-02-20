@@ -484,8 +484,9 @@ instance FromConstant (CekValue uni fun) where
     fromConstant = VCon
 
 instance AsConstant (CekValue uni fun) where
-    asConstant _        (VCon val) = pure val
-    asConstant mayCause _          = throwNotAConstant mayCause
+    asConstant mayCause = \case
+        VCon val -> pure val
+        _        -> throwNotAConstant mayCause
 
 {-|
 The context in which the machine operates.

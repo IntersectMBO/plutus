@@ -123,13 +123,11 @@ type instance UniOf (CkValue uni fun) = uni
 
 instance FromConstant (CkValue uni fun) where
     fromConstant = VCon
-    {-# INLINE fromConstant #-}
 
 instance AsConstant (CkValue uni fun) where
     asConstant mayCause = \case
         VCon val -> pure val
         _        -> throwNotAConstant mayCause
-    {-# INLINE asConstant #-}
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
