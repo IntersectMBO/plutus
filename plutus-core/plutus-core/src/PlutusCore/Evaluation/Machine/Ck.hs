@@ -44,7 +44,6 @@ import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.STRef
 import Data.Text (Text)
-import Universe
 
 infix 4 |>, <|
 
