@@ -1,13 +1,12 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module PlutusCore.Builtin.HasConstant
     ( throwNotAConstant
-    , AsConstant (..)
-    , FromConstant (..)
-    , HasConstant
+    , HasConstant (..)
     , HasConstantIn
     ) where
 
@@ -24,7 +23,8 @@ throwNotAConstant
     => Maybe cause -> m r
 throwNotAConstant = throwingWithCause _UnliftingError "Not a constant"
 
-class AsConstant term where
+-- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
+class HasConstant term where
     -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
     -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
     -- is not a 'Constant'.
@@ -32,25 +32,15 @@ class AsConstant term where
         :: AsUnliftingError err
         => Maybe cause -> term -> Either (ErrorWithCause err cause) (Some (ValueOf (UniOf term)))
 
-class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
-
-instance AsConstant (Term TyName Name uni fun ann) where
-    asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = throwNotAConstant mayCause
-
-instance FromConstant (Term tyname name uni fun ()) where
-    fromConstant = Constant ()
-
--- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
---
--- 'AsConstant' and 'FromConstant' are separate, because we need only one instance of 'AsConstant'
--- per 'Term'-like type and 'FromConstant' requires as many instances as there are different kinds
--- of annotations (we're mostly interested in 'ExMemory' and @()@). Originally we had a single type
--- class but it proved to be less efficient than having two of them.
-type HasConstant term = (AsConstant term, FromConstant term)
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
+
+instance HasConstant (Term TyName Name uni fun ()) where
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = throwNotAConstant mayCause
+
+    fromConstant = Constant ()
