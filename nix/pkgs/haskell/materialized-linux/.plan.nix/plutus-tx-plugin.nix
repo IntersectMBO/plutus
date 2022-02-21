@@ -113,6 +113,7 @@
             "Plugin/Typeclasses/Spec"
             "Plugin/Typeclasses/Lib"
             "Plugin/Coverage/Spec"
+            "Plugin/Strict/Spec"
             "Plugin/Lib"
             "StdLib/Spec"
             "TH/Spec"

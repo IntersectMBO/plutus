@@ -21,6 +21,7 @@ module Plutus.V1.Ledger.Contexts
       TxInfo(..)
     , ScriptContext(..)
     , ScriptPurpose(..)
+    , TxId (..)
     , TxOut(..)
     , TxOutRef(..)
     , TxInInfo(..)
@@ -30,19 +31,14 @@ module Plutus.V1.Ledger.Contexts
     , findTxInByTxOutRef
     , findContinuingOutputs
     , getContinuingOutputs
-    -- ** Hashes (see note [Hashes in validator scripts])
     -- * Validator functions
-    -- ** Signatures
-    , txSignedBy
-    -- ** Transactions
     , pubKeyOutput
     , scriptOutputsAt
     , pubKeyOutputsAt
     , valueLockedBy
     , valuePaidTo
-    , adaLockedBy
-    , signsTransaction
     , spendsOutput
+    , txSignedBy
     , valueSpent
     , valueProduced
     , ownCurrencySymbol
@@ -56,17 +52,13 @@ import PlutusTx
 import PlutusTx.Prelude
 import Prettyprinter (Pretty (..), nest, viaShow, vsep, (<+>))
 
-import Plutus.V1.Ledger.Ada (Ada)
-import Plutus.V1.Ledger.Ada qualified as Ada
 import Plutus.V1.Ledger.Address (Address (..), toPubKeyHash)
-import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
 import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
-import Plutus.V1.Ledger.Crypto (PubKey (..), PubKeyHash (..), Signature (..))
+import Plutus.V1.Ledger.Crypto (PubKeyHash (..))
 import Plutus.V1.Ledger.DCert (DCert (..))
 import Plutus.V1.Ledger.Scripts
 import Plutus.V1.Ledger.Time (POSIXTimeRange)
-import Plutus.V1.Ledger.Tx (TxOut (..), TxOutRef (..))
-import Plutus.V1.Ledger.TxId
+import Plutus.V1.Ledger.Tx (TxId (..), TxOut (..), TxOutRef (..))
 import Plutus.V1.Ledger.Value (CurrencySymbol (..), Value)
 import Prelude qualified as Haskell
 
@@ -284,18 +276,6 @@ pubKeyOutputsAt pk p =
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: TxInfo -> PubKeyHash -> Value
 valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
-
-{-# INLINABLE adaLockedBy #-}
--- | Get the total amount of 'Ada' locked by the given validator in this transaction.
-adaLockedBy :: TxInfo -> ValidatorHash -> Ada
-adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
-
-{-# INLINABLE signsTransaction #-}
--- | Check if the provided signature is the result of signing the pending
---   transaction (without witnesses) with the given public key.
-signsTransaction :: Signature -> PubKey -> TxInfo -> Bool
-signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) TxInfo{txInfoId=TxId h} =
-    verifySignature pk h sig
 
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.

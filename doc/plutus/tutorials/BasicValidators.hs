@@ -12,7 +12,6 @@ import PlutusTx
 import PlutusTx.Lift
 import PlutusTx.Prelude
 
-import Plutus.V1.Ledger.Ada
 import Plutus.V1.Ledger.Contexts
 import Plutus.V1.Ledger.Crypto
 import Plutus.V1.Ledger.Scripts
@@ -80,22 +79,15 @@ validatePayment _ _ ctx =
         values = pubKeyOutputsAt myKeyHash txinfo
     -- 'fold' sums up all the values, we assert that there must be more
     -- than 1 Ada (more stuff is fine!)
-    in check $ fold values `geq` adaValueOf 1
+    in check $ valueOf (fold values) adaSymbol adaToken >= 1
 --- BLOCK5
--- We can serialize a 'Validator's, 'Datum's, and 'Redeemer's directly to CBOR
+-- We can serialize a 'Validator' directly to CBOR
 serializedDateValidator :: BSL.ByteString
 serializedDateValidator = serialise dateValidator
-serializedDate :: Date -> BSL.ByteString
-serializedDate d = serialise (Datum $ toBuiltinData d)
-serializedEndDate :: EndDate -> BSL.ByteString
-serializedEndDate d = serialise (Redeemer $ toBuiltinData d)
 
 -- The serialized forms can be written or read using normal Haskell IO functionality.
 showSerialised :: IO ()
-showSerialised = do
-  print serializedDateValidator
-  print $ serializedDate (Date 0)
-  print $ serializedEndDate Never
+showSerialised = print serializedDateValidator
 -- BLOCK6
 -- We can serialize 'CompiledCode' also
 serializedCompiledCode :: BS.ByteString

@@ -21,12 +21,7 @@ module Plutus.V1.Ledger.Time(
     , fromMilliSeconds
     ) where
 
-import Codec.Serialise.Class (Serialise)
 import Control.DeepSeq (NFData)
-import Data.Aeson (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, Value (Number))
-import Data.Aeson.Types (prependFailure, typeMismatch)
-import Data.Hashable (Hashable)
-import Data.Scientific (floatingOrInteger, scientific)
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Interval
 import PlutusTx qualified
@@ -39,33 +34,17 @@ import Prettyprinter (Pretty (pretty), (<+>))
 -- | This is a length of time, as measured by a number of milliseconds.
 newtype DiffMilliSeconds = DiffMilliSeconds Integer
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-  deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+  deriving anyclass (NFData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
 makeLift ''DiffMilliSeconds
 
 -- | POSIX time is measured as the number of milliseconds since 1970-01-01T00:00:00Z
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-  deriving anyclass (FromJSONKey, ToJSONKey, NFData)
+  deriving anyclass (NFData)
   deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-  deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
-
--- | Custom `FromJSON` instance which allows to parse a JSON number to a
--- 'POSIXTime' value. The parsed JSON value MUST be an 'Integer' or else the
--- parsing fails.
-instance FromJSON POSIXTime where
-  parseJSON v@(Number n) =
-      either (\_ -> prependFailure "parsing POSIXTime failed, " (typeMismatch "Integer" v))
-             (Haskell.return . POSIXTime)
-             (floatingOrInteger n :: Either Haskell.Double Integer)
-  parseJSON invalid =
-      prependFailure "parsing POSIXTime failed, " (typeMismatch "Number" invalid)
-
--- | Custom 'ToJSON' instance which allows to simply convert a 'POSIXTime'
--- value to a JSON number.
-instance ToJSON POSIXTime where
-  toJSON (POSIXTime n) = Number $ scientific n 0
+  deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral)
 
 makeLift ''POSIXTime
 

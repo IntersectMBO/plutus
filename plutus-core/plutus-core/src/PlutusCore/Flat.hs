@@ -21,7 +21,6 @@ module PlutusCore.Flat
 import PlutusCore.Core
 import PlutusCore.Data
 import PlutusCore.DeBruijn
-import PlutusCore.Lexer.Type
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
@@ -325,11 +324,6 @@ instance ( Flat ann
     decode = Program <$> decode <*> decode <*> decode
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
-
-instance Flat a => Flat (Token a)
--- instance Flat AlexPosn
-instance Flat Keyword
-instance Flat Special
 
 -- See Note [Index (Word64) (de)serialized through Natural]
 instance Flat Index where

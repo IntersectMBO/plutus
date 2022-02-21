@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -49,21 +48,21 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir ThunkRec.thunkRecursions $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir ThunkRec.thunkRecursions pTerm)
     [ "listFold"
     , "monoMap"
     ]
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) pTerm)
     [ "nonStrict1"
     ]
 
 letFloat :: TestNested
 letFloat =
     testNested "letFloat"
-    $ map (goldenPirM goldenFloatTC term)
+    $ map (goldenPirM goldenFloatTC pTerm)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -110,7 +109,7 @@ letFloat =
 recSplit :: TestNested
 recSplit =
     testNested "recSplit"
-    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
   [
     "truenonrec"
   , "mutuallyRecursiveTypes"
@@ -130,7 +129,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (runQuote . (Inline.inline mempty <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . (Inline.inline mempty <=< PLC.rename)) $ pTerm)
     [ "var"
     , "builtin"
     , "constant"
@@ -143,7 +142,7 @@ inline =
 beta :: TestNested
 beta =
     testNested "beta"
-    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
     [ "lamapp"
     , "absapp"
     , "multiapp"
@@ -153,7 +152,7 @@ beta =
 unwrapCancel :: TestNested
 unwrapCancel =
     testNested "unwrapCancel"
-    $ map (goldenPir Unwrap.unwrapCancel $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir Unwrap.unwrapCancel pTerm)
     -- Note: these examples don't typecheck, but we don't care
     [ "unwrapWrap"
     , "wrapUnwrap"
@@ -162,7 +161,7 @@ unwrapCancel =
 deadCode :: TestNested
 deadCode =
     testNested "deadCode"
-    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) pTerm)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -184,7 +183,7 @@ deadCode =
 retainedSize :: TestNested
 retainedSize =
     testNested "retainedSize"
-    $ map (goldenPir renameAndAnnotate $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir renameAndAnnotate pTerm)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -215,7 +214,7 @@ retainedSize =
 rename :: TestNested
 rename =
     testNested "rename"
-    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
     [ "allShadowedDataNonRec"
     , "allShadowedDataRec"
     , "paramShadowedDataNonRec"
